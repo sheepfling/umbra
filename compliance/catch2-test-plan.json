@@ -1,0 +1,679 @@
+{
+  "schema_version": 1,
+  "plan_id": "umbra-ieee1516.1-2025-catch2-plan",
+  "document_id": "hla-1516.1-2025",
+  "runner": "catch2",
+  "status": "active",
+  "notes": "This is planning input, not evidence. Disconnect has a real catalog entry and passed raw JUnit sidecar evidence; it now awaits protected review. Resign, getTimeFactory, federate lookup, object-class lookup, interaction-class lookup, inherited-attribute lookup, inherited-parameter lookup, dimension lookup/upper-bound services, interaction declaration state, bounded receive-order directed-interaction declaration/delivery, object-class attribute declaration state, unnamed object-instance registration/discovery and known-instance lookups, bounded regional object registration/association/subscription and overlap-filtered no-time reflection, limited receive-order Send Interaction/Receive Interaction, Update Attribute Values/Reflect Attribute Values, object-instance/object-class Request Attribute Value Update/Provide Attribute Value Update delivery, bounded 2025 ownership acquisition/divestiture transitions and callbacks, the mandatory transportation-type lookup pair, federation-list/report callbacks, initial time-role control, no-TSO Query GALT/Query LITS, and limited no-TSO GALT/NRG TAR scheduling have real Catch2 coverage in Umbra's non-installable embedded development profile, but they have no catalog record, JUnit sidecar, protected review, production package, or conformance claim.",
+  "tests": [
+    {
+      "id": "umbra-cpp-disconnect-integration",
+      "requirements_lab_mapping_id": "rti.service.disconnect",
+      "selected_cpp_api_surface_ids": ["api.2025.cpp.rtiambassador.disconnect.72028b809529"],
+      "test_case": "RTIambassador disconnect terminates an unjoined connection",
+      "tags": ["compliance", "rti.service.disconnect"],
+      "status": "implemented-awaiting-protected-review",
+      "next_action": "Submit the existing raw JUnit sidecar result for protected review; do not call this binding verified until that review accepts it."
+    },
+    {
+      "id": "umbra-cpp-resign-integration",
+      "requirements_lab_mapping_id": "m16.transition.federate-resign",
+      "selected_cpp_api_surface_ids": ["api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"],
+      "test_case": "Embedded federation-management services commit only a prevalidated federation definition",
+      "tags": ["development-profile", "m16.transition.federate-resign", "federation-management"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "Stabilize the native service and dependency packaging contract, then create a real JUnit sidecar and submit it for protected review before making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-connect-integration",
+      "requirements_lab_mapping_id": "rti.service.connect",
+      "candidate_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.connect.b1de99b1fee7",
+        "api.2025.cpp.rtiambassador.connect.ed13bdcc70d7",
+        "api.2025.cpp.rtiambassador.connect.fd07798bb3a7"
+      ],
+      "test_case": "planned standard connect behavior",
+      "tags": ["compliance", "rti.service.connect"],
+      "status": "implemented-awaiting-crosswalk-resolution",
+      "next_action": "Umbra tests all four standard overloads. The Requirements Lab still marks their aggregate C++ service mapping ambiguous, so resolve its selected API surfaces before creating a compliance catalog entry."
+    },
+    {
+      "id": "umbra-cpp-get-time-factory-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.gettimefactory.eba6ba05f07c"
+      ],
+      "test_case": "Embedded getTimeFactory returns the joined federation's selected time factory",
+      "tags": ["development-profile", "rti.service.get-time-factory"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports this exact C++ API surface but no implementation mapping. Resolve that crosswalk and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-federate-lookup-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getfederatehandle.cdf7c160e31e",
+        "api.2025.cpp.rtiambassador.getfederatename.7140b86ff2ad"
+      ],
+      "test_case": "Embedded federate lookup services resolve active identities within the joined federation",
+      "tags": ["development-profile", "federation-management", "rti.service.get-federate-handle", "rti.service.get-federate-name"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports the exact C++ declaration records but no implementation mapping. Stabilize the embedded membership/transport boundary and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-object-class-lookup-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
+        "api.2025.cpp.rtiambassador.getobjectclassname.5cacaba1ccbd"
+      ],
+      "test_case": "Embedded object-class lookup services use stable handles from the joined federation FOM",
+      "tags": ["development-profile", "federation-management", "rti.service.get-object-class-handle", "rti.service.get-object-class-name"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports the exact C++ declaration records but no implementation mapping. Stabilize FOM-module-handle lifecycle and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-interaction-class-lookup-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.getinteractionclassname.72630b5815b6"
+      ],
+      "test_case": "Embedded interaction-class lookup services use stable handles from the joined federation FOM",
+      "tags": ["development-profile", "federation-management", "rti.service.get-interaction-class-handle", "rti.service.get-interaction-class-name"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports the exact C++ declaration records but no implementation mapping. Stabilize FOM-module-handle lifecycle and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-lookup-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getattributehandle.aa05f6c28dcb",
+        "api.2025.cpp.rtiambassador.getattributename.c33d4c71afe4"
+      ],
+      "test_case": "Embedded attribute lookup resolves inherited definitions in the joined federation FOM",
+      "tags": ["development-profile", "federation-management", "rti.service.get-attribute-handle", "rti.service.get-attribute-name"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports the exact C++ declaration records but no implementation mapping. Stabilize FOM-module-handle lifecycle and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-parameter-lookup-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.getparametername.42e0650f3e73"
+      ],
+      "test_case": "Embedded parameter lookup resolves inherited definitions in the joined federation FOM",
+      "tags": ["development-profile", "federation-management", "rti.service.get-parameter-handle", "rti.service.get-parameter-name"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports the exact C++ declaration records but no implementation mapping. Stabilize FOM-module-handle lifecycle and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-interaction-declaration-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+        "api.2025.cpp.rtiambassador.unpublishinteractionclass.eebfcdf14b8a",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclass.4d5941b5cddf"
+      ],
+      "test_case": "Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
+      "tags": ["development-profile", "federation-management", "declaration-management", "rti.service.publish-interaction-class", "rti.service.unpublish-interaction-class", "rti.service.subscribe-interaction-class", "rti.service.unsubscribe-interaction-class"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This declaration state now feeds the limited receive-order interaction path. Add declaration advisory/MOM behavior, FOM sharing-policy enforcement, regions, timestamped delivery, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-object-class-attribute-declaration-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.publishobjectclassattributes.f9f6fdeb6157",
+        "api.2025.cpp.rtiambassador.unpublishobjectclassattributes.d1f7aabcadc7",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributes.048ff2ba5bba",
+        "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributes.dcc5d2b291dd"
+      ],
+      "test_case": "Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+      "tags": ["development-profile", "federation-management", "declaration-management", "object-management", "rti.service.publish-object-class-attributes", "rti.service.unpublish-object-class-attributes", "rti.service.subscribe-object-class-attributes", "rti.service.unsubscribe-object-class-attributes"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This explicit non-region declaration state now feeds unnamed and reservation-consuming named registration/discovery and rejects unpublication of an attribute while the bounded acquisition-if-available slice still requires that publication. Add whole-class declarations, complete implicit-privilege lifecycle behavior, remaining ownership, scope/update/reflect/delete behavior, update-rate enforcement, regions, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-object-instance-registration-discovery-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.registerobjectinstance.dfc149295a7d",
+        "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+        "api.2025.cpp.rtiambassador.getknownobjectclasshandle.34448f8372d0",
+        "api.2025.cpp.rtiambassador.getobjectinstancehandle.4dfe8e4f66fe",
+        "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4"
+      ],
+      "test_case": "Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
+      "tags": ["development-profile", "object-management", "callbacks", "rti.service.register-object-instance", "rti.service.get-known-object-class-handle", "rti.service.get-object-instance-handle", "rti.service.get-object-instance-name", "federate.callback.discover-object-instance"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only unnamed non-region registration, generated private names, discovery promotion, and known-instance support services. Separate deletion/removal, local-delete, and receive-order attribute-update/reflection slices consume its registration ownership state. Named registration now has a separate bounded entry; add timestamped/retraction, DDM scope, ownership transfer, FOM sharing policy, save/restore, resign-action disposition, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-object-instance-name-reservation-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.reserveobjectinstancename.f45e6871e13d",
+        "api.2025.cpp.rtiambassador.releaseobjectinstancename.2d87737a22e3",
+        "api.2025.cpp.rtiambassador.reservemultipleobjectinstancenames.6fac44e8cd2f",
+        "api.2025.cpp.rtiambassador.releasemultipleobjectinstancenames.fcc388c749d8",
+        "api.2025.cpp.federateambassador.objectinstancenamereservationsucceeded.311ec07d3cd3",
+        "api.2025.cpp.federateambassador.objectinstancenamereservationfailed.3bfbc677c299",
+        "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationsucceeded.c4a7d2f3a174",
+        "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationfailed.1def6acfecf1"
+      ],
+      "test_case": "Embedded 2025 object-instance name reservation commits and reports asynchronously",
+      "tags": [
+        "development-profile",
+        "object-management",
+        "callbacks",
+        "rti.service.reserve-object-instance-name",
+        "rti.service.release-object-instance-name",
+        "rti.service.reserve-multiple-object-instance-names",
+        "rti.service.release-multiple-object-instance-names",
+        "federate.callback.object-instance-name-reservation-succeeded",
+        "federate.callback.object-instance-name-reservation-failed",
+        "federate.callback.multiple-object-instance-name-reservation-succeeded",
+        "federate.callback.multiple-object-instance-name-reservation-failed"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only reservation/release state, official HLA. and empty-set guards, asynchronous single/multiple outcomes, atomic multiple release, generated-name collision avoidance, and resignation cleanup. Named registration consumes the successful reservation in its separate bounded entry; add timestamped/retraction behavior, DDM scope, ownership transfer, save/restore, remote transport, package support, JUnit/protected-review evidence, and Lab mapping resolution before any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-object-instance-named-registration-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.registerobjectinstance.b7f8e9ace8d0",
+        "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.808c7451e4a8",
+        "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+        "api.2025.cpp.rtiambassador.getknownobjectclasshandle.34448f8372d0",
+        "api.2025.cpp.rtiambassador.getobjectinstancehandle.4dfe8e4f66fe",
+        "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4"
+      ],
+      "test_case": "Embedded 2025 named object-instance registration consumes reservations",
+      "tags": [
+        "development-profile",
+        "object-management",
+        "callbacks",
+        "rti.service.register-object-instance-named",
+        "rti.service.register-object-instance-with-regions-named",
+        "rti.service.reserve-object-instance-name",
+        "rti.service.release-object-instance-name",
+        "federate.callback.discover-object-instance"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only reservation-consuming named registration for non-region and regional object instances, reservation ownership/consumption, publication-failure preservation, uniform named lookup/discovery, and release-before-registration reuse. Add timestamped/retraction behavior, default-region synthesis, ownership transfer, save/restore, resign-action disposition, remote transport, package support, JUnit/protected-review evidence, and Lab mapping resolution before any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-regional-object-attribute-routing-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+        "api.2025.cpp.rtiambassador.associateregionsforupdates.94029e2e8def",
+        "api.2025.cpp.rtiambassador.unassociateregionsforupdates.8380dd561821",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+        "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributeswithregions.4ff75062570b",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+        "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09"
+      ],
+      "test_case": "Embedded regional object attributes filter 2025 no-time updates by overlap",
+      "tags": [
+        "development-profile",
+        "object-management",
+        "ddm",
+        "callbacks",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.associate-regions-for-updates",
+        "rti.service.unassociate-regions-for-updates",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.unsubscribe-object-class-attributes-with-regions",
+        "rti.service.update-attribute-values",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only no-name regional object registration, additive association/unassociation, committed-region overlap discovery/reflection, and optional sent-region callback signaling in the non-timestamped profile. The separate named-registration and Attribute Scope Advisory entries cover their bounded slices; add default-region synthesis, regional Request Attribute Value Update, timestamped/retraction behavior, relaxed DDM, update-rate enforcement, ownership transfer, save/restore, remote transport, package support, JUnit/protected-review evidence, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-object-attribute-scope-advisory-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.federateambassador.attributesinscope.1fdbc4ff12e6",
+        "api.2025.cpp.federateambassador.attributesoutofscope.93567b94efd5",
+        "api.2025.cpp.rtiambassador.getattributescopeadvisoryswitch.8032f05a9ca8",
+        "api.2025.cpp.rtiambassador.setattributescopeadvisoryswitch.b845eb0f2e89",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+        "api.2025.cpp.rtiambassador.associateregionsforupdates.94029e2e8def",
+        "api.2025.cpp.rtiambassador.unassociateregionsforupdates.8380dd561821",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributes.048ff2ba5bba",
+        "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributes.dcc5d2b291dd",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+        "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributeswithregions.4ff75062570b"
+      ],
+      "test_case": "Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+      "tags": [
+        "development-profile",
+        "object-management",
+        "ddm",
+        "callbacks",
+        "rti.service.commit-region-modifications",
+        "rti.service.associate-regions-for-updates",
+        "rti.service.unassociate-regions-for-updates",
+        "rti.service.subscribe-object-class-attributes",
+        "rti.service.unsubscribe-object-class-attributes",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.unsubscribe-object-class-attributes-with-regions",
+        "rti.service.get-attribute-scope-advisory-switch",
+        "rti.service.set-attribute-scope-advisory-switch",
+        "federate.callback.attributes-in-scope",
+        "federate.callback.attributes-out-of-scope"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only known object instances whose committed regional overlap, update-region association, or ordinary/regional subscription changes, the per-federate Attribute Scope Advisory Switch, one grouped callback per transition, immediate/evoked delivery, and stale queued-transition suppression. Keep default-region synthesis, relaxed DDM, timestamped/retraction behavior, update-rate enforcement, ownership transfer, save/restore, remote transport, package support, JUnit/protected-review evidence, and Lab mapping resolution separate before any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-object-instance-deletion-removal-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.deleteobjectinstance.48498ca52fcc",
+        "api.2025.cpp.federateambassador.removeobjectinstance.719ea7cfb6a5"
+      ],
+      "test_case": "Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
+      "tags": ["development-profile", "object-management", "callbacks", "rti.service.delete-object-instance", "federate.callback.remove-object-instance"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only non-region, non-timestamped deletion by the current HLAprivilegeToDeleteObject owner and no-time removal delivery to known recipients. Separate local-delete and receive-order attribute-update/reflection slices share its known-instance foundation. Add timestamped/retraction behavior, ownership transfer and divestiture/acquisition, DDM, FOM sharing policy, save/restore, resign-action disposition, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-receive-order-attribute-update-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09"
+      ],
+      "test_case": "Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+      "tags": ["development-profile", "object-management", "callbacks", "rti.service.update-attribute-values", "federate.callback.reflect-attribute-values"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The implementation covers only the non-timestamped, non-region Update Attribute Values overload and no-region Reflect Attribute Values callback, with FOM transport passels limited to HLAreliable and HLAbestEffort. Add timestamped/retraction behavior, DDM region routing, update-rate reduction, ownership transfer, custom transportation implementation, FOM sharing-policy enforcement, save/restore, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-local-delete-object-instance-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.localdeleteobjectinstance.912c2f08a24c"
+      ],
+      "test_case": "Embedded Local Delete Object Instance preserves 2025 federation state",
+      "tags": ["development-profile", "object-management", "rti.service.local-delete-object-instance"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers the bounded non-timestamped local-delete transition: only the invoking federate forgets a known object instance, the federation-wide object and other federates remain intact, and a later eligible subscription can rediscover it. It validates the FederateOwnsAttributes and OwnershipAcquisitionPending preconditions. Add timestamped/local-delete interaction behavior, DDM, save/restore, resign-action disposition, remote transport, package support, and Lab mapping resolution before any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-value-update-request-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.requestattributevalueupdate.375c19e701d1",
+        "api.2025.cpp.federateambassador.provideattributevalueupdate.926496a1ca57"
+      ],
+      "test_case": "Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+      "tags": ["development-profile", "object-management", "rti.service.request-attribute-value-update", "federate.callback.provide-attribute-value-update"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only the object-instance request overload and its bounded owner solicitation callback; the sibling object-class overload is tracked separately. It implements neither regional requests nor automatic provision or an ensuing value-update response. Add those forms, timestamped/retraction behavior, DDM, update-rate reduction, ownership transfer, FOM sharing policy, save/restore, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-object-class-attribute-value-update-request-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.requestattributevalueupdate.ffb55724e197",
+        "api.2025.cpp.federateambassador.provideattributevalueupdate.926496a1ca57"
+      ],
+      "test_case": "Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+      "tags": ["development-profile", "object-management", "rti.service.request-attribute-value-update", "federate.callback.provide-attribute-value-update"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only the nonregional object-class request overload and bounded owner solicitation over registered instances at that class and its subclasses. It implements neither regional requests nor automatic provision or an ensuing value-update response. Add those forms, timestamped/retraction behavior, DDM, update-rate reduction, ownership transfer, FOM sharing policy, save/restore, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-regional-attribute-value-update-request-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.requestattributevalueupdatewithregions.be07d650bd8d",
+        "api.2025.cpp.federateambassador.provideattributevalueupdate.926496a1ca57"
+      ],
+      "test_case": "Embedded regional Request Attribute Value Update filters 2025 owner solicitations",
+      "tags": ["development-profile", "object-management", "ddm", "rti.service.request-attribute-value-update-with-regions", "federate.callback.provide-attribute-value-update"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This bounded class-level regional form validates committed region ownership/context, empty region-pair no-op behavior, overlap-consistent provider solicitation, default-region eligibility, copied tags, and callback-entry rechecks. Provider responses remain explicit user actions; add resulting reflection, timestamped/retraction behavior, advisory scope transitions, relaxed DDM, ownership transfer, save/restore, remote transport, package support, catalog/JUnit/protected-review evidence, and Lab mapping resolution before making any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-value-update-response-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.requestattributevalueupdate.375c19e701d1",
+        "api.2025.cpp.federateambassador.provideattributevalueupdate.926496a1ca57",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09"
+      ],
+      "test_case": "Embedded Request Attribute Value Update supports a 2025 provider response",
+      "tags": ["development-profile", "object-management", "callbacks", "rti.service.request-attribute-value-update", "rti.service.update-attribute-values", "federate.callback.provide-attribute-value-update", "federate.callback.reflect-attribute-values"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers a bounded non-timestamped, non-region response: a provider invokes Update Attribute Values from inside Provide Attribute Value Update and the requester receives Reflect Attribute Values with the response tag, producer, and mandatory transport. Add regional requests, timestamped/retraction behavior, DDM, update-rate reduction, custom transport, FOM sharing policy, save/restore, remote transport, package support, and Lab mapping resolution before any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-query-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.queryattributeownership.8e2fc379ef34",
+        "api.2025.cpp.federateambassador.informattributeownership.6fd57319c7ea",
+        "api.2025.cpp.federateambassador.attributeisnotowned.83a830c0882b"
+      ],
+      "test_case": "Embedded Query Attribute Ownership reports 2025 federate and unowned attributes",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.query-attribute-ownership", "federate.callback.inform-attribute-ownership", "federate.callback.attribute-is-not-owned"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only Query Attribute Ownership results represented by the current runtime: a joined federate owner or an attribute available for acquisition, plus nullification of queued reports after receive-order Remove Object Instance begins. Add an explicit RTI-owned state with the ownership acquisition/divestiture lifecycle, full resign-action disposition, timestamped/retraction behavior, DDM, FOM sharing policy, save/restore, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-check-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.isattributeownedbyfederate.679939b7ba3f"
+      ],
+      "test_case": "Embedded Is Attribute Owned By Federate reads 2025 ownership state",
+      "tags": ["development-profile", "ownership-management", "rti.service.is-attribute-owned-by-federate"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only the read-only answer for an invoking joined federate, using current registration-established ownership and the known-instance/known-class boundary. Add RTI-owned state, ownership acquisition/divestiture, full resign-action disposition, timestamped/retraction behavior, DDM, FOM sharing policy, save/restore, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-acquisition-if-available-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321"
+      ],
+      "test_case": "Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.attribute-ownership-acquisition-if-available", "federate.callback.attribute-ownership-acquisition-notification", "federate.callback.attribute-ownership-unavailable"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only an invoking joined federate's nonregional acquisition-if-available request: a private pending Willing to Acquire reservation, repeat-WTA no-op semantics with separately admitted additional attributes, the paired OwnershipAcquisitionPending unpublication guard, callback-time transfer of attributes still unowned by joined federates, matching unavailable reports for remote-owned attributes, and deletion/resignation cancellation. Add remaining regular and negotiated acquisition, all divestiture flows, RTI-owned state, full resign-action disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-acquisition-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae",
+        "api.2025.cpp.rtiambassador.attributeownershipreleasedenied.7b1cc2290e39",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321"
+      ],
+      "test_case": "Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.attribute-ownership-acquisition", "federate.callback.request-attribute-ownership-release", "rti.service.attribute-ownership-release-denied", "federate.callback.attribute-ownership-acquisition-notification", "federate.callback.attribute-ownership-unavailable"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers the bounded nonregional regular acquisition path: private Acquisition Pending state, If Available override, repeat no-op behavior, owner-side Request Attribute Ownership Release with the acquisition tag, callback-time acquisition of an unowned attribute, the paired OwnershipAcquisitionPending declaration guard, Release Denied with its own unavailable tag, accepted cancellation confirmation, and removal cancellation. Add competing in-flight cancellation races, unconditional/negotiated divestiture, RTI-owned state, full resign-action disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae",
+        "api.2025.cpp.rtiambassador.attributeownershipreleasedenied.7b1cc2290e39",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321"
+      ],
+      "test_case": "Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.attribute-ownership-acquisition", "federate.callback.request-attribute-ownership-release", "rti.service.attribute-ownership-release-denied", "federate.callback.attribute-ownership-unavailable"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This specifically verifies two regular acquirers of one joined-owner attribute: each receives at most one owner-side release request, and one Release Denied invocation preserves ownership while terminating both requests with unavailable callbacks. It is not an acquisition arbitration, competing cancellation race, divestiture, RTI-owned, resign-disposition, timestamped, DDM, save/restore, remote-transport, package, catalog, or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-acquisition-cancellation-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.rtiambassador.cancelattributeownershipacquisition.2c855e13192e",
+        "api.2025.cpp.federateambassador.confirmattributeownershipacquisitioncancellation.7eb7a984121a"
+      ],
+      "test_case": "Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.attribute-ownership-acquisition", "rti.service.attribute-ownership-acquisition-if-available", "rti.service.cancel-attribute-ownership-acquisition", "federate.callback.confirm-attribute-ownership-acquisition-cancellation"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers a bounded accepted cancellation of still-pending regular acquisition: it rejects an If Available request, suppresses stale acquisition/release work, retains the OwnershipAcquisitionPending publication guard through one grouped confirmation callback, and permits unpublication at that callback boundary. Add in-flight cancellation race outcomes that yield acquisition notification or unavailable, remaining regular/negotiated acquisition, remaining divestiture flows, RTI-owned state, full resign-action disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-unconditional-attribute-ownership-divestiture-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
+        "api.2025.cpp.federateambassador.requestattributeownershipassumption.51900ab87732",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f"
+      ],
+      "test_case": "Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.unconditional-attribute-ownership-divestiture", "federate.callback.request-attribute-ownership-assumption", "rti.service.attribute-ownership-acquisition", "rti.service.attribute-ownership-acquisition-if-available", "federate.callback.attribute-ownership-acquisition-notification"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers a supplied-set, owner-validated Unconditional Attribute Ownership Divestiture: it immediately makes the entire validated set unowned, lets an existing regular requester and an existing If Available requester keep their normal acquisition work, groups each currently eligible non-pending recipient's offer into one Request Attribute Ownership Assumption callback with the divestiture tag, excludes a known but unpublished candidate, and suppresses a callback whose recipient stops publishing before delivery. An offer does not itself transfer ownership; the test uses a later If Available request to establish ownership. Add a continuing owner-search lifecycle for later joins/discoveries/publications, negotiated divestiture and confirmation, RTI-owned state, resignation disposition, save/restore, DDM, timestamped/retraction behavior, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-divestiture-if-wanted-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f"
+      ],
+      "test_case": "Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.attribute-ownership-divestiture-if-wanted", "rti.service.attribute-ownership-acquisition", "rti.service.attribute-ownership-acquisition-if-available", "federate.callback.attribute-ownership-acquisition-notification"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers a supplied-set, owner-validated Divestiture If Wanted invocation: no pending acquirer returns an empty result, eligible regular and If Available acquirers receive only the returned attributes, ownership moves synchronously, stale old-owner work is suppressed, and the divestiture tag reaches each acquisition notification. The selected acquirer's publication remains guarded until notification entry. Add Request Attribute Ownership Assumption, unconditional and negotiated divestiture, cancellation of negotiated divestiture, full multi-acquirer policy review, RTI-owned state, resign disposition, save/restore, DDM, timestamped/retraction behavior, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-divestiture-if-wanted-mixed-acquirer-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae",
+        "api.2025.cpp.rtiambassador.attributeownershipreleasedenied.7b1cc2290e39",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321"
+      ],
+      "test_case": "Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.attribute-ownership-divestiture-if-wanted", "rti.service.attribute-ownership-acquisition", "rti.service.attribute-ownership-acquisition-if-available", "federate.callback.attribute-ownership-acquisition-notification", "federate.callback.request-attribute-ownership-release", "rti.service.attribute-ownership-release-denied", "federate.callback.attribute-ownership-unavailable"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This specifically documents the bounded serial profile's deterministic earliest-accepted choice across one If Available and one later regular requester. It verifies that the later regular request is retained and re-planned at the selected new owner after notification entry. This is not a standards-level arbitration priority, nor a complete divestiture, RTI-owned, resign-disposition, save/restore, DDM, timestamped, remote-transport, package, catalog, or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-negotiated-attribute-ownership-divestiture-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.negotiatedattributeownershipdivestiture.2d5609527bba",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.federateambassador.requestdivestitureconfirmation.b3287f4b4dcd",
+        "api.2025.cpp.rtiambassador.confirmdivestiture.d9a21f2df306",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.rtiambassador.cancelnegotiatedattributeownershipdivestiture.d5cebad28d8c",
+        "api.2025.cpp.rtiambassador.cancelattributeownershipacquisition.2c855e13192e",
+        "api.2025.cpp.federateambassador.confirmattributeownershipacquisitioncancellation.7eb7a984121a"
+      ],
+      "test_case": "Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
+      "tags": ["development-profile", "ownership-management", "callbacks", "rti.service.negotiated-attribute-ownership-divestiture", "rti.service.confirm-divestiture", "rti.service.cancel-negotiated-attribute-ownership-divestiture", "rti.service.attribute-ownership-acquisition", "federate.callback.request-divestiture-confirmation", "federate.callback.attribute-ownership-acquisition-notification"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This exercises a bounded 2025 negotiated-divestiture transition: the current owner stays owner while waiting, a current or later regular acquirer receives one Request Divestiture Confirmation with the acquisition tag, successful Confirm Divestiture moves ownership and forwards its tag to Acquisition Notification, and cancellation returns to ordinary regular-release planning without duplicate owner callbacks. It also covers the official NoAcquisitionPending outcome after the selected regular acquirer cancels. Add the complete ongoing owner search, Willing-to-Acquire candidate selection, negotiated acquisition, RTI-owned state, full resign disposition, save/restore, DDM, timestamped/retraction behavior, remote transport, package support, catalog/JUnit/protected-review evidence, and Lab mapping resolution before making any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-transportation-type-lookup-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.gettransportationtypehandle.75110749dc30",
+        "api.2025.cpp.rtiambassador.gettransportationtypename.c3b15305d98e"
+      ],
+      "test_case": "Embedded transportation type lookup exposes the mandatory 2025 support pair",
+      "tags": ["development-profile", "federation-management", "transportation", "rti.service.get-transportation-type-handle", "rti.service.get-transportation-type-name"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This implements only the IEEE-required HLAreliable and HLAbestEffort name/handle pair. Limited receive-order interaction and attribute-update paths now apply FOM-selected mandatory types; add custom transport policy, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-dimension-lookup-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getavailabledimensionsforobjectclass.75b6c46cce37",
+        "api.2025.cpp.rtiambassador.getavailabledimensionsforinteractionclass.48fb2be6b10f",
+        "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+        "api.2025.cpp.rtiambassador.getdimensionname.7b8202e09064",
+        "api.2025.cpp.rtiambassador.getdimensionupperbound.f13eafb4053e"
+      ],
+      "test_case": "Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+      "tags": ["development-profile", "federation-management", "ddm-foundation", "rti.service.get-available-dimensions-for-object-class", "rti.service.get-available-dimensions-for-interaction-class", "rti.service.get-dimension-handle", "rti.service.get-dimension-name", "rti.service.get-dimension-upper-bound"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This slice covers only FOM-defined dimension metadata, stable handle/name/upper-bound lookup, and inherited available-dimension sets. Add create/delete/modify region state, range validation, DDM routing, timestamped/retraction behavior, save/restore, remote transport, package support, Lab mapping resolution, and protected evidence before making any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-region-lifecycle-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+        "api.2025.cpp.rtiambassador.deleteregion.6470d9fe34cf",
+        "api.2025.cpp.rtiambassador.getdimensionhandleset.dad4d47dece7",
+        "api.2025.cpp.rtiambassador.getrangebounds.c5db50c46578",
+        "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+        "api.2025.cpp.rtiambassador.decoderegionhandle.cc62da679ba2"
+      ],
+      "test_case": "Embedded 2025 region templates preserve pending and committed range state",
+      "tags": ["development-profile", "federation-management", "ddm", "region-lifecycle", "range-bounds", "2025"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This bounded slice covers only private region-template/specification state, pending and committed range values, FOM upper-bound validation, owner-scoped support lookups, deletion of unused regions, and handle decoding. Add region realizations, associations, overlap filtering, routing, timestamped/retraction behavior, save/restore, remote transport, package support, Lab mapping resolution, JUnit/protected evidence, and conformance work before making any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-interaction-region-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclasswithregions.3754796e79b3",
+        "api.2025.cpp.rtiambassador.sendinteractionwithregions.dc826d06f8e1"
+      ],
+      "test_case": "Embedded regional interaction subscriptions filter 2025 receive-order sends",
+      "tags": [
+        "development-profile",
+        "interaction-management",
+        "ddm",
+        "callbacks",
+        "rti.service.subscribe-interaction-class-with-regions",
+        "rti.service.unsubscribe-interaction-class-with-regions",
+        "rti.service.send-interaction-with-regions",
+        "federate.callback.receive-interaction"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This slice covers only committed region context, independent regional interaction subscriptions, strict 2025 region-set overlap filtering, empty-set no-op behavior, callback-entry rechecks, and no-time Receive Interaction callbacks. Add object-instance regional registration/association, object-class attribute regional services, Request Attribute Value Update With Regions, timestamped/retraction behavior, relaxed DDM, realization state, save/restore, remote transport, package support, Lab mapping resolution, JUnit/protected evidence, and conformance work before making any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-receive-order-interaction-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+        "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1"
+      ],
+      "test_case": "Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+      "tags": ["development-profile", "interaction-management", "callbacks", "rti.service.send-interaction", "federate.callback.receive-interaction"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The implementation covers only the non-timestamped, non-region Send Interaction overload and no-region Receive Interaction callback. Add timestamped/retraction behavior, DDM region routing, FOM sharing-policy enforcement, ordering, save/restore, remote transport, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-directed-interaction-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.publishobjectclassdirectedinteractions.39b5cf61292d",
+        "api.2025.cpp.rtiambassador.unpublishobjectclassdirectedinteractions.b55471e6a1ae",
+        "api.2025.cpp.rtiambassador.unpublishobjectclassdirectedinteractions.0a6bcc7d4a86",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassdirectedinteractions.4c460a3c84d8",
+        "api.2025.cpp.rtiambassador.unsubscribeobjectclassdirectedinteractions.d72034c56bf3",
+        "api.2025.cpp.rtiambassador.unsubscribeobjectclassdirectedinteractions.de444c14679b",
+        "api.2025.cpp.rtiambassador.senddirectedinteraction.87506244c238",
+        "api.2025.cpp.federateambassador.receivedirectedinteraction.4ad3f71941e8"
+      ],
+      "test_case": "Embedded directed interactions route to known object-class subscribers",
+      "tags": [
+        "development-profile",
+        "interaction-management",
+        "callbacks",
+        "directed",
+        "rti.service.publish-object-class-directed-interactions",
+        "rti.service.unpublish-object-class-directed-interactions",
+        "rti.service.subscribe-object-class-directed-interactions",
+        "rti.service.unsubscribe-object-class-directed-interactions",
+        "rti.service.send-directed-interaction",
+        "federate.callback.receive-directed-interaction"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This bounded slice covers only receive-order, non-timestamped, non-DDM directed sends to known target objects, declaration fences, sender exclusion, tag/producer/mandatory transport propagation, and immediate/evoked callback lifecycle. The official universally argument is present in the signature, but universal-subscription semantics remain deferred. Add timestamped/retraction behavior, directed DDM, ordering, FOM sharing-policy enforcement, target-departure cleanup, save/restore, remote transport, package support, Lab mapping resolution, JUnit/protected evidence, and conformance work before making any validation or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-list-federation-executions-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.listfederationexecutions.bfcff0e2b459",
+        "api.2025.cpp.federateambassador.reportfederationexecutions.fb91ce7e3a58"
+      ],
+      "test_case": "Embedded federation-list services dispatch standards reports in both callback models",
+      "tags": ["development-profile", "callbacks", "rti.service.list-federation-executions"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports exact C++ declaration records but no implementation mapping. Stabilize callback lifetime/ordering and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-list-federation-execution-members-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.listfederationexecutionmembers.8553d128238b",
+        "api.2025.cpp.federateambassador.reportfederationexecutionmembers.86b8261e4ef1",
+        "api.2025.cpp.federateambassador.reportfederationexecutiondoesnotexist.35ae8e212c4c"
+      ],
+      "test_case": "Embedded federation-list services dispatch standards reports in both callback models",
+      "tags": ["development-profile", "callbacks", "rti.service.list-federation-execution-members"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The Lab exports exact C++ declaration records but no implementation mapping. Stabilize callback lifetime/ordering and package the profile before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-time-advance-request-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.querylogicaltime.cb29c063787c",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "test_case": "Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
+      "tags": ["development-profile", "time-management", "callbacks", "rti.service.time-advance-request", "rti.service.query-logical-time", "federate.callback.time-advance-grant"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "A limited no-TSO GALT/NRG scheduler now releases eligible TAR callbacks across federates. Add timestamped queues, transport ordering, full GALT/LITS inputs, remaining advance modes, stable packaging, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-time-role-control-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.disabletimeconstrained.0953fcf61ce5",
+        "api.2025.cpp.rtiambassador.querylookahead.dd011292fd42",
+        "api.2025.cpp.federateambassador.timeregulationenabled.ff68bfc39f00",
+        "api.2025.cpp.federateambassador.timeconstrainedenabled.c5eb5c65565d"
+      ],
+      "test_case": "Embedded time-role services keep enable requests callback-gated before TSO support",
+      "tags": ["development-profile", "time-management", "callbacks", "rti.service.enable-time-regulation", "rti.service.enable-time-constrained", "rti.service.query-lookahead", "federate.callback.time-regulation-enabled", "federate.callback.time-constrained-enabled"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "Role state changes now re-evaluate the limited no-TSO TAR scheduler where they affect eligibility. Add timestamped queues, transport ordering, Modify Lookahead, full enable-time coordination, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-no-tso-time-grant-scheduler-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+        "api.2025.cpp.rtiambassador.disabletimeconstrained.0953fcf61ce5",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "test_case": "Embedded constrained TAR waits for GALT and is released by a regulator advance",
+      "tags": ["development-profile", "time-management", "galt", "non-regulated-grant", "callbacks", "rti.service.time-advance-request", "federate.callback.time-advance-grant"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This covers only TAR release under a no-TSO GALT/NRG policy. Add delivered/queued/in-transit timestamp inputs, message ordering, other advance modes, async delivery, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-time-bounds-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.querygalt.f265712267b1",
+        "api.2025.cpp.rtiambassador.querylits.e477a99502bd"
+      ],
+      "test_case": "Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+      "tags": ["development-profile", "time-management", "galt", "lits", "rti.service.query-galt", "rti.service.query-lits"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The same no-TSO bounds now feed a limited TAR scheduler, but remain read-only queries rather than a complete time-management coordinator. Add delivered/queued/in-transit TSO inputs, transport ordering, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-three-federate-galt-resign-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.querygalt.f265712267b1",
+        "api.2025.cpp.rtiambassador.querylits.e477a99502bd",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
+      ],
+      "test_case": "Embedded three-federate GALT tracks the minimum regulator and resignation",
+      "tags": ["development-profile", "time-management", "galt", "lits", "callbacks", "rti.service.query-galt", "rti.service.query-lits", "rti.service.resign-federation-execution"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This executes the sibling-inspired three-federate minimum/resign topology through official C++ APIs, but it remains a no-TSO GALT/LITS slice. Add timestamped queues, transport ordering, remaining advance modes, package support, and Lab mapping resolution before creating a JUnit catalog entry or making any validation claim."
+    },
+    {
+      "id": "umbra-cpp-variable-length-data-sdk-baseline",
+      "official_header_source": "RTI/VariableLengthData.h",
+      "requirements_lab_api_surface_status": "support-type declarations are not exported as standalone API surfaces",
+      "test_case": "VariableLengthData preserves caller copies, materializes copies of borrowed storage, and releases adopted storage exactly once",
+      "tags": ["baseline", "support", "variable-length-data", "sdk-consumability"],
+      "status": "implemented-sdk-consumability-not-conformance-evidence",
+      "next_action": "Keep the installed-package client smoke green. Add BasicDataElements byte-vector tests only after their IEEE encoding source and independent golden vectors are reviewed; do not treat this support-type test as a public RTI-service or conformance result."
+    }
+  ]
+}

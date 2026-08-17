@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only Umbra's bounded non-regional timestamped Delete Object Instance and timestamped Remove Object Instance path in the non-installable 2025 development profile. It exercises one time-constrained recipient, lower-bound validation, pending-delete retraction with object reconstitution, exact-bound callback delivery before Time Advance Grant, official timestamp/order/retraction fields, the supplied tag and producing federate, and sender callback exclusion. It deliberately excludes mixed immediate/TSO fanout reconciliation, timestamped regional or directed forms, alternate advance modes, request-retraction callbacks, transport, save/restore, resign-action disposition, package/catalog evidence, and conformance.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-delete-identifies-known-instance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+      "clause_id": "clause-6.16",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoObjectDeletion",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-requires-delete-privilege",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+      "clause_id": "clause-6.16",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planTsoObjectInstanceDeletion",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-removes-other-known-federate",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+      "clause_id": "clause-6.16",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-returns-retraction-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l159-46",
+      "clause_id": "clause-6.16",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-preserves-tag-on-removal",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+      "clause_id": "clause-6.16.4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.removeObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-remove-propagates-time-and-orders",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
+      "clause_id": "clause-6.17.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueTimestampedObjectInstanceRemoval",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-remove-provides-retraction-handle",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
+      "clause_id": "clause-6.17.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.removeObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-remove-excludes-deleting-sender",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
+      "clause_id": "clause-6.17.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-enforces-clause-8-lower-bound",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "validateTsoTimestamp",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-retraction-reconstitutes-instance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l36-8",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::cancelTsoObjectInstanceDeletion",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    }
+  ]
+}

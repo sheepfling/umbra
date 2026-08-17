@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable no-TSO Query GALT and Query LITS slice to source-derived IEEE 1516.1-2025 records. It calculates bounds only from other time-regulating members' current or pending-advance time plus actual lookahead; a forward TAR from a zero-lookahead regulator makes that lower timestamp exclusive, so the calculator advances it by the selected factory's epsilon. With no implemented delivered, queued, or in-transit TSO messages, LITS equals a defined GALT and both are undefined with no other regulator. A separate limited scheduler consumes these bounds and the NRG setting for TAR release; the calculator itself does not queue callbacks. It does not queue or deliver TSO messages, support asynchronous delivery, Modify Lookahead, save/restore, package support, catalog result, JUnit sidecar, protected review, or a conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-no-tso-galt-uses-other-regulator-temporal-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use other regulators current or pending time plus lookahead",
+        "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use a time-advancing regulator requested time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation"
+      ]
+    },
+    {
+      "id": "umbra-no-tso-regulator-pending-advance-bounds-timestamp",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use other regulators current or pending time plus lookahead",
+        "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use a time-advancing regulator requested time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances"
+      ]
+    },
+    {
+      "id": "umbra-no-tso-zero-lookahead-tar-uses-an-exclusive-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l43-13",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds honor a zero-lookahead TAR exclusive boundary"
+      ]
+    },
+    {
+      "id": "umbra-no-tso-lits-is-undefined-with-undefined-galt-and-no-queue",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l133-44",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds are undefined without another regulator",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances"
+      ]
+    },
+    {
+      "id": "umbra-embedded-query-galt-reports-definition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+      "clause_id": "clause-8.18.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryGALT",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation"
+      ]
+    },
+    {
+      "id": "umbra-embedded-query-lits-reports-definition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+      "clause_id": "clause-8.19.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryLITS",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation"
+      ]
+    }
+  ]
+}

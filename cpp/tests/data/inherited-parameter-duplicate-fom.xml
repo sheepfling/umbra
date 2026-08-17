@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>UmbraInheritedParameterFixtureBase</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <semantics>Base fixture interaction.</semantics>
+                <parameter>
+                    <name>UmbraInheritedParameterFixture</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>Base fixture parameter.</semantics>
+                </parameter>
+                <interactionClass>
+                    <name>UmbraInheritedParameterFixtureChild</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Child fixture interaction.</semantics>
+                    <parameter>
+                        <name>UmbraInheritedParameterFixture</name>
+                        <dataType>HLAunicodeString</dataType>
+                        <semantics>Duplicate child fixture parameter.</semantics>
+                    </parameter>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

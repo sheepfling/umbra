@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>UmbraAttributeFixtureBase</name>
+                <sharing>PublishSubscribe</sharing>
+                <semantics>Base class for receive-order attribute-update routing tests.</semantics>
+                <attribute>
+                    <name>ReliableBaseA</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>First reliable base attribute.</semantics>
+                </attribute>
+                <attribute>
+                    <name>ReliableBaseB</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Second reliable base attribute.</semantics>
+                </attribute>
+                <attribute>
+                    <name>BestEffortBase</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAbestEffort</transportation>
+                    <order>Receive</order>
+                    <semantics>Best-effort base attribute.</semantics>
+                </attribute>
+                <objectClass>
+                    <name>UmbraAttributeFixtureChild</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <semantics>Derived class for receive-order attribute-update routing tests.</semantics>
+                    <attribute>
+                        <name>ReliableChild</name>
+                        <dataType>HLAunicodeString</dataType>
+                        <updateType>Static</updateType>
+                        <updateCondition>Fixture update.</updateCondition>
+                        <valueRequired>false</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Reliable child-only attribute.</semantics>
+                    </attribute>
+                    <attribute>
+                        <name>UnownedChild</name>
+                        <dataType>HLAunicodeString</dataType>
+                        <updateType>Static</updateType>
+                        <updateCondition>Fixture update.</updateCondition>
+                        <valueRequired>false</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Defined but deliberately unpublished child attribute.</semantics>
+                    </attribute>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+</objectModel>

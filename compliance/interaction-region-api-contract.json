@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 regional interaction services to the exact official C++ RTIambassador declarations exported by the Requirements Lab. It verifies regional declaration state, committed region context, overlap-filtered no-time interaction sends, callback rechecks, and the official RegionHandleSet callback marker. It does not claim object-instance regional registration/association, object-class attribute regional services, Request Attribute Value Update With Regions, timestamped/retraction behavior, relaxed DDM, save/restore, remote transport, package support, catalog evidence, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-subscribe-interaction-class-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions, bool active = true) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unsubscribe-interaction-class-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeinteractionclasswithregions.3754796e79b3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-embedded-send-interaction-with-regions-no-time",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteractionwithregions.dc826d06f8e1",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void sendInteractionWithRegions( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, RegionHandleSet const & regions, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    }
+  ]
+}

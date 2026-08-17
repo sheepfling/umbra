@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Restaurant FOM Module Extension Example</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2025-02-10</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>©2025 IEEE</copyright>
+        <releaseRestriction>Other organizations not related to Federated Foods</releaseRestriction>
+        <purpose>To extend the HLA object model for a restaurant federation</purpose>
+        <applicationDomain>Restaurant operations</applicationDomain>
+        <description>This FOM module extends the capability of the Restaurant FOM with additional
+            menu items and server actions.</description>
+        <useLimitation>NA</useLimitation>
+        <useHistory>Federated Foods extended federation.</useHistory>
+        <keyword>
+            <taxonomy>Food Service Industry Taxonomy</taxonomy>
+            <keywordValue>Wine</keywordValue>
+        </keyword>
+        <keyword>
+            <taxonomy>Food Service Industry Taxonomy</taxonomy>
+            <keywordValue>Catch of the Day</keywordValue>
+        </keyword>
+        <keyword>
+            <taxonomy>Food Service Industry Taxonomy</taxonomy>
+            <keywordValue>Cleaning</keywordValue>
+        </keyword>
+        <poc>
+            <pocType>Sponsor</pocType>
+            <pocName>Ms. Beth Doe</pocName>
+            <pocOrg>Joe's Place</pocOrg>
+            <pocTelephone>1-997-555-1234</pocTelephone>
+            <pocEmail>doeb@joesplace.com</pocEmail>
+        </poc>
+        <reference>
+            <type>HTML document</type>
+            <identification>www.fedfoods.com/extrestsim.html</identification>
+        </reference>
+        <reference>
+            <type>Dependency</type>
+            <identification>Restaurant FOM Module Example</identification>
+        </reference>
+        <other>See Mobil International Restaurant Guide for more information</other>
+        <glyph
+            href="data:image/gif;base64,R0lGODlhIAAgAPcAAP///wD//wAAAPz8/Pv7+/f39/b29vT09PPz8/Hx8fDw8O7u7uzs7Ovr6+rq6unp6ejo6Obm5uTk5OPj4+Hh4eDg4N/f397e3t3d3dnZ2dXV1dHR0dDQ0MzMzMvLy8rKysnJycjIyMbGxsXFxcPDw8LCwsHBwcDAwL+/v76+vry8vLu7u7i4uLW1tbS0tLOzs7GxsbCwsK+vr66urqurq6mpqaioqKenp6ampqWlpaSkpKKiop2dnZycnJubm5mZmZiYmJaWlpWVlZSUlJKSkpCQkI+Pj46OjoyMjIqKioiIiIeHh4aGhoSEhIKCgoGBgX19fXp6enl5eXh4eHV1dXJycnBwcG9vb25ubmxsbGlpaWNjY2FhYV1dXVlZWVdXV1ZWVlRUVFJSUlFRUU9PT0xMTEtLS0pKSklJSUhISEVFRUREREFBQUBAQD8/Pz4+Pj09PTk5OTg4ODY2NjU1NTQ0NC4uLikpKSgoKCcnJyUlJSQkJCIiIiAgIB4eHhsbGxkZGRcXFxYWFhQUFBMTExISEhEREQ0NDQsLCwoKCgkJCQcHBwUFBQQEBAICAgEBAf///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAUAAJAALAAAAAAgACAAAAj/AAEEGEiwoMGDCAcKTMiwocOHEAkCmEixosWLFg9i3IiRApQ1CwtS4UAFBBQVHDEiEVAoJEE2K9jEILMjpUUKTVi6HIgmRZoXYHDYrEhBjc6DPdEAFTp0YtGjBtGcONPiC1MAEYKEmROni44EFVUYbXkwDQs1MsYwBRJIgNu3eVxQFAu1YBk/ifwgggFAilszOUSQ+EFHwCMeE+mSNRjmrYAQMwQ02oGBSRkxQiQ8EcAIBADFOwPAeCsHgh8BPEAQcnwnwhUBbT6PDf35D5cFMQTEcdDWsYDSgh5NAK0RQB0bALIIGNLD99sRWwTQoECkrsQBfYoAGCPghRbnbn0Y3RGQBAAIRYsLAkCASAoAL9KngBdgw4mAJROjpJdYQUAXADlVUQJ4jFjQhgB8AXDEfgqNIIAbAHggACERwOcbEyE4YkgDEyXBYAAA1CAAHgQAUIYAZyiQBSJuDYLEA3gIEAVFHtK2EiEMAHABIAK84UEGKpxwAQt7CEAHAjR+CAAWkmkwUQd6uCUHF13Y4RYcElRUo0ZiuIUCRQ9Y0ZtbfDBRgEVbGgTAG27NYBEDJuhwAwgHYKSEkkwuskFTFg1xCG0G0PABnxYlEANthKZUXKIbReToo5CqGelDAAQEADs="
+            alt="Restaurant Extension FOM Module"/>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <objectClass>
+                <name>Employee</name>
+                <objectClass>
+                    <name>Server</name>
+                    <directedInteraction>
+                        <name>HLAinteractionRoot.ServerAction.CleanFloor</name>
+                        <sharing>PublishSubscribe</sharing>
+                    </directedInteraction>
+                </objectClass>
+            </objectClass>
+            <objectClass>
+                <name>Food</name>
+                <objectClass>
+                    <name>Drink</name>
+                    <objectClass>
+                        <name>Soda</name>
+                        <attribute>
+                            <name>Organic</name>
+                            <dataType>HLAboolean</dataType>
+                            <updateType>Conditional</updateType>
+                            <updateCondition>On change</updateCondition>
+                            <valueRequired>false</valueRequired>
+                            <ownership>NoTransfer</ownership>
+                            <sharing>PublishSubscribe</sharing>
+                            <transportation>HLAreliable</transportation>
+                            <order>TimeStamp</order>
+                            <semantics>Whether the soda is marked as containing only organic
+                                ingredients or not</semantics>
+                        </attribute>
+                    </objectClass>
+                    <objectClass>
+                        <name>Wine</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <dimensions>
+                            <dimension>WineCountry</dimension>
+                        </dimensions>
+                        <semantics>Alcoholic beverage made from grapes</semantics>
+                    </objectClass>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>CustomerTransactions</name>
+                <interactionClass>
+                    <name>OrderTaken</name>
+                    <interactionClass>
+                        <name>FromCatchOfTheDay</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>The food order relates to the Catch of the Day, updated
+                            daily</semantics>
+                        <parameter>
+                            <name>Weight</name>
+                            <dataType>FoodWeight</dataType>
+                            <semantics>Weight of a food item before cooking</semantics>
+                        </parameter>
+                    </interactionClass>
+                </interactionClass>
+                <interactionClass>
+                    <name>CustomerPays</name>
+                    <parameter>
+                        <name>Amount</name>
+                        <dataType>DollarAmount</dataType>
+                        <semantics>Amount paid, rounded to full dollars</semantics>
+                    </parameter>
+                </interactionClass>
+            </interactionClass>
+            <interactionClass>
+                <name>ServerAction</name>
+                <interactionClass>
+                    <name>CleanFloor</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Basic floor cleaning of the entire restaurant.</semantics>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+    <dimensions>
+        <dimension>
+            <name>WineCountry</name>
+            <inputDataTypes/>
+            <inputDataDescription>Data necessary to determine country of origin of items on the wine list
+            </inputDataDescription>
+            <upperBound>900</upperBound>
+            <normalization>NA</normalization>
+            <outputDataSemantics>The ISO 3166 Country Codes three-digit numeric code (numeric-3)
+            </outputDataSemantics>
+            <value>Excluded</value>
+        </dimension>
+    </dimensions>
+    <switches>
+        <objectClassRelevanceAdvisory isEnabled="true"/>
+    </switches>
+    <dataTypes>
+        <simpleDataTypes>
+            <simpleData>
+                <name>FoodWeight</name>
+                <representation>HLAfloat32BE</representation>
+                <units>Lb</units>
+                <resolution>.001</resolution>
+                <accuracy>.05</accuracy>
+                <semantics>Weight of a food item</semantics>
+            </simpleData>
+            <simpleData>
+                <name>DollarAmount</name>
+                <representation>HLAinteger32BE</representation>
+                <units>USC</units>
+                <resolution>1</resolution>
+                <accuracy>1</accuracy>
+                <semantics>Amount in USD</semantics>
+            </simpleData>
+        </simpleDataTypes>
+        <enumeratedDataTypes>
+            <enumeratedData>
+                <name>DrinkType</name>
+                <enumerator>
+                    <name>IrishCoffee</name>
+                    <value>3</value>
+                </enumerator>
+            </enumeratedData>
+        </enumeratedDataTypes>
+        <fixedRecordDataTypes/>
+        <variantRecordDataTypes>
+            <variantRecordData>
+                <name>DrinkGarnish</name>
+                <alternative>
+                    <enumerator>IrishCoffee</enumerator>
+                    <name>ExtraWhippedCream</name>
+                    <dataType>HLAboolean</dataType>
+                    <semantics>Has extra whipped cream</semantics>
+                </alternative>
+            </variantRecordData>
+        </variantRecordDataTypes>
+    </dataTypes>
+</objectModel>

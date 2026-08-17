@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 C++ object-instance name reservation and release services to the official RTIambassador and FederateAmbassador declarations exported by the Requirements Lab. It does not claim named registration, save/restore, remote transport, package support, protected review, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-reserve-object-instance-name",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.reserveobjectinstancename.f45e6871e13d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void reserveObjectInstanceName( std::wstring const & objectInstanceName) = 0",
+      "exception_types": ["IllegalName", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::reserveObjectInstanceName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-embedded-release-object-instance-name",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.releaseobjectinstancename.2d87737a22e3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void releaseObjectInstanceName( std::wstring const & objectInstanceName) = 0",
+      "exception_types": ["ObjectInstanceNameNotReserved", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::releaseObjectInstanceName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-embedded-reserve-multiple-object-instance-names",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.reservemultipleobjectinstancenames.6fac44e8cd2f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void reserveMultipleObjectInstanceNames( std::set<std::wstring> const & objectInstanceNames) = 0",
+      "exception_types": ["IllegalName", "NameSetWasEmpty", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::reserveMultipleObjectInstanceNames",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-embedded-release-multiple-object-instance-names",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.releasemultipleobjectinstancenames.fcc388c749d8",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void releaseMultipleObjectInstanceNames( std::set<std::wstring> const & objectInstanceNames) = 0",
+      "exception_types": ["ObjectInstanceNameNotReserved", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::releaseMultipleObjectInstanceNames",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-embedded-object-instance-name-reservation-succeeded",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.objectinstancenamereservationsucceeded.311ec07d3cd3",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void objectInstanceNameReservationSucceeded( std::wstring const & objectInstanceName) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueObjectInstanceNameReservation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-embedded-object-instance-name-reservation-failed",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.objectinstancenamereservationfailed.3bfbc677c299",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void objectInstanceNameReservationFailed( std::wstring const & objectInstanceName) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueObjectInstanceNameReservation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-embedded-multiple-object-instance-name-reservation-succeeded",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationsucceeded.c4a7d2f3a174",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void multipleObjectInstanceNameReservationSucceeded( std::set<std::wstring> const & objectInstanceNames) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueMultipleObjectInstanceNameReservation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-embedded-multiple-object-instance-name-reservation-failed",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationfailed.1def6acfecf1",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void multipleObjectInstanceNameReservationFailed( std::set<std::wstring> const & objectInstanceNames) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueMultipleObjectInstanceNameReservation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 Unconditional Attribute Ownership Divestiture slice to the exact official C++ declaration and the official Request Attribute Ownership Assumption callback. It verifies only exported signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The private runtime atomically makes the validated owner set unowned, preserves existing standard acquisition paths, offers currently eligible non-pending joined federates through the standard callback with the divestiture tag, and rechecks a callback before user code. The offer is not an ownership transfer and this bounded profile does not continuously re-offer attributes to federates that become eligible after the original service call. Negotiated divestiture and confirmation, full owner-search lifecycle, RTI-owned state, resignation disposition, save/restore, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, and conformance remain outside the slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-unconditional-attribute-ownership-divestiture",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unconditionalAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates"
+      ]
+    },
+    {
+      "id": "umbra-embedded-request-attribute-ownership-assumption",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.requestattributeownershipassumption.51900ab87732",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void requestAttributeOwnershipAssumption( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & offeredAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipAssumptionRecipients",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates"
+      ]
+    }
+  ]
+}

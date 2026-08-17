@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE objectModel SYSTEM "file:///definitely-not-a-real-umbra-fom.dtd">
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025">
+  <modelIdentification>
+    <name>DTD-bearing fixture</name>
+  </modelIdentification>
+</objectModel>

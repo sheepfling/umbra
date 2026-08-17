@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-runtime-foundation-not-conformance-evidence",
+  "notes": "This contract records the next private IEEE 1516.1-2025 temporal-coordinator slice. FederationTimeCoordinator binds the selected official LogicalTime implementation, retains pending TSO entries, models callback work as in-transit, retains completed timestamps until the recipient's next logical-time advance, and removes all recipient-owned temporal state on resignation. FederationTimeExecutionSnapshot carries those three states into the GALT/LITS calculator: delivered-since-last-advance and queued/in-transit timestamps participate in GALT, while future queued/in-transit timestamps participate in LITS. The private registry hooks are test-only kernel boundaries; no public timestamped Send Interaction, Update Attribute Values, Delete Object Instance, Retract, time-advance variant, transport, JUnit evidence, protected review, package result, or conformance claim is made.",
+  "requirements": [
+    {
+      "id": "umbra-private-tso-coordinator-queues-pending-messages-per-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/federation_time_coordinator.cpp",
+      "source_symbol": "FederationTimeCoordinator::beginTsoDelivery",
+      "tests": [
+        "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator exposes queued, in-transit, and delivered TSO state",
+        "cpp/tests/federation_registry_catch2.cpp::The registry projects private TSO coordination into its time snapshot"
+      ]
+    },
+    {
+      "id": "umbra-private-tso-coordinator-retains-delivery-state-through-callback-completion",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l23-7",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/federation_time_coordinator.cpp",
+      "source_symbol": "FederationTimeCoordinator::completeTsoDelivery",
+      "tests": [
+        "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator exposes queued, in-transit, and delivered TSO state",
+        "cpp/tests/federation_registry_catch2.cpp::The registry projects private TSO coordination into its time snapshot"
+      ]
+    },
+    {
+      "id": "umbra-private-tso-bounds-account-for-delivered-and-in-transit-timestamps",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/federation_time_bounds_catch2.cpp::Federation time bounds include queued and in-transit TSO timestamps"
+      ]
+    },
+    {
+      "id": "umbra-private-tso-lits-uses-future-incoming-timestamps",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l121-40",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/federation_time_bounds_catch2.cpp::Federation time bounds include queued and in-transit TSO timestamps",
+        "cpp/tests/federation_time_bounds_catch2.cpp::LITS remains defined from queued TSO state when GALT is unregulated"
+      ]
+    },
+    {
+      "id": "umbra-private-tso-lits-is-undefined-only-with-no-galt-and-no-incoming-message",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-183-l133-44",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/federation_time_bounds_catch2.cpp::LITS remains defined from queued TSO state when GALT is unregulated"
+      ]
+    },
+    {
+      "id": "umbra-private-tso-retraction-stops-at-delivery-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation_time_coordinator.cpp",
+      "source_symbol": "FederationTimeCoordinator::retractTsoMessage",
+      "tests": [
+        "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator exposes queued, in-transit, and delivered TSO state",
+        "cpp/tests/federation_registry_catch2.cpp::The registry projects private TSO coordination into its time snapshot"
+      ]
+    },
+    {
+      "id": "umbra-private-tso-advance-clears-delivered-since-last-advance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l52-16",
+      "clause_id": "clause-8.12.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginTimeAdvanceGrant",
+      "tests": [
+        "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator exposes queued, in-transit, and delivered TSO state",
+        "cpp/tests/federation_registry_catch2.cpp::The registry projects private TSO coordination into its time snapshot"
+      ]
+    }
+  ]
+}

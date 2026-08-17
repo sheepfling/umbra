@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "component": "IEEE 1516.2-2025 OMT schemas, MIM, and examples",
+  "upstream_archive": {
+    "outer_file": "1516-2025_downloads.zip",
+    "outer_sha256": "61e537450f25ce28c4be373add7d0c6c946e5d10116e8a84377efee82d516121",
+    "inner_file": "hla4xml-submission-ready-2025-05-07.zip",
+    "inner_sha256": "9730c8d4925b50a23e5fa18726ff99cf1e09059e6bb6d2a0c2d6fa2641dbdaf6",
+    "acquisition": "Local licensed source input; archives are intentionally not committed."
+  },
+  "import": {
+    "source_archive_entries": [
+      "IEEE1516-DIF-2025.xsd",
+      "IEEE1516-FDD-2025.xsd",
+      "IEEE1516-OMT-2025.xsd",
+      "HLAstandardMIM-2025.xml",
+      "RestaurantExtensionFOMmodule-2025.xml",
+      "RestaurantFOMmodule-2025.xml",
+      "RestaurantSOMmodule-2025.xml"
+    ],
+    "destination_directory": "resources/",
+    "file_count": 7,
+    "content_modified": false
+  },
+  "license": {
+    "required_attribution": "Reprinted with permission from IEEE 1516.2(TM)-2025",
+    "notice_file": "NOTICE"
+  }
+}

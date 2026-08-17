@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "kind": "implementation-contract",
+  "contract_id": "umbra-ieee1516.1-2025-connection-implementation",
+  "document_id": "hla-1516.1-2025",
+  "notes": "This contract checks source and test traceability for the implemented embedded connection slice. It is not accepted compliance evidence.",
+  "mappings": [
+    {
+      "id": "umbra.cpp.rti.service.connect",
+      "requirements_lab_mapping_id": "rti.service.connect",
+      "requirement_ids": [
+        "req-federate-connect-before-rti-work",
+        "req-connect-service-establishes-connection"
+      ],
+      "transition_ids": ["federate.connect"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::connect",
+      "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador Connect exposes all four official C++ overloads",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador Connect rejects unsupported callback models without connecting"
+      ]
+    },
+    {
+      "id": "umbra.cpp.rti.service.disconnect",
+      "requirements_lab_mapping_id": "rti.service.disconnect",
+      "requirement_ids": [
+        "req-federate-disconnect-after-resign",
+        "req-disconnect-service-terminates-connection"
+      ],
+      "transition_ids": ["federate.disconnect"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::disconnect",
+      "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador disconnect terminates an unjoined connection"
+      ]
+    }
+  ]
+}

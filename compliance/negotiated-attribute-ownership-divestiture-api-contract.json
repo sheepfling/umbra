@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 negotiated-divestiture slice to the exact official C++ declarations for Negotiated Attribute Ownership Divestiture, Confirm Divestiture, Cancel Negotiated Attribute Ownership Divestiture, Request Divestiture Confirmation, and the resulting Attribute Ownership Acquisition Notification. It verifies only exported signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The private runtime keeps the current owner while waiting, selects a currently pending regular acquisition candidate, emits a one-shot confirmation request with the regular acquisition tag, moves ownership only after Confirm Divestiture, carries the confirm tag to the acquisition notification, and reverts a cancelled candidate to waiting. It does not claim complete negotiated divestiture: ongoing owner search, Willing-to-Acquire selection, remaining negotiated acquisition, RTI-owned state, resign disposition, save/restore, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-negotiated-attribute-ownership-divestiture",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.negotiatedattributeownershipdivestiture.2d5609527bba",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void negotiatedAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeAlreadyBeingDivested",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::negotiatedAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-embedded-confirm-divestiture",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.confirmdivestiture.d9a21f2df306",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void confirmDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & confirmedAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "NoAcquisitionPending",
+        "AttributeDivestitureWasNotRequested",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::confirmDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-embedded-cancel-negotiated-attribute-ownership-divestiture",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.cancelnegotiatedattributeownershipdivestiture.d5cebad28d8c",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void cancelNegotiatedAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
+      "exception_types": [
+        "AttributeDivestitureWasNotRequested",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::cancelNegotiatedAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-embedded-request-divestiture-confirmation",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.requestdivestitureconfirmation.b3287f4b4dcd",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void requestDivestitureConfirmation( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & releasedAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipAcquisitionWorkItem",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-embedded-confirm-divestiture-acquisition-notification",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & securedAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueConfirmDivestitureNotifications",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    }
+  ]
+}

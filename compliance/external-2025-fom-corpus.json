@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "purpose": "Optional, unvendored 2025-native XML corpus used to exercise positive DIF validation and MIM-first FDD composition beyond the official Restaurant examples.",
+  "status": "development-only-positive-preflight-fixtures",
+  "source_boundary": {
+    "acquisition": "A developer supplies the local corpus root explicitly through UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY.",
+    "redistribution": "No external XML is copied into Umbra by this manifest or its tests.",
+    "license_boundary": "The source XML identifies itself as prototype engineering material. Its owner and release restrictions control any later acquisition, redistribution, or product use."
+  },
+  "ordered_module_set": {
+    "standard_mim": "Umbra-owned IEEE 1516.2-2025 HLAstandardMIM-2025.xml",
+    "modules": [
+      "Proto2025_Base.xml",
+      "Proto2025_MessageTest.xml",
+      "Proto2025_TimeMgmtTest.xml",
+      "Proto2025_SpaceLite.xml"
+    ],
+    "expected_2025_preflight_status": "valid"
+  },
+  "fixtures": [
+    {
+      "id": "external-2025-base",
+      "path": "Proto2025_Base.xml",
+      "sha256": "b6e883b68375a7d97c05a0cedd98ebe07577dba76593fc4318237bdddeb08d6f",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2025",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd",
+      "expected_2025_dif_status": "valid"
+    },
+    {
+      "id": "external-2025-message-test",
+      "path": "Proto2025_MessageTest.xml",
+      "sha256": "328a5aba4ef346db5da682b58e81498d4d737ad99136cd8e105f5573af608e31",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2025",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd",
+      "expected_2025_dif_status": "valid"
+    },
+    {
+      "id": "external-2025-time-management-test",
+      "path": "Proto2025_TimeMgmtTest.xml",
+      "sha256": "74033b39b4aa1bf84ae7bbcd567c2362f2cbd1161ac73e1f90c7ceae332bc870",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2025",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd",
+      "expected_2025_dif_status": "valid"
+    },
+    {
+      "id": "external-2025-space-lite",
+      "path": "Proto2025_SpaceLite.xml",
+      "sha256": "d6df966b6623cb9b6aa91ec65e75da20b6248f3d2e5d77ecc1af8f34ba7aeffb",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2025",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd",
+      "expected_2025_dif_status": "valid"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "component": "IEEE 1516.2-2025 OMT schemas, MIM, and examples",
+  "files": [
+    {
+      "path": "examples/RestaurantExtensionFOMmodule-2025.xml",
+      "sha256": "04b310b98a9e5d2b8be248f28bd98d3affebeff67a0bc83f5b4e6f6ba28eef19"
+    },
+    {
+      "path": "examples/RestaurantFOMmodule-2025.xml",
+      "sha256": "8df2b31a09ebfadb206476c99f52dbcd4503fddb60445df2dc06e39b78a31a3d"
+    },
+    {
+      "path": "examples/RestaurantSOMmodule-2025.xml",
+      "sha256": "7882acc9af4972a7b1a885aaf345dc398685e11a964d832906162d7564371672"
+    },
+    {
+      "path": "mim/HLAstandardMIM-2025.xml",
+      "sha256": "b932d74843a2562463ea1fe7c6a6e9c4fa307c4c284e27e029d3122d01d58546"
+    },
+    {
+      "path": "schemas/IEEE1516-DIF-2025.xsd",
+      "sha256": "7763639590950dba87d2a7f29d5735c78835855852113509754c24f20ceb3774"
+    },
+    {
+      "path": "schemas/IEEE1516-FDD-2025.xsd",
+      "sha256": "9f5c7797f62724878272372b672e842dd50980e9d99b1c2045a7d71e1c125b84"
+    },
+    {
+      "path": "schemas/IEEE1516-OMT-2025.xsd",
+      "sha256": "82c72670a7bb7f053c0268038a72e552f5e438b2dce4fcc26f7fff5897956c28"
+    }
+  ]
+}

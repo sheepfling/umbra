@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 directed-interaction slice to the official C++ declarations exported by the Requirements Lab. It covers only the non-timestamped Send Directed Interaction overload and matching no-time Receive Directed Interaction callback, plus the six object-class directed-interaction declaration overloads. The development profile routes to known target objects, excludes the sender, preserves the user tag/producer/mandatory FOM transportation, and rechecks declaration and lifecycle state at callback entry. The official universally argument is present in the traced signature, but universal-subscription semantics are intentionally deferred; timestamped/retraction behavior, directed DDM, ordering, FOM sharing-policy enforcement, MOM, remote transport, packaging, and conformance remain outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-publish-object-class-directed-interactions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.publishobjectclassdirectedinteractions.39b5cf61292d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void publishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::publishObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unpublish-object-class-directed-interactions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishobjectclassdirectedinteractions.b55471e6a1ae",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unpublish-object-class-directed-interactions-selective",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishobjectclassdirectedinteractions.0a6bcc7d4a86",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    },
+    {
+      "id": "umbra-embedded-subscribe-object-class-directed-interactions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeobjectclassdirectedinteractions.4c460a3c84d8",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses, bool universally = false) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unsubscribe-object-class-directed-interactions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeobjectclassdirectedinteractions.d72034c56bf3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unsubscribe-object-class-directed-interactions-selective",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeobjectclassdirectedinteractions.de444c14679b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    },
+    {
+      "id": "umbra-embedded-send-directed-interaction-receive-order",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.senddirectedinteraction.87506244c238",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void sendDirectedInteraction( InteractionClassHandle const & interactionClass, ObjectInstanceHandle const & objectInstance, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::sendDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    },
+    {
+      "id": "umbra-embedded-receive-directed-interaction-receive-order",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receivedirectedinteraction.4ad3f71941e8",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void receiveDirectedInteraction( InteractionClassHandle const & interactionClass, ObjectInstanceHandle const & objectInstance, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.receiveDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 C++ object-attribute regional services to the exact official RTIambassador declarations exported by the Requirements Lab. The development profile implements no-name regional object registration, additive region association/unassociation, regional object-class attribute subscription state, overlap-filtered no-time Update Attribute Values routing, and the official optional RegionHandleSet reflection marker. Named regional registration, Request Attribute Value Update With Regions, advisory scope transitions, default-region synthesis, timestamped/retraction behavior, relaxed DDM, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-register-object-instance-with-regions-unnamed",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle registerObjectInstanceWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-embedded-associate-regions-for-updates",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.associateregionsforupdates.94029e2e8def",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void associateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unassociate-regions-for-updates",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unassociateregionsforupdates.8380dd561821",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unassociateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unassociateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-embedded-subscribe-object-class-attributes-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, bool active = true, std::wstring const & updateRateDesignator = L\"\") = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unsubscribe-object-class-attributes-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributeswithregions.4ff75062570b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    }
+  ]
+}

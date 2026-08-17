@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only Umbra's Query Attribute Ownership and matching federate-owned/unowned report path in the non-installable IEEE 1516.1-2025 development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The implementation validates the requester's known instance/class boundary, groups attributes by a joined federate owner or available-for-acquisition result, dispatches the corresponding official C++ callbacks, and nullifies queued ownership reports once Remove Object Instance has begun. It deliberately does not synthesize an RTI-owned result because no implemented ownership service can establish that standard state. Ownership acquisition/divestiture, RTI-owned state, resign-action ownership disposition, timestamped/retraction behavior, DDM, FOM sharing policy, save/restore, remote transport, packaging, catalog evidence, and conformance remain outside this slice. The linked Catch2 test demonstrates a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "requirements": [
+    {
+      "id": "umbra-query-attribute-ownership-identifies-instance-owner",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+      "clause_id": "clause-7.17.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryAttributeOwnership",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes"
+      ]
+    },
+    {
+      "id": "umbra-query-attribute-ownership-groups-federate-and-unowned-results",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
+      "clause_id": "clause-7.17.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipQuery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes"
+      ]
+    },
+    {
+      "id": "umbra-inform-attribute-ownership-provides-owner-information",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
+      "clause_id": "clause-7.18.4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipQueryReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes"
+      ]
+    },
+    {
+      "id": "umbra-inform-attribute-ownership-responds-to-query",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14",
+      "clause_id": "clause-7.18.4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipQueryReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes"
+      ]
+    },
+    {
+      "id": "umbra-inform-attribute-ownership-delivers-one-or-more-reports",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18",
+      "clause_id": "clause-7.18.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipQuery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes"
+      ]
+    },
+    {
+      "id": "umbra-remove-object-instance-nullifies-pending-ownership-reports",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20",
+      "clause_id": "clause-7.18.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "candidateAttributeOwnershipQueryRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes"
+      ]
+    }
+  ]
+}

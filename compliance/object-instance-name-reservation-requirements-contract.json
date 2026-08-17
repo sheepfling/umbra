@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 object-instance name reservation and release services in Umbra's non-installable embedded development profile. It validates the official HLA. namespace and empty-set guards, asynchronous single and multiple reservation outcomes, atomic multiple release, and resignation cleanup. Named registration consumes reservations in a later slice; save/restore, remote transport, package support, protected review, and conformance remain outside this contract.",
+  "requirements": [
+    {
+      "id": "umbra-object-name-reservation-single-validates-and-reports",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
+      "clause_id": "clause-6.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::reserveObjectInstanceName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-object-name-reservation-rejects-hla-namespace",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l24-4",
+      "clause_id": "clause-6.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "objectInstanceNameIsLegal",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-object-name-reservation-commits-unique-right",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
+      "clause_id": "clause-6.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "reservedObjectInstanceNamesByFederate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-object-name-release-relinquishes-reservation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
+      "clause_id": "clause-6.4.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::releaseObjectInstanceName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-object-name-release-makes-name-available",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
+      "clause_id": "clause-6.4.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::releaseObjectInstanceName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-multiple-object-name-reservation-requires-nonempty-set",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
+      "clause_id": "clause-6.5.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::reserveMultipleObjectInstanceNames",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-multiple-object-name-reservation-rejects-any-illegal-name",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
+      "clause_id": "clause-6.5.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "objectInstanceNameIsLegal",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-multiple-object-name-reservation-reports-subsets",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
+      "clause_id": "clause-6.5.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueMultipleObjectInstanceNameReservation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-multiple-object-name-reservation-callback-shape",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+      "clause_id": "clause-6.5.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::reserveMultipleObjectInstanceNames",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-multiple-object-name-release-is-atomic",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l48-10",
+      "clause_id": "clause-6.7.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::releaseMultipleObjectInstanceNames",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    },
+    {
+      "id": "umbra-multiple-object-name-release-releases-owned-names",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
+      "clause_id": "clause-6.7.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::releaseMultipleObjectInstanceNames",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+      ]
+    }
+  ]
+}

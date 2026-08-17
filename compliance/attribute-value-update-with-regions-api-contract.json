@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 C++ Request Attribute Value Update With Regions service to the exact official RTIambassador declaration exported by the Requirements Lab. The implementation covers the class-level no-time solicitation path, committed region validation, overlap/default-region filtering, and the standard Provide Attribute Value Update callback shape. It does not claim automatic provider responses, resulting reflection, timestamped/retraction behavior, advisory scope transitions, relaxed DDM, save/restore, remote transport, package support, catalog evidence, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-request-attribute-value-update-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.requestattributevalueupdatewithregions.be07d650bd8d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void requestAttributeValueUpdateWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdateWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update filters 2025 owner solicitations"
+      ]
+    },
+    {
+      "id": "umbra-embedded-regional-request-provide-callback",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.provideattributevalueupdate.926496a1ca57",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void provideAttributeValueUpdate( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeValueUpdateClassProvide",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update filters 2025 owner solicitations"
+      ]
+    }
+  ]
+}

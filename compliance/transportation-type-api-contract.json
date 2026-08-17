@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 transportation-type lookup foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The embedded profile recognizes only the two mandatory standard type names, HLAreliable and HLAbestEffort; the limited non-timestamped, non-region interaction path reports the FOM-selected mandatory type on its receive callback. Custom types, object delivery, transport, packaging, and conformance remain unimplemented. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-get-transportation-type-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.gettransportationtypehandle.75110749dc30",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual TransportationTypeHandle getTransportationTypeHandle( std::wstring const & transportationTypeName) = 0",
+      "exception_types": [
+        "InvalidTransportationName",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getTransportationTypeHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-transportation-type-name",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.gettransportationtypename.c3b15305d98e",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual std::wstring getTransportationTypeName( TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": [
+        "InvalidTransportationTypeHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getTransportationTypeName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair"
+      ]
+    }
+  ]
+}

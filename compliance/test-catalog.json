@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "tests": [
+    {
+      "id": "umbra-cpp-rtiambassador-disconnect-embedded",
+      "kind": "integration-test",
+      "runner": "catch2",
+      "selector": "[compliance][rti.service.disconnect]",
+      "result_selector": "RTIambassador disconnect terminates an unjoined connection",
+      "command": "cmake --build .build --target umbra_catch2_junit --config Debug",
+      "document_id": "hla-1516.1-2025",
+      "implementation_mapping_id": "rti.service.disconnect",
+      "target": "cpp",
+      "language": "cpp",
+      "symbol": "rti1516_2025::RTIambassador::disconnect",
+      "api_surface_ids": [
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529"
+      ],
+      "execution_mode": "real",
+      "notes": "Runs against Umbra's real embedded C++ connection backend through the official factory and RTIambassador surface."
+    }
+  ]
+}

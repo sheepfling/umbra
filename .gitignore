@@ -43,6 +43,8 @@
 build/
 Build/
 build-*/
+.build/
+.build-*/
 
 # CMake generated files
 CMakeFiles/
@@ -67,3 +69,15 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+dist/
+*.egg-info/
+
+# Locally exported HLA Requirements Lab bundles and test evidence
+.compliance/

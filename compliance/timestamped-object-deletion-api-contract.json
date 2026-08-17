@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded non-regional IEEE 1516.1-2025 timestamped Delete Object Instance and timestamped Remove Object Instance surfaces to the official C++ declarations exported by the Requirements Lab. The linked Catch2 scenario demonstrates lower-bound validation, pending retraction and reconstitution, exact-bound callback ordering, timestamp/order/retraction propagation, the supplied tag and producing federate, and sender exclusion. Mixed fanout, regional/directed forms, alternate time advances, request-retraction callbacks, save/restore, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-delete-object-instance-timestamped",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.deleteobjectinstance.c05d20bc2175",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual MessageRetractionHandle deleteObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, LogicalTime const & time) = 0",
+      "exception_types": [
+        "InvalidLogicalTime",
+        "DeletePrivilegeNotHeld",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    },
+    {
+      "id": "umbra-embedded-remove-object-instance-timestamped",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.removeobjectinstance.98c2549d1804",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void removeObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, FederateHandle const & producingFederate, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.removeObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+      ]
+    }
+  ]
+}

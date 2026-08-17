@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "root": "include",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "RTI/auth/AuthorizationResult.h",
+      "sha256": "a5421802104e7536bd039727252d1d30d9d8392d11bfd643a1b7b5913361bc3f"
+    },
+    {
+      "path": "RTI/auth/Authorizer.h",
+      "sha256": "4475a9e427de3cdcc0607024b37f6bbef332cbb626083a9b94e137a7cb52adfe"
+    },
+    {
+      "path": "RTI/auth/AuthorizerFactory.h",
+      "sha256": "bd87c51d4e28e15278b5e4a5a78ece589b94fa876c4f3e72ae0987bc9d698d0e"
+    },
+    {
+      "path": "RTI/auth/Credentials.h",
+      "sha256": "f86c49b16acb6089c12cb70fa47afdc03e8a26bb4d1c6061f71fab3adf8fb454"
+    },
+    {
+      "path": "RTI/auth/HLAauthorizerFactoryFactory.h",
+      "sha256": "f6e248530b4221b87311dd7adaf21604429d5529ee18969065affa5cc879ee03"
+    },
+    {
+      "path": "RTI/auth/HLAnoCredentials.h",
+      "sha256": "68f91cc46f45716954eb673c5789a1706451c21b5617baaa068004966e68710e"
+    },
+    {
+      "path": "RTI/auth/HLAplainTextPassword.h",
+      "sha256": "3f7ce3f17d0c074d0c044f48e0f7fa7ba5f55a442a8dedea67595e3e03c532a6"
+    },
+    {
+      "path": "RTI/encoding/BasicDataElements.h",
+      "sha256": "eb3c353c6a086b78ca90dff86e337460c09d6bc2ba3806cc5a9c3e99917a7fb3"
+    },
+    {
+      "path": "RTI/encoding/DataElement.h",
+      "sha256": "b29906d021b89eea7abf09eb6ce5783750ba45c9d429d743e1d767ef3a0e2c09"
+    },
+    {
+      "path": "RTI/encoding/EncodingConfig.h",
+      "sha256": "079243468832d0e78bd945416a66a17f1499860459aa91aed46176eaf0cfc008"
+    },
+    {
+      "path": "RTI/encoding/EncodingExceptions.h",
+      "sha256": "fd57fb491f96b5e288fc2178bbfe117c3abe89763ca9f887be8aedd48ccef0d5"
+    },
+    {
+      "path": "RTI/encoding/HLAextendableVariantRecord.h",
+      "sha256": "79714f3696daba60d5e47ec6c2ae1a34cf1cf84b991de2f4485ddc97855e1fc3"
+    },
+    {
+      "path": "RTI/encoding/HLAfixedArray.h",
+      "sha256": "b0d811ac4450abb291b2bf396c911d1ac10c21ca6ef1c6f4b8fa2e1c468268cf"
+    },
+    {
+      "path": "RTI/encoding/HLAfixedRecord.h",
+      "sha256": "b5039d48837120200993f7ce0178c3e1692c1efd411bd99748c97dae4d447203"
+    },
+    {
+      "path": "RTI/encoding/HLAlogicalTime.h",
+      "sha256": "64a2cc2587d30a9ee298f172d37cfff859642a1b1558d08d2b8eebc4dac0a401"
+    },
+    {
+      "path": "RTI/encoding/HLAlogicalTimeInterval.h",
+      "sha256": "029f4e83129756c41c364e52ca37ada4b5865b5489f1944989074d8b7ed16660"
+    },
+    {
+      "path": "RTI/encoding/HLAopaqueData.h",
+      "sha256": "8692439fb50c0345748ac0a979f07082ab2071beb80d52e00b330e31a172b2f5"
+    },
+    {
+      "path": "RTI/encoding/HLAvariableArray.h",
+      "sha256": "2813546866966c7d0ee608871c5d8939c2fb0cb2cc9ac2e147bf154d6a9dd9ca"
+    },
+    {
+      "path": "RTI/encoding/HLAvariantRecord.h",
+      "sha256": "cfc4d1eb57f83df9b485e6da7422b01f10304d720e6a9c38d177b73192e9fcda"
+    },
+    {
+      "path": "RTI/Enums.h",
+      "sha256": "c3c6ddb344a569f533f08d6f7f4abd2d04d979d3243f42b54cd3de32a66e7e21"
+    },
+    {
+      "path": "RTI/Exception.h",
+      "sha256": "9483c44e9743e4967d880c52d5c3112084dcf3d967d084b6882a3da72bfce7b0"
+    },
+    {
+      "path": "RTI/FederateAmbassador.h",
+      "sha256": "9e627a0cd880f38f132b649a7fe45a3e90d9439f577c27422da848f49c5e8c5b"
+    },
+    {
+      "path": "RTI/Handle.h",
+      "sha256": "db95e5910006500064561d8ca4abe3b76004a4782493332fb665631e8464de92"
+    },
+    {
+      "path": "RTI/libauth/AuthorizerFactoryFactory.h",
+      "sha256": "c197db4e961f90bf788d18b2ae98b5b7998e13b07a20202c2ac6e095b2487e95"
+    },
+    {
+      "path": "RTI/libfedtime/LogicalTimeFactoryFactory.h",
+      "sha256": "edb17e911b40f1282ca83c04ba6b8b453dc0ff1f408a8a23caccb6c259692692"
+    },
+    {
+      "path": "RTI/NullFederateAmbassador.h",
+      "sha256": "940244d494920981933491bda87661e55055d8e00255b8ae0f0cdf5e7394725d"
+    },
+    {
+      "path": "RTI/RangeBounds.h",
+      "sha256": "664e7defb57f5d1cea0461207e73e398054f0853e2845b3ab5d543ce3b9ac05e"
+    },
+    {
+      "path": "RTI/RTI1516.h",
+      "sha256": "701d3f809ae49f6c01858f6d1624dfaced494278814fd374727fec306b43970a"
+    },
+    {
+      "path": "RTI/RTIambassador.h",
+      "sha256": "72b3fd63004e45ec986fcafcf73561af0ef1272af7eb5f9759627d075fd1e7cb"
+    },
+    {
+      "path": "RTI/RTIambassadorFactory.h",
+      "sha256": "1a15e43f250c88a2b822968909e69a5a40da25aa5a07a92c6e55db0c00ad4330"
+    },
+    {
+      "path": "RTI/RtiConfiguration.h",
+      "sha256": "06e27750cd1f4a311ac59a1f4b3e99ee0a528004a7f2c9027760611439aba01e"
+    },
+    {
+      "path": "RTI/SpecificConfig.h",
+      "sha256": "525177c6d0b7807b4d7f7d083d02a2e007bb88d6457544869fe317ab1136107d"
+    },
+    {
+      "path": "RTI/time/HLAfloat64Interval.h",
+      "sha256": "ae296020e4acd6deceac4de2087673e6dc1a8034b6de0e887f805e8db1304bf0"
+    },
+    {
+      "path": "RTI/time/HLAfloat64Time.h",
+      "sha256": "295660c2758fc09ebc596fc67c59c371b51c68f995905939429c68e813be31f5"
+    },
+    {
+      "path": "RTI/time/HLAfloat64TimeFactory.h",
+      "sha256": "fadbae54ebbb3ed3af79f5700105337531149d4687ceef01f7387548d40a6d36"
+    },
+    {
+      "path": "RTI/time/HLAinteger64Interval.h",
+      "sha256": "0255e3b71cc9ddfbb3ab7a8bba84158111af3c9c6972b4042c0f8c1f053971b7"
+    },
+    {
+      "path": "RTI/time/HLAinteger64Time.h",
+      "sha256": "7d6ae5d8b95b6d69f72aca7f9a23eff555efd31b8e8d0b62acf671d91c826db5"
+    },
+    {
+      "path": "RTI/time/HLAinteger64TimeFactory.h",
+      "sha256": "7af3757e813c70cc9945bf4438133d9a5544eb16f8316388f48d073079429ed2"
+    },
+    {
+      "path": "RTI/time/HLAlogicalTimeFactoryFactory.h",
+      "sha256": "7eeb358e518495fd462d1106596847505a206f96599c7e4ce176758313582cab"
+    },
+    {
+      "path": "RTI/time/LogicalTime.h",
+      "sha256": "e70f0c552a2c85c62a0ffb969c46f2b31f1125672ef65a849d3465fa67be8f27"
+    },
+    {
+      "path": "RTI/time/LogicalTimeFactory.h",
+      "sha256": "a5a28aa393ec78df6a4c03a889da4566289de610fe35a114f836d4461502c36f"
+    },
+    {
+      "path": "RTI/time/LogicalTimeInterval.h",
+      "sha256": "1279ee99f4bee5da78d3919ea82c170623066178aa16751dcfe9d155f3e98cd5"
+    },
+    {
+      "path": "RTI/Typedefs.h",
+      "sha256": "766a7f3a2d17517e13967238d592e4460cfeeb4a23542c32d274b457a11268bd"
+    },
+    {
+      "path": "RTI/VariableLengthData.h",
+      "sha256": "5284ec5922fccd32cdbd18375a71b7709a74c9e20745ff04adcc0f0bb2c784f9"
+    }
+  ]
+}

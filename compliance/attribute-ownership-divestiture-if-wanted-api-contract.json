@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 Attribute Ownership Divestiture If Wanted slice to the exact official C++ declaration and its acquisition-notification callback. It verifies only exported signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The private runtime returns the exact transferred subset, chooses an already pending eligible regular or If Available acquirer, moves ownership synchronously, carries the divestiture tag to the standard callback, and keeps the selected acquirer's publication active until notification entry. The profile's earliest-accepted mixed-form choice is an explicitly bounded implementation policy, not a conformance claim about arbitration. Request Attribute Ownership Assumption, unconditional/negotiated divestiture, cancellation of negotiated divestiture, RTI-owned state, complete resignation disposition, save/restore, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-attribute-ownership-divestiture-if-wanted",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipDivestitureIfWanted( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag, AttributeHandleSet & divestedAttributes) = 0; // filled by RTI",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request"
+      ]
+    },
+    {
+      "id": "umbra-embedded-divestiture-if-wanted-acquisition-notification",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & securedAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipDivestitureIfWantedNotifications",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request"
+      ]
+    }
+  ]
+}

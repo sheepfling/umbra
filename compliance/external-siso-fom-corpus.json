@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "purpose": "Optional, unvendored SISO XML corpus used only to guard Umbra's IEEE 1516.2-2025 schema/edition boundary.",
+  "status": "development-only-cross-edition-rejection-fixtures",
+  "source_boundary": {
+    "acquisition": "A developer supplies the local corpus root explicitly through UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY.",
+    "redistribution": "No third-party XML is copied into Umbra by this manifest or its tests.",
+    "attribution": "Each source XML retains its SISO copyright and license notice; those notices govern any later acquisition or redistribution decision."
+  },
+  "fixtures": [
+    {
+      "id": "siso-space-datatypes-2010",
+      "path": "SISO-STD-018 Files Normative/SISO_SpaceFOM_datatypes.xml",
+      "sha256": "344eef75bf67388c5181cd7681e7e5f973b59003aea8839253a78af894d6d32f",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model"
+    },
+    {
+      "id": "siso-space-environment-2010",
+      "path": "SISO-STD-018 Files Normative/SISO_SpaceFOM_environment.xml",
+      "sha256": "3e53ca5620b5cfcd07292903866459d22149e7629d5c355315df056f08371c39",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model"
+    },
+    {
+      "id": "siso-space-switches-2010",
+      "path": "SISO-STD-018 Files Normative/SISO_SpaceFOM_switches.xml",
+      "sha256": "062b05b410e6ebd586904c141cdbfafeebadd715cd3d101ac2f71a20f64b0237",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model"
+    },
+    {
+      "id": "siso-space-management-2010",
+      "path": "SISO-STD-018 Files Normative/SISO_SpaceFOM_management.xml",
+      "sha256": "4869457954aa98e5eed094783a61846107e72d132b5d39bf1c7f9b05a945f050",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model"
+    },
+    {
+      "id": "siso-space-entity-2010",
+      "path": "SISO-STD-018 Files Normative/SISO_SpaceFOM_entity.xml",
+      "sha256": "431c1ff815a43d1241d794487e8acde308556867007a3206d62a0e8c16845420",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model"
+    },
+    {
+      "id": "siso-rpr-3-foundation-2010-xml",
+      "path": "SISO-STD-001.1-2025 Annex A Files Normative/RPR-Foundation_v3.0.xml",
+      "sha256": "549ec98761f0fbcdd19afc7484e6fdf8c3c7b79d6bab5ce4f323b2b37053b7cf",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "note": "The SISO publication is dated 2025, but its XML declares the 2010 namespace and DIF schema."
+    },
+    {
+      "id": "siso-link-16-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/Link_16_v2.0.xml",
+      "sha256": "a6de699d9f947606788d2298fd3f41c2d0189994da7dc3738caa87c54a6d9cbb",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model"
+    }
+  ]
+}

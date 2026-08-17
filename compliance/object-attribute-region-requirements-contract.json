@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 clauses 9.5 through 9.9 object-attribute regional slice in Umbra's non-installable development profile. It uses only immutable candidate IDs exported by the Requirements Lab. Registration-established associations, additive/idempotent association, empty-region no-op behavior, overlap-filtered no-time updates, additive/idempotent regional subscriptions, and regional unsubscription are covered by a real Catch2 scenario. Default-region synthesis, advisory attributesInScope/attributesOutOfScope transitions, timestamped/retraction behavior, relaxed DDM, regional request forms, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-object-regional-registration-creates-associated-instance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41",
+      "clause_id": "clause-9.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-registration-uses-published-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l158-43",
+      "clause_id": "clause-9.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-registration-associates-specified-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l164-45",
+      "clause_id": "clause-9.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-association-adds-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l157-48",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::associateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-association-empty-region-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l166-51",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::associateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-association-routes-overlap-only",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-unassociation-removes-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
+      "clause_id": "clause-9.7.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::unassociateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-unassociation-empty-region-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l31-7",
+      "clause_id": "clause-9.7.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::unassociateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-subscription-adds-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l48-13",
+      "clause_id": "clause-9.8",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-subscription-is-idempotent",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l51-14",
+      "clause_id": "clause-9.8",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-subscription-empty-region-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l72-21",
+      "clause_id": "clause-9.8",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-unsubscription-removes-specified-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
+      "clause_id": "clause-9.9.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-unsubscription-empty-region-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l121-35",
+      "clause_id": "clause-9.9.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    }
+  ]
+}

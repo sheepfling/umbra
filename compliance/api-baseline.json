@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "kind": "api-baseline",
+  "baseline_id": "umbra-ieee1516.1-2025-api-baseline",
+  "document_id": "hla-1516.1-2025",
+  "notes": "This validates the imported standard declarations against the HLA Requirements Lab. It is not an implementation or evidence claim.",
+  "mappings": [
+    {
+      "id": "api.connect",
+      "requirements_lab_mapping_id": "rti.service.connect",
+      "requirement_ids": [
+        "req-federate-connect-before-rti-work",
+        "req-connect-service-establishes-connection"
+      ],
+      "transition_ids": ["federate.connect"],
+      "header": "RTI/RTIambassador.h",
+      "declaration_marker": "virtual ConfigurationResult connect(",
+      "minimum_matches": 4
+    },
+    {
+      "id": "api.disconnect",
+      "requirements_lab_mapping_id": "rti.service.disconnect",
+      "requirement_ids": [
+        "req-federate-disconnect-after-resign",
+        "req-disconnect-service-terminates-connection"
+      ],
+      "transition_ids": ["federate.disconnect"],
+      "header": "RTI/RTIambassador.h",
+      "declaration_marker": "virtual void disconnect() = 0;",
+      "minimum_matches": 1
+    },
+    {
+      "id": "api.join-federation-execution",
+      "requirements_lab_mapping_id": "rti.service.join-federation-execution",
+      "requirement_ids": [],
+      "transition_ids": ["federate.join"],
+      "header": "RTI/RTIambassador.h",
+      "declaration_marker": "virtual FederateHandle joinFederationExecution(",
+      "minimum_matches": 2
+    },
+    {
+      "id": "api.resign-federation-execution",
+      "requirements_lab_mapping_id": "m16.transition.federate-resign",
+      "requirement_ids": [],
+      "transition_ids": ["federate.resign"],
+      "header": "RTI/RTIambassador.h",
+      "declaration_marker": "virtual void resignFederationExecution(",
+      "minimum_matches": 1
+    },
+    {
+      "id": "api.connection-lost",
+      "requirements_lab_mapping_id": "rti.callback.connection-lost",
+      "requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior"
+      ],
+      "transition_ids": ["federate.connection-lost"],
+      "header": "RTI/FederateAmbassador.h",
+      "declaration_marker": "virtual void connectionLost(",
+      "minimum_matches": 1
+    }
+  ]
+}

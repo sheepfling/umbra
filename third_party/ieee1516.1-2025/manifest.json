@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "component": "IEEE 1516.1-2025 C++ API headers",
+  "upstream_archive": {
+    "canonical_api_source": {
+      "outer_file": "1516.1-2025_downloads.zip",
+      "outer_sha256": "27b81429f46fe10af26d961ed22661dfcc98535d77a92f135c43d6b4f74d16f4",
+      "inner_file": "1516-2025_API_XML_2025_08_14.zip",
+      "inner_sha256": "a8a259b545e4754d2dc86a08ae8f36105320e0917bacad28b465da7481318b51",
+      "purpose": "Matches the IEEE 1516.1-2025 API source referenced by the HLA Requirements Lab."
+    },
+    "import_source": {
+      "outer_file": "1516-2025_downloads.zip",
+      "outer_sha256": "61e537450f25ce28c4be373add7d0c6c946e5d10116e8a84377efee82d516121",
+      "inner_file": "hla-4-cpp-api-20250210.zip",
+      "inner_sha256": "f2dedca9677b2ca784a09b8ba14ea33454d2c7a56e273ad1b60fd8b6724be44d",
+      "content_relation": "The imported C++ header tree is byte-identical to the canonical API source above."
+    },
+    "acquisition": "Local licensed source input; archives are intentionally not committed."
+  },
+  "import": {
+    "source_directory": "RTI/",
+    "destination_directory": "include/RTI/",
+    "file_count": 44,
+    "content_modified": false
+  },
+  "license": {
+    "required_attribution": "Reprinted with permission from IEEE 1516.1(TM)-2025",
+    "notice_file": "NOTICE"
+  }
+}

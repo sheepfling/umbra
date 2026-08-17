@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded time-advance development slice to source-derived IEEE 1516.1-2025 records. The slice initializes each joined federate at the selected representation's initial time, retains a Time Advance Request until the configured callback dispatcher delivers Time Advance Grant, and exposes Query Logical Time. A separate contract traces the limited no-TSO GALT/NRG scheduler that can release TAR callbacks across federates. Umbra deliberately has no transport, TSO message delivery/order, timestamped queues, other advance modes, save/restore, package support, catalog result, JUnit sidecar, protected review, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-embedded-joined-federate-has-logical-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-177-l50-15",
+      "clause_id": "clause-8.1.2",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeFederateTimeState",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+      ]
+    },
+    {
+      "id": "umbra-embedded-joined-federate-starts-at-initial-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+      "clause_id": "clause-8.1.2",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeFederateTimeState",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+      ]
+    },
+    {
+      "id": "umbra-embedded-time-does-not-advance-before-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-177-l98-31",
+      "clause_id": "clause-8.1.2",
+      "source": "cpp/src/internal/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::grant",
+      "tests": [
+        "cpp/tests/federate_time_state_catch2.cpp::Federate time state retains the initial value until its matching grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+      ]
+    },
+    {
+      "id": "umbra-embedded-time-advance-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+      "clause_id": "clause-8.8.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+      ]
+    },
+    {
+      "id": "umbra-embedded-time-advance-grant-completes-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+      "clause_id": "clause-8.8.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "timeAdvanceGrant",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+      ]
+    },
+    {
+      "id": "umbra-embedded-time-advance-grant-reports-honored-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l92-24",
+      "clause_id": "clause-8.14.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "timeAdvanceGrant",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+      ]
+    },
+    {
+      "id": "umbra-embedded-query-logical-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37",
+      "clause_id": "clause-8.18.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryLogicalTime",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+      ]
+    }
+  ]
+}

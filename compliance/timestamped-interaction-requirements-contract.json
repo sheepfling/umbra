@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records Umbra's first bounded public timestamped service family in the non-installable IEEE 1516.1-2025 development profile: timestamped Send Interaction for non-regional interactions, with federation-owned queueing for time-constrained recipients, callback-gated delivery before Time Advance Grant, official timestamp/order/retraction callback fields, lower-bound validation from the sender's current or requested time plus lookahead, and Retract before delivery. It deliberately does not claim timestamped Update Attribute Values, Delete Object Instance, Send Directed Interaction, Send Interaction With Regions, NMR/FQR/flush services, asynchronous delivery, request-retraction callbacks, partial fanout retraction, remote transport, package support, catalog evidence, JUnit evidence, protected review, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-send-interaction-uses-regulator-tso-lower-bound",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+      "clause_id": "clause-4.19",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "validateTsoTimestamp",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-interaction-queues-for-time-constrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-interaction-waits-until-recipient-eligible",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-receive-reports-time-and-order",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l97-28",
+      "clause_id": "clause-6.13",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.receiveInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-receive-supplies-retraction-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33",
+      "clause_id": "clause-6.13",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeMessageRetractionHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the official eight-byte value encoding"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-retracts-before-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::retract",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-retraction-terminal-after-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "MessageCanNoLongerBeRetracted",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-retraction-uses-message-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+      ]
+    }
+  ]
+}

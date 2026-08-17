@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "repository": "../Document-Recreation",
+  "revision": "4f012fb1c21367cfde67aab8498ae00e2a64c615",
+  "edition": "2025",
+  "document_ids": [
+    "hla-1516-2025",
+    "hla-1516.1-2025",
+    "hla-1516.2-2025"
+  ],
+  "notes": "Update this lock and re-run tools/requirements_lab.py check when adopting a newer HLA Requirements Lab revision."
+}

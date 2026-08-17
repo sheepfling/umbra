@@ -1,0 +1,1244 @@
+{
+  "schema_version": 1,
+  "kind": "ieee1516.1-2025-binding-inventory",
+  "notes": "Review inventory only. It does not assert an implementation, test result, or conformance status.",
+  "classes": [
+    {
+      "class": "rti1516_2025::RTIambassador",
+      "header": "RTI/RTIambassador.h",
+      "sha256": "72b3fd63004e45ec986fcafcf73561af0ef1272af7eb5f9759627d075fd1e7cb",
+      "pure_virtual_member_count": 181,
+      "members": [
+        {
+          "ordinal": 1,
+          "name": "connect",
+          "signature": "ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel)"
+        },
+        {
+          "ordinal": 2,
+          "name": "connect",
+          "signature": "ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel, RtiConfiguration const & configuration)"
+        },
+        {
+          "ordinal": 3,
+          "name": "connect",
+          "signature": "ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel, Credentials const & credentials)"
+        },
+        {
+          "ordinal": 4,
+          "name": "connect",
+          "signature": "ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel, RtiConfiguration const & configuration, Credentials const & credentials)"
+        },
+        {
+          "ordinal": 5,
+          "name": "disconnect",
+          "signature": "void disconnect()"
+        },
+        {
+          "ordinal": 6,
+          "name": "createFederationExecution",
+          "signature": "void createFederationExecution( std::wstring const & federationName, std::wstring const & fomModule, std::wstring const & logicalTimeImplementationName = L\"\")"
+        },
+        {
+          "ordinal": 7,
+          "name": "createFederationExecution",
+          "signature": "void createFederationExecution( std::wstring const & federationName, std::vector<std::wstring> const & fomModules, std::wstring const & logicalTimeImplementationName = L\"\")"
+        },
+        {
+          "ordinal": 8,
+          "name": "createFederationExecutionWithMIM",
+          "signature": "void createFederationExecutionWithMIM( std::wstring const & federationName, std::vector<std::wstring> const & fomModules, std::wstring const & mimModule, std::wstring const & logicalTimeImplementationName = L\"\")"
+        },
+        {
+          "ordinal": 9,
+          "name": "destroyFederationExecution",
+          "signature": "void destroyFederationExecution( std::wstring const & federationName)"
+        },
+        {
+          "ordinal": 10,
+          "name": "listFederationExecutions",
+          "signature": "void listFederationExecutions()"
+        },
+        {
+          "ordinal": 11,
+          "name": "listFederationExecutionMembers",
+          "signature": "void listFederationExecutionMembers(std::wstring const & federationName)"
+        },
+        {
+          "ordinal": 12,
+          "name": "joinFederationExecution",
+          "signature": "FederateHandle joinFederationExecution( std::wstring const & federateType, std::wstring const & federationName, std::vector<std::wstring> const & additionalFomModules = std::vector<std::wstring>())"
+        },
+        {
+          "ordinal": 13,
+          "name": "joinFederationExecution",
+          "signature": "FederateHandle joinFederationExecution( std::wstring const & federateName, std::wstring const & federateType, std::wstring const & federationName, std::vector<std::wstring> const & additionalFomModules = std::vector<std::wstring>())"
+        },
+        {
+          "ordinal": 14,
+          "name": "resignFederationExecution",
+          "signature": "void resignFederationExecution( ResignAction resignAction)"
+        },
+        {
+          "ordinal": 15,
+          "name": "registerFederationSynchronizationPoint",
+          "signature": "void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 16,
+          "name": "registerFederationSynchronizationPoint",
+          "signature": "void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag, FederateHandleSet const & synchronizationSet)"
+        },
+        {
+          "ordinal": 17,
+          "name": "synchronizationPointAchieved",
+          "signature": "void synchronizationPointAchieved( std::wstring const & synchronizationPointLabel, bool successfully = true)"
+        },
+        {
+          "ordinal": 18,
+          "name": "requestFederationSave",
+          "signature": "void requestFederationSave( std::wstring const & label)"
+        },
+        {
+          "ordinal": 19,
+          "name": "requestFederationSave",
+          "signature": "void requestFederationSave( std::wstring const & label, LogicalTime const & time)"
+        },
+        {
+          "ordinal": 20,
+          "name": "federateSaveBegun",
+          "signature": "void federateSaveBegun()"
+        },
+        {
+          "ordinal": 21,
+          "name": "federateSaveComplete",
+          "signature": "void federateSaveComplete()"
+        },
+        {
+          "ordinal": 22,
+          "name": "federateSaveNotComplete",
+          "signature": "void federateSaveNotComplete ()"
+        },
+        {
+          "ordinal": 23,
+          "name": "abortFederationSave",
+          "signature": "void abortFederationSave()"
+        },
+        {
+          "ordinal": 24,
+          "name": "queryFederationSaveStatus",
+          "signature": "void queryFederationSaveStatus()"
+        },
+        {
+          "ordinal": 25,
+          "name": "requestFederationRestore",
+          "signature": "void requestFederationRestore( std::wstring const & label)"
+        },
+        {
+          "ordinal": 26,
+          "name": "federateRestoreComplete",
+          "signature": "void federateRestoreComplete()"
+        },
+        {
+          "ordinal": 27,
+          "name": "federateRestoreNotComplete",
+          "signature": "void federateRestoreNotComplete ()"
+        },
+        {
+          "ordinal": 28,
+          "name": "abortFederationRestore",
+          "signature": "void abortFederationRestore()"
+        },
+        {
+          "ordinal": 29,
+          "name": "queryFederationRestoreStatus",
+          "signature": "void queryFederationRestoreStatus()"
+        },
+        {
+          "ordinal": 30,
+          "name": "publishObjectClassAttributes",
+          "signature": "void publishObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 31,
+          "name": "unpublishObjectClass",
+          "signature": "void unpublishObjectClass ( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 32,
+          "name": "unpublishObjectClassAttributes",
+          "signature": "void unpublishObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 33,
+          "name": "publishInteractionClass",
+          "signature": "void publishInteractionClass( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 34,
+          "name": "unpublishInteractionClass",
+          "signature": "void unpublishInteractionClass( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 35,
+          "name": "publishObjectClassDirectedInteractions",
+          "signature": "void publishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses)"
+        },
+        {
+          "ordinal": 36,
+          "name": "unpublishObjectClassDirectedInteractions",
+          "signature": "void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 37,
+          "name": "unpublishObjectClassDirectedInteractions",
+          "signature": "void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses)"
+        },
+        {
+          "ordinal": 38,
+          "name": "subscribeObjectClassAttributes",
+          "signature": "void subscribeObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, bool active = true, std::wstring const & updateRateDesignator = L\"\")"
+        },
+        {
+          "ordinal": 39,
+          "name": "unsubscribeObjectClass",
+          "signature": "void unsubscribeObjectClass( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 40,
+          "name": "unsubscribeObjectClassAttributes",
+          "signature": "void unsubscribeObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 41,
+          "name": "subscribeInteractionClass",
+          "signature": "void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true)"
+        },
+        {
+          "ordinal": 42,
+          "name": "unsubscribeInteractionClass",
+          "signature": "void unsubscribeInteractionClass( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 43,
+          "name": "subscribeObjectClassDirectedInteractions",
+          "signature": "void subscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses, bool universally = false)"
+        },
+        {
+          "ordinal": 44,
+          "name": "unsubscribeObjectClassDirectedInteractions",
+          "signature": "void unsubscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 45,
+          "name": "unsubscribeObjectClassDirectedInteractions",
+          "signature": "void unsubscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses)"
+        },
+        {
+          "ordinal": 46,
+          "name": "reserveObjectInstanceName",
+          "signature": "void reserveObjectInstanceName( std::wstring const & objectInstanceName)"
+        },
+        {
+          "ordinal": 47,
+          "name": "releaseObjectInstanceName",
+          "signature": "void releaseObjectInstanceName( std::wstring const & objectInstanceName)"
+        },
+        {
+          "ordinal": 48,
+          "name": "reserveMultipleObjectInstanceNames",
+          "signature": "void reserveMultipleObjectInstanceNames( std::set<std::wstring> const & objectInstanceNames)"
+        },
+        {
+          "ordinal": 49,
+          "name": "releaseMultipleObjectInstanceNames",
+          "signature": "void releaseMultipleObjectInstanceNames( std::set<std::wstring> const & objectInstanceNames)"
+        },
+        {
+          "ordinal": 50,
+          "name": "registerObjectInstance",
+          "signature": "ObjectInstanceHandle registerObjectInstance( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 51,
+          "name": "registerObjectInstance",
+          "signature": "ObjectInstanceHandle registerObjectInstance( ObjectClassHandle const & objectClass, std::wstring const & objectInstanceName)"
+        },
+        {
+          "ordinal": 52,
+          "name": "updateAttributeValues",
+          "signature": "void updateAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 53,
+          "name": "updateAttributeValues",
+          "signature": "MessageRetractionHandle updateAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag, LogicalTime const & time)"
+        },
+        {
+          "ordinal": 54,
+          "name": "sendInteraction",
+          "signature": "void sendInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 55,
+          "name": "sendInteraction",
+          "signature": "MessageRetractionHandle sendInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, LogicalTime const & time)"
+        },
+        {
+          "ordinal": 56,
+          "name": "sendDirectedInteraction",
+          "signature": "void sendDirectedInteraction( InteractionClassHandle const & interactionClass, ObjectInstanceHandle const & objectInstance, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 57,
+          "name": "sendDirectedInteraction",
+          "signature": "MessageRetractionHandle sendDirectedInteraction( InteractionClassHandle const & interactionClass, ObjectInstanceHandle const & objectInstance, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, LogicalTime const & time)"
+        },
+        {
+          "ordinal": 58,
+          "name": "deleteObjectInstance",
+          "signature": "void deleteObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 59,
+          "name": "deleteObjectInstance",
+          "signature": "MessageRetractionHandle deleteObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, LogicalTime const & time)"
+        },
+        {
+          "ordinal": 60,
+          "name": "localDeleteObjectInstance",
+          "signature": "void localDeleteObjectInstance( ObjectInstanceHandle const & objectInstance)"
+        },
+        {
+          "ordinal": 61,
+          "name": "requestAttributeValueUpdate",
+          "signature": "void requestAttributeValueUpdate( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 62,
+          "name": "requestAttributeValueUpdate",
+          "signature": "void requestAttributeValueUpdate( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 63,
+          "name": "requestAttributeTransportationTypeChange",
+          "signature": "void requestAttributeTransportationTypeChange( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 64,
+          "name": "changeDefaultAttributeTransportationType",
+          "signature": "void changeDefaultAttributeTransportationType( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 65,
+          "name": "queryAttributeTransportationType",
+          "signature": "void queryAttributeTransportationType( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute)"
+        },
+        {
+          "ordinal": 66,
+          "name": "requestInteractionTransportationTypeChange",
+          "signature": "void requestInteractionTransportationTypeChange( InteractionClassHandle const & interactionClass, TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 67,
+          "name": "queryInteractionTransportationType",
+          "signature": "void queryInteractionTransportationType( FederateHandle const & federate, InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 68,
+          "name": "unconditionalAttributeOwnershipDivestiture",
+          "signature": "void unconditionalAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 69,
+          "name": "negotiatedAttributeOwnershipDivestiture",
+          "signature": "void negotiatedAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 70,
+          "name": "confirmDivestiture",
+          "signature": "void confirmDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & confirmedAttributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 71,
+          "name": "attributeOwnershipAcquisition",
+          "signature": "void attributeOwnershipAcquisition( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & desiredAttributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 72,
+          "name": "attributeOwnershipAcquisitionIfAvailable",
+          "signature": "void attributeOwnershipAcquisitionIfAvailable( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & desiredAttributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 73,
+          "name": "attributeOwnershipReleaseDenied",
+          "signature": "void attributeOwnershipReleaseDenied( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 74,
+          "name": "attributeOwnershipDivestitureIfWanted",
+          "signature": "void attributeOwnershipDivestitureIfWanted( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag, AttributeHandleSet & divestedAttributes)"
+        },
+        {
+          "ordinal": 75,
+          "name": "cancelNegotiatedAttributeOwnershipDivestiture",
+          "signature": "void cancelNegotiatedAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 76,
+          "name": "cancelAttributeOwnershipAcquisition",
+          "signature": "void cancelAttributeOwnershipAcquisition( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 77,
+          "name": "queryAttributeOwnership",
+          "signature": "void queryAttributeOwnership( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 78,
+          "name": "isAttributeOwnedByFederate",
+          "signature": "bool isAttributeOwnedByFederate( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute)"
+        },
+        {
+          "ordinal": 79,
+          "name": "enableTimeRegulation",
+          "signature": "void enableTimeRegulation( LogicalTimeInterval const & lookahead)"
+        },
+        {
+          "ordinal": 80,
+          "name": "disableTimeRegulation",
+          "signature": "void disableTimeRegulation()"
+        },
+        {
+          "ordinal": 81,
+          "name": "enableTimeConstrained",
+          "signature": "void enableTimeConstrained()"
+        },
+        {
+          "ordinal": 82,
+          "name": "disableTimeConstrained",
+          "signature": "void disableTimeConstrained()"
+        },
+        {
+          "ordinal": 83,
+          "name": "timeAdvanceRequest",
+          "signature": "void timeAdvanceRequest( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 84,
+          "name": "timeAdvanceRequestAvailable",
+          "signature": "void timeAdvanceRequestAvailable( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 85,
+          "name": "nextMessageRequest",
+          "signature": "void nextMessageRequest( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 86,
+          "name": "nextMessageRequestAvailable",
+          "signature": "void nextMessageRequestAvailable( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 87,
+          "name": "flushQueueRequest",
+          "signature": "void flushQueueRequest( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 88,
+          "name": "enableAsynchronousDelivery",
+          "signature": "void enableAsynchronousDelivery()"
+        },
+        {
+          "ordinal": 89,
+          "name": "disableAsynchronousDelivery",
+          "signature": "void disableAsynchronousDelivery()"
+        },
+        {
+          "ordinal": 90,
+          "name": "queryGALT",
+          "signature": "bool queryGALT(LogicalTime & time)"
+        },
+        {
+          "ordinal": 91,
+          "name": "queryLogicalTime",
+          "signature": "void queryLogicalTime(LogicalTime & time)"
+        },
+        {
+          "ordinal": 92,
+          "name": "queryLITS",
+          "signature": "bool queryLITS(LogicalTime & time)"
+        },
+        {
+          "ordinal": 93,
+          "name": "modifyLookahead",
+          "signature": "void modifyLookahead( LogicalTimeInterval const & lookahead)"
+        },
+        {
+          "ordinal": 94,
+          "name": "queryLookahead",
+          "signature": "void queryLookahead(LogicalTimeInterval & interval)"
+        },
+        {
+          "ordinal": 95,
+          "name": "retract",
+          "signature": "void retract( MessageRetractionHandle const & retraction)"
+        },
+        {
+          "ordinal": 96,
+          "name": "changeAttributeOrderType",
+          "signature": "void changeAttributeOrderType( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, OrderType orderType)"
+        },
+        {
+          "ordinal": 97,
+          "name": "changeDefaultAttributeOrderType",
+          "signature": "void changeDefaultAttributeOrderType( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, OrderType orderType)"
+        },
+        {
+          "ordinal": 98,
+          "name": "changeInteractionOrderType",
+          "signature": "void changeInteractionOrderType( InteractionClassHandle const & interactionClass, OrderType orderType)"
+        },
+        {
+          "ordinal": 99,
+          "name": "createRegion",
+          "signature": "RegionHandle createRegion( DimensionHandleSet const & dimensions)"
+        },
+        {
+          "ordinal": 100,
+          "name": "commitRegionModifications",
+          "signature": "void commitRegionModifications( RegionHandleSet const & regions)"
+        },
+        {
+          "ordinal": 101,
+          "name": "deleteRegion",
+          "signature": "void deleteRegion( RegionHandle const & region)"
+        },
+        {
+          "ordinal": 102,
+          "name": "registerObjectInstanceWithRegions",
+          "signature": "ObjectInstanceHandle registerObjectInstanceWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions)"
+        },
+        {
+          "ordinal": 103,
+          "name": "registerObjectInstanceWithRegions",
+          "signature": "ObjectInstanceHandle registerObjectInstanceWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, std::wstring const & objectInstanceName)"
+        },
+        {
+          "ordinal": 104,
+          "name": "associateRegionsForUpdates",
+          "signature": "void associateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions)"
+        },
+        {
+          "ordinal": 105,
+          "name": "unassociateRegionsForUpdates",
+          "signature": "void unassociateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions)"
+        },
+        {
+          "ordinal": 106,
+          "name": "subscribeObjectClassAttributesWithRegions",
+          "signature": "void subscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, bool active = true, std::wstring const & updateRateDesignator = L\"\")"
+        },
+        {
+          "ordinal": 107,
+          "name": "unsubscribeObjectClassAttributesWithRegions",
+          "signature": "void unsubscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions)"
+        },
+        {
+          "ordinal": 108,
+          "name": "subscribeInteractionClassWithRegions",
+          "signature": "void subscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions, bool active = true)"
+        },
+        {
+          "ordinal": 109,
+          "name": "unsubscribeInteractionClassWithRegions",
+          "signature": "void unsubscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions)"
+        },
+        {
+          "ordinal": 110,
+          "name": "sendInteractionWithRegions",
+          "signature": "void sendInteractionWithRegions( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, RegionHandleSet const & regions, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 111,
+          "name": "sendInteractionWithRegions",
+          "signature": "MessageRetractionHandle sendInteractionWithRegions( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, RegionHandleSet const & regions, VariableLengthData const & userSuppliedTag, LogicalTime const & time)"
+        },
+        {
+          "ordinal": 112,
+          "name": "requestAttributeValueUpdateWithRegions",
+          "signature": "void requestAttributeValueUpdateWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 113,
+          "name": "getFederateHandle",
+          "signature": "FederateHandle getFederateHandle( std::wstring const & federateName)"
+        },
+        {
+          "ordinal": 114,
+          "name": "getFederateName",
+          "signature": "std::wstring getFederateName( FederateHandle const & federate)"
+        },
+        {
+          "ordinal": 115,
+          "name": "getObjectClassHandle",
+          "signature": "ObjectClassHandle getObjectClassHandle( std::wstring const & objectClassName)"
+        },
+        {
+          "ordinal": 116,
+          "name": "getObjectClassName",
+          "signature": "std::wstring getObjectClassName( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 117,
+          "name": "getKnownObjectClassHandle",
+          "signature": "ObjectClassHandle getKnownObjectClassHandle( ObjectInstanceHandle const & objectInstance)"
+        },
+        {
+          "ordinal": 118,
+          "name": "getObjectInstanceHandle",
+          "signature": "ObjectInstanceHandle getObjectInstanceHandle( std::wstring const & objectInstanceName)"
+        },
+        {
+          "ordinal": 119,
+          "name": "getObjectInstanceName",
+          "signature": "std::wstring getObjectInstanceName( ObjectInstanceHandle const & objectInstance)"
+        },
+        {
+          "ordinal": 120,
+          "name": "getAttributeHandle",
+          "signature": "AttributeHandle getAttributeHandle( ObjectClassHandle const & objectClass, std::wstring const & attributeName)"
+        },
+        {
+          "ordinal": 121,
+          "name": "getAttributeName",
+          "signature": "std::wstring getAttributeName( ObjectClassHandle const & objectClass, AttributeHandle const & attribute)"
+        },
+        {
+          "ordinal": 122,
+          "name": "getUpdateRateValue",
+          "signature": "double getUpdateRateValue( std::wstring const & updateRateDesignator)"
+        },
+        {
+          "ordinal": 123,
+          "name": "getUpdateRateValueForAttribute",
+          "signature": "double getUpdateRateValueForAttribute( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute)"
+        },
+        {
+          "ordinal": 124,
+          "name": "getInteractionClassHandle",
+          "signature": "InteractionClassHandle getInteractionClassHandle( std::wstring const & interactionClassName)"
+        },
+        {
+          "ordinal": 125,
+          "name": "getInteractionClassName",
+          "signature": "std::wstring getInteractionClassName( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 126,
+          "name": "getParameterHandle",
+          "signature": "ParameterHandle getParameterHandle( InteractionClassHandle const & interactionClass, std::wstring const & parameterName)"
+        },
+        {
+          "ordinal": 127,
+          "name": "getParameterName",
+          "signature": "std::wstring getParameterName( InteractionClassHandle const & interactionClass, ParameterHandle const & parameter)"
+        },
+        {
+          "ordinal": 128,
+          "name": "getOrderType",
+          "signature": "OrderType getOrderType( std::wstring const & orderTypeName)"
+        },
+        {
+          "ordinal": 129,
+          "name": "getOrderName",
+          "signature": "std::wstring getOrderName( OrderType orderType)"
+        },
+        {
+          "ordinal": 130,
+          "name": "getTransportationTypeHandle",
+          "signature": "TransportationTypeHandle getTransportationTypeHandle( std::wstring const & transportationTypeName)"
+        },
+        {
+          "ordinal": 131,
+          "name": "getTransportationTypeName",
+          "signature": "std::wstring getTransportationTypeName( TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 132,
+          "name": "getAvailableDimensionsForObjectClass",
+          "signature": "DimensionHandleSet getAvailableDimensionsForObjectClass( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 133,
+          "name": "getAvailableDimensionsForInteractionClass",
+          "signature": "DimensionHandleSet getAvailableDimensionsForInteractionClass( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 134,
+          "name": "getDimensionHandle",
+          "signature": "DimensionHandle getDimensionHandle( std::wstring const & dimensionName)"
+        },
+        {
+          "ordinal": 135,
+          "name": "getDimensionName",
+          "signature": "std::wstring getDimensionName( DimensionHandle const & dimension)"
+        },
+        {
+          "ordinal": 136,
+          "name": "getDimensionUpperBound",
+          "signature": "unsigned long getDimensionUpperBound( DimensionHandle const & dimension)"
+        },
+        {
+          "ordinal": 137,
+          "name": "getDimensionHandleSet",
+          "signature": "DimensionHandleSet getDimensionHandleSet( RegionHandle const & region)"
+        },
+        {
+          "ordinal": 138,
+          "name": "getRangeBounds",
+          "signature": "RangeBounds getRangeBounds( RegionHandle const & region, DimensionHandle const & dimension)"
+        },
+        {
+          "ordinal": 139,
+          "name": "setRangeBounds",
+          "signature": "void setRangeBounds( RegionHandle const & region, DimensionHandle const & dimension, RangeBounds const & rangeBounds)"
+        },
+        {
+          "ordinal": 140,
+          "name": "normalizeServiceGroup",
+          "signature": "unsigned long normalizeServiceGroup( ServiceGroup serviceGroup)"
+        },
+        {
+          "ordinal": 141,
+          "name": "normalizeFederateHandle",
+          "signature": "unsigned long normalizeFederateHandle( FederateHandle const & federate)"
+        },
+        {
+          "ordinal": 142,
+          "name": "normalizeObjectClassHandle",
+          "signature": "unsigned long normalizeObjectClassHandle( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 143,
+          "name": "normalizeInteractionClassHandle",
+          "signature": "unsigned long normalizeInteractionClassHandle( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 144,
+          "name": "normalizeObjectInstanceHandle",
+          "signature": "unsigned long normalizeObjectInstanceHandle( ObjectInstanceHandle const & objectInstance)"
+        },
+        {
+          "ordinal": 145,
+          "name": "getObjectClassRelevanceAdvisorySwitch",
+          "signature": "bool getObjectClassRelevanceAdvisorySwitch() const"
+        },
+        {
+          "ordinal": 146,
+          "name": "setObjectClassRelevanceAdvisorySwitch",
+          "signature": "void setObjectClassRelevanceAdvisorySwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 147,
+          "name": "getAttributeRelevanceAdvisorySwitch",
+          "signature": "bool getAttributeRelevanceAdvisorySwitch() const"
+        },
+        {
+          "ordinal": 148,
+          "name": "setAttributeRelevanceAdvisorySwitch",
+          "signature": "void setAttributeRelevanceAdvisorySwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 149,
+          "name": "getAttributeScopeAdvisorySwitch",
+          "signature": "bool getAttributeScopeAdvisorySwitch() const"
+        },
+        {
+          "ordinal": 150,
+          "name": "setAttributeScopeAdvisorySwitch",
+          "signature": "void setAttributeScopeAdvisorySwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 151,
+          "name": "getInteractionRelevanceAdvisorySwitch",
+          "signature": "bool getInteractionRelevanceAdvisorySwitch() const"
+        },
+        {
+          "ordinal": 152,
+          "name": "setInteractionRelevanceAdvisorySwitch",
+          "signature": "void setInteractionRelevanceAdvisorySwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 153,
+          "name": "getConveyRegionDesignatorSetsSwitch",
+          "signature": "bool getConveyRegionDesignatorSetsSwitch() const"
+        },
+        {
+          "ordinal": 154,
+          "name": "setConveyRegionDesignatorSetsSwitch",
+          "signature": "void setConveyRegionDesignatorSetsSwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 155,
+          "name": "getAutomaticResignDirective",
+          "signature": "ResignAction getAutomaticResignDirective()"
+        },
+        {
+          "ordinal": 156,
+          "name": "setAutomaticResignDirective",
+          "signature": "void setAutomaticResignDirective( ResignAction resignAction)"
+        },
+        {
+          "ordinal": 157,
+          "name": "getServiceReportingSwitch",
+          "signature": "bool getServiceReportingSwitch() const"
+        },
+        {
+          "ordinal": 158,
+          "name": "setServiceReportingSwitch",
+          "signature": "void setServiceReportingSwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 159,
+          "name": "getExceptionReportingSwitch",
+          "signature": "bool getExceptionReportingSwitch() const"
+        },
+        {
+          "ordinal": 160,
+          "name": "setExceptionReportingSwitch",
+          "signature": "void setExceptionReportingSwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 161,
+          "name": "getSendServiceReportsToFileSwitch",
+          "signature": "bool getSendServiceReportsToFileSwitch() const"
+        },
+        {
+          "ordinal": 162,
+          "name": "setSendServiceReportsToFileSwitch",
+          "signature": "void setSendServiceReportsToFileSwitch(bool switchValue)"
+        },
+        {
+          "ordinal": 163,
+          "name": "getAutoProvideSwitch",
+          "signature": "bool getAutoProvideSwitch() const"
+        },
+        {
+          "ordinal": 164,
+          "name": "getDelaySubscriptionEvaluationSwitch",
+          "signature": "bool getDelaySubscriptionEvaluationSwitch() const"
+        },
+        {
+          "ordinal": 165,
+          "name": "getAdvisoriesUseKnownClassSwitch",
+          "signature": "bool getAdvisoriesUseKnownClassSwitch() const"
+        },
+        {
+          "ordinal": 166,
+          "name": "getAllowRelaxedDDMSwitch",
+          "signature": "bool getAllowRelaxedDDMSwitch() const"
+        },
+        {
+          "ordinal": 167,
+          "name": "getNonRegulatedGrantSwitch",
+          "signature": "bool getNonRegulatedGrantSwitch() const"
+        },
+        {
+          "ordinal": 168,
+          "name": "evokeCallback",
+          "signature": "bool evokeCallback( double approximateMinimumTimeInSeconds)"
+        },
+        {
+          "ordinal": 169,
+          "name": "evokeMultipleCallbacks",
+          "signature": "bool evokeMultipleCallbacks( double approximateMinimumTimeInSeconds, double approximateMaximumTimeInSeconds)"
+        },
+        {
+          "ordinal": 170,
+          "name": "enableCallbacks",
+          "signature": "void enableCallbacks()"
+        },
+        {
+          "ordinal": 171,
+          "name": "disableCallbacks",
+          "signature": "void disableCallbacks()"
+        },
+        {
+          "ordinal": 172,
+          "name": "getTimeFactory",
+          "signature": "std::unique_ptr<LogicalTimeFactory> getTimeFactory () const"
+        },
+        {
+          "ordinal": 173,
+          "name": "decodeFederateHandle",
+          "signature": "FederateHandle decodeFederateHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 174,
+          "name": "decodeObjectClassHandle",
+          "signature": "ObjectClassHandle decodeObjectClassHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 175,
+          "name": "decodeInteractionClassHandle",
+          "signature": "InteractionClassHandle decodeInteractionClassHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 176,
+          "name": "decodeObjectInstanceHandle",
+          "signature": "ObjectInstanceHandle decodeObjectInstanceHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 177,
+          "name": "decodeAttributeHandle",
+          "signature": "AttributeHandle decodeAttributeHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 178,
+          "name": "decodeParameterHandle",
+          "signature": "ParameterHandle decodeParameterHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 179,
+          "name": "decodeDimensionHandle",
+          "signature": "DimensionHandle decodeDimensionHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 180,
+          "name": "decodeMessageRetractionHandle",
+          "signature": "MessageRetractionHandle decodeMessageRetractionHandle ( VariableLengthData const & encodedValue) const"
+        },
+        {
+          "ordinal": 181,
+          "name": "decodeRegionHandle",
+          "signature": "RegionHandle decodeRegionHandle ( VariableLengthData const & encodedValue) const"
+        }
+      ]
+    },
+    {
+      "class": "rti1516_2025::FederateAmbassador",
+      "header": "RTI/FederateAmbassador.h",
+      "sha256": "9e627a0cd880f38f132b649a7fe45a3e90d9439f577c27422da848f49c5e8c5b",
+      "pure_virtual_member_count": 63,
+      "members": [
+        {
+          "ordinal": 1,
+          "name": "~FederateAmbassador",
+          "signature": "~FederateAmbassador () noexcept"
+        },
+        {
+          "ordinal": 2,
+          "name": "connectionLost",
+          "signature": "void connectionLost( std::wstring const & faultDescription)"
+        },
+        {
+          "ordinal": 3,
+          "name": "reportFederationExecutions",
+          "signature": "void reportFederationExecutions( FederationExecutionInformationVector const & report)"
+        },
+        {
+          "ordinal": 4,
+          "name": "reportFederationExecutionMembers",
+          "signature": "void reportFederationExecutionMembers( std::wstring const & federationName, FederationExecutionMemberInformationVector const & report)"
+        },
+        {
+          "ordinal": 5,
+          "name": "reportFederationExecutionDoesNotExist",
+          "signature": "void reportFederationExecutionDoesNotExist( std::wstring const & federationName)"
+        },
+        {
+          "ordinal": 6,
+          "name": "federateResigned",
+          "signature": "void federateResigned( std::wstring const & reasonForResignDescription)"
+        },
+        {
+          "ordinal": 7,
+          "name": "synchronizationPointRegistrationSucceeded",
+          "signature": "void synchronizationPointRegistrationSucceeded( std::wstring const & synchronizationPointLabel)"
+        },
+        {
+          "ordinal": 8,
+          "name": "synchronizationPointRegistrationFailed",
+          "signature": "void synchronizationPointRegistrationFailed( std::wstring const & synchronizationPointLabel, SynchronizationPointFailureReason reason)"
+        },
+        {
+          "ordinal": 9,
+          "name": "announceSynchronizationPoint",
+          "signature": "void announceSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 10,
+          "name": "federationSynchronized",
+          "signature": "void federationSynchronized( std::wstring const & synchronizationPointLabel, FederateHandleSet const & failedToSyncSet)"
+        },
+        {
+          "ordinal": 11,
+          "name": "initiateFederateSave",
+          "signature": "void initiateFederateSave( std::wstring const & label)"
+        },
+        {
+          "ordinal": 12,
+          "name": "initiateFederateSave",
+          "signature": "void initiateFederateSave( std::wstring const & label, LogicalTime const & time)"
+        },
+        {
+          "ordinal": 13,
+          "name": "federationSaved",
+          "signature": "void federationSaved()"
+        },
+        {
+          "ordinal": 14,
+          "name": "federationNotSaved",
+          "signature": "void federationNotSaved ( SaveFailureReason reason)"
+        },
+        {
+          "ordinal": 15,
+          "name": "federationSaveStatusResponse",
+          "signature": "void federationSaveStatusResponse( FederateHandleSaveStatusPairVector const & response)"
+        },
+        {
+          "ordinal": 16,
+          "name": "requestFederationRestoreSucceeded",
+          "signature": "void requestFederationRestoreSucceeded( std::wstring const & label)"
+        },
+        {
+          "ordinal": 17,
+          "name": "requestFederationRestoreFailed",
+          "signature": "void requestFederationRestoreFailed( std::wstring const & label)"
+        },
+        {
+          "ordinal": 18,
+          "name": "federationRestoreBegun",
+          "signature": "void federationRestoreBegun()"
+        },
+        {
+          "ordinal": 19,
+          "name": "initiateFederateRestore",
+          "signature": "void initiateFederateRestore( std::wstring const & label, std::wstring const & federateName, FederateHandle const & postRestoreFederateHandle)"
+        },
+        {
+          "ordinal": 20,
+          "name": "federationRestored",
+          "signature": "void federationRestored()"
+        },
+        {
+          "ordinal": 21,
+          "name": "federationNotRestored",
+          "signature": "void federationNotRestored ( RestoreFailureReason reason)"
+        },
+        {
+          "ordinal": 22,
+          "name": "federationRestoreStatusResponse",
+          "signature": "void federationRestoreStatusResponse( FederateRestoreStatusVector const & response)"
+        },
+        {
+          "ordinal": 23,
+          "name": "startRegistrationForObjectClass",
+          "signature": "void startRegistrationForObjectClass( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 24,
+          "name": "stopRegistrationForObjectClass",
+          "signature": "void stopRegistrationForObjectClass( ObjectClassHandle const & objectClass)"
+        },
+        {
+          "ordinal": 25,
+          "name": "turnInteractionsOn",
+          "signature": "void turnInteractionsOn( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 26,
+          "name": "turnInteractionsOff",
+          "signature": "void turnInteractionsOff( InteractionClassHandle const & interactionClass)"
+        },
+        {
+          "ordinal": 27,
+          "name": "objectInstanceNameReservationSucceeded",
+          "signature": "void objectInstanceNameReservationSucceeded( std::wstring const & objectInstanceName)"
+        },
+        {
+          "ordinal": 28,
+          "name": "objectInstanceNameReservationFailed",
+          "signature": "void objectInstanceNameReservationFailed( std::wstring const & objectInstanceName)"
+        },
+        {
+          "ordinal": 29,
+          "name": "multipleObjectInstanceNameReservationSucceeded",
+          "signature": "void multipleObjectInstanceNameReservationSucceeded( std::set<std::wstring> const & objectInstanceNames)"
+        },
+        {
+          "ordinal": 30,
+          "name": "multipleObjectInstanceNameReservationFailed",
+          "signature": "void multipleObjectInstanceNameReservationFailed( std::set<std::wstring> const & objectInstanceNames)"
+        },
+        {
+          "ordinal": 31,
+          "name": "discoverObjectInstance",
+          "signature": "void discoverObjectInstance( ObjectInstanceHandle const & objectInstance, ObjectClassHandle const & objectClass, std::wstring const & objectInstanceName, FederateHandle const & producingFederate)"
+        },
+        {
+          "ordinal": 32,
+          "name": "reflectAttributeValues",
+          "signature": "void reflectAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions)"
+        },
+        {
+          "ordinal": 33,
+          "name": "reflectAttributeValues",
+          "signature": "void reflectAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction)"
+        },
+        {
+          "ordinal": 34,
+          "name": "receiveInteraction",
+          "signature": "void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, const RegionHandleSet * optionalSentRegions)"
+        },
+        {
+          "ordinal": 35,
+          "name": "receiveInteraction",
+          "signature": "void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction)"
+        },
+        {
+          "ordinal": 36,
+          "name": "receiveDirectedInteraction",
+          "signature": "void receiveDirectedInteraction( InteractionClassHandle const & interactionClass, ObjectInstanceHandle const & objectInstance, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate)"
+        },
+        {
+          "ordinal": 37,
+          "name": "receiveDirectedInteraction",
+          "signature": "void receiveDirectedInteraction( InteractionClassHandle const & interactionClass, ObjectInstanceHandle const & objectInstance, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction)"
+        },
+        {
+          "ordinal": 38,
+          "name": "removeObjectInstance",
+          "signature": "void removeObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, FederateHandle const & producingFederate)"
+        },
+        {
+          "ordinal": 39,
+          "name": "removeObjectInstance",
+          "signature": "void removeObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, FederateHandle const & producingFederate, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction)"
+        },
+        {
+          "ordinal": 40,
+          "name": "attributesInScope",
+          "signature": "void attributesInScope( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 41,
+          "name": "attributesOutOfScope",
+          "signature": "void attributesOutOfScope( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 42,
+          "name": "provideAttributeValueUpdate",
+          "signature": "void provideAttributeValueUpdate( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 43,
+          "name": "turnUpdatesOnForObjectInstance",
+          "signature": "void turnUpdatesOnForObjectInstance( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 44,
+          "name": "turnUpdatesOnForObjectInstance",
+          "signature": "void turnUpdatesOnForObjectInstance( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, std::wstring const & updateRateDesignator)"
+        },
+        {
+          "ordinal": 45,
+          "name": "turnUpdatesOffForObjectInstance",
+          "signature": "void turnUpdatesOffForObjectInstance( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 46,
+          "name": "confirmAttributeTransportationTypeChange",
+          "signature": "void confirmAttributeTransportationTypeChange( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 47,
+          "name": "reportAttributeTransportationType",
+          "signature": "void reportAttributeTransportationType( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute, TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 48,
+          "name": "confirmInteractionTransportationTypeChange",
+          "signature": "void confirmInteractionTransportationTypeChange( InteractionClassHandle const & interactionClass, TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 49,
+          "name": "reportInteractionTransportationType",
+          "signature": "void reportInteractionTransportationType( FederateHandle const & federate, InteractionClassHandle const & interactionClass, TransportationTypeHandle const & transportationType)"
+        },
+        {
+          "ordinal": 50,
+          "name": "requestAttributeOwnershipAssumption",
+          "signature": "void requestAttributeOwnershipAssumption( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & offeredAttributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 51,
+          "name": "requestDivestitureConfirmation",
+          "signature": "void requestDivestitureConfirmation( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & releasedAttributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 52,
+          "name": "attributeOwnershipAcquisitionNotification",
+          "signature": "void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & securedAttributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 53,
+          "name": "attributeOwnershipUnavailable",
+          "signature": "void attributeOwnershipUnavailable( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 54,
+          "name": "requestAttributeOwnershipRelease",
+          "signature": "void requestAttributeOwnershipRelease( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & candidateAttributes, VariableLengthData const & userSuppliedTag)"
+        },
+        {
+          "ordinal": 55,
+          "name": "confirmAttributeOwnershipAcquisitionCancellation",
+          "signature": "void confirmAttributeOwnershipAcquisitionCancellation( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 56,
+          "name": "informAttributeOwnership",
+          "signature": "void informAttributeOwnership( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, FederateHandle const & owner)"
+        },
+        {
+          "ordinal": 57,
+          "name": "attributeIsNotOwned",
+          "signature": "void attributeIsNotOwned ( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 58,
+          "name": "attributeIsOwnedByRTI",
+          "signature": "void attributeIsOwnedByRTI ( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes)"
+        },
+        {
+          "ordinal": 59,
+          "name": "timeRegulationEnabled",
+          "signature": "void timeRegulationEnabled( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 60,
+          "name": "timeConstrainedEnabled",
+          "signature": "void timeConstrainedEnabled( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 61,
+          "name": "flushQueueGrant",
+          "signature": "void flushQueueGrant( LogicalTime const & time, LogicalTime const & optimisticTime)"
+        },
+        {
+          "ordinal": 62,
+          "name": "timeAdvanceGrant",
+          "signature": "void timeAdvanceGrant( LogicalTime const & time)"
+        },
+        {
+          "ordinal": 63,
+          "name": "requestRetraction",
+          "signature": "void requestRetraction( MessageRetractionHandle const & retraction)"
+        }
+      ]
+    }
+  ],
+  "total_pure_virtual_member_count": 244
+}

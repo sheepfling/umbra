@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <tags>
+        <updateReflectTag>
+            <dataType>UmbraTagReferenceFixture</dataType>
+            <semantics>Fixture user-supplied tag.</semantics>
+        </updateReflectTag>
+    </tags>
+    <synchronizations>
+        <synchronizationPoint>
+            <label>UmbraTagFixtureSynchronization</label>
+            <dataType>HLAinteger64Time</dataType>
+            <semantics>Fixture synchronization tag.</semantics>
+        </synchronizationPoint>
+    </synchronizations>
+    <dataTypes>
+        <referenceDataTypes>
+            <referenceDataType>
+                <name>UmbraTagReferenceFixture</name>
+                <representation>HLAtoken</representation>
+                <referenceClass>HLAobjectRoot</referenceClass>
+                <referencedAttribute>HLAprivilegeToDeleteObject</referencedAttribute>
+                <semantics>Fixture reference data type.</semantics>
+            </referenceDataType>
+        </referenceDataTypes>
+    </dataTypes>
+</objectModel>

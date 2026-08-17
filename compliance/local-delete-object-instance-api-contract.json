@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded Local Delete Object Instance implementation to the exact official IEEE 1516.1-2025 C++ RTIambassador declaration exported by the Requirements Lab. It verifies the signature, declared exception set, adapter symbol, and a real Catch2 selector. The test proves connection/membership and known-instance boundaries, FederateOwnsAttributes and OwnershipAcquisitionPending rejection, local knowledge removal, retained federation-wide object state, and rediscovery. Timestamped/local-delete interactions, DDM, save/restore, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-local-delete-object-instance",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.localdeleteobjectinstance.912c2f08a24c",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void localDeleteObjectInstance( ObjectInstanceHandle const & objectInstance) = 0",
+      "exception_types": [
+        "OwnershipAcquisitionPending",
+        "FederateOwnsAttributes",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::localDeleteObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1098 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Restaurant FOM Module Example</name>
+        <type>FOM</type>
+        <version>3.0</version>
+        <modificationDate>2025-02-10</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>©2025 IEEE</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>To define an HLA object model for a restaurant federation</purpose>
+        <applicationDomain>Restaurant operations</applicationDomain>
+        <description>This object model is intended to define the HLA Federation Object Model for a
+            restaurant simulation. It is a standalone FOM module since it depends on no other FOM
+            module other than the standard HLA MIM module.</description>
+        <useLimitation>Derived models must reference this document</useLimitation>
+        <useHistory>Originally used as an example in the DoD HLA 1.3 specification</useHistory>
+        <useHistory>Used as an example in the HLA IEEE1516.2-2000 specification</useHistory>
+        <useHistory>Used as an example in the HLA IEEE1516.2-2010 specification after conversion to
+            a FOM module (MIM information stripped out)</useHistory>
+        <useHistory>Used as an example in the HLA IEEE 1516.2-2025 specification after conversion to
+            a FOM module</useHistory>
+        <keyword>
+            <taxonomy>Food Service Industry Taxonomy</taxonomy>
+            <keywordValue>Restaurant</keywordValue>
+        </keyword>
+        <keyword>
+            <taxonomy>Food Service Industry Taxonomy</taxonomy>
+            <keywordValue>Menu</keywordValue>
+        </keyword>
+        <keyword>
+            <taxonomy>Food Service Industry Taxonomy</taxonomy>
+            <keywordValue>Server</keywordValue>
+        </keyword>
+        <poc>
+            <pocType>Sponsor</pocType>
+            <pocName>Mr. Joseph Doe</pocName>
+            <pocOrg>Joe's Place</pocOrg>
+            <pocTelephone>1-977-555-1234</pocTelephone>
+            <pocEmail>doej@joesplace.com</pocEmail>
+        </poc>
+        <poc>
+            <pocType>Author</pocType>
+            <pocName>Mr. Sven Swede</pocName>
+            <pocOrg>Federated Foods</pocOrg>
+        </poc>
+        <reference>
+            <type>Standalone</type>
+            <identification>NA</identification>
+        </reference>
+        <reference>
+            <type>HTML document</type>
+            <identification>www.fedfoods.com/restsim.html</identification>
+        </reference>
+        <reference>
+            <type>Federation Agreements</type>
+            <identification>www.fedfoods.com/restsimAgreement.pdf</identification>
+        </reference>
+        <other>See Mobil International Restaurant Guide for more information</other>
+        <glyph
+            href="data:image/gif;base64,R0lGODlhIAAgAKIAAAAAAP///wD//8DAwICAgP///wAAAAAAACH5BAEAAAUALAAAAAAgACAAAAOrGLLc/nCpSKu9mIXNu//eA47kJpbgMHznALxESRBq6GzEq69fPtAxzimne/E4PuBPeAsQi4COKzdzdYZQI7LouzYDWUDQqaPaGhwX9PgUs764dWAqPnrRIzURdcrv+HA9ZYB4IESHJX0eiE92dxqCbnFab4VbL4uDZ5AcRY5gmkyFapQfXI8SG6d+oS1FKKQAPFilJKSinDMoHjUmgbskisDBGcXGx2jIFwEJADs="
+            alt="Restaurant FOM Glyph"/>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>Customer</name>
+                <sharing>PublishSubscribe</sharing>
+                <semantics>Patron of the restaurant</semantics>
+            </objectClass>
+            <objectClass>
+                <name>Bill</name>
+                <sharing>PublishSubscribe</sharing>
+                <semantics>Statement of money owed by the customer</semantics>
+            </objectClass>
+            <objectClass>
+                <name>Order</name>
+                <sharing>PublishSubscribe</sharing>
+                <semantics>Specific items requested by a customer</semantics>
+            </objectClass>
+            <objectClass>
+                <name>Employee</name>
+                <sharing>Neither</sharing>
+                <semantics>A person working for the restaurant</semantics>
+                <attribute>
+                    <name>Name</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>On change</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Employee's name</semantics>
+                </attribute>
+                <attribute>
+                    <name>PayRate</name>
+                    <dataType>DollarRate</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition noteReferences="Note3">Merit increase</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Amount the employee is paid per hour</semantics>
+                </attribute>
+                <attribute>
+                    <name>YearsOfService</name>
+                    <dataType>Years</dataType>
+                    <updateType>Periodic</updateType>
+                    <updateCondition noteReferences="Note4">1/year</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Number of years the employee has worked for the
+                        restaurant</semantics>
+                </attribute>
+                <attribute>
+                    <name>HomeNumber</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Employee request</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Employee home phone number</semantics>
+                </attribute>
+                <attribute>
+                    <name>HomeAddress</name>
+                    <dataType>AddressType</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Employee request</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Employee home address</semantics>
+                </attribute>
+                <objectClass>
+                    <name>Greeter</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <semantics>An employee who greets customers at the entrance and takes them to their table.</semantics>
+                </objectClass>
+                <objectClass>
+                    <name>Server</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <directedInteraction>
+                        <name>HLAinteractionRoot.ServerAction.TakeOrder</name>
+                        <sharing>PublishSubscribe</sharing>
+                    </directedInteraction>
+                    <semantics>An employee who takes and serves customer orders.</semantics>
+                    <attribute>
+                        <name>Efficiency</name>
+                        <dataType>ServerValue</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>Performance review</updateCondition>
+                        <valueRequired>true</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Efficiency rating of server</semantics>
+                    </attribute>
+                    <attribute>
+                        <name>Cheerfulness</name>
+                        <dataType>ServerValue</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>Performance review</updateCondition>
+                        <valueRequired>true</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Cheerfulness of server</semantics>
+                    </attribute>
+                    <attribute>
+                        <name>State</name>
+                        <dataType>ServerTasks</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>Work flow</updateCondition>
+                        <valueRequired>true</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>What the server is doing</semantics>
+                    </attribute>
+                </objectClass>
+                <objectClass>
+                    <name>Cashier</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <semantics>Employee who collects money</semantics>
+                </objectClass>
+                <objectClass>
+                    <name>Dishwasher</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <semantics>Cleaner of plates, pots, and utensils</semantics>
+                </objectClass>
+                <objectClass>
+                    <name>Cook</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <semantics>Preparer of the meal</semantics>
+                </objectClass>
+            </objectClass>
+            <objectClass>
+                <name>Food</name>
+                <sharing>Subscribe</sharing>
+                <semantics>Products served at the restaurant</semantics>
+                <objectClass>
+                    <name>MainCourse</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <semantics>Principal dish</semantics>
+                </objectClass>
+                <objectClass>
+                    <name>Drink</name>
+                    <sharing>Subscribe</sharing>
+                    <dimensions>
+                        <dimension>BarQuantity</dimension>
+                    </dimensions>
+                    <semantics>Liquid accompaniment to meal</semantics>
+                    <attribute>
+                        <name>NumberCups</name>
+                        <dataType>DrinkCount</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>Customer request</updateCondition>
+                        <valueRequired>true</valueRequired>
+                        <ownership>NoTransfer</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Number of drinks</semantics>
+                    </attribute>
+                    <objectClass>
+                        <name>Water</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Tap water</semantics>
+                    </objectClass>
+                    <objectClass>
+                        <name>Coffee</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Brewed coffee</semantics>
+                    </objectClass>
+                    <objectClass>
+                        <name>Soda</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <dimensions>
+                            <dimension>SodaFlavor</dimension>
+                        </dimensions>
+                        <semantics>Carbonated beverage</semantics>
+                        <attribute>
+                            <name>Flavor</name>
+                            <dataType>FlavorType</dataType>
+                            <updateType>Conditional</updateType>
+                            <updateCondition>Customer request</updateCondition>
+                            <valueRequired>true</valueRequired>
+                            <ownership>NoTransfer</ownership>
+                            <sharing>PublishSubscribe</sharing>
+                            <transportation>HLAreliable</transportation>
+                            <order>TimeStamp</order>
+                            <semantics>Flavor of soda</semantics>
+                        </attribute>
+                        <objectClass>
+                            <name>Light</name>
+                            <sharing>PublishSubscribe</sharing>
+                            <dimensions>
+                                <dimension>Sweetener</dimension>
+                            </dimensions>
+                            <semantics>Type of light soda</semantics>
+                        </objectClass>
+                    </objectClass>
+                </objectClass>
+                <objectClass>
+                    <name>Appetizers</name>
+                    <sharing>Subscribe</sharing>
+                    <semantics>Portion served before main course</semantics>
+                    <objectClass>
+                        <name>Soup</name>
+                        <sharing>Subscribe</sharing>
+                        <semantics>Soup course</semantics>
+                        <objectClass>
+                            <name>ClamChowder</name>
+                            <sharing>PublishSubscribe</sharing>
+                            <semantics>Clam chowder</semantics>
+                            <objectClass>
+                                <name>Manhattan</name>
+                                <sharing>Publish</sharing>
+                                <semantics>Manhattan style clam chowder</semantics>
+                            </objectClass>
+                            <objectClass>
+                                <name>NewEngland</name>
+                                <sharing>Publish</sharing>
+                                <semantics>New England style clam chowder</semantics>
+                            </objectClass>
+                        </objectClass>
+                        <objectClass>
+                            <name>BeefBarley</name>
+                            <sharing>PublishSubscribe</sharing>
+                            <semantics>Beef barley soup</semantics>
+                        </objectClass>
+                    </objectClass>
+                    <objectClass>
+                        <name>Nachos</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Nachos</semantics>
+                    </objectClass>
+                </objectClass>
+                <objectClass>
+                    <name>Entree</name>
+                    <sharing>Subscribe</sharing>
+                    <semantics>Principal dish</semantics>
+                    <objectClass>
+                        <name>Beef</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Beef entree</semantics>
+                    </objectClass>
+                    <objectClass>
+                        <name>Chicken</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Chicken entree</semantics>
+                    </objectClass>
+                    <objectClass>
+                        <name>Seafood</name>
+                        <sharing>Subscribe</sharing>
+                        <semantics>Seafood entree</semantics>
+                        <objectClass>
+                            <name>Fish</name>
+                            <sharing>PublishSubscribe</sharing>
+                            <semantics>Fish of the day</semantics>
+                        </objectClass>
+                        <objectClass>
+                            <name>Shrimp</name>
+                            <sharing>PublishSubscribe</sharing>
+                            <semantics>Shrimp scampi</semantics>
+                        </objectClass>
+                        <objectClass>
+                            <name noteReferences="Note1">Lobster</name>
+                            <sharing noteReferences="Note2">PublishSubscribe</sharing>
+                            <semantics>Lobster Thermidor</semantics>
+                        </objectClass>
+                    </objectClass>
+                    <objectClass>
+                        <name>Pasta</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Pasta entree</semantics>
+                    </objectClass>
+                </objectClass>
+                <objectClass>
+                    <name>SideDish</name>
+                    <sharing>Subscribe</sharing>
+                    <semantics>A dish served as subsidiary to the main one.</semantics>
+                    <objectClass>
+                        <name>Corn</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Corn side dish</semantics>
+                    </objectClass>
+                    <objectClass>
+                        <name>Broccoli</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Broccoli side dish</semantics>
+                    </objectClass>
+                    <objectClass>
+                        <name>BakedPotato</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Baked potato side dish</semantics>
+                    </objectClass>
+                </objectClass>
+                <objectClass>
+                    <name>Dessert</name>
+                    <sharing>Subscribe</sharing>
+                    <semantics>Sweets for after meal</semantics>
+                    <objectClass>
+                        <name>Cake</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <semantics>Cake dessert</semantics>
+                    </objectClass>
+                    <objectClass>
+                        <name>IceCream</name>
+                        <sharing>Subscribe</sharing>
+                        <semantics>Ice cream dessert</semantics>
+                        <objectClass>
+                            <name>Chocolate</name>
+                            <sharing>PublishSubscribe</sharing>
+                            <semantics>Chocolate ice cream</semantics>
+                        </objectClass>
+                        <objectClass>
+                            <name>Vanilla</name>
+                            <sharing>PublishSubscribe</sharing>
+                            <semantics>Vanilla ice cream</semantics>
+                        </objectClass>
+                    </objectClass>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>CustomerTransactions</name>
+                <sharing>Publish</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <semantics>The base class of interactions between customers and employee</semantics>
+                <interactionClass>
+                    <name>CustomerSeated</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Customer has occupied a table</semantics>
+                </interactionClass>
+                <interactionClass>
+                    <name>OrderTaken</name>
+                    <sharing>Publish</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Server has taken customer's order</semantics>
+                    <interactionClass>
+                        <name>FromKidsMenu</name>
+                        <sharing>Publish</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Customer ordered from children menu</semantics>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>FromAdultMenu</name>
+                        <sharing>Publish</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Customer ordered from normal menu</semantics>
+                    </interactionClass>
+                </interactionClass>
+                <interactionClass>
+                    <name>FoodServed</name>
+                    <sharing>Publish</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Server has served food</semantics>
+                    <interactionClass>
+                        <name>DrinkServed</name>
+                        <sharing>Publish</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Server has served a drink</semantics>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>AppetizerServed</name>
+                        <sharing>Publish</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Server has served appetizers</semantics>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>MainCourseServed</name>
+                        <sharing>Publish</sharing>
+                        <dimensions>
+                            <dimension>ServerId</dimension>
+                        </dimensions>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Server has served entree</semantics>
+                        <parameter>
+                            <name>TemperatureOk</name>
+                            <dataType>ServiceStat</dataType>
+                            <semantics>Whether the food was the correct temperature</semantics>
+                        </parameter>
+                        <parameter>
+                            <name>AccuracyOk</name>
+                            <dataType>ServiceStat</dataType>
+                            <semantics>Whether the correct food was served</semantics>
+                        </parameter>
+                        <parameter>
+                            <name>TimelinessOk</name>
+                            <dataType>HLAboolean</dataType>
+                            <semantics>Whether the food was served in a reasonable amount of time</semantics>
+                        </parameter>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>DessertServed</name>
+                        <sharing>Publish</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Server has served dessert</semantics>
+                    </interactionClass>
+                </interactionClass>
+                <interactionClass>
+                    <name>CustomerPays</name>
+                    <sharing>Publish</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Customer has paid bill</semantics>
+                    <interactionClass>
+                        <name>ByCreditCard</name>
+                        <sharing>Publish</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Credit card payment</semantics>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>ByCash</name>
+                        <sharing>Publish</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                        <semantics>Cash payment</semantics>
+                    </interactionClass>
+                </interactionClass>
+                <interactionClass>
+                    <name>CustomerLeaves</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Customer departs restaurant</semantics>
+                </interactionClass>
+            </interactionClass>
+            <interactionClass>
+                <name>ServerAction</name>
+                <sharing>Publish</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <semantics>Base class for task assigned to a server</semantics>
+                <interactionClass>
+                    <name>TakeOrder</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <semantics>Server tasked to take an order.</semantics>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+    <dimensions>
+        <dimension>
+            <name>SodaFlavor</name>
+            <inputDataTypes>
+                <dataType>FlavorType</dataType>
+            </inputDataTypes>
+            <inputDataDescription>NA</inputDataDescription>
+            <upperBound>4</upperBound>
+            <normalization>linearEnumerated (FlavorType, [Cola, Orange, RootBeer, Cream])</normalization>
+            <outputDataSemantics>Map the flavor of soda ordered to an enumeration</outputDataSemantics>
+            <value>[0..4)</value>
+        </dimension>
+        <dimension>
+            <name>BarQuantity</name>
+            <inputDataTypes>
+                <dataType>DrinkCount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>NA</inputDataDescription>
+            <upperBound>25</upperBound>
+            <normalization>linear (NumberCups, 1, 25)</normalization>
+            <outputDataSemantics>Number of drinks in an order</outputDataSemantics>
+            <value>[0)</value>
+        </dimension>
+        <dimension>
+            <name>Sweetener</name>
+            <inputDataTypes>
+                <dataType>SweetenerType</dataType>
+            </inputDataTypes>
+            <inputDataDescription>NA</inputDataDescription>
+            <upperBound>3</upperBound>
+            <normalization>linearEnumerated (Sweetener, [None, Aspartame, Saccharin])</normalization>
+            <outputDataSemantics>The type of drink sweetener that was used in soda</outputDataSemantics>
+            <value>[0..3)</value>
+        </dimension>
+        <dimension>
+            <name>ServerId</name>
+            <inputDataTypes>
+                <dataType>EmployeeId</dataType>
+            </inputDataTypes>
+            <inputDataDescription>NA</inputDataDescription>
+            <upperBound>20</upperBound>
+            <normalization>linear (ServerId, 1, 20)</normalization>
+            <outputDataSemantics>A federation-unique identifier for each server</outputDataSemantics>
+            <value>Excluded</value>
+        </dimension>
+        <dimension>
+            <name>Gluten</name>
+            <inputDataTypes>
+                <dataType>Ingredients</dataType>
+                <dataType noteReferences="Note5">Modifiable</dataType>
+                <dataType>Preparation</dataType>
+            </inputDataTypes>
+            <inputDataDescription>The list of ingredients, whether the dish is modifiable to remove
+                each ingredient, and whether the kitchen has separate preparation facilities
+            </inputDataDescription>
+            <upperBound>4</upperBound>
+            <normalization noteReferences="Note6">linearEnumerated (GlutenLevel, [No, Intolerant,
+                Celiac, Allergy, All])</normalization>
+            <outputDataSemantics noteReferences="Note7">An enumeration indicating whether the dish
+                is safe for gluten intolerant, Celiac, or wheat allergy</outputDataSemantics>
+            <value>[0)</value>
+        </dimension>
+    </dimensions>
+    <time>
+        <logicalTime>
+            <dataType>HLAinteger64Time</dataType>
+            <semantics>Integer value expressed in seconds</semantics>
+        </logicalTime>
+        <logicalTimeInterval>
+            <dataType>HLAinteger64Time</dataType>
+            <semantics>Integer value expressed in seconds</semantics>
+        </logicalTimeInterval>
+    </time>
+    <tags>
+        <deleteRemoveTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Reason for deletion</semantics>
+        </deleteRemoveTag>
+        <divestitureRequestTag>
+            <dataType>PriorityLevel</dataType>
+            <semantics>High value for immediate transfer</semantics>
+        </divestitureRequestTag>
+        <acquisitionRequestTag>
+            <dataType>PriorityLevel</dataType>
+            <semantics>High value for immediate transfer</semantics>
+        </acquisitionRequestTag>
+    </tags>
+    <synchronizations>
+        <synchronizationPoint>
+            <label>InitialPublish</label>
+            <capability>Achieve</capability>
+            <semantics>Achieved when all classes are published and subscribed, and all initially
+                present objects are registered</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>InitialUpdate</label>
+            <capability>Achieve</capability>
+            <semantics>Achieved when instance attribute values for all initially present objects are
+                updated</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>BeginTimeAdvance</label>
+            <capability>Achieve</capability>
+            <semantics>Achieved when time management services are invoked</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>PauseExecution</label>
+            <dataType>HLAinteger64Time</dataType>
+            <capability>RegisterAchieve</capability>
+            <semantics>Achieved when the time advance after the time in the user-supplied tag is
+                attained; time advance requests should then cease</semantics>
+        </synchronizationPoint>
+    </synchronizations>
+    <transportations>
+        <transportation>
+            <name>PriorityBestEffort</name>
+            <reliable>No</reliable>
+            <semantics>Deliver best effort data with higher priority than HLAbestEffort</semantics>
+        </transportation>
+    </transportations>
+    <switches>
+        <autoProvide isEnabled="true"/>
+        <attributeRelevanceAdvisory isEnabled="true"/>
+        <objectClassRelevanceAdvisory isEnabled="true"/>
+        <interactionRelevanceAdvisory isEnabled="true"/>
+    </switches>
+    <updateRates>
+        <updateRate>
+            <name>High</name>
+            <rate>30.0</rate>
+        </updateRate>
+        <updateRate>
+            <name>Medium</name>
+            <rate>5.0</rate>
+        </updateRate>
+        <updateRate>
+            <name>Low</name>
+            <rate>0.2</rate>
+        </updateRate>
+    </updateRates>
+    <dataTypes>
+        <basicDataRepresentations>
+            <basicData>
+                <name>UnsignedShort</name>
+                <size>16</size>
+                <interpretation>Integer in the range [0, 2^16 - 1]</interpretation>
+            </basicData>
+        </basicDataRepresentations>
+        <simpleDataTypes>
+            <simpleData>
+                <name>DollarRate</name>
+                <representation>HLAfloat32BE</representation>
+                <units>$/hour</units>
+                <resolution>0.01</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Cost per hour</semantics>
+            </simpleData>
+            <simpleData>
+                <name>Years</name>
+                <representation>HLAinteger32BE</representation>
+                <units>Years</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Elapsed time in years</semantics>
+            </simpleData>
+            <simpleData>
+                <name>DrinkCount</name>
+                <representation>UnsignedShort</representation>
+                <units>Cups</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Measure of number of drinks</semantics>
+            </simpleData>
+            <simpleData>
+                <name>EmployeeId</name>
+                <representation>HLAinteger32BE</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Employee identifier</semantics>
+            </simpleData>
+            <simpleData>
+                <name>RateScale</name>
+                <representation>HLAinteger32BE</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Evaluation of staff where 1 = best</semantics>
+            </simpleData>
+            <simpleData>
+                <name>Preparation</name>
+                <representation>HLAboolean</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Whether or not the restaurant has separate food preparation and
+                    tools.</semantics>
+            </simpleData>
+            <simpleData>
+                <name>FruitCount</name>
+                <representation>HLAinteger32BE</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Number of fruits</semantics>
+            </simpleData>
+        </simpleDataTypes>
+        <referenceDataTypes>
+            <referenceDataType>
+                <name>EmployeeReference</name>
+                <representation>HLAunicodeString</representation>
+                <referenceClass>HLAobjectRoot.Employee</referenceClass>
+                <referencedAttribute>Name</referencedAttribute>
+                <semantics>Data type for referencing a employee</semantics>
+            </referenceDataType>
+        </referenceDataTypes>
+        <enumeratedDataTypes>
+            <enumeratedData>
+                <name>PriorityLevel</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>General three-level priority indicator</semantics>
+                <enumerator>
+                    <name>Low</name>
+                    <value>0</value>
+                </enumerator>
+                <enumerator>
+                    <name>Medium</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>High</name>
+                    <value>2</value>
+                </enumerator>
+            </enumeratedData>
+            <enumeratedData>
+                <name>ServerTasks</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Possible activities of servers</semantics>
+                <enumerator>
+                    <name>TakingOrder</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>Serving</name>
+                    <value>2</value>
+                </enumerator>
+                <enumerator>
+                    <name>Cleaning</name>
+                    <value>3</value>
+                </enumerator>
+                <enumerator>
+                    <name>CalculatingBill</name>
+                    <value>4</value>
+                </enumerator>
+                <enumerator>
+                    <name>Other</name>
+                    <value>5</value>
+                </enumerator>
+            </enumeratedData>
+            <enumeratedData>
+                <name>FlavorType</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Possible flavors of soda</semantics>
+                <enumerator>
+                    <name>Cola</name>
+                    <value>101</value>
+                </enumerator>
+                <enumerator>
+                    <name>Orange</name>
+                    <value>102</value>
+                </enumerator>
+                <enumerator>
+                    <name>RootBeer</name>
+                    <value>103</value>
+                </enumerator>
+                <enumerator>
+                    <name>Cream</name>
+                    <value>104</value>
+                </enumerator>
+            </enumeratedData>
+            <enumeratedData>
+                <name>GlutenLevel</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Possible levels of gluten removability from an ingredients list</semantics>
+                <enumerator>
+                    <name>No</name>
+                    <value>0</value>
+                </enumerator>
+                <enumerator>
+                    <name>Intolerant</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>Celiac</name>
+                    <value>2</value>
+                </enumerator>
+                <enumerator>
+                    <name>Allergy</name>
+                    <value>3</value>
+                </enumerator>
+                <enumerator>
+                    <name>All</name>
+                    <value>4</value>
+                </enumerator>
+            </enumeratedData>
+            <enumeratedData>
+                <name>ExperienceLevel</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Level of experience of servers</semantics>
+                <enumerator>
+                    <name>Trainee</name>
+                    <value>0</value>
+                </enumerator>
+                <enumerator>
+                    <name>Apprentice</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>Journeyman</name>
+                    <value>2</value>
+                </enumerator>
+                <enumerator>
+                    <name>Senior</name>
+                    <value>3</value>
+                </enumerator>
+                <enumerator>
+                    <name>Temporary</name>
+                    <value>4</value>
+                </enumerator>
+                <enumerator>
+                    <name>Master</name>
+                    <value>5</value>
+                </enumerator>
+            </enumeratedData>
+            <enumeratedData>
+                <name>SweetenerType</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Type of drink sweetener that may be used</semantics>
+                <enumerator>
+                    <name>None</name>
+                    <value>0</value>
+                </enumerator>
+                <enumerator>
+                    <name>Aspartame</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>Saccharin</name>
+                    <value>2</value>
+                </enumerator>
+            </enumeratedData>
+            <enumeratedData>
+                <name>Modifiable</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Whether the dish is modifiable to remove each ingredient</semantics>
+                <enumerator>
+                    <name>NA</name>
+                    <value>0</value>
+                </enumerator>
+                <enumerator>
+                    <name>Yes</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>No</name>
+                    <value>2</value>
+                </enumerator>
+            </enumeratedData>
+            <enumeratedData>
+                <name>DrinkType</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Type of drink</semantics>
+                <enumerator>
+                    <name>Margarita</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>DryMartini</name>
+                    <value>2</value>
+                </enumerator>
+            </enumeratedData>
+        </enumeratedDataTypes>
+        <arrayDataTypes>
+            <arrayData>
+                <name>Employees</name>
+                <dataType>EmployeeId</dataType>
+                <cardinality>10</cardinality>
+                <encoding>HLAfixedArray</encoding>
+                <semantics>Identifiers of employees currently working</semantics>
+            </arrayData>
+            <arrayData>
+                <name>AddressBook</name>
+                <dataType>AddressType</dataType>
+                <cardinality>Dynamic</cardinality>
+                <encoding>HLAvariableArray</encoding>
+                <semantics>Collection of all employee addresses.</semantics>
+            </arrayData>
+            <arrayData>
+                <name>Ingredients</name>
+                <dataType>HLAunicodeString</dataType>
+                <cardinality>Dynamic</cardinality>
+                <encoding>HLAvariableArray</encoding>
+                <semantics>The list of ingredients.</semantics>
+            </arrayData>
+        </arrayDataTypes>
+        <fixedRecordDataTypes>
+            <fixedRecordData>
+                <name>ServiceStat</name>
+                <encoding>HLAfixedRecord</encoding>
+                <semantics>Check-off on whether the server performed properly on elements of the
+                    meal</semantics>
+                <field>
+                    <name>EntreeOk</name>
+                    <dataType>HLAboolean</dataType>
+                    <semantics>Entree status</semantics>
+                </field>
+                <field>
+                    <name>Veggy1Ok</name>
+                    <dataType>HLAboolean</dataType>
+                    <semantics>Vegetable 1 status</semantics>
+                </field>
+                <field>
+                    <name>Veggy2Ok</name>
+                    <dataType>HLAboolean</dataType>
+                    <semantics>Vegetable 2 status</semantics>
+                </field>
+            </fixedRecordData>
+            <fixedRecordData>
+                <name>AddressType</name>
+                <encoding>HLAfixedRecord</encoding>
+                <semantics>Mailing address</semantics>
+                <field>
+                    <name>Name</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <semantics>Employee name</semantics>
+                </field>
+                <field>
+                    <name>Street</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <semantics>Street address</semantics>
+                </field>
+                <field>
+                    <name>City</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <semantics>City name</semantics>
+                </field>
+                <field>
+                    <name>State</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <semantics>State abbreviation</semantics>
+                </field>
+                <field>
+                    <name>Zip</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <semantics>Postal code</semantics>
+                </field>
+            </fixedRecordData>
+        </fixedRecordDataTypes>
+        <variantRecordDataTypes>
+            <variantRecordData>
+                <name>ServerValue</name>
+                <discriminant>Experience</discriminant>
+                <dataType>ExperienceLevel</dataType>
+                <alternative>
+                    <enumerator>Trainee</enumerator>
+                    <name>CoursePassed</name>
+                    <dataType>HLAboolean</dataType>
+                    <semantics>Rating scale for employees under training</semantics>
+                </alternative>
+                <alternative>
+                    <enumerator>Temporary</enumerator>
+                    <name>TempAgency</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>Rating scale handled by Temp Agency for temporary employees</semantics>
+                </alternative>
+                <alternative>
+                    <enumerator>HLAother</enumerator>
+                    <name>Rating</name>
+                    <dataType>RateScale</dataType>
+                    <semantics>Ratings scale for permanent employees</semantics>
+                </alternative>
+                <encoding>HLAvariantRecord</encoding>
+                <semantics>Data type for server performance rating value. This data type cannot safely be extended with more alternatives later.</semantics>
+            </variantRecordData>
+            <variantRecordData>
+                <name>DrinkGarnish</name>
+                <discriminant>DrinkType</discriminant>
+                <dataType>DrinkType</dataType>
+                <alternative>
+                    <enumerator>Margarita</enumerator>
+                    <name>HasSaltRim</name>
+                    <dataType>HLAboolean</dataType>
+                    <semantics>Glass has salt rim</semantics>
+                </alternative>
+                <alternative>
+                    <enumerator>DryMartini</enumerator>
+                    <name>OliveCount</name>
+                    <dataType>FruitCount</dataType>
+                    <semantics>Number of olives</semantics>
+                </alternative>
+                <encoding>HLAextendableVariantRecord</encoding>
+                <semantics>Extendable data type describing how a drink is garnished. New alternatives can safely be added later.</semantics>
+            </variantRecordData>
+        </variantRecordDataTypes>
+    </dataTypes>
+    <notes>
+        <note>
+            <label>Note1</label>
+            <semantics>https://www.seasonalfoods.com/lobster</semantics>
+        </note>
+        <note>
+            <label>Note2</label>
+            <semantics>For most general-purpose restaurant simulations, this will be Subscribe only.
+            </semantics>
+        </note>
+        <note>
+            <label>Note3</label>
+            <semantics>Merit raises are not provided according to any regular time interval; they
+                are provided on a supervisor’s recommendation based on evidence of exceptional
+                effort and performance.</semantics>
+        </note>
+        <note>
+            <label>Note4</label>
+            <semantics>Years of service are a factor in any merit raise. This value is only changed
+                on the anniversary of the employee’s hire.</semantics>
+        </note>
+        <note>
+            <label>Note5</label>
+            <semantics>Sometimes a dish can be modified to be gluten- or wheat-free, e.g. gluten-free
+                pasta can be used for some pasta dishes, but dishes like ravioli and lasagna are
+                usually pre-made with wheat pasta and can’t be modified.</semantics>
+        </note>
+        <note>
+            <label>Note6</label>
+            <semantics>Gluten Normalization Function:
+                        0) No – Ingredients contain wheat and those ingredients can’t be modified;
+                        1) Intolerant – Ingredients can be modified to remove wheat, rye, or barley
+                            (cross-contamination free environment is N/A);
+                        2) Celiac - Ingredients can be modified to remove wheat, rye, or barley;
+                            prepared in cross-contamination free environment;
+                        3) Allergy - Ingredients can be modified to remove wheat; prepared in
+                            cross-contamination free environment;
+                        4) All – No ingredients contain wheat, rye, or barley; prepared in
+                            cross-contamination free environment</semantics>
+        </note>
+        <note>
+            <label>Note7</label>
+            <semantics>Gluten is found in three grains: wheat, barley, and rye. Gluten intolerant
+                individuals will have varying degrees of negative, but not necessarily debilitating,
+                reactions to these foods. Individuals with Celiac disease will have debilitating
+                reactions to these foods and suffer long-term, potentially life-threatening effects.
+                Those with wheat allergies may suffer immediate, life-threatening reactions, but may
+                be able to eat barley and rye. Depending on levels of sensitivity,
+                cross-contamination in the kitchen can be dangerous to the extent that separate food
+                preparation areas and tools are required.</semantics>
+        </note>
+    </notes>
+</objectModel>

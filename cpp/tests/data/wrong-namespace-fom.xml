@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectModel xmlns="https://example.invalid/IEEE1516-2025">
+  <modelIdentification>
+    <name>Invalid namespace fixture</name>
+  </modelIdentification>
+</objectModel>

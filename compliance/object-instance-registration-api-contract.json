@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 object-instance foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies official signatures, declared exception sets, adapter symbols, and real Catch2 selectors for unnamed registration, discovery, and known-instance lookup only. The development profile generates a unique name for the unnamed overload, snapshots currently published attributes as private registration ownership state, and dispatches non-region discovery through the recipient's immediate or evoked callback model. Named registration and reservation, attribute update/reflection, delete, DDM, ownership transfer, FOM sharing policy, save/restore, resign-action disposition, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-register-object-instance-unnamed",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.registerobjectinstance.dfc149295a7d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle registerObjectInstance( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "ObjectClassNotPublished",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication"
+      ]
+    },
+    {
+      "id": "umbra-embedded-discover-object-instance",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void discoverObjectInstance( ObjectInstanceHandle const & objectInstance, ObjectClassHandle const & objectClass, std::wstring const & objectInstanceName, FederateHandle const & producingFederate) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueObjectInstanceDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-known-object-class-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getknownobjectclasshandle.34448f8372d0",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual ObjectClassHandle getKnownObjectClassHandle( ObjectInstanceHandle const & objectInstance) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getKnownObjectClassHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-object-instance-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getobjectinstancehandle.4dfe8e4f66fe",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle getObjectInstanceHandle( std::wstring const & objectInstanceName) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getObjectInstanceHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-object-instance-name",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual std::wstring getObjectInstanceName( ObjectInstanceHandle const & objectInstance) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getObjectInstanceName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    }
+  ]
+}

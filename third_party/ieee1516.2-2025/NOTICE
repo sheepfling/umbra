@@ -1,0 +1,12 @@
+IEEE 1516.2(TM)-2025 OMT schemas, MIM, and example modules
+
+Reprinted with permission from IEEE 1516.2(TM)-2025.
+
+The unmodified resources under resources/ were supplied in the official
+HLA-4 XML submission archive. Each schema and the standard MIM retain their
+complete IEEE license notice. Umbra copies the source bytes unchanged and
+records their SHA-256 digests in resource-digests.json.
+
+Umbra additions are limited to this NOTICE, manifest.json,
+resource-digests.json, and tools/ieee_1516_2_resources.py; they are not part
+of the IEEE resource set.

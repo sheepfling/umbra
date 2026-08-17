@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025">
+  <modelIdentification>
+    <name>Malformed fixture</name>
+  </modelIdentification>

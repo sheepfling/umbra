@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded federation-management development profile to source-derived IEEE 1516.1-2025 records. It checks the public adapter symbols and real Catch2 selectors only when UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT is enabled. It is not a Requirements Lab service catalog entry, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-embedded-federation-management-requires-connection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "requireConnected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services require an RTI connection"
+      ]
+    },
+    {
+      "id": "umbra-embedded-create-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l43-7",
+      "clause_id": "clause-4.5.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata re-evaluates a pending constrained TAR"
+      ]
+    },
+    {
+      "id": "umbra-embedded-destroy-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-054-l101-29",
+      "clause_id": "clause-4.6.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::destroyFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged"
+      ]
+    },
+    {
+      "id": "umbra-embedded-join-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5",
+      "clause_id": "clause-4.11.4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::joinFederationExecutionImpl",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged"
+      ]
+    },
+    {
+      "id": "umbra-embedded-resign-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+      "clause_id": "clause-4.12",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::resignFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded NRG-enabled constrained TAR is released when its only regulator resigns"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 interaction declaration foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The implementation retains private per-federate publication/subscription state, which participates in a separate limited receive-order interaction path covered by the receive-order-interaction contracts. Timestamped interaction, regions, directed interaction, FOM sharing-policy enforcement, MOM reporting, packaging, and conformance remain outside this declaration contract. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-publish-interaction-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void publishInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::publishInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unpublish-interaction-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishinteractionclass.eebfcdf14b8a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unpublishInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries"
+      ]
+    },
+    {
+      "id": "umbra-embedded-subscribe-interaction-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unsubscribe-interaction-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeinteractionclass.4d5941b5cddf",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries"
+      ]
+    }
+  ]
+}

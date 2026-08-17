@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Service Notes B</name>
+        <type>FOM</type>
+    </modelIdentification>
+    <serviceUtilization>
+        <disconnect section="4.3" isCallback="false" isUsed="true" noteReferences="Note1"/>
+    </serviceUtilization>
+    <notes>
+        <note>
+            <label>Note1</label>
+            <semantics>Second service-usage note.</semantics>
+        </note>
+    </notes>
+</objectModel>

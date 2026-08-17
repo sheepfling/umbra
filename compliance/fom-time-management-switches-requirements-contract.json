@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-private-runtime-metadata-not-conformance-evidence",
+  "notes": "This contract records only the private FDD metadata needed by Umbra's no-TSO time-bounds calculator, TAR grant-decision kernel, and limited TAR scheduler. The composed catalog retains the Non-Regulated-Grant setting, applies the IEEE 1516.2 default of Disabled when the setting is omitted, and keeps the existing setting when a later module supplies a non-equivalent duplicate switch; the latter produces a private Annex C.8 preflight warning. The opt-in scheduler uses that value for no-TSO TAR release, but Umbra does not expose Get Non Regulated Grant Switch, implement full time coordination, or make a conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-fom-non-regulated-grant-default-is-disabled",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-067-l50-4",
+      "clause_id": "clause-4.13.3",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "FomCatalogBuilder::build",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD catalog retains an enabled Non-Regulated-Grant switch",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata re-evaluates a pending constrained TAR"
+      ]
+    },
+    {
+      "id": "umbra-fom-non-regulated-grant-retains-existing-duplicate-setting",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l34-5",
+      "clause_id": "clause-C.8",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeSwitches",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+      ]
+    }
+  ]
+}

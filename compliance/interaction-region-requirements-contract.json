@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 regional interaction declaration and no-time Send Interaction With Regions slice in Umbra's opt-in, non-installable development profile. It validates owner-created committed region specifications, available-dimension context, independent regional subscription state, strict 2025 region-set overlap, callback-entry rechecks, and the empty-region no-op rules. Object-instance regional registration/association, object-class attribute regional subscriptions, Request Attribute Value Update With Regions, timestamped/retraction behavior, realization/association state, relaxed DDM, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
+  "requirements": [
+    {
+      "id": "umbra-interaction-region-overlap-controls-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscription-adds-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l161-48",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscription-keeps-ordinary-subscription-independent",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l170-51",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation_registry.hpp",
+      "source_symbol": "FederateInteractionDeclarations",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-empty-subscription-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l182-55",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscription-removes-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-238-l181-54",
+      "clause_id": "clause-9.11.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::removeInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-invalid-designator-is-rejected",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l54-15",
+      "clause_id": "clause-9.12",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-send-limits-scope",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l150-43",
+      "clause_id": "clause-9.12",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-empty-send-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l42-12",
+      "clause_id": "clause-9.12.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-no-overlap-suppresses-receive",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l9-1",
+      "clause_id": "clause-9.12.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    }
+  ]
+}

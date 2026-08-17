@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes>
+        <referenceDataTypes>
+            <referenceDataType>
+                <name>UmbraMissingAttributeReferenceFixture</name>
+                <representation>HLAunicodeString</representation>
+                <referenceClass>HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureClass</referenceClass>
+                <referencedAttribute>UmbraMissingAttributeFixture</referencedAttribute>
+                <semantics>Missing-attribute reference fixture.</semantics>
+            </referenceDataType>
+        </referenceDataTypes>
+    </dataTypes>
+</objectModel>

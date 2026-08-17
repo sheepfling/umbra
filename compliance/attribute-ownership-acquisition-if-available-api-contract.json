@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 Attribute Ownership Acquisition If Available development slice to the exact C++ service and terminal callback declarations exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The private runtime records the requester in a pending Willing to Acquire condition; a repeat for an attribute already in that same condition does not fail or queue a duplicate callback, while an eligible additional attribute receives a separate reservation. The paired Unpublish Object Class Attributes path preserves the required publication by raising its official OwnershipAcquisitionPending exception until the terminal callback. The runtime transfers an attribute only immediately before its Acquisition Notification callback when it remains unowned, and otherwise reports it unavailable without invoking a release callback at a joined remote owner. A mixed request can deliver the two official callback forms with their matching subsets. Deletion and requester resignation nullify an undelivered request. Negotiated acquisition, unconditional/negotiated divestiture, RTI-owned state, full resign-action ownership disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing-policy enforcement, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-attribute-ownership-acquisition-if-available",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisitionIfAvailable( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & desiredAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeAlreadyBeingAcquired",
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "FederateOwnsAttributes",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+      ]
+    },
+    {
+      "id": "umbra-embedded-attribute-ownership-acquisition-notification",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & securedAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "requester.attributeOwnershipAcquisitionNotification",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+      ]
+    },
+    {
+      "id": "umbra-embedded-attribute-ownership-unavailable",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipUnavailable( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "requester.attributeOwnershipUnavailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+      ]
+    }
+  ]
+}

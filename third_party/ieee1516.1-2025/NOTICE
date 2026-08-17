@@ -1,0 +1,11 @@
+IEEE 1516.1(TM)-2025 C++ API headers
+
+Reprinted with permission from IEEE 1516.1(TM)-2025.
+
+The unmodified headers under include/RTI/ were supplied in the official
+HLA-4 C++ API archive. Each header retains the complete IEEE license notice,
+which grants a general, royalty-free license to copy, distribute, display, and
+make derivative works, provided this attribution is included.
+
+Umbra additions are limited to this NOTICE, README.md, and manifest.json;
+they are not part of the IEEE header tree.

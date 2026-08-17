@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only Umbra's bounded Negotiated Attribute Ownership Divestiture, Request Divestiture Confirmation, Confirm Divestiture, and Cancel Negotiated Attribute Ownership Divestiture path in the opt-in, non-installable IEEE 1516.1-2025 development profile. A joined current owner enters private waiting state without losing ownership. The profile selects only an already pending regular Attribute Ownership Acquisition request, routes one Request Divestiture Confirmation callback with that acquisition request's tag, and transfers ownership only after the divesting owner successfully invokes Confirm Divestiture. The confirmation tag reaches the standard Attribute Ownership Acquisition Notification callback. A cancelled selected request causes the official NoAcquisitionPending outcome and returns the owner to waiting; a separate cancellation removes the private negotiated state and restores ordinary regular-release planning. This is deliberately not the complete §7.3 owner-search lifecycle: it does not seek later regular candidates, select Willing-to-Acquire requests, or implement the remaining negotiated/RTI-owned/resign/save/restore/DDM/transport/package behavior. It is source/API traceability only, with no catalog, JUnit, protected-review, validation, or conformance claim. The contract uses immutable candidate IDs and exported clause IDs from the Requirements Lab; RL-015 and RL-017 record relevant ownership attribution and generated-state-chart limitations.",
+  "requirements": [
+    {
+      "id": "umbra-negotiated-divestiture-keeps-owner-until-an-acquirer-accepts",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l8-1",
+      "clause_id": "clause-7.3.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-negotiated-divestiture-remains-pending-through-confirmation-or-cancellation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l20-5",
+      "clause_id": "clause-7.3.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planCancelNegotiatedAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-negotiated-divestiture-rejects-an-already-pending-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l35-10",
+      "clause_id": "clause-7.3.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-negotiated-divestiture-requests-confirmation-for-a-pending-regular-acquirer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-155-l173-48",
+      "clause_id": "clause-7.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-request-divestiture-confirmation-keeps-the-regular-acquisition-tag",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l27-8",
+      "clause_id": "clause-7.2",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipAcquisitionWorkItem",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-request-divestiture-confirmation-is-one-shot-per-selected-acquisition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l77-19",
+      "clause_id": "clause-7.5.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginRequestDivestitureConfirmation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-confirm-divestiture-transfers-the-confirmed-set",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11",
+      "clause_id": "clause-7.6.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-confirm-divestiture-propagates-its-tag-to-acquisition-notification",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l18-5",
+      "clause_id": "clause-7.2",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueConfirmDivestitureNotifications",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-confirm-divestiture-resets-a-cancelled-candidate-to-waiting",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l65-15",
+      "clause_id": "clause-7.6.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-regular-acquisition-uses-divestiture-confirmation-while-owner-is-waiting",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l158-47",
+      "clause_id": "clause-7.8",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planPendingAttributeOwnershipAcquisitionWork",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    },
+    {
+      "id": "umbra-cancel-negotiated-divestiture-removes-the-pending-divestiture-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3",
+      "clause_id": "clause-7.14.6",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planCancelNegotiatedAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+      ]
+    }
+  ]
+}

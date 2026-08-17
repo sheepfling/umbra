@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only Umbra's nonregional object-class Request Attribute Value Update and matching Provide Attribute Value Update callback path in the non-installable IEEE 1516.1-2025 development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The implementation validates the requested class and its available attributes, expands to current registered instances at that class and its subclasses, groups existing owners per object instance, preserves the tag, and rechecks a provider after queueing. The separate class-level regional request form is traced by attribute-value-update-with-regions contracts. This contract intentionally implements neither automatic provision, an ensuing value-update response, timestamped/retraction behavior, DDM beyond its sibling regional slice, update-rate reduction, ownership transfer, FOM sharing policy, save/restore, remote transport, packaging, catalog evidence, nor conformance. The linked Catch2 test demonstrates a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "requirements": [
+    {
+      "id": "umbra-object-class-attribute-value-request-stimulates-specified-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-solicits-current-owners",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-skips-unowned-instance-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l146-39",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-expands-to-subclass-instances",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l152-41",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::objectInstanceRegisteredAtOrBelowClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-does-not-provide-to-requester-owner",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2",
+      "clause_id": "clause-6.21.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "candidateAttributeValueUpdateClassProvideRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-propagates-user-tag",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+      "clause_id": "clause-6.21.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "provider.provideAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-at-most-one-provide-per-owner-instance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
+      "clause_id": "clause-6.23",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners"
+      ]
+    }
+  ]
+}

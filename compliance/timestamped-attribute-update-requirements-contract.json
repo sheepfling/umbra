@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records Umbra's second bounded public timestamped service family in the non-installable IEEE 1516.1-2025 development profile: non-regional timestamped Update Attribute Values with federation-owned queueing for time-constrained recipients, recipient-specific passels, callback-gated Reflect Attribute Values delivery before Time Advance Grant, official timestamp/order/retraction callback fields, sender lower-bound validation, and Retract before delivery. It deliberately does not claim timestamped Delete Object Instance, directed or regional forms, NMR/FQR/flush services, asynchronous delivery, request-retraction callbacks, remote transport, package support, catalog evidence, JUnit evidence, protected review, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-attribute-update-provides-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-returns-retraction-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-excludes-sender-reflection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l146-43",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "candidateReceiveOrderAttributeUpdateRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-reflection-provides-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.reflectAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-reflection-propagates-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.reflectAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-reflection-provides-retraction-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeMessageRetractionHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the official eight-byte value encoding"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-reflection-preserves-passels",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-uses-time-management-order",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+      "clause_id": "clause-8.1.4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-queues-for-time-constrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-retracts-before-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::retract",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-terminal-retraction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "MessageCanNoLongerBeRetracted",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-uses-message-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 Is Attribute Owned By Federate development slice to the exact C++ declaration exported by the Requirements Lab. It verifies only the official signature, declared exception set, adapter symbol, and a real Catch2 selector. The service validates the invoking joined federate's known instance and available attribute at that known class, then returns whether the current private ownership snapshot names that same federate. It has no callback, ownership-transfer, or state-mutation effect. Ownership acquisition/divestiture, RTI-owned state, resign-action ownership disposition, timestamped/retraction behavior, DDM, FOM sharing-policy enforcement, save/restore, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-is-attribute-owned-by-federate",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.isattributeownedbyfederate.679939b7ba3f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual bool isAttributeOwnedByFederate( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute) = 0",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::isAttributeOwnedByFederate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Is Attribute Owned By Federate reads 2025 ownership state"
+      ]
+    }
+  ]
+}
