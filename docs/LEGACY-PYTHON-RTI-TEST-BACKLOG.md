@@ -51,10 +51,15 @@ Umbra already has private Catch2 coverage for the no-TSO GALT/LITS calculation,
 strict TAR eligibility, the Non-Regulated-Grant (NRG) switch, zero-lookahead
 TAR behavior, scheduler re-evaluation after key role, membership, and
 additional-FOM definition changes, and the queue/coordinator's queued,
-in-transit, delivered, and retraction state. The public profile now adds three
-bounded non-regional timestamped producers—interaction, attribute update, and
-object deletion/removal—with retraction; the remaining timestamped families, alternate advance modes,
-save/restore, and transport are still outside the enabled scope.
+in-transit, delivered, and retraction state. The public profile now adds five
+bounded timestamped producers—non-regional interaction, attribute update,
+object deletion/removal, directed interaction, and region-context interaction—
+with retraction, plus bounded TAR/TARA/NMR/NMRA/FQR dispatch. Remaining
+timestamped families, future transport input, and full cross-federate time
+coordination are still outside the enabled scope. The timestamped
+`Request Federation Save(label, LogicalTime)` control slice is now covered by
+an official-C++ Catch2 scenario; durable save/restore and the sibling's wider
+rollback/time-window families remain future work.
 
 The source locations below are therefore a staged backlog rather than a list
 of tests ready to copy verbatim.
@@ -65,12 +70,47 @@ of tests ready to copy verbatim.
 | --- | --- | --- | --- |
 | `SB-TIME-001` | **Adjudicated**, no-TSO/TSO boundary | `tests/time/test_galt.py`; `packages/hla-backend-common/src/hla/backends/common/time_management.py` | Do not port the sibling's `valid_tso_lower_bound` assertion.  Its `min(current, pending) + lookahead` behavior differs from its own GALT helper.  The Requirements Lab's 2025 source resolves the outgoing-TSO case: the normal current-time rule is overridden while a federate is Time Advancing, when requested logical time plus lookahead applies (`requirement-candidate-content-clauses-08-time-management-page-184-l91-26`, with the base rule at `...page-182-l25-7`).  Umbra's existing no-TSO pending-time candidate is aligned; a direct Catch2 regression covers it.  This does not make the no-TSO calculator a complete GALT implementation because queued and in-transit TSO messages are still absent. |
 | `SB-TIME-002` | **Implemented**, embedded no-TSO | `tests/time/test_galt.py`; `tests/scenarios/test_time_management_federation.py` | Umbra now has an official-C++-API three-federate Catch2 scenario for the minimum across active other regulators, a pending/granted regulator advance, and regulator resignation.  It confirms membership removal changes the no-TSO GALT/LITS view; it does not exercise TSO traffic or full time coordination. |
-| `SB-TIME-003` | **Implemented**, embedded no-TSO | `tests/time/test_grant_decision.py`; `tests/time/test_time_management_algorithms.py` | Umbra's focused NRG/role-transition matrix now covers disabled/default NRG, enabled NRG, regulator enable/disable/resignation, constrained-mode disable, and a successful MIM-first additional-FOM replacement that enables NRG and wakes an existing TAR. The strict GALT boundary remains a limited no-TSO policy traced to the Requirements Lab; none of this exercises a timestamped queue. |
+| `SB-TIME-003` | **Implemented**, embedded no-TSO | `tests/time/test_grant_decision.py`; `tests/time/test_time_management_algorithms.py` | Umbra's focused NRG/role-transition matrix now covers disabled/default NRG, enabled NRG, regulator enable/disable/resignation, constrained-mode disable, and static-NRG retention when an additional FOM joins. The strict GALT boundary remains a limited no-TSO policy traced to the Requirements Lab; none of this exercises a timestamped queue. |
 | `SB-TIME-004` | **Implemented**, private coordinator | `tests/time/test_lits.py`; `tests/time/test_time_management_algorithms.py` | Umbra's coordinator snapshot now feeds delivered-since-last-advance and queued/in-transit TSO timestamps into GALT/LITS. Catch2 covers the minimum incoming timestamp, recipient isolation through the coordinator, and LITS with an undefined GALT. |
-| `SB-TIME-005` | **Implemented**, private TSO foundation | `tests/time/test_tso_queue.py` | Umbra's TsoMessageQueue and FederationTimeCoordinator Catch2 slices cover stable `(timestamp, sequence)` ordering, recipient isolation, retraction before delivery, in-transit/completed callback state, exclusive boundaries, and same-timestamp groups. They use official C++ LogicalTime values but do not expose a public timestamped service. |
-| `SB-TIME-006` | TSO coordinator | `tests/time/test_grant_decision.py`; `tests/time/test_time_management_algorithms.py` | Add the TAR/TARA/NMR/NMRA/FQR grant matrix, including strict versus inclusive GALT boundaries and next-message / flush boundary selection.  Do not expose these services merely to satisfy the test shape. |
-| `SB-TIME-007` | TSO integration | `tests/scenarios/test_time_management_federation.py`; `packages/hla-verification/src/hla/verification/section8_matrix.py` | Use the two-federate simultaneous-timestamp and FQR flows as eventual end-to-end fixtures.  Their scenario structure is useful; ordering/tie-break expectations must be specified independently for Umbra. |
-| `SB-TIME-008` | Save/restore phase | `tests/test_rti1516_2025_python1516_2025_runtime.py`; sibling time-window proof families | Add time-window, future-exclusion, and restore-rollback stress cases only after Umbra implements the underlying save/restore and timestamped-delivery state. |
+| `SB-TIME-005` | **Implemented**, private TSO foundation | `tests/time/test_tso_queue.py` | Umbra's TsoMessageQueue and FederationTimeCoordinator Catch2 slices cover stable `(timestamp, sequence)` ordering, recipient isolation, pending-fanout withdrawal after another recipient delivery, in-transit/completed callback state, exclusive boundaries, and same-timestamp groups. They use official C++ LogicalTime values; the queue itself does not define public RTI semantics. |
+| `SB-TIME-006` | **Implemented**, bounded public TSO advances | `tests/time/test_grant_decision.py`; `tests/time/test_time_management_algorithms.py` | Umbra now has in-process TAR/TARA/NMR/NMRA/FQR paths. Catch2 covers strict versus inclusive defined-GALT decisions, selection of the next currently queued timestamp, and FQR delivery/optimistic-time boundaries. Future transport input, complete multi-federate coordination, and remaining timing races remain outside the slice. |
+| `SB-TIME-007` | Partially implemented, TSO integration | `tests/scenarios/test_time_management_federation.py`; `packages/hla-verification/src/hla/verification/section8_matrix.py` | The two-federate next-message and FQR flow shapes informed the bounded C++ scenarios. Retain simultaneous-timestamp, transport-arrival, and cross-process variants as follow-on fixtures; their ordering/tie-break expectations must be specified independently for Umbra. |
+| `SB-TIME-008` | Partially implemented, save/restore phase | `tests/test_rti1516_2025_python1516_2025_runtime.py`; sibling time-window proof families | The bounded timestamped save boundary, source-linked untimed and timestamped time-constrained save-admission paths, and process-local untimed restore now exist in the official C++ profile. A two-federate Catch2 case proves a TSO interaction at the exact TAR save timestamp is delivered before direct Initiate Federate Save and the matching grant; a three-member case proves two constrained members are admitted before a non-time-constrained member; TARA and NMRA cases prove equal versus strictly-later save boundaries; and an NMR case proves direct initiation at the matching timestamp. A three-member TARA/NMRA case proves both strict ordinary forms are ready before non-time-constrained notification. A dedicated FQR case proves an equal actual Flush Queue Grant leaves a timestamped save pending while a later FQG follows queued TSO and direct initiation; mixed FQR/TAR cases prove readiness whether FQR or TAR dispatches first. A six-member scenario now combines TAR, NMR, TARA, NMRA, and FQR before non-time-constrained notification. A cross-member TSO case proves a delayed constrained federate's queued interaction still precedes its own initiation after another constrained member begins saving. C++-native cases also prove a post-save retraction designator cannot alias fresh traffic, a live interaction/ledger returns after rollback, a terminal tombstone retains its classification, a saved logical-time/actual-lookahead window is restored after post-save mutation, and one deferred lookahead decrease target survives rollback. Add in-transit and multi-mode queued-TSO, role/resignation churn, future-exclusion, pending-advance restore, broader family, durable snapshot, and transport restore stress only after the corresponding C++ state boundaries are specified. |
+| `SB-TIME-009` | **Implemented**, bounded Request Retraction | `tests/time/test_tso_queue.py`; `tests/scenarios/test_time_management_federation.py` | The sibling's fanout and flush scenario shapes informed Umbra Catch2 proofs: delivered nonconstrained normal, directed, and region-context timestamped interaction recipients receive Request Retraction while constrained recipients' queued copies are suppressed; normal and bounded regional timestamped attribute updates likewise notify their delivered immediate recipient. The normal update retains two passels under one retraction designator; the regional update preserves recipient-gated sent-region metadata. Dedicated one-federate normal-interaction and qualifying attribute-update regressions now prove a TSO invocation returns a valid designator even when no recipient is eligible; for attributes, Clause 6.10 requires at least one submitted attribute with TSO preferred order. Two-federate disjoint-region interaction and attribute-update regressions now prove the same returned-designator behavior when a regional subscription exists but does not overlap. The lightweight ledger permits legal retraction and later terminal classification without retaining typed payload. A bounded non-regional deletion scenario now adds a delivered nonconstrained removal, a constrained pending removal, execution-owned object/name/known-state and committed-ownership restoration, then Request Retraction only for the delivered recipient; a follow-on case proves a departed delivered owner is not restored or notified. The lifecycle now retains a lightweight terminal record after successful retraction or a producer boundary that makes a designator no longer legal, while releasing normal typed payload after pending delivery drains and deletion state/name after terminal deletion drains. Focused cases cover a queued interaction that still delivers after terminalization and a no-recipient deletion that frees its name. The rule itself is taken from the 2025 source and not from the sibling. Complete alternate-advance, regulation-disable/re-enable, save/restore, in-flight ownership, other resignation, recovery, and transport matrices remain future work. |
+
+**2026-08-18 update:** the final intake sentence in `SB-TIME-008` predates
+the C++-native in-transit callback regression and the mixed
+TAR/NMR/TARA/NMRA/FQR queued-TSO scenario. Those two shapes are now covered;
+the remaining intake is role/resignation churn, future exclusion,
+pending-advance restore, broader message-family, durable-snapshot, and
+transport-restore stress after their C++ state boundaries are specified.
+
+The initial normal-interaction Disable Time Regulation/re-enable regression
+now proves that a live pending designator becomes temporarily unauthorized
+while regulation is disabled, survives the callback-gated re-enable at the
+same lookahead, and can be legally retracted before terminal classification.
+Broader re-enable coverage remains backlog work rather than an inferred
+conformance result.
+
+The initial normal-interaction restore-lifetime regression now complements the
+directed stale-handle case: it saves a live queued interaction, terminalizes it
+after the save, restores the saved payload and recipient ledger, and verifies
+delivery plus a legal restored retraction. This is a narrow C++-native rollback
+case; the broader restore/tombstone matrix remains backlog work.
+
+A complementary one-federate terminal-tombstone regression now saves a
+successful-Retract record, creates distinct post-save traffic, and restores the
+snapshot. It proves the saved handle stays `MessageCanNoLongerBeRetracted` while
+the discarded handle is invalid; all remaining family and transport combinations
+remain backlog work.
+
+The initial process-local time-window regression now saves a time-regulating
+member at logical time 3 with actual lookahead 2, changes both values to 5,
+and restores the saved values. It is a narrow C++-native input to the
+time-window backlog, not evidence for pending advances, time-constrained
+state, durable snapshots, or transport recovery. A companion case saves actual
+lookahead 5 with a deferred decrease to 1, consumes it after the save, restores
+the snapshot, and advances again to prove the deferred target survives too.
 
 `SB-TIME-001` was intentionally first.  It prevented a superficially helpful
 Python helper test from silently choosing Umbra's time semantics; the official
@@ -101,7 +141,14 @@ the scenario-level handoff points.
 
 Keep the completed `SB-TIME-003` matrix in the embedded no-TSO profile. The
 private queue and coordinator portions of `SB-TIME-004`/`SB-TIME-005` are now
-complete, and three bounded public timestamped families have exact 2025
-contracts. The next milestone is the next standards-backed public timestamped
-family, beginning only after callback ordering, TSO eligibility, and
-retraction-handle semantics have their own exact 2025 contract.
+complete, and five bounded public timestamped families plus Request Retraction
+paths for interaction, attribute-update, and non-regional deletion have exact
+2025 contracts. A first tombstone/reclamation policy and producer
+TAR/TARA/NMR/NMRA/FQR terminal-boundary matrix now exist, together with
+no-recipient returned-designator evidence for normal interaction and attribute
+update, plus disjoint-region interaction and attribute-update proofs. One
+normal-interaction Disable Time Regulation/re-enable lifetime case and one
+process-local saved-time-window rollback plus a deferred-lookahead rollback
+are now evidenced. The next milestone is broader re-enable plus pending
+time-window and save/restore terminal-lifetime matrices, then remaining message
+families and uncovered deletion shapes.

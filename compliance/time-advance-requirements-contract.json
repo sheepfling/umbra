@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable embedded time-advance development slice to source-derived IEEE 1516.1-2025 records. The slice initializes each joined federate at the selected representation's initial time, retains a Time Advance Request until the configured callback dispatcher delivers Time Advance Grant, and exposes Query Logical Time. A separate contract traces the limited no-TSO GALT/NRG scheduler that can release TAR callbacks across federates. Umbra deliberately has no transport, TSO message delivery/order, timestamped queues, other advance modes, save/restore, package support, catalog result, JUnit sidecar, protected review, or conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded time-advance development slice to source-derived IEEE 1516.1-2025 records. The slice initializes each joined federate at the selected representation's initial time, retains a Time Advance Request until the configured callback dispatcher delivers Time Advance Grant, and exposes Query Logical Time. A separate contract traces the limited no-TSO GALT/NRG scheduler that can release TAR callbacks across federates. The restore-control contract now has two narrow process-local regressions: one returns a saved current time after a post-save advance, and another proves a saved deferred lookahead decrease changes the restored time window at a later grant. They do not establish complete save/restore semantics for time management. Umbra deliberately has no transport, TSO message delivery/order, timestamped queues, other advance modes, package support, catalog result, JUnit sidecar, protected review, or conformance claim.",
   "requirements": [
     {
       "id": "umbra-embedded-joined-federate-has-logical-time",
@@ -43,7 +43,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     },
     {
@@ -53,7 +55,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "timeAdvanceGrant",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     },
     {
@@ -73,7 +77,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLogicalTime",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     }
   ]

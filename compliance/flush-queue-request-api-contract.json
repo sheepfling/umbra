@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 Flush Queue Request/Grant implementation to the exact C++ RTIambassador and FederateAmbassador declarations exported by the Requirements Lab. It verifies the official signatures, declared exception set, adapter symbols, and real Catch2 selectors. The same dispatcher now supports the separately traced timestamped-save seam: it drains current TSO payloads, directly initiates an eligible constrained save before FQG, and applies the private grant state immediately before Flush Queue Grant. A six-member scenario combines this strict-FQR path with TAR, NMR, TARA, and NMRA. It is not catalog evidence, protected-review evidence, package support, or a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-flush-queue-request",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.flushqueuerequest.923ef48b62c9",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void flushQueueRequest( LogicalTime const & time) = 0",
+      "exception_types": ["LogicalTimeAlreadyPassed", "InvalidLogicalTime", "InTimeAdvancingState", "RequestForTimeRegulationPending", "RequestForTimeConstrainedPending", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request flushes queued TSO and reports optimistic time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
+      ]
+    },
+    {
+      "id": "umbra-embedded-flush-queue-grant",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void flushQueueGrant( LogicalTime const & time, LogicalTime const & optimisticTime) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request flushes queued TSO and reports optimistic time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
+      ]
+    }
+  ]
+}

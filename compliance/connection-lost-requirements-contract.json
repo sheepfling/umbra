@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-embedded-transport-traceability-not-conformance-evidence",
+  "notes": "This contract pins the embedded transport fault path to the Requirements Lab's explicit Connection Lost requirements. The private loopback endpoint drives the same failure handler a future remote transport will use; Catch2 verifies the official callback, forced Not Connected lifecycle, membership removal, reconnect boundary, and one configured Automatic Resign Directive disposition (DELETE_OBJECTS) through the official support-service setter. It is source/test traceability only, not protected-review evidence, a production transport claim, or conformance evidence.",
+  "requirements": [
+    {
+      "id": "umbra-connection-lost-forces-not-connected-state",
+      "requirements_lab_requirement_id": "req-federate-connection-lost",
+      "clause_id": "clause-4.1.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::handleEmbeddedTransportFailure",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss forces the official connection-lost transition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+      ]
+    },
+    {
+      "id": "umbra-connection-lost-service-removes-membership",
+      "requirements_lab_requirement_id": "req-connection-lost-service-behavior",
+      "clause_id": "clause-4.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::connectionLost",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss forces the official connection-lost transition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+      ]
+    }
+  ]
+}

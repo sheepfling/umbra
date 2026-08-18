@@ -9,6 +9,7 @@
 namespace {
 
 using umbra::detail::FederateTimeSnapshot;
+using umbra::detail::FederateTimeAdvanceMode;
 using umbra::detail::FederationTimeAdvanceGrantPolicy;
 using umbra::detail::FederationTimeAdvanceGrantStatus;
 using umbra::detail::FederationTimeBoundStatus;
@@ -59,6 +60,46 @@ TEST_CASE(
   REQUIRE(
       policy.decide(requester, definedBounds(4)).status ==
       FederationTimeAdvanceGrantStatus::wait_for_galt);
+}
+
+TEST_CASE(
+    "Available time-advance forms use the inclusive defined-GALT boundary",
+    "[unit][kernel][time-management][galt][time-advance-request-available]") {
+  FederationTimeAdvanceGrantPolicy policy;
+  auto requester = pendingRequester(true, 2, 5);
+
+  requester.advanceMode = FederateTimeAdvanceMode::time_advance_request_available;
+  REQUIRE(policy.decide(requester, definedBounds(5)).mayGrant());
+
+  requester.advanceMode = FederateTimeAdvanceMode::next_message_request_available;
+  REQUIRE(policy.decide(requester, definedBounds(5)).mayGrant());
+}
+
+TEST_CASE(
+    "Next Message Request keeps a strict GALT boundary unless it is a queued TSO boundary",
+    "[unit][kernel][time-management][galt][next-message-request]") {
+  FederationTimeAdvanceGrantPolicy policy;
+  auto requester = pendingRequester(true, 2, 5);
+  requester.advanceMode = FederateTimeAdvanceMode::next_message_request;
+
+  REQUIRE(
+      policy.decide(requester, definedBounds(5)).status ==
+      FederationTimeAdvanceGrantStatus::wait_for_galt);
+
+  auto queuedBoundary = definedBounds(5);
+  queuedBoundary.galtIsTsoBoundary = true;
+  REQUIRE(policy.decide(requester, queuedBoundary).mayGrant());
+}
+
+TEST_CASE(
+    "Flush Queue Request does not wait for another federate's GALT",
+    "[unit][kernel][time-management][galt][flush-queue-request]") {
+  FederationTimeAdvanceGrantPolicy policy;
+  auto requester = pendingRequester(true, 2, 10);
+  requester.advanceMode = FederateTimeAdvanceMode::flush_queue_request;
+
+  REQUIRE(policy.decide(requester, definedBounds(3)).mayGrant());
+  REQUIRE(policy.decide(requester, undefinedBounds(false)).mayGrant());
 }
 
 TEST_CASE(

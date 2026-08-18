@@ -61,8 +61,16 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
     return result;
   }
 
-  if (execution.definition.catalog) {
-    result.nonRegulatedGrant = execution.definition.catalog->timeManagementSwitches().nonRegulatedGrant;
+  result.nonRegulatedGrant = execution.nonRegulatedGrant;
+
+  auto const requester = std::find_if(
+      execution.federates.begin(),
+      execution.federates.end(),
+      [requestingFederateId](FederationTimeFederateSnapshot const& candidate) {
+        return candidate.membership.id == requestingFederateId;
+      });
+  if (requester == execution.federates.end()) {
+    return result;
   }
 
   bool hasOtherRegulator = false;
@@ -72,6 +80,19 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
         message.timestamp->isInitial() || message.timestamp->isFinal() ||
         message.timestamp->implementationName() != execution.definition.logicalTimeImplementationName) {
       return false;
+    }
+    // A delivered message can remain in the snapshot until the next grant so
+    // the coordinator can expose its ordering/retraction boundary. Once the
+    // recipient's current logical time has reached that timestamp, it must no
+    // longer hold GALT at the old boundary for a subsequent advance.
+    if (!future && requester->time.currentTime) {
+      try {
+        if (*message.timestamp <= *requester->time.currentTime) {
+          return true;
+        }
+      } catch (rti1516_2025::Exception const&) {
+        return false;
+      }
     }
     if (future && (!earliestFutureIncoming || *message.timestamp < *earliestFutureIncoming)) {
       earliestFutureIncoming = message.timestamp;
@@ -87,16 +108,6 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
     return true;
   };
   try {
-    auto const requester = std::find_if(
-        execution.federates.begin(),
-        execution.federates.end(),
-        [requestingFederateId](FederationTimeFederateSnapshot const& candidate) {
-          return candidate.membership.id == requestingFederateId;
-        });
-    if (requester == execution.federates.end()) {
-      return result;
-    }
-
     for (auto const& message : requester->deliveredTsoMessagesSinceLastAdvance) {
       if (!considerMessage(message, false)) {
         return result;
@@ -126,10 +137,13 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
 
       rti1516_2025::LogicalTime const* baseTime = temporal.currentTime.get();
       if (temporal.timeAdvancePending) {
-        if (!temporal.requestedTime) {
+        auto const& requestBoundary = temporal.advanceRequestTime
+            ? temporal.advanceRequestTime
+            : temporal.requestedTime;
+        if (!requestBoundary) {
           return result;
         }
-        baseTime = temporal.requestedTime.get();
+        baseTime = requestBoundary.get();
       }
       if (baseTime == nullptr ||
           baseTime->implementationName() != execution.definition.logicalTimeImplementationName ||

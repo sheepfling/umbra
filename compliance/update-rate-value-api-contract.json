@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the official IEEE 1516.1-2025 C++ RTIambassador update-rate query declarations to Umbra's bounded embedded implementation. It verifies exact Lab signatures, exception sets, adapter symbols, and a real Catch2 selector. The query path now consumes retained ordinary/regional subscription designators and returns their FDD rates; subscription throttling, rate reduction, the rate-bearing Turn Updates On overload, MOM, transport, package evidence, protected review, catalog evidence, and conformance remain outside the slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-get-update-rate-value",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getupdateratevalue.2154436e4391",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual double getUpdateRateValue( std::wstring const & updateRateDesignator) = 0",
+      "exception_types": [
+        "InvalidUpdateRateDesignator",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getUpdateRateValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded update-rate lookup exposes FDD values and the default attribute boundary"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-update-rate-value-for-attribute",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getupdateratevalueforattribute.ddc71a56947d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual double getUpdateRateValueForAttribute( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "AttributeNotDefined",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getUpdateRateValueForAttribute",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded update-rate lookup exposes FDD values and the default attribute boundary"
+      ]
+    }
+  ]
+}

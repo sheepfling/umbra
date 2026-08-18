@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-private-runtime-metadata-not-conformance-evidence",
-  "notes": "This contract records only the private FDD metadata needed by Umbra's no-TSO time-bounds calculator, TAR grant-decision kernel, and limited TAR scheduler. The composed catalog retains the Non-Regulated-Grant setting, applies the IEEE 1516.2 default of Disabled when the setting is omitted, and keeps the existing setting when a later module supplies a non-equivalent duplicate switch; the latter produces a private Annex C.8 preflight warning. The opt-in scheduler uses that value for no-TSO TAR release, but Umbra does not expose Get Non Regulated Grant Switch, implement full time coordination, or make a conformance claim.",
+  "notes": "This contract records only the private FDD metadata needed by Umbra's no-TSO time-bounds calculator, TAR grant-decision kernel, and limited TAR scheduler. The composed catalog retains the Non-Regulated-Grant setting, applies the IEEE 1516.2 default of Disabled when the setting is omitted, and keeps the existing setting when a later module supplies a non-equivalent duplicate switch; the latter produces a private Annex C.8 preflight warning. The opt-in scheduler captures the setting at federation creation and uses that static value for no-TSO TAR release; an additional-FOM join cannot change an active execution's NRG policy. The public getter is traced separately, and full time coordination and conformance remain open.",
   "requirements": [
     {
       "id": "umbra-fom-non-regulated-grant-default-is-disabled",
@@ -14,7 +14,7 @@
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD catalog retains an enabled Non-Regulated-Grant switch",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata re-evaluates a pending constrained TAR"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
       ]
     },
     {

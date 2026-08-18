@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the private composition preflight's executable checks for the IEEE 1516.2-2025 array cardinality syntax and the predefined one-dimensional encoding compatibility rule. It accepts incomplete DIF rows by skipping an omitted cardinality, accepts nonnegative scalar, Dynamic, and nonnegative [lower..upper] components in a comma-separated cardinality list, and pairs HLAfixedArray with fixed cardinality or HLAvariableArray with varying cardinality. Multidimensional and provider-defined encodings remain outside this bounded slice. This is source/test traceability only, not a complete OMT conformance result.",
+  "requirements": [
+    {
+      "id": "umbra-omt-array-cardinality-form",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4",
+      "clause_id": "clause-4.14.6",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "validateArrayCardinalities",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates array cardinality forms and encodings"
+      ]
+    },
+    {
+      "id": "umbra-omt-array-encoding-cardinality-compatibility",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6",
+      "clause_id": "clause-4.14.6",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "validateArrayEncodingCardinalityCompatibility",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates array cardinality forms and encodings"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the bounded IEEE 1516.2-2025 Dimension-table check for Value When Unspecified. The private composition preflight parses the schema's integer and half-open range forms, permits Excluded, and requires every supplied range to be a nonnegative subrange of [0, Dimension Upper Bound). The official FOM XSD supplies lexical validation; this is semantic source/test traceability only, not FOM conformance or public-service evidence.",
+  "requirements": [
+    {
+      "id": "umbra-omt-dimension-default-value-subrange",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5",
+      "clause_id": "clause-6.2.7",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDimensionDefaultValues",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight bounds dimension default ranges"
+      ]
+    }
+  ]
+}

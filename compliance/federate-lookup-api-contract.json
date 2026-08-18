@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable federate-lookup development slice to the exact 2025 C++ API surfaces exported by the Requirements Lab. It verifies only the official signatures, declared exception sets, adapter symbols, and real Catch2 selector. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only: it is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable federate-lookup development slice to the exact 2025 C++ API surfaces exported by the Requirements Lab. Get Federate Handle resolves only active joined names, while Get Federate Name retains an immutable identity for a valid designator after normal or private Connection Lost resignation. It verifies only the official signatures, declared exception sets, adapter symbols, and real Catch2 selector. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only: it is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-get-federate-handle",
@@ -20,7 +20,7 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getFederateHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services resolve active identities within the joined federation"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services preserve departed designator identities within the joined federation"
       ]
     },
     {
@@ -39,7 +39,7 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getFederateName",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services resolve active identities within the joined federation"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services preserve departed designator identities within the joined federation"
       ]
     }
   ]

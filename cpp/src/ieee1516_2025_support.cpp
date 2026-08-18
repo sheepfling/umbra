@@ -208,6 +208,16 @@ FederationExecutionMemberInformation::FederationExecutionMemberInformation(
     : federateName(federateName),
       federateType(federateType) {}
 
+FederateRestoreStatus::FederateRestoreStatus() = default;
+
+FederateRestoreStatus::FederateRestoreStatus(
+    FederateHandle const& preHandle,
+    FederateHandle const& postHandle,
+    RestoreStatus restoreStatus)
+    : preRestoreHandle(preHandle),
+      postRestoreHandle(postHandle),
+      status(restoreStatus) {}
+
 std::wostream& operator<<(std::wostream& stream, Exception const& exception) {
   stream << exception.name() << L": " << exception.what();
   return stream;

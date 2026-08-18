@@ -27,3 +27,14 @@ TEST_CASE("The private federate lifecycle rejects transitions outside their sour
   REQUIRE(lifecycle.apply(FederateLifecycleEvent::connection_lost) == FederateLifecycleResult::applied);
   REQUIRE(lifecycle.state() == FederateLifecycleState::not_connected);
 }
+
+TEST_CASE("The private federate lifecycle retains connection after RTI-initiated resignation", "[unit][kernel][lifecycle]") {
+  FederateLifecycle lifecycle;
+
+  REQUIRE(lifecycle.apply(FederateLifecycleEvent::connect) == FederateLifecycleResult::applied);
+  REQUIRE(lifecycle.apply(FederateLifecycleEvent::join) == FederateLifecycleResult::applied);
+  REQUIRE(lifecycle.apply(FederateLifecycleEvent::rti_resign) == FederateLifecycleResult::applied);
+  REQUIRE(lifecycle.state() == FederateLifecycleState::not_joined);
+  REQUIRE(lifecycle.apply(FederateLifecycleEvent::disconnect) == FederateLifecycleResult::applied);
+  REQUIRE(lifecycle.state() == FederateLifecycleState::not_connected);
+}

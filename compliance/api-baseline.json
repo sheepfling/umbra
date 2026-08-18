@@ -58,6 +58,17 @@
       "header": "RTI/FederateAmbassador.h",
       "declaration_marker": "virtual void connectionLost(",
       "minimum_matches": 1
+    },
+    {
+      "id": "api.federate-resigned",
+      "requirements_lab_mapping_id": "rti.callback.federate-resigned",
+      "requirement_ids": [
+        "req-federate-resigned-callback-behavior"
+      ],
+      "transition_ids": ["federate.resigned-by-rti"],
+      "header": "RTI/FederateAmbassador.h",
+      "declaration_marker": "virtual void federateResigned(",
+      "minimum_matches": 1
     }
   ]
 }

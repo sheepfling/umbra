@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded timestamped Request Federation Save overload to the exact IEEE 1516.1-2025 C++ RTIambassador declaration exported by the Requirements Lab. The dispatcher drains each recipient's in-process TSO payloads through the save timestamp, invokes Initiate Federate Save directly while the constrained recipient remains Time Advancing, and only then applies its grant; three-member TAR and TARA/NMRA Catch2 cases prove non-time-constrained notification is delayed until both constrained members have been admitted. A cross-member case proves one constrained member's queued TSO callback still precedes its own direct initiation after another member has entered the operation, and a request made during a recipient's in-transit callback proves direct initiation waits until delivery returns. The timestamped-save cases cover the inclusive TAR and NMR boundaries, the exclusive TARA and NMRA boundaries, and the strict actual Flush Queue Grant boundary: an FQR equal to the scheduled time leaves the request pending, while a later actual FQR grant admits it. Mixed FQR and ordinary constrained-member cases prequalify every member before the operation starts, and a six-member case exercises all five advance modes under the same save. The implementation remains an embedded development profile with in-memory save snapshots; durable persistence, restore, protected review, package support, and conformance remain open.",
+  "api_surfaces": [
+    {
+      "id": "umbra-request-federation-save-with-time",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.requestfederationsave.00166fe13269",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void requestFederationSave( std::wstring const & label, LogicalTime const & time) = 0",
+      "exception_types": [
+        "LogicalTimeAlreadyPassed",
+        "InvalidLogicalTime",
+        "FederateUnableToUseTime",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestFederationSave",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
+      ]
+    }
+  ]
+}

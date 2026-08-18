@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 interaction declaration foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The implementation retains private per-federate publication/subscription state, which participates in a separate limited receive-order interaction path covered by the receive-order-interaction contracts. Timestamped interaction, regions, directed interaction, FOM sharing-policy enforcement, MOM reporting, packaging, and conformance remain outside this declaration contract. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 interaction declaration foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The implementation retains private per-federate publication/subscription state; the active/passive selector is preserved per ordinary subscription and only active state participates in the separate receive-order interaction path. Timestamped interaction, regions, directed interaction, FOM sharing-policy enforcement, MOM reporting, packaging, and conformance remain outside this declaration contract. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-publish-interaction-class",
@@ -63,7 +63,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClass",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions"
       ]
     },
     {

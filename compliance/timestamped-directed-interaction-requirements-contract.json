@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped directed-interaction slice: one non-regional directed target, constrained and nonconstrained recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, official timestamp/order/retraction callback fields, lower-bound validation, pending-fanout suppression, a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient, and a narrow save/restore regression that prevents a discarded post-save retraction designator from aliasing a fresh post-restore directed message. The shared recipient planner honors the by-ownership versus universal selector, while this timestamped contract's existing cases do not independently distinguish those modes. It does not claim directed DDM, alternate advance modes, complete save/restore semantics, remote transport, catalog evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-directed-interaction-lower-bound",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+      "clause_id": "clause-4.19",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "validateTsoTimestamp",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-target-and-declaration",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l23-7",
+      "clause_id": "clause-5.1.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-known-target",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+      "clause_id": "clause-5.1.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "receiveOrderDirectedInteractionRecipientFor",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-queues-constrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-waits-for-grant-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-callback-fields",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+      "clause_id": "clause-5.1.5",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.receiveDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-retracts-before-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::retract",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-notifies-delivered-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueRequestRetraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-suppresses-pending-fanout",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-covers-nonconstrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+      ]
+    }
+  ]
+}

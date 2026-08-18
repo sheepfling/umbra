@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 Time Advance Request Available service to source-derived clause 8.9. The embedded profile retains the supplied request until the existing callback-gated Time Advance Grant path, delivers currently queued TSO input through that path, and uses the inclusive defined-GALT boundary required by the Available form. Future transport input, complete GALT/LITS coordination, Flush Queue Grant, save/restore, package/catalog evidence, protected review, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-time-advance-request-available-requests-advance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l110-31",
+      "clause_id": "clause-8.9",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequestAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Available time advances use inclusive GALT and queued TSO delivery"
+      ]
+    },
+    {
+      "id": "umbra-time-advance-request-available-delivers-before-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49",
+      "clause_id": "clause-8.9",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Available time advances use inclusive GALT and queued TSO delivery"
+      ]
+    }
+  ]
+}

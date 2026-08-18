@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-fdd-metadata-and-initialization-not-conformance-evidence",
+  "notes": "This contract records the standards-derived advisory switch metadata boundary. The composed catalog retains the four advisory switch settings from the FDD, applies the IEEE 1516.2 Disabled default for omitted entries, and seeds new embedded federate memberships from those settings. Existing members retain their independently changed values. This does not claim complete MOM switch management, every switch family, package evidence, protected review, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-fom-advisory-switch-table-initial-settings",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-067-l46-3",
+      "clause_id": "clause-4.13.3",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "FomCatalogBuilder::build",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM"
+      ]
+    },
+    {
+      "id": "umbra-fom-advisory-switch-omitted-default-disabled",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-067-l50-4",
+      "clause_id": "clause-4.13.3",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "FomCatalogBuilder::build",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+      ]
+    }
+  ]
+}

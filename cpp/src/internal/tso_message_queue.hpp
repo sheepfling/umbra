@@ -46,14 +46,18 @@ struct TsoMessageRetractionResult {
 // A deterministic, recipient-scoped queue for future TSO integration. A
 // message id is shared by all recipient entries created for one federation
 // service invocation, while sequence preserves stable order for equal
-// timestamps. Retraction removes every still-pending recipient entry for that
-// id; once any entry has been delivered, the id is no longer retractable.
+// timestamps. The ordinary retract operation preserves the legacy terminal
+// boundary used by message families that do not yet implement Request
+// Retraction.  A separately named pending-fanout operation is available to a
+// federation-owned service ledger that does implement the delivered-recipient
+// callback rule: it removes every still-pending recipient entry even after a
+// different recipient has reached a delivery boundary.
 class TsoMessageQueue final {
  public:
   explicit TsoMessageQueue(std::wstring implementationName = {});
 
-  TsoMessageQueue(TsoMessageQueue const&) = delete;
-  TsoMessageQueue& operator=(TsoMessageQueue const&) = delete;
+  TsoMessageQueue(TsoMessageQueue const&) = default;
+  TsoMessageQueue& operator=(TsoMessageQueue const&) = default;
   TsoMessageQueue(TsoMessageQueue&&) noexcept = default;
   TsoMessageQueue& operator=(TsoMessageQueue&&) noexcept = default;
 
@@ -68,12 +72,26 @@ class TsoMessageQueue final {
   // Allocates an execution-local id. Zero is reserved as an invalid id.
   [[nodiscard]] std::uint64_t allocateMessageId() noexcept;
 
+  // The next allocation value is an execution-wide high-water mark, rather
+  // than restorable message payload.  A save/restore must never reuse a
+  // designator that was returned after the saved image was captured: callers
+  // can retain a MessageRetractionHandle outside the saved federation image.
+  [[nodiscard]] std::uint64_t messageIdAllocationFloor() const noexcept;
+  void preserveMessageIdAllocationFloor(std::uint64_t allocationFloor) noexcept;
+
   [[nodiscard]] TsoMessageEnqueueResult enqueue(
       std::uint64_t messageId,
       std::uint64_t recipientFederateId,
       std::shared_ptr<rti1516_2025::LogicalTime const> timestamp);
 
   [[nodiscard]] TsoMessageRetractionResult retract(std::uint64_t messageId);
+
+  // Removes every still-pending fanout entry and records a terminal
+  // retraction even if another recipient has already been popped for
+  // delivery.  This lower-level operation deliberately does not decide which
+  // delivered recipients require Request Retraction; the owning federation
+  // service ledger makes that decision atomically with this queue mutation.
+  [[nodiscard]] TsoMessageRetractionResult retractPending(std::uint64_t messageId);
 
   // Removes and marks as delivered all entries for one recipient whose time is
   // before the boundary, or equal to it when inclusive is true. Returned

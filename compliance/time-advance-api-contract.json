@@ -26,7 +26,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     },
     {
@@ -45,7 +47,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLogicalTime",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     },
     {
@@ -60,7 +64,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "timeAdvanceGrant",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     }
   ]

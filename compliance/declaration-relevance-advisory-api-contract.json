@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the ordinary IEEE 1516.1-2025 declaration relevance advisories and their per-federate switch accessors to exact official C++ API surfaces. The development profile implements Start/Stop Registration For Object Class and Turn Interactions On/Off for ordinary publication/subscription transitions, with passive subscriptions excluded. Regional declaration advisories, MOM behavior, package evidence, protected review, catalog evidence, and conformance remain outside the slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-start-registration-for-object-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.startregistrationforobjectclass.186c2957a581",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void startRegistrationForObjectClass( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+      ]
+    },
+    {
+      "id": "umbra-embedded-stop-registration-for-object-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.stopregistrationforobjectclass.a2b4ee2c8114",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void stopRegistrationForObjectClass( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+      ]
+    },
+    {
+      "id": "umbra-embedded-turn-interactions-on",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.turninteractionson.fa14ab505d87",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void turnInteractionsOn( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+      ]
+    },
+    {
+      "id": "umbra-embedded-turn-interactions-off",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.turninteractionsoff.ad390f395f2d",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void turnInteractionsOff( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-object-class-relevance-advisory-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getobjectclassrelevanceadvisoryswitch.8011201b2e1c",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual bool getObjectClassRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getObjectClassRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+      ]
+    },
+    {
+      "id": "umbra-embedded-set-object-class-relevance-advisory-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setobjectclassrelevanceadvisoryswitch.7e0ba6534f44",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setObjectClassRelevanceAdvisorySwitch(bool switchValue) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setObjectClassRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-interaction-relevance-advisory-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getinteractionrelevanceadvisoryswitch.3c632bcad499",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual bool getInteractionRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getInteractionRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+      ]
+    },
+    {
+      "id": "umbra-embedded-set-interaction-relevance-advisory-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setinteractionrelevanceadvisoryswitch.2dc998fec959",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setInteractionRelevanceAdvisorySwitch(bool switchValue) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setInteractionRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+      ]
+    }
+  ]
+}

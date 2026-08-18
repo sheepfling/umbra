@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the official C++ surfaces used by the bounded ownership-transfer/update-region scenario. It verifies only Requirements-Lab signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The implementation-specific rule under test is that an explicit update-region association is cleared when ownership moves from the former owner and must be recreated by the new owner before regional reflection resumes. The contract does not claim complete ownership arbitration, all transfer forms, regional callback advisories, transport, packaging, protected evidence, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-ownership-transfer-acquisition-if-available",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisitionIfAvailable( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & desiredAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeAlreadyBeingAcquired",
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "FederateOwnsAttributes",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-divestiture-if-wanted",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipDivestitureIfWanted( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag, AttributeHandleSet & divestedAttributes) = 0; // filled by RTI",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-acquisition-notification",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & securedAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "requester.attributeOwnershipAcquisitionNotification",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-register-object-instance-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle registerObjectInstanceWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-associate-regions-for-updates",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.associateregionsforupdates.94029e2e8def",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void associateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-subscribe-object-class-attributes-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, bool active = true, std::wstring const & updateRateDesignator = L\"\") = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-update-attribute-values",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void updateAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-reflect-attribute-values",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void reflectAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.reflectAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    }
+  ]
+}

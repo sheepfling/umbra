@@ -1,4 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
+
+#include "internal/embedded_transport.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -28,6 +31,7 @@
 namespace {
 
 using rti1516_2025::FederateHandle;
+using rti1516_2025::FederateHandleSet;
 using rti1516_2025::HLA_EVOKED;
 using rti1516_2025::InteractionClassHandle;
 using rti1516_2025::InteractionClassHandleSet;
@@ -39,7 +43,10 @@ using rti1516_2025::DimensionHandle;
 using rti1516_2025::DimensionHandleSet;
 using rti1516_2025::ParameterHandle;
 using rti1516_2025::OrderType;
+using rti1516_2025::RECEIVE;
+using rti1516_2025::TIMESTAMP;
 using rti1516_2025::NO_ACTION;
+using rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST;
 using rti1516_2025::NullFederateAmbassador;
 using rti1516_2025::ObjectClassHandle;
 using rti1516_2025::ObjectInstanceHandle;
@@ -50,10 +57,28 @@ using rti1516_2025::RangeBounds;
 using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::ResignAction;
+using rti1516_2025::RestoreFailureReason;
+using rti1516_2025::SaveFailureReason;
+using rti1516_2025::SaveStatus;
+using rti1516_2025::ServiceGroup;
 using rti1516_2025::TransportationTypeHandle;
 using rti1516_2025::VariableLengthData;
 
 using TestFederateAmbassador = NullFederateAmbassador;
+
+class FederationEventFederateAmbassador final : public NullFederateAmbassador {
+ public:
+  void connectionLost(std::wstring const& faultDescription) override {
+    faultDescriptions.push_back(faultDescription);
+  }
+
+  void federateResigned(std::wstring const& reasonForResignDescription) override {
+    resignationDescriptions.push_back(reasonForResignDescription);
+  }
+
+  std::vector<std::wstring> faultDescriptions;
+  std::vector<std::wstring> resignationDescriptions;
+};
 
 class ReportingFederateAmbassador final : public NullFederateAmbassador {
  public:
@@ -74,6 +99,7 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     TransportationTypeHandle transportationType;
     FederateHandle producingFederate;
     bool sentRegionsSupplied = false;
+    RegionHandleSet sentRegions;
   };
 
   struct TimestampedInteractionReport {
@@ -88,6 +114,13 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     OrderType receivedOrderType = rti1516_2025::RECEIVE;
     bool retractionSupplied = false;
     bool retractionValid = false;
+    bool sentRegionsSupplied = false;
+    RegionHandleSet sentRegions;
+  };
+
+  struct RequestRetractionReport {
+    bool retractionValid = false;
+    VariableLengthData encodedRetraction;
   };
 
   struct DirectedInteractionReport {
@@ -97,6 +130,12 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     VariableLengthData userSuppliedTag;
     TransportationTypeHandle transportationType;
     FederateHandle producingFederate;
+    std::wstring timeImplementationName;
+    std::wstring timeValue;
+    OrderType sentOrderType = rti1516_2025::RECEIVE;
+    OrderType receivedOrderType = rti1516_2025::RECEIVE;
+    bool retractionSupplied = false;
+    bool retractionValid = false;
   };
 
   struct ObjectDiscoveryReport {
@@ -134,9 +173,51 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     bool retractionValid = false;
   };
 
+  struct AttributeTransportationTypeChangeReport {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleSet attributes;
+    TransportationTypeHandle transportationType;
+  };
+
+  struct AttributeTransportationTypeReport {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandle attribute;
+    TransportationTypeHandle transportationType;
+  };
+
+  struct InteractionTransportationTypeChangeReport {
+    InteractionClassHandle interactionClass;
+    TransportationTypeHandle transportationType;
+  };
+
+  struct InteractionTransportationTypeReport {
+    FederateHandle federate;
+    InteractionClassHandle interactionClass;
+    TransportationTypeHandle transportationType;
+  };
+
   struct AttributeScopeReport {
     ObjectInstanceHandle objectInstance;
     AttributeHandleSet attributes;
+  };
+
+  struct AttributeRelevanceReport {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleSet attributes;
+  };
+
+  struct AttributeRelevanceRateReport {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleSet attributes;
+    std::wstring updateRateDesignator;
+  };
+
+  struct ObjectClassRelevanceReport {
+    ObjectClassHandle objectClass;
+  };
+
+  struct InteractionRelevanceReport {
+    InteractionClassHandle interactionClass;
   };
 
   struct AttributeValueUpdateRequestReport {
@@ -181,6 +262,43 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     AttributeHandleSet attributes;
   };
 
+  struct FlushQueueGrantReport {
+    std::wstring timeImplementationName;
+    std::wstring value;
+    std::wstring optimisticValue;
+  };
+
+  struct SynchronizationPointRegistrationReport {
+    std::wstring label;
+    bool succeeded = false;
+    rti1516_2025::SynchronizationPointFailureReason failureReason =
+        rti1516_2025::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE;
+  };
+
+  struct SynchronizationPointAnnouncementReport {
+    std::wstring label;
+    VariableLengthData userSuppliedTag;
+  };
+
+  struct FederationSynchronizedReport {
+    std::wstring label;
+    FederateHandleSet failedToSyncSet;
+  };
+
+  struct FederationSaveStatusReport {
+    rti1516_2025::FederateHandleSaveStatusPairVector statuses;
+  };
+
+  struct InitiateFederateRestoreReport {
+    std::wstring label;
+    std::wstring federateName;
+    FederateHandle postRestoreFederateHandle;
+  };
+
+  struct FederationRestoreStatusReport {
+    rti1516_2025::FederateRestoreStatusVector statuses;
+  };
+
   struct AttributeOwnershipAssumptionReport {
     ObjectInstanceHandle objectInstance;
     AttributeHandleSet attributes;
@@ -219,6 +337,111 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
   void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
     timeAdvanceGrantReports.push_back({time.implementationName(), time.toString()});
     callbackOrder.push_back("grant");
+  }
+
+  void flushQueueGrant(
+      rti1516_2025::LogicalTime const& time,
+      rti1516_2025::LogicalTime const& optimisticTime) override {
+    flushQueueGrantReports.push_back({
+        time.implementationName(),
+        time.toString(),
+        optimisticTime.toString(),
+    });
+    callbackOrder.push_back("flush-grant");
+  }
+
+  void synchronizationPointRegistrationSucceeded(
+      std::wstring const& label) override {
+    synchronizationPointRegistrationReports.push_back({label, true});
+    callbackOrder.push_back("sync-registration-succeeded");
+  }
+
+  void synchronizationPointRegistrationFailed(
+      std::wstring const& label,
+      rti1516_2025::SynchronizationPointFailureReason reason) override {
+    synchronizationPointRegistrationReports.push_back({label, false, reason});
+    callbackOrder.push_back("sync-registration-failed");
+  }
+
+  void announceSynchronizationPoint(
+      std::wstring const& label,
+      VariableLengthData const& userSuppliedTag) override {
+    synchronizationPointAnnouncementReports.push_back({label, userSuppliedTag});
+    callbackOrder.push_back("sync-announce");
+  }
+
+  void federationSynchronized(
+      std::wstring const& label,
+      FederateHandleSet const& failedToSyncSet) override {
+    federationSynchronizedReports.push_back({label, failedToSyncSet});
+    callbackOrder.push_back("sync-complete");
+  }
+
+  void initiateFederateSave(std::wstring const& label) override {
+    initiateFederateSaveReports.push_back(label);
+    callbackOrder.push_back("save-initiate");
+    if (onInitiateFederateSave) {
+      onInitiateFederateSave();
+    }
+  }
+
+  void federationSaved() override {
+    ++federationSavedReportCount;
+    callbackOrder.push_back("save-complete");
+  }
+
+  void federationNotSaved(SaveFailureReason reason) override {
+    federationNotSavedReasons.push_back(reason);
+    callbackOrder.push_back("save-failed");
+  }
+
+  void federationSaveStatusResponse(
+      rti1516_2025::FederateHandleSaveStatusPairVector const& response) override {
+    federationSaveStatusReports.push_back({response});
+    callbackOrder.push_back("save-status");
+  }
+
+  void requestFederationRestoreSucceeded(std::wstring const& label) override {
+    requestFederationRestoreSucceededReports.push_back(label);
+    callbackOrder.push_back("restore-request-succeeded");
+  }
+
+  void requestFederationRestoreFailed(std::wstring const& label) override {
+    requestFederationRestoreFailedReports.push_back(label);
+    callbackOrder.push_back("restore-request-failed");
+  }
+
+  void federationRestoreBegun() override {
+    ++federationRestoreBegunReportCount;
+    callbackOrder.push_back("restore-begun");
+  }
+
+  void initiateFederateRestore(
+      std::wstring const& label,
+      std::wstring const& federateName,
+      FederateHandle const& postRestoreFederateHandle) override {
+    initiateFederateRestoreReports.push_back({
+        label,
+        federateName,
+        postRestoreFederateHandle,
+    });
+    callbackOrder.push_back("restore-initiate");
+  }
+
+  void federationRestored() override {
+    ++federationRestoredReportCount;
+    callbackOrder.push_back("restore-complete");
+  }
+
+  void federationNotRestored(RestoreFailureReason reason) override {
+    federationNotRestoredReasons.push_back(reason);
+    callbackOrder.push_back("restore-failed");
+  }
+
+  void federationRestoreStatusResponse(
+      rti1516_2025::FederateRestoreStatusVector const& response) override {
+    federationRestoreStatusReports.push_back({response});
+    callbackOrder.push_back("restore-status");
   }
 
   void timeRegulationEnabled(rti1516_2025::LogicalTime const& time) override {
@@ -263,6 +486,7 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
         transportationType,
         producingFederate,
         optionalSentRegions != nullptr,
+        optionalSentRegions == nullptr ? RegionHandleSet{} : *optionalSentRegions,
     });
   }
 
@@ -277,7 +501,6 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
       OrderType sentOrderType,
       OrderType receivedOrderType,
       rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
-    static_cast<void>(optionalSentRegions);
     timestampedInteractionReports.push_back({
         interactionClass,
         parameterValues,
@@ -290,8 +513,22 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
         receivedOrderType,
         optionalRetraction != nullptr,
         optionalRetraction != nullptr && optionalRetraction->isValid(),
+        optionalSentRegions != nullptr,
+        optionalSentRegions != nullptr ? *optionalSentRegions : RegionHandleSet{},
     });
     callbackOrder.push_back("interaction");
+    if (onTimestampedInteraction) {
+      onTimestampedInteraction();
+    }
+  }
+
+  void requestRetraction(
+      rti1516_2025::MessageRetractionHandle const& retraction) override {
+    requestRetractionReports.push_back({
+        retraction.isValid(),
+        retraction.encode(),
+    });
+    callbackOrder.push_back("request-retraction");
   }
 
   void receiveDirectedInteraction(
@@ -309,6 +546,34 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
         transportationType,
         producingFederate,
     });
+  }
+
+  void receiveDirectedInteraction(
+      InteractionClassHandle const& interactionClass,
+      ObjectInstanceHandle const& objectInstance,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag,
+      TransportationTypeHandle const& transportationType,
+      FederateHandle const& producingFederate,
+      rti1516_2025::LogicalTime const& time,
+      OrderType sentOrderType,
+      OrderType receivedOrderType,
+      rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+    directedInteractionReports.push_back({
+        interactionClass,
+        objectInstance,
+        parameterValues,
+        userSuppliedTag,
+        transportationType,
+        producingFederate,
+        time.implementationName(),
+        time.toString(),
+        sentOrderType,
+        receivedOrderType,
+        optionalRetraction != nullptr,
+        optionalRetraction != nullptr && optionalRetraction->isValid(),
+    });
+    callbackOrder.push_back("directed");
   }
 
   void discoverObjectInstance(
@@ -414,6 +679,91 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
       ObjectInstanceHandle const& objectInstance,
       AttributeHandleSet const& attributes) override {
     attributesOutOfScopeReports.push_back({objectInstance, attributes});
+  }
+
+  void turnUpdatesOnForObjectInstance(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes) override {
+    turnUpdatesOnForObjectInstanceReports.push_back({objectInstance, attributes});
+  }
+
+  void turnUpdatesOnForObjectInstance(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes,
+      std::wstring const& updateRateDesignator) override {
+    turnUpdatesOnForObjectInstanceRateReports.push_back({
+        objectInstance,
+        attributes,
+        updateRateDesignator,
+    });
+  }
+
+  void turnUpdatesOffForObjectInstance(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes) override {
+    turnUpdatesOffForObjectInstanceReports.push_back({objectInstance, attributes});
+  }
+
+  void startRegistrationForObjectClass(
+      ObjectClassHandle const& objectClass) override {
+    startRegistrationForObjectClassReports.push_back({objectClass});
+  }
+
+  void stopRegistrationForObjectClass(
+      ObjectClassHandle const& objectClass) override {
+    stopRegistrationForObjectClassReports.push_back({objectClass});
+  }
+
+  void turnInteractionsOn(
+      InteractionClassHandle const& interactionClass) override {
+    turnInteractionsOnReports.push_back({interactionClass});
+  }
+
+  void turnInteractionsOff(
+      InteractionClassHandle const& interactionClass) override {
+    turnInteractionsOffReports.push_back({interactionClass});
+  }
+
+  void confirmAttributeTransportationTypeChange(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes,
+      TransportationTypeHandle const& transportationType) override {
+    attributeTransportationTypeChangeReports.push_back({
+        objectInstance,
+        attributes,
+        transportationType,
+    });
+  }
+
+  void reportAttributeTransportationType(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandle const& attribute,
+      TransportationTypeHandle const& transportationType) override {
+    attributeTransportationTypeReports.push_back({
+        objectInstance,
+        attribute,
+        transportationType,
+    });
+  }
+
+  void confirmInteractionTransportationTypeChange(
+      InteractionClassHandle const& interactionClass,
+      TransportationTypeHandle const& transportationType) override {
+    interactionTransportationTypeChangeReports.push_back({
+        interactionClass,
+        transportationType,
+    });
+  }
+
+  void reportInteractionTransportationType(
+      FederateHandle const& federate,
+      InteractionClassHandle const& interactionClass,
+      TransportationTypeHandle const& transportationType) override {
+    interactionTransportationTypeReports.push_back({
+        federate,
+        interactionClass,
+        transportationType,
+    });
   }
 
   void provideAttributeValueUpdate(
@@ -534,6 +884,24 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
   std::vector<MemberReport> federationExecutionMemberReports;
   std::vector<std::wstring> missingFederationReports;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
+  std::vector<FlushQueueGrantReport> flushQueueGrantReports;
+  std::vector<SynchronizationPointRegistrationReport>
+      synchronizationPointRegistrationReports;
+  std::vector<SynchronizationPointAnnouncementReport>
+      synchronizationPointAnnouncementReports;
+  std::vector<FederationSynchronizedReport> federationSynchronizedReports;
+  std::vector<std::wstring> initiateFederateSaveReports;
+  std::function<void()> onInitiateFederateSave;
+  std::size_t federationSavedReportCount = 0;
+  std::vector<SaveFailureReason> federationNotSavedReasons;
+  std::vector<FederationSaveStatusReport> federationSaveStatusReports;
+  std::vector<std::wstring> requestFederationRestoreSucceededReports;
+  std::vector<std::wstring> requestFederationRestoreFailedReports;
+  std::size_t federationRestoreBegunReportCount = 0;
+  std::vector<InitiateFederateRestoreReport> initiateFederateRestoreReports;
+  std::size_t federationRestoredReportCount = 0;
+  std::vector<RestoreFailureReason> federationNotRestoredReasons;
+  std::vector<FederationRestoreStatusReport> federationRestoreStatusReports;
   std::vector<TimeAdvanceGrantReport> timeRegulationEnabledReports;
   std::vector<TimeAdvanceGrantReport> timeConstrainedEnabledReports;
   std::vector<std::string> callbackOrder;
@@ -547,12 +915,27 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
       multipleObjectInstanceNameReservationFailedReports;
   std::vector<InteractionReport> interactionReports;
   std::vector<TimestampedInteractionReport> timestampedInteractionReports;
+  std::function<void()> onTimestampedInteraction;
+  std::vector<RequestRetractionReport> requestRetractionReports;
   std::vector<DirectedInteractionReport> directedInteractionReports;
   std::vector<ObjectDiscoveryReport> objectDiscoveryReports;
   std::vector<ObjectRemovalReport> objectRemovalReports;
   std::vector<AttributeReflectionReport> attributeReflectionReports;
+  std::vector<AttributeTransportationTypeChangeReport>
+      attributeTransportationTypeChangeReports;
+  std::vector<AttributeTransportationTypeReport> attributeTransportationTypeReports;
+  std::vector<InteractionTransportationTypeChangeReport>
+      interactionTransportationTypeChangeReports;
+  std::vector<InteractionTransportationTypeReport> interactionTransportationTypeReports;
   std::vector<AttributeScopeReport> attributesInScopeReports;
   std::vector<AttributeScopeReport> attributesOutOfScopeReports;
+  std::vector<AttributeRelevanceReport> turnUpdatesOnForObjectInstanceReports;
+  std::vector<AttributeRelevanceRateReport> turnUpdatesOnForObjectInstanceRateReports;
+  std::vector<AttributeRelevanceReport> turnUpdatesOffForObjectInstanceReports;
+  std::vector<ObjectClassRelevanceReport> startRegistrationForObjectClassReports;
+  std::vector<ObjectClassRelevanceReport> stopRegistrationForObjectClassReports;
+  std::vector<InteractionRelevanceReport> turnInteractionsOnReports;
+  std::vector<InteractionRelevanceReport> turnInteractionsOffReports;
   std::vector<AttributeValueUpdateRequestReport> attributeValueUpdateRequestReports;
   std::function<void(
       ObjectInstanceHandle const&,
@@ -640,6 +1023,663 @@ std::vector<unsigned char> variableLengthDataBytes(VariableLengthData const& val
 }  // namespace
 
 TEST_CASE(
+    "Embedded asynchronous delivery gates receive-order callbacks by temporal state",
+    "[integration][development-profile][time-management][asynchronous-delivery]"
+    "[rti.service.enable-asynchronous-delivery][rti.service.disable-asynchronous-delivery]"
+    "[rti.service.time-advance-request][federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+
+  REQUIRE_THROWS_AS(
+      receiver->enableAsynchronousDelivery(),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      receiver->disableAsynchronousDelivery(),
+      rti1516_2025::NotConnected);
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      receiver->enableAsynchronousDelivery(),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      receiver->disableAsynchronousDelivery(),
+      rti1516_2025::FederateNotExecutionMember);
+
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(
+          federationName,
+          fomModule,
+          L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"async-publisher",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"async-receiver",
+      L"subscriber",
+      federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 1);
+
+  // The default switch is disabled. A receive-order message submitted while
+  // the constrained federate is Time Granted is retained, not discarded.
+  REQUIRE_NOTHROW(
+      publisher->sendInteraction(interactionClass, ParameterHandleValueMap{}, VariableLengthData()));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.interactionReports.empty());
+
+  REQUIRE_NOTHROW(receiver->enableAsynchronousDelivery());
+  REQUIRE_THROWS_AS(
+      receiver->enableAsynchronousDelivery(),
+      rti1516_2025::AsynchronousDeliveryAlreadyEnabled);
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.interactionReports.size() == 1);
+
+  REQUIRE_NOTHROW(receiver->disableAsynchronousDelivery());
+  REQUIRE_THROWS_AS(
+      receiver->disableAsynchronousDelivery(),
+      rti1516_2025::AsynchronousDeliveryAlreadyDisabled);
+
+  REQUIRE_NOTHROW(
+      publisher->sendInteraction(interactionClass, ParameterHandleValueMap{}, VariableLengthData()));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.interactionReports.size() == 1);
+
+  // Entering Time Advancing makes the retained RO message eligible. It is
+  // queued before any matching grant, so the next evoke observes the
+  // interaction even though this isolated constrained federate has no
+  // regulator available to release its TAR.
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.interactionReports.size() == 2);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
+    "[integration][development-profile][interaction-management][delay-subscription-evaluation]"
+    "[rti.service.send-interaction]"
+    "[rti.service.get-delay-subscription-evaluation-switch]"
+    "[rti.service.subscribe-interaction-class]"
+    "[rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback]"
+    "[federate.callback.receive-interaction]") {
+  auto runScenario = [](bool const delaySubscriptionEvaluationEnabled) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const interactionFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                                 "cpp" / "tests" / "data" /
+                                 "parameter-handle-provider-fom.xml")
+                                    .wstring();
+    auto const switchesFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                              "cpp" / "tests" / "data" /
+                              "switch-support-enabled-fom.xml")
+                                 .wstring();
+    std::vector<std::wstring> fomModules{interactionFom};
+    if (delaySubscriptionEvaluationEnabled) {
+      fomModules.push_back(switchesFom);
+    }
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName, fomModules, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(publisher->joinFederationExecution(
+        L"delay-ro-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"delay-ro-receiver", L"subscriber", federationName));
+
+    auto const interactionClass = publisher->getInteractionClassHandle(
+        L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+    REQUIRE(interactionClass.isValid());
+    REQUIRE(publisher->getDelaySubscriptionEvaluationSwitch() ==
+            delaySubscriptionEvaluationEnabled);
+    REQUIRE(receiver->getDelaySubscriptionEvaluationSwitch() ==
+            delaySubscriptionEvaluationEnabled);
+    REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+
+    // The receiver is joined but has no subscription when the RO message is
+    // generated.  Only the Enabled federation keeps it as a candidate until
+    // the HLA_EVOKED callback boundary.
+    REQUIRE_NOTHROW(publisher->sendInteraction(
+        interactionClass, ParameterHandleValueMap{}, VariableLengthData()));
+    REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+    static_cast<void>(receiver->evokeCallback(0.0));
+    REQUIRE(receiverReports.interactionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+    if (delaySubscriptionEvaluationEnabled) {
+      REQUIRE(receiverReports.interactionReports.front().interactionClass == interactionClass);
+    }
+
+    // Clause 8.1.8 requires an actual-delivery decision from the receiver's
+    // current subscriptions in both modes.  An accepted recipient that
+    // unsubscribes before its HLA_EVOKED boundary must therefore be suppressed.
+    REQUIRE_NOTHROW(publisher->sendInteraction(
+        interactionClass, ParameterHandleValueMap{}, VariableLengthData()));
+    REQUIRE_NOTHROW(receiver->unsubscribeInteractionClass(interactionClass));
+    static_cast<void>(receiver->evokeCallback(0.0));
+    REQUIRE(receiverReports.interactionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(receiver->disconnect());
+    REQUIRE_NOTHROW(publisher->disconnect());
+  };
+
+  SECTION("the creation-time switch is Enabled") {
+    runScenario(true);
+  }
+  SECTION("the omitted switch uses the Disabled default") {
+    runScenario(false);
+  }
+}
+
+TEST_CASE(
+    "Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[delay-subscription-evaluation][tso]"
+    "[rti.service.send-interaction]"
+    "[rti.service.get-delay-subscription-evaluation-switch]"
+    "[rti.service.subscribe-interaction-class]"
+    "[rti.service.unsubscribe-interaction-class]"
+    "[rti.service.enable-time-regulation]"
+    "[rti.service.enable-time-constrained]"
+    "[rti.service.time-advance-request]"
+    "[federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant]") {
+  auto runScenario = [](bool const delaySubscriptionEvaluationEnabled) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const interactionFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                                 "cpp" / "tests" / "data" /
+                                 "parameter-handle-provider-fom.xml")
+                                    .wstring();
+    auto const switchesFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                              "cpp" / "tests" / "data" /
+                              "switch-support-enabled-fom.xml")
+                                 .wstring();
+    std::vector<std::wstring> fomModules{interactionFom};
+    if (delaySubscriptionEvaluationEnabled) {
+      fomModules.push_back(switchesFom);
+    }
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName, fomModules, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(publisher->joinFederationExecution(
+        L"delay-tso-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"delay-tso-receiver", L"subscriber", federationName));
+
+    auto const interactionClass = publisher->getInteractionClassHandle(
+        L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+    REQUIRE(interactionClass.isValid());
+    REQUIRE(publisher->getDelaySubscriptionEvaluationSwitch() ==
+            delaySubscriptionEvaluationEnabled);
+    REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+    REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+    REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+    static_cast<void>(receiver->evokeCallback(0.0));
+    REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    static_cast<void>(publisher->evokeCallback(0.0));
+
+    // The timestamped message is generated while the receiver is unsubscribed.
+    // In the Enabled case it waits in the federation-owned TSO queue and is
+    // projected only when the recipient becomes eligible at its grant.
+    auto const firstRetraction = publisher->sendInteraction(
+        interactionClass,
+        ParameterHandleValueMap{},
+        VariableLengthData(),
+        rti1516_2025::HLAinteger64Time(2));
+    REQUIRE(firstRetraction.isValid());
+    REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+    static_cast<void>(publisher->evokeCallback(0.0));
+    static_cast<void>(receiver->evokeCallback(0.0));
+    REQUIRE(receiverReports.timestampedInteractionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+    if (delaySubscriptionEvaluationEnabled) {
+      auto const& report = receiverReports.timestampedInteractionReports.front();
+      REQUIRE(report.interactionClass == interactionClass);
+      REQUIRE(report.timeValue == L"2");
+      REQUIRE(report.sentOrderType == TIMESTAMP);
+      REQUIRE(report.receivedOrderType == TIMESTAMP);
+    }
+
+    // A subscription existing at generation is not a promise of delivery:
+    // current state at the second grant suppresses this otherwise queued TSO
+    // interaction under both switch settings.
+    auto const secondRetraction = publisher->sendInteraction(
+        interactionClass,
+        ParameterHandleValueMap{},
+        VariableLengthData(),
+        rti1516_2025::HLAinteger64Time(3));
+    REQUIRE(secondRetraction.isValid());
+    REQUIRE_NOTHROW(receiver->unsubscribeInteractionClass(interactionClass));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+    static_cast<void>(publisher->evokeCallback(0.0));
+    static_cast<void>(receiver->evokeCallback(0.0));
+    REQUIRE(receiverReports.timestampedInteractionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(receiver->disconnect());
+    REQUIRE_NOTHROW(publisher->disconnect());
+  };
+
+  SECTION("the creation-time switch is Enabled") {
+    runScenario(true);
+  }
+  SECTION("the omitted switch uses the Disabled default") {
+    runScenario(false);
+  }
+}
+
+TEST_CASE(
+    "Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
+    "[integration][development-profile][object-management][delay-subscription-evaluation]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.get-delay-subscription-evaluation-switch]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.evoke-callback]"
+    "[federate.callback.reflect-attribute-values]") {
+  auto runScenario = [](bool const delaySubscriptionEvaluationEnabled) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const attributeFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                               "cpp" / "tests" / "data" /
+                               "attribute-update-passel-fom.xml")
+                                  .wstring();
+    auto const switchesFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                              "cpp" / "tests" / "data" /
+                              "switch-support-enabled-fom.xml")
+                                 .wstring();
+    std::vector<std::wstring> fomModules{attributeFom};
+    if (delaySubscriptionEvaluationEnabled) {
+      fomModules.push_back(switchesFom);
+    }
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName, fomModules, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(publisher->joinFederationExecution(
+        L"delay-ro-attribute-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"delay-ro-attribute-receiver", L"subscriber", federationName));
+
+    auto const objectClass = publisher->getObjectClassHandle(
+        L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+    auto const attribute = publisher->getAttributeHandle(objectClass, L"ReliableBaseA");
+    REQUIRE(objectClass.isValid());
+    REQUIRE(attribute.isValid());
+    REQUIRE(publisher->getDelaySubscriptionEvaluationSwitch() ==
+            delaySubscriptionEvaluationEnabled);
+    REQUIRE(receiver->getDelaySubscriptionEvaluationSwitch() ==
+            delaySubscriptionEvaluationEnabled);
+    AttributeHandleSet const attributes{attribute};
+    unsigned char const valueBytes[] = {0xD5, 0x45};
+    AttributeHandleValueMap values;
+    values.emplace(attribute, VariableLengthData(valueBytes, sizeof(valueBytes)));
+
+    // The receiver first obtains a durable known-object record, then drops
+    // the attribute declaration. This isolates delayed subscription
+    // evaluation from discovery semantics.
+    REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+    while (receiver->evokeCallback(0.0)) {
+    }
+    REQUIRE(receiverReports.objectDiscoveryReports.size() == 1);
+    REQUIRE(receiver->getKnownObjectClassHandle(objectInstance) == objectClass);
+    REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributes(objectClass, attributes));
+
+    // The receiver has no qualifying attribute subscription at generation.
+    // Only the Enabled federation keeps a route until its HLA_EVOKED delivery
+    // fence and can therefore deliver after the late re-subscription.
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        objectInstance, values, VariableLengthData()));
+    REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+    while (receiver->evokeCallback(0.0)) {
+    }
+    REQUIRE(receiverReports.attributeReflectionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+    if (delaySubscriptionEvaluationEnabled) {
+      auto const& reflection = receiverReports.attributeReflectionReports.front();
+      REQUIRE(reflection.objectInstance == objectInstance);
+      REQUIRE(reflection.attributeValues.size() == 1);
+      REQUIRE(reflection.attributeValues.contains(attribute));
+      REQUIRE(variableLengthDataBytes(reflection.attributeValues.at(attribute)) ==
+              std::vector<unsigned char>(valueBytes, valueBytes + sizeof(valueBytes)));
+      REQUIRE_FALSE(reflection.sentRegionsSupplied);
+    }
+
+    // A recipient accepted while subscribed is still re-evaluated at the
+    // callback fence. Removing that current declaration suppresses a second
+    // ordinary reflection in both switch settings.
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        objectInstance, values, VariableLengthData()));
+    REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributes(objectClass, attributes));
+    while (receiver->evokeCallback(0.0)) {
+    }
+    REQUIRE(receiverReports.attributeReflectionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(receiver->disconnect());
+    REQUIRE_NOTHROW(publisher->disconnect());
+  };
+
+  SECTION("the creation-time switch is Enabled") {
+    runScenario(true);
+  }
+  SECTION("the omitted switch uses the Disabled default") {
+    runScenario(false);
+  }
+}
+
+TEST_CASE(
+    "Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility",
+    "[integration][development-profile][object-management][time-management]"
+    "[delay-subscription-evaluation][tso]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.get-delay-subscription-evaluation-switch]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.enable-time-regulation]"
+    "[rti.service.enable-time-constrained]"
+    "[rti.service.time-advance-request]"
+    "[federate.callback.reflect-attribute-values]"
+    "[federate.callback.time-advance-grant]") {
+  auto runScenario = [](bool const delaySubscriptionEvaluationEnabled) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const attributeFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                               "cpp" / "tests" / "data" /
+                               "attribute-update-passel-fom.xml")
+                                  .wstring();
+    auto const switchesFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                              "cpp" / "tests" / "data" /
+                              "switch-support-enabled-fom.xml")
+                                 .wstring();
+    std::vector<std::wstring> fomModules{attributeFom};
+    if (delaySubscriptionEvaluationEnabled) {
+      fomModules.push_back(switchesFom);
+    }
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName, fomModules, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(publisher->joinFederationExecution(
+        L"delay-tso-attribute-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"delay-tso-attribute-receiver", L"subscriber", federationName));
+
+    auto const objectClass = publisher->getObjectClassHandle(
+        L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+    auto const attribute = publisher->getAttributeHandle(objectClass, L"ReliableBaseA");
+    REQUIRE(objectClass.isValid());
+    REQUIRE(attribute.isValid());
+    REQUIRE(publisher->getDelaySubscriptionEvaluationSwitch() ==
+            delaySubscriptionEvaluationEnabled);
+    AttributeHandleSet const attributes{attribute};
+    unsigned char const valueBytes[] = {0xD5, 0x54};
+    AttributeHandleValueMap values;
+    values.emplace(attribute, VariableLengthData(valueBytes, sizeof(valueBytes)));
+
+    REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(
+        publisher->changeDefaultAttributeOrderType(objectClass, attributes, TIMESTAMP));
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+    while (receiver->evokeCallback(0.0)) {
+    }
+    REQUIRE(receiverReports.objectDiscoveryReports.size() == 1);
+    REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+    static_cast<void>(receiver->evokeCallback(0.0));
+    REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 1);
+    REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    while (publisher->evokeCallback(0.0)) {
+    }
+    REQUIRE(publisherReports.timeRegulationEnabledReports.size() == 1);
+
+    // A TSO passel generated while unsubscribed remains associated with the
+    // joined receiver only under the Enabled switch. The actual projection is
+    // evaluated immediately before the callback at the recipient's grant.
+    auto const firstRetraction = publisher->updateAttributeValues(
+        objectInstance,
+        values,
+        VariableLengthData(),
+        rti1516_2025::HLAinteger64Time(2));
+    REQUIRE(firstRetraction.isValid());
+    REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+    while (publisher->evokeCallback(0.0)) {
+    }
+    while (receiver->evokeCallback(0.0)) {
+    }
+    REQUIRE(receiverReports.attributeReflectionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+    rti1516_2025::HLAinteger64Time publisherTime;
+    REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherTime));
+    REQUIRE(publisherTime.getTime() == 2);
+    if (delaySubscriptionEvaluationEnabled) {
+      auto const& reflection = receiverReports.attributeReflectionReports.front();
+      REQUIRE(reflection.objectInstance == objectInstance);
+      REQUIRE(reflection.attributeValues.size() == 1);
+      REQUIRE(reflection.attributeValues.contains(attribute));
+      REQUIRE(variableLengthDataBytes(reflection.attributeValues.at(attribute)) ==
+              std::vector<unsigned char>(valueBytes, valueBytes + sizeof(valueBytes)));
+      REQUIRE(reflection.timeValue == L"2");
+      REQUIRE(reflection.sentOrderType == TIMESTAMP);
+      REQUIRE(reflection.receivedOrderType == TIMESTAMP);
+    }
+
+    // Generation-time eligibility never promises a TSO reflection. The
+    // second passel is accepted while subscribed, then suppressed after the
+    // declaration is removed before the next time grant in both settings.
+    auto const secondRetraction = publisher->updateAttributeValues(
+        objectInstance,
+        values,
+        VariableLengthData(),
+        rti1516_2025::HLAinteger64Time(3));
+    REQUIRE(secondRetraction.isValid());
+    REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+    while (publisher->evokeCallback(0.0)) {
+    }
+    while (receiver->evokeCallback(0.0)) {
+    }
+    REQUIRE(receiverReports.attributeReflectionReports.size() ==
+            (delaySubscriptionEvaluationEnabled ? 1U : 0U));
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(receiver->disconnect());
+    REQUIRE_NOTHROW(publisher->disconnect());
+  };
+
+  SECTION("the creation-time switch is Enabled") {
+    runScenario(true);
+  }
+  SECTION("the omitted switch uses the Disabled default") {
+    runScenario(false);
+  }
+}
+
+TEST_CASE(
+    "Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[rti.service.send-interaction][rti.service.retract]"
+    "[rti.service.time-advance-request][federate.callback.receive-interaction]"
+    "[federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador immediateReports;
+  ReportingFederateAmbassador constrainedReports;
+  auto publisher = makeRti();
+  auto immediate = makeRti();
+  auto constrained = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x52, 0x54, 0x49};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(immediate->connect(immediateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(constrained->connect(constrainedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"retraction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(immediate->joinFederationExecution(
+      L"retraction-immediate", L"subscriber", federationName));
+  REQUIRE_NOTHROW(constrained->joinFederationExecution(
+      L"retraction-constrained", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(immediate->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(constrained->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(constrained->enableTimeConstrained());
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const retraction = publisher->sendInteraction(
+      interactionClass,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(2));
+  REQUIRE(retraction.isValid());
+
+  // The nonconstrained recipient sees the original timestamped interaction
+  // immediately; the constrained recipient remains in the federation-owned
+  // TSO queue until a later grant.
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(immediateReports.timestampedInteractionReports.front().retractionValid);
+  REQUIRE(constrainedReports.timestampedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 1);
+  REQUIRE(immediateReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(retraction.encode()));
+  REQUIRE(immediateReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "request-retraction"});
+
+  // The still-pending fanout is removed before it can cross the recipient's
+  // grant boundary. Advancing the regulator past its initial position releases
+  // the recipient's TAR to 2 without a stale Receive Interaction callback.
+  REQUIRE_NOTHROW(constrained->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE(constrainedReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(constrainedReports.timestampedInteractionReports.empty());
+  REQUIRE(constrainedReports.requestRetractionReports.empty());
+
+  // Once the constrained recipient resigns, the next timestamped interaction
+  // has no temporal-queue fanout at all. It must still retain a federation
+  // ledger record so its already-delivered nonconstrained recipient can receive
+  // Request Retraction.
+  REQUIRE_NOTHROW(constrained->resignFederationExecution(NO_ACTION));
+
+  auto const immediateOnlyRetraction = publisher->sendInteraction(
+      interactionClass,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(4));
+  REQUIRE(immediateOnlyRetraction.isValid());
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.timestampedInteractionReports.size() == 2);
+  REQUIRE(immediateReports.timestampedInteractionReports.back().retractionValid);
+
+  REQUIRE_NOTHROW(publisher->retract(immediateOnlyRetraction));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 2);
+  REQUIRE(immediateReports.requestRetractionReports.back().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.back().encodedRetraction) ==
+          variableLengthDataBytes(immediateOnlyRetraction.encode()));
+
+  REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(constrained->disconnect());
+  REQUIRE_NOTHROW(immediate->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
     "Embedded federation-management services require an RTI connection",
     "[integration][federation-management][connection]") {
   auto rti = makeRti();
@@ -658,6 +1698,213 @@ TEST_CASE(
   REQUIRE_THROWS_AS(
       rti->resignFederationExecution(NO_ACTION),
       rti1516_2025::NotConnected);
+}
+
+TEST_CASE(
+    "Embedded transport loss forces the official connection-lost transition",
+    "[integration][development-profile][federation-management][transport]"
+    "[rti.service.connection-lost][federate.callback.connection-lost]") {
+  FederationEventFederateAmbassador lostReports;
+  ReportingFederateAmbassador survivingReports;
+  auto lost = makeRti();
+  auto surviving = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(surviving->connect(survivingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(lost->joinFederationExecution(
+      L"transport-lost",
+      L"observer",
+      federationName));
+  REQUIRE_NOTHROW(surviving->joinFederationExecution(
+      L"transport-survivor",
+      L"observer",
+      federationName));
+
+  REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost,
+      L"embedded loopback transport closed"));
+  REQUIRE_FALSE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost,
+      L"duplicate fault"));
+
+  REQUIRE_FALSE(lost->evokeCallback(0.0));
+  REQUIRE(lostReports.faultDescriptions ==
+          std::vector<std::wstring>{L"embedded loopback transport closed"});
+  REQUIRE(lostReports.resignationDescriptions.empty());
+  REQUIRE_THROWS_AS(lost->disconnect(), rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      lost->joinFederationExecution(L"observer", federationName),
+      rti1516_2025::NotConnected);
+
+  // The forced membership cleanup is observable from a surviving federate:
+  // the lost endpoint no longer appears in the execution member report.
+  REQUIRE_NOTHROW(surviving->listFederationExecutionMembers(federationName));
+  REQUIRE_FALSE(surviving->evokeCallback(0.0));
+  REQUIRE(survivingReports.federationExecutionMemberReports.size() == 1);
+  REQUIRE(survivingReports.federationExecutionMemberReports.front().members.size() == 1);
+  REQUIRE(
+      survivingReports.federationExecutionMemberReports.front().members.front().federateName ==
+      L"transport-survivor");
+
+  // The forced transition returns the RTI ambassador to the ordinary
+  // disconnected lifecycle, so the same object can establish a fresh
+  // official connection after the fault callback has been evoked.
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->disconnect());
+  REQUIRE_NOTHROW(surviving->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(surviving->disconnect());
+}
+
+TEST_CASE(
+    "Embedded transport loss applies the configured automatic delete resign directive",
+    "[integration][development-profile][federation-management][transport]"
+    "[object-management][rti.service.connection-lost]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[federate.callback.connection-lost][federate.callback.remove-object-instance]") {
+  FederationEventFederateAmbassador lostReports;
+  ReportingFederateAmbassador survivingReports;
+  auto lost = makeRti();
+  auto surviving = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(surviving->connect(survivingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  FederateHandle lostFederate;
+  REQUIRE_NOTHROW(lostFederate = lost->joinFederationExecution(
+      L"automatic-delete-lost",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(surviving->joinFederationExecution(
+      L"automatic-delete-survivor",
+      L"subscriber",
+      federationName));
+
+  auto const server = lost->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = lost->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(lost->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(surviving->subscribeObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = lost->registerObjectInstance(server));
+  auto const objectInstanceName = lost->getObjectInstanceName(objectInstance);
+  REQUIRE_FALSE(surviving->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(survivingReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(survivingReports.objectRemovalReports.empty());
+
+  // Do not rely on the current FDD default: verify that the per-federate
+  // directive selected through the official support service controls the
+  // forced-resignation disposition.
+  REQUIRE_NOTHROW(lost->setAutomaticResignDirective(rti1516_2025::DELETE_OBJECTS));
+  REQUIRE(lost->getAutomaticResignDirective() == rti1516_2025::DELETE_OBJECTS);
+
+  REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost,
+      L"automatic delete transport fault"));
+  REQUIRE(lostReports.faultDescriptions.empty());
+  REQUIRE(survivingReports.objectRemovalReports.empty());
+
+  REQUIRE_FALSE(lost->evokeCallback(0.0));
+  REQUIRE(lostReports.faultDescriptions ==
+          std::vector<std::wstring>{L"automatic delete transport fault"});
+  REQUIRE(lostReports.resignationDescriptions.empty());
+  REQUIRE_FALSE(surviving->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(survivingReports.objectRemovalReports.size() == 1);
+  auto const& removal = survivingReports.objectRemovalReports.front();
+  REQUIRE(removal.objectInstance == objectInstance);
+  REQUIRE(removal.producingFederate == lostFederate);
+  // Connection Lost performs a resignation on behalf of the lost federate.
+  // The returned identity remains a valid designator even though the member
+  // report below no longer lists it as joined.
+  REQUIRE(surviving->getFederateName(lostFederate) == L"automatic-delete-lost");
+  REQUIRE_THROWS_AS(
+      surviving->getObjectInstanceHandle(objectInstanceName),
+      rti1516_2025::ObjectInstanceNotKnown);
+
+  REQUIRE_NOTHROW(surviving->listFederationExecutionMembers(federationName));
+  REQUIRE_FALSE(surviving->evokeCallback(0.0));
+  REQUIRE(survivingReports.federationExecutionMemberReports.size() == 1);
+  REQUIRE(survivingReports.federationExecutionMemberReports.front().members.size() == 1);
+  REQUIRE(
+      survivingReports.federationExecutionMemberReports.front().members.front().federateName ==
+      L"automatic-delete-survivor");
+
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->disconnect());
+  REQUIRE_NOTHROW(surviving->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(surviving->disconnect());
+}
+
+TEST_CASE(
+    "Embedded RTI control forces the official federate-resigned transition",
+    "[integration][development-profile][federation-management][transport]"
+    "[federate.callback.federate-resigned]") {
+  FederationEventFederateAmbassador forcedReports;
+  FederationEventFederateAmbassador selfResignedReports;
+  auto forced = makeRti();
+  auto selfResigned = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(forced->connect(forcedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(selfResigned->connect(selfResignedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(forced->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(forced->joinFederationExecution(
+      L"forced-resignation-target",
+      L"observer",
+      federationName));
+  REQUIRE_NOTHROW(selfResigned->joinFederationExecution(
+      L"self-resignation-control",
+      L"observer",
+      federationName));
+
+  // A federate-initiated resignation must not produce Federate Resigned at
+  // that same federate. The RTI-originated control path below is distinct.
+  REQUIRE_NOTHROW(selfResigned->resignFederationExecution(NO_ACTION));
+  REQUIRE_FALSE(selfResigned->evokeCallback(0.0));
+  REQUIRE(selfResignedReports.resignationDescriptions.empty());
+
+  REQUIRE(umbra::detail::forceEmbeddedFederateResignationForTesting(
+      *forced,
+      L"embedded RTI membership control removed this federate"));
+  REQUIRE_FALSE(umbra::detail::forceEmbeddedFederateResignationForTesting(
+      *forced,
+      L"duplicate RTI membership control"));
+  REQUIRE(forcedReports.resignationDescriptions.empty());
+  REQUIRE(forcedReports.faultDescriptions.empty());
+
+  REQUIRE_FALSE(forced->evokeCallback(0.0));
+  REQUIRE(forcedReports.resignationDescriptions == std::vector<std::wstring>{
+      L"embedded RTI membership control removed this federate"});
+  REQUIRE(forcedReports.faultDescriptions.empty());
+
+  // Federate Resigned leaves the connection alive but ends membership, so the
+  // same RTI ambassador can immediately join the execution again.
+  REQUIRE_NOTHROW(forced->joinFederationExecution(
+      L"forced-resignation-rejoined",
+      L"observer",
+      federationName));
+  REQUIRE_NOTHROW(forced->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(forced->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(forced->disconnect());
+  REQUIRE_NOTHROW(selfResigned->disconnect());
 }
 
 TEST_CASE(
@@ -738,6 +1985,352 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded resign action unconditionally divests attributes for the 2025 ownership model",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[rti.service.resign-federation-execution]"
+    "[federate.callback.request-attribute-ownership-assumption]"
+    "[rti.service.attribute-ownership-acquisition]") {
+  TestFederateAmbassador ownerFederate;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      owner->joinFederationExecution(L"resigning-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(
+      peer->joinFederationExecution(L"resigning-peer", L"subscriber", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  auto const privilegeToDelete = owner->getAttributeHandle(
+      server,
+      L"HLAprivilegeToDeleteObject");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  AttributeHandleSet const divestedAttributes{efficiency, privilegeToDelete};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(peer->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(peer->publishObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.objectDiscoveryReports.size() == 1);
+
+  // Directive 6 cannot strand attributes owned by the resigning federate.
+  REQUIRE_THROWS_AS(
+      owner->resignFederationExecution(NO_ACTION),
+      rti1516_2025::FederateOwnsAttributes);
+
+  REQUIRE_NOTHROW(
+      owner->resignFederationExecution(rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.attributeOwnershipAssumptionReports.size() == 1);
+  auto const& assumption = peerReports.attributeOwnershipAssumptionReports.front();
+  REQUIRE(assumption.objectInstance == objectInstance);
+  REQUIRE(assumption.attributes == divestedAttributes);
+
+  unsigned char const acquisitionTagBytes[] = {0xD1, 0x25};
+  VariableLengthData const acquisitionTag(acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  REQUIRE_NOTHROW(peer->attributeOwnershipAcquisition(
+      objectInstance,
+      efficiencyOnly,
+      acquisitionTag));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.attributeOwnershipAcquisitionReports.size() == 1);
+  REQUIRE(
+      peerReports.attributeOwnershipAcquisitionReports.front().kind ==
+      ReportingFederateAmbassador::AttributeOwnershipAcquisitionReport::Kind::notification);
+  REQUIRE(peer->isAttributeOwnedByFederate(objectInstance, efficiency));
+
+  // The remaining federate can divest the acquired attribute before the
+  // federation is destroyed; the object itself was not deleted by directive 1.
+  REQUIRE_NOTHROW(
+      peer->resignFederationExecution(rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+  REQUIRE_NOTHROW(peer->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded resign action deletes delete-privileged objects and reports removal",
+    "[integration][development-profile][federation-management][object-management]"
+    "[rti.service.resign-federation-execution]"
+    "[federate.callback.remove-object-instance]") {
+  TestFederateAmbassador ownerFederate;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      owner->joinFederationExecution(L"deleting-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(
+      peer->joinFederationExecution(L"deleting-peer", L"subscriber", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(peer->subscribeObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+  auto const objectInstanceName = owner->getObjectInstanceName(objectInstance);
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_THROWS_AS(
+      owner->resignFederationExecution(NO_ACTION),
+      rti1516_2025::FederateOwnsAttributes);
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(rti1516_2025::DELETE_OBJECTS));
+  REQUIRE(peerReports.objectRemovalReports.empty());
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.objectRemovalReports.size() == 1);
+  REQUIRE(peerReports.objectRemovalReports.front().objectInstance == objectInstance);
+  REQUIRE_THROWS_AS(
+      peer->getObjectInstanceHandle(objectInstanceName),
+      rti1516_2025::ObjectInstanceNotKnown);
+
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(peer->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded assumption search continues after a later eligible publication",
+    "[integration][development-profile][ownership-management][federation-management]"
+    "[rti.service.resign-federation-execution]"
+    "[federate.callback.request-attribute-ownership-assumption]") {
+  TestFederateAmbassador ownerFederate;
+  ReportingFederateAmbassador candidateReports;
+  auto owner = makeRti();
+  auto candidate = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(candidate->connect(candidateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"assumption-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(candidate->joinFederationExecution(
+      L"assumption-candidate", L"candidate", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  auto const privilegeToDelete = owner->getAttributeHandle(
+      server,
+      L"HLAprivilegeToDeleteObject");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  AttributeHandleSet const expectedAssumption{efficiency, privilegeToDelete};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(candidate->subscribeObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+  REQUIRE_FALSE(candidate->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(candidateReports.objectDiscoveryReports.size() == 1);
+
+  REQUIRE_NOTHROW(
+      owner->resignFederationExecution(rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+  REQUIRE_FALSE(candidate->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(candidateReports.attributeOwnershipAssumptionReports.empty());
+
+  // The candidate was known but not yet publishing when the owner resigned.
+  // Publishing later makes it eligible and must continue the prior search.
+  REQUIRE_NOTHROW(candidate->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_FALSE(candidate->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(candidateReports.attributeOwnershipAssumptionReports.size() == 1);
+  REQUIRE(candidateReports.attributeOwnershipAssumptionReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(candidateReports.attributeOwnershipAssumptionReports.front().attributes ==
+          expectedAssumption);
+
+  REQUIRE_NOTHROW(candidate->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(candidate->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(candidate->disconnect());
+}
+
+TEST_CASE(
+    "Embedded assumption search continues after a later join and discovery",
+    "[integration][development-profile][ownership-management][federation-management]"
+    "[rti.service.resign-federation-execution]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.request-attribute-ownership-assumption]") {
+  TestFederateAmbassador ownerFederate;
+  TestFederateAmbassador observerFederate;
+  ReportingFederateAmbassador lateReports;
+  auto owner = makeRti();
+  auto observer = makeRti();
+  auto late = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(late->connect(lateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"search-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"search-observer", L"observer", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  auto const privilegeToDelete = owner->getAttributeHandle(
+      server,
+      L"HLAprivilegeToDeleteObject");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  AttributeHandleSet const expectedAssumption{efficiency, privilegeToDelete};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+
+  // Keep the execution alive with an unrelated member while the owner
+  // resigns. The object remains, but no assumption recipient is yet known.
+  REQUIRE_NOTHROW(
+      owner->resignFederationExecution(rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+
+  REQUIRE_NOTHROW(late->joinFederationExecution(
+      L"search-late", L"candidate", federationName));
+  REQUIRE_NOTHROW(late->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_FALSE(late->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(lateReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(lateReports.objectDiscoveryReports.front().objectInstance == objectInstance);
+  REQUIRE(lateReports.attributeOwnershipAssumptionReports.empty());
+
+  REQUIRE_NOTHROW(late->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_FALSE(late->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(lateReports.attributeOwnershipAssumptionReports.size() == 1);
+  REQUIRE(lateReports.attributeOwnershipAssumptionReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(lateReports.attributeOwnershipAssumptionReports.front().attributes ==
+          expectedAssumption);
+
+  REQUIRE_NOTHROW(late->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(observer->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(observer->disconnect());
+  REQUIRE_NOTHROW(late->disconnect());
+}
+
+TEST_CASE(
+    "Embedded resign action rejects pending ownership acquisition work",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[rti.service.resign-federation-execution]"
+    "[rti.service.attribute-ownership-acquisition]") {
+  TestFederateAmbassador ownerFederate;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      owner->joinFederationExecution(L"pending-owner", L"subscriber", federationName));
+  REQUIRE_NOTHROW(
+      requester->joinFederationExecution(L"pending-requester", L"publisher", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(owner->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(server, efficiencyOnly));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = requester->registerObjectInstance(server));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+
+  unsigned char const acquisitionTagBytes[] = {0xD2, 0x25};
+  VariableLengthData const acquisitionTag(acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(owner->attributeOwnershipAcquisition(
+      objectInstance,
+      efficiencyOnly,
+      acquisitionTag));
+  REQUIRE_THROWS_AS(
+      owner->resignFederationExecution(rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES),
+      rti1516_2025::OwnershipAcquisitionPending);
+
+  // Directive 5 explicitly resolves the pending request before the owner
+  // leaves; the remaining producer can then delete its own object.
+  REQUIRE_NOTHROW(
+      owner->resignFederationExecution(rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::DELETE_OBJECTS));
+  REQUIRE_NOTHROW(requester->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(requester->disconnect());
+}
+
+TEST_CASE(
+    "Embedded final-federate resignation applies directive two regardless of the supplied action",
+    "[integration][development-profile][federation-management][object-management]"
+    "[rti.service.resign-federation-execution][federate.callback.object-instance-name-reservation-succeeded]") {
+  ReportingFederateAmbassador ownerReports;
+  auto owner = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"last-federate", L"publisher", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle originalObject;
+  REQUIRE_NOTHROW(originalObject = owner->registerObjectInstance(server));
+  auto const reusableObjectName = owner->getObjectInstanceName(originalObject);
+
+  // 4.12.4 forces the delete-object pass for the last joined federate even
+  // when the caller supplies NO_ACTION.  The deleted name must be reusable
+  // after a new member joins the still-existing federation execution.
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"rejoined-federate", L"publisher", federationName));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(owner->reserveObjectInstanceName(reusableObjectName));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.objectInstanceNameReservationSucceededReports.size() == 1);
+  REQUIRE(
+      ownerReports.objectInstanceNameReservationSucceededReports.front().objectInstanceName ==
+      reusableObjectName);
+
+  ObjectInstanceHandle replacementObject;
+  REQUIRE_NOTHROW(
+      replacementObject = owner->registerObjectInstance(server, reusableObjectName));
+  REQUIRE(replacementObject.isValid());
+  REQUIRE(replacementObject != originalObject);
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
     "Embedded federation-management preparation failures leave shared federation state unchanged",
     "[integration][development-profile][federation-management][rti.service.create-federation-execution]"
     "[rti.service.join-federation-execution][rti.service.destroy-federation-execution]") {
@@ -781,6 +2374,2104 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded federation save control coordinates initiation, status, completion, and abort",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.federate-save-not-complete]"
+    "[rti.service.abort-federation-save][rti.service.query-federation-save-status]"
+    "[federate.callback.initiate-federate-save][federate.callback.federation-saved]"
+    "[federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(peer->connect(peerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle ownerHandle;
+  FederateHandle peerHandle;
+  REQUIRE_NOTHROW(
+      ownerHandle = owner->joinFederationExecution(L"save-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(
+      peerHandle = peer->joinFederationExecution(L"save-peer", L"observer", federationName));
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"control-save-1"));
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{L"control-save-1"});
+  REQUIRE(peerReports.initiateFederateSaveReports == std::vector<std::wstring>{L"control-save-1"});
+  REQUIRE_THROWS_AS(owner->requestFederationSave(L"overlapping"), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->federateSaveComplete(), rti1516_2025::FederateHasNotBegunSave);
+
+  REQUIRE_NOTHROW(owner->queryFederationSaveStatus());
+  REQUIRE(ownerReports.federationSaveStatusReports.size() == 1);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses.size() == 2);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[0].first == ownerHandle);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[0].second ==
+          rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[1].first == peerHandle);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[1].second ==
+          rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE);
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(peer->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->queryFederationSaveStatus());
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[0].second ==
+          rti1516_2025::FEDERATE_SAVING);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[1].second ==
+          rti1516_2025::FEDERATE_SAVING);
+
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE(ownerReports.federationSavedReportCount == 0);
+  REQUIRE(peerReports.federationSavedReportCount == 0);
+  REQUIRE_NOTHROW(peer->federateSaveComplete());
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(peerReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(owner->queryFederationSaveStatus());
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses.size() == 2);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[0].second ==
+          rti1516_2025::NO_SAVE_IN_PROGRESS);
+  REQUIRE(ownerReports.federationSaveStatusReports.back().statuses[1].second ==
+          rti1516_2025::NO_SAVE_IN_PROGRESS);
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"control-save-2"));
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(peer->federateSaveBegun());
+  REQUIRE_NOTHROW(peer->federateSaveNotComplete());
+  REQUIRE(ownerReports.federationNotSavedReasons.back() ==
+          rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+  REQUIRE(peerReports.federationNotSavedReasons.back() ==
+          rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"control-save-3"));
+  REQUIRE_NOTHROW(owner->abortFederationSave());
+  REQUIRE(ownerReports.federationNotSavedReasons.back() == rti1516_2025::SAVE_ABORTED);
+  REQUIRE(peerReports.federationNotSavedReasons.back() == rti1516_2025::SAVE_ABORTED);
+  REQUIRE_THROWS_AS(owner->abortFederationSave(), rti1516_2025::SaveNotInProgress);
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador receiverReports;
+  auto owner = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x54, 0x53, 0x4F};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"timed-save-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"timed-save-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = owner->getParameterHandle(interactionClass, L"Identifier");
+  ParameterHandleValueMap parameters;
+  unsigned char const identifierBytes[] = {0xA5, 0x25};
+  parameters.emplace(identifier, VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+  REQUIRE_NOTHROW(owner->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(owner->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  ownerReports.callbackOrder.clear();
+  receiverReports.callbackOrder.clear();
+  std::size_t receiverTsoReportsAtSaveInitiate = 0;
+  receiverReports.onInitiateFederateSave = [&receiverReports, &receiverTsoReportsAtSaveInitiate] {
+    receiverTsoReportsAtSaveInitiate = receiverReports.timestampedInteractionReports.size();
+  };
+
+  REQUIRE_THROWS_AS(
+      owner->requestFederationSave(L"timed-save-too-early", rti1516_2025::HLAinteger64Time(0)),
+      rti1516_2025::InvalidLogicalTime);
+  REQUIRE_THROWS_AS(
+      receiver->requestFederationSave(L"timed-save-at-galt", rti1516_2025::HLAinteger64Time(1)),
+      rti1516_2025::LogicalTimeAlreadyPassed);
+
+  // The second request replaces the first while neither has reached the
+  // Initiate Federate Save boundary.
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      L"timed-save-replaced",
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      L"timed-save-final",
+      rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE(receiverReports.initiateFederateSaveReports.empty());
+
+  // A timestamped interaction at the save boundary must be received before
+  // the constrained federate can be instructed to save.
+  auto const message = owner->sendInteraction(
+      interactionClass,
+      parameters,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(message.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  // The receiver first receives the TSO payload at the scheduled-save
+  // boundary, then receives Initiate Federate Save while still Time
+  // Advancing, and only then receives its grant.
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{L"timed-save-final"});
+  REQUIRE(receiverTsoReportsAtSaveInitiate == 1);
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  // The non-time-constrained regulator is queued only after the constrained
+  // recipient has been admitted at its own pre-grant boundary.
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{L"timed-save-final"});
+  REQUIRE(ownerReports.callbackOrder ==
+          std::vector<std::string>{"grant", "save-initiate"});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  static_cast<void>(owner->evokeCallback(0.0));
+  static_cast<void>(receiver->evokeCallback(0.0));
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(receiverReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded untimed federation save admits constrained members at time-advance boundaries",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.federate-save-begun][rti.service.federate-save-complete]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador firstReports;
+  ReportingFederateAmbassador secondReports;
+  auto owner = makeRti();
+  auto first = makeRti();
+  auto second = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"untimed-time-advance-save"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(first->connect(firstReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(second->connect(secondReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"untimed-save-owner", L"non-constrained-regulator", federationName));
+  REQUIRE_NOTHROW(first->joinFederationExecution(
+      L"untimed-save-first", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(second->joinFederationExecution(
+      L"untimed-save-second", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(first->enableTimeConstrained());
+  REQUIRE_FALSE(first->evokeCallback(0.0));
+  REQUIRE(firstReports.timeConstrainedEnabledReports.size() == 1);
+  REQUIRE_NOTHROW(second->enableTimeConstrained());
+  REQUIRE_FALSE(second->evokeCallback(0.0));
+  REQUIRE(secondReports.timeConstrainedEnabledReports.size() == 1);
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(10)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.timeRegulationEnabledReports.size() == 1);
+
+  ownerReports.callbackOrder.clear();
+  firstReports.callbackOrder.clear();
+  secondReports.callbackOrder.clear();
+  REQUIRE_NOTHROW(owner->requestFederationSave(saveLabel));
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE(firstReports.initiateFederateSaveReports.empty());
+  REQUIRE(secondReports.initiateFederateSaveReports.empty());
+
+  // Both constrained federates are now Time Advancing before either grant
+  // callback is dispatched. The first callback must occur before its own
+  // Time Advance Grant, but the non-constrained member must still wait for
+  // the second constrained member to reach the same boundary.
+  REQUIRE_NOTHROW(first->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(second->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  static_cast<void>(first->evokeCallback(0.0));
+  REQUIRE(firstReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(firstReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(firstReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(firstReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(secondReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  static_cast<void>(second->evokeCallback(0.0));
+  REQUIRE(secondReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(secondReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(secondReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(secondReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"save-initiate"});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(first->federateSaveBegun());
+  REQUIRE_NOTHROW(second->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(first->federateSaveComplete());
+  REQUIRE_NOTHROW(second->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (first->evokeCallback(0.0)) {
+  }
+  while (second->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(firstReports.federationSavedReportCount == 1);
+  REQUIRE(secondReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(second->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(first->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(second->disconnect());
+  REQUIRE_NOTHROW(first->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save admits every constrained member before non-constrained members",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.federate-save-begun][rti.service.federate-save-complete]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador firstReports;
+  ReportingFederateAmbassador secondReports;
+  auto owner = makeRti();
+  auto first = makeRti();
+  auto second = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"timed-time-advance-save"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(first->connect(firstReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(second->connect(secondReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"timed-save-owner", L"non-constrained-regulator", federationName));
+  REQUIRE_NOTHROW(first->joinFederationExecution(
+      L"timed-save-first", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(second->joinFederationExecution(
+      L"timed-save-second", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(first->enableTimeConstrained());
+  REQUIRE_FALSE(first->evokeCallback(0.0));
+  REQUIRE_NOTHROW(second->enableTimeConstrained());
+  REQUIRE_FALSE(second->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  ownerReports.callbackOrder.clear();
+  firstReports.callbackOrder.clear();
+  secondReports.callbackOrder.clear();
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE(firstReports.initiateFederateSaveReports.empty());
+  REQUIRE(secondReports.initiateFederateSaveReports.empty());
+
+  // TAR reaches the timestamp inclusively. Both constrained federates must
+  // already be Time Advancing before either direct pre-grant initiation can
+  // start; the ordinary regulator remains queued until the second one is
+  // admitted at its own boundary.
+  REQUIRE_NOTHROW(first->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(second->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant"});
+
+  static_cast<void>(first->evokeCallback(0.0));
+  REQUIRE(firstReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(firstReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(firstReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(firstReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(secondReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  static_cast<void>(second->evokeCallback(0.0));
+  REQUIRE(secondReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(secondReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(secondReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(secondReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant", "save-initiate"});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(first->federateSaveBegun());
+  REQUIRE_NOTHROW(second->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(first->federateSaveComplete());
+  REQUIRE_NOTHROW(second->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (first->evokeCallback(0.0)) {
+  }
+  while (second->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(firstReports.federationSavedReportCount == 1);
+  REQUIRE(secondReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(second->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(first->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(second->disconnect());
+  REQUIRE_NOTHROW(first->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save uses an exclusive available-advance boundary",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.time-advance-request-available][rti.service.enable-time-constrained]"
+    "[rti.service.enable-time-regulation][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][federate.callback.initiate-federate-save]"
+    "[federate.callback.time-advance-grant][federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador receiverReports;
+  auto owner = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"available-time-advance-save"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"available-save-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"available-save-receiver", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  ownerReports.callbackOrder.clear();
+  receiverReports.callbackOrder.clear();
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+
+  // TARA's next grant at exactly the save timestamp is not a qualifying
+  // boundary. The save request remains pending after the recipient is granted
+  // time 5 without an Initiate Federate Save callback.
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequestAvailable(
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(receiverReports.initiateFederateSaveReports.empty());
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant"});
+
+  // Once the available request's next grant is strictly greater than the
+  // scheduled save time, it is a qualifying boundary and direct initiation
+  // precedes the grant.
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequestAvailable(
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(
+      receiverReports.callbackOrder ==
+      std::vector<std::string>{"grant", "save-initiate", "grant"});
+
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(receiverReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.next-message-request][rti.service.next-message-request-available]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.federate-save-begun][rti.service.federate-save-complete]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador receiverReports;
+  auto owner = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const inclusiveLabel = std::wstring{L"next-message-save-inclusive"};
+  auto const exclusiveLabel = std::wstring{L"next-message-save-exclusive"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"next-message-save-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"next-message-save-receiver", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  ownerReports.callbackOrder.clear();
+  receiverReports.callbackOrder.clear();
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      inclusiveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+
+  // NMR is inclusive: its next grant at the scheduled save timestamp admits
+  // the save and invokes the constrained recipient directly before that grant.
+  REQUIRE_NOTHROW(receiver->nextMessageRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{inclusiveLabel});
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{inclusiveLabel});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(receiverReports.federationSavedReportCount == 1);
+
+  ownerReports.callbackOrder.clear();
+  receiverReports.callbackOrder.clear();
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      exclusiveLabel,
+      rti1516_2025::HLAinteger64Time(7)));
+
+  // NMRA is exclusive. An equal next grant leaves the replacement request
+  // pending; a later next grant performs the direct pre-grant admission.
+  REQUIRE_NOTHROW(receiver->nextMessageRequestAvailable(
+      rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{inclusiveLabel});
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"7");
+  REQUIRE(receiverReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{inclusiveLabel});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant"});
+
+  REQUIRE_NOTHROW(receiver->nextMessageRequestAvailable(
+      rti1516_2025::HLAinteger64Time(8)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{inclusiveLabel, exclusiveLabel});
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"8");
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"grant", "save-initiate", "grant"});
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{inclusiveLabel, exclusiveLabel});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 2);
+  REQUIRE(receiverReports.federationSavedReportCount == 2);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save admits Available and next-message constrained members",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.time-advance-request-available][rti.service.next-message-request-available]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.federate-save-begun][rti.service.federate-save-complete]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador availableReports;
+  ReportingFederateAmbassador nextMessageReports;
+  auto owner = makeRti();
+  auto available = makeRti();
+  auto nextMessage = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"available-next-message-save"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(available->connect(availableReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(nextMessage->connect(nextMessageReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"available-next-message-save-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(available->joinFederationExecution(
+      L"available-next-message-save-available", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(nextMessage->joinFederationExecution(
+      L"available-next-message-save-next-message", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(available->enableTimeConstrained());
+  REQUIRE_FALSE(available->evokeCallback(0.0));
+  REQUIRE_NOTHROW(nextMessage->enableTimeConstrained());
+  REQUIRE_FALSE(nextMessage->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  ownerReports.callbackOrder.clear();
+  availableReports.callbackOrder.clear();
+  nextMessageReports.callbackOrder.clear();
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+
+  // Both Available forms cross the strict clause-4.19 boundary at 6. The
+  // save cannot start until each constrained member already has its own
+  // queued grant, and the regulator must remain uninstructed until both
+  // direct pre-grant callbacks have occurred.
+  REQUIRE_NOTHROW(available->timeAdvanceRequestAvailable(
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(nextMessage->nextMessageRequestAvailable(
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant"});
+
+  REQUIRE_FALSE(available->evokeCallback(0.0));
+  REQUIRE(availableReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{saveLabel});
+  REQUIRE(availableReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(availableReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(availableReports.callbackOrder ==
+          std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(nextMessageReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(nextMessage->evokeCallback(0.0));
+  REQUIRE(nextMessageReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{saveLabel});
+  REQUIRE(nextMessageReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(nextMessageReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(nextMessageReports.callbackOrder ==
+          std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{saveLabel});
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant", "save-initiate"});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(available->federateSaveBegun());
+  REQUIRE_NOTHROW(nextMessage->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(available->federateSaveComplete());
+  REQUIRE_NOTHROW(nextMessage->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (available->evokeCallback(0.0)) {
+  }
+  while (nextMessage->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(availableReports.federationSavedReportCount == 1);
+  REQUIRE(nextMessageReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(nextMessage->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(available->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(nextMessage->disconnect());
+  REQUIRE_NOTHROW(available->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save admits every advance mode before non-constrained members",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.next-message-request][rti.service.time-advance-request-available]"
+    "[rti.service.next-message-request-available][rti.service.flush-queue-request]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.federate-save-begun][rti.service.federate-save-complete]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.flush-queue-grant][federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador tarReports;
+  ReportingFederateAmbassador nmrReports;
+  ReportingFederateAmbassador taraReports;
+  ReportingFederateAmbassador nmraReports;
+  ReportingFederateAmbassador fqrReports;
+  auto owner = makeRti();
+  auto tar = makeRti();
+  auto nmr = makeRti();
+  auto tara = makeRti();
+  auto nmra = makeRti();
+  auto fqr = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"all-advance-modes-save"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(tar->connect(tarReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(nmr->connect(nmrReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(tara->connect(taraReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(nmra->connect(nmraReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(fqr->connect(fqrReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"all-advance-modes-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(tar->joinFederationExecution(
+      L"all-advance-modes-tar", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(nmr->joinFederationExecution(
+      L"all-advance-modes-nmr", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(tara->joinFederationExecution(
+      L"all-advance-modes-tara", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(nmra->joinFederationExecution(
+      L"all-advance-modes-nmra", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(fqr->joinFederationExecution(
+      L"all-advance-modes-fqr", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(tar->enableTimeConstrained());
+  REQUIRE_FALSE(tar->evokeCallback(0.0));
+  REQUIRE_NOTHROW(nmr->enableTimeConstrained());
+  REQUIRE_FALSE(nmr->evokeCallback(0.0));
+  REQUIRE_NOTHROW(tara->enableTimeConstrained());
+  REQUIRE_FALSE(tara->evokeCallback(0.0));
+  REQUIRE_NOTHROW(nmra->enableTimeConstrained());
+  REQUIRE_FALSE(nmra->evokeCallback(0.0));
+  REQUIRE_NOTHROW(fqr->enableTimeConstrained());
+  REQUIRE_FALSE(fqr->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+  // TAR and NMR are inclusive at 5. TARA, NMRA, and FQR are strict, so each
+  // uses the known value 6; FQR derives that same actual grant from the
+  // regulator's pending request. The first TAR callback may begin the save
+  // only because every other constrained member is already dispatchable.
+  REQUIRE_NOTHROW(tar->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(nmr->nextMessageRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(nmra->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(fqr->flushQueueRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+
+  REQUIRE_FALSE(tar->evokeCallback(0.0));
+  REQUIRE(tarReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(tarReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(tarReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(tarReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(nmrReports.initiateFederateSaveReports.empty());
+  REQUIRE(taraReports.initiateFederateSaveReports.empty());
+  REQUIRE(nmraReports.initiateFederateSaveReports.empty());
+  REQUIRE(fqrReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(nmr->evokeCallback(0.0));
+  REQUIRE(nmrReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(nmrReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(nmrReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(nmrReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(tara->evokeCallback(0.0));
+  REQUIRE(taraReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(taraReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(nmra->evokeCallback(0.0));
+  REQUIRE(nmraReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(nmraReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(nmraReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(fqr->evokeCallback(0.0));
+  REQUIRE(fqrReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(fqrReports.flushQueueGrantReports.size() == 1);
+  REQUIRE(fqrReports.flushQueueGrantReports.back().value == L"6");
+  REQUIRE(fqrReports.callbackOrder == std::vector<std::string>{"save-initiate", "flush-grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE(owner->evokeCallback(0.0));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant", "save-initiate"});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(tar->federateSaveBegun());
+  REQUIRE_NOTHROW(nmr->federateSaveBegun());
+  REQUIRE_NOTHROW(tara->federateSaveBegun());
+  REQUIRE_NOTHROW(nmra->federateSaveBegun());
+  REQUIRE_NOTHROW(fqr->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(tar->federateSaveComplete());
+  REQUIRE_NOTHROW(nmr->federateSaveComplete());
+  REQUIRE_NOTHROW(tara->federateSaveComplete());
+  REQUIRE_NOTHROW(nmra->federateSaveComplete());
+  REQUIRE_NOTHROW(fqr->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (tar->evokeCallback(0.0)) {
+  }
+  while (nmr->evokeCallback(0.0)) {
+  }
+  while (tara->evokeCallback(0.0)) {
+  }
+  while (nmra->evokeCallback(0.0)) {
+  }
+  while (fqr->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(tarReports.federationSavedReportCount == 1);
+  REQUIRE(nmrReports.federationSavedReportCount == 1);
+  REQUIRE(taraReports.federationSavedReportCount == 1);
+  REQUIRE(nmraReports.federationSavedReportCount == 1);
+  REQUIRE(fqrReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(fqr->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(nmra->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(tara->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(nmr->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(tar->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(fqr->disconnect());
+  REQUIRE_NOTHROW(nmra->disconnect());
+  REQUIRE_NOTHROW(tara->disconnect());
+  REQUIRE_NOTHROW(nmr->disconnect());
+  REQUIRE_NOTHROW(tar->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save defers each constrained initiation for its queued TSO",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.send-interaction][rti.service.enable-time-constrained]"
+    "[rti.service.enable-time-regulation][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][federate.callback.receive-interaction]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador readyReports;
+  ReportingFederateAmbassador delayedReports;
+  auto owner = makeRti();
+  auto ready = makeRti();
+  auto delayed = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"per-member-tso-save"};
+  unsigned char const tagBytes[] = {0x54, 0x53, 0x4F};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(ready->connect(readyReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(delayed->connect(delayedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"per-member-tso-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(ready->joinFederationExecution(
+      L"per-member-tso-ready", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(delayed->joinFederationExecution(
+      L"per-member-tso-delayed", L"time-constrained", federationName));
+
+  auto const interactionClass = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = owner->getParameterHandle(interactionClass, L"Identifier");
+  ParameterHandleValueMap parameters;
+  unsigned char const identifierBytes[] = {0x50, 0x45, 0x52};
+  parameters.emplace(identifier, VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+  REQUIRE_NOTHROW(owner->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(owner->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(delayed->subscribeInteractionClass(interactionClass));
+
+  REQUIRE_NOTHROW(ready->enableTimeConstrained());
+  REQUIRE_FALSE(ready->evokeCallback(0.0));
+  REQUIRE_NOTHROW(delayed->enableTimeConstrained());
+  REQUIRE_FALSE(delayed->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  auto const message = owner->sendInteraction(
+      interactionClass,
+      parameters,
+      tag,
+      rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(message.isValid());
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(ready->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(delayed->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+
+  // The first member can enter the save operation at its clean inclusive
+  // boundary. The delayed member's initiation remains local to its grant: it
+  // must not happen until the TSO payload at the scheduled time is delivered.
+  REQUIRE_FALSE(ready->evokeCallback(0.0));
+  REQUIRE(readyReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(readyReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(readyReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(readyReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(delayedReports.timestampedInteractionReports.empty());
+  REQUIRE(delayedReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(delayed->evokeCallback(0.0));
+  REQUIRE(delayedReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(delayedReports.timestampedInteractionReports.back().timeValue == L"5");
+  REQUIRE(delayedReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(delayedReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(delayedReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(delayedReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE(owner->evokeCallback(0.0));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"grant", "save-initiate"});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(ready->federateSaveBegun());
+  REQUIRE_NOTHROW(delayed->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(ready->federateSaveComplete());
+  REQUIRE_NOTHROW(delayed->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (ready->evokeCallback(0.0)) {
+  }
+  while (delayed->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(readyReports.federationSavedReportCount == 1);
+  REQUIRE(delayedReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(delayed->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(ready->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(delayed->disconnect());
+  REQUIRE_NOTHROW(ready->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save requested during a TSO callback waits for in-transit delivery",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.send-interaction][rti.service.enable-time-constrained]"
+    "[rti.service.enable-time-regulation][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][federate.callback.receive-interaction]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador receiverReports;
+  auto owner = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"in-transit-tso-save"};
+  unsigned char const tagBytes[] = {0x49, 0x4E, 0x54};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"in-transit-tso-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"in-transit-tso-receiver", L"time-constrained", federationName));
+
+  auto const interactionClass = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = owner->getParameterHandle(interactionClass, L"Identifier");
+  ParameterHandleValueMap parameters;
+  unsigned char const identifierBytes[] = {0x49, 0x4E, 0x54};
+  parameters.emplace(identifier, VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+  REQUIRE_NOTHROW(owner->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(owner->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  bool reentrantSaveRequestAccepted = false;
+  bool saveInitiatedBeforeTsoCallbackReturned = false;
+  receiverReports.onTimestampedInteraction = [&] {
+    saveInitiatedBeforeTsoCallbackReturned =
+        !receiverReports.initiateFederateSaveReports.empty();
+    try {
+      owner->requestFederationSave(saveLabel, rti1516_2025::HLAinteger64Time(5));
+      reentrantSaveRequestAccepted = true;
+    } catch (...) {
+      reentrantSaveRequestAccepted = false;
+    }
+  };
+
+  auto const message = owner->sendInteraction(
+      interactionClass,
+      parameters,
+      tag,
+      rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(message.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"4");
+
+  // The timestamped request is made while this interaction is in transit.
+  // It becomes eligible only after the callback returns and the runtime
+  // completes that delivery, so the direct save callback follows Receive
+  // Interaction and precedes the matching grant.
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(reentrantSaveRequestAccepted);
+  REQUIRE_FALSE(saveInitiatedBeforeTsoCallbackReturned);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"4");
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(receiverReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.flush-queue-request][rti.service.send-interaction]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.federate-save-begun][rti.service.federate-save-complete]"
+    "[federate.callback.receive-interaction][federate.callback.initiate-federate-save]"
+    "[federate.callback.flush-queue-grant][federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador receiverReports;
+  auto owner = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"flush-queue-save"};
+  unsigned char const tagBytes[] = {0x46, 0x51, 0x52};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"flush-queue-save-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"flush-queue-save-receiver", L"time-constrained", federationName));
+
+  auto const interactionClass = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = owner->getParameterHandle(interactionClass, L"Identifier");
+  ParameterHandleValueMap parameters;
+  unsigned char const identifierBytes[] = {0xF0, 0x51};
+  parameters.emplace(identifier, VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+  REQUIRE_NOTHROW(owner->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(owner->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  // A TSO payload at the save time is flushed before the first actual grant.
+  // That actual grant is equal to the scheduled save time, so FQR's strict
+  // timestamped-save condition must leave the request pending.
+  auto const message = owner->sendInteraction(
+      interactionClass,
+      parameters,
+      tag,
+      rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(message.isValid());
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(receiverReports.timestampedInteractionReports.back().timeValue == L"5");
+  REQUIRE(receiverReports.initiateFederateSaveReports.empty());
+  REQUIRE(receiverReports.flushQueueGrantReports.size() == 1);
+  REQUIRE(receiverReports.flushQueueGrantReports.back().value == L"5");
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction", "flush-grant"});
+
+  // The owner first finishes its advance to establish a later GALT, then its
+  // next request permits an actual FQR grant of 6. That strictly-later grant
+  // must instruct the constrained recipient before state changes to 6.
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(ownerReports.timeAdvanceGrantReports.back().value == L"4");
+  std::size_t flushQueueGrantsAtSaveInitiate = 0;
+  receiverReports.onInitiateFederateSave =
+      [&receiverReports, &flushQueueGrantsAtSaveInitiate] {
+        flushQueueGrantsAtSaveInitiate = receiverReports.flushQueueGrantReports.size();
+      };
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(flushQueueGrantsAtSaveInitiate == 1);
+  REQUIRE(receiverReports.flushQueueGrantReports.size() == 2);
+  REQUIRE(receiverReports.flushQueueGrantReports.back().value == L"6");
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "flush-grant", "save-initiate", "flush-grant"});
+
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(receiverReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.flush-queue-request][rti.service.enable-time-constrained]"
+    "[rti.service.enable-time-regulation][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][federate.callback.initiate-federate-save]"
+    "[federate.callback.time-advance-grant][federate.callback.flush-queue-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador firstReports;
+  ReportingFederateAmbassador secondReports;
+  ReportingFederateAmbassador thirdReports;
+  auto owner = makeRti();
+  auto first = makeRti();
+  auto second = makeRti();
+  auto third = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"mixed-flush-queue-save"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(first->connect(firstReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(second->connect(secondReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(third->connect(thirdReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"mixed-flush-queue-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(first->joinFederationExecution(
+      L"mixed-flush-queue-first", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(second->joinFederationExecution(
+      L"mixed-flush-queue-second", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(third->joinFederationExecution(
+      L"mixed-flush-queue-third", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(first->enableTimeConstrained());
+  REQUIRE_FALSE(first->evokeCallback(0.0));
+  REQUIRE_NOTHROW(second->enableTimeConstrained());
+  REQUIRE_FALSE(second->evokeCallback(0.0));
+  REQUIRE_NOTHROW(third->enableTimeConstrained());
+  REQUIRE_FALSE(third->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+  // The regulator's pending request produces GALT 6. Both FQRs therefore
+  // have actual grants strictly beyond the save time, while TAR reaches the
+  // inclusive boundary at 5. All three requests must be known before the
+  // first direct admission starts the save operation.
+  REQUIRE_NOTHROW(first->flushQueueRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(second->flushQueueRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_NOTHROW(third->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+
+  REQUIRE_FALSE(first->evokeCallback(0.0));
+  REQUIRE(firstReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(firstReports.flushQueueGrantReports.size() == 1);
+  REQUIRE(firstReports.flushQueueGrantReports.back().value == L"6");
+  REQUIRE(firstReports.callbackOrder == std::vector<std::string>{"save-initiate", "flush-grant"});
+  REQUIRE(secondReports.initiateFederateSaveReports.empty());
+  REQUIRE(thirdReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(second->evokeCallback(0.0));
+  REQUIRE(secondReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(secondReports.flushQueueGrantReports.size() == 1);
+  REQUIRE(secondReports.flushQueueGrantReports.back().value == L"6");
+  REQUIRE(secondReports.callbackOrder == std::vector<std::string>{"save-initiate", "flush-grant"});
+  REQUIRE(thirdReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(third->evokeCallback(0.0));
+  REQUIRE(thirdReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(thirdReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(thirdReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(thirdReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(first->federateSaveBegun());
+  REQUIRE_NOTHROW(second->federateSaveBegun());
+  REQUIRE_NOTHROW(third->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(first->federateSaveComplete());
+  REQUIRE_NOTHROW(second->federateSaveComplete());
+  REQUIRE_NOTHROW(third->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (first->evokeCallback(0.0)) {
+  }
+  while (second->evokeCallback(0.0)) {
+  }
+  while (third->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(firstReports.federationSavedReportCount == 1);
+  REQUIRE(secondReports.federationSavedReportCount == 1);
+  REQUIRE(thirdReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(third->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(second->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(first->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(third->disconnect());
+  REQUIRE_NOTHROW(second->disconnect());
+  REQUIRE_NOTHROW(first->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+    "[integration][development-profile][federation-management][save-restore][time-management]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.flush-queue-request][rti.service.enable-time-constrained]"
+    "[rti.service.enable-time-regulation][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][federate.callback.initiate-federate-save]"
+    "[federate.callback.time-advance-grant][federate.callback.flush-queue-grant]"
+    "[federate.callback.federation-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador ordinaryReports;
+  ReportingFederateAmbassador flushQueueReports;
+  auto owner = makeRti();
+  auto ordinary = makeRti();
+  auto flushQueue = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  auto const saveLabel = std::wstring{L"ordinary-before-flush-queue-save"};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(ordinary->connect(ordinaryReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(flushQueue->connect(flushQueueReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"ordinary-before-flush-queue-owner", L"regulator", federationName));
+  REQUIRE_NOTHROW(ordinary->joinFederationExecution(
+      L"ordinary-before-flush-queue-tar", L"time-constrained", federationName));
+  REQUIRE_NOTHROW(flushQueue->joinFederationExecution(
+      L"ordinary-before-flush-queue-fqr", L"time-constrained", federationName));
+
+  REQUIRE_NOTHROW(ordinary->enableTimeConstrained());
+  REQUIRE_FALSE(ordinary->evokeCallback(0.0));
+  REQUIRE_NOTHROW(flushQueue->enableTimeConstrained());
+  REQUIRE_FALSE(flushQueue->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(
+      saveLabel,
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(flushQueue->flushQueueRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(ordinary->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+
+  // The TAR callback starts the operation only because the registry has
+  // precomputed that the pending FQR will also have actual grant 6 > 5.
+  REQUIRE_FALSE(ordinary->evokeCallback(0.0));
+  REQUIRE(ordinaryReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(ordinaryReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(ordinaryReports.timeAdvanceGrantReports.back().value == L"5");
+  REQUIRE(ordinaryReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(flushQueueReports.initiateFederateSaveReports.empty());
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  REQUIRE_FALSE(flushQueue->evokeCallback(0.0));
+  REQUIRE(flushQueueReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+  REQUIRE(flushQueueReports.flushQueueGrantReports.size() == 1);
+  REQUIRE(flushQueueReports.flushQueueGrantReports.back().value == L"6");
+  REQUIRE(flushQueueReports.callbackOrder == std::vector<std::string>{"save-initiate", "flush-grant"});
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(ordinary->federateSaveBegun());
+  REQUIRE_NOTHROW(flushQueue->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(ordinary->federateSaveComplete());
+  REQUIRE_NOTHROW(flushQueue->federateSaveComplete());
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (ordinary->evokeCallback(0.0)) {
+  }
+  while (flushQueue->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(ordinaryReports.federationSavedReportCount == 1);
+  REQUIRE(flushQueueReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(flushQueue->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(ordinary->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(flushQueue->disconnect());
+  REQUIRE_NOTHROW(ordinary->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation save and restore interlock representative services",
+    "[integration][development-profile][federation-management][save-restore][interlocks]"
+    "[rti.service.publish-object-class-attributes][rti.service.register-object-instance]"
+    "[rti.service.create-region][rti.service.update-attribute-values]"
+    "[rti.service.send-interaction][rti.service.attribute-ownership-acquisition]"
+    "[rti.service.time-advance-request]"
+    "[rti.service.object-class-declaration-interlocks]"
+    "[rti.service.interaction-declaration-interlocks]"
+    "[rti.service.directed-declaration-interlocks]"
+    "[rti.service.order-type-interlocks]"
+    "[rti.service.transportation-type-interlocks]"
+    "[rti.service.ownership-disposition-interlocks]"
+    "[rti.service.time-role-query-interlocks]"
+    "[rti.service.scope-advisory-interlocks]"
+    "[rti.service.regional-service-interlocks]"
+    "[rti.service.synchronization-interlocks]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  VariableLengthData tag;
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(peer->connect(peerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(L"interlock-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(L"interlock-peer", L"peer", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  auto const takeOrder = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.ServerAction.TakeOrder");
+  auto const sodaFlavor = owner->getDimensionHandle(L"SodaFlavor");
+  auto const reliable = owner->getTransportationTypeHandle(L"HLAreliable");
+  auto const ownerHandle = owner->getFederateHandle(L"interlock-owner");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  InteractionClassHandleSet const takeOrderOnly{takeOrder};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(owner->publishInteractionClass(takeOrder));
+  REQUIRE_NOTHROW(peer->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(peer->subscribeInteractionClass(takeOrder));
+  REQUIRE_NOTHROW(owner->publishObjectClassDirectedInteractions(server, takeOrderOnly));
+  REQUIRE_NOTHROW(peer->subscribeObjectClassDirectedInteractions(server, takeOrderOnly));
+  auto objectInstance = owner->registerObjectInstance(server);
+  AttributeHandleSet divestedAttributes;
+  rti1516_2025::HLAinteger64Time interlockTime;
+  rti1516_2025::HLAinteger64Interval interlockLookahead(1);
+  auto const interlockRegion = owner->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(owner->setRangeBounds(
+      interlockRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(owner->commitRegionModifications(RegionHandleSet{interlockRegion}));
+  AttributeHandleSetRegionHandleSetPairVector const interlockAttributeRegions{{
+      efficiencyOnly,
+      RegionHandleSet{interlockRegion},
+  }};
+  RegionHandleSet const interlockRegions{interlockRegion};
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"interlock-save"));
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(peer->federateSaveBegun());
+
+  REQUIRE_THROWS_AS(
+      owner->publishObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClass(server),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->subscribeObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClass(server),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->publishInteractionClass(takeOrder),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishInteractionClass(takeOrder),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->subscribeInteractionClass(takeOrder),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeInteractionClass(takeOrder),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->publishObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClassDirectedInteractions(server),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->subscribeObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClassDirectedInteractions(server),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeAttributeOrderType(objectInstance, efficiencyOnly, RECEIVE),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeDefaultAttributeOrderType(server, efficiencyOnly, RECEIVE),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeInteractionOrderType(takeOrder, RECEIVE),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->requestAttributeTransportationTypeChange(objectInstance, efficiencyOnly, reliable),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeDefaultAttributeTransportationType(server, efficiencyOnly, reliable),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->queryAttributeTransportationType(objectInstance, efficiency),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->requestInteractionTransportationTypeChange(takeOrder, reliable),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->queryInteractionTransportationType(ownerHandle, takeOrder),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->queryAttributeOwnership(objectInstance, efficiencyOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->isAttributeOwnedByFederate(objectInstance, efficiency),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->negotiatedAttributeOwnershipDivestiture(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->confirmDivestiture(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->cancelNegotiatedAttributeOwnershipDivestiture(objectInstance, efficiencyOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unconditionalAttributeOwnershipDivestiture(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->attributeOwnershipReleaseDenied(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->attributeOwnershipDivestitureIfWanted(
+          objectInstance, efficiencyOnly, tag, divestedAttributes),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->cancelAttributeOwnershipAcquisition(objectInstance, efficiencyOnly),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerObjectInstance(server),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->createRegion(DimensionHandleSet{sodaFlavor}),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->updateAttributeValues(objectInstance, AttributeHandleValueMap{}, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->sendInteraction(takeOrder, ParameterHandleValueMap{}, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->attributeOwnershipAcquisition(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->enableTimeRegulation(interlockLookahead),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->disableTimeRegulation(), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->enableTimeConstrained(), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->disableTimeConstrained(), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->queryLogicalTime(interlockTime), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->queryGALT(interlockTime), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->queryLITS(interlockTime), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->queryLookahead(interlockLookahead), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(owner->modifyLookahead(interlockLookahead), rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->getAttributeScopeAdvisorySwitch(),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->setAttributeScopeAdvisorySwitch(false),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerObjectInstanceWithRegions(server, interlockAttributeRegions),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->associateRegionsForUpdates(objectInstance, interlockAttributeRegions),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unassociateRegionsForUpdates(objectInstance, interlockAttributeRegions),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->subscribeObjectClassAttributesWithRegions(server, interlockAttributeRegions),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unsubscribeObjectClassAttributesWithRegions(server, interlockAttributeRegions),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->requestAttributeValueUpdateWithRegions(server, interlockAttributeRegions, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->subscribeInteractionClassWithRegions(takeOrder, interlockRegions),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unsubscribeInteractionClassWithRegions(takeOrder, interlockRegions),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->sendInteractionWithRegions(
+          takeOrder, ParameterHandleValueMap{}, interlockRegions, tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerFederationSynchronizationPoint(L"interlock-sync", tag),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerFederationSynchronizationPoint(
+          L"interlock-sync-set", tag, FederateHandleSet{ownerHandle}),
+      rti1516_2025::SaveInProgress);
+  REQUIRE_THROWS_AS(
+      owner->synchronizationPointAchieved(L"interlock-sync"),
+      rti1516_2025::SaveInProgress);
+
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(peer->federateSaveComplete());
+  REQUIRE_NOTHROW(owner->requestFederationRestore(L"interlock-save"));
+
+  REQUIRE_THROWS_AS(
+      owner->publishObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClass(server),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->subscribeObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClass(server),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClassAttributes(server, efficiencyOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->publishInteractionClass(takeOrder),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishInteractionClass(takeOrder),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->subscribeInteractionClass(takeOrder),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeInteractionClass(takeOrder),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->publishObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClassDirectedInteractions(server),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unpublishObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->subscribeObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClassDirectedInteractions(server),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      peer->unsubscribeObjectClassDirectedInteractions(server, takeOrderOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeAttributeOrderType(objectInstance, efficiencyOnly, RECEIVE),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeDefaultAttributeOrderType(server, efficiencyOnly, RECEIVE),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeInteractionOrderType(takeOrder, RECEIVE),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->requestAttributeTransportationTypeChange(objectInstance, efficiencyOnly, reliable),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->changeDefaultAttributeTransportationType(server, efficiencyOnly, reliable),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->queryAttributeTransportationType(objectInstance, efficiency),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->requestInteractionTransportationTypeChange(takeOrder, reliable),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->queryInteractionTransportationType(ownerHandle, takeOrder),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->queryAttributeOwnership(objectInstance, efficiencyOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->isAttributeOwnedByFederate(objectInstance, efficiency),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->negotiatedAttributeOwnershipDivestiture(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->confirmDivestiture(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->cancelNegotiatedAttributeOwnershipDivestiture(objectInstance, efficiencyOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unconditionalAttributeOwnershipDivestiture(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->attributeOwnershipReleaseDenied(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->attributeOwnershipDivestitureIfWanted(
+          objectInstance, efficiencyOnly, tag, divestedAttributes),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->cancelAttributeOwnershipAcquisition(objectInstance, efficiencyOnly),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerObjectInstance(server),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->createRegion(DimensionHandleSet{sodaFlavor}),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->updateAttributeValues(objectInstance, AttributeHandleValueMap{}, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->sendInteraction(takeOrder, ParameterHandleValueMap{}, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->attributeOwnershipAcquisition(objectInstance, efficiencyOnly, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->enableTimeRegulation(interlockLookahead),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->disableTimeRegulation(), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->enableTimeConstrained(), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->disableTimeConstrained(), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->queryLogicalTime(interlockTime), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->queryGALT(interlockTime), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->queryLITS(interlockTime), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->queryLookahead(interlockLookahead), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(owner->modifyLookahead(interlockLookahead), rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->getAttributeScopeAdvisorySwitch(),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->setAttributeScopeAdvisorySwitch(false),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerObjectInstanceWithRegions(server, interlockAttributeRegions),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->associateRegionsForUpdates(objectInstance, interlockAttributeRegions),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unassociateRegionsForUpdates(objectInstance, interlockAttributeRegions),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->subscribeObjectClassAttributesWithRegions(server, interlockAttributeRegions),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unsubscribeObjectClassAttributesWithRegions(server, interlockAttributeRegions),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->requestAttributeValueUpdateWithRegions(server, interlockAttributeRegions, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->subscribeInteractionClassWithRegions(takeOrder, interlockRegions),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->unsubscribeInteractionClassWithRegions(takeOrder, interlockRegions),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->sendInteractionWithRegions(
+          takeOrder, ParameterHandleValueMap{}, interlockRegions, tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerFederationSynchronizationPoint(L"interlock-sync", tag),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->registerFederationSynchronizationPoint(
+          L"interlock-sync-set", tag, FederateHandleSet{ownerHandle}),
+      rti1516_2025::RestoreInProgress);
+  REQUIRE_THROWS_AS(
+      owner->synchronizationPointAchieved(L"interlock-sync"),
+      rti1516_2025::RestoreInProgress);
+
+  REQUIRE_NOTHROW(owner->federateRestoreComplete());
+  REQUIRE_NOTHROW(peer->federateRestoreComplete());
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation resignation fails an outstanding save for remaining participants",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[rti.service.resign-federation-execution][federate.callback.federation-not-saved]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador resigningReports;
+  auto owner = makeRti();
+  auto resigning = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(resigning->connect(resigningReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(L"save-owner-resign", L"owner", federationName));
+  REQUIRE_NOTHROW(
+      resigning->joinFederationExecution(L"save-resigning", L"observer", federationName));
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"resignation-save"));
+  REQUIRE_NOTHROW(resigning->resignFederationExecution(NO_ACTION));
+  REQUIRE(ownerReports.federationNotSavedReasons.size() == 1);
+  REQUIRE(ownerReports.federationNotSavedReasons.back() ==
+          rti1516_2025::FEDERATE_RESIGNED_DURING_SAVE);
+  REQUIRE_THROWS_AS(owner->federateSaveBegun(), rti1516_2025::SaveNotInitiated);
+
+  // The failed operation is cleared, so the remaining member can start a
+  // subsequent control-plane save rather than being left permanently stuck.
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"post-resignation-save"));
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(resigning->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation restore rolls back a saved object-management snapshot",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[rti.service.request-federation-restore][rti.service.federate-restore-complete]"
+    "[rti.service.federate-restore-not-complete][rti.service.abort-federation-restore]"
+    "[rti.service.query-federation-restore-status]"
+    "[federate.callback.request-federation-restore-succeeded]"
+    "[federate.callback.federation-restore-begun]"
+    "[federate.callback.initiate-federate-restore]"
+    "[federate.callback.federation-restored]"
+    "[federate.callback.federation-restore-status-response]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(peer->connect(peerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle ownerHandle;
+  FederateHandle peerHandle;
+  REQUIRE_NOTHROW(
+      ownerHandle = owner->joinFederationExecution(L"restore-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(
+      peerHandle = peer->joinFederationExecution(L"restore-peer", L"peer", federationName));
+
+  // Establish a completed, restorable image before adding any object state.
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"object-baseline"));
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(peer->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(peer->federateSaveComplete());
+  REQUIRE(ownerReports.federationSavedReportCount == 1);
+  REQUIRE(peerReports.federationSavedReportCount == 1);
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(peer->subscribeObjectClassAttributes(server, efficiencyOnly));
+  ObjectInstanceHandle mutatedObject;
+  REQUIRE_NOTHROW(mutatedObject = owner->registerObjectInstance(server));
+  REQUIRE(mutatedObject.isValid());
+
+  REQUIRE_NOTHROW(owner->requestFederationRestore(L"object-baseline"));
+  REQUIRE(ownerReports.requestFederationRestoreSucceededReports ==
+          std::vector<std::wstring>{L"object-baseline"});
+  REQUIRE(ownerReports.federationRestoreBegunReportCount == 1);
+  REQUIRE(peerReports.federationRestoreBegunReportCount == 1);
+  REQUIRE(ownerReports.initiateFederateRestoreReports.size() == 1);
+  REQUIRE(peerReports.initiateFederateRestoreReports.size() == 1);
+  REQUIRE(ownerReports.initiateFederateRestoreReports.front().federateName == L"restore-owner");
+  REQUIRE(peerReports.initiateFederateRestoreReports.front().federateName == L"restore-peer");
+  REQUIRE(ownerReports.initiateFederateRestoreReports.front().postRestoreFederateHandle ==
+          ownerHandle);
+  REQUIRE(peerReports.initiateFederateRestoreReports.front().postRestoreFederateHandle ==
+          peerHandle);
+
+  REQUIRE_NOTHROW(owner->queryFederationRestoreStatus());
+  REQUIRE(ownerReports.federationRestoreStatusReports.size() == 1);
+  REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses.size() == 2);
+  REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses[0].status ==
+          rti1516_2025::FEDERATE_RESTORING);
+
+  REQUIRE_NOTHROW(owner->federateRestoreComplete());
+  REQUIRE(ownerReports.federationRestoredReportCount == 0);
+  REQUIRE(peerReports.federationRestoredReportCount == 0);
+  REQUIRE_NOTHROW(peer->federateRestoreComplete());
+  REQUIRE(ownerReports.federationRestoredReportCount == 1);
+  REQUIRE(peerReports.federationRestoredReportCount == 1);
+  REQUIRE(ownerReports.federationNotRestoredReasons.empty());
+  REQUIRE(peerReports.federationNotRestoredReasons.empty());
+
+  // The public ambassador still owns the same joined time state and callback
+  // route, but the saved federation image no longer contains the post-save
+  // object or its declarations.
+  REQUIRE_THROWS_AS(
+      owner->getKnownObjectClassHandle(mutatedObject),
+      rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE_NOTHROW(owner->queryFederationRestoreStatus());
+  REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses.size() == 2);
+  REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses[0].status ==
+          rti1516_2025::NO_RESTORE_IN_PROGRESS);
+  REQUIRE_FALSE(ownerReports.federationRestoreStatusReports.back().statuses[0]
+                   .postRestoreHandle
+                   .isValid());
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation restore reports missing labels and participant failures",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[federate.callback.request-federation-restore-failed]"
+    "[federate.callback.federation-not-restored]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(peer->connect(peerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(L"restore-failure-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(L"restore-failure-peer", L"peer", federationName));
+
+  REQUIRE_NOTHROW(owner->requestFederationRestore(L"missing-label"));
+  REQUIRE(ownerReports.requestFederationRestoreFailedReports ==
+          std::vector<std::wstring>{L"missing-label"});
+
+  REQUIRE_NOTHROW(owner->requestFederationSave(L"failure-baseline"));
+  REQUIRE_NOTHROW(owner->federateSaveBegun());
+  REQUIRE_NOTHROW(peer->federateSaveBegun());
+  REQUIRE_NOTHROW(owner->federateSaveComplete());
+  REQUIRE_NOTHROW(peer->federateSaveComplete());
+
+  REQUIRE_NOTHROW(owner->requestFederationRestore(L"failure-baseline"));
+  REQUIRE_NOTHROW(owner->federateRestoreNotComplete());
+  REQUIRE(ownerReports.federationNotRestoredReasons.size() == 1);
+  REQUIRE(ownerReports.federationNotRestoredReasons.back() ==
+          rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_RESTORE);
+  REQUIRE(peerReports.federationNotRestoredReasons.size() == 1);
+  REQUIRE(peerReports.federationNotRestoredReasons.back() ==
+          rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_RESTORE);
+
+  REQUIRE_NOTHROW(owner->requestFederationRestore(L"failure-baseline"));
+  REQUIRE_NOTHROW(owner->abortFederationRestore());
+  REQUIRE(ownerReports.federationNotRestoredReasons.back() ==
+          rti1516_2025::RESTORE_ABORTED);
+  REQUIRE(peerReports.federationNotRestoredReasons.back() ==
+          rti1516_2025::RESTORE_ABORTED);
+
+  REQUIRE_NOTHROW(owner->requestFederationRestore(L"failure-baseline"));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE(ownerReports.federationNotRestoredReasons.back() ==
+          rti1516_2025::FEDERATE_RESIGNED_DURING_RESTORE);
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
     "Embedded getTimeFactory returns the joined federation's selected time factory",
     "[integration][development-profile][federation-management][rti.service.get-time-factory]") {
   TestFederateAmbassador federate;
@@ -811,7 +4502,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded federate lookup services resolve active identities within the joined federation",
+    "Embedded federate lookup services preserve departed designator identities within the joined federation",
     "[integration][development-profile][federation-management][rti.service.get-federate-handle]"
     "[rti.service.get-federate-name]") {
   TestFederateAmbassador unjoinedFederate;
@@ -876,9 +4567,10 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
   REQUIRE_THROWS_AS(owner->getFederateHandle(L"lookup-peer"), rti1516_2025::NameNotFound);
-  REQUIRE_THROWS_AS(
-      owner->getFederateName(peerHandle),
-      rti1516_2025::FederateHandleNotKnown);
+  // Get Federate Handle applies only to joined names.  The handle returned by
+  // Join remains a valid federate designator after resignation, however, so
+  // Get Federate Name must retain its immutable identity for the execution.
+  REQUIRE(owner->getFederateName(peerHandle) == L"lookup-peer");
 
   REQUIRE_NOTHROW(foreignMember->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
@@ -1533,11 +5225,1081 @@ TEST_CASE(
   REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClass(takeOrder));
 
   REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
   REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+    "[integration][development-profile][federation-management]"
+    "[rti.service.start-registration-for-object-class][rti.service.stop-registration-for-object-class]"
+    "[rti.service.turn-interactions-on][rti.service.turn-interactions-off]"
+    "[rti.service.get-object-class-relevance-advisory-switch]"
+    "[rti.service.set-object-class-relevance-advisory-switch]"
+    "[rti.service.get-interaction-relevance-advisory-switch]"
+    "[rti.service.set-interaction-relevance-advisory-switch]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      publisher->joinFederationExecution(L"relevance-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(
+      subscriber->joinFederationExecution(L"relevance-subscriber", L"subscriber", federationName));
+
+  auto const employee = publisher->getObjectClassHandle(L"HLAobjectRoot.Employee");
+  auto const name = publisher->getAttributeHandle(employee, L"Name");
+  auto const takeOrder = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.ServerAction.TakeOrder");
+  REQUIRE(employee.isValid());
+  REQUIRE(name.isValid());
+  REQUIRE(takeOrder.isValid());
+
+  // The Restaurant FOM explicitly enables these switches.  Their values are
+  // seeded independently for each joining federate, then remain mutable via
+  // the official per-federate accessors.
+  REQUIRE(publisher->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE(subscriber->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE(publisher->getInteractionRelevanceAdvisorySwitch());
+  REQUIRE(subscriber->getInteractionRelevanceAdvisorySwitch());
+  REQUIRE_NOTHROW(publisher->setObjectClassRelevanceAdvisorySwitch(false));
+  REQUIRE_NOTHROW(publisher->setInteractionRelevanceAdvisorySwitch(false));
+  REQUIRE_FALSE(publisher->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(publisher->getInteractionRelevanceAdvisorySwitch());
+  REQUIRE_NOTHROW(publisher->setObjectClassRelevanceAdvisorySwitch(true));
+  REQUIRE_NOTHROW(publisher->setInteractionRelevanceAdvisorySwitch(true));
+  REQUIRE(publisher->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE(publisher->getInteractionRelevanceAdvisorySwitch());
+
+  // Active object subscription followed by publication establishes one Start
+  // advisory at the publisher. Repeating the declaration is idempotent.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}, true));
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.empty());
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.size() == 1);
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.front().objectClass == employee);
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.size() == 1);
+
+  // Removing the only active subscription establishes one Stop advisory.
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE(publisherReports.stopRegistrationForObjectClassReports.empty());
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.stopRegistrationForObjectClassReports.size() == 1);
+  REQUIRE(publisherReports.stopRegistrationForObjectClassReports.front().objectClass == employee);
+
+  // Passive ordinary subscriptions do not establish relevance. Switching to
+  // active and back to passive creates exactly one Start/Stop pair.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}, false));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.size() == 1);
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}, true));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.size() == 2);
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}, false));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.stopRegistrationForObjectClassReports.size() == 2);
+
+  // Interaction relevance follows the same active/passive boundary and is
+  // independent of object-class relevance.
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(takeOrder, true));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(takeOrder));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.turnInteractionsOnReports.size() == 1);
+  REQUIRE(publisherReports.turnInteractionsOnReports.front().interactionClass == takeOrder);
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(takeOrder));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.turnInteractionsOnReports.size() == 1);
+  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClass(takeOrder));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.turnInteractionsOffReports.size() == 1);
+
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(takeOrder, false));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(takeOrder, true));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.turnInteractionsOnReports.size() == 2);
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(takeOrder, false));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.turnInteractionsOffReports.size() == 2);
+
+  REQUIRE_NOTHROW(publisher->unpublishInteractionClass(takeOrder));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(publisher->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded joins seed advisory switches from the current composed FDD",
+    "[integration][development-profile][federation-management][fom][switches]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.get-object-class-relevance-advisory-switch]"
+    "[rti.service.get-interaction-relevance-advisory-switch]") {
+  TestFederateAmbassador baseReports;
+  TestFederateAmbassador extensionReports;
+  auto base = makeRti();
+  auto extension = makeRti();
+  auto const federationName = nextFederationName();
+  auto const baseFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml").wstring();
+  auto const advisoryFom = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(base->connect(baseReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(extension->connect(extensionReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      base->createFederationExecution(federationName, baseFom, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      base->joinFederationExecution(L"switch-base", L"base", federationName));
+
+  // The base FOM omits both advisory entries, so the standard Disabled
+  // default is applied to the first member.
+  REQUIRE_FALSE(base->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(base->getInteractionRelevanceAdvisorySwitch());
+
+  // The additional module contributes explicit Enabled settings.  It seeds
+  // only the new member; the existing member's independently owned values are
+  // not reset by the composed-definition replacement.
+  REQUIRE_NOTHROW(extension->joinFederationExecution(
+      L"switch-extension",
+      L"extension",
+      federationName,
+      std::vector<std::wstring>{advisoryFom}));
+  REQUIRE(extension->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE(extension->getInteractionRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(base->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(base->getInteractionRelevanceAdvisorySwitch());
+
+  REQUIRE_NOTHROW(extension->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(base->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(base->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(base->disconnect());
+  REQUIRE_NOTHROW(extension->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation shares the static Advisories Use Known Class switch",
+    "[integration][development-profile][federation-management][fom][switches]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.get-advisories-use-known-class-switch]") {
+  TestFederateAmbassador baseReports;
+  TestFederateAmbassador knownClassReports;
+  auto base = makeRti();
+  auto knownClass = makeRti();
+  auto const federationName = nextFederationName();
+  auto const knownClassFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-known-class-enabled-fom.xml").wstring();
+  auto const disabledFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(base->connect(baseReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(knownClass->connect(knownClassReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      base->createFederationExecution(federationName, knownClassFom, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      base->joinFederationExecution(L"known-class-base", L"base", federationName));
+  REQUIRE(base->getAdvisoriesUseKnownClassSwitch());
+
+  // The additional FOM contributes an explicit Disabled value, but the
+  // creation-time static switch remains shared by both federates.
+  REQUIRE_NOTHROW(knownClass->joinFederationExecution(
+      L"known-class-enabled",
+      L"known-class",
+      federationName,
+      std::vector<std::wstring>{disabledFom}));
+  REQUIRE(knownClass->getAdvisoriesUseKnownClassSwitch());
+  REQUIRE(base->getAdvisoriesUseKnownClassSwitch());
+
+  REQUIRE_NOTHROW(knownClass->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(base->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(base->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(base->disconnect());
+  REQUIRE_NOTHROW(knownClass->disconnect());
+}
+
+TEST_CASE(
+    "Embedded support switches are seeded per federate and retain static FDD policy",
+    "[integration][development-profile][federation-management][fom][switches]"
+    "[rti.service.get-convey-region-designator-sets-switch]"
+    "[rti.service.set-convey-region-designator-sets-switch]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-exception-reporting-switch]"
+    "[rti.service.set-exception-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-delay-subscription-evaluation-switch]"
+    "[rti.service.get-allow-relaxed-ddm-switch]") {
+  TestFederateAmbassador ownerReports;
+  TestFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const supportFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-support-enabled-fom.xml")
+          .wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, supportFom, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"support-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"support-peer", L"peer", federationName));
+
+  // The explicit FDD settings seed each new member independently.
+  REQUIRE(owner->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE(peer->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE(owner->getAutomaticResignDirective() == rti1516_2025::DELETE_OBJECTS_THEN_DIVEST);
+  REQUIRE(peer->getAutomaticResignDirective() == rti1516_2025::DELETE_OBJECTS_THEN_DIVEST);
+  REQUIRE(owner->getServiceReportingSwitch());
+  REQUIRE(owner->getExceptionReportingSwitch());
+  REQUIRE(owner->getSendServiceReportsToFileSwitch());
+  REQUIRE(peer->getServiceReportingSwitch());
+  REQUIRE(peer->getExceptionReportingSwitch());
+  REQUIRE(peer->getSendServiceReportsToFileSwitch());
+
+  // Static switches are seeded at federation creation and are visible to all
+  // members; this profile exposes no setter for either official API.
+  REQUIRE(owner->getDelaySubscriptionEvaluationSwitch());
+  REQUIRE(peer->getDelaySubscriptionEvaluationSwitch());
+  REQUIRE(owner->getAllowRelaxedDDMSwitch());
+  REQUIRE(peer->getAllowRelaxedDDMSwitch());
+
+  // Per-federate setters do not leak into the peer's membership state.
+  REQUIRE_NOTHROW(owner->setConveyRegionDesignatorSetsSwitch(false));
+  REQUIRE_NOTHROW(owner->setAutomaticResignDirective(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(owner->setExceptionReportingSwitch(false));
+  REQUIRE_NOTHROW(owner->setSendServiceReportsToFileSwitch(false));
+  REQUIRE_FALSE(owner->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE(owner->getAutomaticResignDirective() ==
+          rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST);
+  REQUIRE_FALSE(owner->getServiceReportingSwitch());
+  REQUIRE_FALSE(owner->getExceptionReportingSwitch());
+  REQUIRE_FALSE(owner->getSendServiceReportsToFileSwitch());
+  REQUIRE(peer->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE(peer->getAutomaticResignDirective() == rti1516_2025::DELETE_OBJECTS_THEN_DIVEST);
+  REQUIRE(peer->getServiceReportingSwitch());
+  REQUIRE(peer->getExceptionReportingSwitch());
+  REQUIRE(peer->getSendServiceReportsToFileSwitch());
+
+  REQUIRE_THROWS_AS(
+      owner->setAutomaticResignDirective(static_cast<rti1516_2025::ResignAction>(99)),
+      rti1516_2025::InvalidResignAction);
+
+  REQUIRE_NOTHROW(peer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded MOM service-reporting state excludes report-service subscriptions",
+    "[integration][development-profile][federation-management][mom][switches]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.subscribe-interaction-class]"
+    "[rti.service.subscribe-interaction-class-with-regions]") {
+  TestFederateAmbassador ownerReports;
+  auto owner = makeRti();
+  auto const federationName = nextFederationName();
+  auto const supportFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-support-enabled-fom.xml")
+          .wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, supportFom, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"mom-report-owner", L"owner", federationName));
+
+  auto const reportServiceInvocation = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  auto const serviceGroup = owner->getDimensionHandle(L"HLAserviceGroup");
+  REQUIRE(reportServiceInvocation.isValid());
+  REQUIRE(serviceGroup.isValid());
+  REQUIRE(owner->getServiceReportingSwitch());
+
+  // The FDD-seeded enabled switch rejects both ordinary and regional attempts
+  // to create the exact MOM report-service subscription. This does not widen
+  // the rule to the report interaction's ancestor classes.
+  REQUIRE_THROWS_AS(
+      owner->subscribeInteractionClass(reportServiceInvocation, false),
+      rti1516_2025::FederateServiceInvocationsAreBeingReportedViaMOM);
+  auto const reportRegion = owner->createRegion(DimensionHandleSet{serviceGroup});
+  REQUIRE_NOTHROW(owner->setRangeBounds(reportRegion, serviceGroup, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(owner->commitRegionModifications(RegionHandleSet{reportRegion}));
+  REQUIRE_THROWS_AS(
+      owner->subscribeInteractionClassWithRegions(
+          reportServiceInvocation,
+          RegionHandleSet{reportRegion},
+          false),
+      rti1516_2025::FederateServiceInvocationsAreBeingReportedViaMOM);
+
+  // Disabling reporting permits either subscription representation. Re-enabling
+  // then fails until the exact ordinary/regional declaration has been removed.
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(false));
+  REQUIRE_FALSE(owner->getServiceReportingSwitch());
+  REQUIRE_NOTHROW(owner->subscribeInteractionClass(reportServiceInvocation, false));
+  REQUIRE_THROWS_AS(
+      owner->setServiceReportingSwitch(true),
+      rti1516_2025::ReportServiceInvocationsAreSubscribed);
+  REQUIRE_FALSE(owner->getServiceReportingSwitch());
+  REQUIRE_NOTHROW(owner->unsubscribeInteractionClass(reportServiceInvocation));
+
+  REQUIRE_NOTHROW(owner->subscribeInteractionClassWithRegions(
+      reportServiceInvocation,
+      RegionHandleSet{reportRegion},
+      false));
+  REQUIRE_THROWS_AS(
+      owner->setServiceReportingSwitch(true),
+      rti1516_2025::ReportServiceInvocationsAreSubscribed);
+  REQUIRE_NOTHROW(owner->unsubscribeInteractionClassWithRegions(
+      reportServiceInvocation,
+      RegionHandleSet{reportRegion}));
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(true));
+  REQUIRE(owner->getServiceReportingSwitch());
+
+  REQUIRE_NOTHROW(owner->deleteRegion(reportRegion));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
+    "[integration][development-profile][federation-management][mom][switches]"
+    "[rti.service.send-interaction]"
+    "[rti.service.get-object-class-relevance-advisory-switch]"
+    "[rti.service.get-attribute-relevance-advisory-switch]"
+    "[rti.service.get-attribute-scope-advisory-switch]"
+    "[rti.service.get-interaction-relevance-advisory-switch]"
+    "[rti.service.get-convey-region-designator-sets-switch]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.get-exception-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]") {
+  TestFederateAmbassador ownerReports;
+  TestFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const supportFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-support-enabled-fom.xml")
+          .wstring();
+  auto const momExtensionFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "mom-set-switches-extension-fom.xml")
+          .wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{supportFom, momExtensionFom},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"mom-switch-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"mom-switch-peer", L"peer", federationName));
+
+  auto const setSwitches = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const objectClassRelevance = owner->getParameterHandle(
+      setSwitches, L"HLAobjectClassRelevanceAdvisory");
+  auto const attributeRelevance = owner->getParameterHandle(
+      setSwitches, L"HLAattributeRelevanceAdvisory");
+  auto const attributeScope = owner->getParameterHandle(
+      setSwitches, L"HLAattributeScopeAdvisory");
+  auto const interactionRelevance = owner->getParameterHandle(
+      setSwitches, L"HLAinteractionRelevanceAdvisory");
+  auto const conveyRegions = owner->getParameterHandle(
+      setSwitches, L"HLAconveyRegionDesignatorSets");
+  auto const automaticResign = owner->getParameterHandle(
+      setSwitches, L"HLAautomaticResignAction");
+  auto const serviceReporting = owner->getParameterHandle(
+      setSwitches, L"HLAserviceReporting");
+  auto const exceptionReporting = owner->getParameterHandle(
+      setSwitches, L"HLAexceptionReporting");
+  auto const sendServiceReportsToFile = owner->getParameterHandle(
+      setSwitches, L"HLAsendServiceReportsToFile");
+  auto const extensionPayload = owner->getParameterHandle(
+      setSwitches, L"UmbraExtensionSwitchPayload");
+  REQUIRE(setSwitches.isValid());
+  REQUIRE(objectClassRelevance.isValid());
+  REQUIRE(attributeRelevance.isValid());
+  REQUIRE(attributeScope.isValid());
+  REQUIRE(interactionRelevance.isValid());
+  REQUIRE(conveyRegions.isValid());
+  REQUIRE(automaticResign.isValid());
+  REQUIRE(serviceReporting.isValid());
+  REQUIRE(exceptionReporting.isValid());
+  REQUIRE(sendServiceReportsToFile.isValid());
+  REQUIRE(extensionPayload.isValid());
+
+  // The support FOM names the latter four values explicitly; the advisory
+  // switches omitted from that FOM start at the standard Disabled default.
+  REQUIRE_FALSE(owner->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(owner->getAttributeRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(owner->getAttributeScopeAdvisorySwitch());
+  REQUIRE_FALSE(owner->getInteractionRelevanceAdvisorySwitch());
+  REQUIRE(owner->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE(owner->getAutomaticResignDirective() == rti1516_2025::DELETE_OBJECTS_THEN_DIVEST);
+  REQUIRE(owner->getServiceReportingSwitch());
+  REQUIRE(owner->getExceptionReportingSwitch());
+  REQUIRE(owner->getSendServiceReportsToFileSwitch());
+
+  std::vector<unsigned char> const enabled{0, 0, 0, 1};
+  std::vector<unsigned char> const disabled{0, 0, 0, 0};
+  std::vector<unsigned char> const noAction{0, 0, 0, 5};
+  ParameterHandleValueMap allSwitchValues{
+      {objectClassRelevance, VariableLengthData(enabled.data(), enabled.size())},
+      {attributeRelevance, VariableLengthData(enabled.data(), enabled.size())},
+      {attributeScope, VariableLengthData(enabled.data(), enabled.size())},
+      {interactionRelevance, VariableLengthData(enabled.data(), enabled.size())},
+      {conveyRegions, VariableLengthData(disabled.data(), disabled.size())},
+      {automaticResign, VariableLengthData(noAction.data(), noAction.size())},
+      {serviceReporting, VariableLengthData(disabled.data(), disabled.size())},
+      {exceptionReporting, VariableLengthData(disabled.data(), disabled.size())},
+      {sendServiceReportsToFile, VariableLengthData(disabled.data(), disabled.size())},
+  };
+  REQUIRE_NOTHROW(
+      owner->sendInteraction(setSwitches, allSwitchValues, VariableLengthData()));
+
+  // The MIM target is the sending joined federate, not a federation-wide
+  // setting.  Verify both the full optional parameter subset and peer
+  // isolation rather than treating the adjustment as a regular interaction
+  // publication route.
+  REQUIRE(owner->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE(owner->getAttributeRelevanceAdvisorySwitch());
+  REQUIRE(owner->getAttributeScopeAdvisorySwitch());
+  REQUIRE(owner->getInteractionRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(owner->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE(owner->getAutomaticResignDirective() == rti1516_2025::NO_ACTION);
+  REQUIRE_FALSE(owner->getServiceReportingSwitch());
+  REQUIRE_FALSE(owner->getExceptionReportingSwitch());
+  REQUIRE_FALSE(owner->getSendServiceReportsToFileSwitch());
+  REQUIRE_FALSE(peer->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(peer->getAttributeRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(peer->getAttributeScopeAdvisorySwitch());
+  REQUIRE_FALSE(peer->getInteractionRelevanceAdvisorySwitch());
+  REQUIRE(peer->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE(peer->getAutomaticResignDirective() == rti1516_2025::DELETE_OBJECTS_THEN_DIVEST);
+  REQUIRE(peer->getServiceReportingSwitch());
+  REQUIRE(peer->getExceptionReportingSwitch());
+  REQUIRE(peer->getSendServiceReportsToFileSwitch());
+
+  // Table 20 makes HLAsetSwitches an explicit exception to the ordinary
+  // all-parameters rule, but §11.4.2 still requires at least one parameter.
+  REQUIRE_THROWS_AS(
+      owner->sendInteraction(setSwitches, ParameterHandleValueMap{}, VariableLengthData()),
+      rti1516_2025::InteractionParameterNotDefined);
+
+  std::vector<unsigned char> const invalidResignAction{0, 0, 0, 6};
+  ParameterHandleValueMap invalidResignValue{
+      {automaticResign,
+       VariableLengthData(invalidResignAction.data(), invalidResignAction.size())},
+  };
+  REQUIRE_THROWS_AS(
+      owner->sendInteraction(setSwitches, invalidResignValue, VariableLengthData()),
+      rti1516_2025::RTIinternalError);
+  REQUIRE(owner->getAutomaticResignDirective() == rti1516_2025::NO_ACTION);
+
+  // Enabling Service Reporting through the MOM interaction follows the same
+  // exact report-service-subscription interlock as the public support
+  // service.  A mixed update is rejected as a unit, preserving the unrelated
+  // Exception Reporting value as well.
+  auto const reportServiceInvocation = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  REQUIRE(reportServiceInvocation.isValid());
+  REQUIRE_NOTHROW(owner->subscribeInteractionClass(reportServiceInvocation, false));
+  ParameterHandleValueMap rejectedValues{
+      {serviceReporting, VariableLengthData(enabled.data(), enabled.size())},
+      {exceptionReporting, VariableLengthData(enabled.data(), enabled.size())},
+  };
+  REQUIRE_THROWS_AS(
+      owner->sendInteraction(setSwitches, rejectedValues, VariableLengthData()),
+      rti1516_2025::RTIinternalError);
+  REQUIRE_FALSE(owner->getServiceReportingSwitch());
+  REQUIRE_FALSE(owner->getExceptionReportingSwitch());
+  REQUIRE_NOTHROW(owner->unsubscribeInteractionClass(reportServiceInvocation));
+
+  ParameterHandleValueMap reenableValues{
+      {serviceReporting, VariableLengthData(enabled.data(), enabled.size())},
+      {exceptionReporting, VariableLengthData(enabled.data(), enabled.size())},
+  };
+  REQUIRE_NOTHROW(
+      owner->sendInteraction(setSwitches, reenableValues, VariableLengthData()));
+  REQUIRE(owner->getServiceReportingSwitch());
+  REQUIRE(owner->getExceptionReportingSwitch());
+
+  // A FOM can add a parameter to the standard MOM interaction. The RTI must
+  // receive the extension but process only the predefined subset, so its
+  // opaque, deliberately non-HLAswitch payload does not block a valid switch.
+  std::vector<unsigned char> const extensionBytes{0xA5, 0x5A, 0x01};
+  ParameterHandleValueMap extensionValues{
+      {extensionPayload, VariableLengthData(extensionBytes.data(), extensionBytes.size())},
+      {exceptionReporting, VariableLengthData(disabled.data(), disabled.size())},
+  };
+  REQUIRE_NOTHROW(
+      owner->sendInteraction(setSwitches, extensionValues, VariableLengthData()));
+  REQUIRE(owner->getServiceReportingSwitch());
+  REQUIRE_FALSE(owner->getExceptionReportingSwitch());
+
+  // An extension may alternatively subclass the predefined interaction. The
+  // RTI must process that as the promoted standard form: inherited standard
+  // parameters still apply, while the extension-specific payload remains
+  // opaque and ignored.
+  auto const extendedSetSwitches = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches."
+      L"UmbraExtendedSetSwitches");
+  auto const promotedExceptionReporting = owner->getParameterHandle(
+      extendedSetSwitches, L"HLAexceptionReporting");
+  auto const extendedPayload = owner->getParameterHandle(
+      extendedSetSwitches, L"UmbraExtendedSwitchPayload");
+  REQUIRE(extendedSetSwitches.isValid());
+  REQUIRE(promotedExceptionReporting.isValid());
+  REQUIRE(extendedPayload.isValid());
+  ParameterHandleValueMap promotedSubclassValues{
+      {extendedPayload, VariableLengthData(extensionBytes.data(), extensionBytes.size())},
+      {promotedExceptionReporting, VariableLengthData(enabled.data(), enabled.size())},
+  };
+  REQUIRE_NOTHROW(owner->sendInteraction(
+      extendedSetSwitches, promotedSubclassValues, VariableLengthData()));
+  REQUIRE(owner->getExceptionReportingSwitch());
+
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded handle normalization supplies stable DDM point-range coordinates",
+    "[integration][development-profile][support-services][ddm][mom]"
+    "[rti.service.normalize-service-group]"
+    "[rti.service.normalize-federate-handle]"
+    "[rti.service.normalize-object-class-handle]"
+    "[rti.service.normalize-interaction-class-handle]"
+    "[rti.service.normalize-object-instance-handle]") {
+  TestFederateAmbassador ownerReports;
+  TestFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  // The support services preserve the ordinary connection and joined-member
+  // preconditions; save/restore is deliberately not an extra interlock in
+  // the official 10.29--10.33 exception sets.
+  REQUIRE_THROWS_AS(
+      owner->normalizeServiceGroup(rti1516_2025::SUPPORT_SERVICES),
+      rti1516_2025::NotConnected);
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      owner->normalizeServiceGroup(rti1516_2025::SUPPORT_SERVICES),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"normalization-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"normalization-peer", L"peer", federationName));
+
+  auto const ownerHandle = owner->getFederateHandle(L"normalization-owner");
+  auto const peerHandle = owner->getFederateHandle(L"normalization-peer");
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  auto const takeOrder = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.ServerAction.TakeOrder");
+  REQUIRE(ownerHandle.isValid());
+  REQUIRE(peerHandle.isValid());
+  REQUIRE(server.isValid());
+  REQUIRE(efficiency.isValid());
+  REQUIRE(takeOrder.isValid());
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, AttributeHandleSet{efficiency}));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+  REQUIRE(objectInstance.isValid());
+
+  FederateHandle const peerHandleCopy(peerHandle);
+  ObjectClassHandle const serverCopy(server);
+  InteractionClassHandle const takeOrderCopy(takeOrder);
+  ObjectInstanceHandle const objectInstanceCopy(objectInstance);
+
+  // The standard promises equality preservation, not a sequential, unique,
+  // or cross-execution-stable value. Verify the useful contract from both
+  // joined ambassadors without asserting a homegrown coordinate scheme.
+  auto const normalizedPeerHandle = owner->normalizeFederateHandle(peerHandle);
+  REQUIRE(normalizedPeerHandle == owner->normalizeFederateHandle(peerHandle));
+  REQUIRE(normalizedPeerHandle == owner->normalizeFederateHandle(peerHandleCopy));
+  REQUIRE(normalizedPeerHandle == peer->normalizeFederateHandle(peerHandle));
+  REQUIRE(owner->normalizeFederateHandle(ownerHandle) ==
+          peer->normalizeFederateHandle(ownerHandle));
+
+  auto const normalizedServer = owner->normalizeObjectClassHandle(server);
+  REQUIRE(normalizedServer == owner->normalizeObjectClassHandle(server));
+  REQUIRE(normalizedServer == owner->normalizeObjectClassHandle(serverCopy));
+  REQUIRE(normalizedServer == peer->normalizeObjectClassHandle(server));
+
+  auto const normalizedTakeOrder = owner->normalizeInteractionClassHandle(takeOrder);
+  REQUIRE(normalizedTakeOrder == owner->normalizeInteractionClassHandle(takeOrder));
+  REQUIRE(normalizedTakeOrder == owner->normalizeInteractionClassHandle(takeOrderCopy));
+  REQUIRE(normalizedTakeOrder == peer->normalizeInteractionClassHandle(takeOrder));
+
+  auto const normalizedObject = owner->normalizeObjectInstanceHandle(objectInstance);
+  REQUIRE(normalizedObject == owner->normalizeObjectInstanceHandle(objectInstance));
+  REQUIRE(normalizedObject == owner->normalizeObjectInstanceHandle(objectInstanceCopy));
+
+  std::vector<ServiceGroup> const standardServiceGroups{
+      rti1516_2025::FEDERATION_MANAGEMENT,
+      rti1516_2025::DECLARATION_MANAGEMENT,
+      rti1516_2025::OBJECT_MANAGEMENT,
+      rti1516_2025::OWNERSHIP_MANAGEMENT,
+      rti1516_2025::TIME_MANAGEMENT,
+      rti1516_2025::DATA_DISTRIBUTION_MANAGEMENT,
+      rti1516_2025::SUPPORT_SERVICES,
+  };
+  for (auto const serviceGroup : standardServiceGroups) {
+    auto const normalized = owner->normalizeServiceGroup(serviceGroup);
+    REQUIRE(normalized <= 7UL);
+    REQUIRE(normalized == owner->normalizeServiceGroup(serviceGroup));
+    REQUIRE(normalized == peer->normalizeServiceGroup(serviceGroup));
+  }
+
+  FederateHandle invalidFederate;
+  ObjectClassHandle invalidObjectClass;
+  InteractionClassHandle invalidInteractionClass;
+  ObjectInstanceHandle invalidObjectInstance;
+  REQUIRE_THROWS_AS(
+      owner->normalizeFederateHandle(invalidFederate),
+      rti1516_2025::InvalidFederateHandle);
+  REQUIRE_THROWS_AS(
+      owner->normalizeObjectClassHandle(invalidObjectClass),
+      rti1516_2025::InvalidObjectClassHandle);
+  REQUIRE_THROWS_AS(
+      owner->normalizeInteractionClassHandle(invalidInteractionClass),
+      rti1516_2025::InvalidInteractionClassHandle);
+  REQUIRE_THROWS_AS(
+      owner->normalizeObjectInstanceHandle(invalidObjectInstance),
+      rti1516_2025::InvalidObjectInstanceHandle);
+  REQUIRE_THROWS_AS(
+      owner->normalizeServiceGroup(static_cast<ServiceGroup>(99)),
+      rti1516_2025::InvalidServiceGroup);
+
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  // A FederateHandle remains a valid designator after the federate leaves the
+  // execution, so its point coordinate remains available to joined peers.
+  REQUIRE(normalizedPeerHandle == owner->normalizeFederateHandle(peerHandle));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded attribute relevance advisories follow scope transitions",
+    "[integration][development-profile][federation-management][object-management]"
+    "[rti.service.get-attribute-relevance-advisory-switch]"
+    "[rti.service.set-attribute-relevance-advisory-switch]"
+    "[rti.service.turn-updates-on-for-object-instance]"
+    "[rti.service.turn-updates-off-for-object-instance]"
+    "[federate.callback.turn-updates-on-for-object-instance]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto owner = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      owner->joinFederationExecution(L"attribute-relevance-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"attribute-relevance-subscriber", L"subscriber", federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const name = owner->getAttributeHandle(server, L"Name");
+  auto const payRate = owner->getAttributeHandle(server, L"PayRate");
+  REQUIRE(server.isValid());
+  REQUIRE(name.isValid());
+  REQUIRE(payRate.isValid());
+
+  // RestaurantFOMmodule-2025 explicitly enables Attribute Relevance. The
+  // subscriber's Attribute Scope switch remains Disabled; the two advisories
+  // are intentionally independent.
+  REQUIRE(owner->getAttributeRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(subscriber->getAttributeScopeAdvisorySwitch());
+  REQUIRE_NOTHROW(owner->setAttributeRelevanceAdvisorySwitch(false));
+  REQUIRE_FALSE(owner->getAttributeRelevanceAdvisorySwitch());
+  REQUIRE_NOTHROW(owner->setAttributeRelevanceAdvisorySwitch(true));
+  REQUIRE(owner->getAttributeRelevanceAdvisorySwitch());
+  REQUIRE_NOTHROW(owner->setObjectClassRelevanceAdvisorySwitch(false));
+  REQUIRE_NOTHROW(owner->setInteractionRelevanceAdvisorySwitch(false));
+
+  // Establish knowledge of the instance through Name, then make PayRate
+  // enter and leave scope. This isolates Turn Updates from the initial
+  // discovery transition, whose dedicated advisory path is still separate.
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, AttributeHandleSet{name, payRate}));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{name},
+      true));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1);
+  // RestaurantFOMmodule-2025 enables Auto Provide. Drain the RTI-invoked
+  // provider callback before isolating the later scope-transition advisory.
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate},
+      true));
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.empty());
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.size() == 1);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.front().objectInstance == objectInstance);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.front().attributes ==
+          AttributeHandleSet{payRate});
+
+  // An explicit FDD designator selects the official rate-bearing callback
+  // overload. The no-designator subscription above intentionally used the
+  // legacy two-argument callback.
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate}));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1);
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate},
+      true,
+      L"High"));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.size() == 1);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().attributes ==
+          AttributeHandleSet{payRate});
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().updateRateDesignator ==
+          L"High");
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate}));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1);
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 2);
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.front().objectInstance == objectInstance);
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.front().attributes ==
+           AttributeHandleSet{payRate});
+
+  // A queued explicit-rate advisory is resolved again at callback entry. The
+  // subscription remains in scope, but replacing High with the omitted/default
+  // designator before evocation must select the no-rate overload.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate},
+      true,
+      L"High"));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate},
+      true,
+      L""));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.size() == 1);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.size() == 2);
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate}));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 3);
+
+  // Disabling the owner's switch before a queued advisory is evoked suppresses
+  // that callback and does not replay it when the switch is re-enabled.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate},
+      true));
+  REQUIRE_NOTHROW(owner->setAttributeRelevanceAdvisorySwitch(false));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.size() == 2);
+  REQUIRE_NOTHROW(owner->setAttributeRelevanceAdvisorySwitch(true));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate}));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 4);
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{name}));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded regional attribute relevance advisories retain explicit update-rate designators",
+    "[integration][development-profile][federation-management][object-management][ddm]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.unassociate-regions-for-updates]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[federate.callback.turn-updates-on-for-object-instance]"
+    "[federate.callback.turn-updates-off-for-object-instance]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto owner = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"regional-rate-owner", L"regional-rate-owner", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"regional-rate-subscriber", L"regional-rate-subscriber", federationName));
+
+  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = owner->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  REQUIRE(owner->getAttributeRelevanceAdvisorySwitch());
+
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(soda, flavorOnly));
+  auto const ownerRegion = owner->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(owner->setRangeBounds(ownerRegion, sodaFlavor, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(owner->commitRegionModifications(RegionHandleSet{ownerRegion}));
+  REQUIRE_NOTHROW(
+      subscriber->setRangeBounds(subscriberRegion, sodaFlavor, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(
+      subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
+
+  AttributeHandleSetRegionHandleSetPairVector const ownerPair{{
+      flavorOnly,
+      RegionHandleSet{ownerRegion},
+  }};
+  auto const disjointOwnerRegion = owner->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(
+      owner->setRangeBounds(disjointOwnerRegion, sodaFlavor, RangeBounds(2UL, 3UL)));
+  REQUIRE_NOTHROW(owner->commitRegionModifications(RegionHandleSet{disjointOwnerRegion}));
+  AttributeHandleSetRegionHandleSetPairVector const disjointOwnerPair{{
+      flavorOnly,
+      RegionHandleSet{disjointOwnerRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const subscriberPair{{
+      flavorOnly,
+      RegionHandleSet{subscriberRegion},
+  }};
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair,
+      true,
+      L"High"));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstanceWithRegions(soda, ownerPair));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.empty());
+  // The enabled Restaurant FOM also queues Auto Provide at the owning
+  // federate; consume it before testing region association advisories.
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+
+  // Removing the last explicit association restores the default region, so
+  // this matching regional subscriber remains relevant. Move instead to a
+  // committed disjoint explicit region to exercise the off/on transition.
+  REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, ownerPair));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.empty());
+
+  REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, disjointOwnerPair));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1);
+
+  REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, disjointOwnerPair));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.size() == 1);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().attributes ==
+          flavorOnly);
+  REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().updateRateDesignator ==
+          L"High");
+
+  REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, ownerPair));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1);
+  REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, ownerPair));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair));
+  REQUIRE_NOTHROW(owner->deleteRegion(ownerRegion));
+  REQUIRE_NOTHROW(owner->deleteRegion(disjointOwnerRegion));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded update-rate lookup exposes FDD values and the default attribute boundary",
+    "[integration][development-profile][federation-management][object-management]"
+    "[rti.service.get-update-rate-value]"
+    "[rti.service.get-update-rate-value-for-attribute]") {
+  TestFederateAmbassador unjoinedFederate;
+  TestFederateAmbassador memberFederate;
+  auto unjoined = makeRti();
+  auto member = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  ObjectInstanceHandle invalidObjectInstance;
+  AttributeHandle invalidAttribute;
+
+  REQUIRE_THROWS_AS(
+      unjoined->getUpdateRateValue(L"High"),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->getUpdateRateValueForAttribute(invalidObjectInstance, invalidAttribute),
+      rti1516_2025::NotConnected);
+  REQUIRE_NOTHROW(unjoined->connect(unjoinedFederate, HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      unjoined->getUpdateRateValue(L"High"),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->getUpdateRateValueForAttribute(invalidObjectInstance, invalidAttribute),
+      rti1516_2025::FederateNotExecutionMember);
+
+  REQUIRE_NOTHROW(member->connect(memberFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      member->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      member->joinFederationExecution(L"update-rate-member", L"member", federationName));
+
+  REQUIRE(member->getUpdateRateValue(L"High") == Catch::Approx(30.0));
+  REQUIRE(member->getUpdateRateValue(L"Medium") == Catch::Approx(5.0));
+  REQUIRE(member->getUpdateRateValue(L"Low") == Catch::Approx(0.2));
+  REQUIRE(member->getUpdateRateValue(L"HLAdefault") == Catch::Approx(0.0));
+  REQUIRE(member->getUpdateRateValue(L"default") == Catch::Approx(0.0));
+  REQUIRE(member->getUpdateRateValue(L"HLAdefaultUpdateRate") == Catch::Approx(0.0));
+  REQUIRE(member->getUpdateRateValue(L"") == Catch::Approx(0.0));
+  REQUIRE_THROWS_AS(
+      member->getUpdateRateValue(L"MissingRate"),
+      rti1516_2025::InvalidUpdateRateDesignator);
+
+  auto const server = member->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const name = member->getAttributeHandle(server, L"Name");
+  auto const payRate = member->getAttributeHandle(server, L"PayRate");
+  REQUIRE_NOTHROW(
+      member->publishObjectClassAttributes(server, AttributeHandleSet{name, payRate}));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = member->registerObjectInstance(server));
+
+  REQUIRE_THROWS_AS(
+      member->subscribeObjectClassAttributes(
+          server,
+          AttributeHandleSet{name},
+          true,
+          L"MissingRate"),
+      rti1516_2025::InvalidUpdateRateDesignator);
+  REQUIRE_NOTHROW(member->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{name},
+      true,
+      L"High"));
+  REQUIRE_NOTHROW(member->subscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate},
+      true,
+      L"Medium"));
+  REQUIRE(member->getUpdateRateValueForAttribute(objectInstance, name) == Catch::Approx(30.0));
+  REQUIRE(member->getUpdateRateValueForAttribute(objectInstance, payRate) == Catch::Approx(5.0));
+  REQUIRE_NOTHROW(member->unsubscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{name}));
+  REQUIRE(member->getUpdateRateValueForAttribute(objectInstance, name) == Catch::Approx(0.0));
+  REQUIRE(member->getUpdateRateValueForAttribute(objectInstance, payRate) == Catch::Approx(5.0));
+  REQUIRE_NOTHROW(member->unsubscribeObjectClassAttributes(
+      server,
+      AttributeHandleSet{payRate}));
+  REQUIRE(member->getUpdateRateValueForAttribute(objectInstance, name) == Catch::Approx(0.0));
+  REQUIRE(member->getUpdateRateValueForAttribute(objectInstance, payRate) == Catch::Approx(0.0));
+  REQUIRE_THROWS_AS(
+      member->getUpdateRateValueForAttribute(invalidObjectInstance, name),
+      rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE_THROWS_AS(
+      member->getUpdateRateValueForAttribute(objectInstance, invalidAttribute),
+      rti1516_2025::AttributeNotDefined);
+
+  REQUIRE_NOTHROW(member->unpublishObjectClassAttributes(
+      server,
+      AttributeHandleSet{name, payRate}));
+  REQUIRE_NOTHROW(member->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(member->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(unjoined->disconnect());
+  REQUIRE_NOTHROW(member->disconnect());
 }
 
 TEST_CASE(
@@ -1595,11 +6357,353 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
+    "[integration][development-profile][time-management]"
+    "[rti.service.get-order-type]"
+    "[rti.service.get-order-name]") {
+  TestFederateAmbassador unjoinedFederate;
+  TestFederateAmbassador memberFederate;
+  auto unjoined = makeRti();
+  auto member = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_THROWS_AS(
+      unjoined->getOrderType(L"Receive"),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->getOrderName(RECEIVE),
+      rti1516_2025::NotConnected);
+  REQUIRE_NOTHROW(unjoined->connect(unjoinedFederate, HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      unjoined->getOrderType(L"Receive"),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->getOrderName(RECEIVE),
+      rti1516_2025::FederateNotExecutionMember);
+
+  REQUIRE_NOTHROW(member->connect(memberFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      member->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      member->joinFederationExecution(L"order-member", L"member", federationName));
+
+  REQUIRE(member->getOrderType(L"Receive") == RECEIVE);
+  REQUIRE(member->getOrderType(L"TimeStamp") == TIMESTAMP);
+  REQUIRE(member->getOrderName(RECEIVE) == L"Receive");
+  REQUIRE(member->getOrderName(TIMESTAMP) == L"TimeStamp");
+  REQUIRE_THROWS_AS(
+      member->getOrderType(L"HLAcustomOrder"),
+      rti1516_2025::InvalidOrderName);
+  REQUIRE_THROWS_AS(
+      member->getOrderName(static_cast<OrderType>(0x7f)),
+      rti1516_2025::InvalidOrderType);
+
+  REQUIRE_NOTHROW(member->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(member->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(unjoined->disconnect());
+  REQUIRE_NOTHROW(member->disconnect());
+}
+
+TEST_CASE(
+    "Embedded transportation type control commits at callbacks and preserves FOM defaults",
+    "[integration][development-profile][transportation-management]"
+    "[rti.service.request-attribute-transportation-type-change]"
+    "[rti.service.change-default-attribute-transportation-type]"
+    "[rti.service.query-attribute-transportation-type]"
+    "[rti.service.request-interaction-transportation-type-change]"
+    "[rti.service.query-interaction-transportation-type]"
+    "[federate.callback.confirm-attribute-transportation-type-change]"
+    "[federate.callback.report-attribute-transportation-type]"
+    "[federate.callback.confirm-interaction-transportation-type-change]"
+    "[federate.callback.report-interaction-transportation-type]"
+    "[rti.service.update-attribute-values][federate.callback.reflect-attribute-values]"
+    "[rti.service.send-interaction][federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle ownerHandle;
+  REQUIRE_NOTHROW(
+      ownerHandle = owner->joinFederationExecution(L"transport-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(L"transport-peer", L"peer", federationName));
+  // This scenario is about transportation controls; suppress the separately
+  // tested declaration-relevance callbacks so its evocation assertions remain
+  // scoped to the service under test.
+  REQUIRE_NOTHROW(owner->setObjectClassRelevanceAdvisorySwitch(false));
+  REQUIRE_NOTHROW(owner->setInteractionRelevanceAdvisorySwitch(false));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  auto const takeOrder = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.ServerAction.TakeOrder");
+  auto const reliable = owner->getTransportationTypeHandle(L"HLAreliable");
+  auto const bestEffort = owner->getTransportationTypeHandle(L"HLAbestEffort");
+
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(peer->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(owner->publishInteractionClass(takeOrder));
+  REQUIRE_NOTHROW(peer->subscribeInteractionClass(takeOrder));
+
+  // The first object captures the FDD default. A later class-default change
+  // must not rewrite this already registered attribute.
+  ObjectInstanceHandle firstObject;
+  REQUIRE_NOTHROW(firstObject = owner->registerObjectInstance(server));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+
+  REQUIRE_NOTHROW(owner->changeDefaultAttributeTransportationType(
+      server,
+      efficiencyOnly,
+      bestEffort));
+  ObjectInstanceHandle secondObject;
+  REQUIRE_NOTHROW(secondObject = owner->registerObjectInstance(server));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.objectDiscoveryReports.size() == 2);
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+
+  REQUIRE_NOTHROW(owner->queryAttributeTransportationType(firstObject, efficiency));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeTransportationTypeReports.size() == 1);
+  REQUIRE(ownerReports.attributeTransportationTypeReports.front().objectInstance == firstObject);
+  REQUIRE(ownerReports.attributeTransportationTypeReports.front().transportationType == reliable);
+
+  REQUIRE_NOTHROW(owner->queryAttributeTransportationType(secondObject, efficiency));
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeTransportationTypeReports.size() == 2);
+  REQUIRE(ownerReports.attributeTransportationTypeReports.back().objectInstance == secondObject);
+  REQUIRE(ownerReports.attributeTransportationTypeReports.back().transportationType == bestEffort);
+
+  unsigned char const valueBytes[] = {0x2A};
+  AttributeHandleValueMap values;
+  values.emplace(efficiency, VariableLengthData(valueBytes, sizeof(valueBytes)));
+  VariableLengthData const tag;
+
+  // An accepted change remains pending until its confirmation callback. An
+  // update submitted before that callback still uses the captured old type.
+  REQUIRE_NOTHROW(owner->requestAttributeTransportationTypeChange(
+      firstObject,
+      efficiencyOnly,
+      bestEffort));
+  REQUIRE_THROWS_AS(
+      owner->requestAttributeTransportationTypeChange(firstObject, efficiencyOnly, reliable),
+      rti1516_2025::AttributeAlreadyBeingChanged);
+  REQUIRE_NOTHROW(owner->updateAttributeValues(firstObject, values, tag));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.attributeReflectionReports.size() == 1);
+  REQUIRE(peerReports.attributeReflectionReports.back().transportationType == reliable);
+  REQUIRE(ownerReports.attributeTransportationTypeChangeReports.empty());
+
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeTransportationTypeChangeReports.size() == 1);
+  REQUIRE(ownerReports.attributeTransportationTypeChangeReports.front().objectInstance == firstObject);
+  REQUIRE(ownerReports.attributeTransportationTypeChangeReports.front().attributes == efficiencyOnly);
+  REQUIRE(ownerReports.attributeTransportationTypeChangeReports.front().transportationType == bestEffort);
+
+  REQUIRE_NOTHROW(owner->updateAttributeValues(firstObject, values, tag));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.attributeReflectionReports.size() == 2);
+  REQUIRE(peerReports.attributeReflectionReports.back().transportationType == bestEffort);
+
+  // Interaction changes apply to ordinary and regional future sends at the
+  // same confirmation boundary. This test exercises the ordinary overload.
+  REQUIRE_NOTHROW(owner->requestInteractionTransportationTypeChange(takeOrder, bestEffort));
+  REQUIRE_NOTHROW(owner->sendInteraction(takeOrder, ParameterHandleValueMap{}, tag));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.interactionReports.size() == 1);
+  REQUIRE(peerReports.interactionReports.back().transportationType == reliable);
+  REQUIRE(ownerReports.interactionTransportationTypeChangeReports.empty());
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.interactionTransportationTypeChangeReports.size() == 1);
+  REQUIRE(ownerReports.interactionTransportationTypeChangeReports.front().interactionClass == takeOrder);
+  REQUIRE(ownerReports.interactionTransportationTypeChangeReports.front().transportationType == bestEffort);
+
+  REQUIRE_NOTHROW(owner->sendInteraction(takeOrder, ParameterHandleValueMap{}, tag));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.interactionReports.size() == 2);
+  REQUIRE(peerReports.interactionReports.back().transportationType == bestEffort);
+
+  REQUIRE_NOTHROW(peer->queryInteractionTransportationType(ownerHandle, takeOrder));
+  REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(peerReports.interactionTransportationTypeReports.size() == 1);
+  REQUIRE(peerReports.interactionTransportationTypeReports.front().federate == ownerHandle);
+  REQUIRE(peerReports.interactionTransportationTypeReports.front().interactionClass == takeOrder);
+  REQUIRE(peerReports.interactionTransportationTypeReports.front().transportationType == bestEffort);
+
+  REQUIRE_NOTHROW(peer->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+    "[integration][development-profile][time-management][object-management]"
+    "[rti.service.change-attribute-order-type]"
+    "[rti.service.change-default-attribute-order-type]"
+    "[rti.service.change-interaction-order-type]"
+    "[rti.service.update-attribute-values][rti.service.send-interaction]"
+    "[federate.callback.reflect-attribute-values][federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      publisher->joinFederationExecution(L"order-control-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(
+      receiver->joinFederationExecution(L"order-control-receiver", L"receiver", federationName));
+  // Keep declaration-relevance callbacks out of this order/defaults scenario;
+  // their FOM-seeded defaults are covered by the dedicated advisory tests.
+  REQUIRE_NOTHROW(publisher->setObjectClassRelevanceAdvisorySwitch(false));
+  REQUIRE_NOTHROW(publisher->setInteractionRelevanceAdvisorySwitch(false));
+
+  auto const server = publisher->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = publisher->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  auto const takeOrder = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.ServerAction.TakeOrder");
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(takeOrder));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(takeOrder));
+  REQUIRE_THROWS_AS(
+      publisher->changeDefaultAttributeOrderType(
+          server,
+          efficiencyOnly,
+          static_cast<OrderType>(0x7f)),
+      rti1516_2025::RTIinternalError);
+  REQUIRE_THROWS_AS(
+      publisher->changeInteractionOrderType(takeOrder, static_cast<OrderType>(0x7f)),
+      rti1516_2025::RTIinternalError);
+
+  ObjectInstanceHandle fomDefaultObject;
+  REQUIRE_NOTHROW(fomDefaultObject = publisher->registerObjectInstance(server));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // RestaurantFOMmodule-2025 declares this attribute TimeStamp.  The class
+  // default change is prospective, so only later registrations capture Receive.
+  REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(
+      server,
+      efficiencyOnly,
+      RECEIVE));
+  ObjectInstanceHandle defaultReceiveObject;
+  REQUIRE_NOTHROW(defaultReceiveObject = publisher->registerObjectInstance(server));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // An explicit instance change affects future updates for that owned
+  // attribute without rewriting the other instances' captured defaults.
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      defaultReceiveObject,
+      efficiencyOnly,
+      TIMESTAMP));
+  ObjectInstanceHandle unchangedReceiveObject;
+  REQUIRE_NOTHROW(unchangedReceiveObject = publisher->registerObjectInstance(server));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  // The Receive-ordered instance is intentionally delivered while the
+  // constrained receiver is idle, so opt into the official asynchronous mode.
+  REQUIRE_NOTHROW(receiver->enableAsynchronousDelivery());
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  unsigned char const valueBytes[] = {0x4A};
+  AttributeHandleValueMap values;
+  values.emplace(efficiency, VariableLengthData(valueBytes, sizeof(valueBytes)));
+  VariableLengthData const tag;
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      fomDefaultObject,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      defaultReceiveObject,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      unchangedReceiveObject,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+
+  // The unchanged Receive instance is delivered immediately; the FOM-default
+  // and explicitly changed instances wait for the receiver's grant.
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1);
+  REQUIRE(receiverReports.attributeReflectionReports.front().sentOrderType == RECEIVE);
+  REQUIRE(receiverReports.attributeReflectionReports.front().receivedOrderType == RECEIVE);
+  REQUIRE_FALSE(receiverReports.attributeReflectionReports.front().retractionSupplied);
+
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 3);
+  std::size_t timestampedReflectionCount = 0;
+  for (auto const& report : receiverReports.attributeReflectionReports) {
+    if (report.sentOrderType == TIMESTAMP) {
+      ++timestampedReflectionCount;
+      REQUIRE(report.receivedOrderType == TIMESTAMP);
+      REQUIRE(report.retractionSupplied);
+      REQUIRE(report.retractionValid);
+    }
+  }
+  REQUIRE(timestampedReflectionCount == 2);
+
+  // Interaction order is scoped to the invoking publisher and changes future
+  // timestamped sends without introducing a TSO queue for this class.
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(takeOrder, RECEIVE));
+  auto const retraction = publisher->sendInteraction(
+      takeOrder,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(8));
+  REQUIRE_FALSE(retraction.isValid());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  auto const& interactionReport = receiverReports.timestampedInteractionReports.front();
+  REQUIRE(interactionReport.sentOrderType == RECEIVE);
+  REQUIRE(interactionReport.receivedOrderType == RECEIVE);
+  REQUIRE_FALSE(interactionReport.retractionSupplied);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
     "Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
     "[integration][development-profile][federation-management][declaration-management]"
     "[rti.service.publish-object-class-attributes]"
+    "[rti.service.unpublish-object-class]"
     "[rti.service.unpublish-object-class-attributes]"
     "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class]"
     "[rti.service.unsubscribe-object-class-attributes]") {
   TestFederateAmbassador unjoinedFederate;
   TestFederateAmbassador publisherFederate;
@@ -1616,12 +6720,18 @@ TEST_CASE(
   REQUIRE_THROWS_AS(
       publisher->publishObjectClassAttributes(invalidObjectClass, noAttributes),
       rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      publisher->unpublishObjectClass(invalidObjectClass),
+      rti1516_2025::NotConnected);
 
   REQUIRE_NOTHROW(unjoined->connect(unjoinedFederate, HLA_EVOKED));
   REQUIRE_NOTHROW(publisher->connect(publisherFederate, HLA_EVOKED));
   REQUIRE_NOTHROW(subscriber->connect(subscriberFederate, HLA_EVOKED));
   REQUIRE_THROWS_AS(
       unjoined->subscribeObjectClassAttributes(invalidObjectClass, noAttributes),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->unsubscribeObjectClass(invalidObjectClass),
       rti1516_2025::FederateNotExecutionMember);
 
   REQUIRE_NOTHROW(
@@ -1643,6 +6753,9 @@ TEST_CASE(
       publisher->publishObjectClassAttributes(invalidObjectClass, nameOnly),
       rti1516_2025::ObjectClassNotDefined);
   REQUIRE_THROWS_AS(
+      publisher->unpublishObjectClass(invalidObjectClass),
+      rti1516_2025::ObjectClassNotDefined);
+  REQUIRE_THROWS_AS(
       publisher->publishObjectClassAttributes(employee, invalidOnly),
       rti1516_2025::AttributeNotDefined);
   REQUIRE_THROWS_AS(
@@ -1653,6 +6766,18 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(server, efficiencyOnly));
   REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(server, nameOnly, false));
   REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(server, efficiencyOnly, true));
+  // The whole-class form removes ordinary subscriptions at that exact class;
+  // regional declarations remain an independent DDM state family.
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClass(server));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(server, nameOnly, false));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(server, efficiencyOnly, true));
+  // Whole-class unpublication removes every currently published attribute at
+  // that class, while the inherited Name publication on Employee remains
+  // until its own class is unpublished.
+  REQUIRE_NOTHROW(publisher->unpublishObjectClass(server));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClass(employee));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClass(server));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClass(server));
   REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(server, nameOnly));
   REQUIRE_NOTHROW(publisher->unpublishObjectClassAttributes(employee, nameOnly));
 
@@ -1709,7 +6834,8 @@ TEST_CASE(
   REQUIRE_NOTHROW(cancelled->connect(cancelledReports, HLA_EVOKED));
   REQUIRE_NOTHROW(implicitPrivilege->connect(implicitPrivilegeReports, HLA_EVOKED));
   REQUIRE_NOTHROW(late->connect(lateReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(immediate->connect(immediateReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      immediate->connect(immediateReports, rti1516_2025::HLA_IMMEDIATE));
   REQUIRE_NOTHROW(
       publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
 
@@ -1750,11 +6876,10 @@ TEST_CASE(
       rti1516_2025::ObjectClassNotPublished);
 
   // A registered Server is discoverable as Server to its closest exact
-  // subscribers and as Employee to a subscriber only at that superclass.
-  // Passive/active only affects advisory behavior outside this narrow slice,
-  // so both forms remain eligible for discovery.
+  // subscribers and as Employee to an active subscriber only at that
+  // superclass.
   REQUIRE_NOTHROW(exact->subscribeObjectClassAttributes(server, efficiencyOnly));
-  REQUIRE_NOTHROW(promoted->subscribeObjectClassAttributes(employee, nameOnly, false));
+  REQUIRE_NOTHROW(promoted->subscribeObjectClassAttributes(employee, nameOnly, true));
   REQUIRE_NOTHROW(cancelled->subscribeObjectClassAttributes(server, efficiencyOnly));
   // Publishing an ordinary attribute establishes implicit publication of the
   // standard HLAprivilegeToDeleteObject attribute for this class epoch. Its
@@ -1842,7 +6967,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(cancelled->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(promoted->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(exact->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
@@ -1888,6 +7013,10 @@ TEST_CASE(
       L"named-owner", L"owner", federationName));
   REQUIRE_NOTHROW(peer->joinFederationExecution(
       L"named-peer", L"peer", federationName));
+  // Reservation callbacks are the subject here; disable the independent
+  // declaration-relevance stream before making the declarations below.
+  REQUIRE_NOTHROW(owner->setObjectClassRelevanceAdvisorySwitch(false));
+  REQUIRE_NOTHROW(owner->setInteractionRelevanceAdvisorySwitch(false));
 
   auto const employee = owner->getObjectClassHandle(L"HLAobjectRoot.Employee");
   auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
@@ -1932,6 +7061,10 @@ TEST_CASE(
   REQUIRE(peerReports.objectDiscoveryReports.front().objectInstance == firstInstance);
   REQUIRE(peerReports.objectDiscoveryReports.front().objectClass == server);
   REQUIRE(peerReports.objectDiscoveryReports.front().objectInstanceName == firstName);
+  // Registration discovery also solicits the owner under the official
+  // Restaurant FOM Auto Provide switch. Drain that callback before the next
+  // reservation assertion.
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
 
   // A failed registration does not consume a valid reservation. Once the
   // class is published, the same name can be used successfully.
@@ -1953,6 +7086,7 @@ TEST_CASE(
   REQUIRE(peerReports.objectDiscoveryReports.back().objectInstance == secondInstance);
   REQUIRE(peerReports.objectDiscoveryReports.back().objectClass == employee);
   REQUIRE(peerReports.objectDiscoveryReports.back().objectInstanceName == secondName);
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
 
   // A regional named registration consumes the same reservation state after
   // the existing 2025 regional validation path has accepted its association.
@@ -2009,8 +7143,8 @@ TEST_CASE(
       peer->releaseObjectInstanceName(reusableName),
       rti1516_2025::ObjectInstanceNameNotReserved);
 
-  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
@@ -2187,7 +7321,7 @@ TEST_CASE(
   REQUIRE_THROWS_AS(
       requester->localDeleteObjectInstance(objectInstance),
       rti1516_2025::OwnershipAcquisitionPending);
-  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
 
   // Rejoin a fresh requester so the local-delete transition itself is tested
   // without carrying an acquisition reservation across the teardown boundary.
@@ -2223,7 +7357,7 @@ TEST_CASE(
   REQUIRE(requesterReports.attributeReflectionReports.front().objectInstance == objectInstance);
 
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
@@ -2319,12 +7453,12 @@ TEST_CASE(
   };
   AttributeHandleSet const reliableChildOnly{reliableChild};
 
-  // The promoted receiver uses a passive superclass subscription. Passive
-  // changes registration/advisory behavior, not attribute reflection
-  // eligibility. The cancelled receiver starts eligible so that its later
-  // unsubscribe exercises callback-time suppression.
+  // The promoted receiver uses an active superclass subscription so it is
+  // eligible for both discovery and the projected base-attribute reflections.
+  // The cancelled receiver starts eligible so that its later unsubscribe
+  // exercises callback-time suppression.
   REQUIRE_NOTHROW(exact->subscribeObjectClassAttributes(child, allOwned));
-  REQUIRE_NOTHROW(promoted->subscribeObjectClassAttributes(base, baseAttributes, false));
+  REQUIRE_NOTHROW(promoted->subscribeObjectClassAttributes(base, baseAttributes, true));
   REQUIRE_NOTHROW(cancelled->subscribeObjectClassAttributes(child, reliableChildOnly));
   REQUIRE_NOTHROW(immediate->subscribeObjectClassAttributes(child, allOwned));
   REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, allOwned));
@@ -2466,6 +7600,14 @@ TEST_CASE(
   REQUIRE(cancelledReports.attributeReflectionReports.empty());
   REQUIRE(publisherReports.attributeReflectionReports.empty());
 
+  // Unpublishing the whole class removes the producer's ownership of every
+  // corresponding instance attribute, so a later update is rejected at the
+  // official AttributeNotOwned boundary rather than using stale state.
+  REQUIRE_NOTHROW(publisher->unpublishObjectClass(child));
+  REQUIRE_THROWS_AS(
+      publisher->updateAttributeValues(objectInstance, attributeValues, tag),
+      rti1516_2025::AttributeNotOwned);
+
   REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(cancelled->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(promoted->resignFederationExecution(NO_ACTION));
@@ -2506,6 +7648,7 @@ TEST_CASE(
       L"regional-object-publisher", L"publisher", federationName));
   REQUIRE_NOTHROW(subscriber->joinFederationExecution(
       L"regional-object-subscriber", L"subscriber", federationName));
+  REQUIRE_FALSE(subscriber->getConveyRegionDesignatorSetsSwitch());
 
   auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
   auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
@@ -2595,10 +7738,27 @@ TEST_CASE(
       VariableLengthData()));
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
-  REQUIRE(subscriberReports.attributeReflectionReports.front().sentRegionsSupplied);
-  REQUIRE(subscriberReports.attributeReflectionReports.front().sentRegions.contains(publisherRegion));
+  REQUIRE_FALSE(subscriberReports.attributeReflectionReports.front().sentRegionsSupplied);
   REQUIRE(
       subscriberReports.attributeReflectionReports.front().attributeValues.contains(flavor));
+
+  // The switch is recipient-local and may be changed after a federation has
+  // joined.  Enabling it exposes the same update-region realization on the
+  // next reflection without changing regional overlap routing.
+  REQUIRE_NOTHROW(subscriber->setConveyRegionDesignatorSetsSwitch(true));
+  unsigned char const conveyedValueBytes[] = {0x25, 0x20};
+  AttributeHandleValueMap conveyedValue;
+  conveyedValue.emplace(
+      flavor,
+      VariableLengthData(conveyedValueBytes, sizeof(conveyedValueBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      conveyedValue,
+      VariableLengthData()));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
+  REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegions.contains(publisherRegion));
 
   // Changing the committed subscriber region to a disjoint range removes the
   // regional reflection route without changing ordinary known-instance state.
@@ -2617,7 +7777,7 @@ TEST_CASE(
       disjointValue,
       VariableLengthData()));
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
 
   REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, regionalPair));
   REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, emptyRegionPair));
@@ -2631,10 +7791,817 @@ TEST_CASE(
   REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
 
   REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(publisher->disconnect());
   REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
+    "[integration][development-profile][object-management][ddm][allow-relaxed-ddm]"
+    "[rti.service.get-allow-relaxed-ddm-switch]"
+    "[rti.service.create-region]"
+    "[rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values]") {
+  auto runScenario = [](bool const relaxedDdmEnabled) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador subscriberReports;
+    auto publisher = makeRti();
+    auto subscriber = makeRti();
+    auto const federationName = nextFederationName();
+    auto const restaurantFom =
+        resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+    auto const relaxedDdmFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                                "cpp" / "tests" / "data" /
+                                "allow-relaxed-ddm-enabled-fom.xml")
+                                   .wstring();
+    std::vector<std::wstring> fomModules{restaurantFom};
+    if (relaxedDdmEnabled) {
+      fomModules.push_back(relaxedDdmFom);
+    }
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName, fomModules, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(publisher->joinFederationExecution(
+        L"relaxed-ddm-object-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+        L"relaxed-ddm-object-subscriber", L"subscriber", federationName));
+    REQUIRE(publisher->getAllowRelaxedDDMSwitch() == relaxedDdmEnabled);
+    REQUIRE(subscriber->getAllowRelaxedDDMSwitch() == relaxedDdmEnabled);
+
+    auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+    auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+    auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+    REQUIRE(soda.isValid());
+    REQUIRE(flavor.isValid());
+    REQUIRE(sodaFlavor.isValid());
+    AttributeHandleSet const flavorOnly{flavor};
+    REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
+
+    auto const sourceRegion = publisher->createRegion(DimensionHandleSet{sodaFlavor});
+    auto const subscriptionRegion = subscriber->createRegion(DimensionHandleSet{sodaFlavor});
+    REQUIRE_NOTHROW(publisher->setRangeBounds(
+        sourceRegion,
+        sodaFlavor,
+        RangeBounds(0UL, 2UL)));
+    REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{sourceRegion}));
+    REQUIRE_NOTHROW(subscriber->setRangeBounds(
+        subscriptionRegion,
+        sodaFlavor,
+        RangeBounds(2UL, 3UL)));
+    REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+        RegionHandleSet{subscriptionRegion}));
+    AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
+        flavorOnly,
+        RegionHandleSet{sourceRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const subscriptionPair{{
+        flavorOnly,
+        RegionHandleSet{subscriptionRegion},
+    }};
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstanceWithRegions(
+        soda,
+        sourcePair));
+    REQUIRE(objectInstance.isValid());
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+        soda,
+        subscriptionPair));
+    while (subscriber->evokeCallback(0.0)) {
+    }
+
+    // The exact-boundary pair can establish a known instance and reflection
+    // route only with Umbra's enabled Relaxed DDM policy.
+    std::size_t expectedDiscoveries = relaxedDdmEnabled ? 1U : 0U;
+    std::size_t expectedReflections = relaxedDdmEnabled ? 1U : 0U;
+    REQUIRE(subscriberReports.objectDiscoveryReports.size() == expectedDiscoveries);
+    unsigned char const touchingValueBytes[] = {0x31, 0x42};
+    AttributeHandleValueMap touchingValue;
+    touchingValue.emplace(
+        flavor,
+        VariableLengthData(touchingValueBytes, sizeof(touchingValueBytes)));
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        objectInstance,
+        touchingValue,
+        VariableLengthData()));
+    while (subscriber->evokeCallback(0.0)) {
+    }
+    REQUIRE(subscriberReports.attributeReflectionReports.size() == expectedReflections);
+
+    // A positive gap removes the route even when the object is already known
+    // from a previous relaxed discovery.
+    REQUIRE_NOTHROW(subscriber->setRangeBounds(
+        subscriptionRegion,
+        sodaFlavor,
+        RangeBounds(3UL, 4UL)));
+    REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+        RegionHandleSet{subscriptionRegion}));
+    unsigned char const gapValueBytes[] = {0x53, 0x64};
+    AttributeHandleValueMap gapValue;
+    gapValue.emplace(flavor, VariableLengthData(gapValueBytes, sizeof(gapValueBytes)));
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        objectInstance,
+        gapValue,
+        VariableLengthData()));
+    while (subscriber->evokeCallback(0.0)) {
+    }
+    REQUIRE(subscriberReports.attributeReflectionReports.size() == expectedReflections);
+
+    // Restoring strict overlap must discover the disabled-profile recipient
+    // and preserve delivery in the enabled profile; it must never be removed
+    // by the relaxation policy.
+    REQUIRE_NOTHROW(subscriber->setRangeBounds(
+        subscriptionRegion,
+        sodaFlavor,
+        RangeBounds(1UL, 3UL)));
+    REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+        RegionHandleSet{subscriptionRegion}));
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+        soda,
+        subscriptionPair));
+    while (subscriber->evokeCallback(0.0)) {
+    }
+    if (!relaxedDdmEnabled) {
+      ++expectedDiscoveries;
+    }
+    REQUIRE(subscriberReports.objectDiscoveryReports.size() == expectedDiscoveries);
+    unsigned char const strictValueBytes[] = {0x75, 0x86};
+    AttributeHandleValueMap strictValue;
+    strictValue.emplace(
+        flavor,
+        VariableLengthData(strictValueBytes, sizeof(strictValueBytes)));
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        objectInstance,
+        strictValue,
+        VariableLengthData()));
+    while (subscriber->evokeCallback(0.0)) {
+    }
+    ++expectedReflections;
+    REQUIRE(subscriberReports.attributeReflectionReports.size() == expectedReflections);
+
+    REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+        soda,
+        subscriptionPair));
+    REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, sourcePair));
+    REQUIRE_NOTHROW(subscriber->deleteRegion(subscriptionRegion));
+    REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+    REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subscriber->disconnect());
+    REQUIRE_NOTHROW(publisher->disconnect());
+  };
+
+  SECTION("the FDD enables Relaxed DDM") {
+    runScenario(true);
+  }
+  SECTION("the FDD leaves Relaxed DDM disabled") {
+    runScenario(false);
+  }
+}
+
+TEST_CASE(
+    "Embedded default-region object routing derives 2025 ordinary and regional effectiveness",
+    "[integration][development-profile][object-management][ddm][default-region]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.unassociate-regions-for-updates]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.unsubscribe-object-class-attributes-with-regions]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador regionalReports;
+  ReportingFederateAmbassador mixedReports;
+  auto publisher = makeRti();
+  auto regional = makeRti();
+  auto mixed = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(regional->connect(regionalReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(mixed->connect(mixedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"default-region-object-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(regional->joinFederationExecution(
+      L"default-region-object-regional", L"subscriber", federationName));
+  REQUIRE_NOTHROW(mixed->joinFederationExecution(
+      L"default-region-object-mixed", L"subscriber", federationName));
+
+  auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
+
+  auto const sourceRegion = publisher->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const regionalRegion = regional->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const mixedRegion = mixed->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      sourceRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{sourceRegion}));
+  REQUIRE_NOTHROW(regional->setRangeBounds(
+      regionalRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(regional->commitRegionModifications(RegionHandleSet{regionalRegion}));
+  REQUIRE_NOTHROW(mixed->setRangeBounds(
+      mixedRegion,
+      sodaFlavor,
+      RangeBounds(2UL, 3UL)));
+  REQUIRE_NOTHROW(mixed->commitRegionModifications(RegionHandleSet{mixedRegion}));
+
+  AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
+      flavorOnly,
+      RegionHandleSet{sourceRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const regionalPair{{
+      flavorOnly,
+      RegionHandleSet{regionalRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const mixedPair{{
+      flavorOnly,
+      RegionHandleSet{mixedRegion},
+  }};
+
+  REQUIRE_NOTHROW(regional->subscribeObjectClassAttributesWithRegions(soda, regionalPair));
+  REQUIRE_NOTHROW(mixed->subscribeObjectClassAttributes(soda, flavorOnly, true));
+  REQUIRE_NOTHROW(mixed->subscribeObjectClassAttributesWithRegions(soda, mixedPair));
+
+  // An explicit source region makes the mixed subscriber's explicit regional
+  // declaration effective. Its retained ordinary declaration must not route
+  // through the default region while that disjoint declaration exists.
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstanceWithRegions(
+      soda,
+      sourcePair));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(regionalReports.objectDiscoveryReports.back().objectInstance == objectInstance);
+  REQUIRE(mixedReports.objectDiscoveryReports.empty());
+
+  // Removing the non-default realization lets the retained ordinary
+  // declaration use the default region again. Reapplying that declaration
+  // asks the RTI to reconsider already registered but previously undiscovered
+  // instances.
+  REQUIRE_NOTHROW(mixed->unsubscribeObjectClassAttributesWithRegions(soda, mixedPair));
+  REQUIRE_NOTHROW(mixed->subscribeObjectClassAttributes(soda, flavorOnly, true));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(mixedReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(mixedReports.objectDiscoveryReports.back().objectInstance == objectInstance);
+
+  // Restore the disjoint regional declaration and remove the source's only
+  // explicit association. Both regional subscribers now overlap the invisible
+  // default region; no public RegionHandle is synthesized for it.
+  REQUIRE_NOTHROW(mixed->subscribeObjectClassAttributesWithRegions(soda, mixedPair));
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, sourcePair));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_NOTHROW(regional->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(mixed->setConveyRegionDesignatorSetsSwitch(true));
+
+  unsigned char const defaultValueBytes[] = {0xD0, 0x01};
+  AttributeHandleValueMap defaultValues;
+  defaultValues.emplace(
+      flavor,
+      VariableLengthData(defaultValueBytes, sizeof(defaultValueBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      defaultValues,
+      VariableLengthData()));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalReports.attributeReflectionReports.size() == 1);
+  REQUIRE(mixedReports.attributeReflectionReports.size() == 1);
+  REQUIRE(regionalReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(regionalReports.attributeReflectionReports.back().sentRegions.empty());
+  REQUIRE(mixedReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(mixedReports.attributeReflectionReports.back().sentRegions.empty());
+
+  // A later explicit association replaces the source default for this
+  // attribute. The matching regional subscriber receives it; the mixed
+  // subscriber's disjoint regional declaration continues to suppress its
+  // retained ordinary declaration.
+  REQUIRE_NOTHROW(publisher->associateRegionsForUpdates(objectInstance, sourcePair));
+  unsigned char const explicitValueBytes[] = {0xE0, 0x02};
+  AttributeHandleValueMap explicitValues;
+  explicitValues.emplace(
+      flavor,
+      VariableLengthData(explicitValueBytes, sizeof(explicitValueBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      explicitValues,
+      VariableLengthData()));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalReports.attributeReflectionReports.size() == 2);
+  REQUIRE(regionalReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(regionalReports.attributeReflectionReports.back().sentRegions.contains(sourceRegion));
+  REQUIRE(mixedReports.attributeReflectionReports.size() == 1);
+
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, sourcePair));
+  unsigned char const restoredDefaultBytes[] = {0xD0, 0x03};
+  AttributeHandleValueMap restoredDefaultValues;
+  restoredDefaultValues.emplace(
+      flavor,
+      VariableLengthData(restoredDefaultBytes, sizeof(restoredDefaultBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      restoredDefaultValues,
+      VariableLengthData()));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalReports.attributeReflectionReports.size() == 3);
+  REQUIRE(mixedReports.attributeReflectionReports.size() == 2);
+  REQUIRE(regionalReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(regionalReports.attributeReflectionReports.back().sentRegions.empty());
+  REQUIRE(mixedReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(mixedReports.attributeReflectionReports.back().sentRegions.empty());
+
+  REQUIRE_NOTHROW(mixed->unsubscribeObjectClassAttributesWithRegions(soda, mixedPair));
+  REQUIRE_NOTHROW(mixed->unsubscribeObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(regional->unsubscribeObjectClassAttributesWithRegions(soda, regionalPair));
+  REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+  REQUIRE_NOTHROW(regional->deleteRegion(regionalRegion));
+  REQUIRE_NOTHROW(mixed->deleteRegion(mixedRegion));
+  REQUIRE_NOTHROW(mixed->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(regional->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(mixed->disconnect());
+  REQUIRE_NOTHROW(regional->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped default-region attribute update preserves 2025 regional callback metadata",
+    "[integration][development-profile][object-management][ddm][time-management]"
+    "[default-region][tso][rti.service.update-attribute-values]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.time-advance-request][federate.callback.reflect-attribute-values]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const valueBytes[] = {0xB1, 0x6E};
+  unsigned char const tagBytes[] = {0x54, 0x53, 0x4F, 0x2D, 0x41};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"timestamped-default-region-attribute-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"timestamped-default-region-attribute-receiver", L"subscriber", federationName));
+
+  auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(
+      soda,
+      flavorOnly,
+      TIMESTAMP));
+
+  auto const receiverRegion = receiver->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(receiver->setRangeBounds(
+      receiverRegion,
+      sodaFlavor,
+      RangeBounds(2UL, 3UL)));
+  REQUIRE_NOTHROW(receiver->commitRegionModifications(RegionHandleSet{receiverRegion}));
+  AttributeHandleSetRegionHandleSetPairVector const receiverPair{{
+      flavorOnly,
+      RegionHandleSet{receiverRegion},
+  }};
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributesWithRegions(soda, receiverPair));
+  REQUIRE_FALSE(receiver->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
+
+  // Ordinary registration and updates have no public source RegionHandle.
+  // The receiver nevertheless discovers the dimensional object through the
+  // derived default region before the timestamped update is accepted.
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(soda));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(receiverReports.objectDiscoveryReports.front().objectInstance == objectInstance);
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+
+  AttributeHandleValueMap values;
+  values.emplace(flavor, VariableLengthData(valueBytes, sizeof(valueBytes)));
+  auto const retraction = publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  REQUIRE(receiverReports.attributeReflectionReports.empty());
+
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1);
+
+  auto const& report = receiverReports.attributeReflectionReports.front();
+  REQUIRE(report.objectInstance == objectInstance);
+  REQUIRE(report.attributeValues.size() == 1);
+  REQUIRE(report.attributeValues.contains(flavor));
+  REQUIRE(variableLengthDataBytes(report.attributeValues.at(flavor)) ==
+          std::vector<unsigned char>(valueBytes, valueBytes + sizeof(valueBytes)));
+  REQUIRE(report.producingFederate == publisherHandle);
+  REQUIRE(report.timeImplementationName == L"HLAinteger64Time");
+  REQUIRE(report.timeValue == L"6");
+  REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.retractionSupplied);
+  REQUIRE(report.retractionValid);
+  REQUIRE(report.sentRegionsSupplied);
+  REQUIRE(report.sentRegions.empty());
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributesWithRegions(soda, receiverPair));
+  REQUIRE_NOTHROW(receiver->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+    "[integration][development-profile][object-management][ddm][passive-subscription]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"passive-attribute-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"passive-attribute-subscriber", L"subscriber", federationName));
+
+  auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriberRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
+
+  AttributeHandleSetRegionHandleSetPairVector const publisherPair{{
+      flavorOnly,
+      RegionHandleSet{publisherRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const subscriberPair{{
+      flavorOnly,
+      RegionHandleSet{subscriberRegion},
+  }};
+
+  // Passive ordinary declarations are retained, but do not arrange instance
+  // discovery. Replacing the same declaration with an active one does.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(soda, flavorOnly, false));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstanceWithRegions(
+      soda,
+      publisherPair));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.empty());
+  REQUIRE_THROWS_AS(
+      subscriber->getKnownObjectClassHandle(objectInstance),
+      rti1516_2025::ObjectInstanceNotKnown);
+
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(soda, flavorOnly, true));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(subscriberReports.objectDiscoveryReports.front().objectInstance == objectInstance);
+  REQUIRE(subscriber->getKnownObjectClassHandle(objectInstance) == soda);
+
+  unsigned char const passiveOrdinaryBytes[] = {0x10, 0x20};
+  AttributeHandleValueMap passiveOrdinaryValues;
+  passiveOrdinaryValues.emplace(
+      flavor,
+      VariableLengthData(passiveOrdinaryBytes, sizeof(passiveOrdinaryBytes)));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(soda, flavorOnly, false));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      passiveOrdinaryValues,
+      VariableLengthData()));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.empty());
+
+  unsigned char const activeOrdinaryBytes[] = {0x30, 0x40};
+  AttributeHandleValueMap activeOrdinaryValues;
+  activeOrdinaryValues.emplace(
+      flavor,
+      VariableLengthData(activeOrdinaryBytes, sizeof(activeOrdinaryBytes)));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(soda, flavorOnly, true));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      activeOrdinaryValues,
+      VariableLengthData()));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
+  REQUIRE(subscriberReports.attributeReflectionReports.front().objectInstance == objectInstance);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.front().attributeValues.contains(flavor));
+
+  // The same active/passive rule applies to an overlapping regional pair.
+  // Ordinary and regional declarations are independent, so remove the
+  // ordinary declaration before exercising the regional state.
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair,
+      false));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+
+  ObjectInstanceHandle passiveRegionalObject;
+  REQUIRE_NOTHROW(passiveRegionalObject = publisher->registerObjectInstanceWithRegions(
+      soda,
+      publisherPair));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_THROWS_AS(
+      subscriber->getKnownObjectClassHandle(passiveRegionalObject),
+      rti1516_2025::ObjectInstanceNotKnown);
+
+  unsigned char const passiveRegionalBytes[] = {0x50, 0x60};
+  AttributeHandleValueMap passiveRegionalValues;
+  passiveRegionalValues.emplace(
+      flavor,
+      VariableLengthData(passiveRegionalBytes, sizeof(passiveRegionalBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      passiveRegionalValues,
+      VariableLengthData()));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
+
+  unsigned char const activeRegionalBytes[] = {0x70, 0x80};
+  AttributeHandleValueMap activeRegionalValues;
+  activeRegionalValues.emplace(
+      flavor,
+      VariableLengthData(activeRegionalBytes, sizeof(activeRegionalBytes)));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair,
+      true));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 2);
+  REQUIRE(subscriberReports.objectDiscoveryReports.back().objectInstance == passiveRegionalObject);
+  REQUIRE(subscriber->getKnownObjectClassHandle(passiveRegionalObject) == soda);
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      activeRegionalValues,
+      VariableLengthData()));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
+  REQUIRE(subscriberReports.attributeReflectionReports.back().objectInstance == objectInstance);
+  REQUIRE(subscriberReports.attributeReflectionReports.back().attributeValues.contains(flavor));
+
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, publisherPair));
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(passiveRegionalObject, publisherPair));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(publisher->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded ownership transfer clears the former owner's 2025 update-region association",
+    "[integration][development-profile][federation-management][ddm][ownership-management]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.attribute-ownership-acquisition-if-available]"
+    "[rti.service.attribute-ownership-divestiture-if-wanted]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador acquirerReports;
+  ReportingFederateAmbassador regionalSubscriberReports;
+  auto owner = makeRti();
+  auto acquirer = makeRti();
+  auto regionalSubscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(acquirer->connect(acquirerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(regionalSubscriber->connect(regionalSubscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"regional-ownership-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(acquirer->joinFederationExecution(
+      L"regional-ownership-acquirer", L"publisher", federationName));
+  REQUIRE_NOTHROW(regionalSubscriber->joinFederationExecution(
+      L"regional-ownership-subscriber", L"subscriber", federationName));
+
+  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = owner->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(soda, flavorOnly));
+
+  auto const formerOwnerRegion = owner->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(owner->setRangeBounds(
+      formerOwnerRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(owner->commitRegionModifications(RegionHandleSet{formerOwnerRegion}));
+
+  auto const subscriberRegion =
+      regionalSubscriber->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(regionalSubscriber->setRangeBounds(
+      subscriberRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(
+      regionalSubscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
+  AttributeHandleSetRegionHandleSetPairVector const formerOwnerPair{{
+      flavorOnly,
+      RegionHandleSet{formerOwnerRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const subscriberPair{{
+      flavorOnly,
+      RegionHandleSet{subscriberRegion},
+  }};
+  REQUIRE_NOTHROW(regionalSubscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstanceWithRegions(
+      soda,
+      formerOwnerPair));
+  REQUIRE_FALSE(regionalSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalSubscriberReports.objectDiscoveryReports.size() == 1);
+
+  // The acquirer is known through an ordinary subscription and publishes the
+  // selected attribute before entering the bounded If Available transfer.
+  REQUIRE_NOTHROW(acquirer->subscribeObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_FALSE(acquirer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(acquirerReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_NOTHROW(acquirer->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(acquirer->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance,
+      flavorOnly,
+      VariableLengthData()));
+  AttributeHandleSet divestedAttributes;
+  REQUIRE_NOTHROW(owner->attributeOwnershipDivestitureIfWanted(
+      objectInstance,
+      flavorOnly,
+      VariableLengthData(),
+      divestedAttributes));
+  REQUIRE(divestedAttributes == flavorOnly);
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, flavor));
+  while (acquirer->evokeMultipleCallbacks(0.0, 0.0)) {
+  }
+  REQUIRE(acquirerReports.attributeOwnershipAcquisitionReports.size() == 1);
+  REQUIRE(acquirer->isAttributeOwnedByFederate(objectInstance, flavor));
+
+  unsigned char const staleAssociationValueBytes[] = {0x71, 0x25};
+  AttributeHandleValueMap staleAssociationValue;
+  staleAssociationValue.emplace(
+      flavor,
+      VariableLengthData(
+          staleAssociationValueBytes,
+          sizeof(staleAssociationValueBytes)));
+  REQUIRE_NOTHROW(acquirer->updateAttributeValues(
+      objectInstance,
+      staleAssociationValue,
+      VariableLengthData()));
+  REQUIRE_FALSE(regionalSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalSubscriberReports.attributeReflectionReports.size() == 1);
+  REQUIRE_FALSE(regionalSubscriberReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(regionalSubscriberReports.attributeReflectionReports.back()
+              .attributeValues.contains(flavor));
+
+  // The former association is gone at the ownership boundary, restoring the
+  // default region. A new owner can then associate its own explicit region;
+  // that replaces the default source realization for future reflections.
+  auto const acquiringRegion = acquirer->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(acquirer->setRangeBounds(
+      acquiringRegion,
+      sodaFlavor,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(acquirer->commitRegionModifications(RegionHandleSet{acquiringRegion}));
+  AttributeHandleSetRegionHandleSetPairVector const acquiringPair{{
+      flavorOnly,
+      RegionHandleSet{acquiringRegion},
+  }};
+  REQUIRE_NOTHROW(acquirer->associateRegionsForUpdates(objectInstance, acquiringPair));
+
+  unsigned char const currentAssociationValueBytes[] = {0x72, 0x25};
+  AttributeHandleValueMap currentAssociationValue;
+  currentAssociationValue.emplace(
+      flavor,
+      VariableLengthData(
+          currentAssociationValueBytes,
+          sizeof(currentAssociationValueBytes)));
+  REQUIRE_NOTHROW(acquirer->updateAttributeValues(
+      objectInstance,
+      currentAssociationValue,
+      VariableLengthData()));
+  REQUIRE_FALSE(regionalSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalSubscriberReports.attributeReflectionReports.size() == 2);
+  REQUIRE(regionalSubscriberReports.attributeReflectionReports.back()
+              .attributeValues.contains(flavor));
+
+  REQUIRE_NOTHROW(acquirer->unassociateRegionsForUpdates(objectInstance, acquiringPair));
+  REQUIRE_NOTHROW(regionalSubscriber->unsubscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair));
+  REQUIRE_NOTHROW(acquirer->unpublishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(acquirer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(regionalSubscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(acquirer->disconnect());
+  REQUIRE_NOTHROW(regionalSubscriber->disconnect());
 }
 
 TEST_CASE(
@@ -2725,53 +8692,47 @@ TEST_CASE(
   REQUIRE(immediateReports.attributesInScopeReports.empty());
   REQUIRE(immediateReports.attributesOutOfScopeReports.empty());
 
-  // Association changes are also scope transitions for an already-known
-  // object. Immediate delivery is synchronous; evoked delivery waits for
-  // callback dispatch, just as it does for committed region changes.
+  // Removing the last explicit association restores the default region. It
+  // spans every available FDD dimension, so these matching regional
+  // subscribers remain in scope and no scope transition is generated.
   evokedReports.attributesInScopeReports.clear();
   evokedReports.attributesOutOfScopeReports.clear();
   immediateReports.attributesInScopeReports.clear();
   immediateReports.attributesOutOfScopeReports.clear();
   REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, ownerPair));
   REQUIRE(evokedReports.attributesOutOfScopeReports.empty());
-  REQUIRE(immediateReports.attributesOutOfScopeReports.size() == 1);
-  REQUIRE_FALSE(evoked->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(evokedReports.attributesOutOfScopeReports.size() == 1);
-  REQUIRE(evokedReports.attributesOutOfScopeReports.front().objectInstance == objectInstance);
-  REQUIRE(evokedReports.attributesOutOfScopeReports.front().attributes == flavorOnly);
-
-  REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, ownerPair));
-  REQUIRE(immediateReports.attributesInScopeReports.size() == 1);
-  REQUIRE_FALSE(evoked->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(evokedReports.attributesInScopeReports.size() == 1);
-  REQUIRE(evokedReports.attributesInScopeReports.front().objectInstance == objectInstance);
-  REQUIRE(evokedReports.attributesInScopeReports.front().attributes == flavorOnly);
-  evokedReports.attributesInScopeReports.clear();
-  evokedReports.attributesOutOfScopeReports.clear();
-  immediateReports.attributesInScopeReports.clear();
-  immediateReports.attributesOutOfScopeReports.clear();
-
-  // A queued association transition is rechecked against the current
-  // association map. Removing and restoring the association before evocation
-  // suppresses stale out-of-scope work and retains the current in-scope work.
-  REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, ownerPair));
-  REQUIRE(immediateReports.attributesOutOfScopeReports.size() == 1);
-  REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, ownerPair));
-  REQUIRE(immediateReports.attributesInScopeReports.size() == 1);
-  REQUIRE(evoked->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(immediateReports.attributesOutOfScopeReports.empty());
   REQUIRE_FALSE(evoked->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(evokedReports.attributesOutOfScopeReports.empty());
-  REQUIRE(evokedReports.attributesInScopeReports.size() == 1);
-  REQUIRE(evokedReports.attributesInScopeReports.front().objectInstance == objectInstance);
-  REQUIRE(evokedReports.attributesInScopeReports.front().attributes == flavorOnly);
+
+  REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, ownerPair));
+  REQUIRE(immediateReports.attributesInScopeReports.empty());
+  REQUIRE_FALSE(evoked->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(evokedReports.attributesInScopeReports.empty());
   evokedReports.attributesInScopeReports.clear();
   evokedReports.attributesOutOfScopeReports.clear();
   immediateReports.attributesInScopeReports.clear();
   immediateReports.attributesOutOfScopeReports.clear();
 
-  // Subscription changes are scope transitions for an already-known object.
-  // Regional and ordinary declarations remain independent, but each source
-  // drives the same official in/out callbacks and callback-time recheck.
+  // Replacing a matching explicit association with the default and back again
+  // also leaves scope unchanged: default-region effectiveness is derived, not
+  // represented by a user-visible region association.
+  REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, ownerPair));
+  REQUIRE(immediateReports.attributesOutOfScopeReports.empty());
+  REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, ownerPair));
+  REQUIRE(immediateReports.attributesInScopeReports.empty());
+  static_cast<void>(evoked->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(evoked->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(evokedReports.attributesOutOfScopeReports.empty());
+  REQUIRE(evokedReports.attributesInScopeReports.empty());
+  evokedReports.attributesInScopeReports.clear();
+  evokedReports.attributesOutOfScopeReports.clear();
+  immediateReports.attributesInScopeReports.clear();
+  immediateReports.attributesOutOfScopeReports.clear();
+
+  // Subscription declarations remain independently retained. Their effective
+  // default and regional realizations determine the official in/out callbacks
+  // and callback-time recheck.
   REQUIRE_NOTHROW(evoked->unsubscribeObjectClassAttributesWithRegions(soda, evokedPair));
   REQUIRE(evokedReports.attributesOutOfScopeReports.empty());
   REQUIRE_NOTHROW(immediate->unsubscribeObjectClassAttributesWithRegions(soda, immediatePair));
@@ -2809,9 +8770,10 @@ TEST_CASE(
   evokedReports.attributesInScopeReports.clear();
   evokedReports.attributesOutOfScopeReports.clear();
 
-  // Ordinary subscription state is independent from the regional state. The
-  // evoked federate crosses out of regional scope, into ordinary scope, back
-  // out, and finally into regional scope again.
+  // Ordinary subscription state remains retained separately from regional
+  // state. With this explicit source region, the evoked federate crosses out
+  // of regional scope, into ordinary scope, back out, and finally into
+  // regional scope again.
   REQUIRE_NOTHROW(evoked->unsubscribeObjectClassAttributesWithRegions(soda, evokedPair));
   REQUIRE_FALSE(evoked->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(evokedReports.attributesOutOfScopeReports.size() == 1);
@@ -2900,7 +8862,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(immediate->deleteRegion(immediateRegion));
   REQUIRE_NOTHROW(evoked->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(evoked->disconnect());
@@ -3017,7 +8979,7 @@ TEST_CASE(
   // the membership transition.
   REQUIRE_NOTHROW(
       requester->requestAttributeValueUpdate(objectInstance, ownedAttributes, tag));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(ownerReports.attributeValueUpdateRequestReports.size() == 1);
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
@@ -3141,7 +9103,7 @@ TEST_CASE(
   // Class expansion is rechecked at delivery just like the instance form.
   // A queued owner callback cannot outlive the provider's resignation.
   REQUIRE_NOTHROW(requester->requestAttributeValueUpdate(base, baseAttributes, tag));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE(owner->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(ownerReports.attributeValueUpdateRequestReports.size() == 2);
@@ -3300,7 +9262,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(requester->deleteRegion(uncommittedRegion));
   REQUIRE_NOTHROW(requester->deleteRegion(requestRegion));
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(requester->disconnect());
@@ -3413,10 +9375,248 @@ TEST_CASE(
   REQUIRE_FALSE(reflection.sentRegionsSupplied);
 
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(requester->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Auto Provide solicits in-scope owners after discovery",
+    "[integration][development-profile][object-management][auto-provide]"
+    "[rti.service.get-auto-provide-switch]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.provide-attribute-value-update]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  auto const switchFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "switch-nrg-enabled-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectFom, switchFom},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"auto-provide-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"auto-provide-requester", L"subscriber", federationName));
+
+  REQUIRE(owner->getAutoProvideSwitch());
+  REQUIRE(requester->getAutoProvideSwitch());
+  auto const child = owner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliableBaseA = owner->getAttributeHandle(child, L"ReliableBaseA");
+  auto const reliableChild = owner->getAttributeHandle(child, L"ReliableChild");
+  REQUIRE(child.isValid());
+  REQUIRE(reliableBaseA.isValid());
+  REQUIRE(reliableChild.isValid());
+  AttributeHandleSet const ownedAttributes{reliableBaseA, reliableChild};
+
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, ownedAttributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+  REQUIRE(requesterReports.objectDiscoveryReports.empty());
+
+  // The late subscription discovers an already registered object. Auto
+  // Provide is evaluated after the Discover callback and therefore queues a
+  // separate provider callback on the owner's dispatcher.
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(child, ownedAttributes));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(ownerReports.attributeValueUpdateRequestReports.empty());
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeValueUpdateRequestReports.size() == 1);
+  auto const& request = ownerReports.attributeValueUpdateRequestReports.front();
+  REQUIRE(request.objectInstance == objectInstance);
+  REQUIRE(request.attributes == ownedAttributes);
+  REQUIRE(variableLengthDataBytes(request.userSuppliedTag).empty());
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded disabled Auto Provide leaves discovery without a provider callback",
+    "[integration][development-profile][object-management][auto-provide]"
+    "[rti.service.get-auto-provide-switch]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.provide-attribute-value-update]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"auto-provide-disabled-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"auto-provide-disabled-requester", L"subscriber", federationName));
+
+  REQUIRE_FALSE(owner->getAutoProvideSwitch());
+  REQUIRE_FALSE(requester->getAutoProvideSwitch());
+  auto const child = owner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliableBaseA = owner->getAttributeHandle(child, L"ReliableBaseA");
+  REQUIRE(child.isValid());
+  REQUIRE(reliableBaseA.isValid());
+  AttributeHandleSet const ownedAttributes{reliableBaseA};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, ownedAttributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(child, ownedAttributes));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeValueUpdateRequestReports.empty());
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide",
+    "[integration][development-profile][federation-management][mom][auto-provide]"
+    "[rti.service.send-interaction]"
+    "[rti.service.get-auto-provide-switch]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.provide-attribute-value-update]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"auto-provide-mom-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"auto-provide-mom-requester", L"subscriber", federationName));
+
+  REQUIRE_FALSE(owner->getAutoProvideSwitch());
+  REQUIRE_FALSE(requester->getAutoProvideSwitch());
+  auto const setSwitches = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches");
+  auto const autoProvideParameter = owner->getParameterHandle(
+      setSwitches,
+      L"HLAautoProvide");
+  REQUIRE(setSwitches.isValid());
+  REQUIRE(autoProvideParameter.isValid());
+
+  std::vector<unsigned char> invalidSwitchBytes{0, 0, 0, 2};
+  ParameterHandleValueMap invalidSwitchValues{
+      {autoProvideParameter,
+       VariableLengthData(invalidSwitchBytes.data(), invalidSwitchBytes.size())}};
+  REQUIRE_THROWS_AS(
+      owner->sendInteraction(setSwitches, invalidSwitchValues, VariableLengthData()),
+      rti1516_2025::RTIinternalError);
+  REQUIRE_FALSE(owner->getAutoProvideSwitch());
+  REQUIRE_FALSE(requester->getAutoProvideSwitch());
+
+  auto const child = owner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliableBaseA = owner->getAttributeHandle(child, L"ReliableBaseA");
+  auto const reliableChild = owner->getAttributeHandle(child, L"ReliableChild");
+  REQUIRE(child.isValid());
+  REQUIRE(reliableBaseA.isValid());
+  REQUIRE(reliableChild.isValid());
+  AttributeHandleSet const ownedAttributes{reliableBaseA, reliableChild};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, ownedAttributes));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(child, ownedAttributes));
+
+  ObjectInstanceHandle firstObject;
+  REQUIRE_NOTHROW(firstObject = owner->registerObjectInstance(child));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeValueUpdateRequestReports.empty());
+
+  std::vector<unsigned char> enabledSwitchBytes{0, 0, 0, 1};
+  ParameterHandleValueMap enabledSwitchValues{
+      {autoProvideParameter,
+       VariableLengthData(enabledSwitchBytes.data(), enabledSwitchBytes.size())}};
+  REQUIRE_NOTHROW(
+      owner->sendInteraction(setSwitches, enabledSwitchValues, VariableLengthData()));
+  REQUIRE(owner->getAutoProvideSwitch());
+  REQUIRE(requester->getAutoProvideSwitch());
+
+  ObjectInstanceHandle secondObject;
+  REQUIRE_NOTHROW(secondObject = owner->registerObjectInstance(child));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 2);
+  REQUIRE(ownerReports.attributeValueUpdateRequestReports.empty());
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeValueUpdateRequestReports.size() == 1);
+  auto const& enabledRequest = ownerReports.attributeValueUpdateRequestReports.front();
+  REQUIRE(enabledRequest.objectInstance == secondObject);
+  REQUIRE(enabledRequest.attributes == ownedAttributes);
+  REQUIRE(variableLengthDataBytes(enabledRequest.userSuppliedTag).empty());
+
+  std::vector<unsigned char> disabledSwitchBytes{0, 0, 0, 0};
+  ParameterHandleValueMap disabledSwitchValues{
+      {autoProvideParameter,
+       VariableLengthData(disabledSwitchBytes.data(), disabledSwitchBytes.size())}};
+  REQUIRE_NOTHROW(
+      requester->sendInteraction(setSwitches, disabledSwitchValues, VariableLengthData()));
+  REQUIRE_FALSE(owner->getAutoProvideSwitch());
+  REQUIRE_FALSE(requester->getAutoProvideSwitch());
+
+  ObjectInstanceHandle thirdObject;
+  REQUIRE_NOTHROW(thirdObject = owner->registerObjectInstance(child));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 3);
+  REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(ownerReports.attributeValueUpdateRequestReports.size() == 1);
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
 }
 
 TEST_CASE(
@@ -3543,7 +9743,7 @@ TEST_CASE(
   REQUIRE(requesterReports.objectRemovalReports.size() == 1);
   REQUIRE(requesterReports.objectRemovalReports.front().objectInstance == objectInstance);
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
@@ -3632,7 +9832,7 @@ TEST_CASE(
   REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(requesterReports.objectRemovalReports.size() == 1);
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
@@ -3842,7 +10042,7 @@ TEST_CASE(
   REQUIRE(requesterReports.objectRemovalReports.front().objectInstance == objectInstance);
   REQUIRE(ownerReports.attributeOwnershipAcquisitionReports.empty());
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
@@ -4059,7 +10259,7 @@ TEST_CASE(
   REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.size() == 2);
   REQUIRE(requesterReports.objectRemovalReports.size() == 1);
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
@@ -4197,7 +10397,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(firstRequester->unpublishObjectClassAttributes(child, ownedAttributes));
   REQUIRE_NOTHROW(secondRequester->unpublishObjectClassAttributes(child, ownedAttributes));
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(firstRequester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(secondRequester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
@@ -4479,7 +10679,7 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(child, ownedAttributes));
   REQUIRE_NOTHROW(invitedCandidate->unpublishObjectClassAttributes(child, candidateAttributes));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(regularRequester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(ifAvailableRequester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(invitedCandidate->resignFederationExecution(NO_ACTION));
@@ -4697,7 +10897,7 @@ TEST_CASE(
           divestedAttributes),
       rti1516_2025::AttributeNotOwned);
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(regularRequester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(ifAvailableRequester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
@@ -4832,7 +11032,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(firstIfAvailable->unpublishObjectClassAttributes(child, attributes));
   REQUIRE_NOTHROW(laterRegular->unpublishObjectClassAttributes(child, attributes));
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(firstIfAvailable->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(laterRegular->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
@@ -5024,9 +11224,11 @@ TEST_CASE(
   TestFederateAmbassador unjoinedFederate;
   ReportingFederateAmbassador ownerReports;
   ReportingFederateAmbassador requesterReports;
+  ReportingFederateAmbassador observerReports;
   auto unjoined = makeRti();
   auto owner = makeRti();
   auto requester = makeRti();
+  auto observer = makeRti();
   auto const federationName = nextFederationName();
   auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
                           "cpp" /
@@ -5076,12 +11278,15 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
   REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerReports, HLA_EVOKED));
   REQUIRE_NOTHROW(
       owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
   REQUIRE_NOTHROW(
       owner->joinFederationExecution(L"negotiated-divestiture-owner", L"publisher", federationName));
   REQUIRE_NOTHROW(requester->joinFederationExecution(
       L"negotiated-divestiture-requester", L"publisher", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"negotiated-divestiture-observer", L"subscriber", federationName));
 
   auto const child = owner->getObjectClassHandle(
       L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
@@ -5111,12 +11316,32 @@ TEST_CASE(
   };
 
   REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(child, ownedAttributes));
+  REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(child, ownedAttributes));
   REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, ownedAttributes));
   ObjectInstanceHandle objectInstance;
   REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
   REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(requesterReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_FALSE(observer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(observerReports.objectDiscoveryReports.size() == 1);
   REQUIRE_NOTHROW(requester->publishObjectClassAttributes(child, ownedAttributes));
+
+  // Prepare the transfer boundary with a time-constrained observer and a
+  // regulating requester. The old owner deliberately overrides this
+  // instance to TimeStamp; after confirmation, the requester still has the
+  // FOM/default Receive order, so a timestamped update must be delivered as
+  // receive-order if ownership transfer correctly resets the captured state.
+  REQUIRE_NOTHROW(observer->enableTimeConstrained());
+  REQUIRE_FALSE(observer->evokeCallback(0.0));
+  // Receive-order reflections to an idle constrained federate require the
+  // explicit 2025 asynchronous-delivery switch.
+  REQUIRE_NOTHROW(observer->enableAsynchronousDelivery());
+  REQUIRE_NOTHROW(requester->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(requester->evokeCallback(0.0));
+  REQUIRE_NOTHROW(owner->changeAttributeOrderType(
+      objectInstance,
+      transferredAttributes,
+      TIMESTAMP));
 
   REQUIRE_THROWS_AS(
       owner->negotiatedAttributeOwnershipDivestiture(
@@ -5205,6 +11430,36 @@ TEST_CASE(
           std::vector<unsigned char>(
               confirmationTagBytes,
               confirmationTagBytes + sizeof(confirmationTagBytes)));
+
+  unsigned char const transferredValueBytes[] = {0x7A, 0x11};
+  AttributeHandleValueMap transferredValues;
+  transferredValues.emplace(
+      transferredAttribute,
+      VariableLengthData(transferredValueBytes, sizeof(transferredValueBytes)));
+  auto const transferredRetraction = requester->updateAttributeValues(
+      objectInstance,
+      transferredValues,
+      confirmationTag,
+      rti1516_2025::HLAinteger64Time(2));
+  // The transferred attribute reverts to the FOM's Receive-order default.
+  // Clause 6.10 requires a returned designator only when at least one input
+  // attribute has TSO preferred order, so this timestamped call is correctly
+  // not retractable.
+  REQUIRE_FALSE(transferredRetraction.isValid());
+  REQUIRE_FALSE(observerReports.attributeReflectionReports.size());
+  REQUIRE_FALSE(observer->evokeCallback(0.0));
+  REQUIRE(observerReports.attributeReflectionReports.size() == 1);
+  auto const& transferredReflection = observerReports.attributeReflectionReports.front();
+  REQUIRE(transferredReflection.objectInstance == objectInstance);
+  REQUIRE(transferredReflection.attributeValues.size() == 1);
+  REQUIRE(transferredReflection.attributeValues.begin()->first == transferredAttribute);
+  REQUIRE(variableLengthDataBytes(transferredReflection.attributeValues.begin()->second) ==
+          std::vector<unsigned char>(
+              transferredValueBytes,
+              transferredValueBytes + sizeof(transferredValueBytes)));
+  REQUIRE(transferredReflection.sentOrderType == RECEIVE);
+  REQUIRE(transferredReflection.receivedOrderType == RECEIVE);
+  REQUIRE_FALSE(transferredReflection.retractionSupplied);
   REQUIRE_NOTHROW(requester->unpublishObjectClassAttributes(child, transferredAttributes));
 
   // A regular acquisition that arrives after the owner has entered Waiting
@@ -5340,12 +11595,14 @@ TEST_CASE(
           noAcquirerAttributes);
   REQUIRE_NOTHROW(requester->unpublishObjectClassAttributes(child, noAcquirerAttributes));
 
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(observer->disconnect());
 }
 
 TEST_CASE(
@@ -5441,9 +11698,9 @@ TEST_CASE(
       publisher->sendInteraction(child, invalidParameterValues, tag),
       rti1516_2025::InteractionParameterNotDefined);
 
-  // A passive superclass subscription remains eligible for Receive
-  // Interaction.  Promotion selects the closest subscribed superclass, while
-  // a child-and-parent subscription results in exactly one child callback.
+  // A passive superclass subscription does not arrange delivery. An active
+  // child subscription still selects the closest received class, so a
+  // child-and-parent subscription yields exactly one child callback.
   REQUIRE_NOTHROW(publisher->subscribeInteractionClass(child));
   REQUIRE_NOTHROW(exact->subscribeInteractionClass(child));
   REQUIRE_NOTHROW(promoted->subscribeInteractionClass(base, false));
@@ -5486,8 +11743,7 @@ TEST_CASE(
 
   REQUIRE(exactReports.interactionReports.size() == 1);
   requireDelivery(exactReports.interactionReports.front(), child);
-  REQUIRE(promotedReports.interactionReports.size() == 1);
-  requireDelivery(promotedReports.interactionReports.front(), base);
+  REQUIRE(promotedReports.interactionReports.empty());
   REQUIRE(dualSubscriptionReports.interactionReports.size() == 1);
   requireDelivery(dualSubscriptionReports.interactionReports.front(), child);
   REQUIRE(immediateReports.interactionReports.size() == 1);
@@ -5502,7 +11758,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(dualSubscription->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(promoted->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(exact->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
@@ -5515,7 +11771,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded timestamped Send Interaction queues TSO before the grant and supports retraction",
+    "Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
     "[integration][development-profile][interaction-management][time-management]"
     "[rti.service.send-interaction][rti.service.retract]"
     "[rti.service.time-advance-request][federate.callback.receive-interaction]"
@@ -5555,6 +11811,7 @@ TEST_CASE(
       VariableLengthData(identifierBytes, sizeof(identifierBytes)));
 
   REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
   REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
@@ -5612,8 +11869,792 @@ TEST_CASE(
   REQUIRE(secondReport.retractionSupplied);
   REQUIRE(secondReport.retractionValid);
   REQUIRE(secondReport.parameterValues.size() == 1);
+  // The sender is at time 2 with lookahead 5, so timestamp 7 is exactly its
+  // Retract boundary and is not strictly later as 8.22.3 requires.
   REQUIRE_THROWS_AS(
       publisher->retract(secondHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+  REQUIRE(receiverReports.requestRetractionReports.empty());
+
+  // A producer advance can make a designator terminal before a constrained
+  // recipient crosses the original delivery boundary. The tombstone must
+  // preserve the public MessageCanNoLongerBeRetracted result while retaining
+  // the typed payload long enough for the receiver's original callback.
+  auto const terminalHandle = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(8));
+  REQUIRE(terminalHandle.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(8)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 2);
+  REQUIRE(receiverReports.timestampedInteractionReports.back().timeValue == L"8");
+  REQUIRE(receiverReports.timestampedInteractionReports.back().retractionValid);
+  REQUIRE_THROWS_AS(
+      publisher->retract(terminalHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  // Flush Queue Request can deliver a TSO message that remains retractable by
+  // its originator. At sender time 3 and lookahead 5, timestamp 9 is legal for
+  // Retract even though the receiver has already received the interaction.
+  auto const thirdHandle = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(9));
+  REQUIRE(thirdHandle.isValid());
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(rti1516_2025::HLAinteger64Time(9)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 3);
+  REQUIRE(receiverReports.timestampedInteractionReports.back().timeValue == L"9");
+  REQUIRE(receiverReports.timestampedInteractionReports.back().retractionValid);
+  REQUIRE(receiverReports.flushQueueGrantReports.size() == 1);
+
+  REQUIRE_NOTHROW(publisher->retract(thirdHandle));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.requestRetractionReports.size() == 1);
+  REQUIRE(receiverReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              receiverReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(thirdHandle.encode()));
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded synchronization points announce, track achievement, and complete",
+    "[integration][development-profile][federation-management][synchronization]"
+    "[rti.service.register-federation-synchronization-point]"
+    "[rti.service.synchronization-point-achieved]"
+    "[federate.callback.synchronization-point-registration]"
+    "[federate.callback.announce-synchronization-point]"
+    "[federate.callback.federation-synchronized]") {
+  ReportingFederateAmbassador firstReports;
+  ReportingFederateAmbassador secondReports;
+  ReportingFederateAmbassador lateReports;
+  auto first = makeRti();
+  auto second = makeRti();
+  auto late = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const syncTagBytes[] = {0x53, 0x59, 0x4E, 0x43};
+  VariableLengthData const syncTag(syncTagBytes, sizeof(syncTagBytes));
+
+  REQUIRE_NOTHROW(first->connect(firstReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(second->connect(secondReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(late->connect(lateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      first->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  auto const firstHandle = first->joinFederationExecution(
+      L"sync-first", L"sync", federationName);
+  auto const secondHandle = second->joinFederationExecution(
+      L"sync-second", L"sync", federationName);
+
+  FederateHandleSet synchronizationSet;
+  synchronizationSet.insert(firstHandle);
+  synchronizationSet.insert(secondHandle);
+  REQUIRE_NOTHROW(first->registerFederationSynchronizationPoint(
+      L"startup", syncTag, synchronizationSet));
+  REQUIRE(first->evokeCallback(0.0));
+  REQUIRE_FALSE(first->evokeCallback(0.0));
+  REQUIRE(firstReports.synchronizationPointRegistrationReports.size() == 1);
+  REQUIRE(firstReports.synchronizationPointRegistrationReports.front().succeeded);
+  REQUIRE(firstReports.synchronizationPointAnnouncementReports.size() == 1);
+  REQUIRE(firstReports.synchronizationPointAnnouncementReports.front().label == L"startup");
+  REQUIRE(firstReports.synchronizationPointAnnouncementReports.front().userSuppliedTag.size() ==
+          sizeof(syncTagBytes));
+
+  REQUIRE_FALSE(second->evokeCallback(0.0));
+  REQUIRE(secondReports.synchronizationPointAnnouncementReports.size() == 1);
+
+  // A federate joining after registration is added to the outstanding
+  // synchronization set and receives the same announced tag.
+  REQUIRE_NOTHROW(late->joinFederationExecution(
+      L"sync-late", L"sync", federationName));
+  REQUIRE_FALSE(late->evokeCallback(0.0));
+  REQUIRE(lateReports.synchronizationPointAnnouncementReports.size() == 1);
+  REQUIRE(lateReports.synchronizationPointAnnouncementReports.front().label == L"startup");
+
+  // A duplicate label is reported asynchronously to the requesting federate;
+  // it does not disturb the already registered point.
+  REQUIRE_NOTHROW(second->registerFederationSynchronizationPoint(L"startup", syncTag));
+  REQUIRE_FALSE(second->evokeCallback(0.0));
+  REQUIRE(secondReports.synchronizationPointRegistrationReports.size() == 1);
+  REQUIRE_FALSE(secondReports.synchronizationPointRegistrationReports.front().succeeded);
+  REQUIRE(
+      secondReports.synchronizationPointRegistrationReports.front().failureReason ==
+      rti1516_2025::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE);
+
+  REQUIRE_NOTHROW(first->synchronizationPointAchieved(L"startup"));
+  REQUIRE_NOTHROW(second->synchronizationPointAchieved(L"startup", false));
+  REQUIRE_NOTHROW(late->synchronizationPointAchieved(L"startup"));
+
+  REQUIRE_FALSE(first->evokeCallback(0.0));
+  REQUIRE_FALSE(second->evokeCallback(0.0));
+  REQUIRE_FALSE(late->evokeCallback(0.0));
+  REQUIRE(firstReports.federationSynchronizedReports.size() == 1);
+  REQUIRE(secondReports.federationSynchronizedReports.size() == 1);
+  REQUIRE(lateReports.federationSynchronizedReports.size() == 1);
+  REQUIRE(firstReports.federationSynchronizedReports.front().label == L"startup");
+  REQUIRE(secondReports.federationSynchronizedReports.front().label == L"startup");
+  REQUIRE(lateReports.federationSynchronizedReports.front().label == L"startup");
+  REQUIRE(firstReports.federationSynchronizedReports.front().failedToSyncSet.contains(secondHandle));
+  REQUIRE(secondReports.federationSynchronizedReports.front().failedToSyncSet.contains(secondHandle));
+  REQUIRE(lateReports.federationSynchronizedReports.front().failedToSyncSet.contains(secondHandle));
+  REQUIRE_THROWS_AS(
+      first->synchronizationPointAchieved(L"startup"),
+      rti1516_2025::SynchronizationPointLabelNotAnnounced);
+
+  REQUIRE_NOTHROW(late->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(second->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(first->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(first->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(late->disconnect());
+  REQUIRE_NOTHROW(second->disconnect());
+  REQUIRE_NOTHROW(first->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Next Message Request grants at the next queued TSO timestamp",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[rti.service.next-message-request][rti.service.send-interaction]"
+    "[rti.service.time-advance-request][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x4E, 0x4D, 0x52};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"nmr-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"nmr-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  unsigned char const identifierBytes[] = {0xC1, 0xD2};
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const handle = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(handle.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  // The queued message at 7 is the NMR target even though the request asks
+  // for 10. The request initially waits because the regulator's GALT is 5.
+  REQUIRE_NOTHROW(receiver->nextMessageRequest(rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+
+  REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(
+      receiverReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == L"7");
+  REQUIRE(receiverReports.timestampedInteractionReports.front().timeValue == L"7");
+  REQUIRE(receiverReports.timestampedInteractionReports.front().sentOrderType ==
+          rti1516_2025::TIMESTAMP);
+  REQUIRE(receiverReports.timestampedInteractionReports.front().receivedOrderType ==
+          rti1516_2025::TIMESTAMP);
+  REQUIRE(receiverReports.timestampedInteractionReports.front().retractionValid);
+
+  rti1516_2025::HLAinteger64Time queriedTime;
+  REQUIRE_NOTHROW(receiver->queryLogicalTime(queriedTime));
+  REQUIRE(queriedTime.getTime() == 7);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Available time advances use inclusive GALT and queued TSO delivery",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[rti.service.time-advance-request-available][rti.service.next-message-request-available]"
+    "[rti.service.send-interaction][rti.service.time-advance-request]"
+    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x41, 0x56, 0x41};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"available-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"available-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  unsigned char const identifierBytes[] = {0xA1, 0xB2};
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const first = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(first.isValid());
+
+  // TARA reaches the exact defined GALT boundary after the regulator moves
+  // to logical time 2. The message at 7 is delivered before the grant.
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequestAvailable(
+      rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == L"7");
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
+
+  // NMRA also selects the next queued timestamp, but its inclusive GALT rule
+  // is exercised without relying on the message itself to mark the boundary:
+  // the regulator advances from 2 to 4, making GALT exactly 9.
+  auto const second = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(9));
+  REQUIRE(second.isValid());
+  REQUIRE_NOTHROW(receiver->nextMessageRequestAvailable(
+      rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 2);
+  REQUIRE(
+      receiverReports.callbackOrder ==
+      std::vector<std::string>{"interaction", "grant", "interaction", "grant"});
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
+  REQUIRE(receiverReports.timestampedInteractionReports.back().timeValue == L"9");
+
+  rti1516_2025::HLAinteger64Time queriedTime;
+  REQUIRE_NOTHROW(receiver->queryLogicalTime(queriedTime));
+  REQUIRE(queriedTime.getTime() == 9);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Flush Queue Request flushes queued TSO and reports optimistic time",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[rti.service.flush-queue-request][rti.service.send-interaction]"
+    "[federate.callback.receive-interaction][federate.callback.flush-queue-grant]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x46, 0x51, 0x52};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"flush-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"flush-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  unsigned char const identifierBytes[] = {0xF1, 0xF2};
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const first = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  auto const second = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(12));
+  REQUIRE(first.isValid());
+  REQUIRE(second.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  // Flush Queue Request does not wait for the regulator. It delivers every
+  // currently queued TSO message, even the one beyond the requested time, and
+  // grants min(request=10, GALT=5, earliest-delivered=7) with OLT 7.
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(receiverReports.flushQueueGrantReports.empty());
+  REQUIRE_NOTHROW(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 2);
+  REQUIRE(receiverReports.flushQueueGrantReports.size() == 1);
+  REQUIRE(receiverReports.flushQueueGrantReports.front().value == L"5");
+  REQUIRE(receiverReports.flushQueueGrantReports.front().optimisticValue == L"7");
+  REQUIRE(
+      receiverReports.callbackOrder ==
+      std::vector<std::string>{"interaction", "interaction", "flush-grant"});
+  REQUIRE(receiverReports.timestampedInteractionReports[0].timeValue == L"7");
+  REQUIRE(receiverReports.timestampedInteractionReports[1].timeValue == L"12");
+
+  REQUIRE_THROWS_AS(
+      receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)),
+      rti1516_2025::LogicalTimeAlreadyPassed);
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(
+      rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.flushQueueGrantReports.size() == 2);
+  REQUIRE(receiverReports.flushQueueGrantReports.back().value == L"7");
+  REQUIRE(receiverReports.flushQueueGrantReports.back().optimisticValue == L"7");
+
+  rti1516_2025::HLAinteger64Time queriedTime;
+  REQUIRE_NOTHROW(receiver->queryLogicalTime(queriedTime));
+  REQUIRE(queriedTime.getTime() == 7);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded producer advance requests terminalize expired TSO designators",
+    "[integration][development-profile][interaction-management][time-management][tso]"
+    "[rti.service.send-interaction][rti.service.retract]"
+    "[rti.service.time-advance-request][rti.service.time-advance-request-available]"
+    "[rti.service.next-message-request][rti.service.next-message-request-available]"
+    "[rti.service.flush-queue-request]") {
+  ReportingFederateAmbassador reports;
+  ReportingFederateAmbassador receiverReports;
+  auto rti = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x54, 0x53, 0x4F};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"terminal-producer", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"terminal-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = rti->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = rti->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  unsigned char const identifierBytes[] = {0xE1, 0xE2};
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+
+  REQUIRE_NOTHROW(rti->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(rti->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  auto sendAtBoundary = [&](std::int64_t timestamp) {
+    auto const handle = rti->sendInteraction(
+        interactionClass,
+        parameterValues,
+        tag,
+        rti1516_2025::HLAinteger64Time(timestamp));
+    REQUIRE(handle.isValid());
+    return handle;
+  };
+  auto requireTerminal = [&](rti1516_2025::MessageRetractionHandle const& handle) {
+    REQUIRE_THROWS_AS(
+        rti->retract(handle),
+        rti1516_2025::MessageCanNoLongerBeRetracted);
+  };
+
+  // Every accepted producer advance below moves its request boundary by one;
+  // with actual lookahead five, the just-sent timestamp is exactly the strict
+  // 8.22.3 cut-off. The idle constrained recipient retains each original
+  // payload in its TSO queue while the producer's terminal record preserves
+  // the public classification.
+  auto const tar = sendAtBoundary(6);
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  requireTerminal(tar);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  auto const tara = sendAtBoundary(7);
+  REQUIRE_NOTHROW(rti->timeAdvanceRequestAvailable(
+      rti1516_2025::HLAinteger64Time(2)));
+  requireTerminal(tara);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  auto const nmr = sendAtBoundary(8);
+  REQUIRE_NOTHROW(rti->nextMessageRequest(rti1516_2025::HLAinteger64Time(3)));
+  requireTerminal(nmr);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  auto const nmra = sendAtBoundary(9);
+  REQUIRE_NOTHROW(rti->nextMessageRequestAvailable(
+      rti1516_2025::HLAinteger64Time(4)));
+  requireTerminal(nmra);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  auto const fqr = sendAtBoundary(10);
+  REQUIRE_NOTHROW(rti->flushQueueRequest(rti1516_2025::HLAinteger64Time(5)));
+  requireTerminal(fqr);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
+    "[integration][development-profile][interaction-management][time-management][tso]"
+    "[rti.service.send-interaction][rti.service.retract]"
+    "[rti.service.time-advance-request]") {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x4E, 0x4F, 0x4E, 0x45};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"no-fanout-producer", L"publisher", federationName));
+
+  auto const interactionClass = rti->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = rti->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  unsigned char const identifierBytes[] = {0xA4, 0xA5};
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+
+  REQUIRE_NOTHROW(rti->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(rti->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  // Clause 8.22.3 identifies the designator returned from a timestamped
+  // Send Interaction; the service must return one even when no recipient is
+  // eligible for fanout. The ledger alone supports both legal retract and
+  // eventual terminal classification without retaining typed payload.
+  auto const retractable = rti->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retractable.isValid());
+  REQUIRE_NOTHROW(rti->retract(retractable));
+  REQUIRE_THROWS_AS(
+      rti->retract(retractable),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  auto const expired = rti->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(expired.isValid());
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_THROWS_AS(
+      rti->retract(expired),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
+    "[integration][development-profile][object-management][time-management][tso]"
+    "[rti.service.update-attribute-values][rti.service.retract]"
+    "[rti.service.time-advance-request]") {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x4E, 0x4F, 0x4E, 0x45};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"no-fanout-attribute-producer", L"publisher", federationName));
+
+  auto const objectClass = rti->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const attribute = rti->getAttributeHandle(objectClass, L"ReliableBaseA");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(attribute.isValid());
+  AttributeHandleSet const attributes{attribute};
+  AttributeHandleValueMap values;
+  unsigned char const valueBytes[] = {0xA4, 0xA5};
+  values.emplace(attribute, VariableLengthData(valueBytes, sizeof(valueBytes)));
+
+  REQUIRE_NOTHROW(rti->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(rti->changeDefaultAttributeOrderType(objectClass, attributes, TIMESTAMP));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = rti->registerObjectInstance(objectClass));
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  // Clause 6.10 requires a designator when a time-regulating publisher sends
+  // at least one TSO-preferred attribute with a timestamp; fanout is not an
+  // additional precondition. The lightweight ledger supports legal retract
+  // and eventual terminal classification without retaining typed passels.
+  auto const retractable = rti->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retractable.isValid());
+  REQUIRE_NOTHROW(rti->retract(retractable));
+  REQUIRE_THROWS_AS(
+      rti->retract(retractable),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  auto const expired = rti->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(expired.isValid());
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_THROWS_AS(
+      rti->retract(expired),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+    "[integration][development-profile][interaction-management][time-management][tso]"
+    "[rti.service.disable-time-regulation][rti.service.enable-time-regulation]"
+    "[rti.service.send-interaction][rti.service.retract]"
+    "[rti.service.time-advance-request]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const parameterBytes[] = {0xD1, 0x5A};
+  unsigned char const tagBytes[] = {0x52, 0x45, 0x45, 0x4E};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"re-enable-retraction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"re-enable-retraction-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE(publisherReports.timeRegulationEnabledReports.size() == 1);
+
+  auto const retraction = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  // Disabling regulation removes the present authority to Retract but must
+  // not discard or terminalize the live designator. Once regulation is
+  // enabled again at the same lower boundary, the original queued fanout is
+  // still legally retractable.
+  REQUIRE_NOTHROW(publisher->disableTimeRegulation());
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
+      rti1516_2025::TimeRegulationIsNotEnabled);
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
+      rti1516_2025::TimeRegulationIsNotEnabled);
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE(publisherReports.timeRegulationEnabledReports.size() == 2);
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
       rti1516_2025::MessageCanNoLongerBeRetracted);
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
@@ -5673,6 +12714,10 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
   REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(child, attributes));
+  // This fixture deliberately declares Receive order.  Opt the publisher's
+  // class default into TimeStamp so this scenario continues to exercise the
+  // timestamped queue while the order-control tranche honors FOM defaults.
+  REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(child, attributes, TIMESTAMP));
   ObjectInstanceHandle objectInstance;
   REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(child));
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
@@ -5706,6 +12751,7 @@ TEST_CASE(
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
   REQUIRE(receiverReports.attributeReflectionReports.empty());
+  REQUIRE(receiverReports.requestRetractionReports.empty());
 
   auto const secondHandle = publisher->updateAttributeValues(
       objectInstance,
@@ -5761,7 +12807,462 @@ TEST_CASE(
       rti1516_2025::MessageCanNoLongerBeRetracted);
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
+    "[integration][development-profile][object-management][time-management]"
+    "[rti.service.update-attribute-values][rti.service.retract]"
+    "[federate.callback.reflect-attribute-values][federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador immediateReports;
+  auto publisher = makeRti();
+  auto immediate = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x52, 0x41, 0x56};
+  unsigned char const reliableBytes[] = {0x6A, 0x17};
+  unsigned char const bestEffortBytes[] = {0xC2, 0x4D, 0x19};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(immediate->connect(immediateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"attribute-retraction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(immediate->joinFederationExecution(
+      L"attribute-retraction-immediate", L"subscriber", federationName));
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  auto const bestEffort = publisher->getAttributeHandle(child, L"BestEffortBase");
+  REQUIRE(child.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  AttributeHandleValueMap attributeValues;
+  attributeValues.emplace(
+      reliable,
+      VariableLengthData(reliableBytes, sizeof(reliableBytes)));
+  attributeValues.emplace(
+      bestEffort,
+      VariableLengthData(bestEffortBytes, sizeof(bestEffortBytes)));
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(immediate->subscribeObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(child, attributes, TIMESTAMP));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(child));
+  while (immediate->evokeCallback(0.0)) {
+  }
+  REQUIRE(immediateReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // No recipient is time-constrained, so this invocation has zero temporal
+  // queue fanout. It must nevertheless retain the returned retraction
+  // designator and the recipient's delivery state.
+  auto const retraction = publisher->updateAttributeValues(
+      objectInstance,
+      attributeValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.attributeReflectionReports.size() == 2);
+  bool reliableReported = false;
+  bool bestEffortReported = false;
+  for (auto const& reflection : immediateReports.attributeReflectionReports) {
+    REQUIRE(reflection.objectInstance == objectInstance);
+    REQUIRE(reflection.producingFederate == publisherHandle);
+    REQUIRE(reflection.timeValue == L"6");
+    REQUIRE(reflection.sentOrderType == rti1516_2025::TIMESTAMP);
+    REQUIRE(reflection.receivedOrderType == rti1516_2025::RECEIVE);
+    REQUIRE(reflection.retractionSupplied);
+    REQUIRE(reflection.retractionValid);
+    REQUIRE(reflection.attributeValues.size() == 1);
+    if (reflection.attributeValues.contains(reliable)) {
+      reliableReported = true;
+      REQUIRE(variableLengthDataBytes(reflection.attributeValues.at(reliable)) ==
+              std::vector<unsigned char>(
+                  reliableBytes,
+                  reliableBytes + sizeof(reliableBytes)));
+    } else if (reflection.attributeValues.contains(bestEffort)) {
+      bestEffortReported = true;
+      REQUIRE(variableLengthDataBytes(reflection.attributeValues.at(bestEffort)) ==
+              std::vector<unsigned char>(
+                  bestEffortBytes,
+                  bestEffortBytes + sizeof(bestEffortBytes)));
+    } else {
+      FAIL("Unexpected immediate timestamped attribute passel");
+    }
+  }
+  REQUIRE(reliableReported);
+  REQUIRE(bestEffortReported);
+  REQUIRE(
+      immediateReports.callbackOrder ==
+      std::vector<std::string>{"reflect", "reflect"});
+
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 1);
+  REQUIRE(immediateReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(retraction.encode()));
+  REQUIRE(
+      immediateReports.callbackOrder ==
+      std::vector<std::string>{"reflect", "reflect", "request-retraction"});
+
+  REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(immediate->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+    "[integration][development-profile][object-management][ddm][time-management]"
+    "[mixed-fanout]"
+    "[rti.service.update-attribute-values][rti.service.retract]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.time-advance-request][federate.callback.reflect-attribute-values]"
+    "[federate.callback.time-advance-grant][federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  ReportingFederateAmbassador immediateReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto immediate = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const valueBytes[] = {0x5A, 0x25};
+  unsigned char const tagBytes[] = {0x72, 0x54, 0x53, 0x4F};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(immediate->connect(immediateReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"timestamped-regional-attribute-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"timestamped-regional-attribute-receiver", L"subscriber", federationName));
+  REQUIRE_NOTHROW(immediate->joinFederationExecution(
+      L"timestamped-regional-attribute-immediate", L"subscriber", federationName));
+  REQUIRE_FALSE(receiver->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE_FALSE(immediate->getConveyRegionDesignatorSetsSwitch());
+
+  auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(soda, flavorOnly, TIMESTAMP));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const receiverRegion = receiver->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const immediateRegion = immediate->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion, sodaFlavor, RangeBounds(0UL, 2UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  REQUIRE_NOTHROW(receiver->setRangeBounds(
+      receiverRegion, sodaFlavor, RangeBounds(1UL, 3UL)));
+  REQUIRE_NOTHROW(receiver->commitRegionModifications(RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(immediate->setRangeBounds(
+      immediateRegion, sodaFlavor, RangeBounds(1UL, 3UL)));
+  REQUIRE_NOTHROW(immediate->commitRegionModifications(RegionHandleSet{immediateRegion}));
+
+  AttributeHandleSetRegionHandleSetPairVector const publisherPair{{
+      flavorOnly,
+      RegionHandleSet{publisherRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const receiverPair{{
+      flavorOnly,
+      RegionHandleSet{receiverRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const immediatePair{{
+      flavorOnly,
+      RegionHandleSet{immediateRegion},
+  }};
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstanceWithRegions(
+      soda,
+      publisherPair));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributesWithRegions(
+      soda,
+      receiverPair));
+  REQUIRE_NOTHROW(immediate->subscribeObjectClassAttributesWithRegions(
+      soda,
+      immediatePair));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(immediateReports.objectDiscoveryReports.size() == 1);
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+
+  AttributeHandleValueMap attributeValues;
+  attributeValues.emplace(
+      flavor,
+      VariableLengthData(valueBytes, sizeof(valueBytes)));
+  REQUIRE_THROWS_AS(
+      publisher->updateAttributeValues(
+          objectInstance,
+          attributeValues,
+          tag,
+          rti1516_2025::HLAinteger64Time(4)),
+      rti1516_2025::InvalidLogicalTime);
+
+  auto const firstHandle = publisher->updateAttributeValues(
+      objectInstance,
+      attributeValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(firstHandle.isValid());
+  REQUIRE(receiverReports.attributeReflectionReports.empty());
+  REQUIRE(immediateReports.attributeReflectionReports.size() == 1);
+  auto const& immediateFirstReport = immediateReports.attributeReflectionReports.back();
+  REQUIRE(immediateFirstReport.objectInstance == objectInstance);
+  REQUIRE(immediateFirstReport.timeValue == L"6");
+  REQUIRE(immediateFirstReport.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(immediateFirstReport.receivedOrderType == rti1516_2025::RECEIVE);
+  REQUIRE(immediateFirstReport.retractionSupplied);
+  REQUIRE(immediateFirstReport.retractionValid);
+  REQUIRE_FALSE(immediateFirstReport.sentRegionsSupplied);
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->retract(firstHandle));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 1);
+  REQUIRE(immediateReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(firstHandle.encode()));
+  REQUIRE(immediateReports.callbackOrder ==
+          std::vector<std::string>{"reflect", "request-retraction"});
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.attributeReflectionReports.empty());
+  REQUIRE(immediateReports.attributeReflectionReports.size() == 1);
+
+  auto const secondHandle = publisher->updateAttributeValues(
+      objectInstance,
+      attributeValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(secondHandle.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE(immediateReports.attributeReflectionReports.size() == 2);
+  auto const& immediateSecondReport = immediateReports.attributeReflectionReports.back();
+  REQUIRE(immediateSecondReport.timeValue == L"7");
+  REQUIRE(immediateSecondReport.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(immediateSecondReport.receivedOrderType == rti1516_2025::RECEIVE);
+  REQUIRE(immediateSecondReport.retractionSupplied);
+  REQUIRE(immediateSecondReport.retractionValid);
+  REQUIRE_FALSE(immediateSecondReport.sentRegionsSupplied);
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1);
+  auto const& suppressedRegionReport = receiverReports.attributeReflectionReports.front();
+  REQUIRE(suppressedRegionReport.objectInstance == objectInstance);
+  REQUIRE(suppressedRegionReport.producingFederate == publisherHandle);
+  REQUIRE(suppressedRegionReport.timeValue == L"7");
+  REQUIRE(suppressedRegionReport.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(suppressedRegionReport.receivedOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(suppressedRegionReport.retractionSupplied);
+  REQUIRE(suppressedRegionReport.retractionValid);
+  REQUIRE_FALSE(suppressedRegionReport.sentRegionsSupplied);
+  REQUIRE_THROWS_AS(
+      publisher->retract(secondHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
+  auto const thirdHandle = publisher->updateAttributeValues(
+      objectInstance,
+      attributeValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(8));
+  REQUIRE(thirdHandle.isValid());
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(8)));
+  REQUIRE(immediateReports.attributeReflectionReports.size() == 3);
+  auto const& immediateThirdReport = immediateReports.attributeReflectionReports.back();
+  REQUIRE(immediateThirdReport.timeValue == L"8");
+  REQUIRE(immediateThirdReport.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(immediateThirdReport.receivedOrderType == rti1516_2025::RECEIVE);
+  REQUIRE(immediateThirdReport.retractionSupplied);
+  REQUIRE(immediateThirdReport.retractionValid);
+  REQUIRE_FALSE(immediateThirdReport.sentRegionsSupplied);
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3);
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 2);
+  auto const& conveyedRegionReport = receiverReports.attributeReflectionReports.back();
+  REQUIRE(conveyedRegionReport.objectInstance == objectInstance);
+  REQUIRE(conveyedRegionReport.producingFederate == publisherHandle);
+  REQUIRE(conveyedRegionReport.timeValue == L"8");
+  REQUIRE(conveyedRegionReport.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(conveyedRegionReport.receivedOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(conveyedRegionReport.retractionSupplied);
+  REQUIRE(conveyedRegionReport.retractionValid);
+  REQUIRE(conveyedRegionReport.sentRegionsSupplied);
+  REQUIRE(conveyedRegionReport.sentRegions.contains(publisherRegion));
+  REQUIRE_THROWS_AS(
+      publisher->retract(thirdHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributesWithRegions(
+      soda,
+      receiverPair));
+  REQUIRE_NOTHROW(immediate->unsubscribeObjectClassAttributesWithRegions(
+      soda,
+      immediatePair));
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, publisherPair));
+  REQUIRE_NOTHROW(receiver->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(immediate->deleteRegion(immediateRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(immediate->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+    "[integration][development-profile][object-management][ddm][time-management][tso]"
+    "[rti.service.update-attribute-values][rti.service.retract]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.time-advance-request]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const valueBytes[] = {0x5A, 0x25};
+  unsigned char const tagBytes[] = {0x4F, 0x56, 0x45, 0x52};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"regional-attribute-no-overlap-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"regional-attribute-no-overlap-receiver", L"subscriber", federationName));
+
+  auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(soda, flavorOnly, TIMESTAMP));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const receiverRegion = receiver->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion, sodaFlavor, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(receiver->setRangeBounds(
+      receiverRegion, sodaFlavor, RangeBounds(2UL, 3UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  REQUIRE_NOTHROW(receiver->commitRegionModifications(RegionHandleSet{receiverRegion}));
+  AttributeHandleSetRegionHandleSetPairVector const publisherPair{{
+      flavorOnly,
+      RegionHandleSet{publisherRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const receiverPair{{
+      flavorOnly,
+      RegionHandleSet{receiverRegion},
+  }};
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstanceWithRegions(
+      soda,
+      publisherPair));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributesWithRegions(
+      soda,
+      receiverPair));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.objectDiscoveryReports.empty());
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  AttributeHandleValueMap values;
+  values.emplace(flavor, VariableLengthData(valueBytes, sizeof(valueBytes)));
+
+  // Clause 6.10's TSO-preferred-attribute condition holds despite the
+  // disjoint subscription. The public result therefore has a designator
+  // while the regional planner suppresses all callback fanout.
+  auto const retractable = publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retractable.isValid());
+  REQUIRE(receiverReports.attributeReflectionReports.empty());
+  REQUIRE_NOTHROW(publisher->retract(retractable));
+  REQUIRE_THROWS_AS(
+      publisher->retract(retractable),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  auto const expired = publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(expired.isValid());
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_THROWS_AS(
+      publisher->retract(expired),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.attributeReflectionReports.empty());
+
+  REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributesWithRegions(
+      soda,
+      receiverPair));
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, publisherPair));
+  REQUIRE_NOTHROW(receiver->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
@@ -5877,9 +13378,416 @@ TEST_CASE(
       rti1516_2025::MessageCanNoLongerBeRetracted);
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded terminal timestamped deletion tombstone releases its object name",
+    "[integration][development-profile][object-management][time-management][tso]"
+    "[rti.service.delete-object-instance][rti.service.retract]"
+    "[rti.service.time-advance-request][rti.service.reserve-object-instance-name]") {
+  ReportingFederateAmbassador ownerReports;
+  auto owner = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+                          "data" / "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0x54, 0x4F, 0x4D};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  std::wstring const objectName = L"Umbra.TerminalTimestampedDeletion";
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"terminal-deletion-owner", L"owner", federationName));
+
+  auto const child = owner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliable = owner->getAttributeHandle(child, L"ReliableBaseA");
+  auto const bestEffort = owner->getAttributeHandle(child, L"BestEffortBase");
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  REQUIRE(child.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(owner->reserveObjectInstanceName(objectName));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  ObjectInstanceHandle original;
+  REQUIRE_NOTHROW(original = owner->registerObjectInstance(child, objectName));
+  REQUIRE(original.isValid());
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+
+  auto const deletion = owner->deleteObjectInstance(
+      original,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(deletion.isValid());
+
+  // The request boundary is 1 + the actual lookahead 5, exactly the sent
+  // timestamp. Clause 8.22.3's strict comparison makes the designator
+  // terminal, allowing the retained deletion state and name to be released.
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  REQUIRE_THROWS_AS(
+      owner->retract(deletion),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(owner->reserveObjectInstanceName(objectName));
+  REQUIRE_FALSE(owner->evokeCallback(0.0));
+  ObjectInstanceHandle replacement;
+  REQUIRE_NOTHROW(replacement = owner->registerObjectInstance(child, objectName));
+  REQUIRE(replacement.isValid());
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
+    "[integration][development-profile][object-management][time-management]"
+    "[rti.service.delete-object-instance][rti.service.retract]"
+    "[rti.service.time-advance-request][federate.callback.remove-object-instance]"
+    "[federate.callback.request-retraction][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador immediateReports;
+  ReportingFederateAmbassador constrainedReports;
+  auto publisher = makeRti();
+  auto immediate = makeRti();
+  auto constrained = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0xD5, 0x37, 0x2B};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(immediate->connect(immediateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(constrained->connect(constrainedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"timestamped-delete-retraction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(immediate->joinFederationExecution(
+      L"timestamped-delete-retraction-immediate", L"subscriber", federationName));
+  REQUIRE_NOTHROW(constrained->joinFederationExecution(
+      L"timestamped-delete-retraction-constrained", L"subscriber", federationName));
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  auto const bestEffort = publisher->getAttributeHandle(child, L"BestEffortBase");
+  REQUIRE(child.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(immediate->subscribeObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(constrained->subscribeObjectClassAttributes(child, attributes));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(child));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE(constrainedReports.objectDiscoveryReports.size() == 1);
+  auto const objectInstanceName = publisher->getObjectInstanceName(objectInstance);
+
+  // Give the immediate recipient one ordinary attribute before deletion.  A
+  // post-delivery retraction must restore this split invocation-time
+  // ownership, not merely revive the deleting federate's privilege.
+  AttributeHandleSet const immediateOwnedAttribute{bestEffort};
+  REQUIRE_NOTHROW(immediate->publishObjectClassAttributes(child, immediateOwnedAttribute));
+  REQUIRE_NOTHROW(immediate->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance,
+      immediateOwnedAttribute,
+      tag));
+  AttributeHandleSet divestedAttributes;
+  REQUIRE_NOTHROW(publisher->attributeOwnershipDivestitureIfWanted(
+      objectInstance,
+      immediateOwnedAttribute,
+      tag,
+      divestedAttributes));
+  REQUIRE(divestedAttributes == immediateOwnedAttribute);
+  while (immediate->evokeCallback(0.0)) {
+  }
+  REQUIRE_FALSE(publisher->isAttributeOwnedByFederate(objectInstance, bestEffort));
+  REQUIRE(immediate->isAttributeOwnedByFederate(objectInstance, bestEffort));
+
+  REQUIRE_NOTHROW(constrained->enableTimeConstrained());
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // The nonconstrained recipient crosses its delivery boundary when it evokes
+  // the accepted no-temporal-queue callback, while the constrained recipient
+  // remains in the TSO queue. That is the only legal shape in which the
+  // sender can still Retract and must both reconstitute the object and request
+  // retraction from an already-delivered recipient.
+  auto const retraction = publisher->deleteObjectInstance(
+      objectInstance,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  while (immediate->evokeCallback(0.0)) {
+  }
+  REQUIRE(immediateReports.objectRemovalReports.size() == 1);
+  REQUIRE(immediateReports.objectRemovalReports.front().retractionSupplied);
+  REQUIRE(immediateReports.objectRemovalReports.front().retractionValid);
+  REQUIRE(constrainedReports.objectRemovalReports.empty());
+  REQUIRE_THROWS_AS(
+      publisher->getObjectInstanceName(objectInstance),
+      rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE_THROWS_AS(
+      immediate->getObjectInstanceHandle(objectInstanceName),
+      rti1516_2025::ObjectInstanceNotKnown);
+
+  REQUIRE_NOTHROW(constrained->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  while (immediate->evokeCallback(0.0)) {
+  }
+  REQUIRE(immediateReports.requestRetractionReports.size() == 1);
+  REQUIRE(immediateReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(retraction.encode()));
+  REQUIRE(immediateReports.callbackOrder.size() >= 2);
+  REQUIRE(immediateReports.callbackOrder[immediateReports.callbackOrder.size() - 2] == "remove");
+  REQUIRE(immediateReports.callbackOrder.back() == "request-retraction");
+
+  // Reconstitution is committed before the Request Retraction callback.  The
+  // original owner reassumes its attributes and every still-joined recipient
+  // can resolve the restored instance immediately.
+  REQUIRE(publisher->getObjectInstanceName(objectInstance) == objectInstanceName);
+  REQUIRE(immediate->getObjectInstanceHandle(objectInstanceName) == objectInstance);
+  REQUIRE(constrained->getObjectInstanceHandle(objectInstanceName) == objectInstance);
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, reliable));
+  REQUIRE_FALSE(publisher->isAttributeOwnedByFederate(objectInstance, bestEffort));
+  REQUIRE(immediate->isAttributeOwnedByFederate(objectInstance, bestEffort));
+
+  // The queue's still-pending constrained fanout is suppressed, rather than
+  // receiving Remove Object Instance or Request Retraction for a message it
+  // never observed.
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE(constrainedReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(constrainedReports.objectRemovalReports.empty());
+  REQUIRE(constrainedReports.requestRetractionReports.empty());
+
+  REQUIRE_NOTHROW(constrained->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(immediate->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(constrained->disconnect());
+  REQUIRE_NOTHROW(immediate->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Request Retraction reconstitutes timestamped deletion without recipient fanout",
+    "[integration][development-profile][object-management][time-management]"
+    "[rti.service.delete-object-instance][rti.service.retract]"
+    "[federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  auto publisher = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0xD6, 0x48, 0x3C};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"timestamped-delete-no-fanout-publisher", L"publisher", federationName));
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  AttributeHandleSet const attributes{reliable};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // Equality at current time plus actual lookahead is not retractable under
+  // 8.22.3's strict condition, even though the outgoing deletion itself is
+  // a valid timestamped message.
+  ObjectInstanceHandle boundaryObject;
+  REQUIRE_NOTHROW(boundaryObject = publisher->registerObjectInstance(child));
+  auto const boundaryRetraction = publisher->deleteObjectInstance(
+      boundaryObject,
+      tag,
+      rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(boundaryRetraction.isValid());
+  REQUIRE_THROWS_AS(
+      publisher->retract(boundaryRetraction),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  // With no other recipient, no typed payload enters the temporal queue.  The
+  // execution still owns the designator and invocation snapshot, so a legal
+  // later Retract must reconstitute the object without emitting a callback.
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(child));
+  auto const objectInstanceName = publisher->getObjectInstanceName(objectInstance);
+  auto const retraction = publisher->deleteObjectInstance(
+      objectInstance,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  REQUIRE_THROWS_AS(
+      publisher->getObjectInstanceHandle(objectInstanceName),
+      rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE(publisher->getObjectInstanceHandle(objectInstanceName) == objectInstance);
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, reliable));
+  REQUIRE(publisherReports.requestRetractionReports.empty());
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Request Retraction reconstitutes timestamped deletion only for joined owners",
+    "[integration][development-profile][object-management][time-management]"
+    "[rti.service.delete-object-instance][rti.service.retract]"
+    "[rti.service.resign-federation-execution]"
+    "[federate.callback.remove-object-instance][federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador formerOwnerReports;
+  ReportingFederateAmbassador constrainedReports;
+  auto publisher = makeRti();
+  auto formerOwner = makeRti();
+  auto constrained = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const tagBytes[] = {0xD7, 0x59, 0x4D};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(formerOwner->connect(formerOwnerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(constrained->connect(constrainedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"timestamped-delete-joined-owner-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(formerOwner->joinFederationExecution(
+      L"timestamped-delete-joined-owner-former", L"subscriber", federationName));
+  REQUIRE_NOTHROW(constrained->joinFederationExecution(
+      L"timestamped-delete-joined-owner-constrained", L"subscriber", federationName));
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  auto const bestEffort = publisher->getAttributeHandle(child, L"BestEffortBase");
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(formerOwner->subscribeObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(constrained->subscribeObjectClassAttributes(child, attributes));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(child));
+  REQUIRE_FALSE(formerOwner->evokeCallback(0.0));
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  auto const objectInstanceName = publisher->getObjectInstanceName(objectInstance);
+
+  // At the deletion invocation the former owner owns BestEffortBase.  After
+  // it resigns, 8.22.3 permits re-assumption only by owners still joined.
+  AttributeHandleSet const formerOwnerAttribute{bestEffort};
+  REQUIRE_NOTHROW(formerOwner->publishObjectClassAttributes(child, formerOwnerAttribute));
+  REQUIRE_NOTHROW(formerOwner->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance,
+      formerOwnerAttribute,
+      tag));
+  AttributeHandleSet divestedAttributes;
+  REQUIRE_NOTHROW(publisher->attributeOwnershipDivestitureIfWanted(
+      objectInstance,
+      formerOwnerAttribute,
+      tag,
+      divestedAttributes));
+  REQUIRE(divestedAttributes == formerOwnerAttribute);
+  while (formerOwner->evokeCallback(0.0)) {
+  }
+  REQUIRE(formerOwner->isAttributeOwnedByFederate(objectInstance, bestEffort));
+
+  REQUIRE_NOTHROW(constrained->enableTimeConstrained());
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const retraction = publisher->deleteObjectInstance(
+      objectInstance,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  while (formerOwner->evokeCallback(0.0)) {
+  }
+  REQUIRE(formerOwnerReports.objectRemovalReports.size() == 1);
+  REQUIRE_NOTHROW(
+      formerOwner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+
+  REQUIRE_NOTHROW(constrained->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE(formerOwnerReports.requestRetractionReports.empty());
+  REQUIRE(publisher->getObjectInstanceName(objectInstance) == objectInstanceName);
+  REQUIRE(constrained->getObjectInstanceHandle(objectInstanceName) == objectInstance);
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, reliable));
+  REQUIRE_FALSE(publisher->isAttributeOwnedByFederate(objectInstance, bestEffort));
+
+  AttributeHandleSet const queriedFormerOwnerAttribute{bestEffort};
+  REQUIRE_NOTHROW(
+      publisher->queryAttributeOwnership(objectInstance, queriedFormerOwnerAttribute));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  auto const unownedReport = std::find_if(
+      publisherReports.attributeOwnershipReports.begin(),
+      publisherReports.attributeOwnershipReports.end(),
+      [&](ReportingFederateAmbassador::AttributeOwnershipReport const& report) {
+        return report.kind ==
+                   ReportingFederateAmbassador::AttributeOwnershipReport::Kind::unowned &&
+               report.objectInstance == objectInstance &&
+               report.attributes == queriedFormerOwnerAttribute;
+      });
+  REQUIRE(unownedReport != publisherReports.attributeOwnershipReports.end());
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE(constrainedReports.objectRemovalReports.empty());
+  REQUIRE(constrainedReports.requestRetractionReports.empty());
+
+  REQUIRE_NOTHROW(constrained->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(constrained->disconnect());
+  REQUIRE_NOTHROW(formerOwner->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
 }
 
@@ -5949,8 +13857,10 @@ TEST_CASE(
   REQUIRE_NOTHROW(immediate->subscribeObjectClassAttributes(objectClass, {marker}));
   REQUIRE_NOTHROW(unsubscribed->subscribeObjectClassAttributes(objectClass, {marker}));
   REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(objectClass, directedClasses));
-  REQUIRE_NOTHROW(subscriber->subscribeObjectClassDirectedInteractions(objectClass, directedClasses));
-  REQUIRE_NOTHROW(immediate->subscribeObjectClassDirectedInteractions(objectClass, directedClasses));
+  REQUIRE_NOTHROW(
+      subscriber->subscribeObjectClassDirectedInteractions(objectClass, directedClasses, true));
+  REQUIRE_NOTHROW(
+      immediate->subscribeObjectClassDirectedInteractions(objectClass, directedClasses, true));
 
   ObjectInstanceHandle target;
   REQUIRE_NOTHROW(target = publisher->registerObjectInstance(objectClass));
@@ -5998,7 +13908,8 @@ TEST_CASE(
   REQUIRE(subscriberReports.directedInteractionReports.empty());
   REQUIRE_NOTHROW(subscriber->subscribeObjectClassDirectedInteractions(
       objectClass,
-      directedClasses));
+      directedClasses,
+      true));
 
   // The source publication is another callback-time fence. Unpublishing the
   // pair before evocation suppresses the already accepted send.
@@ -6033,12 +13944,995 @@ TEST_CASE(
   REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(unsubscribed->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(publisher->disconnect());
   REQUIRE_NOTHROW(subscriber->disconnect());
   REQUIRE_NOTHROW(immediate->disconnect());
   REQUIRE_NOTHROW(unsubscribed->disconnect());
+}
+
+TEST_CASE(
+    "Embedded directed interactions distinguish ownership and universal subscriptions",
+    "[integration][development-profile][interaction-management][directed][ownership]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.subscribe-object-class-directed-interactions]"
+    "[rti.service.send-directed-interaction]"
+    "[federate.callback.receive-directed-interaction]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador senderReports;
+  ReportingFederateAmbassador ownershipSubscriberReports;
+  ReportingFederateAmbassador universalSubscriberReports;
+  auto owner = makeRti();
+  auto sender = makeRti();
+  auto ownershipSubscriber = makeRti();
+  auto universalSubscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                               "cpp" /
+                               "tests" /
+                               "data" /
+                               "directed-interaction-object-consumer-fom.xml")
+                                  .wstring();
+  auto const interactionProvider = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                                    "cpp" /
+                                    "tests" /
+                                    "data" /
+                                    "directed-interaction-interaction-provider-fom.xml")
+                                       .wstring();
+  unsigned char const tagBytes[] = {0x55, 0x4E, 0x49};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(sender->connect(senderReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(ownershipSubscriber->connect(ownershipSubscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(universalSubscriber->connect(universalSubscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, interactionProvider},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"directed-subscription-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(sender->joinFederationExecution(
+      L"directed-subscription-sender", L"sender", federationName));
+  REQUIRE_NOTHROW(ownershipSubscriber->joinFederationExecution(
+      L"directed-subscription-by-owner", L"subscriber", federationName));
+  REQUIRE_NOTHROW(universalSubscriber->joinFederationExecution(
+      L"directed-subscription-universal", L"subscriber", federationName));
+
+  auto const objectClass = owner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraDirectedFixtureObject");
+  auto const marker = owner->getAttributeHandle(objectClass, L"DirectedTargetMarker");
+  auto const interactionClass = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+  InteractionClassHandleSet const directedClasses{interactionClass};
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(sender->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(ownershipSubscriber->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(universalSubscriber->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(sender->publishObjectClassDirectedInteractions(objectClass, directedClasses));
+  REQUIRE_NOTHROW(owner->subscribeObjectClassDirectedInteractions(objectClass, directedClasses));
+  REQUIRE_NOTHROW(
+      ownershipSubscriber->subscribeObjectClassDirectedInteractions(objectClass, directedClasses));
+  REQUIRE_NOTHROW(universalSubscriber->subscribeObjectClassDirectedInteractions(
+      objectClass,
+      directedClasses,
+      true));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = owner->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  while (sender->evokeCallback(0.0)) {
+  }
+  while (ownershipSubscriber->evokeCallback(0.0)) {
+  }
+  while (universalSubscriber->evokeCallback(0.0)) {
+  }
+  REQUIRE(senderReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(ownershipSubscriberReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(universalSubscriberReports.objectDiscoveryReports.size() == 1);
+
+  // The default form is by ownership: the target owner receives this
+  // directed interaction, the non-owning known subscriber does not, and the
+  // universal known subscriber does.
+  REQUIRE_NOTHROW(sender->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag));
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (ownershipSubscriber->evokeCallback(0.0)) {
+  }
+  while (universalSubscriber->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.directedInteractionReports.size() == 1);
+  REQUIRE(ownershipSubscriberReports.directedInteractionReports.empty());
+  REQUIRE(universalSubscriberReports.directedInteractionReports.size() == 1);
+  REQUIRE(ownerReports.directedInteractionReports.front().objectInstance == target);
+  REQUIRE(universalSubscriberReports.directedInteractionReports.front().objectInstance == target);
+
+  // An empty class set must leave the universal kind unchanged, irrespective
+  // of the supplied boolean. The next send therefore still reaches it.
+  REQUIRE_NOTHROW(universalSubscriber->subscribeObjectClassDirectedInteractions(
+      objectClass,
+      InteractionClassHandleSet{},
+      false));
+  REQUIRE_NOTHROW(sender->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag));
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (ownershipSubscriber->evokeCallback(0.0)) {
+  }
+  while (universalSubscriber->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.directedInteractionReports.size() == 2);
+  REQUIRE(ownershipSubscriberReports.directedInteractionReports.empty());
+  REQUIRE(universalSubscriberReports.directedInteractionReports.size() == 2);
+
+  // Re-subscribing a supplied class changes only that class's mode. Once the
+  // universal subscriber becomes by-ownership, it no longer receives this
+  // non-owned target; changing the other known subscriber to universal makes
+  // it eligible on the following send.
+  REQUIRE_NOTHROW(universalSubscriber->subscribeObjectClassDirectedInteractions(
+      objectClass,
+      directedClasses,
+      false));
+  REQUIRE_NOTHROW(sender->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag));
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (ownershipSubscriber->evokeCallback(0.0)) {
+  }
+  while (universalSubscriber->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.directedInteractionReports.size() == 3);
+  REQUIRE(ownershipSubscriberReports.directedInteractionReports.empty());
+  REQUIRE(universalSubscriberReports.directedInteractionReports.size() == 2);
+
+  REQUIRE_NOTHROW(ownershipSubscriber->subscribeObjectClassDirectedInteractions(
+      objectClass,
+      directedClasses,
+      true));
+  REQUIRE_NOTHROW(sender->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag));
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (ownershipSubscriber->evokeCallback(0.0)) {
+  }
+  while (universalSubscriber->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.directedInteractionReports.size() == 4);
+  REQUIRE(ownershipSubscriberReports.directedInteractionReports.size() == 1);
+  REQUIRE(universalSubscriberReports.directedInteractionReports.size() == 2);
+
+  REQUIRE_NOTHROW(universalSubscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(ownershipSubscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(sender->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(universalSubscriber->disconnect());
+  REQUIRE_NOTHROW(ownershipSubscriber->disconnect());
+  REQUIRE_NOTHROW(sender->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
+    "[integration][development-profile][interaction-management][directed][time-management]"
+    "[rti.service.send-directed-interaction][rti.service.retract]"
+    "[rti.service.time-advance-request][federate.callback.receive-directed-interaction]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                               "cpp" / "tests" / "data" /
+                               "directed-interaction-object-consumer-fom.xml")
+                                  .wstring();
+  auto const interactionProvider = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                                    "cpp" / "tests" / "data" /
+                                    "directed-interaction-interaction-provider-fom.xml")
+                                       .wstring();
+  unsigned char const tagBytes[] = {0x52, 0xA1, 0x0C};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  InteractionClassHandleSet directedClasses;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, interactionProvider},
+      L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"timestamped-directed-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"timestamped-directed-receiver", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraDirectedFixtureObject");
+  auto const marker = publisher->getAttributeHandle(objectClass, L"DirectedTargetMarker");
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  directedClasses.insert(interactionClass);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses, true));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = publisher->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  REQUIRE_THROWS_AS(
+      publisher->sendDirectedInteraction(
+          interactionClass,
+          target,
+          ParameterHandleValueMap{},
+          tag,
+          rti1516_2025::HLAinteger64Time(4)),
+      rti1516_2025::InvalidLogicalTime);
+
+  auto const firstHandle = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(firstHandle.isValid());
+  REQUIRE(receiverReports.directedInteractionReports.empty());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->retract(firstHandle));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.directedInteractionReports.empty());
+
+  auto const secondHandle = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(secondHandle.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.directedInteractionReports.size() == 1);
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"grant", "directed", "grant"});
+
+  auto const& report = receiverReports.directedInteractionReports.front();
+  REQUIRE(report.interactionClass == interactionClass);
+  REQUIRE(report.objectInstance == target);
+  REQUIRE(report.parameterValues.empty());
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE(report.producingFederate == publisherHandle);
+  REQUIRE(report.transportationType ==
+          publisher->getTransportationTypeHandle(L"HLAreliable"));
+  REQUIRE(report.timeImplementationName == L"HLAinteger64Time");
+  REQUIRE(report.timeValue == L"7");
+  REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.retractionSupplied);
+  REQUIRE(report.retractionValid);
+  REQUIRE_THROWS_AS(
+      publisher->retract(secondHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation restore preserves TSO retraction-designator uniqueness",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[interaction-management][directed][time-management]"
+    "[rti.service.request-federation-save][rti.service.request-federation-restore]"
+    "[rti.service.send-directed-interaction][rti.service.retract]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+                               "data" / "directed-interaction-object-consumer-fom.xml")
+                                  .wstring();
+  auto const interactionProvider =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "directed-interaction-interaction-provider-fom.xml")
+          .wstring();
+  unsigned char const tagBytes[] = {0x52, 0x53, 0x54};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  InteractionClassHandleSet directedClasses;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, interactionProvider},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"restore-designator-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"restore-designator-receiver", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraDirectedFixtureObject");
+  auto const marker = publisher->getAttributeHandle(objectClass, L"DirectedTargetMarker");
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  directedClasses.insert(interactionClass);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses, true));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = publisher->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // The constrained recipient must be Time Advancing before an untimed save
+  // can initiate.  Keep its grant pending while Request Federation Save is
+  // accepted so the save callback can run at that boundary.
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+
+  // Save the complete directed-declaration and time-management baseline.
+  REQUIRE_NOTHROW(publisher->requestFederationSave(L"directed-designator-baseline"));
+  while (receiver->evokeCallback(0.0)) {
+  }
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE(publisherReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{L"directed-designator-baseline"});
+  REQUIRE(receiverReports.initiateFederateSaveReports ==
+          std::vector<std::wstring>{L"directed-designator-baseline"});
+  REQUIRE_NOTHROW(publisher->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(publisher->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  while (publisher->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(publisherReports.federationSavedReportCount == 1);
+  REQUIRE(receiverReports.federationSavedReportCount == 1);
+
+  // This message is intentionally outside the saved image.  Its designator
+  // must never identify any new message after the restore.
+  auto const staleHandle = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(staleHandle.isValid());
+
+  REQUIRE_NOTHROW(publisher->requestFederationRestore(L"directed-designator-baseline"));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(publisher->federateRestoreComplete());
+  REQUIRE_NOTHROW(receiver->federateRestoreComplete());
+  while (publisher->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(publisherReports.federationRestoredReportCount == 1);
+  REQUIRE(receiverReports.federationRestoredReportCount == 1);
+  REQUIRE_THROWS_AS(
+      publisher->retract(staleHandle),
+      rti1516_2025::InvalidMessageRetractionHandle);
+
+  auto const freshHandle = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(freshHandle.isValid());
+
+  // Without a monotonic allocator, staleHandle would alias freshHandle here
+  // and incorrectly retract the post-restore message.
+  REQUIRE_THROWS_AS(
+      publisher->retract(staleHandle),
+      rti1516_2025::InvalidMessageRetractionHandle);
+  REQUIRE_NOTHROW(publisher->retract(freshHandle));
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation restore restores a saved live TSO retraction record",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[interaction-management][time-management][tso]"
+    "[rti.service.request-federation-save][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.send-interaction]"
+    "[rti.service.retract][rti.service.flush-queue-request]"
+    "[federate.callback.receive-interaction][federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const parameterBytes[] = {0x5A, 0x52};
+  unsigned char const tagBytes[] = {0x53, 0x4E, 0x50};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  std::wstring const saveLabel = L"live-tso-retraction-baseline";
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"restore-live-retraction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"restore-live-retraction-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const retraction = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  // The constrained recipient must be Time Advancing before the untimed save
+  // can initiate. Its target stays below the active regulator's GALT and well
+  // below the live payload timestamp, so this does not deliver or alter the
+  // payload that the snapshot must retain.
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+
+  // The completed snapshot contains both the queued interaction and its
+  // live ledger entry.  Retract it after saving to ensure restore must replace
+  // terminal post-save state rather than merely preserve an allocator floor.
+  REQUIRE_NOTHROW(publisher->requestFederationSave(saveLabel));
+  while (receiver->evokeCallback(0.0)) {
+  }
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(publisher->federateSaveBegun());
+  REQUIRE_NOTHROW(receiver->federateSaveBegun());
+  REQUIRE_NOTHROW(publisher->federateSaveComplete());
+  REQUIRE_NOTHROW(receiver->federateSaveComplete());
+  while (publisher->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(publisherReports.federationSavedReportCount == 1);
+  REQUIRE(receiverReports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE(receiverReports.requestRetractionReports.empty());
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(publisher->requestFederationRestore(saveLabel));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(publisher->federateRestoreComplete());
+  REQUIRE_NOTHROW(receiver->federateRestoreComplete());
+  while (publisher->evokeCallback(0.0)) {
+  }
+  while (receiver->evokeCallback(0.0)) {
+  }
+  REQUIRE(publisherReports.federationRestoredReportCount == 1);
+  REQUIRE(receiverReports.federationRestoredReportCount == 1);
+
+  // Flush Queue Request reaches the restored callback boundary without moving
+  // the producer's strict retraction lower boundary. Both the original payload
+  // and the same public designator must therefore be restored and remain
+  // legally retractable.
+  REQUIRE_NOTHROW(receiver->flushQueueRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(receiverReports.timestampedInteractionReports.front().timeValue == L"6");
+  REQUIRE(receiverReports.timestampedInteractionReports.front().retractionValid);
+
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.requestRetractionReports.size() == 1);
+  REQUIRE(receiverReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              receiverReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(retraction.encode()));
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation restore preserves a terminal TSO retraction classification",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[interaction-management][time-management][tso][tombstone]"
+    "[rti.service.request-federation-save][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.send-interaction]"
+    "[rti.service.retract]") {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const parameterBytes[] = {0x54, 0x4D};
+  unsigned char const tagBytes[] = {0x54, 0x4F, 0x4D};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  std::wstring const saveLabel = L"terminal-tso-retraction-baseline";
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"restore-terminal-retraction-publisher", L"publisher", federationName));
+
+  auto const interactionClass = rti->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = rti->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(rti->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(rti->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+
+  auto const terminal = rti->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(terminal.isValid());
+  REQUIRE_NOTHROW(rti->retract(terminal));
+  REQUIRE_THROWS_AS(
+      rti->retract(terminal),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  // Save the lightweight terminal record, then create later live traffic so
+  // restore must replace the retraction index rather than merely accept the
+  // same process-local handle again.
+  REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->federateSaveBegun());
+  REQUIRE_NOTHROW(rti->federateSaveComplete());
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE(reports.federationSavedReportCount == 1);
+
+  auto const postSave = rti->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(postSave.isValid());
+  REQUIRE(variableLengthDataBytes(terminal.encode()) !=
+          variableLengthDataBytes(postSave.encode()));
+
+  REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->federateRestoreComplete());
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE(reports.federationRestoredReportCount == 1);
+
+  // Terminal classification is state in the saved ledger, not an inference
+  // from current queue contents. The post-save handle, by contrast, belongs
+  // to discarded traffic and must not alias that tombstone.
+  REQUIRE_THROWS_AS(
+      rti->retract(terminal),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+  REQUIRE_THROWS_AS(
+      rti->retract(postSave),
+      rti1516_2025::InvalidMessageRetractionHandle);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation restore restores saved logical time and actual lookahead",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[time-management][lookahead]"
+    "[rti.service.request-federation-save][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.query-logical-time]"
+    "[rti.service.query-lookahead][rti.service.modify-lookahead]"
+    "[rti.service.time-advance-request]") {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  std::wstring const saveLabel = L"time-window-baseline";
+  rti1516_2025::HLAinteger64Time logicalTime;
+  rti1516_2025::HLAinteger64Interval lookahead;
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"restore-time-window-member", L"publisher", federationName));
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(2)));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 0);
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 2);
+
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 3);
+
+  // The completed image includes the federation's authoritative time
+  // coordinator state.  Mutate both parts after saving so restore has to
+  // replace, rather than merely retain, the post-save time window.
+  REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->federateSaveBegun());
+  REQUIRE_NOTHROW(rti->federateSaveComplete());
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE(reports.federationSavedReportCount == 1);
+
+  REQUIRE_NOTHROW(rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 5);
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->federateRestoreComplete());
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE(reports.federationRestoredReportCount == 1);
+
+  // The post-save time advance and lookahead increase are discarded.  This is
+  // a narrow process-local rollback proof, not a claim of timed or durable
+  // restore semantics.
+  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 3);
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 2);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation restore preserves a deferred lookahead decrease",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[time-management][lookahead]"
+    "[rti.service.request-federation-save][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.query-logical-time]"
+    "[rti.service.query-lookahead][rti.service.modify-lookahead]"
+    "[rti.service.time-advance-request]") {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  std::wstring const saveLabel = L"deferred-lookahead-baseline";
+  rti1516_2025::HLAinteger64Time logicalTime;
+  rti1516_2025::HLAinteger64Interval lookahead;
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"restore-deferred-lookahead-member", L"publisher", federationName));
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(5)));
+  while (rti->evokeCallback(0.0)) {
+  }
+
+  // Clause 8.20 makes a decreasing request prospective: the actual
+  // lookahead is still five before the next grant, while the requested value
+  // is private future state that a completed save must retain.
+  REQUIRE_NOTHROW(rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 5);
+
+  REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->federateSaveBegun());
+  REQUIRE_NOTHROW(rti->federateSaveComplete());
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE(reports.federationSavedReportCount == 1);
+
+  // Consume the post-save decrease. Restore must put both the actual value
+  // and its deferred target back, rather than just rewind the current time.
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 3);
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 2);
+
+  REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->federateRestoreComplete());
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE(reports.federationRestoredReportCount == 1);
+  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 0);
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 5);
+
+  // Advance the restored member through the same elapsed interval.  The
+  // second result proves that the saved deferred target, not only the visible
+  // actual lookahead, returned with the snapshot.
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 3);
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 2);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+    "[integration][development-profile][interaction-management][directed][time-management]"
+    "[rti.service.send-directed-interaction][rti.service.retract]"
+    "[rti.service.time-advance-request][federate.callback.receive-directed-interaction]"
+    "[federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador immediateReports;
+  ReportingFederateAmbassador constrainedReports;
+  auto publisher = makeRti();
+  auto immediate = makeRti();
+  auto constrained = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                               "cpp" / "tests" / "data" /
+                               "directed-interaction-object-consumer-fom.xml")
+                                  .wstring();
+  auto const interactionProvider = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                                    "cpp" / "tests" / "data" /
+                                    "directed-interaction-interaction-provider-fom.xml")
+                                       .wstring();
+  unsigned char const tagBytes[] = {0x52, 0x44, 0x49};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  InteractionClassHandleSet directedClasses;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(immediate->connect(immediateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(constrained->connect(constrainedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, interactionProvider},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"directed-retraction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(immediate->joinFederationExecution(
+      L"directed-retraction-immediate", L"subscriber", federationName));
+  REQUIRE_NOTHROW(constrained->joinFederationExecution(
+      L"directed-retraction-constrained", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraDirectedFixtureObject");
+  auto const marker = publisher->getAttributeHandle(objectClass, L"DirectedTargetMarker");
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  directedClasses.insert(interactionClass);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(immediate->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(constrained->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(immediate->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses, true));
+  REQUIRE_NOTHROW(constrained->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses, true));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = publisher->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE(immediateReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(constrainedReports.objectDiscoveryReports.size() == 1);
+  REQUIRE_NOTHROW(constrained->enableTimeConstrained());
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const retraction = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(2));
+  REQUIRE(retraction.isValid());
+
+  // The nonconstrained recipient has received the timestamped directed
+  // interaction before the constrained recipient can cross its grant
+  // boundary. The returned designator consequently distinguishes a delivered
+  // recipient from the still-pending temporal fanout.
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.directedInteractionReports.size() == 1);
+  auto const& first = immediateReports.directedInteractionReports.front();
+  REQUIRE(first.interactionClass == interactionClass);
+  REQUIRE(first.objectInstance == target);
+  REQUIRE(first.parameterValues.empty());
+  REQUIRE(variableLengthDataBytes(first.userSuppliedTag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE(first.timeValue == L"2");
+  REQUIRE(first.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(first.receivedOrderType == rti1516_2025::RECEIVE);
+  REQUIRE(first.retractionSupplied);
+  REQUIRE(first.retractionValid);
+  REQUIRE(constrainedReports.directedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 1);
+  REQUIRE(immediateReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(retraction.encode()));
+  REQUIRE(immediateReports.callbackOrder ==
+          std::vector<std::string>{"directed", "request-retraction"});
+
+  // The remaining recipient has not received the original callback, so the
+  // same legal Retract removes its TSO queue entry rather than issuing a
+  // Request Retraction. Advancing its TAR proves the stale delivery cannot
+  // cross the grant boundary.
+  REQUIRE_NOTHROW(constrained->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE(constrainedReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(constrainedReports.directedInteractionReports.empty());
+  REQUIRE(constrainedReports.requestRetractionReports.empty());
+
+  // With the constrained member gone, this is an immediate-only timestamped
+  // directed interaction: it has no temporal queue fanout but must retain a
+  // valid recipient ledger for Request Retraction.
+  REQUIRE_NOTHROW(constrained->resignFederationExecution(NO_ACTION));
+  auto const immediateOnlyRetraction = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(4));
+  REQUIRE(immediateOnlyRetraction.isValid());
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.directedInteractionReports.size() == 2);
+  REQUIRE(immediateReports.directedInteractionReports.back().retractionValid);
+  REQUIRE_NOTHROW(publisher->retract(immediateOnlyRetraction));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 2);
+  REQUIRE(immediateReports.requestRetractionReports.back().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.back().encodedRetraction) ==
+          variableLengthDataBytes(immediateOnlyRetraction.encode()));
+
+  REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(constrained->disconnect());
+  REQUIRE_NOTHROW(immediate->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
 }
 
 TEST_CASE(
@@ -6069,6 +14963,7 @@ TEST_CASE(
           L"regional-interaction-publisher", L"publisher", federationName));
   REQUIRE_NOTHROW(subscriber->joinFederationExecution(
       L"regional-interaction-subscriber", L"subscriber", federationName));
+  REQUIRE_FALSE(subscriber->getConveyRegionDesignatorSetsSwitch());
 
   auto const interactionClass = publisher->getInteractionClassHandle(
       L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
@@ -6123,6 +15018,16 @@ TEST_CASE(
       tag));
   static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(subscriberReports.interactionReports.size() == 2);
+  REQUIRE_FALSE(subscriberReports.interactionReports.back().sentRegionsSupplied);
+
+  REQUIRE_NOTHROW(subscriber->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag));
+  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.interactionReports.size() == 3);
   REQUIRE(subscriberReports.interactionReports.back().sentRegionsSupplied);
 
   // A queued regional send is rechecked at callback entry. Changing the
@@ -6139,7 +15044,7 @@ TEST_CASE(
       RegionHandleSet{publisherRegion},
       tag));
   static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.interactionReports.size() == 2);
+  REQUIRE(subscriberReports.interactionReports.size() == 3);
 
   REQUIRE_NOTHROW(subscriber->setRangeBounds(
       subscriberRegion,
@@ -6152,7 +15057,7 @@ TEST_CASE(
       RegionHandleSet{publisherRegion},
       tag));
   static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.interactionReports.size() == 3);
+  REQUIRE(subscriberReports.interactionReports.size() == 4);
   REQUIRE(subscriberReports.interactionReports.back().sentRegionsSupplied);
   REQUIRE(variableLengthDataBytes(subscriberReports.interactionReports.back().userSuppliedTag) ==
           std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
@@ -6166,7 +15071,7 @@ TEST_CASE(
       RegionHandleSet{},
       tag));
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.interactionReports.size() == 3);
+  REQUIRE(subscriberReports.interactionReports.size() == 4);
   REQUIRE_THROWS_AS(
       publisher->sendInteractionWithRegions(
           interactionClass,
@@ -6230,6 +15135,886 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(publisher->disconnect());
   REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
+    "[integration][development-profile][interaction-management][ddm][allow-relaxed-ddm]"
+    "[rti.service.get-allow-relaxed-ddm-switch]"
+    "[rti.service.create-region]"
+    "[rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction-with-regions]"
+    "[federate.callback.receive-interaction]") {
+  auto runScenario = [](bool const relaxedDdmEnabled) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador subscriberReports;
+    auto publisher = makeRti();
+    auto subscriber = makeRti();
+    auto const federationName = nextFederationName();
+    auto const restaurantFom =
+        resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+    auto const relaxedDdmFom = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                                "cpp" / "tests" / "data" /
+                                "allow-relaxed-ddm-enabled-fom.xml")
+                                   .wstring();
+    std::vector<std::wstring> fomModules{restaurantFom};
+    if (relaxedDdmEnabled) {
+      fomModules.push_back(relaxedDdmFom);
+    }
+    unsigned char const parameterBytes[] = {0x6B, 0x51};
+    ParameterHandleValueMap parameterValues;
+    VariableLengthData const tag;
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName, fomModules, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(publisher->joinFederationExecution(
+        L"relaxed-ddm-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+        L"relaxed-ddm-subscriber", L"subscriber", federationName));
+    REQUIRE(publisher->getAllowRelaxedDDMSwitch() == relaxedDdmEnabled);
+    REQUIRE(subscriber->getAllowRelaxedDDMSwitch() == relaxedDdmEnabled);
+
+    auto const interactionClass = publisher->getInteractionClassHandle(
+        L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+    auto const temperatureOk = publisher->getParameterHandle(interactionClass, L"TemperatureOk");
+    auto const serverId = publisher->getDimensionHandle(L"ServerId");
+    REQUIRE(interactionClass.isValid());
+    REQUIRE(temperatureOk.isValid());
+    REQUIRE(serverId.isValid());
+    parameterValues.emplace(
+        temperatureOk,
+        VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+    REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+
+    auto const sourceRegion = publisher->createRegion(DimensionHandleSet{serverId});
+    auto const subscriptionRegion = subscriber->createRegion(DimensionHandleSet{serverId});
+    REQUIRE_NOTHROW(publisher->setRangeBounds(
+        sourceRegion,
+        serverId,
+        RangeBounds(0UL, 10UL)));
+    REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{sourceRegion}));
+    REQUIRE_NOTHROW(subscriber->setRangeBounds(
+        subscriptionRegion,
+        serverId,
+        RangeBounds(10UL, 20UL)));
+    REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+        RegionHandleSet{subscriptionRegion}));
+    REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
+        interactionClass,
+        RegionHandleSet{subscriptionRegion}));
+
+    // [0, 10) and [10, 20) do not strictly overlap.  Umbra's explicit
+    // Relaxed DDM policy admits this exact-boundary pair only when the
+    // federation-wide switch is enabled.
+    REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+        interactionClass,
+        parameterValues,
+        RegionHandleSet{sourceRegion},
+        tag));
+    static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+    std::size_t expectedCallbacks = relaxedDdmEnabled ? 1U : 0U;
+    REQUIRE(subscriberReports.interactionReports.size() == expectedCallbacks);
+
+    // A nonzero gap is never treated as relaxed overlap.
+    REQUIRE_NOTHROW(subscriber->setRangeBounds(
+        subscriptionRegion,
+        serverId,
+        RangeBounds(11UL, 20UL)));
+    REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+        RegionHandleSet{subscriptionRegion}));
+    REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+        interactionClass,
+        parameterValues,
+        RegionHandleSet{sourceRegion},
+        tag));
+    static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+    REQUIRE(subscriberReports.interactionReports.size() == expectedCallbacks);
+
+    // Relaxation is monotonic: an already strict overlap remains eligible in
+    // both federation configurations.
+    REQUIRE_NOTHROW(subscriber->setRangeBounds(
+        subscriptionRegion,
+        serverId,
+        RangeBounds(5UL, 15UL)));
+    REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+        RegionHandleSet{subscriptionRegion}));
+    REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+        interactionClass,
+        parameterValues,
+        RegionHandleSet{sourceRegion},
+        tag));
+    static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+    ++expectedCallbacks;
+    REQUIRE(subscriberReports.interactionReports.size() == expectedCallbacks);
+
+    REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClassWithRegions(
+        interactionClass,
+        RegionHandleSet{subscriptionRegion}));
+    REQUIRE_NOTHROW(subscriber->deleteRegion(subscriptionRegion));
+    REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+    REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subscriber->disconnect());
+    REQUIRE_NOTHROW(publisher->disconnect());
+  };
+
+  SECTION("the FDD enables Relaxed DDM") {
+    runScenario(true);
+  }
+  SECTION("the FDD leaves Relaxed DDM disabled") {
+    runScenario(false);
+  }
+}
+
+TEST_CASE(
+    "Embedded default-region interaction routing derives 2025 ordinary and regional effectiveness",
+    "[integration][development-profile][interaction-management][ddm][default-region]"
+    "[rti.service.subscribe-interaction-class]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.unsubscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction]"
+    "[rti.service.send-interaction-with-regions]"
+    "[federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador regionalReports;
+  ReportingFederateAmbassador mixedReports;
+  auto publisher = makeRti();
+  auto regional = makeRti();
+  auto mixed = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const parameterBytes[] = {0xD1, 0x04};
+  ParameterHandleValueMap parameters;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(regional->connect(regionalReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(mixed->connect(mixedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"default-region-interaction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(regional->joinFederationExecution(
+      L"default-region-interaction-regional", L"subscriber", federationName));
+  REQUIRE_NOTHROW(mixed->joinFederationExecution(
+      L"default-region-interaction-mixed", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+  auto const temperatureOk = publisher->getParameterHandle(interactionClass, L"TemperatureOk");
+  auto const serverId = publisher->getDimensionHandle(L"ServerId");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(temperatureOk.isValid());
+  REQUIRE(serverId.isValid());
+  parameters.emplace(
+      temperatureOk,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+
+  auto const sourceRegion = publisher->createRegion(DimensionHandleSet{serverId});
+  auto const regionalRegion = regional->createRegion(DimensionHandleSet{serverId});
+  auto const mixedRegion = mixed->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      sourceRegion,
+      serverId,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{sourceRegion}));
+  REQUIRE_NOTHROW(regional->setRangeBounds(
+      regionalRegion,
+      serverId,
+      RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(regional->commitRegionModifications(RegionHandleSet{regionalRegion}));
+  REQUIRE_NOTHROW(mixed->setRangeBounds(
+      mixedRegion,
+      serverId,
+      RangeBounds(2UL, 3UL)));
+  REQUIRE_NOTHROW(mixed->commitRegionModifications(RegionHandleSet{mixedRegion}));
+
+  REQUIRE_NOTHROW(regional->subscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{regionalRegion}));
+  REQUIRE_NOTHROW(mixed->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(mixed->subscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{mixedRegion}));
+
+  VariableLengthData const tag;
+  // The mixed federate retains an ordinary subscription, but the explicit,
+  // disjoint regional declaration is its effective realization for this
+  // class. It must not receive an explicit source-region interaction through
+  // the ordinary default region.
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameters,
+      RegionHandleSet{sourceRegion},
+      tag));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalReports.interactionReports.size() == 1);
+  REQUIRE(mixedReports.interactionReports.empty());
+
+  // Once its explicit subscription is removed, the retained ordinary
+  // subscription again uses the default region and qualifies for any valid
+  // explicit source-region interaction.
+  REQUIRE_NOTHROW(mixed->unsubscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{mixedRegion}));
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameters,
+      RegionHandleSet{sourceRegion},
+      tag));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalReports.interactionReports.size() == 2);
+  REQUIRE(mixedReports.interactionReports.size() == 1);
+
+  // Restore the disjoint regional realization. An ordinary Send Interaction
+  // uses the invisible RTI-provided default region, which overlaps each
+  // committed non-empty subscription region. An enabled convey switch must
+  // expose that fact as a supplied, empty RegionHandleSet.
+  REQUIRE_NOTHROW(mixed->subscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{mixedRegion}));
+  REQUIRE_NOTHROW(regional->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(mixed->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, parameters, tag));
+  static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
+  static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(regionalReports.interactionReports.size() == 3);
+  REQUIRE(mixedReports.interactionReports.size() == 2);
+  REQUIRE(regionalReports.interactionReports.back().sentRegionsSupplied);
+  REQUIRE(regionalReports.interactionReports.back().sentRegions.empty());
+  REQUIRE(mixedReports.interactionReports.back().sentRegionsSupplied);
+  REQUIRE(mixedReports.interactionReports.back().sentRegions.empty());
+
+  REQUIRE_NOTHROW(mixed->unsubscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{mixedRegion}));
+  REQUIRE_NOTHROW(mixed->unsubscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(regional->unsubscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{regionalRegion}));
+  REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+  REQUIRE_NOTHROW(regional->deleteRegion(regionalRegion));
+  REQUIRE_NOTHROW(mixed->deleteRegion(mixedRegion));
+  REQUIRE_NOTHROW(mixed->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(regional->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(mixed->disconnect());
+  REQUIRE_NOTHROW(regional->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
+    "[integration][development-profile][interaction-management][ddm][time-management]"
+    "[default-region][tso][rti.service.send-interaction]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.time-advance-request][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const parameterBytes[] = {0xD3, 0x0F};
+  unsigned char const tagBytes[] = {0x54, 0x53, 0x4F};
+  ParameterHandleValueMap parameters;
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"timestamped-default-region-interaction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"timestamped-default-region-interaction-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+  auto const temperatureOk = publisher->getParameterHandle(interactionClass, L"TemperatureOk");
+  auto const serverId = publisher->getDimensionHandle(L"ServerId");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(temperatureOk.isValid());
+  REQUIRE(serverId.isValid());
+  parameters.emplace(
+      temperatureOk,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+
+  auto const receiverRegion = receiver->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(receiver->setRangeBounds(
+      receiverRegion,
+      serverId,
+      RangeBounds(8UL, 9UL)));
+  REQUIRE_NOTHROW(receiver->commitRegionModifications(RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{receiverRegion}));
+  REQUIRE_FALSE(receiver->getConveyRegionDesignatorSetsSwitch());
+  REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // No source RegionHandle is supplied. For this dimensional interaction,
+  // the 2025 RTI-provided default region overlaps the receiver's committed,
+  // non-empty explicit subscription region and must retain that fact through
+  // the federation-owned TSO queue.
+  auto const retraction = publisher->sendInteraction(
+      interactionClass,
+      parameters,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+
+  auto const& report = receiverReports.timestampedInteractionReports.front();
+  REQUIRE(report.interactionClass == interactionClass);
+  REQUIRE(report.parameterValues.size() == 1);
+  REQUIRE(report.parameterValues.contains(temperatureOk));
+  REQUIRE(report.producingFederate == publisherHandle);
+  REQUIRE(report.timeImplementationName == L"HLAinteger64Time");
+  REQUIRE(report.timeValue == L"6");
+  REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.retractionSupplied);
+  REQUIRE(report.retractionValid);
+  REQUIRE(report.sentRegionsSupplied);
+  REQUIRE(report.sentRegions.empty());
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE_THROWS_AS(
+      publisher->retract(retraction),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->unsubscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+    "[integration][development-profile][interaction-management][ddm][passive-subscription]"
+    "[rti.service.subscribe-interaction-class]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction]"
+    "[rti.service.send-interaction-with-regions]"
+    "[federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const parameterBytes[] = {0x50, 0x41, 0x53};
+  unsigned char const tagBytes[] = {0x53, 0x55, 0x42};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  ParameterHandleValueMap parameterValues;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(
+      publisherHandle = publisher->joinFederationExecution(
+          L"passive-subscription-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"passive-subscription-subscriber", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+  auto const temperatureOk = publisher->getParameterHandle(interactionClass, L"TemperatureOk");
+  auto const serverId = publisher->getDimensionHandle(L"ServerId");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(temperatureOk.isValid());
+  REQUIRE(serverId.isValid());
+  parameterValues.emplace(
+      temperatureOk,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+
+  // An ordinary passive subscription is retained as declaration state but is
+  // not eligible for a Receive Interaction callback. Replacing it with an
+  // active subscription makes the next send eligible.
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(interactionClass, false));
+  REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, parameterValues, tag));
+  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.interactionReports.empty());
+
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(interactionClass, true));
+  REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, parameterValues, tag));
+  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.interactionReports.size() == 1);
+  REQUIRE(subscriberReports.interactionReports.back().producingFederate == publisherHandle);
+  REQUIRE_FALSE(subscriberReports.interactionReports.back().sentRegionsSupplied);
+  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClass(interactionClass));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion,
+      serverId,
+      RangeBounds(0UL, 10UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriberRegion,
+      serverId,
+      RangeBounds(5UL, 15UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
+
+  // The same eligibility rule applies to a regional pair: the region remains
+  // subscribed and in use while passive, but its overlap cannot arrange
+  // delivery until the pair is made active.
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{subscriberRegion},
+      false));
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag));
+  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.interactionReports.size() == 1);
+
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{subscriberRegion},
+      true));
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag));
+  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.interactionReports.size() == 2);
+  REQUIRE(subscriberReports.interactionReports.back().producingFederate == publisherHandle);
+  REQUIRE_FALSE(subscriberReports.interactionReports.back().sentRegionsSupplied);
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{subscriberRegion}));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+    "[integration][development-profile][interaction-management][ddm][time-management]"
+    "[rti.service.send-interaction-with-regions][rti.service.retract]"
+    "[rti.service.time-advance-request][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const parameterBytes[] = {0x4D, 0x0A};
+  unsigned char const tagBytes[] = {0x6B, 0x22};
+  ParameterHandleValueMap parameterValues;
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"timestamped-regional-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"timestamped-regional-receiver", L"subscriber", federationName));
+  REQUIRE_FALSE(receiver->getConveyRegionDesignatorSetsSwitch());
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+  auto const temperatureOk = publisher->getParameterHandle(interactionClass, L"TemperatureOk");
+  auto const serverId = publisher->getDimensionHandle(L"ServerId");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(temperatureOk.isValid());
+  REQUIRE(serverId.isValid());
+  parameterValues.emplace(
+      temperatureOk,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion, serverId, RangeBounds(0UL, 10UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  auto const receiverRegion = receiver->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(receiver->setRangeBounds(
+      receiverRegion, serverId, RangeBounds(5UL, 15UL)));
+  REQUIRE_NOTHROW(receiver->commitRegionModifications(RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClassWithRegions(
+      interactionClass, RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  REQUIRE_THROWS_AS(
+      publisher->sendInteractionWithRegions(
+          interactionClass,
+          parameterValues,
+          RegionHandleSet{publisherRegion},
+          tag,
+          rti1516_2025::HLAinteger64Time(4)),
+      rti1516_2025::InvalidLogicalTime);
+
+  auto const firstHandle = publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(firstHandle.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->retract(firstHandle));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  auto const secondHandle = publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(secondHandle.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"grant", "interaction", "grant"});
+
+  auto const& report = receiverReports.timestampedInteractionReports.front();
+  REQUIRE(report.interactionClass == interactionClass);
+  REQUIRE(report.parameterValues.size() == 1);
+  REQUIRE(report.parameterValues.find(temperatureOk) != report.parameterValues.end());
+  REQUIRE(report.producingFederate == publisherHandle);
+  REQUIRE(report.timeImplementationName == L"HLAinteger64Time");
+  REQUIRE(report.timeValue == L"7");
+  REQUIRE(report.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.receivedOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(report.retractionSupplied);
+  REQUIRE(report.retractionValid);
+  REQUIRE_FALSE(report.sentRegionsSupplied);
+  REQUIRE_THROWS_AS(
+      publisher->retract(secondHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
+  auto const thirdHandle = publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(8));
+  REQUIRE(thirdHandle.isValid());
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(8)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 2);
+  auto const& conveyedReport = receiverReports.timestampedInteractionReports.back();
+  REQUIRE(conveyedReport.timeValue == L"8");
+  REQUIRE(conveyedReport.sentRegionsSupplied);
+  REQUIRE(conveyedReport.sentRegions.contains(publisherRegion));
+  REQUIRE_THROWS_AS(
+      publisher->retract(thirdHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->unsubscribeInteractionClassWithRegions(
+      interactionClass, RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients",
+    "[integration][development-profile][interaction-management][ddm][time-management][tso]"
+    "[rti.service.send-interaction-with-regions][rti.service.retract]"
+    "[rti.service.time-advance-request]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const parameterBytes[] = {0x4E, 0x4F};
+  unsigned char const tagBytes[] = {0x4F, 0x56, 0x45, 0x52};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"regional-no-overlap-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"regional-no-overlap-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+  auto const temperatureOk = publisher->getParameterHandle(interactionClass, L"TemperatureOk");
+  auto const serverId = publisher->getDimensionHandle(L"ServerId");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(temperatureOk.isValid());
+  REQUIRE(serverId.isValid());
+  ParameterHandleValueMap parameterValues;
+  parameterValues.emplace(
+      temperatureOk,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{serverId});
+  auto const receiverRegion = receiver->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion, serverId, RangeBounds(0UL, 10UL)));
+  REQUIRE_NOTHROW(receiver->setRangeBounds(
+      receiverRegion, serverId, RangeBounds(11UL, 15UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  REQUIRE_NOTHROW(receiver->commitRegionModifications(RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClassWithRegions(
+      interactionClass, RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  // The regional send remains a qualifying TSO interaction even though the
+  // sole subscription does not overlap the publisher's region. Clause 8.22.3
+  // requires its federation-unique designator independently of fanout.
+  auto const retractable = publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retractable.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+  REQUIRE_NOTHROW(publisher->retract(retractable));
+  REQUIRE_THROWS_AS(
+      publisher->retract(retractable),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  auto const expired = publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(expired.isValid());
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  REQUIRE_THROWS_AS(
+      publisher->retract(expired),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(receiver->unsubscribeInteractionClassWithRegions(
+      interactionClass, RegionHandleSet{receiverRegion}));
+  REQUIRE_NOTHROW(receiver->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+    "[integration][development-profile][interaction-management][ddm][time-management]"
+    "[rti.service.send-interaction-with-regions][rti.service.retract]"
+    "[rti.service.time-advance-request][federate.callback.receive-interaction]"
+    "[federate.callback.request-retraction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador immediateReports;
+  ReportingFederateAmbassador constrainedReports;
+  auto publisher = makeRti();
+  auto immediate = makeRti();
+  auto constrained = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const parameterBytes[] = {0x52, 0x52};
+  unsigned char const tagBytes[] = {0x52, 0x47, 0x49};
+  ParameterHandleValueMap parameterValues;
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(immediate->connect(immediateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(constrained->connect(constrainedReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"regional-retraction-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(immediate->joinFederationExecution(
+      L"regional-retraction-immediate", L"subscriber", federationName));
+  REQUIRE_NOTHROW(constrained->joinFederationExecution(
+      L"regional-retraction-constrained", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+  auto const temperatureOk = publisher->getParameterHandle(interactionClass, L"TemperatureOk");
+  auto const serverId = publisher->getDimensionHandle(L"ServerId");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(temperatureOk.isValid());
+  REQUIRE(serverId.isValid());
+  parameterValues.emplace(
+      temperatureOk,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{serverId});
+  auto const immediateRegion = immediate->createRegion(DimensionHandleSet{serverId});
+  auto const constrainedRegion = constrained->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion, serverId, RangeBounds(0UL, 10UL)));
+  REQUIRE_NOTHROW(immediate->setRangeBounds(
+      immediateRegion, serverId, RangeBounds(5UL, 15UL)));
+  REQUIRE_NOTHROW(constrained->setRangeBounds(
+      constrainedRegion, serverId, RangeBounds(5UL, 15UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  REQUIRE_NOTHROW(immediate->commitRegionModifications(RegionHandleSet{immediateRegion}));
+  REQUIRE_NOTHROW(constrained->commitRegionModifications(RegionHandleSet{constrainedRegion}));
+  REQUIRE_NOTHROW(immediate->subscribeInteractionClassWithRegions(
+      interactionClass, RegionHandleSet{immediateRegion}));
+  REQUIRE_NOTHROW(constrained->subscribeInteractionClassWithRegions(
+      interactionClass, RegionHandleSet{constrainedRegion}));
+  REQUIRE_NOTHROW(constrained->enableTimeConstrained());
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  auto const retraction = publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(2));
+  REQUIRE(retraction.isValid());
+
+  // The immediate recipient's overlap-qualified callback begins before the
+  // constrained recipient can reach its grant boundary. The recipient ledger
+  // still owns both states even though only one entered the temporal queue.
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.timestampedInteractionReports.size() == 1);
+  auto const& first = immediateReports.timestampedInteractionReports.front();
+  REQUIRE(first.interactionClass == interactionClass);
+  REQUIRE(first.parameterValues.size() == 1);
+  REQUIRE(first.parameterValues.contains(temperatureOk));
+  REQUIRE(variableLengthDataBytes(first.parameterValues.at(temperatureOk)) ==
+          std::vector<unsigned char>(parameterBytes, parameterBytes + sizeof(parameterBytes)));
+  REQUIRE(first.timeValue == L"2");
+  REQUIRE(first.sentOrderType == rti1516_2025::TIMESTAMP);
+  REQUIRE(first.receivedOrderType == rti1516_2025::RECEIVE);
+  REQUIRE(first.retractionSupplied);
+  REQUIRE(first.retractionValid);
+  REQUIRE_FALSE(first.sentRegionsSupplied);
+  REQUIRE(constrainedReports.timestampedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(publisher->retract(retraction));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 1);
+  REQUIRE(immediateReports.requestRetractionReports.front().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.front().encodedRetraction) ==
+          variableLengthDataBytes(retraction.encode()));
+  REQUIRE(immediateReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "request-retraction"});
+
+  REQUIRE_NOTHROW(constrained->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(constrained->evokeCallback(0.0));
+  REQUIRE(constrainedReports.timeAdvanceGrantReports.size() == 1);
+  REQUIRE(constrainedReports.timestampedInteractionReports.empty());
+  REQUIRE(constrainedReports.requestRetractionReports.empty());
+
+  // A regional send with no constrained recipient still receives an official
+  // designator and retains the delivered immediate recipient for a later
+  // Request Retraction callback.
+  REQUIRE_NOTHROW(constrained->resignFederationExecution(NO_ACTION));
+  auto const immediateOnlyRetraction = publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{publisherRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(4));
+  REQUIRE(immediateOnlyRetraction.isValid());
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.timestampedInteractionReports.size() == 2);
+  REQUIRE(immediateReports.timestampedInteractionReports.back().retractionValid);
+  REQUIRE_NOTHROW(publisher->retract(immediateOnlyRetraction));
+  REQUIRE_FALSE(immediate->evokeCallback(0.0));
+  REQUIRE(immediateReports.requestRetractionReports.size() == 2);
+  REQUIRE(immediateReports.requestRetractionReports.back().retractionValid);
+  REQUIRE(variableLengthDataBytes(
+              immediateReports.requestRetractionReports.back().encodedRetraction) ==
+          variableLengthDataBytes(immediateOnlyRetraction.encode()));
+
+  REQUIRE_NOTHROW(immediate->unsubscribeInteractionClassWithRegions(
+      interactionClass, RegionHandleSet{immediateRegion}));
+  REQUIRE_NOTHROW(immediate->deleteRegion(immediateRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(immediate->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(constrained->disconnect());
+  REQUIRE_NOTHROW(immediate->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
 }
 
 TEST_CASE(
@@ -6523,6 +16308,64 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded Modify Lookahead applies increases immediately and decreases gradually",
+    "[integration][development-profile][time-management][lookahead]"
+    "[rti.service.modify-lookahead][rti.service.query-lookahead]"
+    "[rti.service.time-advance-request][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  rti1516_2025::HLAinteger64Interval lookahead;
+
+  REQUIRE_THROWS_AS(
+      rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(2)),
+      rti1516_2025::NotConnected);
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(2)),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(L"lookahead-client", federationName));
+  REQUIRE_THROWS_AS(
+      rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(2)),
+      rti1516_2025::TimeRegulationIsNotEnabled);
+
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(2)));
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 2);
+
+  REQUIRE_NOTHROW(rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 5);
+
+  // A decrease is announced immediately but the actual lookahead remains at
+  // five until logical time advances.
+  REQUIRE_NOTHROW(rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 5);
+
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(3)));
+  REQUIRE_THROWS_AS(
+      rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(2)),
+      rti1516_2025::InTimeAdvancingState);
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 2);
+
+  REQUIRE_NOTHROW(rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+  REQUIRE_NOTHROW(rti->queryLookahead(lookahead));
+  REQUIRE(lookahead.getInterval() == 1);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
     "Embedded Query GALT and Query LITS observe other regulator time and pending advances",
     "[integration][development-profile][time-management][galt][lits]"
     "[rti.service.query-galt][rti.service.query-lits]") {
@@ -6803,8 +16646,10 @@ TEST_CASE(
       nrgFom.path().wstring(),
       L"HLAinteger64Time"));
   REQUIRE_NOTHROW(receiver->joinFederationExecution(L"receiver", federationName));
+  REQUIRE(receiver->getNonRegulatedGrantSwitch());
   REQUIRE_NOTHROW(regulator->connect(regulatorReports, HLA_EVOKED));
   REQUIRE_NOTHROW(regulator->joinFederationExecution(L"regulator", federationName));
+  REQUIRE(regulator->getNonRegulatedGrantSwitch());
 
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
@@ -6872,7 +16717,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded additional FOM NRG metadata re-evaluates a pending constrained TAR",
+    "Embedded additional FOM NRG metadata cannot change the static switch or TAR",
     "[integration][development-profile][time-management][fom][non-regulated-grant][callbacks]"
     "[rti.service.join-federation-execution][rti.service.time-advance-request]"
     "[federate.callback.time-advance-grant]") {
@@ -6893,7 +16738,7 @@ TEST_CASE(
 
   // The official Restaurant FOM omits NRG, which means Disabled. With no
   // regulator, the constrained TAR must remain pending before the additional
-  // module becomes part of the composed federation definition.
+  // module joins.
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
@@ -6905,11 +16750,12 @@ TEST_CASE(
       federationName,
       std::vector<std::wstring>{nrgFom.path().wstring()}));
 
-  // The successful MIM-first replacement definition enables NRG. The existing
-  // TAR is re-evaluated only after that definition and membership commit.
+  // NRG is a static federation-wide switch established at creation. The
+  // additional module cannot change it or release the existing TAR.
+  REQUIRE_FALSE(receiver->getNonRegulatedGrantSwitch());
+  REQUIRE_FALSE(applicant->getNonRegulatedGrantSwitch());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
-  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1);
-  REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == L"1");
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
 
   REQUIRE_NOTHROW(applicant->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
@@ -7046,7 +16892,7 @@ TEST_CASE(
   auto const resignedName = std::wstring{L"Umbra.ReleasedOnResign"};
   REQUIRE_NOTHROW(owner->reserveObjectInstanceName(resignedName));
   REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(peer->reserveObjectInstanceName(resignedName));
   REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(peerReports.objectInstanceNameReservationSucceededReports.size() == 2);

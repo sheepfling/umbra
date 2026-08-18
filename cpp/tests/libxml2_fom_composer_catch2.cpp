@@ -178,10 +178,48 @@ TEST_CASE("The FDD materializer accepts the supplied MIM and base FOM", "[unit][
   REQUIRE(drinkGarnish->kind == umbra::detail::FomDataTypeKind::variant_record);
   REQUIRE(result.catalog->time().logicalTimeDataType == "HLAinteger64Time");
   REQUIRE(result.catalog->time().logicalTimeIntervalDataType == "HLAinteger64Time");
+  // The Restaurant FOM explicitly enables the object-class and interaction
+  // relevance advisories.  The two omitted advisory entries remain Disabled
+  // under the 1516.2 switch-table defaults.
+  REQUIRE_FALSE(result.catalog->advisorySwitches().attributeScopeAdvisory);
+  REQUIRE(result.catalog->advisorySwitches().attributeRelevanceAdvisory);
+  REQUIRE(result.catalog->advisorySwitches().objectClassRelevanceAdvisory);
+  REQUIRE(result.catalog->advisorySwitches().interactionRelevanceAdvisory);
+  REQUIRE(result.catalog->federationSwitches().autoProvide);
+  REQUIRE(
+      result.catalog->federateSupportSwitches().automaticResignAction ==
+      "CancelThenDeleteThenDivest");
   // IEEE 1516.2 makes an omitted switch Disabled.  The supplied Restaurant
   // FOM has no NRG entry, so the catalog must preserve that standard default
   // for a future federation-wide grant calculation.
   REQUIRE_FALSE(result.catalog->timeManagementSwitches().nonRegulatedGrant);
+}
+
+TEST_CASE(
+    "The FDD materializer retains the complete 2025 support-switch table",
+    "[unit][fom][switches]") {
+  std::vector<PrevalidatedFomModule> modules{
+      validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim,
+                L"urn:umbra:test:mim"),
+      validated(
+          std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+              "switch-support-enabled-fom.xml",
+          FomModuleKind::fom,
+          L"urn:umbra:test:support-switches"),
+  };
+
+  auto result = composer().compose(modules);
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::valid);
+  REQUIRE(result.catalog);
+  REQUIRE(result.catalog->federationSwitches().delaySubscriptionEvaluation);
+  REQUIRE(result.catalog->federationSwitches().allowRelaxedDDM);
+  auto const& support = result.catalog->federateSupportSwitches();
+  REQUIRE(support.conveyRegionDesignatorSets);
+  REQUIRE(support.automaticResignAction == "DeleteObjectsThenDivest");
+  REQUIRE(support.serviceReporting);
+  REQUIRE(support.exceptionReporting);
+  REQUIRE(support.sendServiceReportsToFile);
 }
 
 TEST_CASE(
@@ -724,14 +762,14 @@ TEST_CASE(
           exactSubscriber.membership->id,
           *mainCourseHandle,
           true) == InteractionClassDeclarationStatus::applied);
-  // Passive subscriptions still receive interactions.  Only advisory
-  // declaration callbacks distinguish their active flag.
+  // Promotion is the subject here, so the superclass declaration is active.
+  // Passive-delivery suppression is covered by the dedicated public regression.
   REQUIRE(
       registry.setInteractionClassSubscription(
           federationName,
           promotedSubscriber.membership->id,
           *foodServedHandle,
-          false) == InteractionClassDeclarationStatus::applied);
+          true) == InteractionClassDeclarationStatus::applied);
   REQUIRE(
       registry.setInteractionClassSubscription(
           federationName,
@@ -880,6 +918,10 @@ TEST_CASE(
       testData / "switch-nrg-enabled-fom.xml",
       FomModuleKind::fom,
       L"urn:umbra:test:nrg-enabled");
+  auto knownClassEnabled = validated(
+      testData / "switch-known-class-enabled-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:known-class-enabled");
 
   auto materializer = composer();
   auto equivalent = materializer.compose({mim, disabled, disabled});
@@ -887,7 +929,21 @@ TEST_CASE(
   REQUIRE(equivalent.status == FomCompositionStatus::valid);
   REQUIRE(equivalent.catalog);
   REQUIRE_FALSE(equivalent.catalog->timeManagementSwitches().nonRegulatedGrant);
+  // The test FOM specifies only Non-Regulated-Grant; all omitted advisory
+  // entries therefore use the IEEE 1516.2 Disabled default.
+  REQUIRE_FALSE(equivalent.catalog->advisorySwitches().attributeScopeAdvisory);
+  REQUIRE_FALSE(equivalent.catalog->advisorySwitches().attributeRelevanceAdvisory);
+  REQUIRE_FALSE(equivalent.catalog->advisorySwitches().objectClassRelevanceAdvisory);
+  REQUIRE_FALSE(equivalent.catalog->advisorySwitches().interactionRelevanceAdvisory);
+  REQUIRE_FALSE(equivalent.catalog->advisorySwitches().advisoriesUseKnownClass);
+  REQUIRE_FALSE(equivalent.catalog->federationSwitches().autoProvide);
   REQUIRE(equivalent.warnings.empty());
+
+  auto knownClassFirst = materializer.compose({mim, knownClassEnabled});
+  CAPTURE(knownClassFirst.diagnostics, knownClassFirst.warnings.size());
+  REQUIRE(knownClassFirst.status == FomCompositionStatus::valid);
+  REQUIRE(knownClassFirst.catalog);
+  REQUIRE(knownClassFirst.catalog->advisorySwitches().advisoriesUseKnownClass);
 
   auto disabledFirst = materializer.compose({mim, disabled, enabled});
   CAPTURE(disabledFirst.diagnostics, disabledFirst.warnings.size());
@@ -895,6 +951,7 @@ TEST_CASE(
   REQUIRE(disabledFirst.catalog);
   REQUIRE(disabledFirst.fdd);
   REQUIRE_FALSE(disabledFirst.catalog->timeManagementSwitches().nonRegulatedGrant);
+  REQUIRE(disabledFirst.catalog->federationSwitches().autoProvide);
   REQUIRE(disabledFirst.fdd->xmlUtf8().find("<autoProvide isEnabled=\"true\"") != std::string::npos);
   REQUIRE(disabledFirst.warnings.size() == 1);
   REQUIRE(disabledFirst.warnings.front().find("nonRegulatedGrant") != std::string::npos);
@@ -905,6 +962,7 @@ TEST_CASE(
   REQUIRE(enabledFirst.status == FomCompositionStatus::valid);
   REQUIRE(enabledFirst.catalog);
   REQUIRE(enabledFirst.catalog->timeManagementSwitches().nonRegulatedGrant);
+  REQUIRE(enabledFirst.catalog->federationSwitches().autoProvide);
   REQUIRE(enabledFirst.warnings == disabledFirst.warnings);
 }
 
@@ -1043,6 +1101,71 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "The FOM composition preflight resolves representations and special instance identifiers",
+    "[unit][fom][composition][reference-resolution]") {
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto unresolvedSimple = validated(
+      testData / "unresolved-simple-representation-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:unresolved-simple-representation");
+  auto unresolvedEnumerated = validated(
+      testData / "unresolved-enumerated-representation-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:unresolved-enumerated-representation");
+  auto specialIdentifiers = validated(
+      testData / "special-instance-identifier-reference-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:special-instance-identifiers");
+  auto invalidSpecialIdentifier = validated(
+      testData / "invalid-special-instance-identifier-reference-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:invalid-special-instance-identifier");
+  auto invalidBasicReference = validated(
+      testData / "invalid-basic-reference-representation-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:invalid-basic-reference-representation");
+  auto attributeProvider = validated(
+      testData / "reference-data-attribute-provider-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:reference-data-attribute-provider");
+
+  auto materializer = composer();
+  auto resolved = materializer.compose({mim, specialIdentifiers});
+  CAPTURE(resolved.diagnostics);
+  REQUIRE(resolved.status == FomCompositionStatus::valid);
+  REQUIRE(resolved.catalog);
+  REQUIRE(resolved.fdd);
+  REQUIRE(resolved.catalog->dataType("UmbraObjectInstanceNameReference") != nullptr);
+  REQUIRE(resolved.catalog->dataType("UmbraObjectInstanceHandleReference") != nullptr);
+
+  auto missingSimple = materializer.compose({mim, unresolvedSimple});
+  REQUIRE(missingSimple.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(missingSimple.diagnostics.find("UmbraMissingBasicRepresentation") != std::string::npos);
+  REQUIRE(missingSimple.diagnostics.find("not declared") != std::string::npos);
+
+  auto missingEnumerated = materializer.compose({mim, unresolvedEnumerated});
+  REQUIRE(missingEnumerated.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(
+      missingEnumerated.diagnostics.find("UmbraMissingDiscreteRepresentation") !=
+      std::string::npos);
+  REQUIRE(missingEnumerated.diagnostics.find("not declared") != std::string::npos);
+
+  auto invalidSpecial = materializer.compose({mim, invalidSpecialIdentifier});
+  REQUIRE(invalidSpecial.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(invalidSpecial.diagnostics.find("HLAunicodeString") != std::string::npos);
+  REQUIRE(invalidSpecial.diagnostics.find("HLAobjectInstanceName") != std::string::npos);
+
+  auto invalidBasic = materializer.compose({mim, invalidBasicReference, attributeProvider});
+  REQUIRE(invalidBasic.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(invalidBasic.diagnostics.find("HLAinteger32BE") != std::string::npos);
+  REQUIRE(invalidBasic.diagnostics.find("must name a simple") != std::string::npos);
+}
+
+TEST_CASE(
     "The FOM composition preflight resolves directed interactions after the complete module set is merged",
     "[unit][fom][composition][reference-resolution]") {
   auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
@@ -1121,6 +1244,98 @@ TEST_CASE(
   REQUIRE(missing.status == FomCompositionStatus::inconsistent_modules);
   REQUIRE(missing.diagnostics.find("UmbraMissingDimensionFixture") != std::string::npos);
   REQUIRE(missing.diagnostics.find("not declared") != std::string::npos);
+}
+
+TEST_CASE(
+    "The FOM composition preflight enforces positive update rates",
+    "[unit][fom][composition][table-constraints]") {
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto invalidRate = validated(
+      testData / "invalid-update-rate-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:invalid-update-rate");
+
+  auto materializer = composer();
+  auto rateResult = materializer.compose({mim, invalidRate});
+  REQUIRE(rateResult.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(rateResult.diagnostics.find("UmbraZeroRate") != std::string::npos);
+  REQUIRE(rateResult.diagnostics.find("greater than zero") != std::string::npos);
+}
+
+TEST_CASE(
+    "The FOM composition preflight bounds dimension default ranges",
+    "[unit][fom][composition][table-constraints]") {
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto invalidDefault = validated(
+      testData / "invalid-dimension-default-value-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:invalid-dimension-default");
+
+  auto result = composer().compose({mim, invalidDefault});
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("UmbraInvalidDefaultDimension") != std::string::npos);
+  REQUIRE(result.diagnostics.find("nonnegative integer subrange") != std::string::npos);
+}
+
+TEST_CASE(
+    "The FOM composition preflight validates array cardinality forms and encodings",
+    "[unit][fom][composition][table-constraints]") {
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto invalidCardinality = validated(
+      testData / "invalid-array-cardinality-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:invalid-array-cardinality");
+  auto invalidFixedEncoding = validated(
+      testData / "invalid-array-fixed-encoding-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:invalid-array-fixed-encoding");
+  auto invalidVariableEncoding = validated(
+      testData / "invalid-array-variable-encoding-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:invalid-array-variable-encoding");
+  auto validCardinalityForms = validated(
+      testData / "valid-array-cardinality-forms-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:valid-array-cardinality-forms");
+
+  auto validResult = composer().compose({mim, validCardinalityForms});
+  CAPTURE(validResult.diagnostics);
+  REQUIRE(validResult.status == FomCompositionStatus::valid);
+  REQUIRE(validResult.catalog);
+  REQUIRE(validResult.catalog->dataType("UmbraScalarArrayCardinality") != nullptr);
+  REQUIRE(validResult.catalog->dataType("UmbraListArrayCardinality") != nullptr);
+  REQUIRE(validResult.catalog->dataType("UmbraRangeArrayCardinality") != nullptr);
+  REQUIRE(validResult.catalog->dataType("UmbraDynamicArrayCardinality") != nullptr);
+  REQUIRE(validResult.catalog->dataType("UmbraMixedArrayCardinality") != nullptr);
+
+  auto result = composer().compose({mim, invalidCardinality});
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("UmbraInvalidArrayCardinality") != std::string::npos);
+  REQUIRE(result.diagnostics.find("invalid cardinality") != std::string::npos);
+
+  auto fixedEncodingResult = composer().compose({mim, invalidFixedEncoding});
+  REQUIRE(fixedEncodingResult.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(fixedEncodingResult.diagnostics.find("UmbraInvalidFixedArrayEncoding") !=
+          std::string::npos);
+  REQUIRE(fixedEncodingResult.diagnostics.find("HLAfixedArray") != std::string::npos);
+
+  auto variableEncodingResult = composer().compose({mim, invalidVariableEncoding});
+  REQUIRE(variableEncodingResult.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(variableEncodingResult.diagnostics.find("UmbraInvalidVariableArrayEncoding") !=
+          std::string::npos);
+  REQUIRE(variableEncodingResult.diagnostics.find("HLAvariableArray") != std::string::npos);
 }
 
 TEST_CASE(

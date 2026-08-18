@@ -455,7 +455,7 @@ regenerate the Figure 16 derivative. A regression test should assert the
 source state, target state, label, and clause ID together so the generated
 diagram cannot silently reintroduce the contradictory path.
 
-### RL-018 — Region-service requirement titles use a stale annex source path
+### RL-018 — Requirement titles use a stale annex source path
 
 **Status:** verified export metadata inconsistency; possible Lab refinement, not a
 standards defect.
@@ -474,6 +474,23 @@ records.
 record `source.path`/line data rather than the stale display title. The
 Requirements-Lab checker accepts these contracts, so this is not an
 implementation blocker and does not support a conformance claim.
+
+**2026-08-18 follow-up:** the bounded default-region contract uses the same
+source-path-over-title rule for its page-216 default-region candidate. The
+exported clause metadata and immutable IDs were coherent enough to trace the
+receive-order and direct time-constrained timestamped object/interaction
+behavior; no additional Requirements Lab defect was discovered during that
+work.
+
+**2026-08-18 delayed-subscription follow-up:** the same stale-title pattern
+affects the page-187 Delay Subscription Evaluation candidates. Their
+authoritative source block visibly labels the behavior as §8.1.8, while the
+exported candidate metadata labels it `clause-8.1.10`. Umbra's dedicated
+delayed-subscription contract preserves the immutable IDs and checker-facing
+metadata, but cites §8.1.8 in its human-facing scope note. This is a Lab
+metadata defect to refine, not a standards or implementation defect. The later
+ordinary known-object Update Attribute Values extension reuses the same three
+candidates and exposed no additional Requirements Lab discrepancy.
 
 **Possible Lab refinement:** derive each candidate title from its `source.path`
 and source line, or correct the stale annex path while preserving the immutable
@@ -498,10 +515,14 @@ contract that references them, but the fragment alone cannot establish the
 complete ordering, timestamp, or retraction semantics.
 
 **Umbra impact:** the private TSO queue contract uses these IDs only as narrow
-source/test anchors. Its notes explicitly preserve the incomplete statement
-shape, and the implementation does not infer missing public semantics from
-the fragments. No timestamped RTI ambassador overload or conformance claim is
-based on this export.
+source/test anchors. The bounded normal timestamped Send Interaction, Send
+Interaction With Regions, Update Attribute Values (including the bounded
+regional path), and Send Directed Interaction Request Retraction contracts
+also use the available Retract/Request Retraction anchors, but record that the
+strict Clause 8.22.3 time-plus-actual-lookahead paragraphs are absent as
+standalone candidate records. The implementation verifies that condition from
+the authoritative reconstructed 2025 source rather than inferring it from the
+fragments. No conformance claim is based on this export.
 
 **Possible Lab refinement:** export the complete normalized normative sentence
 for each candidate (or provide a stable source-span payload alongside the
@@ -531,6 +552,433 @@ Requirements-Lab mapping or conformance evidence.
 cross-record context link for multi-line normative statements, so the checker
 can expose the complete GALT/LITS rule while retaining each immutable
 candidate ID.
+
+### RL-021 — Get Update Rate Value For Attribute has a clause-number drift
+
+**Status:** verified export/source-layout inconsistency; possible Lab refinement,
+not a standards defect.
+
+At pinned revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the requirement candidate
+`requirement-candidate-content-clauses-10-support-services-page-252-l17-1`
+is exported with `clause_id` `clause-10.13.2`, while the authoritative
+source-content block for page 252 labels the service `10.12` and its returned
+arguments `10.12.2`. The separate C++ API surface carries `clause-10.12`.
+The candidate statement itself is complete across the exported source span,
+but the clause labels disagree across the Lab artifacts.
+
+**Umbra impact:** the update-rate-value requirements contract uses the exact
+immutable candidate ID and records the exported `clause-10.13.2`; the API
+contract uses the exact API surface and its `clause-10.12`. This preserves
+checker acceptance without pretending the two clause labels are equivalent.
+The bounded C++ test and implementation remain development-profile
+traceability only.
+
+**Possible Lab refinement:** reconcile the generated requirement clause with
+the source-content service heading (or export an explicit source-heading ID
+alongside the semantic owner) while preserving the immutable candidate ID.
+A cross-artifact consistency check should flag a requirement/API pair when
+their service names match but their exported clause labels disagree.
+
+### RL-022 — Turn Updates On C++ crosswalk leaves the overload choice ambiguous
+
+**Status:** verified crosswalk ambiguity; possible Lab refinement, not a standards
+defect.
+
+At pinned revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the generated C++ worklist records
+both `cpp:m16.transition.ownership-updates-on` and
+`cpp:m16.transition.ownership-updates-on-again` with `crosswalk_status`
+`ambiguous`, candidate API surfaces
+`api.2025.cpp.federateambassador.turnupdatesonforobjectinstance.45e8b672fc3e`
+and
+`api.2025.cpp.federateambassador.turnupdatesonforobjectinstance.b721f45f5535`,
+and no `selected_api_surface_ids`. The two candidates are the official
+rate-bearing and no-rate C++ overloads, while the transition names do not carry
+enough information to choose one.
+
+**Umbra impact:** Umbra's source/API contracts pin both immutable API IDs and
+the Catch2 cases verify the overload selection, including callback-time
+re-evaluation and a regional explicit-rate transition. The cases remain
+development-profile traceability only and cannot enter the Lab's real catalog
+until a mapping selects the appropriate overload(s).
+
+**Possible Lab refinement:** split the transition mapping by callback contract
+(`ownership.updates-on.no-rate` and `ownership.updates-on.rate-bearing`) or allow
+one mapping to select both overload IDs with explicit applicability predicates.
+Preserve the existing immutable mapping IDs and expose the selected overload
+semantics in the generated worklist.
+
+### RL-023 — Dynamic Auto Provide semantics are present in 1516.2 content but not a 1516.2 requirement record
+
+**Status:** verified export-shape boundary; possible cross-document export
+refinement, not a standards defect.
+
+At pinned revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the 1516.2 semantic content
+record `requirement-candidate-sections-semantic-clause-4b-page-066-l6-1`
+states that Auto Provide is a federation-wide dynamic switch and names the
+MOM interaction
+`HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches`.
+The 1516.1 requirements export separately contains the normative
+modifiability record
+`requirement-candidate-content-clauses-06-object-management-page-110-l10-2`,
+but the portable bundle does not expose the 1516.2 semantic record as a
+requirement document that the current checker can cross-reference.
+
+**Umbra impact:** the MOM implementation contract uses the 1516.1
+modifiability candidate so `requirements_lab.py check` remains a same-document
+validation. This observation records the 1516.2 semantic/MOM source as the
+interpretive basis; it is not presented as a second Lab requirement mapping or
+as conformance evidence. The Catch2 case independently verifies the standard
+MIM class, parameter, four-byte `HLAswitch` values, federation-wide getter
+change, and subsequent discovery behavior.
+
+**Possible Lab refinement:** export a stable, edition-qualified relationship
+from the 1516.1 Auto Provide requirement to the 1516.2 switch-table semantic
+record (or add a clearly labelled 1516.2 requirements document). Extend the
+checker with an explicit cross-document reference mode rather than requiring
+consumers to duplicate a source ID under the wrong document.
+
+### RL-022 — The temporal state-chart label says “Disable Asynchronously Delivery”
+
+**Status:** verified generated-label typo; possible export refinement, not a
+standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`,
+`semantic/ownership-and-temporal-state-machines.json` labels the asynchronous
+delivery transition `Disable Asynchronously Delivery`, while the normative
+requirement candidates and official C++ API surface use `Disable Asynchronous
+Delivery`. The machine still identifies the intended transition, so this is a
+presentation/normalization defect rather than missing behavioral coverage.
+
+**Umbra impact:** the asynchronous-delivery contracts use the immutable clause
+IDs and exact API surface IDs, and their tests cite the official service name;
+they do not treat the generated state-chart label as an API or conformance
+authority.
+
+**Possible Lab refinement:** normalize generated transition labels from the
+canonical service title and add a small label-integrity check against the
+requirements/API corpus, while preserving the existing immutable transition
+ID.
+
+### RL-024 — The 1516.2 automatic-resign default differs from the 2025 FDD XSD default
+
+**Status:** verified cross-artifact default mismatch; requires an explicit
+edition decision, not silent implementation drift.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the 1516.2 requirement
+`requirement-candidate-sections-semantic-clause-4b-page-067-l50-4`
+states that an omitted Automatic Resign Action defaults to
+`CancelThenDeleteThenDivest`. The checked-in IEEE 1516.2-2025 FDD/OMT/DIF XSD
+resources declare the `resignAction` attribute default as `NoAction` instead.
+The XML validator accepts an omitted attribute, so validation alone does not
+resolve which semantic default should be materialized.
+
+**Umbra impact:** the catalog and embedded membership path use the
+Requirements-Lab normative candidate (`CancelThenDeleteThenDivest`) and retain
+the XSD lexical value only when it is explicitly present. This is recorded as
+an intentional standards-traceability choice, not as conformance evidence.
+
+**Possible Lab/refinement action:** reconcile the published 1516.2/XSD default
+with the normative table (or publish an erratum/precedence rule), then update
+Umbra's contract and fixture if the authoritative value changes. Until that
+decision is resolved, do not claim the automatic-resign default is validated.
+
+### RL-025 — Federate Resigned C++ crosswalk also selects Connection Lost
+
+**Status:** verified crosswalk over-match; possible export refinement, not a
+standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`,
+`api-requirement-bindings.json` exports both the correct C++ callback binding
+`binding.req-federate-resigned-callback-behavior.cpp.api-2025-cpp-federateambassador-federateresigned-0f7e5f7b1858`
+and a second, unrelated binding ending in
+`api-2025-cpp-federateambassador-connectionlost-e952ebb6c2e6` for the same
+`req-federate-resigned-callback-behavior` requirement. The requirement itself
+distinguishes the services: an involuntarily resigned federate remains
+connected and receives `Federate Resigned`; a `Connection Lost` event implies
+resignation but moves the federate to Not Connected and does not require a
+Federate Resigned callback.
+
+**Umbra impact:** the embedded Connection Lost contracts select only
+`FederateAmbassador::connectionLost` for the two explicit Connection Lost
+requirements. A future Federate Resigned slice must select only the exact
+`FederateAmbassador::federateResigned` API surface and retain the different
+connected/not-joined lifecycle. Umbra will not treat the extra crosswalk row
+as evidence that the callbacks are interchangeable.
+
+**Possible Lab refinement:** constrain callback crosswalk generation by the
+canonical service title and modeled transition, or label the Connection Lost
+association as contextual rather than a matched C++ API binding. Preserve the
+immutable IDs while removing the false selected surface from the Federate
+Resigned worklist.
+
+### RL-026 — Delete Object Instance scope is limited to its two official overloads
+
+**Status:** verified Umbra scope correction; not a Requirements-Lab defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the exact C++ API surface
+`api.2025.cpp.rtiambassador.deleteobjectinstance.c05d20bc2175` corresponds to
+the receive-order and timestamped `RTIambassador::deleteObjectInstance`
+overloads. Umbra's imported official `RTI/RTIambassador.h` baseline contains
+those two overloads and no directed or region-context Delete Object Instance
+service. Earlier Umbra roadmap wording referred to "regional/directed deletion
+forms" as if they were future public 1516.1-2025 APIs.
+
+**Umbra impact:** that wording is removed from the timestamped deletion and
+Request Retraction contracts, plans, and design notes. Actual remaining
+deletion work is limited to lifecycle and delivery conditions—alternate time
+advance modes, remaining resignation and ownership states, save/restore,
+transport, and evidence promotion—not invented directed or regional public
+delete services.
+
+**Possible Lab refinement:** none required. A future API inventory display
+could make overload families more visually explicit, but the current immutable
+surface and the imported official header already provide sufficient evidence.
+
+### RL-027 — The time-constrained Initiate Federate Save condition spans two standalone candidates
+
+**Status:** verified source-fragmentation edge; possible export refinement,
+not a standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the semantic requirements export
+splits the operative time-constrained save condition across
+`requirement-candidate-content-clauses-04-federation-management-page-067-l37-8`
+(`"time-constrained, it shall expect ... only when it is in"`) and
+`requirement-candidate-content-clauses-04-federation-management-page-067-l40-9`
+(`"the Time Advancing state"`). Each immutable source span is accurate, but
+neither candidate is independently a complete normative condition.
+
+**Umbra impact:** the bounded untimed and timestamped time-constrained
+save-admission contracts map both IDs to the same coordinator/dispatcher
+behavior. The timestamped TAR Catch2 cases now prove direct initiation after
+the applicable TSO boundary and before the recipient's grant, including a
+three-member admission sequence; a TARA case covers the available-mode
+exclusive boundary; and a next-message case covers NMR's inclusive and NMRA's
+exclusive boundaries. A three-member TARA/NMRA case now proves both strict
+ordinary forms are ready before non-time-constrained notification. Dedicated
+FQR cases now prove direct initiation after queued TSO and before Flush Queue
+Grant when the calculated actual grant is strictly beyond the save time,
+including mixed FQR/TAR member readiness. A six-member case now combines TAR,
+NMR, TARA, NMRA, and FQR before the non-time-constrained notification. The
+cross-member TSO case additionally proves that each constrained recipient's
+payload delivery remains before its own direct initiation; an in-transit case
+now requests the save during the recipient's TSO callback and proves direct
+initiation waits for callback completion. The source-fragment
+issue remains: the paired records, rather than either one in isolation,
+express the complete Time Advancing condition.
+
+**Possible Lab refinement:** retain the immutable source-fragment IDs but add a
+stable continuation/compound relationship for statements split across adjacent
+line spans. That would let a consumer select the complete temporal condition
+without manually discovering and pairing both records.
+
+### RL-028 — Directed-subscription delivery predicates have no granular candidate records
+
+**Status:** verified export-shape limitation; possible refinement, not a
+standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the rendered semantic source for
+1516.1-2025 Declaration Management page 101 explicitly states that a missing
+or by-ownership selector delivers a directed interaction only when the joined
+federate owns at least one target-object attribute, while a universal selector
+delivers for every target object known to that federate. The candidate export
+does not produce a requirement record for either delivery predicate. It emits
+the generic selector lead-in
+`requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29`,
+then independent fragments for the supplied-class effect (`l116-33`), empty-set
+preservation (`l128-37`), and additive subscription wording (`l134-39`).
+
+**Umbra impact:** the directed-interaction requirements contract uses the
+stable generic selector ID alongside direct source-symbol traceability for the
+bounded ownership/universal implementation, and maps the two independently
+exported invocation/empty-set fragments where they apply. Its Catch2 case
+proves the default non-owner suppression, universal delivery, empty-set
+preservation, and resubscription mode change. This is source/test traceability
+only: it is not a catalog entry, validation result, or conformance claim.
+
+**Possible Lab refinement:** preserve immutable fragment IDs, but emit either
+a canonical compound requirement for the two delivery predicates or an
+explicit relationship from the generic selector record to its conditional
+ownership and universal effects. Consumers could then select the complete
+normative rule without reconstructing page prose manually.
+
+### RL-029 — Passive-subscription delivery semantics are source-visible but have no candidate record
+
+**Status:** verified export-shape limitation; possible refinement, not a
+standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the rendered semantic source for
+1516.1-2025 page 30 defines passive subscription for object classes,
+attributes, and interactions, and explicitly says that it is not used by the
+RTI to arrange data delivery or the corresponding publisher advisories. The
+semantic export has no `requirement-*page-030*` candidate record for that
+definition. The nearby immutable service candidates record that an ordinary
+attribute subscription takes the supplied active/passive mode
+(`requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36`)
+and that a regional `(object class, attribute, region)` triple takes or replaces
+its supplied mode
+(`requirement-candidate-content-clauses-09-data-distribution-management-page-234-l14-3`
+and
+`requirement-candidate-content-clauses-09-data-distribution-management-page-234-l26-7`),
+but none expresses the delivery suppression itself.
+
+**Umbra impact:** ordinary and regional interaction and object-attribute
+routing retain the immutable mode-state IDs, while their active-only delivery,
+discovery, scope, and relevance predicates are documented as direct
+source-level traceability to the page-30 definition. Catch2 regressions prove
+passive suppression and active re-subscription restoration. These are bounded
+development-profile tests, not conformance evidence.
+
+**Possible Lab refinement:** retain all existing immutable candidates and emit
+a stable definition-level requirement record (or a semantic relationship from
+each active/passive service candidate) for the passive-delivery rule, including
+its object-attribute and interaction applicability. That would let downstream
+contracts link the predicate without reconstructing glossary prose.
+
+### RL-030 — Allow Relaxed DDM delivery policy has no immutable candidate record
+
+**Status:** verified export-shape limitation; possible refinement, not a
+standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the 1516.1-2025 requirements
+export exposes only
+`requirement-candidate-content-clauses-10-support-services-page-282-l152-47`
+for Allow Relaxed DDM. That candidate is the §10.55.1 getter requirement. The
+semantic source content separately records the §9.1.4 strict/implementation-
+specific overlap rule in
+`content-element-content-15161-page-221-paragraph-001`, the §9.1.8 disabled/
+enabled switch behavior in
+`content-element-content-15161-page-225-paragraph-001` and
+`content-element-content-15161-page-226-paragraph-001`, and the Annex E
+explanation in `content-element-content-15161-page-431-paragraph-001`. None
+is emitted as an immutable `requirement-*` record.
+
+**Umbra impact:** the existing support-switch contract continues to map the
+getter to its exact §10.55.1 candidate. Umbra does not misrepresent that
+candidate as a routing requirement. Instead, the central committed-region
+predicate implements a narrow documented exact-boundary policy and the Catch2
+case proves enabled, disabled, gapped, and strict overlap behavior. The direct
+source relationship and scope are recorded in
+`docs/RELAXED-DDM-POLICY.md` and the Catch2 plan. This remains
+development-profile traceability, not a validation or conformance claim.
+
+**Possible Lab refinement:** retain the getter candidate and add stable
+candidate records for §9.1.4's implementation-specific overlap condition and
+§9.1.8's disabled strictness, enabled-superset invariant, and filtering
+effects. Consumers could then link their explicit implementation policy to the
+actual delivery semantics without borrowing the unrelated getter requirement.
+
+### RL-031 — Set Service Reporting candidates are assigned to the following service
+
+**Status:** verified export attribution mismatch; possible extraction
+refinement, not a standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the source content element
+`content-element-content-15161-page-277-paragraph-001` explicitly labels the
+first half of the page as §10.47, *Set Service Reporting Switch*. Its three
+candidate records—
+`requirement-candidate-content-clauses-10-support-services-page-277-l28-6`,
+`...-l31-7`, and `...-l37-9`—are nevertheless exported with
+`clause_id: "clause-10.48.1"`, the following *Get Exception Reporting Switch*
+section. Their titles also point to `annexes-page-439.tex`, rather than the
+actual page-277 source.
+
+**Umbra impact:** Umbra does not attach the misclassified §10.47 candidate to
+the MOM service-reporting interlock contract. It instead uses the correctly
+owned §11.5.1 candidate
+`requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18`
+for the two-way switch/subscription rule, plus the exact §5.10.2 and §9.10.3
+subscription candidates. The direct Set Service Reporting C++ API contract is
+still checked against the official header and a focused Catch2 selector.
+
+**Possible Lab refinement:** preserve the immutable candidate IDs but assign
+the page-277 lines before the §10.48 heading to `clause-10.47` (or the
+appropriate subclause when determinable), and derive the display title from
+their actual source span. That would make service-level traceability possible
+without a consumer silently accepting the wrong owner.
+
+### RL-032 — Table 20 MOM switch semantics are not exported as individual candidates
+
+**Status:** verified export-shape limitation; possible extraction refinement,
+not a standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the source content elements
+`content-element-content-15161-page-343-paragraph-001` and
+`content-element-content-15161-page-344-paragraph-001` contain the Table 20
+semantics for the nine predefined
+`HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches` parameters. Both exported
+elements have `record_ids: []`, so no immutable requirement candidates exist
+for the individual parameter effects. The generic §11.4.1 records cover
+receiving/processing the MOM interaction, promoting compatible extension
+subclasses, and ignoring additional parameters. The §11.4.2 record
+`requirement-candidate-content-clauses-11-management-object-model-page-291-l146-48`
+is also exported with the truncated statement `shall %`, although the rendered
+source clearly requires at least one `HLAsetSwitches` parameter.
+
+**Impact on Umbra:** the bounded control-path contract links the generic
+§11.4.1/§11.4.2 candidates and exact §11.5.1 interlock candidate, while its
+per-parameter semantics retain direct source and 2025 MIM references. Umbra
+does not claim candidate-level traceability for each Table 20 parameter until
+the Lab exports them.
+
+**Possible Lab refinement:** preserve existing IDs, emit stable per-row Table
+20 candidates keyed by table, interaction class, and parameter, and reconstruct
+continuation-fragment candidates such as the at-least-one requirement before
+publishing. This would let consumers trace individual MOM switch effects
+without deriving requirements from raw table text.
+
+### RL-033 — Normalize-service opening candidates drift to following subclauses
+
+**Status:** verified export attribution mismatch; possible extraction
+refinement, not a standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the reconstructed source blocks
+explicitly label the five service openings as §§10.29 through 10.33. Their
+opening candidates are nevertheless exported with these clause IDs:
+
+- `requirement-candidate-content-clauses-10-support-services-page-264-l133-41`
+  (`Normalize Service Group`) → `clause-10.29.5`;
+- `...page-265-l45-11` (`Normalize Federate Handle`) → `clause-10.31.2`;
+- `...page-265-l150-46` (`Normalize Object Class Handle`) →
+  `clause-10.31.2`;
+- `...page-266-l95-28` (`Normalize Interaction Class Handle`) →
+  `clause-10.32.5`; and
+- `...page-267-l39-9` (`Normalize Object Instance Handle`) →
+  `clause-10.34.2`.
+
+The source content elements show the actual headings and opening behavior,
+while the exported records' titles also resolve to `annexes-page-439.tex`.
+The object-class candidate happens to have a matching returned-argument
+subclause, but the other four candidate clause IDs name a later service's
+subclause or an exception subsection rather than the opening service.
+
+**Umbra impact:**
+`compliance/handle-normalization-requirements-contract.json` retains the
+immutable candidate IDs and their currently exported clause IDs so the
+Requirements Lab checker can detect future drift. Umbra's API contract and
+implementation plan use the authoritative §§10.29--10.33 service identity;
+the mismatched candidate fields are not treated as a standards classification
+or conformance result.
+
+**Possible Lab refinement:** preserve the immutable IDs, but assign source
+spans before a service's first subsection to the enclosing service heading and
+derive the display title from that heading. A source-span relation linking an
+opening behavior candidate to its returned/precondition/exception records
+would make service-level traceability usable without consumers having to
+preserve known-wrong clause IDs for checker compatibility.
 
 ## Recording rules
 

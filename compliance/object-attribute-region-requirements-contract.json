@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 clauses 9.5 through 9.9 object-attribute regional slice in Umbra's non-installable development profile. It uses only immutable candidate IDs exported by the Requirements Lab. Registration-established associations, additive/idempotent association, empty-region no-op behavior, overlap-filtered no-time updates, additive/idempotent regional subscriptions, and regional unsubscription are covered by a real Catch2 scenario. Default-region synthesis, advisory attributesInScope/attributesOutOfScope transitions, timestamped/retraction behavior, relaxed DDM, regional request forms, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 clauses 9.5 through 9.9 object-attribute regional slice in Umbra's non-installable development profile. It uses only immutable candidate IDs exported by the Requirements Lab. Registration-established associations, additive/idempotent association, empty-region no-op behavior, active-overlap-filtered no-time updates, additive/idempotent per-(object-class, attribute, region) active/passive subscriptions, mode replacement, and regional unsubscription are covered by real Catch2 scenarios. Passive triples remain declared and retain their region lifecycle fence but cannot arrange discovery, scope, or reflection. The standard-wide passive-subscription delivery predicate is source-level evidence on page 30 rather than an immutable candidate; the Clause 9.8 candidate IDs pin the triple state and replacement language (RL-029). A separate direct-source Relaxed DDM regression proves the documented exact-boundary policy through regional registration, discovery, and reflection; RL-030 records that the corresponding §9.1.4/§9.1.8 policy prose has no immutable Lab candidate. Default-region synthesis, advisory attributesInScope/attributesOutOfScope transitions, timestamped/retraction behavior, broader relaxed-DDM matrices, regional request forms, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
   "requirements": [
     {
       "id": "umbra-object-regional-registration-creates-associated-instance",
@@ -12,7 +12,9 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     },
     {
@@ -62,7 +64,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges"
       ]
     },
     {
@@ -103,6 +106,36 @@
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-subscription-retains-active-passive-triple-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l14-3",
+      "clause_id": "clause-9.8.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-subscription-replaces-triple-mode",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l26-7",
+      "clause_id": "clause-9.8.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-passive-triple-suppresses-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l36-9",
+      "clause_id": "clause-9.8",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     },
     {

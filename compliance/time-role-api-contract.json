@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable embedded temporal-role development slice to exact C++ API surfaces exported by the Requirements Lab. It records regulation/constrained enable and disable services, Query Lookahead, and the two completion callbacks. The Lab exports no higher-level implementation mapping for these surfaces, so this checks only declaration, declared exception set, source symbol, and Catch2 selector agreement. It is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded temporal-role development slice to exact C++ API surfaces exported by the Requirements Lab. It records regulation/constrained enable and disable services, Query Lookahead, and the two completion callbacks. The traced normal-interaction regression exercises Disable Time Regulation, callback-gated re-enable, and the second Time Regulation Enabled callback while a separate Request Retraction contract records the bounded live-designator lifetime. The Lab exports no higher-level implementation mapping for these surfaces, so this checks only declaration, declared exception set, source symbol, and Catch2 selector agreement. It is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-enable-time-regulation",
@@ -15,7 +15,10 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     },
     {
@@ -28,7 +31,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeRegulation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable"
       ]
     },
     {
@@ -67,7 +71,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     },
     {
@@ -80,7 +86,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "timeRegulationEnabled",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable"
       ]
     },
     {

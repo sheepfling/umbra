@@ -1,0 +1,34 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "umbra-rti-native"
+version = "0.1.0"
+description = "pybind11 provider for the Umbra IEEE 1516.1-2025 C++ RTI"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Umbra contributors" }]
+dependencies = ["hla-rti-api==0.1.0"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+wheel.packages = ["src/umbra"]
+build-dir = "build/{wheel_tag}"
+
+[tool.scikit-build.cmake.define]
+# The Python provider is currently a source-checkout development binding. It
+# intentionally enables Umbra's existing embedded federation-management
+# profile so every published Python method reaches a real C++ implementation.
+# This is not a standalone redistributable SDK-wheel profile yet.
+UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR = true
+UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT = true
+UMBRA_FETCH_LIBXML2 = true
+
+[project.entry-points."hla.rti1516_2025.factories"]
+Umbra = "umbra._native.rti1516_2025:UmbraRtiFactory"

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hla-rti-api"
+version = "0.1.0"
+description = "IEEE HLA 1516e and 1516.1-2025 Python API contracts"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Umbra contributors" }]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hla"]

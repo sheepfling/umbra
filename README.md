@@ -3,8 +3,9 @@
 Umbra is a standards-first C++20 foundation for building an HLA Run-Time
 Infrastructure (RTI). Its current state is an official IEEE 1516.1-2025 API
 baseline plus small embedded connection, callback-control, federate, object-class,
-interaction-class, inherited-attribute, inherited-parameter, dimension/upper-bound, region/range-state, and transportation-type lookup,
-interaction declaration, bounded directed-interaction delivery, object-class attribute declaration, limited object-instance registration/discovery/deletion, limited receive-order and bounded non-regional timestamped interaction and attribute-update/reflection delivery, limited object-instance and object-class request/provide attribute-value delivery, federation-listing, and temporal-control slices, with an opt-in
+interaction-class, inherited-attribute, inherited-parameter, dimension/upper-bound, region/range-state, transportation-type lookup, and
+the mandatory Receive/TimeStamp order-type lookup,
+interaction declaration, bounded directed-interaction delivery, object-class attribute declaration, limited object-instance registration/discovery/deletion, limited receive-order and bounded timestamped interaction, attribute-update/reflection, object-deletion, directed-interaction, and region-context delivery, limited object-instance and object-class request/provide attribute-value delivery, federation-listing, and temporal-control slices, with an opt-in
 federation-management development profile—not a complete RTI. Python
 and Java, if added later, will be adapters around the native C++ implementation.
 
@@ -12,7 +13,7 @@ The official factory, `rtiName`, and `rtiVersion` link from `umbra::rti`.
 That target also provides the two mandated reference logical-time types and
 factories; the standard `libfedtime` forwarding entry point is packaged as the
 separate static `umbra::fedtime` target. The default packaged profile keeps
-public `getTimeFactory`, federate, object-class, interaction-class, attribute, parameter, and transportation-type lookup, interaction declaration, object-class attribute declaration, receive-order interaction and attribute-update/reflection, object-instance and object-class request/provide attribute-value update, federation creation,
+public `getTimeFactory`, federate, object-class, interaction-class, attribute, parameter, transportation-type, and order-type lookup, interaction declaration, object-class attribute declaration, receive-order interaction and attribute-update/reflection, object-instance and object-class request/provide attribute-value update, federation creation,
 object-instance registration/discovery/deletion, and time-management services unavailable.
 `RTIambassador::connect` (all four official C++ overloads), `disconnect`,
 `evokeCallback`, `evokeMultipleCallbacks`, `enableCallbacks`, and
@@ -24,19 +25,29 @@ Every other RTI service remains explicitly unavailable through
 source-tree profile can additionally execute Create/Destroy/Join/Resign through
 the official methods after MIM-first XML/XSD validation, FDD materialization,
 and reference-time selection. It also returns a caller-owned `getTimeFactory`
-for the joined federation's selected reference implementation, resolves active
-federate names and handles only within that joined federation, resolves object-
+for the joined federation's selected reference implementation, resolves joined
+federate names to active handles and returned active/departed handles to stable
+names within that federation, resolves object-
 and interaction-class names and handles plus inherited attributes and parameters
-from its current composed FOM catalog. It retains independent per-federate
+from its current composed FOM catalog. The embedded profile also implements
+the three official 2025 order-control services: per-federate class defaults
+are captured by future object instances, explicit instance changes affect
+future owned-attribute updates, ownership transitions reset preferred order
+from the acquiring federate's default, and a publisher-scoped interaction
+override affects future ordinary, regional, and timestamped sends. Mixed
+Receive/TimeStamp delivery is exercised by Catch2; the source/API contracts
+remain development-profile traceability rather than conformance evidence. It
+retains independent per-federate
 interaction publication and subscription declarations and implements the
 non-timestamped, non-region `Send Interaction` overload with the matching
 no-time `Receive Interaction` callback. It also implements the three bounded
 2025 regional-interaction services: independent regional subscription and
 unsubscription plus no-time `Send Interaction With Regions`. Regional delivery
 uses committed official region ranges and the 2025 region-set overlap rule;
-ordinary and regional subscriptions remain independent, and an empty sent
-region set produces no callback. That limited path selects each receiver's closest
-subscribed class, projects available parameters, suppresses the sender,
+ordinary and regional subscriptions remain independent, passive subscriptions
+cannot arrange delivery, and an empty sent region set produces no callback.
+That limited path selects each receiver's closest active subscribed class,
+projects available parameters, suppresses the sender,
 rechecks a queued receiver's subscription, preserves the tag and producing
 federate, and uses the receiver's immediate or evoked callback model. It also
 implements the bounded 2025 object-class directed-interaction declarations and
@@ -45,13 +56,15 @@ matching no-time `Receive Directed Interaction` callback. A directed send is
 planned only for a known target object and a declared directed publication /
 subscription pair; the sender is excluded, the tag, producer, and mandatory
 FOM-selected transportation are preserved, and queued delivery rechecks target
-lifecycle and declaration state. The official `universally` argument remains
-outside this bounded semantic slice, as do
-timestamped/retraction behavior, directed DDM, and conformance. It also
+lifecycle and declaration state. A missing or false `universally` selector is
+by ownership, while true is universal; the empty class-set and supplied-class
+mode boundaries are covered by Catch2. Directed DDM and conformance remain
+outside this bounded semantic slice. It also
 retains explicit publication and active/passive subscription state for available
-object-class attributes, including inherited handles. It supports the unnamed
+object-class attributes, including inherited handles; only active declarations
+arrange discovery, scope, or reflection. It supports the unnamed
 `Register Object Instance` overload, generated private object-instance names,
-non-region discovery to eligible subscribed federates, and the three official
+non-region discovery to eligible actively subscribed federates, and the three official
 known-instance lookup methods. It also implements the bounded 2025 object-instance
 name reservation services: single and multiple reservations reject empty or
 `HLA.` names, report success/failure through the official callbacks, release
@@ -69,7 +82,7 @@ callback model, and the tag and producing federate are retained. It also
 implements the bounded 2025 `Local Delete Object Instance` service: only the
 invoking federate forgets the known instance, ownership/acquisition preconditions
 are enforced, and the federation-wide object can later be rediscovered. This
-does not claim timestamped/local-delete interactions or broader DDM. The same 2025 FOM
+does not claim timestamped local-delete interactions or broader DDM. The same 2025 FOM
 catalog retains dimension associations and upper bounds, allocates stable
 `DimensionHandle` values, and implements the official available-dimension,
 name, and upper-bound lookup services. It also implements the metadata-only
@@ -80,8 +93,9 @@ upper bounds, and handle decoding. It also implements a bounded 2025
 object-attribute regional slice: no-name `Register Object Instance With Regions`,
 additive `Associate Regions For Updates`/`Unassociate Regions For Updates`, and
 regional `Subscribe/Unsubscribe Object Class Attributes With Regions`. Committed
-region sets gate discovery and no-time attribute reflection by overlap, ordinary
-and regional declarations remain independent, empty region sets are no-ops, and
+active region sets gate discovery and no-time attribute reflection by overlap,
+ordinary and regional declarations remain independent, passive triples remain
+declared without arranging delivery, empty region sets are no-ops, and
 the optional sent-region set reaches the official reflection callback. The
 per-federate Attribute Scope Advisory Switch and official `attributesInScope` /
 `attributesOutOfScope` callbacks now track committed overlap, update-region
@@ -89,11 +103,11 @@ association, and ordinary/regional subscription transitions for known object
 instances, with grouped
 immediate/evoked delivery and callback-time stale-work suppression.
 Default-region synthesis, broader DDM routing, and timestamped/retraction
-behavior for regional forms remain outside this slice. It also
+behavior for regional object-attribute forms remain outside this slice. It also
 implements the no-time `Update Attribute Values` overload
 and matching no-time `Reflect Attribute Values` callback. That narrow path
 requires source ownership, keeps each FOM transportation passel separate,
-projects values at each receiver's known class and current subscription,
+projects values at each receiver's known class and current active subscription,
 suppresses the source, rechecks queued delivery, and preserves the tag,
 producer, and mandatory transportation type through either callback model.
 It also implements the object-instance `Request Attribute Value Update`
@@ -196,30 +210,49 @@ distinct resign-action object disposition, RTI-owned ownership reports, further
 regional request edge cases, or automatic provision without federate code.
 Joined federates can also resolve only the
 mandatory 2025 `HLAreliable` and `HLAbestEffort` transportation-type names and
-handles; the limited interaction and attribute-update paths apply the
-FOM-selected mandatory type. Remaining timestamped/retraction behavior beyond
+handles and the mandatory 2025 `Receive` and `TimeStamp` order names/types.
+The embedded profile now implements bounded attribute default/change/
+query services and interaction change/query services: instance defaults are
+captured per federate, accepted changes commit at their confirmation callback,
+and future ordinary/regional interaction sends and attribute updates use the
+effective type. Remaining timestamped/retraction behavior beyond
 these bounded services,
 further regional request edge cases, broader object/attribute DDM
-region lifecycle/routing, universal/timestamped directed interaction behavior,
-FOM sharing-policy enforcement, custom transportation, timestamped/local
+region lifecycle/routing, the FDD-representability issue for a complete
+multi-class directed-subscription matrix and remaining timestamped
+directed-interaction forms,
+directed-interaction transport policy, FOM sharing-policy enforcement, custom transportation, timestamped/local
 object-lifecycle delivery beyond the bounded deletion/removal slice, and message
 transport remain unimplemented. It implements
 List Federation Executions / List Federation Execution Members with their
 official report callbacks in immediate and evoked modes. It also initializes a
-joined federate's selected logical time; implements Time Advance Request / Query
-Logical Time / Time Advance Grant; callback-gates Enable/Disable Time
-Regulation, Enable/Disable Time Constrained, and Query Lookahead; and exposes
+joined federate's selected logical time; implements Time Advance Request and
+the Available forms / Query Logical Time / Time Advance Grant; callback-gates
+Enable/Disable Time Regulation, Enable/Disable Time Constrained, Query
+Lookahead, bounded Modify Lookahead, the currently-queued-message forms of
+Next Message Request, and the bounded Flush Queue Request/Grant pair; and
+exposes
 read-only Query GALT / Query LITS in the current bounded public TSO profile. Those
 bounds use other regulators' current or pending time plus actual lookahead and,
 inside the private coordinator, queued/in-transit/delivered TSO timestamps;
 the selected factory's epsilon handles a forward zero-lookahead TAR boundary.
-There are bounded public TSO send/receive services for non-regional interactions,
-attribute updates, and object deletion/removal, but no broader TSO families or
-transport. A limited
+There are bounded public TSO send/receive services for interactions,
+attribute updates, object deletion/removal, directed interactions, and
+region-context interactions. Next Message Request can select a currently
+queued TSO timestamp and deliver its cohort before the grant. The Available
+forms apply the inclusive defined-GALT rule, but only the currently queued
+in-process input is considered. Flush Queue Request/Grant now flushes the
+current in-process queue and reports its optimistic-time floor; future
+transport input and broader coordination are not implemented. A limited
 scheduler can release TAR callbacks across federates only when its GALT/NRG policy allows;
-it is not a full time coordinator. Umbra has no connection-lost or other
-federation-event callbacks, complete object/ownership state, broader
-time-management services, or conformance claim.
+it is not a full time coordinator. The development profile now has a private
+embedded one-shot transport-fault path that applies Automatic Resign cleanup,
+queues the official Connection Lost callback, and permits reconnect. A separate
+private in-session control seam now removes a clean joined member while keeping
+its connection alive and queues the official Federate Resigned callback; it is
+test-only until a real session/admin source exists. Remote transport and other
+federation-event callbacks remain open. Complete object/ownership state,
+broader time-management services, and a conformance claim remain out of scope.
 The repository makes no whole-RTI or
 standards-conformance claim; the implemented Disconnect slice has only raw,
 unreviewed Requirements-Lab evidence.

@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract selects the 2025 Requirements Lab restore-control requirements exercised by Umbra's embedded development profile. It covers an accepted restore request, all-member initiation, post-save state rollback, completion/failure/abort callbacks, status reporting, a bounded resignation/failure boundary, and five lifetime/state regressions: restoring a saved temporal image must not let a post-save MessageRetractionHandle alias fresh post-restore traffic; must restore a pre-save live TSO interaction payload plus its recipient ledger after a post-save Retract made that record terminal; must preserve a pre-save terminal tombstone as MessageCanNoLongerBeRetracted rather than an invalid handle; must restore saved logical time and actual lookahead after post-save mutations; and must retain a saved deferred lookahead-decrease target so the restored time window follows the same later grant behavior. It explicitly does not claim complete HLA save/restore semantics, durable external persistence, timed restore, general post-restore handle remapping, transport, protected review, package support, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-restore-request-starts-process",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+      "clause_id": "clause-4.27.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::requestFederationRestore",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"]
+    },
+    {
+      "id": "umbra-restore-request-validates-and-begins",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l134-33",
+      "clause_id": "clause-4.27.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::requestFederationRestore",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"]
+    },
+    {
+      "id": "umbra-restore-begun-reaches-all-members",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-074-l124-32",
+      "clause_id": "clause-4.29.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::requestFederationRestore",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"]
+    },
+    {
+      "id": "umbra-initiate-restore-instructs-member",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-075-l44-7",
+      "clause_id": "clause-4.30.6",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::requestFederationRestore",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"]
+    },
+    {
+      "id": "umbra-restore-complete-returns-saved-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"]
+    },
+    {
+      "id": "umbra-restore-completion-is-all-member",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::federateRestoreComplete",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"]
+    },
+    {
+      "id": "umbra-restore-failure-reports-reason",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-077-l11-1",
+      "clause_id": "clause-4.33",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::federateRestoreNotComplete",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures"]
+    },
+    {
+      "id": "umbra-aborted-restore-reports-failure",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-078-l29-7",
+      "clause_id": "clause-4.34",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::abortFederationRestore",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures"]
+    },
+    {
+      "id": "umbra-query-restore-status-returns-descriptors",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-079-l110-27",
+      "clause_id": "clause-4.35",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::queryFederationRestoreStatus",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot"]
+    },
+    {
+      "id": "umbra-restore-status-uses-null-post-handle-after-completion",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-079-l149-40",
+      "clause_id": "clause-4.35",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::queryFederationRestoreStatus",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot"]
+    },
+    {
+      "id": "umbra-restore-resignation-fails-remaining-members",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-077-l71-21",
+      "clause_id": "clause-4.33",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::resign",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures"]
+    }
+  ]
+}

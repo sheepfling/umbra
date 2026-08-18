@@ -3,6 +3,9 @@
 #include "generated/rti_ambassador_shell.hpp"
 #include "internal/callback_dispatcher.hpp"
 #include "internal/callback_session.hpp"
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+#include "internal/embedded_transport.hpp"
+#endif
 #include "internal/federate_lifecycle.hpp"
 #include "internal/federate_time_state.hpp"
 
@@ -20,6 +23,8 @@ namespace rti1516_2025::umbra_binding_detail {
 // no Umbra-specific public surface: callers use only RTIambassador.
 class UmbraRtiAmbassador final : public RtiAmbassadorShell {
  public:
+  ~UmbraRtiAmbassador() override;
+
   ConfigurationResult connect(
       FederateAmbassador& federateAmbassador,
       CallbackModel callbackModel) override;
@@ -87,6 +92,45 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 
   void resignFederationExecution(ResignAction resignAction) override;
 
+  void registerFederationSynchronizationPoint(
+      std::wstring const& synchronizationPointLabel,
+      VariableLengthData const& userSuppliedTag) override;
+
+  void registerFederationSynchronizationPoint(
+      std::wstring const& synchronizationPointLabel,
+      VariableLengthData const& userSuppliedTag,
+      FederateHandleSet const& synchronizationSet) override;
+
+  void synchronizationPointAchieved(
+      std::wstring const& synchronizationPointLabel,
+      bool successfully = true) override;
+
+  void requestFederationSave(std::wstring const& label) override;
+
+  void requestFederationSave(
+      std::wstring const& label,
+      LogicalTime const& time) override;
+
+  void federateSaveBegun() override;
+
+  void federateSaveComplete() override;
+
+  void federateSaveNotComplete() override;
+
+  void abortFederationSave() override;
+
+  void queryFederationSaveStatus() override;
+
+  void requestFederationRestore(std::wstring const& label) override;
+
+  void federateRestoreComplete() override;
+
+  void federateRestoreNotComplete() override;
+
+  void abortFederationRestore() override;
+
+  void queryFederationRestoreStatus() override;
+
   std::unique_ptr<LogicalTimeFactory> getTimeFactory() const override;
 
   FederateHandle getFederateHandle(std::wstring const& federateName) override;
@@ -105,9 +149,18 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       ObjectClassHandle const& objectClass,
       AttributeHandle const& attribute) override;
 
+  double getUpdateRateValue(
+      std::wstring const& updateRateDesignator) override;
+
+  double getUpdateRateValueForAttribute(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandle const& attribute) override;
+
   void publishObjectClassAttributes(
       ObjectClassHandle const& objectClass,
       AttributeHandleSet const& attributes) override;
+
+  void unpublishObjectClass(ObjectClassHandle const& objectClass) override;
 
   void unpublishObjectClassAttributes(
       ObjectClassHandle const& objectClass,
@@ -118,6 +171,8 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       AttributeHandleSet const& attributes,
       bool active = true,
       std::wstring const& updateRateDesignator = L"") override;
+
+  void unsubscribeObjectClass(ObjectClassHandle const& objectClass) override;
 
   void unsubscribeObjectClassAttributes(
       ObjectClassHandle const& objectClass,
@@ -341,17 +396,71 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       ParameterHandleValueMap const& parameterValues,
       VariableLengthData const& userSuppliedTag) override;
 
+  MessageRetractionHandle sendDirectedInteraction(
+      InteractionClassHandle const& interactionClass,
+      ObjectInstanceHandle const& objectInstance,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag,
+      LogicalTime const& time) override;
+
   void sendInteractionWithRegions(
       InteractionClassHandle const& interactionClass,
       ParameterHandleValueMap const& parameterValues,
       RegionHandleSet const& regions,
       VariableLengthData const& userSuppliedTag) override;
 
+  MessageRetractionHandle sendInteractionWithRegions(
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      RegionHandleSet const& regions,
+      VariableLengthData const& userSuppliedTag,
+      LogicalTime const& time) override;
+
+  void changeAttributeOrderType(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes,
+      OrderType orderType) override;
+
+  void changeDefaultAttributeOrderType(
+      ObjectClassHandle const& objectClass,
+      AttributeHandleSet const& attributes,
+      OrderType orderType) override;
+
+  void changeInteractionOrderType(
+      InteractionClassHandle const& interactionClass,
+      OrderType orderType) override;
+
+  void requestAttributeTransportationTypeChange(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes,
+      TransportationTypeHandle const& transportationType) override;
+
+  void changeDefaultAttributeTransportationType(
+      ObjectClassHandle const& objectClass,
+      AttributeHandleSet const& attributes,
+      TransportationTypeHandle const& transportationType) override;
+
+  void queryAttributeTransportationType(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandle const& attribute) override;
+
+  void requestInteractionTransportationTypeChange(
+      InteractionClassHandle const& interactionClass,
+      TransportationTypeHandle const& transportationType) override;
+
+  void queryInteractionTransportationType(
+      FederateHandle const& federate,
+      InteractionClassHandle const& interactionClass) override;
+
   TransportationTypeHandle getTransportationTypeHandle(
       std::wstring const& transportationTypeName) override;
 
   std::wstring getTransportationTypeName(
       TransportationTypeHandle const& transportationType) override;
+
+  OrderType getOrderType(std::wstring const& orderTypeName) override;
+
+  std::wstring getOrderName(OrderType orderType) override;
 
   DimensionHandleSet getAvailableDimensionsForObjectClass(
       ObjectClassHandle const& objectClass) override;
@@ -389,9 +498,63 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       DimensionHandle const& dimension,
       RangeBounds const& rangeBounds) override;
 
+  unsigned long normalizeServiceGroup(ServiceGroup serviceGroup) override;
+
+  unsigned long normalizeFederateHandle(FederateHandle const& federate) override;
+
+  unsigned long normalizeObjectClassHandle(ObjectClassHandle const& objectClass) override;
+
+  unsigned long normalizeInteractionClassHandle(
+      InteractionClassHandle const& interactionClass) override;
+
+  unsigned long normalizeObjectInstanceHandle(
+      ObjectInstanceHandle const& objectInstance) override;
+
   bool getAttributeScopeAdvisorySwitch() const override;
 
   void setAttributeScopeAdvisorySwitch(bool switchValue) override;
+
+  bool getObjectClassRelevanceAdvisorySwitch() const override;
+
+  void setObjectClassRelevanceAdvisorySwitch(bool switchValue) override;
+
+  bool getAttributeRelevanceAdvisorySwitch() const override;
+
+  void setAttributeRelevanceAdvisorySwitch(bool switchValue) override;
+
+  bool getInteractionRelevanceAdvisorySwitch() const override;
+
+  void setInteractionRelevanceAdvisorySwitch(bool switchValue) override;
+
+  bool getConveyRegionDesignatorSetsSwitch() const override;
+
+  void setConveyRegionDesignatorSetsSwitch(bool switchValue) override;
+
+  ResignAction getAutomaticResignDirective() override;
+
+  void setAutomaticResignDirective(ResignAction resignAction) override;
+
+  bool getServiceReportingSwitch() const override;
+
+  void setServiceReportingSwitch(bool switchValue) override;
+
+  bool getExceptionReportingSwitch() const override;
+
+  void setExceptionReportingSwitch(bool switchValue) override;
+
+  bool getSendServiceReportsToFileSwitch() const override;
+
+  void setSendServiceReportsToFileSwitch(bool switchValue) override;
+
+  bool getAutoProvideSwitch() const override;
+
+  bool getDelaySubscriptionEvaluationSwitch() const override;
+
+  bool getAdvisoriesUseKnownClassSwitch() const override;
+
+  bool getAllowRelaxedDDMSwitch() const override;
+
+  bool getNonRegulatedGrantSwitch() const override;
 
   void enableTimeRegulation(LogicalTimeInterval const& lookahead) override;
 
@@ -401,7 +564,19 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 
   void disableTimeConstrained() override;
 
+  void enableAsynchronousDelivery() override;
+
+  void disableAsynchronousDelivery() override;
+
   void timeAdvanceRequest(LogicalTime const& time) override;
+
+  void timeAdvanceRequestAvailable(LogicalTime const& time) override;
+
+  void nextMessageRequest(LogicalTime const& time) override;
+
+  void nextMessageRequestAvailable(LogicalTime const& time) override;
+
+  void flushQueueRequest(LogicalTime const& time) override;
 
   bool queryGALT(LogicalTime& time) override;
 
@@ -410,6 +585,8 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   bool queryLITS(LogicalTime& time) override;
 
   void queryLookahead(LogicalTimeInterval& interval) override;
+
+  void modifyLookahead(LogicalTimeInterval const& lookahead) override;
 
   void retract(MessageRetractionHandle const& retraction) override;
 
@@ -427,11 +604,32 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       RtiConfiguration const* configuration);
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  enum class EmbeddedMembershipLossKind {
+    connection_lost,
+    rti_resigned,
+  };
+
   FederateHandle joinFederationExecutionImpl(
       std::optional<std::wstring> requestedFederateName,
       std::wstring const& federateType,
       std::wstring const& federationName,
       std::vector<std::wstring> const& additionalFomModules);
+
+  void requestAvailableTimeAdvance(
+      LogicalTime const& time,
+      umbra::detail::FederateTimeAdvanceMode mode,
+      bool selectNextQueuedMessage,
+      std::wstring const& serviceName);
+
+  void requireFederationServiceOperationAvailable(
+      std::wstring const& operation) const;
+
+  void handleEmbeddedTransportFailure(std::wstring faultDescription);
+  [[nodiscard]] bool handleEmbeddedFederateResignation(
+      std::wstring reasonForResign);
+  [[nodiscard]] bool handleEmbeddedMembershipLoss(
+      EmbeddedMembershipLossKind kind,
+      std::wstring reason);
 #endif
 
   mutable std::mutex mutex_;
@@ -441,6 +639,8 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   std::shared_ptr<CallbackSession> callbackSession_;
   CallbackModel callbackModel_ = HLA_EVOKED;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  std::shared_ptr<umbra::detail::EmbeddedTransportConnection>
+      transportConnection_;
   std::optional<std::wstring> joinedFederationName_;
   std::optional<std::uint64_t> joinedFederateId_;
   std::shared_ptr<umbra::detail::FederateTimeState> federateTimeState_;

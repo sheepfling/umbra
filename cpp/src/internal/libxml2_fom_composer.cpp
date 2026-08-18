@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <charconv>
 #include <cctype>
+#include <cmath>
+#include <exception>
 #include <filesystem>
 #include <map>
 #include <memory>
@@ -308,6 +310,32 @@ bool isEnabledSwitch(SemanticNode const& node) {
          (attribute->second == "true" || attribute->second == "1");
 }
 
+std::string resignActionValue(SemanticNode const& node) {
+  auto const attribute = node.attributes.find("resignAction");
+  if (attribute == node.attributes.end()) {
+    return "CancelThenDeleteThenDivest";
+  }
+  if (attribute->second == "UnconditionallyDivestAttributes") {
+    return attribute->second;
+  }
+  if (attribute->second == "DeleteObjects") {
+    return attribute->second;
+  }
+  if (attribute->second == "CancelPendingOwnershipAcquisitions") {
+    return attribute->second;
+  }
+  if (attribute->second == "DeleteObjectsThenDivest") {
+    return attribute->second;
+  }
+  if (attribute->second == "CancelThenDeleteThenDivest") {
+    return attribute->second;
+  }
+  // The DIF/FDD schema rejects an unknown lexical value.  Keep the private
+  // catalog defensive for callers that bypass validation and use the
+  // IEEE 1516.2 table default rather than manufacturing a non-standard enum.
+  return "CancelThenDeleteThenDivest";
+}
+
 bool isNoteReferencesAttribute(std::string const& name) {
   return name == "noteReferences";
 }
@@ -547,6 +575,58 @@ bool validateDataTypeReferences(SemanticNode const& root, std::string& diagnosti
   return valid;
 }
 
+bool isStandardInstanceIdentifierAttribute(std::string_view name);
+
+bool validateDataTypeRepresentationReferences(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  DataTypeDeclarationKinds const kinds = dataTypeDeclarationKinds(root);
+
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid ||
+        (node.localName != "simpleData" && node.localName != "enumeratedData" &&
+         node.localName != "referenceDataType")) {
+      return;
+    }
+    // The two standard instance identifiers are handled by the dedicated
+    // special-reference rule below; their implicit attribute rows do not use
+    // the ordinary reference-data representation predicate.
+    if (node.localName == "referenceDataType" &&
+        isStandardInstanceIdentifierAttribute(scalarChildValue(node, "referencedAttribute"))) {
+      return;
+    }
+    std::string const representation = scalarChildValue(node, "representation");
+    if (representation.empty()) {
+      return;
+    }
+    auto const kind = kinds.find(representation);
+    if (kind == kinds.end()) {
+      diagnostics = "Representation " + representation + " at " + path +
+                    " is not declared in the composed data-type model.";
+      valid = false;
+      return;
+    }
+
+    if (node.localName == "referenceDataType" &&
+        (kind->second == "basicData" || kind->second == "referenceDataType")) {
+      diagnostics = "Reference data type " + identityValue(node, "name=") +
+                    " representation " + representation + " at " + path +
+                    " must name a simple, enumerated, array, fixed-record, or variant-record "
+                    "data type.";
+      valid = false;
+      return;
+    }
+
+    // The 2025 source table describes simple/enumerated representations as
+    // basic-data rows, but the official MIM/Restaurant DIF pair uses
+    // HLAboolean (an enumerated data type) as a simple-data representation.
+    // Require the name to resolve, while retaining that reviewed compatibility
+    // interpretation instead of rejecting the standard example.
+  });
+  return valid;
+}
+
 bool isTimeRepresentationDataTypeKind(std::string_view kind) {
   return kind == "simpleData" || kind == "enumeratedData" || kind == "arrayData" ||
          kind == "fixedRecordData" || kind == "variantRecordData";
@@ -705,6 +785,7 @@ std::optional<std::string> referencedAttributeDataType(
 
 bool validateReferenceDataTypeAttributeReferences(SemanticNode const& root, std::string& diagnostics) {
   ObjectClassReferenceDefinitions const classes = objectClassReferenceDefinitions(root);
+  DataTypeDeclarationKinds const kinds = dataTypeDeclarationKinds(root);
 
   bool valid = true;
   walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
@@ -713,11 +794,30 @@ bool validateReferenceDataTypeAttributeReferences(SemanticNode const& root, std:
     }
     std::string const referencedClass = scalarChildValue(node, "referenceClass");
     std::string const referencedAttribute = scalarChildValue(node, "referencedAttribute");
-    if (referencedClass.empty() || referencedAttribute.empty() ||
-        isStandardInstanceIdentifierAttribute(referencedAttribute)) {
+    if (referencedClass.empty() || referencedAttribute.empty()) {
+      return;
+    }
+    if (isStandardInstanceIdentifierAttribute(referencedAttribute)) {
       // IEEE 1516.2 gives the two standard instance identifiers special
-      // semantics; their implicit attribute/type treatment stays outside this
-      // bounded validator slice.
+      // semantics rather than requiring an ordinary attribute row. Preserve
+      // that exception, but still enforce their standardized representations.
+      std::string const expectedRepresentation =
+          referencedAttribute == "HLAobjectInstanceName" ? "HLAunicodeString"
+                                                            : "HLAobjectInstanceHandle";
+      if (scalarChildValue(node, "representation") != expectedRepresentation) {
+        diagnostics = "Reference data type " + identityValue(node, "name=") +
+                      " representation must be " + expectedRepresentation + " for " +
+                      referencedAttribute + " at " + path + ".";
+        valid = false;
+        return;
+      }
+      auto const representation = kinds.find(expectedRepresentation);
+      if (representation == kinds.end()) {
+        diagnostics = "Standard instance identifier representation " + expectedRepresentation +
+                      " for " + referencedAttribute + " at " + path +
+                      " is not declared in the composed data-type model.";
+        valid = false;
+      }
       return;
     }
     auto const attributeType =
@@ -818,6 +918,124 @@ bool validateAvailableDimensionReferences(SemanticNode const& root, std::string&
         valid = false;
         return;
       }
+    }
+  });
+  return valid;
+}
+
+struct DimensionValueRange {
+  unsigned long lower = 0;
+  unsigned long upper = 0;
+};
+
+std::optional<unsigned long> parseDimensionValueInteger(std::string_view value) {
+  if (value.empty()) {
+    return std::nullopt;
+  }
+  unsigned long parsed = 0;
+  auto const result = std::from_chars(value.data(), value.data() + value.size(), parsed, 10);
+  if (result.ec != std::errc{} || result.ptr != value.data() + value.size()) {
+    return std::nullopt;
+  }
+  return parsed;
+}
+
+std::optional<DimensionValueRange> parseDimensionValueRange(
+    std::string_view value,
+    unsigned long dimensionUpperBound) {
+  if (value == "Excluded") {
+    return DimensionValueRange{};
+  }
+
+  if (auto const point = parseDimensionValueInteger(value); point.has_value()) {
+    if (*point == std::numeric_limits<unsigned long>::max()) {
+      return std::nullopt;
+    }
+    return DimensionValueRange{*point, *point + 1};
+  }
+
+  if (value.size() < 3 || value.front() != '[' || value.back() != ')') {
+    return std::nullopt;
+  }
+  std::string_view body = value.substr(1, value.size() - 2);
+  auto const separator = body.find("..");
+  auto const lower = parseDimensionValueInteger(
+      separator == std::string_view::npos ? body : body.substr(0, separator));
+  if (!lower.has_value()) {
+    return std::nullopt;
+  }
+  if (separator == std::string_view::npos) {
+    return DimensionValueRange{*lower, dimensionUpperBound};
+  }
+  auto const upper = parseDimensionValueInteger(body.substr(separator + 2));
+  if (!upper.has_value()) {
+    return std::nullopt;
+  }
+  return DimensionValueRange{*lower, *upper};
+}
+
+bool validateDimensionDefaultValues(SemanticNode const& root, std::string& diagnostics) {
+  auto const* dimensions = firstChildNamed(root, "dimensions");
+  if (dimensions == nullptr) {
+    return true;
+  }
+
+  bool valid = true;
+  for (auto const& [key, dimension] : dimensions->children) {
+    (void)key;
+    if (!valid || dimension.localName != "dimension") {
+      continue;
+    }
+    std::string const value = scalarChildValue(dimension, "value");
+    if (value.empty() || value == "Excluded") {
+      continue;
+    }
+
+    std::string const upperBoundText = scalarChildValue(dimension, "upperBound");
+    auto const upperBound = parseDimensionValueInteger(upperBoundText);
+    auto const path = childPath("objectModel/dimensions", dimension);
+    if (!upperBound.has_value() || *upperBound == 0) {
+      diagnostics = "Dimension " + identityValue(dimension, "name=") + " at " + path +
+                    " supplies a default value but no positive upper bound.";
+      valid = false;
+      continue;
+    }
+
+    auto const range = parseDimensionValueRange(value, *upperBound);
+    if (!range.has_value() || range->lower >= range->upper ||
+        range->upper > *upperBound) {
+      diagnostics = "Dimension " + identityValue(dimension, "name=") + " value " + value +
+                    " at " + path + " must be a nonnegative integer subrange of [0, " +
+                    upperBoundText + ").";
+      valid = false;
+    }
+  }
+  return valid;
+}
+
+bool validateUpdateRateValues(SemanticNode const& root, std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "updateRate") {
+      return;
+    }
+    std::string const rateText = scalarChildValue(node, "rate");
+    if (rateText.empty()) {
+      // DIF permits an incomplete update-rate row; do not invent a value.
+      return;
+    }
+    try {
+      std::size_t consumed = 0;
+      double const rate = std::stod(rateText, &consumed);
+      if (consumed != rateText.size() || !std::isfinite(rate) || rate <= 0.0) {
+        diagnostics = "Update rate " + identityValue(node, "name=") + " at " + path +
+                      " must be a decimal value greater than zero.";
+        valid = false;
+      }
+    } catch (std::exception const&) {
+      diagnostics = "Update rate " + identityValue(node, "name=") + " at " + path +
+                    " must be a decimal value greater than zero.";
+      valid = false;
     }
   });
   return valid;
@@ -1019,6 +1237,176 @@ bool validateVariantRecordAlternatives(SemanticNode const& root, std::string& di
         }
       }
     }
+  });
+  return valid;
+}
+
+std::string trimAsciiWhitespace(std::string value) {
+  auto const isWhitespace = [](unsigned char character) {
+    return std::isspace(character) != 0;
+  };
+  while (!value.empty() && isWhitespace(static_cast<unsigned char>(value.front()))) {
+    value.erase(value.begin());
+  }
+  while (!value.empty() && isWhitespace(static_cast<unsigned char>(value.back()))) {
+    value.pop_back();
+  }
+  return value;
+}
+
+bool parseNonNegativeCardinality(std::string value) {
+  value = trimAsciiWhitespace(std::move(value));
+  if (value.empty()) {
+    return false;
+  }
+  unsigned long long parsed = 0;
+  auto const result = std::from_chars(value.data(), value.data() + value.size(), parsed, 10);
+  return result.ec == std::errc{} && result.ptr == value.data() + value.size();
+}
+
+bool validArrayCardinalityComponent(std::string value) {
+  value = trimAsciiWhitespace(std::move(value));
+  if (value == "Dynamic") {
+    return true;
+  }
+  if (value.size() >= 2 && value.front() == '[' && value.back() == ']') {
+    std::string const range = value.substr(1, value.size() - 2);
+    std::size_t const separator = range.find("..");
+    if (separator == std::string::npos ||
+        range.find("..", separator + 2) != std::string::npos) {
+      return false;
+    }
+    std::string const lower = trimAsciiWhitespace(range.substr(0, separator));
+    std::string const upper = trimAsciiWhitespace(range.substr(separator + 2));
+    if (!parseNonNegativeCardinality(lower) || !parseNonNegativeCardinality(upper)) {
+      return false;
+    }
+    unsigned long long lowerValue = 0;
+    unsigned long long upperValue = 0;
+    auto const lowerResult = std::from_chars(
+        lower.data(), lower.data() + lower.size(), lowerValue, 10);
+    auto const upperResult = std::from_chars(
+        upper.data(), upper.data() + upper.size(), upperValue, 10);
+    return lowerResult.ec == std::errc{} && upperResult.ec == std::errc{} &&
+           lowerResult.ptr == lower.data() + lower.size() &&
+           upperResult.ptr == upper.data() + upper.size() && lowerValue <= upperValue;
+  }
+
+  return parseNonNegativeCardinality(value);
+}
+
+bool validArrayCardinality(std::string value) {
+  value = trimAsciiWhitespace(std::move(value));
+  std::size_t cursor = 0;
+  bool sawValue = false;
+  while (cursor <= value.size()) {
+    std::size_t const separator = value.find(',', cursor);
+    std::string const component = value.substr(
+        cursor,
+        separator == std::string::npos ? std::string::npos : separator - cursor);
+    if (!validArrayCardinalityComponent(component)) {
+      return false;
+    }
+    sawValue = true;
+    if (separator == std::string::npos) {
+      break;
+    }
+    cursor = separator + 1;
+  }
+  return sawValue;
+}
+
+bool validateArrayCardinalities(SemanticNode const& root, std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "arrayData") {
+      return;
+    }
+    std::string const cardinality = scalarChildValue(node, "cardinality");
+    if (cardinality.empty() || validArrayCardinality(cardinality)) {
+      return;
+    }
+    diagnostics = "Array data type " + identityValue(node, "name=") + " at " + path +
+                  " has invalid cardinality " + cardinality +
+                  "; expected a nonnegative integer, comma-separated integers, "
+                  "a nonnegative [lower..upper] range, or Dynamic.";
+    valid = false;
+  });
+  return valid;
+}
+
+// The predefined one-dimensional array encodings carry a semantic
+// compatibility rule in IEEE 1516.2: HLAfixedArray is for a fixed
+// cardinality, while HLAvariableArray is for a varying (including Dynamic)
+// cardinality.  Multidimensional cardinalities and provider-defined encodings
+// need their own interpretation, so this bounded preflight deliberately leaves
+// those cases to the later table-completeness work.
+std::optional<bool> oneDimensionalArrayCardinalityIsVariable(std::string value) {
+  value = trimAsciiWhitespace(std::move(value));
+  if (value.empty() || value.find(',') != std::string::npos) {
+    return std::nullopt;
+  }
+  if (value == "Dynamic") {
+    return true;
+  }
+  if (value.size() >= 2 && value.front() == '[' && value.back() == ']') {
+    std::string const range = value.substr(1, value.size() - 2);
+    std::size_t const separator = range.find("..");
+    if (separator == std::string::npos ||
+        range.find("..", separator + 2) != std::string::npos) {
+      return std::nullopt;
+    }
+    std::string const lower = trimAsciiWhitespace(range.substr(0, separator));
+    std::string const upper = trimAsciiWhitespace(range.substr(separator + 2));
+    if (!parseNonNegativeCardinality(lower) || !parseNonNegativeCardinality(upper)) {
+      return std::nullopt;
+    }
+    unsigned long long lowerValue = 0;
+    unsigned long long upperValue = 0;
+    auto const lowerResult = std::from_chars(
+        lower.data(), lower.data() + lower.size(), lowerValue, 10);
+    auto const upperResult = std::from_chars(
+        upper.data(), upper.data() + upper.size(), upperValue, 10);
+    if (lowerResult.ec != std::errc{} || upperResult.ec != std::errc{} ||
+        lowerResult.ptr != lower.data() + lower.size() ||
+        upperResult.ptr != upper.data() + upper.size() || lowerValue > upperValue) {
+      return std::nullopt;
+    }
+    return lowerValue != upperValue;
+  }
+  if (!parseNonNegativeCardinality(value)) {
+    return std::nullopt;
+  }
+  return false;
+}
+
+bool validateArrayEncodingCardinalityCompatibility(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "arrayData") {
+      return;
+    }
+    std::string const encoding = trimAsciiWhitespace(scalarChildValue(node, "encoding"));
+    if (encoding != "HLAfixedArray" && encoding != "HLAvariableArray") {
+      return;
+    }
+    auto const cardinality = oneDimensionalArrayCardinalityIsVariable(
+        scalarChildValue(node, "cardinality"));
+    if (!cardinality.has_value()) {
+      return;
+    }
+    bool const encodingIsVariable = encoding == "HLAvariableArray";
+    if (encodingIsVariable == *cardinality) {
+      return;
+    }
+    diagnostics = "Array data type " + identityValue(node, "name=") + " at " + path +
+                  " pairs " + encoding + " with a " +
+                  (*cardinality ? "variable" : "fixed") +
+                  " one-dimensional cardinality; the predefined encoding must be " +
+                  (*cardinality ? "HLAvariableArray" : "HLAfixedArray") + ".";
+    valid = false;
   });
   return valid;
 }
@@ -1712,6 +2100,31 @@ class FomCatalogBuilder final {
     if (auto const* dataTypes = firstChildNamed(root, "dataTypes"); dataTypes != nullptr) {
       appendDataTypes(*catalog, *dataTypes);
     }
+    if (auto const* updateRates = firstChildNamed(root, "updateRates");
+        updateRates != nullptr) {
+      for (auto const& [key, updateRate] : updateRates->children) {
+        (void)key;
+        if (updateRate.localName != "updateRate") {
+          continue;
+        }
+        std::string const name = identityValue(updateRate, "name=");
+        std::string const rateText = scalarChildValue(updateRate, "rate");
+        if (name.empty() || rateText.empty()) {
+          continue;
+        }
+        try {
+          std::size_t consumed = 0;
+          double const rate = std::stod(rateText, &consumed);
+          if (consumed == rateText.size() && std::isfinite(rate) && rate >= 0.0) {
+            catalog->updateRates_.insert_or_assign(name, rate);
+          }
+        } catch (std::exception const&) {
+          // The DIF/FDD schema already validates the lexical form. Keep the
+          // private catalog defensive if an unchecked SemanticNode is used by
+          // a future caller.
+        }
+      }
+    }
     if (auto const* time = firstChildNamed(root, "time"); time != nullptr) {
       if (auto const* logicalTime = firstChildNamed(*time, "logicalTime"); logicalTime != nullptr) {
         catalog->time_.logicalTimeDataType = scalarChildValue(*logicalTime, "dataType");
@@ -1721,6 +2134,79 @@ class FomCatalogBuilder final {
       }
     }
     if (auto const* switches = firstChildNamed(root, "switches"); switches != nullptr) {
+      if (auto const* autoProvide = firstChildNamed(*switches, "autoProvide");
+          autoProvide != nullptr) {
+        catalog->federationSwitches_.autoProvide = isEnabledSwitch(*autoProvide);
+      }
+      if (auto const* conveyRegionDesignatorSets =
+              firstChildNamed(*switches, "conveyRegionDesignatorSets");
+          conveyRegionDesignatorSets != nullptr) {
+        catalog->federateSupportSwitches_.conveyRegionDesignatorSets =
+            isEnabledSwitch(*conveyRegionDesignatorSets);
+      }
+      if (auto const* automaticResignAction =
+              firstChildNamed(*switches, "automaticResignAction");
+          automaticResignAction != nullptr) {
+        catalog->federateSupportSwitches_.automaticResignAction =
+            resignActionValue(*automaticResignAction);
+      }
+      if (auto const* serviceReporting = firstChildNamed(*switches, "serviceReporting");
+          serviceReporting != nullptr) {
+        catalog->federateSupportSwitches_.serviceReporting =
+            isEnabledSwitch(*serviceReporting);
+      }
+      if (auto const* exceptionReporting =
+              firstChildNamed(*switches, "exceptionReporting");
+          exceptionReporting != nullptr) {
+        catalog->federateSupportSwitches_.exceptionReporting =
+            isEnabledSwitch(*exceptionReporting);
+      }
+      if (auto const* sendServiceReportsToFile =
+              firstChildNamed(*switches, "sendServiceReportsToFile");
+          sendServiceReportsToFile != nullptr) {
+        catalog->federateSupportSwitches_.sendServiceReportsToFile =
+            isEnabledSwitch(*sendServiceReportsToFile);
+      }
+      if (auto const* delaySubscriptionEvaluation =
+              firstChildNamed(*switches, "delaySubscriptionEvaluation");
+          delaySubscriptionEvaluation != nullptr) {
+        catalog->federationSwitches_.delaySubscriptionEvaluation =
+            isEnabledSwitch(*delaySubscriptionEvaluation);
+      }
+      if (auto const* allowRelaxedDDM = firstChildNamed(*switches, "allowRelaxedDDM");
+          allowRelaxedDDM != nullptr) {
+        catalog->federationSwitches_.allowRelaxedDDM = isEnabledSwitch(*allowRelaxedDDM);
+      }
+      if (auto const* attributeScopeAdvisory =
+              firstChildNamed(*switches, "attributeScopeAdvisory");
+          attributeScopeAdvisory != nullptr) {
+        catalog->advisorySwitches_.attributeScopeAdvisory =
+            isEnabledSwitch(*attributeScopeAdvisory);
+      }
+      if (auto const* attributeRelevanceAdvisory =
+              firstChildNamed(*switches, "attributeRelevanceAdvisory");
+          attributeRelevanceAdvisory != nullptr) {
+        catalog->advisorySwitches_.attributeRelevanceAdvisory =
+            isEnabledSwitch(*attributeRelevanceAdvisory);
+      }
+      if (auto const* objectClassRelevanceAdvisory =
+              firstChildNamed(*switches, "objectClassRelevanceAdvisory");
+          objectClassRelevanceAdvisory != nullptr) {
+        catalog->advisorySwitches_.objectClassRelevanceAdvisory =
+            isEnabledSwitch(*objectClassRelevanceAdvisory);
+      }
+      if (auto const* interactionRelevanceAdvisory =
+              firstChildNamed(*switches, "interactionRelevanceAdvisory");
+          interactionRelevanceAdvisory != nullptr) {
+        catalog->advisorySwitches_.interactionRelevanceAdvisory =
+            isEnabledSwitch(*interactionRelevanceAdvisory);
+      }
+      if (auto const* advisoriesUseKnownClass =
+              firstChildNamed(*switches, "advisoriesUseKnownClass");
+          advisoriesUseKnownClass != nullptr) {
+        catalog->advisorySwitches_.advisoriesUseKnownClass =
+            isEnabledSwitch(*advisoriesUseKnownClass);
+      }
       if (auto const* nonRegulatedGrant = firstChildNamed(*switches, "nonRegulatedGrant");
           nonRegulatedGrant != nullptr) {
         catalog->timeManagementSwitches_.nonRegulatedGrant = isEnabledSwitch(*nonRegulatedGrant);
@@ -1969,13 +2455,18 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   // later module can supply a type used by an earlier extension module.
   std::string referenceDiagnostics;
   if (!validateDataTypeReferences(merged, referenceDiagnostics) ||
+      !validateDataTypeRepresentationReferences(merged, referenceDiagnostics) ||
       !validateTimeRepresentationDataTypeKinds(merged, referenceDiagnostics) ||
       !validateTagDataTypeKinds(merged, referenceDiagnostics) ||
       !validateReferenceDataTypeClassReferences(merged, referenceDiagnostics) ||
       !validateReferenceDataTypeAttributeReferences(merged, referenceDiagnostics) ||
       !validateDirectedInteractionReferences(merged, referenceDiagnostics) ||
       !validateAvailableDimensionReferences(merged, referenceDiagnostics) ||
+      !validateDimensionDefaultValues(merged, referenceDiagnostics) ||
       !validateTransportationReferences(merged, referenceDiagnostics) ||
+      !validateUpdateRateValues(merged, referenceDiagnostics) ||
+      !validateArrayCardinalities(merged, referenceDiagnostics) ||
+      !validateArrayEncodingCardinalityCompatibility(merged, referenceDiagnostics) ||
       !validateInheritedObjectClassAttributeNames(merged, referenceDiagnostics) ||
       !validateInheritedInteractionClassParameterNames(merged, referenceDiagnostics)) {
     return {FomCompositionStatus::inconsistent_modules, {}, std::move(referenceDiagnostics)};

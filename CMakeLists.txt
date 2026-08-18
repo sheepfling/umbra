@@ -122,6 +122,7 @@ add_library(umbra_rti STATIC
   cpp/src/ieee1516_2025_transportation_type_handle.cpp
   cpp/src/internal/callback_dispatcher.cpp
   cpp/src/internal/callback_session.cpp
+  cpp/src/internal/embedded_transport.cpp
   cpp/src/internal/attribute_handle_directory.cpp
   cpp/src/internal/dimension_handle_directory.cpp
   cpp/src/internal/federate_lifecycle.cpp
@@ -309,6 +310,26 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-composition-requirements-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2_2025.data_representation_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-data-representation-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.table_constraints_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-table-constraints-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.array_cardinality_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-array-cardinality-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.dimension_default_value_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-dimension-default-value-requirements-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2_2025.time_management_switches_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-time-management-switches-requirements-contract.json
@@ -343,9 +364,44 @@ if(BUILD_TESTING)
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federation-management-embedded-requirements-contract.json
       )
       add_test(
+        NAME umbra.ieee1516_2025.resign_action_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/resign-action-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.resign_action_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/resign-action-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.connection_lost_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/connection-lost-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.connection_lost_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/connection-lost-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.federate_resigned_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federate-resigned-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.federate_resigned_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federate-resigned-api-contract.json
+      )
+      add_test(
         NAME umbra.ieee1516_2025.get_time_factory_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/get-time-factory-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.federate_lookup_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federate-lookup-requirements-contract.json
       )
       add_test(
         NAME umbra.ieee1516_2025.federate_lookup_api_traceability
@@ -383,6 +439,41 @@ if(BUILD_TESTING)
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/transportation-type-api-contract.json
       )
       add_test(
+        NAME umbra.ieee1516_2025.order_type_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/order-type-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.order_type_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/order-type-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.order_type_control_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/order-type-control-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.order_type_control_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/order-type-control-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.transportation_type_change_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/transportation-type-change-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.transportation_type_change_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/transportation-type-change-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.interaction_transportation_type_change_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/interaction-transportation-type-change-requirements-contract.json
+      )
+      add_test(
         NAME umbra.ieee1516_2025.dimension_lookup_requirements_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/dimension-lookup-requirements-contract.json
@@ -418,6 +509,11 @@ if(BUILD_TESTING)
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/object-attribute-region-requirements-contract.json
       )
       add_test(
+        NAME umbra.ieee1516_2025.default_region_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/default-region-requirements-contract.json
+      )
+      add_test(
         NAME umbra.ieee1516_2025.object_attribute_region_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/object-attribute-region-api-contract.json
@@ -451,6 +547,116 @@ if(BUILD_TESTING)
         NAME umbra.ieee1516_2025.object_class_attribute_declaration_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/object-class-attribute-declaration-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.declaration_relevance_advisory_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/declaration-relevance-advisory-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.declaration_relevance_advisory_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/declaration-relevance-advisory-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.attribute_relevance_advisory_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/attribute-relevance-advisory-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.attribute_relevance_advisory_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/attribute-relevance-advisory-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.update_rate_value_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/update-rate-value-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.update_rate_value_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/update-rate-value-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.update_rate_subscription_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/update-rate-subscription-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.fom_advisory_switches_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-advisory-switches-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.federate_advisory_switch_initialization_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federate-advisory-switch-initialization-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.advisories_use_known_class_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/advisories-use-known-class-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.advisories_use_known_class_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/advisories-use-known-class-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.non_regulated_grant_switch_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/non-regulated-grant-switch-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.non_regulated_grant_switch_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/non-regulated-grant-switch-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.support_switches_table_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/support-switches-table-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.support_switches_service_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/support-switches-service-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.delay_subscription_evaluation_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/delay-subscription-evaluation-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.support_switches_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/support-switches-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.handle_normalization_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/handle-normalization-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.handle_normalization_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/handle-normalization-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.convey_region_designator_callback_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/convey-region-designator-callback-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.auto_provide_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/auto-provide-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.auto_provide_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/auto-provide-api-contract.json
       )
       add_test(
         NAME umbra.ieee1516_2025.object_instance_registration_requirements_traceability
@@ -663,6 +869,126 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/time-role-api-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2025.modify_lookahead_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/modify-lookahead-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.modify_lookahead_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/modify-lookahead-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.next_message_request_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/next-message-request-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.next_message_request_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/next-message-request-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.time_advance_request_available_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/time-advance-request-available-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.time_advance_request_available_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/time-advance-request-available-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.next_message_request_available_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/next-message-request-available-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.next_message_request_available_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/next-message-request-available-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.flush_queue_request_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/flush-queue-request-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.flush_queue_request_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/flush-queue-request-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.asynchronous_delivery_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/asynchronous-delivery-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.asynchronous_delivery_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/asynchronous-delivery-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.synchronization_point_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/synchronization-point-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.synchronization_point_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/synchronization-point-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.save_control_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/save-control-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timed_save_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timed-save-requirements-contract.json
+    )
+      add_test(
+        NAME umbra.ieee1516_2025.save_control_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/save-control-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.timed_save_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timed-save-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.restore_control_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/restore-control-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.restore_control_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/restore-control-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.save_restore_interlock_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/save-restore-interlock-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.save_restore_interlock_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/save-restore-interlock-api-contract.json
+      )
+    add_test(
+      NAME umbra.ieee1516_2025.whole_object_class_declaration_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/whole-object-class-declaration-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.whole_object_class_declaration_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/whole-object-class-declaration-api-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2025.federation_time_coordination_foundation_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federation-time-coordination-foundation-requirements-contract.json
@@ -703,9 +1029,39 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-interaction-requirements-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2025.request_retraction_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/request-retraction-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.request_retraction_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/request-retraction-api-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2025.timestamped_attribute_update_requirements_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-attribute-update-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_attribute_update_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-regional-attribute-update-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_attribute_update_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-regional-attribute-update-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.ownership_transfer_update_region_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/ownership-transfer-update-region-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.ownership_transfer_update_region_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/ownership-transfer-update-region-api-contract.json
     )
     add_test(
       NAME umbra.ieee1516_2025.timestamped_object_deletion_requirements_traceability
@@ -716,6 +1072,26 @@ if(BUILD_TESTING)
       NAME umbra.ieee1516_2025.timestamped_object_deletion_api_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-object-deletion-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_directed_interaction_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-directed-interaction-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_directed_interaction_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-directed-interaction-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_interaction_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-regional-interaction-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_interaction_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-regional-interaction-api-contract.json
     )
   endif()
   else()

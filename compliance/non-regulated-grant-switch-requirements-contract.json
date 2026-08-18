@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-and-static-time-policy-not-conformance-evidence",
+  "notes": "This contract pins the official Non Regulated Grant switch getter and the static federation-wide value used by the bounded no-TSO time kernel. The FDD setting is captured at federation creation, omitted input is Disabled, and additional-FOM joins cannot change the active execution's value. Complete time coordination, package evidence, protected review, JUnit promotion, and conformance remain open.",
+  "requirements": [
+    {
+      "id": "umbra-non-regulated-grant-switch-is-returned",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-283-l110-33",
+      "clause_id": "clause-10.56.4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getNonRegulatedGrantSwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded NRG-enabled constrained TAR is released when its only regulator disables",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
+      ]
+    }
+  ]
+}

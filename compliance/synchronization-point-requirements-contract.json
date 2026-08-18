@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded embedded IEEE 1516.1-2025 federation synchronization-point slice to source-derived clause 4 records. It covers one-shot label tracking, global and explicit-set registration, asynchronous registration confirmation, announcement tags, late-join expansion, achievement success/failure, and completion after the synchronization set is satisfied. It remains source/test traceability only: distributed transport, protected review, catalog promotion, save/restore interaction, and conformance are outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-synchronization-point-tracked-separately",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l108-35",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-registers-and-announces",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-060-l139-34",
+      "clause_id": "clause-4.14",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-explicit-set-and-tag",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l11-1",
+      "clause_id": "clause-4.15",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-registration-confirmed",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l158-40",
+      "clause_id": "clause-4.15",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitSynchronizationPointRegistration",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-announcement",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35",
+      "clause_id": "clause-4.16",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitSynchronizationPointAnnouncements",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-late-join-and-resign",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-063-l12-1",
+      "clause_id": "clause-4.17.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::announcePendingSynchronizationPoints",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-achievement-result",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-063-l117-26",
+      "clause_id": "clause-4.17.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-completes-set",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35",
+      "clause_id": "clause-4.18.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::achieveSynchronizationPoint",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+      ]
+    }
+  ]
+}

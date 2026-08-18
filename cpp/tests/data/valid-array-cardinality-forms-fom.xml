@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes>
+        <arrayDataTypes>
+            <arrayData>
+                <name>UmbraScalarArrayCardinality</name>
+                <dataType>HLAinteger32BE</dataType>
+                <cardinality>10</cardinality>
+                <encoding>HLAfixedArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>UmbraListArrayCardinality</name>
+                <dataType>HLAinteger32BE</dataType>
+                <cardinality>1,2,3</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>UmbraRangeArrayCardinality</name>
+                <dataType>HLAinteger32BE</dataType>
+                <cardinality>[1..4]</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>UmbraDynamicArrayCardinality</name>
+                <dataType>HLAinteger32BE</dataType>
+                <cardinality>Dynamic</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>UmbraMixedArrayCardinality</name>
+                <dataType>HLAinteger32BE</dataType>
+                <cardinality>Dynamic,[2..4]</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+        </arrayDataTypes>
+    </dataTypes>
+</objectModel>

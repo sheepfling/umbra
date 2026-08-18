@@ -43,13 +43,19 @@ starts at the selected factory's initial time. Time Advance Request remains
 pending until Time Advance Grant dispatches; the initial Enable Time Regulation
 and Enable Time Constrained paths likewise remain pending until their respective
 callbacks dispatch. A successful regulation callback retains its official
-lookahead for Query Lookahead. The current profile has three bounded public TSO
-producers—the non-regional timestamped `Send Interaction`, `Update Attribute
-Values`, and `Delete Object Instance` overloads with retraction—while its
+lookahead for Query Lookahead. The current profile has five bounded public TSO
+producers—the timestamped `Send Interaction`, `Update Attribute Values`,
+`Delete Object Instance`, `Send Directed Interaction`, and
+`Send Interaction With Regions` overloads with retraction—while its
 private federation coordinator carries queued, in-transit, and delivered-
 since-last-advance timestamp state. Role callbacks and the other service
 families still use the current logical time because broader public timestamped
-delivery is not enabled.
+delivery is not enabled. Separately, the official asynchronous-delivery switch
+now gates receive-order callbacks for idle time-constrained federates: it is
+disabled by default, releases deferred receive-order work when enabled or when
+Time Advancing begins, and restores the normal gate when disabled. Timestamped
+messages remain time-advance gated, and deferred callback closures are not part
+of the in-memory save/restore snapshot.
 Read-only GALT/LITS include the private incoming state when present; without
 it, both are the smallest other regulator's current (or pending-advance) time
 plus actual lookahead. A forward Time Advance Request from a zero-lookahead
@@ -81,8 +87,12 @@ before it stores a definition or admits an additional-FOM join.
    than a process-wide default or an Umbra-specific factory.
 3. Extend GALT/LITS and the limited TAR scheduler with timestamped-queue
    coordination before adding any transport or TSO producer.
-4. Add Modify Lookahead and the remaining time-advance variants only with their
-   full cross-federate constraints and callback-ordering tests.
+4. Add the remaining time-advance variants only with their full cross-federate
+   constraints and callback-ordering tests. Modify Lookahead, the bounded
+   currently-queued-message `Next Message Request`, the two Available forms,
+   and the bounded in-process `Flush Queue Request`/`Flush Queue Grant` path
+   are now covered by their own exact 2025 contracts and scenarios. Future
+   transport and complete cross-federate coordination remain separate work.
 
 The Python implementation is useful as a list of eventual scenarios, but its
 integer default is deliberately not imported into Umbra’s semantics.

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-runtime-foundation-not-conformance-evidence",
-  "notes": "This contract pins only Umbra's private recipient-scoped TSO queue foundation to source-derived IEEE 1516.1-2025 candidate records. The queue retains official LogicalTime objects, uses a federation-local message id with stable sequence ordering, isolates recipient entries, removes every still-pending fanout entry on retraction, and makes an entry non-retractable after delivery. It exercises inclusive and exclusive timestamp boundaries without exposing Send Interaction, Send Directed Interaction, Update Attribute Values, Delete Object Instance, Retract, Request Retraction, or any other public timestamped service. The Requirements Lab records used here are candidate fragments; RL-019 records that their exported statements terminate at a TeX percent marker and cannot serve as complete prose on their own. No C++ API contract, time-grant integration, LITS/GALT claim, transport behavior, catalog result, JUnit evidence, protected review, or conformance claim follows from this private queue.",
+  "notes": "This contract pins only Umbra's private recipient-scoped TSO queue foundation to source-derived IEEE 1516.1-2025 candidate records. The queue retains official LogicalTime objects, uses a federation-local message id with stable sequence ordering, isolates recipient entries, and can remove every still-pending fanout entry even after another recipient reaches a delivery boundary. The owning federation ledger, rather than this private queue, determines any Request Retraction callback. It exercises inclusive and exclusive timestamp boundaries without by itself exposing Send Interaction, Send Directed Interaction, Update Attribute Values, Delete Object Instance, Retract, Request Retraction, or any other public timestamped service. The Requirements Lab records used here are candidate fragments; RL-019 records that their exported statements terminate at a TeX percent marker and cannot serve as complete prose on their own. No C++ API contract, complete time-grant integration, LITS/GALT claim, transport behavior, catalog result, JUnit evidence, protected review, or conformance claim follows from this private queue.",
   "requirements": [
     {
       "id": "umbra-tso-queue-retains-timestamped-entry",
@@ -31,19 +31,10 @@
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
       "clause_id": "clause-8.22.3",
       "source": "cpp/src/internal/tso_message_queue.cpp",
-      "source_symbol": "TsoMessageQueue::retract",
+      "source_symbol": "TsoMessageQueue::retractPending",
       "tests": [
-        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue retracts pending fanout before delivery"
-      ]
-    },
-    {
-      "id": "umbra-tso-queue-retraction-is-terminal-after-delivery",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
-      "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/tso_message_queue.cpp",
-      "source_symbol": "TsoMessageQueue::retract",
-      "tests": [
-        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue rejects invalid time inputs and fences delivered messages"
+        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue retracts pending fanout before delivery",
+        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue withdraws pending fanout after another recipient delivery"
       ]
     },
     {

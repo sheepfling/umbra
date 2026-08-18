@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records Umbra's first bounded public timestamped service family in the non-installable IEEE 1516.1-2025 development profile: timestamped Send Interaction for non-regional interactions, with federation-owned queueing for time-constrained recipients, callback-gated delivery before Time Advance Grant, official timestamp/order/retraction callback fields, lower-bound validation from the sender's current or requested time plus lookahead, and Retract before delivery. It deliberately does not claim timestamped Update Attribute Values, Delete Object Instance, Send Directed Interaction, Send Interaction With Regions, NMR/FQR/flush services, asynchronous delivery, request-retraction callbacks, partial fanout retraction, remote transport, package support, catalog evidence, JUnit evidence, protected review, or conformance.",
+  "notes": "This contract records Umbra's first bounded public timestamped service family in the non-installable IEEE 1516.1-2025 development profile: timestamped Send Interaction for non-regional interactions, with federation-owned queueing for time-constrained recipients, callback-gated delivery before Time Advance Grant, official timestamp/order/retraction callback fields, lower-bound validation from the sender's current or requested time plus lookahead, and pre-delivery Retract. The shared recipient planner selects active ordinary subscriptions only; passive ordinary subscriptions remain declared but do not arrange delivery, although the current timestamped cases do not independently test that selector. The separately checked request-retraction contract covers the deliberately bounded legal post-delivery interaction path and terminal-designator lifecycle. A focused regression advances the producer to the exact strict Retract boundary while the recipient's interaction remains queued: the callback still arrives, while the returned designator is retained as MessageCanNoLongerBeRetracted after delivery. A separate one-federate regression proves that an eligible-recipient set of zero still yields a valid public designator backed by the lightweight federation ledger; it covers legal Retract and later terminal classification without retaining a typed interaction payload. A second focused normal-interaction regression proves that Disable Time Regulation temporarily removes Retract authority without terminalizing a pending designator; callback-gated re-enable at unchanged lookahead restores authority for one legal Retract and later terminal classification. A third save/restore regression restores a pre-save live queued interaction and retraction ledger after a post-save Retract made it terminal, then verifies original delivery and legal post-delivery Retract. This contract does not claim timestamped Update Attribute Values, Delete Object Instance, Send Directed Interaction, Send Interaction With Regions, a complete matrix of NMR/FQR/flush and broader Disable Time Regulation/re-enable boundaries, asynchronous delivery, request-retraction callbacks for other message families, complete terminal save/restore recovery, remote transport, package support, catalog evidence, JUnit evidence, protected review, or conformance.",
   "requirements": [
     {
       "id": "umbra-timestamped-send-interaction-uses-regulator-tso-lower-bound",
@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "validateTsoTimestamp",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery"
       ]
     },
     {
@@ -22,7 +22,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
       ]
     },
     {
@@ -32,7 +33,7 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery"
       ]
     },
     {
@@ -42,7 +43,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
       ]
     },
     {
@@ -52,8 +54,19 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "makeMessageRetractionHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the official eight-byte value encoding"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-terminal-designator-retains-pending-payload",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery"
       ]
     },
     {
@@ -63,17 +76,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
-      ]
-    },
-    {
-      "id": "umbra-timestamped-send-retraction-terminal-after-delivery",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
-      "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
-      "source_symbol": "MessageCanNoLongerBeRetracted",
-      "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable"
       ]
     },
     {
@@ -81,9 +85,12 @@
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
       "clause_id": "clause-8.22.3",
       "source": "cpp/src/internal/federation_registry.cpp",
-      "source_symbol": "EmbeddedFederationRegistry::retractTsoInteraction",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
       ]
     }
   ]

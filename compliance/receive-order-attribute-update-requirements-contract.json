@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only Umbra's non-region, receive-order Update Attribute Values and no-time Reflect Attribute Values path in the non-installable development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The three page-112 passelization records are exported with clause_id clause-6.1.13 even though the IEEE source heading is §6.1.12; RL-013 records that reproducible export mismatch, and this contract intentionally uses the exported owner. Timestamped/retraction behavior, DDM regions, update-rate reduction, ownership acquisition/divestiture, custom transportation implementation, FOM sharing policy, save/restore, remote transport, packaging, and evidence promotion remain out of scope. The linked Catch2 test demonstrates a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "notes": "This source/test traceability contract covers only Umbra's non-region, receive-order Update Attribute Values and no-time Reflect Attribute Values path in the non-installable development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The recipient planner selects active ordinary attribute subscriptions only; passive subscriptions remain retained declaration state but cannot arrange a reflected update. The standard-wide passive-subscription delivery definition is source-level evidence on page 30 rather than an immutable requirement-candidate, so the delivery predicate is paired with the available Clause 5.8 active/passive state record (RL-029). The three page-112 passelization records are exported with clause_id clause-6.1.13 even though the IEEE source heading is §6.1.12; RL-013 records that reproducible export mismatch, and this contract intentionally uses the exported owner. Timestamped/retraction behavior, DDM regions, update-rate reduction, ownership acquisition/divestiture, custom transportation implementation, FOM sharing policy, save/restore, remote transport, packaging, and evidence promotion remain out of scope. The linked Catch2 test demonstrates a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
   "requirements": [
     {
       "id": "umbra-attribute-update-provides-instance-values",
@@ -122,6 +122,17 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderAttributeUpdate",
       "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-receive-order-attribute-active-subscription-gates-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+      "clause_id": "clause-5.8",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     }

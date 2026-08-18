@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 Modify Lookahead implementation to the official C++ RTIambassador declaration exported by the Requirements Lab. It verifies the exact signature, declared exception set, adapter symbol, and real Catch2 selector, including narrow process-local restore rollbacks for a post-save increase and a deferred decrease target. It is not catalog evidence, protected-review evidence, package support, or a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-modify-lookahead",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.modifylookahead.a38e532fa913",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void modifyLookahead( LogicalTimeInterval const & lookahead) = 0",
+      "exception_types": ["InvalidLookahead", "InTimeAdvancingState", "TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::modifyLookahead",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Modify Lookahead applies increases immediately and decreases gradually",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+      ]
+    }
+  ]
+}

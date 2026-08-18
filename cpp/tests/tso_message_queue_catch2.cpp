@@ -133,6 +133,33 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Private 2025 TSO queue withdraws pending fanout after another recipient delivery",
+    "[tso][time][retraction]") {
+  umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
+  auto const messageId = queue.allocateMessageId();
+
+  REQUIRE(queue.enqueue(messageId, 2, integerTime(9)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.enqueue(messageId, 3, integerTime(9)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.popEligible(2, *integerTime(9), true).size() == 1);
+  REQUIRE(queue.pendingCountFor(3) == 1);
+
+  // The owner-level recipient ledger decides whether recipient 2 needs a
+  // Request Retraction callback. This queue-level operation is responsible
+  // only for suppressing recipient 3's still-pending fanout entry.
+  auto const retracted = queue.retractPending(messageId);
+  REQUIRE(retracted.status == umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(retracted.removedCount == 1);
+  REQUIRE(queue.pendingCount() == 0);
+  REQUIRE(queue.popEligible(3, *integerTime(9), true).empty());
+
+  auto const repeated = queue.retractPending(messageId);
+  REQUIRE(repeated.status ==
+          umbra::detail::TsoMessageQueueStatus::message_already_retracted);
+}
+
+TEST_CASE(
     "Private 2025 TSO queue keeps an exclusive boundary separate from an inclusive grant",
     "[tso][time]") {
   umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");

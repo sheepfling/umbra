@@ -175,9 +175,18 @@ lookahead representation is non-negative.
 User-supplied and synchronization tags apply a related completed rule: their
 data type may name a simple, enumerated, reference, array, fixed-record, or
 variant-record data type, or `NA`; basic-data names are not permitted there.
-This is not yet the full OMT reference checker: basic-data `representation`
-values, special reference-data instance-identifier type handling, and the
-other table-specific referential constraints remain separately tracked work.
+Representation fields now receive a bounded composition check as well. Simple
+and enumerated representation names must resolve in the composed model; the
+official MIM/Restaurant `HLAboolean` example is retained under the reviewed
+RL-009 compatibility interpretation even though the source table wording calls
+for a basic-data row. Ordinary reference-data representations must resolve to a
+simple, enumerated, array, fixed-record, or variant-record type and cannot point
+to a basic or another reference type. The two standard instance-identifier
+references are handled as an explicit exception with their standardized
+`HLAunicodeString` and `HLAobjectInstanceHandle` representations. This is still
+not the full OMT reference checker: lookahead non-negative inference and the
+remaining table-specific referential constraints remain separately tracked
+work.
 The FOM-specific synchronization-capability predicate is also intentionally
 deferred: its 2025 source record requires `NA`, while the supplied Restaurant
 FOM uses other schema-permitted capability values. Umbra does not add a rule
@@ -213,6 +222,27 @@ The same completed hierarchies reject an object-class attribute or
 interaction-class parameter that duplicates a name declared by an ancestor.
 This is a structural preflight rule only; Umbra still has no object or
 interaction runtime service implementation.
+
+The table-specific preflight rejects a supplied non-positive/non-finite update
+rate and checks each supplied dimension `value` against its dimension
+`upperBound`. Integer and half-open range forms must describe a nonnegative
+subrange of `[0, upperBound)`; `Excluded` remains valid. Missing values remain
+allowed for incomplete DIF modules, while the 2025 FOM XSD already enforces
+positive dimension upper bounds and the official MIM/Restaurant corpus
+supplies valid values. These checks are traced by
+`compliance/fom-table-constraints-requirements-contract.json` and
+`compliance/fom-dimension-default-value-requirements-contract.json`; the
+`arrayData/cardinality` field is also checked when supplied: nonnegative scalar,
+`Dynamic`, and nonnegative `[lower..upper]` components may be combined in a
+comma-separated list, while malformed or reversed ranges are rejected. The
+cardinality check is traced by
+`compliance/fom-array-cardinality-requirements-contract.json`. Missing
+cardinality remains representable for incomplete DIF modules. For a supplied
+one-dimensional predefined encoding, `HLAfixedArray` is paired with fixed
+cardinality and `HLAvariableArray` with varying or `Dynamic` cardinality;
+multidimensional interpretation and provider-defined encodings remain outside
+this bounded rule. The remaining table work includes non-negative lookahead
+inference and other Annex C rules.
 
 The standard MIM plus Restaurant base FOM produces such an FDD; an identical
 duplicate base is accepted as well. The supplied Restaurant extension is

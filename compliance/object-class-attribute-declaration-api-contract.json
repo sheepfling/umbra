@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 object-class attribute declaration foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The implementation retains explicit publication and active/passive subscription state for available attributes, including inherited handles. A separate limited registration/discovery contract consumes that state and applies the implicit privilege-to-delete effect when it snapshots an unnamed registered instance. This declaration contract deliberately does not claim whole-class declarations, advisory callbacks, update-rate enforcement, regions, full ownership, packaging, or conformance. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 object-class attribute declaration foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The implementation retains explicit publication and active/passive subscription state for available attributes, including inherited handles; only active declarations feed the bounded discovery, scope, and reflected-update routes, while passive state remains retained without arranging delivery. A separate limited registration/discovery contract consumes that state and applies the implicit privilege-to-delete effect when it snapshots an unnamed registered instance. This declaration contract deliberately does not claim whole-class declarations, regional declaration advisories, update-rate enforcement, regions, full ownership, packaging, or conformance. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-publish-object-class-attributes",
@@ -23,7 +23,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     },
     {
@@ -67,7 +68,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     },
     {
@@ -88,7 +90,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     }
   ]

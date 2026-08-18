@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 asynchronous-delivery slice to the Requirements Lab's clauses 8.15.3 and 8.16.5. In the embedded in-process profile, a time-constrained federate defaults to synchronous receive-order delivery, may enable receive-order callbacks while idle, and returns to time-advance-only receive-order delivery when disabled. Time-stamped delivery, remote transport, MOM reporting, save/restore persistence of deferred callbacks, package evidence, protected review, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-embedded-enable-asynchronous-delivery-gates-ro",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
+      "clause_id": "clause-8.15.3",
+      "source": "cpp/src/internal/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::receiveOrderDeliveryAllowed",
+      "tests": [
+        "cpp/tests/federate_time_state_catch2.cpp::Federate time state gates deferred receive-order callbacks with asynchronous delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+      ]
+    },
+    {
+      "id": "umbra-embedded-disable-asynchronous-delivery-restores-time-advance-gating",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-205-l73-17",
+      "clause_id": "clause-8.16.5",
+      "source": "cpp/src/internal/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::disableAsynchronousDelivery",
+      "tests": [
+        "cpp/tests/federate_time_state_catch2.cpp::Federate time state gates deferred receive-order callbacks with asynchronous delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+      ]
+    }
+  ]
+}

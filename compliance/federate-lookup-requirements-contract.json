@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This contract records a bounded IEEE 1516.1-2025 federate-designator identity invariant in Umbra's opt-in, non-installable development profile. Get Federate Handle remains limited to a currently joined federate name, while Get Federate Name retains the immutable name for a valid FederateHandle returned by Join after that federate resigns or is removed by the private Connection Lost path. The historical identity index is deliberately distinct from active-membership checks, so it does not authorize callbacks or any membership-sensitive service. This is source/test traceability only, not a service catalog entry, JUnit result, protected-review result, package claim, or conformance claim. Full restore/interoperability behavior remains separate work.",
+  "requirements": [
+    {
+      "id": "umbra-federate-designator-remains-valid-after-resignation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5",
+      "clause_id": "clause-4.11.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::federateNameFor",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services preserve departed designator identities within the joined federation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+      ]
+    },
+    {
+      "id": "umbra-get-federate-name-resolves-known-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-245-l114-26",
+      "clause_id": "clause-10.3.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getFederateName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services preserve departed designator identities within the joined federation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+      ]
+    }
+  ]
+}

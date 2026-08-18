@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 Delay Subscription Evaluation behavior in the non-installable embedded development profile. The source semantic block is §8.1.8; the pinned Requirements Lab export gives these immutable candidates a stale annex display title and the erroneous §8.1.10 clause metadata, as recorded by RL-018. Enabled federations retain a joined non-source recipient route for ordinary Send Interaction and ordinary Update Attribute Values only when planning finds no current subscription, then project the recipient's current active subscription at the HLA_EVOKED receive-order boundary or at the time-constrained TSO grant boundary. The attribute-update cases establish a known object before dropping and restoring its attribute declaration, so they isolate subscription timing from discovery. Disabled federations retain the existing generation-time ineligibility decision. Both modes re-evaluate a previously selected recipient immediately before an actual callback. This slice excludes Send Interaction With Regions, Update Attribute Values with explicit update-region associations, directed interactions, complete HLA_IMMEDIATE/asynchronous-delivery timing, late join/resignation races, retraction edge cases, distributed transport, package/JUnit/protected-review evidence, and conformance.",
+  "requirements": [
+    {
+      "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-receive-order",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility"
+      ]
+    },
+    {
+      "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-timestamped",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility"
+      ]
+    },
+    {
+      "id": "umbra-delay-subscription-evaluation-disabled-preserves-generation-ineligibility",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility"
+      ]
+    },
+    {
+      "id": "umbra-delay-subscription-evaluation-uses-current-subscriptions-at-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l46-13",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::receiveOrderInteractionRecipientFor",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility"
+      ]
+    },
+    {
+      "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-receive-order-attribute-update",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility"
+      ]
+    },
+    {
+      "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-timestamped-attribute-update",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility"
+      ]
+    },
+    {
+      "id": "umbra-delay-subscription-evaluation-disabled-preserves-attribute-update-generation-ineligibility",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility"
+      ]
+    },
+    {
+      "id": "umbra-delay-subscription-evaluation-uses-current-attribute-subscriptions-at-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l46-13",
+      "clause_id": "clause-8.1.10",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::receiveOrderAttributeUpdateRecipientFor",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility"
+      ]
+    }
+  ]
+}

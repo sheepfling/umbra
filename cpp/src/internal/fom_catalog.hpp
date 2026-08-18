@@ -73,11 +73,62 @@ struct FomTimeDefinition {
   std::string logicalTimeIntervalDataType;
 };
 
+struct FomUpdateRateDefinition {
+  std::string name;
+  double rate = 0.0;
+};
+
 // Federation-wide FDD switch settings that influence time-management
 // coordination.  The OMT default is represented here rather than inferred by
 // a later scheduler: omitted switch entries are Disabled.
 struct FomTimeManagementSwitches {
   bool nonRegulatedGrant = false;
+};
+
+// Federation-wide switch settings supplied by the composed FDD.  The initial
+// Auto Provide value is dynamic and may be adjusted by the MOM path; the
+// remaining values are static for the lifetime of an execution.
+struct FomFederationSwitches {
+  bool autoProvide = false;
+  // These switches are federation-wide and static for an execution.  Their
+  // values are seeded from the creation FDD; additional FOM modules cannot
+  // silently change an active execution's policy.
+  bool delaySubscriptionEvaluation = false;
+  bool allowRelaxedDDM = false;
+};
+
+// Initial values for switches that belong to an individual joined federate.
+// The FDD switch table supplies defaults for each new member; the member may
+// subsequently change the value through its support-service setter.
+struct FomFederateSupportSwitches {
+  bool conveyRegionDesignatorSets = false;
+  // Keep the schema lexical value here so the FOM/catalog layer remains
+  // usable by the validation-only CMake target, which intentionally has no
+  // public RTI binding include path.  The embedded registry maps this
+  // validated lexical value to the official C++ enum at membership time.
+  // IEEE 1516.2-2025 clause 4.13.3 gives this switch its distinct default;
+  // unlike the other switches it is not Disabled.
+  std::string automaticResignAction = "CancelThenDeleteThenDivest";
+  bool serviceReporting = false;
+  bool exceptionReporting = false;
+  bool sendServiceReportsToFile = false;
+};
+
+// Per-federate advisory switch settings supplied by the composed FDD.  The
+// 1516.2 switch table is optional in the input model, but the composed FDD
+// always has a value: omitted entries use the standard Disabled default.
+// Keeping the values in the catalog lets the registry seed each new member
+// without conflating FDD initial settings with later per-federate changes.
+struct FomAdvisorySwitches {
+  bool attributeScopeAdvisory = false;
+  bool attributeRelevanceAdvisory = false;
+  bool objectClassRelevanceAdvisory = false;
+  bool interactionRelevanceAdvisory = false;
+  // The FDD-level switch controls whether advisory calculations may use a
+  // federate's known class rather than only its registered class.  Keep the
+  // parsed value separate from the per-federate advisory gates above: this
+  // switch has an official getter but no corresponding setter.
+  bool advisoriesUseKnownClass = false;
 };
 
 class FomCatalogBuilder;
@@ -154,8 +205,26 @@ class FomCatalog final {
     return time_;
   }
 
+  [[nodiscard]] std::optional<double> updateRateValue(
+      std::string const& name) const noexcept {
+    auto const found = updateRates_.find(name);
+    return found == updateRates_.end() ? std::nullopt : std::optional<double>{found->second};
+  }
+
   [[nodiscard]] FomTimeManagementSwitches const& timeManagementSwitches() const noexcept {
     return timeManagementSwitches_;
+  }
+
+  [[nodiscard]] FomFederationSwitches const& federationSwitches() const noexcept {
+    return federationSwitches_;
+  }
+
+  [[nodiscard]] FomAdvisorySwitches const& advisorySwitches() const noexcept {
+    return advisorySwitches_;
+  }
+
+  [[nodiscard]] FomFederateSupportSwitches const& federateSupportSwitches() const noexcept {
+    return federateSupportSwitches_;
   }
 
  private:
@@ -164,8 +233,12 @@ class FomCatalog final {
   std::map<std::string, FomInteractionClassDefinition> interactionClasses_;
   std::map<std::string, FomDimensionDefinition> dimensions_;
   std::map<std::string, FomDataTypeDefinition> dataTypes_;
+  std::map<std::string, double> updateRates_;
   FomTimeDefinition time_;
   FomTimeManagementSwitches timeManagementSwitches_;
+  FomFederationSwitches federationSwitches_;
+  FomFederateSupportSwitches federateSupportSwitches_;
+  FomAdvisorySwitches advisorySwitches_;
 
   friend class FomCatalogBuilder;
 };

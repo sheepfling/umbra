@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Umbra MOM Set Switches Extension</name>
+        <type>FOM</type>
+    </modelIdentification>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>HLAmanager</name>
+                <interactionClass>
+                    <name>HLAfederate</name>
+                    <interactionClass>
+                        <name>HLAadjust</name>
+                        <interactionClass>
+                            <name>HLAsetSwitches</name>
+                            <parameter>
+                                <name>UmbraExtensionSwitchPayload</name>
+                                <dataType>HLAopaqueData</dataType>
+                                <semantics>Fixture extension parameter that the standard RTI MOM path must ignore.</semantics>
+                            </parameter>
+                            <interactionClass>
+                                <name>UmbraExtendedSetSwitches</name>
+                                <sharing>Subscribe</sharing>
+                                <transportation>HLAreliable</transportation>
+                                <order>Receive</order>
+                                <semantics>Fixture extension subclass that must be promoted to the predefined HLAsetSwitches behavior.</semantics>
+                                <parameter>
+                                    <name>UmbraExtendedSwitchPayload</name>
+                                    <dataType>HLAopaqueData</dataType>
+                                    <semantics>Fixture subclass parameter that the standard RTI MOM path must ignore.</semantics>
+                                </parameter>
+                            </interactionClass>
+                        </interactionClass>
+                    </interactionClass>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

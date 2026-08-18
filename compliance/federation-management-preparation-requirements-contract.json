@@ -13,7 +13,7 @@
       "source_symbol": "FederationManagementCoordinator::prepareCreate",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::Federation preparation loads MIM first and emits only an FDD-backed reference-time definition",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata re-evaluates a pending constrained TAR"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
       ]
     },
     {

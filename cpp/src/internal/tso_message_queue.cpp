@@ -46,6 +46,22 @@ std::uint64_t TsoMessageQueue::allocateMessageId() noexcept {
   return nextMessageId_++;
 }
 
+std::uint64_t TsoMessageQueue::messageIdAllocationFloor() const noexcept {
+  return nextMessageId_;
+}
+
+void TsoMessageQueue::preserveMessageIdAllocationFloor(
+    std::uint64_t allocationFloor) noexcept {
+  // Zero is not a valid issued designator and is treated as a terminal
+  // allocator state if encountered.  UINT64_MAX is also terminal for
+  // allocateMessageId(), so the ordinary maximum preserves exhaustion.
+  if (nextMessageId_ == 0 || allocationFloor == 0) {
+    nextMessageId_ = 0;
+    return;
+  }
+  nextMessageId_ = std::max(nextMessageId_, allocationFloor);
+}
+
 TsoMessageEnqueueResult TsoMessageQueue::enqueue(
     std::uint64_t messageId,
     std::uint64_t recipientFederateId,
@@ -109,6 +125,37 @@ TsoMessageRetractionResult TsoMessageQueue::retract(std::uint64_t messageId) {
         TsoMessageQueueStatus::applied,
         originalSize - pending_.size(),
     };
+  }
+  return {TsoMessageQueueStatus::message_not_found, 0};
+}
+
+TsoMessageRetractionResult TsoMessageQueue::retractPending(std::uint64_t messageId) {
+  if (messageId == 0) {
+    return {TsoMessageQueueStatus::invalid_message_id, 0};
+  }
+  if (contains(retractedMessageIds_, messageId)) {
+    return {TsoMessageQueueStatus::message_already_retracted, 0};
+  }
+
+  auto const originalSize = pending_.size();
+  pending_.erase(
+      std::remove_if(
+          pending_.begin(),
+          pending_.end(),
+          [messageId](PendingEntry const& entry) {
+            return entry.message.messageId == messageId;
+          }),
+      pending_.end());
+  auto const removedCount = originalSize - pending_.size();
+
+  // A message can already have left the pending queue for one recipient while
+  // another recipient is still queued (or while the callback is in transit).
+  // The caller owns the per-recipient delivery ledger and will issue Request
+  // Retraction where required; this queue must still suppress every remaining
+  // pending entry.
+  if (removedCount != 0 || contains(deliveredMessageIds_, messageId)) {
+    retractedMessageIds_.push_back(messageId);
+    return {TsoMessageQueueStatus::applied, removedCount};
   }
   return {TsoMessageQueueStatus::message_not_found, 0};
 }

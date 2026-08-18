@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded asynchronous-delivery services to the exact IEEE 1516.1-2025 C++ RTIambassador declarations exported by the Requirements Lab. It verifies official signatures, declared exceptions, adapter symbols, and real Catch2 selectors. It is not catalog evidence, a JUnit result, protected-review evidence, a production package claim, or a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-enable-asynchronous-delivery",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.enableasynchronousdelivery.8c6d3ba344ea",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void enableAsynchronousDelivery() = 0",
+      "exception_types": ["AsynchronousDeliveryAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::enableAsynchronousDelivery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+      ]
+    },
+    {
+      "id": "umbra-embedded-disable-asynchronous-delivery",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.disableasynchronousdelivery.7f82dbc328dc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void disableAsynchronousDelivery() = 0",
+      "exception_types": ["AsynchronousDeliveryAlreadyDisabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::disableAsynchronousDelivery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+      ]
+    }
+  ]
+}

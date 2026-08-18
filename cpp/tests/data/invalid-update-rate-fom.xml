@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <updateRates>
+        <updateRate>
+            <name>UmbraZeroRate</name>
+            <rate>0</rate>
+            <semantics>Fixture invalid zero update rate.</semantics>
+        </updateRate>
+    </updateRates>
+</objectModel>

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable limited no-TSO TAR scheduler to source-derived IEEE 1516.1-2025 records. The private registry retains an accepted TAR, evaluates every pending requester against the federation-owned GALT/NRG snapshot after a relevant temporal state change, and queues a callback action only when the current policy allows it. The delivery action rechecks eligibility immediately before it changes logical time and invokes Time Advance Grant. This supports only TAR and no-TSO GALT/NRG inputs; it does not implement timestamped send/receive queues, TSO delivery/order, asynchronous delivery, other time-advance modes, Modify Lookahead, save/restore, a package contract, catalog result, JUnit sidecar, protected review, or a conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable limited no-TSO TAR scheduler to source-derived IEEE 1516.1-2025 records. The private registry retains an accepted TAR, evaluates every pending requester against the federation-owned GALT/NRG snapshot after a relevant temporal state change, and queues a callback action only when the current policy allows it. The delivery action rechecks eligibility immediately before it changes logical time and invokes Time Advance Grant. This supports only TAR and no-TSO GALT/NRG inputs; it does not implement timestamped send/receive queues, TSO delivery/order, asynchronous delivery, other time-advance modes, or save/restore. Modify Lookahead is traced separately; package, catalog, JUnit, protected-review, and conformance evidence remain outside this contract.",
   "requirements": [
     {
       "id": "umbra-no-tso-scheduler-holds-a-constrained-tar-at-the-defined-galt-boundary",
@@ -37,7 +37,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded NRG-disabled constrained TAR waits until a regulator becomes active",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded NRG-enabled constrained TAR is released when its only regulator disables",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded NRG-enabled constrained TAR is released when its only regulator resigns",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata re-evaluates a pending constrained TAR"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
       ]
     }
   ]

@@ -77,8 +77,14 @@ the four callback-control services. CallbackSession gives each caller-owned
 FederateAmbassador an explicit shutdown fence before a dispatcher task invokes
 it. Connect and Disconnect are bound to the public API under a mutex. Join and
 Resign are also bound in the opt-in, non-installable federation-management
-development profile; RTI-initiated Resign and Connection Lost remain private
-model transitions until their real event slices are ready.
+development profile. That profile now has a private embedded transport
+endpoint: a one-shot endpoint fault applies the member's Automatic Resign
+Directive through forced registry cleanup, transitions the ambassador to Not
+Connected, and queues the official Connection Lost callback. The endpoint is
+an in-process seam for a later socket/IPC transport, not a distributed
+transport implementation. A separate private in-session control seam models
+the distinct Federate Resigned transition: its bounded NO_ACTION path removes
+a clean member while retaining the connection and queues the official callback.
 
 ### 3. Federation-management vertical slice
 
@@ -86,9 +92,15 @@ Before broader object or time services, implement one end-to-end standard path:
 connection, federation creation/destruction, join/resign, listing reports,
 disconnect, and the connection-lost callback. The initial embedded path now covers all four
 standard C++ Connect overloads, Disconnect, and the four callback-control
-services. The aggregate Connect crosswalk is still ambiguous in the
-Requirements Lab, so its tests cannot yet enter the compliance catalog;
-Disconnect has a selected C++ surface and raw JUnit evidence. An opt-in
+services. The embedded endpoint also drives the official Connection Lost
+callback from a one-shot transport fault, applies Automatic Resign cleanup,
+and removes the lost member before returning the ambassador to the
+disconnected lifecycle. The embedded control seam separately drives Federate
+Resigned without disconnecting, then permits a fresh Join on the same
+connection. The aggregate Connect crosswalk is still ambiguous in
+the Requirements Lab, so its tests cannot yet enter the compliance catalog;
+Disconnect has a selected C++ surface and raw JUnit evidence, while the new
+Connection Lost traceability remains development-profile-only. An opt-in
 libxml2 backend now validates individual official 1516.2 documents against the
 vendored schema and performs an Annex C-guided private composition preflight.
 The official integer and finite-float reference time values, intervals,
@@ -102,13 +114,21 @@ unavailable pending a provider contract. The same private preflight now
 resolves direct `dataType` references only after the complete composed module
 set is available, allowing later modules to provide referenced types and
 recognizing the full OMT data-type key (including basic data representations).
-Basic-data `representation` values and special reference-data instance-
-identifier handling remain for later work. The preflight rejects a
-reference-data type whose named object class is absent from the complete
-hierarchy and, for ordinary attributes, resolves the named attribute through
-ancestors and compares its type. The two standard instance identifier names
-remain outside that predicate until their implicit type semantics have a
-reviewed rule. Directed-interaction names are resolved against the completed
+Representation references are now resolved as a separate bounded rule:
+simple/enumerated names must resolve, ordinary reference-data representations
+must name a higher-level data type, and the two standard instance-identifier
+names use their explicit `HLAunicodeString`/`HLAobjectInstanceHandle`
+exception. The MIM/Restaurant `HLAboolean` interpretation remains recorded as
+RL-009 rather than being rejected by a generic basic-only predicate. The
+same preflight now rejects supplied non-positive update rates and validates
+dimension default ranges against `[0, upperBound)`, while preserving
+incomplete DIF rows for later composition; the 2025 FOM XSD already enforces
+positive dimension upper bounds. Non-negative lookahead inference and other
+table-specific rules remain open.
+preflight rejects a reference-data type whose named object class is absent from
+the complete hierarchy and, for ordinary attributes, resolves the named
+attribute through ancestors and compares its type. Directed-interaction names
+are resolved against the completed
 interaction hierarchy as well, but the official FDD schema's one-entry
 cardinality prevents materializing the supplied extension's two-entry merge.
 Object and interaction available-dimension references resolve against the
@@ -129,13 +149,14 @@ until a successful commit, and bounds are checked against each FOM dimension's
   committed specs for independent subscriptions and 2025 overlap filtering.
   The bounded object-attribute regional slice now consumes the same committed
   specs for no-name regional registration, additive association/unassociation,
-  regional attribute subscriptions, overlap-filtered discovery and no-time
-  reflection, optional sent-region callback metadata, and reservation-consuming
+  active/passive regional attribute subscriptions, active-overlap-filtered
+  discovery and no-time reflection, optional sent-region callback metadata, and
+  reservation-consuming
   named regional registration. The per-federate Attribute Scope Advisory Switch
   now gates grouped in/out callbacks for known-object committed-overlap,
   update-region-association, and subscription transitions, with immediate/evoked
-  delivery and stale-work suppression. Default-region synthesis, timestamped sends, broader
-  DDM routing, save/restore,
+  delivery and stale-work suppression. Direct time-constrained timestamped
+  default-region callback coverage is now present; broader DDM routing, save/restore,
   and package support
   remain separate work.
 Attribute and interaction transportation names resolve against the completed
@@ -171,21 +192,32 @@ time snapshot also provides read-only Query GALT/Query LITS from other
 regulators' current or pending time plus lookahead, with factory epsilon for a
 forward zero-lookahead TAR boundary. The embedded scheduler has no broader
 public TSO traffic or full federation-wide coordination; the separate public
-surface contains three bounded non-regional timestamped interaction,
-attribute-update, and object-deletion/removal slices.
+surface contains five bounded timestamped interaction, attribute-update,
+object-deletion/removal, directed-interaction, and region-context interaction
+slices.
 A private recipient-scoped queue and temporal coordinator now feed queued, in-transit, and
 delivered-since-last-advance timestamps into the GALT/LITS snapshot and
 limited scheduler. The scheduler now registers and
 re-evaluates limited cross-federate TAR grants under strict defined-GALT and
-undefined-GALT/NRG policy after relevant role, membership, and additional-FOM
-definition changes, then rechecks the bound at callback delivery. The profile still has no
-connection-lost or other federation-event callbacks, complete object/ownership
-state, broader time-management services, or transport. `getTimeFactory` is exposed
+undefined-GALT/NRG policy after relevant role and membership changes, while
+retaining static NRG across additional-FOM definition changes, then rechecks
+the bound at callback delivery. The profile still has no federation-event
+callbacks beyond Connection Lost and the bounded Federate Resigned seam,
+complete object/ownership state, broader time-management services, or remote
+transport. The embedded endpoint's deterministic fault hook is test-only; it
+does not claim socket/IPC delivery. It also implements the
+official per-federate asynchronous-delivery switch: receive-order interaction,
+reflection, directed-interaction, and object-removal callbacks are deferred for
+idle time-constrained federates while disabled, released on enable or Time
+Advancing, and gated again on disable. This callback queue is live-session
+state; timestamped messages, MOM reporting, durable save/restore, and remote
+transport remain outside the slice. `getTimeFactory` is exposed
 there only to return a factory for the immutable selected federation time
 representation. The same profile exposes `getFederateHandle` and
-`getFederateName` only for active members of the caller's joined federation;
-it keeps invalid handles distinct from valid handles not known to that
-federation. It also exposes `getObjectClassHandle`, `getObjectClassName`,
+`getFederateName` for the caller's joined federation: the former resolves only
+active joined names, while the latter retains the immutable name of a valid
+returned handle after resignation. It keeps invalid handles distinct from valid
+handles not known to that federation. It also exposes `getObjectClassHandle`, `getObjectClassName`,
 `getInteractionClassHandle`, and `getInteractionClassName` through the current
 composed FOM catalog. It also exposes `getAttributeHandle` and
 `getAttributeName`, resolving an attribute through the class that declares it
@@ -210,19 +242,26 @@ overload with the no-time `Receive Directed Interaction` callback. The planner
 requires the target object to be known, chooses at most one applicable received
 class, excludes the sender, and projects callback delivery through the same
 immediate/evoked dispatcher. Callback entry rechecks target lifecycle and both
-declaration sides. The official `universally` argument is outside this
-bounded semantic slice; timestamped/retraction,
-directed DDM, ordering, sharing-policy enforcement, and remote transport are
-not implemented. It
+declaration sides. A missing or false `universally` selector is by ownership
+and requires the known target to have at least one attribute owned by the
+recipient; true is universal and permits every known target. Each supplied
+class takes the invocation selector, while an empty class set preserves any
+existing selectors. Additional timestamped/retraction behavior beyond the
+separate bounded slice, directed DDM, ordering, sharing-policy enforcement,
+and remote transport are not implemented. It
 also implements the bounded regional interaction declaration and no-time send
-overloads: regional subscriptions are independent, committed region-set
-overlap gates delivery, empty sent sets suppress it, and queued callbacks
-recheck the overlap. The separate object-attribute regional boundary is
-implemented only for no-name registration, association/unassociation, regional
-subscriptions, overlap-filtered no-time reflection, reservation-consuming
-named regional registration, and the bounded Attribute Scope Advisory path for
-known-object overlap, association, and subscription transitions; additional
-regional request edge cases, timestamped/retraction behavior,
+overloads: regional subscriptions are independent, only active overlapping
+pairs gate delivery, passive pairs remain declared and retain their region-use
+fence, empty sent sets suppress it, and queued callbacks recheck the active
+overlap. The separate object-attribute regional boundary is
+implemented only for no-name registration, association/unassociation, active/
+passive regional subscriptions, active-overlap-filtered no-time reflection,
+reservation-consuming
+named regional registration, the bounded timestamped regional
+Update/Reflect Attribute Values path, and the bounded Attribute Scope Advisory
+path for known-object overlap, association, and subscription transitions;
+additional regional request edge cases, timestamped/retraction behavior beyond
+that bounded path,
 broader DDM routing, directed DDM, FOM sharing-policy enforcement, custom
 transportation, full
 object delivery, or MOM behavior. The official
@@ -233,7 +272,9 @@ The same development profile now retains explicit publication and active/passive
 subscription state for available attributes of object classes through the
 four non-region 2025 object-class attribute declaration services. The state is
 per-federate and per-class, validates inherited handles against the composed
-FOM, and clears at resign. The current object-registration slice consumes it
+FOM, and clears at resign. Only active declarations feed the bounded discovery,
+scope, and reflection paths; passive declarations remain retained without
+arranging delivery. The current object-registration slice consumes it
 to determine whether a class is published and to snapshot the currently
 published attributes, including the limited implicit privilege-to-delete rule.
 
@@ -243,7 +284,7 @@ Instance callbacks, and `getKnownObjectClassHandle`,
 `getObjectInstanceHandle`, and `getObjectInstanceName`. The private registry
 captures a registered class, producer, owned published-attribute snapshot,
 recipient-local known class, and pending discovery reservation. Discovery uses
-the closest subscribed class, rechecks a queued recipient's eligibility before
+the closest active subscribed class, rechecks a queued recipient's eligibility before
 callback delivery, and honors immediate versus evoked callbacks. It also
 implements only the no-time `Delete Object Instance` overload and no-time
 `Remove Object Instance` callback. The registry records the current owner of
@@ -251,8 +292,8 @@ each registration-established attribute, requires the deleting federate to own
 `HLAprivilegeToDeleteObject`, makes that federate unknown immediately, and
 keeps another recipient known only until its removal callback starts. Named
 registration, timestamped/retraction, DDM scope, ownership
-transfer, FOM sharing policy, save/restore, and resign-action object
-disposition are explicitly not implemented.
+transfer, FOM sharing policy, save/restore, and full resign-action object
+disposition remain separate work.
 
 The adjacent 2025 object-instance name reservation slice now owns single and
 multiple reservation/release state. It applies the official empty and `HLA.`
@@ -272,18 +313,20 @@ state, rejects a federate that still owns instance attributes or has a pending
 ownership acquisition, leaves the federation-wide object and other federates'
 knowledge untouched, and permits a later eligible subscription to rediscover
 the object. Timestamped/local-delete interaction behavior, DDM, save/restore,
-resign-action object disposition, and remote transport remain separate work.
+remaining resign-action object disposition, and remote transport remain separate work.
 
 The same registry now implements the no-time `Update Attribute Values` overload
 and matching `Reflect Attribute Values` callback. It accepts
 only source-owned FOM-defined attributes of a known live instance, retains one
 passel per FOM transportation type, projects each passel at the receiver's
-known class and current subscription, excludes the source, and rechecks a
+known class and current active subscription, excludes the source, and rechecks a
 queued callback before delivery. The test fixture proves multi-transport
-passels, passive superclass delivery, unsubscribe suppression, tag/producer
+passels, active-superclass projection, passive-subscription suppression,
+unsubscribe suppression, tag/producer
 propagation, and both callback models. Its separate regional object-attribute
-  scenario proves committed-region overlap discovery/reflection and optional
-  sent-region callback metadata. The separate Attribute Scope Advisory slice
+  scenario proves active committed-region overlap discovery/reflection,
+  passive-region suppression, and optional sent-region callback metadata. The
+  separate Attribute Scope Advisory slice
 covers switch-gated in/out callbacks for known-object overlap,
 update-region-association, and subscription transitions. Timestamped/retraction
 updates now have a separate bounded non-regional path: time-regulating sends
@@ -297,8 +340,19 @@ recipients, supports retraction-before-delivery reconstitution, and delivers
 the timestamped `Remove Object Instance` callback before the grant. Its
 Catch2/Requirements Lab records are
 `compliance/timestamped-object-deletion-requirements-contract.json` and
-`compliance/timestamped-object-deletion-api-contract.json`. Regional updates,
-default-region synthesis,
+`compliance/timestamped-object-deletion-api-contract.json`. A second Catch2
+scenario proves a legal post-delivery Retract reconstitutes the object/name/
+known state and committed split ownership before Request Retraction reaches a
+delivered nonconstrained recipient, while a constrained recipient's pending
+removal is suppressed. A third scenario proves a departed delivered owner is
+not reconstituted or notified, and its former attribute remains unowned. A
+terminal no-recipient case retains `MessageCanNoLongerBeRetracted` while
+releasing the deletion snapshot, marker, and object name for a fresh named
+registration. A focused normal-interaction regression now covers one Disable
+Time Regulation/re-enable lifetime path at unchanged lookahead. Complete
+alternate advances, broader re-enable, in-flight ownership, other resignation
+cases, recovery, transport, and conformance remain
+separate work. Remaining regional updates, timestamped default-region coverage,
 update-rate reduction, ownership transfer, FOM sharing-policy enforcement,
 custom transportation implementation, save/restore, and remote transport
 remain separate work.
@@ -316,6 +370,69 @@ automatic provision: the provider supplies the response explicitly. Regional
 requests, timestamped/retraction behavior, DDM, update-rate reduction, ownership
 transfer, FOM sharing policy, save/restore, and remote transport remain outside
 this slice.
+
+The bounded Auto Provide path now retains the federation-wide dynamic switch
+from the creation FDD and exposes `getAutoProvideSwitch`. After a newly
+completed discovery, the registry groups the discovered recipient's in-scope
+owned attributes by current provider and schedules the standard
+`Provide Attribute Value Update` callback with an empty RTI-invoked tag. The
+standard federation-wide `HLAsetSwitches` MOM interaction can now change that
+value during execution using the vendored `HLAswitch` four-byte encoding, and
+the change is visible to every current member. The existing callback-time
+provider recheck remains the lifecycle fence for stale work. The separate
+joined-federate `HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches` path now
+accepts a non-empty subset of its nine predefined parameters, updates only the
+sending member, and accepts compatible FOM extension parameters and subclasses
+without processing their extension values. It strictly decodes `HLAswitch` and
+`HLAresignAction`; a report-service subscription conflict preserves the whole
+pending update but is presently surfaced through the local error path rather
+than a normal MOM failure interaction. Other MOM control/reporting families
+and complete regional, multi-owner, update-rate, and automatic-value semantics
+remain separate work.
+
+The five official 10.29--10.33 normalization services now form the first DDM
+coordinate bridge required by MOM. The adapter validates the standard
+connection/member/input boundaries. The registry owns a stable opaque mapping
+for valid federate, object-class, interaction-class, and live object-instance
+handles, restores its per-execution seed with a saved federation, and preserves
+equality for equal designators without promising a sequential or unique result.
+`ServiceGroup` is deliberately returned as the standard in-range
+`HLAserviceGroup` coordinate rather than arbitrary per-execution data. This
+does not yet construct the single RTI-owned point region required for MOM
+objects/reports, encode report parameters, or route reports through DDM; those
+remain the next MOM-specific tranche rather than being hidden behind ordinary
+federate-originated interaction delivery.
+
+The remaining 2025 support-switch metadata and accessors are now scaffolded in
+the same standards-first path. The FDD composer retains per-federate Convey
+Region Designator Sets, Automatic Resign Action, Service Reporting, Exception
+Reporting, and Send Service Reports To File defaults, while the registry
+captures federation-wide Delay Subscription Evaluation and Allow Relaxed DDM
+values at creation. Official getters/setters preserve per-federate isolation
+and enum validation. The recipient projection now also applies the Convey
+Region Designator Sets switch at callback entry for the bounded regional
+reflection and interaction paths, omitting or supplying the optional sent
+regions accordingly. The bounded §8.1.8 Delay Subscription Evaluation path now
+also retains joined non-source recipients for ordinary `Send Interaction` and
+ordinary `Update Attribute Values` passels when the creation-time switch is
+enabled and planning finds no current active subscription. It reprojects the
+recipient at the HLA_EVOKED callback boundary or time-constrained TSO grant;
+the attribute regressions establish a known object before changing its
+declaration. The Disabled default retains generation-time ineligibility, while
+both modes suppress a recipient that later unsubscribes. The dedicated contract
+records the Lab's stale source-title/clause metadata (RL-018). This does not
+yet execute automatic resign on a real connection-loss event or implement MOM
+report emission/file output, default/conveyed-region reuse, directed regional
+callbacks, regional update-associated passels, or the remaining
+delayed-subscription matrix. The exact MOM report-service subscription/switch
+interlock is implemented separately for ordinary and regional declarations and
+the joined-federate `HLAsetSwitches` update path; the full report-generation
+path remains open. The central explicit-region predicate now implements the documented
+Umbra Allow Relaxed DDM policy: enabled federations add only exactly
+boundary-touching committed ranges to the strict-overlap set, with no numerical
+gap threshold and no loss of existing strict overlap. `docs/RELAXED-DDM-POLICY.md`
+records that implementation-defined decision; broader relaxed-DDM behavior and
+matrices remain open. RL-024 tracks the Lab/XSD default disagreement.
 
 The sibling object-class `Request Attribute Value Update` overload expands the
 same owner solicitation over every current instance registered at the selected
@@ -400,8 +517,24 @@ eligible joined federate that knows the instance, publishes the attribute at
 its known class, and is not already pending an acquisition or cancellation for
 it. The callback rechecks that boundary before user code and does not itself
 transfer ownership; a recipient must issue a standard acquisition request.
-This is a single current-recipient sweep rather than a continuing search after
-later join, discovery, or publication events.
+The registry retains unowned search state and rechecks it after later join,
+discovery, or publication changes, suppressing duplicate offers. Terminal
+assumption-callback re-search and full owner arbitration remain separate work.
+
+The federation-management registry now consumes the official 2025
+`ResignAction` argument for a bounded disposition slice. Directive 1 leaves
+owned attributes unowned and queues current eligible assumption offers;
+directive 2 removes objects for which the resigning federate owns
+`HLAprivilegeToDeleteObject`; and directive 5 cancels that federate's pending
+acquisition work before applying delete/divest cleanup. If the resigning
+federate is the final joined member, directive 2 is applied even when the
+supplied action is `NO_ACTION`. The adapter preserves
+the official `FederateOwnsAttributes` and `OwnershipAcquisitionPending`
+exceptions and queues assumption/removal callbacks after releasing the registry
+lock. Bounded continuation after later publication, discovery, and join is
+covered; terminal callback re-search, automatic directives, RTI-owned state,
+remaining action combinations, remote transport, and conformance remain
+separate work.
 
 The adjacent bounded 2025 `Attribute Ownership Divestiture If Wanted` service
 validates that the caller owns every supplied attribute, returns only the
@@ -415,8 +548,8 @@ against the new owner. When multiple eligible requests exist, the embedded
 serial profile chooses the earliest accepted private sequence across both
 request forms. That deterministic behavior is an implementation policy, not an
 IEEE arbitration priority. The complete negotiated-divestiture lifecycle,
-the continuing unconditional owner search, RTI-owned state, and complete
-resign-action disposition remain separate work.
+terminal-callback continuation for the unconditional owner search, RTI-owned
+state, and complete resign-action disposition remain separate work.
 
 The next bounded ownership transition is 2025 `Negotiated Attribute Ownership
 Divestiture` with `Request Divestiture Confirmation`, `Confirm Divestiture`,
@@ -438,17 +571,63 @@ Willing-to-Acquire selection, and negotiated acquisition remain separate work.
 The same profile now implements the mandatory 2025 transportation-type lookup
 pair, `getTransportationTypeHandle` and `getTransportationTypeName`, for only
 `HLAreliable` and `HLAbestEffort`. The no-region receive-order interaction and
-attribute-update paths apply the FOM-selected mandatory type; this is not an
-implementation of custom transportation types or message transport, and its
-no-time paths do not imply the separate bounded timestamped object-lifecycle
-slice.
+attribute-update paths now use the effective per-federate type. The bounded
+transport-control services provide prospective per-class attribute defaults,
+callback-gated instance changes and queries, plus callback-gated published
+interaction changes and queries for future ordinary/regional sends. This is
+not an implementation of custom transportation types or message transport,
+and its no-time paths do not imply the separate bounded timestamped
+object-lifecycle slice.
+
+The profile also implements the mandatory 2025 order-type lookup pair,
+`getOrderType` and `getOrderName`, for only `Receive` and `TimeStamp`, with
+official connection, membership, invalid-name, and invalid-type exception
+mapping. The three official order-control services are now also wired through
+the embedded registry: class defaults are prospective and per-federate,
+registered instances capture their preferred attribute order, explicit instance
+changes affect future owned updates, ownership transitions reset the captured
+value from the acquiring federate's default, and interaction changes are scoped
+to the invoking publisher. Timestamped interaction and attribute planners carry
+the selected order into callback metadata and partition mixed Receive/TimeStamp
+traffic. Save/restore, alternate advance modes, remote transport, and complete
+time/TSO coordination remain separate work.
 
 The dimension and region foundation is intentionally bounded: it exposes the
 FOM-defined dimension identity and upper bound, implements the private
 region-template/specification lifecycle, and supplies committed specs to the
 interaction and bounded object-attribute regional slices. It does not implement
-regional realization, additional regional request edge cases, timestamped regional
-sends, or broader DDM routing.
+general region realization, additional regional request edge cases, a complete
+timestamped default-region matrix, remaining mixed-fanout timestamped regional forms, or broader DDM
+routing. The current timestamped regional attribute-update slice covers
+committed update-region association, one immediate and one constrained TSO
+recipient, pending retraction, and callback-time Convey Region Designator Sets
+gating.
+
+The bounded receive-order default-region slice now treats the RTI-provided
+default as derived private state, never as a caller-visible `RegionHandle`.
+For dimensional object attributes and interactions, it is selected when no
+explicit source association or regional declaration supplies a non-default
+realization; committed non-empty explicit regions overlap it, while an empty
+region overlaps none. The same predicate feeds discovery, scope/advisory
+planning, reflection/interaction delivery, update-rate lookup, and Convey
+Region Designator Sets metadata (supplied and empty). The paired
+`default-region-requirements-contract.json` and Catch2 cases are bounded
+development-profile traceability only. They cover receive-order plus one
+time-constrained timestamped object reflection and interaction callback with
+the supplied-empty convention; the remaining timestamped matrix and DDM
+surface are still separate work.
+
+The ownership/DDM boundary now also clears explicit object-attribute
+update-region associations when the current owner loses ownership. The helper is
+called by If Available acquisition transfer, Divestiture If Wanted, Confirm
+Divestiture, unconditional divestiture, unpublish, and resignation paths. A
+focused Catch2 scenario and paired `ownership-transfer-update-region` Lab
+contracts prove the If Available/If Wanted path: clearing a former owner's
+explicit association restores the default source realization, and a new owner
+can replace it with an owned explicit region. This is
+still a bounded development-profile slice; complete ownership arbitration,
+the complete timestamped default-region matrix, regional advisories, package evidence, and
+conformance remain future work.
 
 Every newly implemented public method must validate preconditions, mutate state
 atomically, queue callbacks according to the selected model, and map failure to
@@ -457,15 +636,19 @@ the official exception hierarchy.
 Current evidence: Catch2 calls the official symbols through the factory, covers
 valid/repeated/invalid connection transitions, empty-queue callback-control
 behavior, a callback-session shutdown fence, active federate name/handle
-lookup, stable FOM-backed object-/interaction-class and inherited-attribute/
+lookup with post-resignation designator retention, stable FOM-backed object-/interaction-class and inherited-attribute/
 parameter name/handle lookup, mandatory transportation-type name/handle lookup,
 per-federate interaction and object-class attribute declaration state and resign cleanup,
+ordinary hierarchy-aware declaration relevance advisories with their per-federate
+switches,
 unnamed object registration/discovery with known-instance lookup in both callback models,
 no-time object deletion/removal with tag/producer propagation in both callback models,
 limited receive-order interaction and attribute-update delivery in both
-callback models, the regional interaction subscription/send case with overlap
-and callback-recheck assertions, the regional object-attribute registration /
-association / subscription case with overlap-filtered no-time reflection, and the
+callback models, active/passive ordinary and regional interaction eligibility,
+the regional interaction subscription/send case with overlap and
+callback-recheck assertions, the regional object-attribute registration /
+association / subscription case with active-overlap-filtered no-time reflection
+and passive suppression, and the
 object-instance Request/Provide Attribute Value Update owner-solicitation path
 with tag propagation and a resigned-provider delivery fence, the object-class
 Request/Provide path across registered subclasses without requester discovery,
@@ -482,10 +665,44 @@ Assumption-offer transition, the bounded Negotiated Divestiture /
 Request-Confirmation / Confirm / Cancel transition, and the
 development-profile two- and three-federate federation lifecycle plus listing,
 time-advance, temporal-role, no-TSO GALT/LITS-query, and limited GALT/NRG
-scheduler reports.
+scheduler reports, and the bounded untimed federation-save and process-local
+federation-restore control planes with per-member status/failure callbacks,
+object-state rollback, one logical-time/actual-lookahead rollback boundary,
+one deferred-lookahead rollback boundary, and resignation cleanup. The untimed
+save coordinator now also defers a request when constrained members exist,
+waits until every constrained member has a pending ordinary grant, invokes
+each constrained member's Initiate Federate Save callback directly before its
+grant, then queues the non-time-constrained recipients. The exact timestamped
+`Request Federation Save(label, LogicalTime)` overload remains a separate
+bounded slice: it retains one replaceable pending request, validates the
+official logical-time implementation, waits for constrained federate positions
+and TSO delivery through the requested boundary, then invokes each qualifying
+constrained member directly before its Time Advance Grant. Only after all
+constrained admissions does it queue non-time-constrained members. Catch2
+currently proves the inclusive TAR boundary, including a TSO message at the
+scheduled save time and a three-member admission sequence, plus TARA's
+exclusive boundary and the NMR/NMRA inclusive/exclusive next-message
+boundaries. It also proves strict actual-FQG admission: an equal grant remains
+pending, a later FQG follows queued TSO and direct initiation, and mixed
+FQR/TAR membership is prequalified before the operation starts. A separate
+three-member TARA/NMRA case proves both strict ordinary modes are
+prequalified before non-time-constrained notification, and a six-member case
+combines all five advance modes. A cross-member TSO case proves a member's
+queued payload precedes its direct initiation even after another member starts
+the operation, and an in-transit callback case proves a newly requested save
+waits for the recipient's callback to return. Durable persistence, timed restore, pending-grant restore,
+role/membership churn,
+remaining service interlocks, transport, and conformance remain future work.
+The timestamped regional attribute-update slice now has a real Catch2 scenario
+and paired Requirements-Lab contracts: committed update-region association is
+carried into the TSO reflection payload, immediate and constrained recipients
+are split correctly, pending retraction is tested before the grant, and
+callback-time Convey Region Designator Sets gating is verified. Full
+timestamped/default-region matrix coverage and the complete package/JUnit/
+protected-review evidence path remain open.
 It emits raw JUnit only for the real embedded Disconnect catalog entry. The
 next object-management gates are regional attribute-value-request semantics,
-default-region synthesis, the object-class and regional response forms, timestamped/retraction behavior,
+remaining timestamped default-region matrix coverage, the object-class and regional response forms, remaining timestamped/retraction behavior,
 remaining regular/negotiated acquisition and remaining divestiture flows, RTI-owned state, and full resign ownership
 disposition, followed by the remaining
 local, timestamped, and ownership-disposition lifecycle design, DDM-region and

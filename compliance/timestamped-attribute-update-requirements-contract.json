@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records Umbra's second bounded public timestamped service family in the non-installable IEEE 1516.1-2025 development profile: non-regional timestamped Update Attribute Values with federation-owned queueing for time-constrained recipients, recipient-specific passels, callback-gated Reflect Attribute Values delivery before Time Advance Grant, official timestamp/order/retraction callback fields, sender lower-bound validation, and Retract before delivery. It deliberately does not claim timestamped Delete Object Instance, directed or regional forms, NMR/FQR/flush services, asynchronous delivery, request-retraction callbacks, remote transport, package support, catalog evidence, JUnit evidence, protected review, or conformance.",
+  "notes": "This contract records Umbra's bounded non-regional IEEE 1516.1-2025 timestamped Update Attribute Values slice in the non-installable development profile. It retains recipient-specific passels and a federation-owned recipient ledger for every timestamped recipient, including immediate/nonconstrained recipients with no temporal-queue entry. The shared recipient planner selects active ordinary attribute subscriptions only; passive ordinary declarations remain retained but cannot arrange a reflection, although these timestamped cases do not independently test that selector. A legal Retract uses the Clause 8.22.3 strict timestamp condition, suppresses pending fanout, and queues Request Retraction for a recipient that already received its timestamped reflection passels. Consistent with Clause 6.10, the timestamped overload returns a designator only when the publisher is time-regulating and at least one submitted instance attribute has TSO preferred order. A one-federate regression proves that a qualifying invocation with an eligible-recipient set of zero still returns a valid public designator backed by that ledger; it covers legal Retract and later terminal classification without retaining typed attribute passels. The evidence covers the normal non-regional path only; it does not claim timestamped Delete Object Instance, directed interactions, separate region-context Request Retraction evidence, NMR/FQR/flush-specific behavior, asynchronous delivery, remote transport, package/catalog/JUnit/protected-review evidence, or conformance.",
   "requirements": [
     {
       "id": "umbra-timestamped-attribute-update-provides-values",
@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout"
       ]
     },
     {
@@ -107,23 +108,44 @@
       ]
     },
     {
-      "id": "umbra-timestamped-attribute-update-terminal-retraction",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
-      "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
-      "source_symbol": "MessageCanNoLongerBeRetracted",
-      "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
-      ]
-    },
-    {
       "id": "umbra-timestamped-attribute-update-uses-message-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
       "clause_id": "clause-8.22.3",
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-suppresses-pending-fanout",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
+      "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-requests-retraction-after-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueRequestRetraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-attribute-update-retains-nonconstrained-recipient-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient"
       ]
     }
   ]

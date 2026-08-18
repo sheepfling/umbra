@@ -229,3 +229,26 @@ TEST_CASE(
   REQUIRE(bounds.lits);
   REQUIRE(asIntegerTime(bounds.lits).getTime() == 11);
 }
+
+TEST_CASE(
+    "Delivered TSO at the recipient's current time no longer pins a later GALT",
+    "[unit][kernel][time-management][federation-time][galt][lits][tso]") {
+  auto recipient = integerTimeState();
+  auto regulator = integerTimeState();
+  advanceTo(*recipient, 7);
+  advanceTo(*regulator, 4);
+  enableRegulation(*regulator, 8);
+
+  auto execution = snapshot({{1, recipient}, {2, regulator}});
+  execution.federates.front().deliveredTsoMessagesSinceLastAdvance.push_back({
+      41,
+      1,
+      1,
+      std::make_shared<HLAinteger64Time const>(7),
+  });
+
+  auto bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
+  REQUIRE(bounds.status == FederationTimeBoundStatus::available);
+  REQUIRE(bounds.galt);
+  REQUIRE(asIntegerTime(bounds.galt).getTime() == 12);
+}

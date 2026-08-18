@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <vector>
 #include <string>
 
@@ -66,8 +67,8 @@ class FederationTimeCoordinator final {
  public:
   explicit FederationTimeCoordinator(std::wstring implementationName = {});
 
-  FederationTimeCoordinator(FederationTimeCoordinator const&) = delete;
-  FederationTimeCoordinator& operator=(FederationTimeCoordinator const&) = delete;
+  FederationTimeCoordinator(FederationTimeCoordinator const& other);
+  FederationTimeCoordinator& operator=(FederationTimeCoordinator const& other);
   FederationTimeCoordinator(FederationTimeCoordinator&&) noexcept = default;
   FederationTimeCoordinator& operator=(FederationTimeCoordinator&&) noexcept = default;
 
@@ -86,6 +87,18 @@ class FederationTimeCoordinator final {
 
   [[nodiscard]] std::vector<RegisteredFederateTimeSnapshot> snapshot() const;
 
+  // Returns the live state object for callback gating.  The registry owns the
+  // coordinator lock boundary; callers must not invoke federate callbacks
+  // while holding that boundary.
+  [[nodiscard]] std::shared_ptr<FederateTimeState> timeStateFor(
+      std::uint64_t federateId) const;
+
+  // Restore a previously captured coordinator while preserving the live
+  // FederateTimeState objects held by joined RTI ambassadors.  Replacing those
+  // shared pointers would leave the public ambassadors observing stale time
+  // state after a restore.
+  void restoreFrom(FederationTimeCoordinator const& source);
+
   [[nodiscard]] std::uint64_t allocateTsoMessageId() noexcept;
 
   [[nodiscard]] TsoMessageEnqueueResult enqueueTsoMessage(
@@ -94,6 +107,19 @@ class FederationTimeCoordinator final {
       std::shared_ptr<rti1516_2025::LogicalTime const> timestamp);
 
   [[nodiscard]] TsoMessageRetractionResult retractTsoMessage(std::uint64_t messageId);
+
+  // Used only by a message family with a federation-owned delivery ledger.
+  // It withdraws remaining queued fanout after another recipient has reached
+  // a delivery boundary; the ledger decides whether a Request Retraction
+  // callback is due for that recipient.
+  [[nodiscard]] TsoMessageRetractionResult retractPendingTsoMessage(
+      std::uint64_t messageId);
+
+  // Returns the earliest currently queued TSO timestamp for one recipient.
+  // The value is immutable and remains owned by the queue until delivery or
+  // retraction; the caller uses it only to select an NMR grant target.
+  [[nodiscard]] std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
+  earliestTsoTimestampFor(std::uint64_t recipientFederateId) const;
 
   // Moves eligible queued messages into an explicit in-transit state. No
   // public callback is invoked here; the later adapter/service slice owns

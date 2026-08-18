@@ -12,6 +12,7 @@
 namespace {
 
 using umbra::detail::FederateTimeAdvanceStatus;
+using umbra::detail::FederateAsynchronousDeliveryStatus;
 using umbra::detail::FederateTimeDisableStatus;
 using umbra::detail::FederateTimeEnableStatus;
 using umbra::detail::FederateTimeLookaheadStatus;
@@ -43,6 +44,58 @@ HLAinteger64Interval const& asIntegerInterval(
 }  // namespace
 
 TEST_CASE(
+    "Federate time state gates deferred receive-order callbacks with asynchronous delivery",
+    "[unit][kernel][time-management][asynchronous-delivery]") {
+  auto state = integerTimeState();
+  REQUIRE_FALSE(state->snapshot().asynchronousDeliveryEnabled);
+  REQUIRE(state->receiveOrderDeliveryAllowed());
+
+  auto constrained = state->requestTimeConstrained();
+  REQUIRE(constrained.status == FederateTimeEnableStatus::applied);
+  REQUIRE(state->grantTimeConstrained(constrained.generation));
+  REQUIRE_FALSE(state->receiveOrderDeliveryAllowed());
+
+  int deferredCount = 0;
+  state->deferAsynchronousReceive([&deferredCount] { ++deferredCount; });
+  REQUIRE(state->takeEligibleAsynchronousReceiveCallbacks().empty());
+
+  REQUIRE(
+      state->enableAsynchronousDelivery() ==
+      FederateAsynchronousDeliveryStatus::applied);
+  REQUIRE(state->snapshot().asynchronousDeliveryEnabled);
+  REQUIRE(state->receiveOrderDeliveryAllowed());
+  auto enabledCallbacks = state->takeEligibleAsynchronousReceiveCallbacks();
+  REQUIRE(enabledCallbacks.size() == 1);
+  enabledCallbacks.front()();
+  REQUIRE(deferredCount == 1);
+  REQUIRE(
+      state->enableAsynchronousDelivery() ==
+      FederateAsynchronousDeliveryStatus::already_enabled);
+
+  REQUIRE(
+      state->disableAsynchronousDelivery() ==
+      FederateAsynchronousDeliveryStatus::applied);
+  REQUIRE_FALSE(state->receiveOrderDeliveryAllowed());
+  REQUIRE(
+      state->disableAsynchronousDelivery() ==
+      FederateAsynchronousDeliveryStatus::already_disabled);
+
+  state->deferAsynchronousReceive([&deferredCount] { ++deferredCount; });
+  auto advance = state->requestAdvance(std::make_shared<HLAinteger64Time>(1));
+  REQUIRE(advance.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(state->receiveOrderDeliveryAllowed());
+  auto advancingCallbacks = state->takeEligibleAsynchronousReceiveCallbacks();
+  REQUIRE(advancingCallbacks.size() == 1);
+  advancingCallbacks.front()();
+  REQUIRE(deferredCount == 2);
+
+  REQUIRE(state->grant(advance.generation));
+  REQUIRE_FALSE(state->receiveOrderDeliveryAllowed());
+  state->deactivate();
+  REQUIRE(state->takeEligibleAsynchronousReceiveCallbacks().empty());
+}
+
+TEST_CASE(
     "Federate time state retains the initial value until its matching grant",
     "[unit][kernel][time-management]") {
   auto state = integerTimeState();
@@ -62,6 +115,92 @@ TEST_CASE(
   REQUIRE(granted);
   REQUIRE(asIntegerTime(granted).getTime() == 7);
   REQUIRE(asIntegerTime(state->currentTime()).getTime() == 7);
+}
+
+TEST_CASE(
+    "Federate time state keeps an NMR request boundary separate from its message grant target",
+    "[unit][kernel][time-management][next-message-request]") {
+  auto state = integerTimeState();
+
+  auto request = state->requestNextMessageAdvance(
+      std::make_shared<HLAinteger64Time>(10),
+      std::make_shared<HLAinteger64Time>(7));
+  REQUIRE(request.status == FederateTimeAdvanceStatus::applied);
+
+  auto pending = state->snapshot();
+  REQUIRE(pending.timeAdvancePending);
+  REQUIRE(pending.requestedTime);
+  REQUIRE(pending.advanceRequestTime);
+  REQUIRE(
+      pending.advanceMode ==
+      umbra::detail::FederateTimeAdvanceMode::next_message_request);
+  REQUIRE(asIntegerTime(pending.requestedTime).getTime() == 7);
+  REQUIRE(asIntegerTime(pending.advanceRequestTime).getTime() == 10);
+  REQUIRE(asIntegerTime(state->currentTime()).isInitial());
+
+  REQUIRE(state->grant(request.generation));
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 7);
+  REQUIRE_FALSE(state->snapshot().advanceRequestTime);
+  REQUIRE(
+      state->snapshot().advanceMode ==
+      umbra::detail::FederateTimeAdvanceMode::none);
+}
+
+TEST_CASE(
+    "Federate time state records Available time-advance request forms",
+    "[unit][kernel][time-management][time-advance-request-available]") {
+  auto state = integerTimeState();
+
+  auto available = state->requestAdvanceAvailable(
+      std::make_shared<HLAinteger64Time>(6));
+  REQUIRE(available.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(
+      state->snapshot().advanceMode ==
+      umbra::detail::FederateTimeAdvanceMode::time_advance_request_available);
+  REQUIRE(state->grant(available.generation));
+
+  auto nmrAvailable = state->requestNextMessageAvailableAdvance(
+      std::make_shared<HLAinteger64Time>(9),
+      std::make_shared<HLAinteger64Time>(8));
+  REQUIRE(nmrAvailable.status == FederateTimeAdvanceStatus::applied);
+  auto pending = state->snapshot();
+  REQUIRE(
+      pending.advanceMode ==
+      umbra::detail::FederateTimeAdvanceMode::next_message_request_available);
+  REQUIRE(pending.requestedTime);
+  REQUIRE(pending.advanceRequestTime);
+  REQUIRE(asIntegerTime(pending.requestedTime).getTime() == 8);
+  REQUIRE(asIntegerTime(pending.advanceRequestTime).getTime() == 9);
+}
+
+TEST_CASE(
+    "Federate time state retains the Flush Queue optimistic floor",
+    "[unit][kernel][time-management][flush-queue-request]") {
+  auto state = integerTimeState();
+
+  auto request = state->requestFlushQueueAdvance(
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(request.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(
+      state->snapshot().advanceMode ==
+      umbra::detail::FederateTimeAdvanceMode::flush_queue_request);
+
+  auto grant = state->grantFlushQueue(
+      request.generation,
+      std::make_shared<HLAinteger64Time>(5),
+      std::make_shared<HLAinteger64Time>(8));
+  REQUIRE(grant.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 5);
+  REQUIRE(state->snapshot().optimisticTime);
+  REQUIRE(asIntegerTime(state->snapshot().optimisticTime).getTime() == 8);
+
+  REQUIRE(
+      state->requestAdvance(std::make_shared<HLAinteger64Time>(7)).status ==
+      FederateTimeAdvanceStatus::logical_time_already_passed);
+  auto next = state->requestAdvance(std::make_shared<HLAinteger64Time>(8));
+  REQUIRE(next.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(state->grant(next.generation));
+  REQUIRE_FALSE(state->snapshot().optimisticTime);
 }
 
 TEST_CASE(

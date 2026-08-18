@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 C++ restore control path to the official Requirements Lab surfaces. It covers request success/failure, federation-begun and initiate callbacks, complete/not-complete/abort, status response, and in-memory snapshot rollback. Focused cases restore a pre-save live interaction payload and retraction ledger after a post-save Retract terminalized that record, retain a saved terminal tombstone's MessageCanNoLongerBeRetracted classification, return saved logical-time and actual-lookahead state after post-save mutations, and retain one deferred lookahead-decrease target through restore. Timed restore, distributed transport, durable external persistence, handle remapping, service-wide interlocks, protected review, package support, and conformance remain open.",
+  "api_surfaces": [
+    {
+      "id": "umbra-request-federation-restore",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.requestfederationrestore.12708949c200",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void requestFederationRestore( std::wstring const & label) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestFederationRestore",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"]
+    },
+    {
+      "id": "umbra-federate-restore-complete",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.federaterestorecomplete.c2567e07cf13",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void federateRestoreComplete() = 0",
+      "exception_types": ["RestoreNotRequested", "SaveInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::federateRestoreComplete",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"]
+    },
+    {
+      "id": "umbra-federate-restore-not-complete",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.federaterestorenotcomplete.ee4eaf092d2a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void federateRestoreNotComplete () = 0",
+      "exception_types": ["RestoreNotRequested", "SaveInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::federateRestoreNotComplete",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures"]
+    },
+    {
+      "id": "umbra-abort-federation-restore",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.abortfederationrestore.853dbd2e9110",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void abortFederationRestore() = 0",
+      "exception_types": ["RestoreNotInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::abortFederationRestore",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures"]
+    },
+    {
+      "id": "umbra-query-federation-restore-status",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.queryfederationrestorestatus.298f4f69fdf1",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void queryFederationRestoreStatus() = 0",
+      "exception_types": ["SaveInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryFederationRestoreStatus",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot"]
+    },
+    {
+      "id": "umbra-request-federation-restore-succeeded",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.requestfederationrestoresucceeded.121e786f40ce",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void requestFederationRestoreSucceeded( std::wstring const & label) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationRestoreNotifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot"]
+    },
+    {
+      "id": "umbra-request-federation-restore-failed",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.requestfederationrestorefailed.c183c2c4e48e",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void requestFederationRestoreFailed( std::wstring const & label) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationRestoreNotifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures"]
+    },
+    {
+      "id": "umbra-federation-restore-begun",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.federationrestorebegun.de392bc11dd5",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void federationRestoreBegun() = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationRestoreNotifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot"]
+    },
+    {
+      "id": "umbra-initiate-federate-restore",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.initiatefederaterestore.18b2594f61f0",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void initiateFederateRestore( std::wstring const & label, std::wstring const & federateName, FederateHandle const & postRestoreFederateHandle) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationRestoreNotifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot"]
+    },
+    {
+      "id": "umbra-federation-restored",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.federationrestored.765ce1cad6f3",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void federationRestored() = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationRestoreNotifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead", "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"]
+    },
+    {
+      "id": "umbra-federation-not-restored",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.federationnotrestored.903d426c8cf5",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void federationNotRestored ( RestoreFailureReason reason) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationRestoreNotifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures"]
+    },
+    {
+      "id": "umbra-federation-restore-status-response",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.federationrestorestatusresponse.000dead4d6cb",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void federationRestoreStatusResponse( FederateRestoreStatusVector const & response) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationRestoreNotifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot"]
+    }
+  ]
+}

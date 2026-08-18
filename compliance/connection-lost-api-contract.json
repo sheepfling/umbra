@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-embedded-transport-traceability-not-conformance-evidence",
+  "notes": "This contract pins the embedded Connection Lost scenario to the exact IEEE 1516.1-2025 C++ FederateAmbassador callback. The callback is invoked on a best-effort basis after the private transport endpoint forces the member out of the execution; the second case also validates a configured DELETE_OBJECTS automatic-resign disposition before that callback. It is source/API traceability only; protected review, package support, remote transport, and conformance remain open.",
+  "api_surfaces": [
+    {
+      "id": "umbra-connection-lost-cpp-callback",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void connectionLost( std::wstring const & faultDescription) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::handleEmbeddedTransportFailure",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss forces the official connection-lost transition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+      ]
+    }
+  ]
+}

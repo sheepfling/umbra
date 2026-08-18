@@ -14,7 +14,7 @@ The non-installable `UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=ON` profile
 has one `FederateTimeState` for each joined federate. It supports these
 callback-gated transitions and read-only bounds:
 
-- Time Advance Request -> Time Advance Grant;
+- Time Advance Request / Time Advance Request Available -> Time Advance Grant;
 - Enable Time Regulation -> Time Regulation Enabled, with an official copied
   lookahead available through Query Lookahead;
 - Disable Time Regulation;
@@ -28,6 +28,71 @@ Until then, the request is pending. A pending regulation or constrained request
 causes Time Advance Request to report the corresponding official pending
 exception. Resign deactivates the state, which turns any already queued grant
 or enable callback into a no-op before it can call a stale federate ambassador.
+
+## Bounded queued-message advance requests
+
+The embedded profile also exposes the official `Next Message Request` service.
+At request acceptance the registry inspects the recipient-scoped TSO queue. If
+the earliest currently queued timestamp is no greater than the caller's
+requested logical time, that timestamp becomes the effective grant target;
+otherwise the supplied request remains the target. The original request
+boundary is retained separately from the effective target so federation GALT
+calculation and timestamp-send validation do not silently become the earlier
+message time.
+
+The existing grant dispatcher then delivers the selected timestamp cohort,
+including equal-timestamp messages, before invoking the ordinary `Time Advance
+Grant` callback. The service is callback-gated in both immediate and evoked
+modes. This is an intentionally bounded slice over currently queued in-process
+TSO input; future transport arrivals, asynchronous delivery, `Flush Queue
+Request`/`Flush Queue Grant`, and full
+cross-federate coordination remain separate work. Traceability is recorded in
+`compliance/next-message-request-requirements-contract.json` and
+`compliance/next-message-request-api-contract.json`.
+
+The same private state and grant dispatcher now implement the bounded
+`Time Advance Request Available` and `Next Message Request Available` forms.
+TARA uses the supplied request as its effective target; NMRA selects the
+earliest currently queued recipient TSO timestamp when it is no greater than
+the request. Both forms deliver the selected queued cohort before
+`Time Advance Grant` and use an explicit inclusive defined-GALT decision,
+unlike strict TAR/NMR. Future transport arrivals are not considered, and
+these methods do not claim the optimistic-time behavior of Flush Queue Grant.
+Their source/API traceability is recorded in the four
+`time-advance-request-available-*` and `next-message-request-available-*`
+contracts.
+
+The bounded `Flush Queue Request` path uses the same callback-gated dispatcher
+but invokes the official `Flush Queue Grant` callback. It flushes all currently
+queued in-process TSO payloads, computes the actual grant as the minimum of the
+supplied request, the available GALT, and the earliest delivered timestamp,
+and reports an optimistic logical time that excludes a regulator-only GALT
+constraint. The optimistic value remains a private lower bound for the next
+advance. Future transport arrivals, in-transit network coordination, and
+Request Retraction behavior outside normal timestamped Send Interaction remains
+outside this slice. Its source/API
+traceability is recorded in
+`compliance/flush-queue-request-requirements-contract.json` and
+`compliance/flush-queue-request-api-contract.json`.
+
+## Bounded asynchronous receive-order delivery
+
+The embedded profile now implements the official per-federate asynchronous
+delivery switch. It is disabled by default. A time-constrained federate may
+enable it to receive receive-order callbacks while not in Time Advancing; the
+adapter retains those callbacks as deferred closures and releases them through
+the federate's existing immediate/evoked callback route. Disable restores the
+normal time-advance-only receive-order gate. Entering Time Advancing also
+flushes eligible deferred callbacks before the corresponding grant.
+
+The gate is applied at callback execution rather than only when a message is
+queued, so unsubscribe, resignation, and other existing callback-entry
+rechecks remain authoritative. It covers the bounded in-process receive-order
+interaction, reflection, directed-interaction, and object-removal routes. TSO
+messages remain time-advance gated, and the deferred closures are live-session
+state rather than durable save/restore data. Source/API traceability is recorded
+in `compliance/asynchronous-delivery-requirements-contract.json` and
+`compliance/asynchronous-delivery-api-contract.json`.
 
 ## Limited no-TSO TAR scheduling
 
@@ -47,6 +112,91 @@ queued on the owning ambassador's callback dispatcher and rechecks the shared
 bound immediately before it mutates logical time and invokes Time Advance
 Grant. This prevents an old callback from granting a request that a newer
 state change made ineligible.
+
+## Bounded untimed save admission at a grant boundary
+
+An untimed `Request Federation Save` cannot use the ordinary control-callback
+queue whenever a joined member is time constrained: the 2025 source says that
+member expects `Initiate Federate Save` only while Time Advancing. The embedded
+registry therefore retains the requested label rather than immediately
+starting a `SaveOperation`. At an ordinary, non-Flush-Queue grant dispatch it
+checks a federation snapshot. Once every currently constrained joined member
+has a pending advance, it creates the operation, marks the current constrained
+member instructed, and returns its label to the grant dispatcher.
+
+The dispatcher invokes that recipient's `Initiate Federate Save` callback
+directly before it changes the private `FederateTimeState` to Time Granted and
+before it invokes `Time Advance Grant`. Each remaining constrained member is
+admitted at its own already-pending grant dispatch. Only after the final
+constrained admission does the registry queue the normal initiate callbacks
+for non-time-constrained members. The Catch2 scenario uses two constrained
+members and one non-time-constrained regulator to prove both callback-order
+properties.
+
+This is a deliberately narrow coordinator seam, not general save conformance.
+It assumes stable membership and time roles while admission is pending, does
+not reconcile resignation/role changes or a restored pending grant, and does
+not cover `Flush Queue Request`. Source/API traceability is recorded in
+`compliance/save-control-requirements-contract.json` and
+`compliance/save-control-api-contract.json`.
+
+## Bounded timestamped save admission at a grant boundary
+
+The timestamped `Request Federation Save(label, LogicalTime)` path uses the
+same pre-grant principle, with an additional TSO boundary. A pending request
+is retained until a time-constrained recipient has a qualifying ordinary
+advance and has received every queued or in-transit TSO payload at or below the
+scheduled save time. The dispatcher begins the shared grant transition, stages
+TSO delivery against the prospective requested time while the private
+`FederateTimeState` still remains Time Advancing, and completes each payload
+callback before asking the registry to admit the save.
+
+The registry opens the save operation only from a qualifying constrained
+recipient, after every constrained member has a qualifying already-scheduled
+advance boundary. `Time Advance Request` and `Next Message Request` use the
+inclusive timestamp boundary; `Time Advance Request Available` and `Next
+Message Request Available` use the exclusive boundary. `Flush Queue Request`
+also uses an exclusive boundary, but against its calculated actual `Flush
+Queue Grant`, rather than its requested time. A shared private calculator
+derives that actual grant from the request, the available GALT, and current
+queued TSO input; the registry uses the same calculation to prequalify another
+pending FQR while an ordinary recipient is about to admit the operation. This
+prevents an operation from beginning without a reachable boundary for every
+constrained member.
+
+It marks the current recipient instructed and returns the label for a direct
+callback. Once the last constrained recipient has been admitted at its own
+boundary, it returns ordinary queued notifications for non-time-constrained
+members. The dispatcher then applies the actual grant and invokes either `Time
+Advance Grant` or `Flush Queue Grant`.
+
+The focused Catch2 cases prove a TSO callback at the exact TAR save timestamp
+precedes `Initiate Federate Save`, which itself precedes the recipient's grant,
+and prove a three-member TAR sequence in which the non-time-constrained
+regulator waits for both constrained admissions. A cross-member TSO case proves
+that a second constrained member still receives its own queued payload at the
+save timestamp before its direct initiation after the first member has entered
+the operation. A two-member in-transit case issues the timestamped request
+while the constrained recipient's TSO callback is active and proves direct
+initiation waits for that callback to return. A TARA case proves the
+available-mode branch is exclusive: a grant equal to the scheduled save does
+not initiate it, while a later grant does. A companion next-message case proves
+the inclusive NMR branch at the scheduled timestamp and the exclusive NMRA
+branch, where an equal grant remains pending until a later grant. A
+three-member TARA/NMRA case proves the two strict modes can be prequalified
+together and that the regulator waits for both direct callbacks. The FQR case
+proves that a queued TSO payload at the save timestamp is delivered before an
+equal actual FQG, which leaves the request pending; a later strictly-greater
+actual FQG invokes direct `Initiate Federate Save` before the FQG callback.
+Two mixed-member cases prove both FQR-first and ordinary-first admission with
+FQR and TAR members, while non-time-constrained notification remains delayed
+until every constrained admission. A six-member case combines TAR, NMR, TARA,
+NMRA, and FQR to prove the full bounded five-mode readiness rule before that
+notification. Multi-member/multi-mode in-transit TSO, membership/role churn,
+pending-grant restore, durable snapshots, transport, and conformance remain outside this
+seam. Source/API traceability is recorded in
+`compliance/timed-save-requirements-contract.json` and
+`compliance/timed-save-api-contract.json`.
 
 ## Federation-owned private TSO coordination
 
@@ -84,19 +234,24 @@ dispatcher invokes the timestamped `receiveInteraction` callback before that
 recipient's `timeAdvanceGrant`, including `TIMESTAMP`/`TIMESTAMP` order values
 and an official retraction handle.
 
-The Catch2 scenario covers the invalid lower-bound case, retraction before a
+The Catch2 scenarios cover the invalid lower-bound case, retraction before a
 grant, exact-bound delivery, callback ordering, timestamp/order propagation,
-and the terminal post-delivery retraction exception. The Requirements Lab
-traceability for this slice is
-`compliance/timestamped-interaction-requirements-contract.json`.
+the strict equality rejection, and a legal post-delivery Request Retraction.
+The Requirements Lab traceability for this slice is
+`compliance/timestamped-interaction-requirements-contract.json`, with the
+post-delivery behavior isolated in
+`compliance/request-retraction-requirements-contract.json`.
 
 This is deliberately not a complete timestamped service family. The current
-slice excludes timestamped object deletion, directed or regional interactions,
-alternate advance modes, asynchronous delivery, request-retraction callbacks,
-remote transport, and partial fanout/retraction reconciliation. A
-non-time-constrained recipient uses the bounded timestamped callback
-conversion path, but the queue-backed conformance boundary is only claimed for
-constrained recipients in this tranche.
+slice excludes timestamped object deletion, regional attribute updates, and
+directed regional interactions, remaining alternate advance modes,
+asynchronous delivery, Request Retraction for message families other than
+normal non-regional interactions, region-context interactions, attribute
+updates, and directed interactions, remote transport, and complete
+fanout/retraction reconciliation. The implemented normal-interaction path
+includes a delivered nonconstrained recipient and a queued constrained
+recipient; it remains development-profile evidence rather than a conformance
+claim.
 
 ## Second bounded public timestamped attribute-update slice
 
@@ -104,58 +259,222 @@ The same development profile now exposes the official timestamped
 `RTIambassador::updateAttributeValues(..., LogicalTime const&)` overload for
 non-regional object updates. The accepted update retains recipient-specific
 transportation passels and value payloads beside one federation-wide TSO
-message id. Time-constrained recipients consume those passels at the grant
-boundary; the dispatcher rechecks known-instance, ownership, and subscription
-projection immediately before each timestamped `reflectAttributeValues`
-callback and completes the queue entry even when user code throws.
+message id and a federation-owned recipient-retraction record. Time-constrained
+recipients consume those passels at the grant boundary; nonconstrained
+recipients have no temporal-queue entry but retain the same record. The
+dispatcher rechecks known-instance, ownership, and subscription projection and
+claims each timestamped `reflectAttributeValues` passel immediately before its
+callback; a later legal Retract can therefore suppress pending fanout or queue
+one `Request Retraction` callback for a recipient whose reflection began.
 
 The Catch2 scenario covers sender lower-bound rejection, pending retraction,
 two transportation passels, exact-bound reflection before `Time Advance Grant`,
-timestamp/order/retraction propagation, sender exclusion, and terminal
-post-delivery retraction. Its Requirements Lab traceability is
+timestamp/order/retraction propagation, sender exclusion, and pre-delivery
+suppression. A companion immediate-only recipient scenario proves two
+timestamped reflection passels under one retraction designator followed by one
+legal `Request Retraction` callback. Its Requirements Lab traceability is
 `compliance/timestamped-attribute-update-requirements-contract.json`.
-This remains a bounded non-regional service: directed or
-regional updates, alternate advance modes, request-retraction callbacks,
-transport, and conformance are not implied.
+This remains a bounded normal non-regional service: directed updates, the
+separately traced regional attribute-update extension below, remaining
+alternate advance modes, transport, and conformance are not implied.
+
+## Bounded timestamped regional attribute-update extension
+
+The same timestamped attribute-update path now consumes the committed object
+attribute update-region associations produced by the regional DDM slice. The
+publisher's `Update Attribute Values(..., LogicalTime)` request retains the
+recipient-specific region projection in its TSO payload; a time-constrained
+recipient receives the resulting `Reflect Attribute Values` callback before the
+matching `Time Advance Grant`, while `Retract` can remove the pending delivery
+before that grant. The callback projection rechecks the recipient's current
+known-instance, ownership, subscription, and Convey Region Designator Sets
+state at delivery. Consequently, optional sent-region metadata is omitted for
+the default-disabled recipient switch and carries the publisher's committed
+update-region realization after the recipient enables the switch.
+
+`compliance/timestamped-regional-attribute-update-requirements-contract.json`
+and `compliance/timestamped-regional-attribute-update-api-contract.json` pin
+the selected 2025 object-management, time-management, callback, and retraction
+records. The Catch2 scenario covers committed update-region association,
+lower-bound validation, retraction-before-grant suppression, exact-bound
+regional reflection, callback ordering and timestamp/order/retraction fields,
+pending constrained-recipient suppression, and `Request Retraction` for the
+delivered immediate recipient. It also proves mixed immediate/TSO fanout: a
+non-time-constrained recipient receives its accepted timestamped callback
+immediately while a constrained recipient remains queued until its grant.
+Direct timestamped default-region object-reflection and interaction callback
+coverage now has separate focused regressions. Regional request forms, a
+complete timestamped default-region matrix, alternate advance modes,
+save/restore, transport, package/catalog evidence, and conformance remain
+outside this bounded extension.
 
 ## Third bounded public timestamped object-deletion slice
 
 The development profile now exposes the official non-regional timestamped
 `RTIambassador::deleteObjectInstance(..., LogicalTime const&)` overload and
-matching timestamped `FederateAmbassador::removeObjectInstance` callback. The
-registry snapshots the known recipients and records a pending-delete marker
-without destroying the object. Time-constrained recipients consume the typed
-payload at their grant boundary; other recipients use the same accepted
-payload through the bounded immediate timestamped callback path. The first
+matching timestamped `FederateAmbassador::removeObjectInstance` callback. At
+invocation, the registry captures both the known-recipient set and an
+execution-owned copy of the object state. Time-constrained recipients consume
+the typed payload at their grant boundary; nonconstrained recipients use the
+same accepted payload through the evoked timestamped callback path. The first
 removal commits the federation-wide deletion, removes the sender's known
-instance without inducing a sender callback, and advances each recipient to
-unknown at its own callback boundary.
+instance without inducing a sender callback, and advances every delivered
+recipient to unknown at its own callback boundary.
 
-Retracting before any removal callback withdraws the queue fanout and clears
-the pending marker, so the previously known object is reconstituted for the
-recipient. The Catch2 scenario covers the sender lower bound, retraction and
-reconstitution, exact-bound removal before `Time Advance Grant`, callback
-ordering, timestamp/order/retraction propagation, sender exclusion, and the
-terminal post-delivery retraction exception. Its Requirements Lab contracts
-are `compliance/timestamped-object-deletion-requirements-contract.json` and
-`compliance/timestamped-object-deletion-api-contract.json`.
+A legal `Retract` distinguishes each recipient's pending and delivered state.
+It withdraws pending TSO fanout and, if a removal has already crossed a
+callback boundary, restores the invocation snapshot before queueing
+`requestRetraction` for a delivered recipient. Restoration re-establishes the
+object's name, known-instance state, and committed attribute ownership for
+still-joined federates; stale departed owners and destroyed region references
+are not revived. The invocation snapshot is execution-owned rather than
+callback-owned and is retained at least while a legal retraction remains
+possible, so callback delivery is never treated as the source of truth for
+reconstitution.
 
-This is deliberately a bounded non-regional deletion family. Mixed
-immediate/TSO fanout retraction reconciliation, directed or regional deletion
-forms, alternate advance modes, request-retraction callbacks, transport,
-save/restore, package/catalog evidence, and conformance remain outside the
-slice.
+Retraction has two deliberately separate lifetimes. The public result
+classification must outlive heavyweight message state: after a designator
+crosses the Clause 8.22.3 lower bound, or after a successful retraction, a
+later `Retract` must still produce `MessageCanNoLongerBeRetracted` rather than
+`InvalidMessageRetractionHandle`. The embedded registry now preserves a
+lightweight, federation-owned terminal record for that classification. An
+accepted producer TAR, TARA, NMR, NMRA, FQR, or immediate actual-lookahead
+increase terminalizes records at or below its strict retraction boundary;
+successful retraction and producer resignation also terminalize the record.
+
+Typed normal-interaction, attribute-update, and directed-interaction payload
+is retained until every still-joined pending recipient crosses its callback
+boundary, then is reclaimed independently of the terminal record. A
+timestamped deletion additionally retains its invocation snapshot and deleted
+instance marker until the designator is terminal and no such recipient remains;
+only then may the snapshot, marker, object, and reusable name be reclaimed.
+Focused Catch2 cases prove both sides: a terminal normal interaction still
+reaches its constrained recipient, and a terminal no-recipient deletion frees
+its name while its designator remains non-retractable. Separate one-federate
+normal-interaction and qualifying attribute-update cases prove that zero
+eligible recipients do not turn a TSO public result into an invalid handle:
+their typed payload/passels are immediately released, while the ledger still
+supports a legal `Retract` and the later non-retractable classification. An
+attribute update remains eligible only when at least one submitted attribute
+has TSO preferred order, as required by Clause 6.10.
+Both regional interaction and regional update paths now have direct
+disjoint-region proofs; neither treats shared ledger code as substitute
+evidence.
+
+The tombstone itself is deliberately not yet auto-purged before federation
+teardown. Disable Time Regulation also deliberately does not terminalize a
+record: it removes `Retract` authority while disabled, but a later enable can
+establish a new time-regulation boundary. A focused normal-interaction case
+now proves that a live designator survives disable, callback-gated re-enable
+at unchanged lookahead, and the second `Time Regulation Enabled` callback;
+it can then be legally retracted and later receives the normal terminal
+classification. Federation save/restore snapshots copy both a live TSO payload
+and its recipient ledger as well as terminal state: a focused normal-
+interaction regression first makes a saved live record terminal after the save,
+then restores it, delivers the original callback through `Flush Queue Request`,
+and legally retracts it again. The separate allocator regression prevents a
+discarded post-save designator from aliasing fresh post-restore traffic.
+A complementary one-federate regression saves a successful-Retract tombstone,
+creates distinct post-save traffic, then restores the snapshot: the saved
+handle remains `MessageCanNoLongerBeRetracted` and the discarded handle is
+invalid. Another one-federate regression saves a time-regulating member at
+logical time 3 with actual lookahead 2, increases both values to 5 after the
+save, and restores the snapshot to observe the saved time window again. It
+does not establish pending-advance, time-constrained, or transport restore
+semantics. A companion regression saves actual lookahead 5 with a deferred
+decrease to 1, consumes that decrease after the save, restores the visible
+window, and advances again to prove the deferred target returned too. Broader
+re-enable, save/restore, in-flight, and transport lifetime matrices remain
+explicit future work; this is source/test traceability, not a conformance
+claim.
+
+The paired Catch2 scenarios cover lower-bound rejection, retraction before a
+grant, exact-bound removal before `Time Advance Grant`, callback ordering,
+timestamp/order/retraction propagation, sender exclusion, and the pre-delivery
+boundary. The post-delivery scenario adds a mixed nonconstrained/time-
+constrained recipient set: one recipient observes `Remove Object Instance`,
+the object and split committed ownership are restored, that recipient receives
+`Request Retraction`, and the constrained recipient receives neither stale
+removal nor a retraction callback. Its Requirements Lab contracts are
+`compliance/timestamped-object-deletion-requirements-contract.json`,
+`compliance/timestamped-object-deletion-api-contract.json`, and the shared
+Request Retraction contracts.
+
+This remains a bounded non-regional deletion family. Alternate advance modes,
+active in-flight ownership workflows,
+producer/recipient resignation races beyond the tested departed-owner case, save/restore recovery evidence,
+transport, package/catalog evidence, and conformance remain outside the slice.
+
+## Fourth bounded public timestamped directed-interaction slice
+
+The development profile now exposes the official non-regional timestamped
+`RTIambassador::sendDirectedInteraction(..., LogicalTime const&)` overload and
+matching timestamped `FederateAmbassador::receiveDirectedInteraction` callback.
+The payload retains the known target, recipient-specific directed projection,
+transportation, tag, and callback route. Active time-constrained recipients are
+queued in the federation-owned TSO coordinator; non-constrained recipients use
+the accepted payload through the immediate timestamped callback path.
+
+The Catch2 scenarios cover the sender lower bound, known-target and declaration
+routing, retraction before a receiver grant, exact-bound callback delivery
+before `Time Advance Grant`, timestamp/order/retraction propagation, pending
+constrained-recipient suppression, and `Request Retraction` for a delivered
+nonconstrained directed recipient (including a no-temporal-queue-fanout case).
+An additional save/restore regression saves that baseline, creates a directed
+TSO message, restores the baseline, and proves the discarded post-save
+designator is invalid and cannot retract a fresh post-restore message. The
+federation-owned queue restores saved payload/temporal state but preserves its
+external designator allocation high-water mark. A separate normal-interaction
+case saves a live payload and retraction record, terminalizes it after the
+save, restores it, and proves the original record is again deliverable and
+legally retractable.
+Its Requirements Lab contracts are
+`compliance/timestamped-directed-interaction-requirements-contract.json` and
+`compliance/timestamped-directed-interaction-api-contract.json`.
+
+The shared directed-recipient planner honors both selector modes: absent or
+false is by ownership, while true is universal. The timestamped cases currently
+exercise the universal route but do not independently distinguish the two
+modes. This slice deliberately excludes directed DDM, remaining alternate
+advance modes, region-context evidence, transport, complete save/restore
+semantics, package/catalog evidence, and conformance.
+
+## Fifth bounded public timestamped regional-interaction slice
+
+The development profile now exposes the official timestamped
+`RTIambassador::sendInteractionWithRegions(..., LogicalTime const&)` overload
+and the timestamped `FederateAmbassador::receiveInteraction` callback. The
+existing committed-region and strict overlap planner is reused at acceptance
+and callback entry; the TSO payload retains the sent region set so the official
+callback can report it. Time-constrained recipients are queued and receive the
+callback before their matching `Time Advance Grant`, while the recipient ledger
+also records delivered nonconstrained recipients for a later legal Retract.
+
+The Catch2 scenarios cover committed overlap, lower-bound validation,
+retraction-before-grant, exact-bound callback ordering, sent-region
+propagation, timestamp/order/retraction fields, pending constrained-recipient
+suppression, and `Request Retraction` for a delivered nonconstrained
+overlap-qualified recipient, including a no-temporal-queue-fanout case. Its
+Requirements Lab contracts are
+`compliance/timestamped-regional-interaction-requirements-contract.json` and
+`compliance/timestamped-regional-interaction-api-contract.json`.
+
+This slice excludes object-region services, relaxed DDM, directed regional
+interactions, remaining alternate advance modes, save/restore, transport,
+package/catalog evidence, and conformance.
 
 ## Remaining deliberate limits
 
 Umbra still implements no general remaining timestamped object/attribute
-service family beyond the three bounded non-regional consumers, alternate
-advance mode, transport, or asynchronous-delivery algorithm. With
+service family beyond the five bounded timestamped consumers. It implements
+the bounded currently-queued-message NMR/NMRA forms and the in-process Flush
+Queue Request/Grant path; future transport coordination and broader
+asynchronous-delivery coverage are still absent. With
 no queued/in-transit messages, GALT/LITS retain the existing other-regulator
 lookahead behavior. A forward TAR by a zero-lookahead regulator makes that
 lower timestamp exclusive, so the selected time factory's epsilon is added.
 With no other regulator and no incoming TSO message, both public query results
-remain undefined. The limited TAR scheduler and the three bounded public TSO
+remain undefined. The limited TAR scheduler and the five bounded public TSO
 slices are still narrower than full time management.
 
 This is a narrow staged invariant, not a claim that the algorithm would remain
@@ -181,14 +500,16 @@ The next temporal layers must extend this coordinator with:
    cross-federate constraints;
 2. release TSO messages and grants in an order compatible with the recipient's
    time-constrained state and asynchronous-delivery mode;
-3. apply decreasing lookahead changes gradually as logical time advances; and
+3. implement the remaining time-advance variants with their distinct
+   message-release and grant boundaries; and
 4. make resign, disconnect, save/restore, and transport failure cancel or
    reconcile pending work without dereferencing caller-owned ambassadors.
 
 Only after those invariants are specified should Umbra add the remaining
-timestamped object/attribute services, Time Advance Request Available, Next
-Message Request, Flush Queue Request, Modify Lookahead, request-retraction
-callbacks, or broader transport behavior.
+timestamped object/attribute services, the full Next Message Request
+future-input coordination, Flush Queue future-input coordination,
+Request Retraction callbacks for the remaining message families, or broader
+transport behavior.
 
 ## Traceability boundary
 
@@ -205,6 +526,20 @@ The private queue foundation is traced by
 `compliance/tso-message-queue-requirements-contract.json`, and its temporal
 coordinator integration is traced by
 `compliance/federation-time-coordination-tso-requirements-contract.json`.
+The bounded lookahead transition is traced by
+`compliance/modify-lookahead-requirements-contract.json` and
+`compliance/modify-lookahead-api-contract.json`.
+The bounded currently-queued-message advance transition is traced by
+`compliance/next-message-request-requirements-contract.json` and
+`compliance/next-message-request-api-contract.json`.
+The Available-form transitions are traced by
+`compliance/time-advance-request-available-requirements-contract.json`,
+`compliance/time-advance-request-available-api-contract.json`,
+`compliance/next-message-request-available-requirements-contract.json`, and
+`compliance/next-message-request-available-api-contract.json`.
+The bounded Flush Queue Request/Grant transition is traced by
+`compliance/flush-queue-request-requirements-contract.json` and
+`compliance/flush-queue-request-api-contract.json`.
 The first bounded public interaction slice is traced by
 `compliance/timestamped-interaction-requirements-contract.json`; the second
 bounded public attribute-update slice is traced by
