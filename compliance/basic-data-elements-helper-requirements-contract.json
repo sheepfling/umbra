@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins the complete official C++ BasicDataElements helper catalog as a bounded SDK foundation. The selected IEEE 1516.1-2025 C++ requirement requires encoding helpers to encode and decode standard HLA byte arrays. Umbra implements the Table 29 IEEE 1516.2-2025 HLAinteger16BE, HLAinteger16LE, HLAunsignedInteger16BE, HLAunsignedInteger16LE, HLAoctetPairBE, HLAoctetPairLE, HLAinteger32LE, HLAunsignedInteger32LE, HLAinteger64BE, HLAinteger64LE, HLAunsignedInteger64BE, HLAunsignedInteger64LE, HLAfloat32BE/LE, HLAfloat64BE/LE, and HLAoctet representations, plus the Table 32 HLAbyte, HLAASCIIchar, and HLAunicodeChar mappings and the Table 35 HLAASCIIstring/HLAunicodeString mappings. The 16-bit helpers use their prescribed two-octet widths, endian order, signed two's-complement interpretation where applicable, and octet boundary value two; the 32-bit little-endian helpers use their prescribed four-octet width, endian order, signed two's-complement interpretation where applicable; the 64-bit helpers use their prescribed eight-octet widths, endian order, signed two's-complement interpretation where applicable; the float helpers use bit-preserving IEEE 754 conversion and explicitly require 32-bit/64-bit IEC 559 native float/double support; raw octet/byte values preserve their single octet; the ASCII helpers reject non-ASCII octets; HLAunicodeChar represents exactly one UTF-16BE code unit; and HLAunicodeString rejects unmatched UTF-16 surrogates in both encoding directions. HLAASCIIstring and HLAunicodeString use the separately traced HLAvariableArray signed HLAinteger32BE element count. The exact Table 29/Table 32/Table 35/Table 43 cells are source-checked but are not individually exported as immutable helper requirement candidates; RL-053 records that Requirements Lab boundary. This does not establish generic constructed-data encoding, package/JUnit/protected-review evidence, interoperability, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-basic-data-elements-fixed-width-helper-encode-decode",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+      "clause_id": "clause-12.12.4.2",
+      "source": "cpp/src/ieee1516_2025_basic_data_elements.cpp",
+      "source_symbol": "UMBRA_DEFINE_FIXED_16_ENCODER",
+      "related_source_symbols": [
+        "UMBRA_DEFINE_FIXED_8_ENCODER",
+        "UMBRA_DEFINE_FIXED_32_ENCODER",
+        "UMBRA_DEFINE_FIXED_64_ENCODER",
+        "UMBRA_DEFINE_OCTET_PAIR_ENCODER",
+        "HLAASCIIchar::encodeInto",
+        "HLAASCIIchar::decodeFrom",
+        "HLAASCIIstring::encodeInto",
+        "HLAASCIIstring::decodeFrom",
+        "HLAunicodeChar::encodeInto",
+        "HLAunicodeChar::decodeFrom",
+        "utf16Units"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official octet, byte, and ASCII basic encoding helpers use their 1516.2 wire representations",
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official IEEE-754 basic encoding helpers use 1516.2 Table 29 wire forms",
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAunicodeChar uses one UTF-16BE code unit",
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official 16-bit basic encoding helpers use 1516.2 Table 29 wire forms",
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official 32-bit little-endian basic encoding helpers use 1516.2 Table 29 wire forms",
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official 64-bit basic encoding helpers use 1516.2 Table 29 wire forms"
+      ]
+    }
+  ]
+}

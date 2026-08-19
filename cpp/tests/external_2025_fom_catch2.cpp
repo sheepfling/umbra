@@ -66,6 +66,14 @@ std::array<std::filesystem::path, 4> externalSources() {
   }};
 }
 
+std::filesystem::path directedTsoRestoreSource() {
+  return externalCorpusPath("DirectedTSORestore2025.xml");
+}
+
+std::filesystem::path directedDdmRestoreSource() {
+  return externalCorpusPath("DirectedDDMRestore2025.xml");
+}
+
 #ifdef UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT
 
 std::unique_ptr<rti1516_2025::RTIambassador> makeRti() {
@@ -94,7 +102,9 @@ TEST_CASE("The optional external 2025 FOM corpus validates each module under DIF
   }
 }
 
-TEST_CASE("The optional external 2025 FOM corpus materializes a repeatable complete FDD", "[unit][fom][composition][external-2025]") {
+TEST_CASE(
+    "The optional external 2025 FOM corpus has a repeatable semantic preflight rejection",
+    "[unit][fom][composition][external-2025]") {
   auto const sources = externalSources();
   std::vector<PrevalidatedFomModule> modules;
   modules.reserve(sources.size() + 1);
@@ -116,32 +126,53 @@ TEST_CASE("The optional external 2025 FOM corpus materializes a repeatable compl
   LibXml2FomModuleComposer composer(resourcePath("schemas/IEEE1516-FDD-2025.xsd"));
   auto result = composer.compose(modules);
   CAPTURE(result.diagnostics);
-  REQUIRE(result.status == FomCompositionStatus::valid);
-  REQUIRE(result.catalog);
-  REQUIRE(result.fdd);
-  REQUIRE(result.modules.size() == modules.size());
-  REQUIRE(result.fdd->composedFromModuleNames().size() == modules.size());
-  REQUIRE(result.catalog->objectClass("HLAobjectRoot.Proto2025.FederateHealth") != nullptr);
-  REQUIRE(result.catalog->objectClass("HLAobjectRoot.Proto2025.MessageTest.TestSuite") != nullptr);
-  REQUIRE(result.catalog->objectClass("HLAobjectRoot.Proto2025.TimeMgmtTest.TimeParticipant") != nullptr);
-  REQUIRE(result.catalog->objectClass("HLAobjectRoot.Proto2025.SpaceLite.ExecutionConfiguration") != nullptr);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("HLAfloat32BE") != std::string::npos);
+  REQUIRE(result.diagnostics.find("not permitted") != std::string::npos);
 
   auto repeat = composer.compose(modules);
   CAPTURE(repeat.diagnostics);
-  REQUIRE(repeat.status == FomCompositionStatus::valid);
-  REQUIRE(repeat.fdd);
-  REQUIRE(repeat.fdd->xmlUtf8() == result.fdd->xmlUtf8());
+  REQUIRE(repeat.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(repeat.diagnostics == result.diagnostics);
+}
+
+TEST_CASE(
+    "The optional directed restore sources retain their reviewed 2025 schema boundaries",
+    "[unit][fom][xml-schema][composition][external-2025]") {
+  auto const tsoSource = directedTsoRestoreSource();
+  REQUIRE(std::filesystem::is_regular_file(tsoSource));
+  auto tso = validate2025(tsoSource);
+  CAPTURE(tso.diagnostics);
+  REQUIRE(tso.status == umbra::detail::FomValidationStatus::valid);
+  REQUIRE(tso.module.has_value());
+
+  auto mim = validate2025(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim);
+  REQUIRE(mim.status == umbra::detail::FomValidationStatus::valid);
+  REQUIRE(mim.module.has_value());
+  LibXml2FomModuleComposer composer(resourcePath("schemas/IEEE1516-FDD-2025.xsd"));
+  auto tsoComposition = composer.compose({*mim.module, *tso.module});
+  CAPTURE(tsoComposition.diagnostics);
+  REQUIRE(tsoComposition.status == FomCompositionStatus::valid);
+  REQUIRE(tsoComposition.catalog);
+  REQUIRE(tsoComposition.catalog->objectClass("HLAobjectRoot.Target") != nullptr);
+  REQUIRE(tsoComposition.catalog->interactionClass("HLAinteractionRoot.TrackReport") != nullptr);
+
+  auto const ddmSource = directedDdmRestoreSource();
+  REQUIRE(std::filesystem::is_regular_file(ddmSource));
+  auto ddm = validate2025(ddmSource);
+  CAPTURE(ddm.diagnostics);
+  REQUIRE(ddm.status == umbra::detail::FomValidationStatus::invalid_model);
+  REQUIRE_FALSE(ddm.module.has_value());
+  REQUIRE_FALSE(ddm.diagnostics.empty());
 }
 
 #ifdef UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT
 
 TEST_CASE(
-    "The optional external 2025 FOM corpus reaches the embedded Create and Join path",
+    "The optional external 2025 FOM corpus is rejected by embedded Create preflight",
     "[integration][development-profile][fom][external-2025]") {
   rti1516_2025::NullFederateAmbassador creatorFederate;
-  rti1516_2025::NullFederateAmbassador joinerFederate;
   auto creator = makeRti();
-  auto joiner = makeRti();
   auto const federationName = nextFederationName();
   std::vector<std::wstring> const fomModules = [] {
     std::vector<std::wstring> result;
@@ -152,22 +183,9 @@ TEST_CASE(
   }();
 
   REQUIRE_NOTHROW(creator->connect(creatorFederate, rti1516_2025::HLA_EVOKED));
-  REQUIRE_NOTHROW(joiner->connect(joinerFederate, rti1516_2025::HLA_EVOKED));
-  REQUIRE_NOTHROW(
-      creator->createFederationExecution(federationName, fomModules, L"HLAinteger64Time"));
-
-  rti1516_2025::FederateHandle creatorHandle;
-  rti1516_2025::FederateHandle joinerHandle;
-  REQUIRE_NOTHROW(creatorHandle = creator->joinFederationExecution(L"creator", L"owner", federationName));
-  REQUIRE_NOTHROW(joinerHandle = joiner->joinFederationExecution(L"joiner", L"observer", federationName));
-  REQUIRE(creatorHandle.isValid());
-  REQUIRE(joinerHandle.isValid());
-  REQUIRE(creatorHandle != joinerHandle);
-
-  REQUIRE_NOTHROW(joiner->resignFederationExecution(rti1516_2025::NO_ACTION));
-  REQUIRE_NOTHROW(creator->resignFederationExecution(rti1516_2025::NO_ACTION));
-  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(joiner->disconnect());
+  REQUIRE_THROWS_AS(
+      creator->createFederationExecution(federationName, fomModules, L"HLAinteger64Time"),
+      rti1516_2025::InconsistentFOM);
   REQUIRE_NOTHROW(creator->disconnect());
 }
 

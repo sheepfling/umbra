@@ -107,19 +107,28 @@ target_include_directories(ieee1516_2025_headers SYSTEM INTERFACE
 # member and throws RTIinternalError unless a real vertical slice overrides it.
 add_library(umbra_rti STATIC
   cpp/src/ieee1516_2025_attribute_handle.cpp
+  cpp/src/ieee1516_2025_authorization.cpp
+  cpp/src/ieee1516_2025_basic_data_elements.cpp
   cpp/src/ieee1516_2025_binding_shell.cpp
   cpp/src/ieee1516_2025_dimension_handle.cpp
+  cpp/src/ieee1516_2025_extendable_variant_record.cpp
   cpp/src/ieee1516_2025_federate_handle.cpp
+  cpp/src/ieee1516_2025_fixed_array.cpp
+  cpp/src/ieee1516_2025_fixed_record.cpp
   cpp/src/ieee1516_2025_interaction_class_handle.cpp
   cpp/src/ieee1516_2025_message_retraction_handle.cpp
   cpp/src/ieee1516_2025_object_class_handle.cpp
   cpp/src/ieee1516_2025_object_instance_handle.cpp
+  cpp/src/ieee1516_2025_opaque_data.cpp
   cpp/src/ieee1516_2025_parameter_handle.cpp
   cpp/src/ieee1516_2025_range_bounds.cpp
   cpp/src/ieee1516_2025_region_handle.cpp
   cpp/src/ieee1516_2025_support.cpp
+  cpp/src/ieee1516_2025_logical_time_encoding.cpp
   cpp/src/ieee1516_2025_time.cpp
   cpp/src/ieee1516_2025_transportation_type_handle.cpp
+  cpp/src/ieee1516_2025_variable_array.cpp
+  cpp/src/ieee1516_2025_variant_record.cpp
   cpp/src/internal/callback_dispatcher.cpp
   cpp/src/internal/callback_session.cpp
   cpp/src/internal/embedded_transport.cpp
@@ -130,12 +139,16 @@ add_library(umbra_rti STATIC
   cpp/src/internal/federation_management_coordinator.cpp
   cpp/src/internal/federation_registry.cpp
   cpp/src/internal/interaction_class_handle_directory.cpp
+  cpp/src/internal/mom_service_report_encoding.cpp
+  cpp/src/internal/service_report_store.cpp
   cpp/src/internal/object_class_handle_directory.cpp
   cpp/src/internal/parameter_handle_directory.cpp
   cpp/src/internal/federation_time_bounds.cpp
   cpp/src/internal/federation_time_coordinator.cpp
   cpp/src/internal/federation_time_grant_policy.cpp
   cpp/src/internal/reference_time_selection.cpp
+  cpp/src/internal/runtime_instrumentation.cpp
+  cpp/src/internal/runtime_instrumentation_output.cpp
   cpp/src/internal/tso_message_queue.cpp
   cpp/src/internal/umbra_rti_ambassador.cpp
   cpp/src/internal/utf8_string.cpp
@@ -144,9 +157,12 @@ add_library(umbra::rti ALIAS umbra_rti)
 set_target_properties(umbra_rti PROPERTIES EXPORT_NAME rti)
 target_compile_features(umbra_rti PUBLIC cxx_std_20)
 target_compile_definitions(umbra_rti PUBLIC STATIC_RTI)
-target_include_directories(umbra_rti PRIVATE
-  "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+target_include_directories(umbra_rti
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp/include>
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
 )
 target_link_libraries(umbra_rti PUBLIC umbra::ieee1516_2025_headers)
 
@@ -159,6 +175,17 @@ set_target_properties(umbra_fedtime PROPERTIES EXPORT_NAME fedtime)
 target_compile_features(umbra_fedtime PUBLIC cxx_std_20)
 target_compile_definitions(umbra_fedtime PUBLIC STATIC_FEDTIME)
 target_link_libraries(umbra_fedtime PUBLIC umbra::rti)
+
+# The C++ binding similarly separates the generic AuthorizerFactoryFactory
+# entry point into libauthorizer. The reference HLAauthorizer implementation
+# stays in the RTI library; this target preserves the standard forwarding
+# boundary without inventing third-party RID loading before it exists.
+add_library(umbra_authorizer STATIC cpp/src/ieee1516_2025_authorizer.cpp)
+add_library(umbra::authorizer ALIAS umbra_authorizer)
+set_target_properties(umbra_authorizer PROPERTIES EXPORT_NAME authorizer)
+target_compile_features(umbra_authorizer PUBLIC cxx_std_20)
+target_compile_definitions(umbra_authorizer PUBLIC STATIC_AUTHORIZER)
+target_link_libraries(umbra_authorizer PUBLIC umbra::rti)
 
 if(UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
   find_package(LibXml2 2.15 CONFIG QUIET)
@@ -315,6 +342,81 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-data-representation-requirements-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2_2025.attribute_parameter_data_type_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/attribute-parameter-data-type-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.attribute_na_companion_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-attribute-na-companion-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.attribute_dynamic_update_condition_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-attribute-dynamic-update-condition-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.attribute_value_required_sharing_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-attribute-value-required-sharing-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.root_hierarchy_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-root-hierarchy-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.enumerated_representation_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-enumerated-representation-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.array_element_data_type_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-array-element-data-type-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.record_member_data_type_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-record-member-data-type-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.dimension_input_data_type_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-dimension-input-data-type-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.dimension_input_data_type_na_exclusivity_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-dimension-input-data-type-na-exclusivity-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.dimension_input_data_description_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-dimension-input-data-description-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.variant_discriminant_data_type_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-variant-discriminant-data-type-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.variant_discriminant_enumerator_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-variant-discriminant-enumerator-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.variant_discriminant_enumerator_membership_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-variant-discriminant-enumerator-membership-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.variant_discriminant_enumerator_range_semantics_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-variant-discriminant-enumerator-range-semantics-requirements-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2_2025.table_constraints_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-table-constraints-requirements-contract.json
@@ -338,6 +440,16 @@ if(BUILD_TESTING)
       NAME umbra.ieee1516_2025.reference_time_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/reference-time-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.logical_time_encoding_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/logical-time-encoding-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.authorization_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/authorization-requirements-contract.json
     )
     add_test(
       NAME umbra.ieee1516_2025.federation_management_preparation_traceability
@@ -639,9 +751,69 @@ if(BUILD_TESTING)
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/handle-normalization-requirements-contract.json
       )
       add_test(
+        NAME umbra.ieee1516_2025.mom_service_reporting_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/mom-service-reporting-requirements-contract.json
+      )
+      add_test(
         NAME umbra.ieee1516_2025.handle_normalization_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/handle-normalization-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.handle_decoding_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/handle-decoding-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.basic_data_elements_helper_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/basic-data-elements-helper-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.basic_data_elements_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/basic-data-elements-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.opaque_data_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/opaque-data-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.fixed_record_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fixed-record-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.fixed_array_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fixed-array-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.variable_array_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/variable-array-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.variant_record_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/variant-record-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2_2025.extendable_variant_record_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/extendable-variant-record-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.connection_callback_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/connection-callback-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.federation_execution_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federation-execution-api-contract.json
       )
       add_test(
         NAME umbra.ieee1516_2025.convey_region_designator_callback_requirements_traceability
@@ -1122,6 +1294,11 @@ if(BUILD_TESTING)
   if(TARGET Catch2::Catch2WithMain)
     add_executable(umbra_ieee1516_2025_catch2
       cpp/tests/ieee1516_2025_headers_catch2.cpp
+      cpp/tests/ieee1516_2025_authorization_catch2.cpp
+      cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp
+      cpp/tests/mom_service_report_encoding_catch2.cpp
+      cpp/tests/service_report_store_catch2.cpp
+      cpp/tests/runtime_instrumentation_catch2.cpp
       cpp/tests/attribute_handle_catch2.cpp
       cpp/tests/dimension_handle_catch2.cpp
       cpp/tests/message_retraction_handle_catch2.cpp
@@ -1184,6 +1361,7 @@ if(BUILD_TESTING)
     target_link_libraries(umbra_ieee1516_2025_catch2 PRIVATE
       umbra::rti
       umbra::fedtime
+      umbra::authorizer
       Catch2::Catch2WithMain
     )
     if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -1215,7 +1393,7 @@ if(NOT UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 install(TARGETS ieee1516_2025_headers
   EXPORT umbra_rti_targets
 )
-install(TARGETS umbra_rti umbra_fedtime
+install(TARGETS umbra_rti umbra_fedtime umbra_authorizer
   EXPORT umbra_rti_targets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

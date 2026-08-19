@@ -17,6 +17,77 @@ bundle under `.compliance/` is intentionally ignored, so each observation
 below names the pinned revision and durable source identifiers rather than
 depending on an uncommitted export artifact.
 
+## How future consumers should interpret the Lab
+
+The Requirements Lab is a requirements-corpus and traceability layer. It is
+good at answering:
+
+- what normative or source-derived statement was found;
+- where that statement came from; and
+- which API surface or implementation relationship the Lab can identify.
+
+It is not, by itself, an exhaustive behavior specification or an edge-case
+test suite. A complete test obligation can come from the interaction of
+several clauses, an API's declared exception behavior, callback timing, a
+multi-federate state transition, or an invalid-input path. Those obligations
+must be derived into explicit scenarios and tested separately. A missing
+candidate in the export must not be silently replaced with an invented Lab
+ID, and a passing local test must not be described as verified conformance
+until the sidecar evidence has received protected review.
+
+For each new service slice, consumers should keep these layers distinct:
+
+1. **Requirement traceability:** immutable Lab candidate IDs, source spans,
+   clause ownership, and any Lab-provided API mapping.
+2. **Derived behavior coverage:** positive, negative, boundary, callback-order,
+   race, and multi-federate scenarios derived from the requirements and API.
+3. **Evidence status:** implementation and test results, raw sidecar output,
+   protected review, and final verification.
+
+This separation lets a future Lab revision improve extraction or mappings
+without turning a local interpretation into a false normative requirement.
+
+## Proposed improvements for the Requirements Lab
+
+The following are durable improvement requests, not findings of IEEE or
+Umbra non-conformance. They are ordered roughly by their value to future
+consumers:
+
+1. **Export granular behavioral candidates.** Preserve the existing immutable
+   IDs, but add candidates for explicit preconditions, postconditions,
+   exceptions, callback timing, continuation sentences, table rows, and
+   parameter-level semantics. RL-011, RL-012, RL-014, and RL-033 are concrete
+   examples where a broad or missing candidate forces a consumer to retain
+   direct source/API traceability.
+2. **Make provenance internally consistent.** Every candidate should carry a
+   source path, source line span, source-content page, rendered page when
+   available, enclosing heading, and semantic owner. Display titles should be
+   generated from those same fields so a title cannot point to a different
+   source file than the inventory.
+3. **Separate relationship kinds.** Distinguish API mappings from policy or
+   state-machine relationships, schema constraints, exception relationships,
+   and derived test obligations. A `no-api` source requirement can still be
+   important without being forced into an API mapping.
+4. **Optionally export derived scenario metadata.** A separately labelled,
+   non-normative scenario layer could identify actors, pre-state, trigger,
+   post-state, observable callback/result, ordering constraints, and negative
+   or boundary categories. This would help consumers cover edge cases without
+   implying that the Lab has rewritten the standard's prose.
+5. **Add extraction quality gates.** Export should flag truncated statements,
+   joined words, empty `record_ids` where a table or continuation is expected,
+   source spans assigned to a later heading, and source/page convention
+   mismatches. The warnings should be visible in the bundle and checker
+   output, not discovered only by downstream users.
+6. **Publish an edition-labelled resource inventory.** Identify which source,
+   schema, API, and example resources are present for each HLA edition, and
+   state explicitly when a companion artifact is not a substitute for the
+   current source-licensed resource set.
+
+When implementing one of these improvements, preserve existing IDs and make
+the export change reviewable against the pinned revision. Consumers should be
+able to update contracts deliberately rather than having an apparently small
+Lab regeneration silently change clause ownership or evidence scope.
+
 ## Active observations
 
 ### RL-001 — Time-management ownership is clause-granular
@@ -678,9 +749,10 @@ The XML validator accepts an omitted attribute, so validation alone does not
 resolve which semantic default should be materialized.
 
 **Umbra impact:** the catalog and embedded membership path use the
-Requirements-Lab normative candidate (`CancelThenDeleteThenDivest`) and retain
-the XSD lexical value only when it is explicitly present. This is recorded as
-an intentional standards-traceability choice, not as conformance evidence.
+Requirements-Lab normative candidate (`CancelThenDeleteThenDivest`) for an
+omitted setting, while retaining an explicitly present schema-valid `NoAction`
+value as that distinct configured action. This is recorded as an intentional
+standards-traceability choice, not as conformance evidence.
 
 **Possible Lab/refinement action:** reconcile the published 1516.2/XSD default
 with the normative table (or publish an erratum/precedence rule), then update
@@ -979,6 +1051,1086 @@ derive the display title from that heading. A source-span relation linking an
 opening behavior candidate to its returned/precondition/exception records
 would make service-level traceability usable without consumers having to
 preserve known-wrong clause IDs for checker compatibility.
+
+### RL-034 — Table 5 service-report record structures have no immutable candidates
+
+**Status:** verified export-shape limitation; possible extraction refinement,
+not a standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the source blocks for pages
+300--302 expose Table 5's `ServiceReportInitialRecord` and
+`ServiceReportRecord` type/value structures, but their content elements carry
+`record_ids: []`. The prose candidate
+`requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8`
+does establish that an initial record precedes service-report records, yet it
+does not identify the record fields or JSON-like layout.
+
+**Umbra impact:** the MOM traceability contract can cite the §11.5.1 routing
+candidates, while the Table 5 formatter retains direct source and MIM
+references. Umbra does not represent its record-layout vectors as
+candidate-level Requirements Lab evidence.
+
+**Possible Lab refinement:** emit stable table-row or table-structure
+candidates for `ServiceReportInitialRecord`, `ServiceReportRecord`, and their
+named fields. Preserve the prose candidate separately so consumers can trace
+record ordering without conflating it with format structure.
+
+### RL-035 — State-machine records are not yet executable behavioral requirements
+
+**Status:** verified semantic-model capability boundary; possible Lab model
+refinement, not a standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, a state-machine transition records
+its source state, event, target state, and optional guard, action, precondition,
+postcondition, clause, requirement, and implementation links. The generic
+state-machine schema and semantic model represent the guard, action,
+precondition, and postcondition as descriptive text. The generic state-trace
+replayer checks the supplied trace's machine, source state, event, transition,
+and target state; it does not evaluate those text fields, mutate a typed state
+store, or prove an invariant.
+
+**Umbra impact:** a modeled transition can establish that a path is recorded,
+but it cannot by itself generate the true and false guard cases, validate the
+state effects, or identify every invalid-input and callback-boundary path.
+Umbra therefore builds private state holders for lifecycle, declarations,
+ownership, time, delivery, and object knowledge, and uses Catch2 scenarios to
+finish the behavioral interpretation. Those tests currently perform two jobs:
+they validate the implementation and they expose obligations that the Lab
+model did not make explicit. This is why important edge cases can appear first
+in testing even when the source prose or diagram was already present.
+
+**Possible Lab refinement:** add a separately labelled executable-obligation
+layer. It should provide typed state variables, predicates for guards,
+transition effects, explicit error/rejection branches, callback and delivery
+obligations, temporal/order constraints, and invariants. Each obligation should
+retain source evidence and an interpretation status so a derived model is not
+silently presented as normative source text. The Lab should be able to generate
+positive, negative, boundary, cancellation, and callback-race trace seeds from
+that layer, and mark unresolved interpretation instead of silently omitting a
+case.
+
+### RL-036 — Cross-machine edge cases have no first-class composition model
+
+**Status:** verified model-composition boundary; possible Lab model refinement,
+not a standards defect.
+
+The pinned semantic model contains individual state machines and state traces;
+each trace targets one `machine_id`. The generic state-machine record does not
+currently declare shared state variables, synchronization points, event
+interleavings, or a product/composition relationship between machines.
+
+**Umbra impact:** many HLA edge cases are not properties of one machine. They
+combine lifecycle membership, publication or subscription, known-instance
+state, ownership, pending callbacks, time state, resignation, and callback
+delivery boundaries. A single ownership or declaration diagram cannot enumerate
+those combinations. Umbra has to discover and encode the combinations in
+private registry state and multi-federate tests, which makes coverage dependent
+on implementation work rather than on a complete requirements-derived scenario
+set.
+
+**Possible Lab refinement:** add an explicit composition layer that names
+shared variables, event ownership, enabled-state conditions, synchronization
+boundaries, callback queue effects, and permitted interleavings. The Lab need
+not generate the full Cartesian product; it should support reviewed pairwise or
+risk-based scenario generation and record why a combination is covered,
+deferred, impossible, or intentionally out of scope.
+
+### RL-037 — Transition coverage does not equal behavioral-obligation coverage
+
+**Status:** verified coverage-semantics boundary; possible Lab refinement, not a
+standards defect.
+
+The current readiness and transition-coverage surfaces can require that each
+modeled transition has a planned verification slot and implementation mapping.
+That is valuable structural coverage, but a transition-level row does not
+necessarily require coverage of every guard outcome, declared exception,
+repeated invocation, cancellation race, callback recheck, teardown path, or
+state invariant associated with the transition. A transition may therefore be
+marked mapped or planned while important branches remain unmodeled or
+untested.
+
+**Umbra impact:** the presence of a transition ID in a contract or worklist is
+not evidence that all of its behavioral obligations are covered. Umbra's local
+contracts consequently add explicit Catch2 selectors and scope notes, but the
+edge-case matrix is still assembled manually and remains separate from the
+Lab's transition coverage result.
+
+**Possible Lab refinement:** expand transition coverage into a typed obligation
+matrix. At minimum, each transition should identify its success path, each
+guard-failure path, each declared exception path, observable state changes,
+callback ordering, cancellation or teardown behavior, and any required
+cross-machine scenario. Every row should receive a trace/test disposition such
+as verified, implemented-but-unreviewed, planned, blocked-by-interpretation,
+or explicitly out of scope. This would make a green structural coverage check
+meaningful without turning it into an unsupported conformance claim.
+
+### RL-038 — Readiness and compliance are multidimensional, not one status
+
+**Status:** verified workflow boundary; possible Lab reporting refinement, not a
+standards defect.
+
+The Lab and Umbra already distinguish several useful states, including source
+mapping, API mapping, planned implementation, raw test evidence, protected
+review, and verification. In practice, however, a consumer can still see words
+such as `mapped`, `implemented`, `passed`, or `verified` without immediately
+knowing which layer they describe. Structural readiness of a corpus is not
+implementation readiness, and a passing test is not reviewed conformance
+evidence.
+
+**Umbra impact:** contracts must repeat scope notes to prevent a local test or
+API match from being mistaken for complete HLA compliance. This makes the
+workflow harder to understand and leaves room for future consumers to promote
+an intermediate result too far.
+
+**Possible Lab refinement:** expose independent, machine-readable status axes
+for source coverage, semantic-model coverage, behavioral-obligation coverage,
+implementation, raw evidence, protected review, package support, and
+conformance. An aggregate status should be derived from those axes and should
+never collapse `implemented`, `reviewed`, and `conformant` into one label.
+
+### RL-039 — Omitted behavior needs an explicit disposition
+
+**Status:** verified coverage-reporting boundary; possible Lab reporting
+refinement, not a standards defect.
+
+When a requirement, transition branch, cross-machine combination, or edge case
+does not appear in a generated test or trace set, absence alone does not explain
+why. It may be not yet modeled, not applicable, impossible under the standard,
+deferred pending interpretation, intentionally out of scope, or simply missed
+by extraction. The current source, transition, and test records do not provide
+one uniform disposition vocabulary for all of those cases.
+
+**Umbra impact:** downstream consumers have to infer whether an uncovered case
+is unfinished work or a deliberate boundary by reading contract notes and
+implementation prose. That is exactly the kind of rediscovery the Lab should
+prevent.
+
+**Possible Lab refinement:** require an explicit disposition for every omitted
+behavioral obligation, with an owner, rationale, source references, and a
+follow-up condition where applicable. Reports should make “not modeled,”
+“interpretation unresolved,” “covered elsewhere,” “out of scope,” and “missed
+coverage” visibly different states.
+
+### RL-040 — The Lab should generate the first test matrix before implementation
+
+**Status:** proposed workflow improvement based on the preceding verified
+boundaries; not a standards or implementation-conformance claim.
+
+For a new service family, the desired order should be:
+
+1. extract and review the source requirements;
+2. build or correct the state and composition model;
+3. generate the transition, branch, exception, callback, and edge-case matrix;
+4. assign every row a trace/test disposition; and
+5. implement the service and attach evidence to those pre-existing rows.
+
+Umbra currently often reaches the third step while implementing a vertical
+slice, which means Catch2 tests help discover the matrix instead of merely
+executing it. That is understandable during bootstrap, but it should not be
+the mature Lab workflow.
+
+**Possible Lab refinement:** prove this workflow on one bounded pilot, such as
+federate lifetime or attribute ownership. The pilot should generate a review
+packet containing the source links, typed state transitions, branch and
+exception obligations, composed edge cases, trace seeds, and explicit omissions
+before any implementation is called complete. The pilot can then become the
+template for other service families without requiring the Lab to pretend that
+every derived scenario is direct normative prose.
+
+### RL-041 — Service-report file sources need cross-artifact reconciliation metadata
+
+**Status:** verified source/export discrepancy; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the reconstructed Table 8 source
+block `content-block-content-15161-page-311.tex` identifies
+`HLAreportServiceFile` as `Static`. The vendored official 2025 MIM resource
+`third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml`, however,
+identifies the same attribute as `Conditional`, with the update condition
+“The first time that both HLAserviceReporting and HLAsendServiceReportsToFile
+become true.” The §11.5.2 candidate records used for file logging also have
+titles pointing to `content/clauses/annexes-page-439.tex` rather than their
+actual page-293/294 semantic source blocks; for example,
+`requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42`.
+The same title/source split is present in the independent C++ handle-helper
+candidate `requirement-candidate-content-clauses-11-management-object-model-page-382-l24-7`:
+its title names `content/clauses/annexes-page-439.tex:24`, while its structured
+`source.path` correctly identifies
+`content/clauses/11-management-object-model-page-382.tex`.
+
+**Umbra impact:** Umbra chooses a report-file path and writes the initial
+record at join, retaining that identity until resignation. Its private
+RTI-owned joined-federate snapshot now encodes that exact path as an initial
+value under the IEEE 1516.1-2025 Table 8 `Static` decision, but does not yet
+expose the value through public MOM discovery/reflection. The contrary MIM
+field remains recorded rather than silently discarded. The filesystem and
+snapshot lifecycle tests are private source-level traceability only; they are
+not promoted to Lab validation or conformance results.
+
+The handle-encoding contract likewise retains the immutable candidate ID and
+the structured source path rather than relying on the stale generated title.
+
+**Possible Lab refinement:** associate each extracted table cell and
+requirement candidate with its exact source block and upstream artifact, then
+flag divergent facts for the same named MIM item. A report should distinguish
+an extraction/source-provenance mismatch from a genuine standards
+interpretation question, while retaining both observed values for review.
+
+### RL-042 — Table 5 service-report log return representation needs a declared mapping
+
+**Status:** verified table/log-format ambiguity; the interaction wire shape is
+resolved by matching prose and MIM evidence. This is a possible Lab refinement,
+not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, §11.5.1 on
+`content-block-content-15161-page-292.tex` explicitly says that both
+`HLAsuppliedArguments` and `HLAreturnedArgument` use the `HLAargument` fixed
+record, and that a multiple-return service uses an appropriate composite
+`HLAargumentType`. The vendored 2025 MIM and Table 20's parameter semantics
+agree. That resolves the interaction wire representation.
+
+The remaining issue is log formatting. Table 5's reconstructed
+`ServiceReportRecord` on `content-block-content-15161-page-301.tex` declares
+`HLAreturnedArgument:ReturnArgument` and depicts the field as an array whose
+no-return example is `[null]`. `ReturnArgument` is not a separately emitted
+Table 5 type. The same table's earlier `HLAreturnedArgument` entry on page 298
+has a two-field record shape. Section 11.5.2.1 directs service-report log
+records to Table 5 but does not state the mapping from that log-only notation
+to the interaction's three-field `HLAargument` textual depiction. The Table 5
+type row also spells `HLAservce`, whereas its example and the MIM use
+`HLAservice`. The §11.5.1 implementation-dependent wording is specifically
+limited to the textual depiction in the `HLAargumentName` field; it does not
+declare `ReturnArgument` or provide a general file-record return mapping.
+
+**Umbra impact:** the private payload encoder follows the matching §11.5.1/MIM
+wire rule. Umbra deliberately has no generic `ServiceReportRecord` formatter:
+the existing Table 5 primitive and initial-record formatters must not be
+combined with the interaction `HLAargument` rendering to create a guessed
+file record. It will not enable generated report-record appends until a
+source-backed, per-service return mapping is established.
+
+**Published-correction check:** on 2026-08-19, the official active-standard
+page for IEEE 1516.1-2025 listed only the downloads bundle under Additional
+Resources and exposed no errata/corrigendum link. This is a time-bounded
+publication-status observation, not evidence that no correction can ever be
+issued; check the official page before implementing the blocked mapping.
+
+**Possible Lab refinement:** emit table-structure facts with a relationship to
+the corresponding MIM parameter/type and flag an undeclared table alias or
+container-shape difference in log-only data. A review packet should preserve
+the rendered example, the type row, §11.5.1 wire prose, §11.5.2.1 log rule,
+and the MIM semantics together instead of requiring a consumer to infer a
+mapping.
+
+### RL-043 — RTI-created MOM-object producer designator lacks a joined source mapping
+
+**Status:** verified cross-clause mapping gap; possible Lab refinement, not a
+standards defect or conformance finding.
+
+The pinned Lab independently exports the ordinary discovery rule as
+`requirement-candidate-content-clauses-06-object-management-page-119-l103-29`:
+the `producing joined federate` argument contains the designator of the joined
+federate that registered the object. It also exports the MOM requirement as
+`requirement-candidate-content-clauses-10-support-services-page-287-l102-33`:
+the RTI publishes `HLAmanager.HLAfederate` and registers one object instance
+for every joined federate. The corresponding source blocks are §6.9 and
+§11.2, respectively. The Lab does not currently provide a relationship or
+source note that resolves what discovery/reflect callback producer designator
+is valid for an RTI-created MOM object, which is not registered by a joined
+federate.
+
+The broader source confirms that this is not merely a hypothetical edge case:
+the §1 candidate
+`requirement-candidate-content-clauses-01-overview-page-019-l62-7` expressly
+uses MOM `HLAmanager.HLAfederate.HLAreport` interactions as examples of
+RTI-invoked services that need not result from a joined-federate invocation.
+Together with §11.1--§11.2, that establishes RTI origin, but it still does not
+name a `FederateHandle` or a callback-specific exception to §6.9's producing
+joined-federate rule. RTI origin must therefore not be converted into an
+invented sentinel or a selected joined-federate identity.
+
+A direct source pass over §11.1, §11.2, and §11.4 confirms rather than
+resolves the tension: §11.1 says that MOM access/interchange uses predefined
+HLA objects and interactions in the same way as participating federates;
+§11.2 requires the RTI to publish and register the `HLAmanager.HLAfederate`
+instances; and §11.4 directs the RTI to update those instances with their
+private federate points. None supplies an exception or an RTI-to-joined-
+federate mapping for the §6.9 callback argument. This must not be inferred
+from the represented federate's `HLAfederateHandle`.
+
+**Umbra impact:** Umbra will not copy the sibling prototype's unjoined
+`FederateHandle(0)` sentinel into its public callback path. A private,
+registry-owned joined-federate MOM snapshot may reserve a common object
+identity, retain complete MIM metadata, an immutable point, and encoded
+initial values, but it is deliberately outside public object discovery and
+reflection. The complete public RTI-owned MOM-object lifecycle,
+requested-value work, and callback behavior remain pending a source-backed
+producer-designator rule. The private service-report routing plan now models
+its origin explicitly as RTI-owned rather than using a numeric sentinel in the
+ordinary federate-sender eligibility helper; that model still cannot be
+passed to the public `Receive Interaction` callback queue.
+
+**Possible Lab refinement:** add a cross-clause MOM implementation note or
+relationship that records the applicable producer-designator rule (including
+any explicit RTI exception) for RTI-registered object instances. The packet
+should preserve the two ordinary requirements and identify whether a further
+source controls their interaction, rather than letting consumers invent a
+handle sentinel or silently substitute the represented federate's designator.
+
+### RL-044 — Constructed-encoding candidates lose their precise subclause provenance
+
+**Status:** verified export-provenance and source-candidate coverage boundary;
+possible Lab refinement, not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the source block
+`content-block-content-15162-page-084.tex` visibly heads subsection
+`4.14.10.5 HLAvariableArray` and states that the leading
+`number_of_elements` is an `HLAinteger32BE`. The corresponding detailed
+candidate,
+`requirement-candidate-sections-semantic-clause-4c-page-084-l95-11`, is
+exported with `clause` and `clause_id` both reduced to `4` / `clause-4`.
+Likewise, the leading-padding and inter-element-padding rules on page 085 are
+exported as `requirement-candidate-sections-semantic-clause-4c-page-085-l51-1`
+and `requirement-candidate-sections-semantic-clause-4c-page-085-l63-4` with
+the same broad clause identifier. The source supplies Equation (6)'s boundary
+definition—the maximum of the element and `HLAinteger32BE` boundaries—and the
+general constructed-data source says padding bytes are zero, but neither detail
+has a separate immutable candidate. The text is usable and independently
+verified, but the precise subclause and every equation detail cannot be
+recovered from the candidate metadata.
+
+**Umbra impact:** Umbra records the immutable count, leading-padding, and
+inter-element-padding IDs in its private basic-data-element and official
+`HLAvariableArray` encoding contracts, and cites the rendered source's
+`4.14.10.5` heading and Equation (6) in local design material. The tests
+correct an earlier byte-count interpretation of `HLAunicodeString`, retain
+element-count plus inter-element-padding vectors for `HLAargumentList` and the
+private `HLAmoduleDesignatorList` encoder used by the unpublished
+joined-federate MOM snapshot, and now exercise the public-header array class.
+This is source/test traceability only, not a conformance finding.
+
+**Possible Lab refinement:** preserve the nearest semantic heading as the
+candidate clause identifier for constructed-encoding prose, or add a
+`source_subclause` field separate from coarse section grouping and stable
+paragraph/equation records for Equation (6) and the zero-padding statement.
+That would let encoding contracts name `4.14.10.5` without inventing a new
+requirement ID.
+
+### RL-045 — Aggregate C++ Connect crosswalk leaves exact overloads unselected
+
+**Status:** verified crosswalk-aggregation gap; possible export refinement,
+not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the exported
+`crosswalk.rti.service.connect.cpp` record has status `ambiguous`, lists all
+four official C++ `RTIambassador::connect` overload IDs as candidates, and has
+an empty `selected_api_surface_ids` array. In the same pinned export,
+`api-requirement-bindings.json` independently contains four `matched`
+`req-connect-service-establishes-connection` C++ bindings, one for each of
+those exact overload IDs. The source facts therefore identify every overload,
+but the aggregate implementation crosswalk cannot express that all four are
+valid members of one overloaded service family.
+
+**Umbra impact:** Umbra retains the aggregate crosswalk as unresolved and does
+not use it for catalog or conformance claims. Its separate API-only contract
+pins each exact declaration to the existing Catch2 overload scenario, while
+the Catch2 plan records those individual API surfaces solely for declaration
+traceability. This local mitigation does not relabel the Lab crosswalk as
+selected or resolved.
+
+**Possible Lab refinement:** allow a native implementation crosswalk to select
+multiple overload surfaces when each has a matched requirement-to-API binding,
+or export an explicit overloaded-service group that carries the four selected
+IDs. Preserve the current candidate IDs and ambiguity history so consumers can
+distinguish a deliberate multi-overload selection from a one-to-many mapping
+uncertainty.
+
+### RL-046 — Static update-condition prose conflicts with supplied 2025 examples
+
+**Status:** verified cross-artifact tension; the Static/NA direction remains
+deferred, while the independent Conditional/Periodic non-NA predicate is
+bounded in Umbra. This is not a Requirements-Lab defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidate
+`requirement-candidate-sections-semantic-clause-4b-page-049-l26-2` says that
+the attribute-table Update Condition column shall contain `NA` when Update Type
+is `Static` or `NA`. The vendored official 2025
+`RestaurantFOMmodule-2025.xml` instead gives its `ChefName` attribute
+`<updateType>Static</updateType>` and
+`<updateCondition>On change</updateCondition>` (lines 92–93). The supplied
+Restaurant SOM repeats the same pair, and the MIM has at least one `Static` /
+`N/A` pair. The 2025 DIF XSD accepts `updateCondition` as a general string and
+does not encode this cross-field predicate.
+
+**Umbra impact:** Umbra does not introduce a generic Static/NA rejection rule
+that would reject supplied official 2025 material. It does enforce a separate,
+bounded direction from the same candidate: a supplied Update Condition must be
+nonempty, non-NA text when a composed attribute supplies Conditional or
+Periodic Update Type. An omitted condition remains a partial DIF row, and the
+predicate does not parse periodic-rate grammar or initial-condition prose.
+The source candidate remains usable traceability, but its Static/NA direction
+is explicitly deferred until the table wording, XML spelling, and official
+example set have a reviewed reconciliation. This is distinct from the
+completed attribute/parameter data-type rule and does not weaken that rule.
+
+**Possible Lab refinement:** associate the candidate with the corresponding
+2025 example rows and schema field type in a non-normative reconciliation
+note. A review packet should preserve the exact table prose, Restaurant FOM
+and SOM rows, MIM variation, and XSD declaration so a consumer can make a
+deliberate policy decision without silently treating an example conflict as an
+implementation error.
+
+### RL-047 — Fixed/variant record type-column candidates lose precise clause provenance
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidates
+`requirement-candidate-sections-semantic-clause-4c-page-076-l52-2` (fixed
+record Field Type) and
+`requirement-candidate-sections-semantic-clause-4c-page-077-l78-7` (variant
+record Alternative Type) both export `clause` / `clause_id` as `4` /
+`clause-4`. Their source statements are specific, and the Lab's canonical
+source navigation identifies the surrounding headings as `4.14.7 Fixed record
+data type table` (page 75) and `4.14.8 Variant record data type table` (page
+76), respectively. The candidate provenance therefore loses the precise
+subclause even though the source content retains it.
+
+**Umbra impact:** Umbra may use the immutable candidate IDs for bounded private
+source/test contracts, but must retain the exporter-provided `clause-4` in the
+machine-checked contract rather than inventing `clause-4.14.7` or
+`clause-4.14.8`. Local design text can cite the verified source headings as
+context. This is traceability only, not a conformance result.
+
+**Possible Lab refinement:** extend the clause-context reconstruction used for
+the `4.14.10.5` cases in RL-044 to these table-column candidates, or export a
+separate `source_subclause` field. Preserve the immutable candidate IDs and
+their extraction history so consumers can distinguish an export provenance
+fix from a change in normative source text.
+
+### RL-048 — Dimension-table input candidates lose precise clause provenance
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidates
+`requirement-candidate-sections-semantic-clause-4b-page-056-l10-2` (Input data
+type) and `requirement-candidate-sections-semantic-clause-4b-page-056-l14-3`
+(Input data type description) both export `clause` / `clause_id` as `4` /
+`clause-4`. The Lab's canonical source navigation identifies their surrounding
+heading as `4.7.2 Table format` on page 55. The candidate statements therefore
+remain precise, but their exported provenance loses the Dimension-table
+subclause.
+
+**Umbra impact:** Umbra binds the immutable Input data type candidate to a
+bounded private category check, NA-exclusivity predicate, and separate
+no-named-input description predicate, while retaining exporter-provided
+`clause-4` in each machine-checked contract. The DIF `inputDataTypes` sequence
+maps the latter directly: an empty sequence (or retained explicit `NA` marker)
+requires non-`NA` description text, while an explicit `NA` marker cannot be
+mixed with a named type. Umbra does not infer whether a suitable type exists,
+whether the text is unambiguous, a cardinality or duplicate-name rule, or a
+blanket description rule for named types. This is traceability only, not a
+conformance result.
+
+**Possible Lab refinement:** reconstruct the nearest table-format heading for
+these candidates or add a `source_subclause` field while preserving candidate
+IDs and extraction history. That would permit consumers to distinguish the
+specific `4.7.2` context from generic Clause 4 content without changing the
+normative text.
+
+### RL-049 — Variant discriminant-enumerator semantic candidate loses precise clause provenance
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidate
+`requirement-candidate-sections-semantic-clause-4c-page-077-l70-5` exports
+`clause` / `clause_id` as `4` / `clause-4`. Its source statement
+contains the substantive variant-record Discriminant Enumerator rules:
+membership in the named enumerated data type, bracketed range meaning, and
+non-extendable `HLAother` semantics. The Lab's canonical source navigation
+identifies the surrounding heading as `4.14.8 Variant record data type table`
+on page 76. The semantic candidate is precise, but its exported provenance
+loses that subclause.
+
+**Umbra impact:** Umbra uses the exact verification-table candidates for the
+completed lexical slice and binds the source candidate to bounded membership
+and declaration-order range-semantics checks. Its machine-checked contracts
+retain the exporter-provided `clause-4` rather than inventing
+`clause-4.14.8`. This observation does not turn any private preflight check
+into a conformance claim.
+
+**Possible Lab refinement:** apply the same nearest table-format heading
+reconstruction proposed in RL-047, or export a dedicated
+`source_subclause` field for these variant-record semantic candidates while
+preserving their immutable IDs and extraction history.
+
+### RL-050 — Annex C.3 continuation loses its inherited subclause provenance
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidate
+`requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l90-20`
+correctly exports `clause-C.3`, while its sentence continuation,
+`requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1`,
+exports `clause` / `clause_id` as `7` / `clause-7`. The Lab's reconstructed
+page-110 content identifies the surrounding heading as `C.3 Merging data
+types`; page 111 begins with the unfinished statement before the next `C.4`
+heading. The continuation therefore loses the inherited Annex C.3 context
+across the physical page break.
+
+**Umbra impact:** Umbra uses the exact continuation candidate for the bounded
+direct/range-overlap preflight but retains the exporter-provided `clause-7` in
+its machine-checked contract. Local design text may identify the visible
+Annex C.3 context, but must not substitute an invented `clause-C.3` into the
+immutable candidate trace. This is traceability only, not a conformance
+result.
+
+**Possible Lab refinement:** carry the most recent Annex subclause heading
+across a page break when the following page begins with a sentence fragment,
+or export a separate inherited-heading field. Preserve the existing candidate
+IDs and extraction history so consumers can distinguish provenance repair from
+a normative-source change.
+
+### RL-051 — Attribute-`NA` available-dimensions condition has no per-attribute DIF representation
+
+**Status:** verified source/schema representation gap; possible Lab refinement,
+not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidate
+`requirement-candidate-sections-semantic-clause-4b-page-048-l109-5` says that
+when an attribute data type is `NA`, its update type, update condition, and
+available dimensions shall also be `NA`. The official 2025 DIF schema's
+`attributeType` sequence includes no `dimensions` member: it has `name`,
+`dataType`, `updateType`, `updateCondition`, `valueRequired`, `ownership`,
+`sharing`, `transportation`, `order`, and `semantics`. The DIF schema instead
+places `dimensions` on `objectClassType`, where it is shared by the class and
+cannot be mechanically attributed to one of several attributes.
+
+**Umbra impact:** Umbra's bounded companion predicate enforces only the direct
+representable fields. Its contract explicitly scopes out the available-
+dimensions phrase rather than inventing a class-level prohibition that could
+reject an unrelated attribute. A partial DIF row remains usable until a later
+module completes it; no local result is a conformance claim.
+
+**Possible Lab refinement:** add a source/schema representation crosswalk or
+non-mappable-column annotation for table prose whose corresponding DIF field is
+not scoped to the same table row. That would clarify implementation boundaries
+without changing the immutable candidate or treating the gap as a standards
+defect.
+
+### RL-052 — Attribute Value Required candidate loses its Table 10 provenance
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidate
+`requirement-candidate-sections-semantic-clause-4b-page-049-l58-6` exports
+`clause` / `clause_id` as `4` / `clause-4`. Its statement supplies the
+Value Required condition for an attribute that is neither published nor
+subscribed. The immediately preceding Attribute Table candidate,
+`requirement-candidate-sections-semantic-clause-4b-page-048-l93-1`, retains
+the `clause-4.5.2` Table 10 context. The precise table context is therefore
+visible in the source sequence but lost from this candidate's exported
+provenance.
+
+**Umbra impact:** Umbra uses the immutable candidate for a bounded private
+`sharing=Neither` / `valueRequired=false` predicate, while retaining the
+exporter-provided `clause-4` in its machine-checked contract. Local design text
+may identify the verified Table 10 context but must not substitute an invented
+`clause-4.5.2` in the contract. This is traceability only, not a conformance
+result.
+
+**Possible Lab refinement:** carry the active table/subclause context across
+the page break into the continuation candidates, or export a separate
+`source_subclause` field while preserving immutable IDs and extraction history.
+That would distinguish a provenance repair from a change to normative text.
+
+### RL-053 — Predefined-representation and data-type table wire forms have no individual candidate records
+
+**Status:** verified source-candidate coverage boundary; possible Lab
+refinement, not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+4f012fb1c21367cfde67aab8498ae00e2a64c615, the canonical 1516.2 source
+reconstruction at content-block-content-15162-page-069.tex and
+...page-070.tex preserves Table 29 cells for the 16-bit big-/little-endian
+integer, unsigned-integer, IEEE-754 floating-point, octet-pair, and octet
+basic representations. The
+reconstruction visibly supplies their bit widths, interpretation, endian, and
+encoding fields; Table 43 at ...page-080.tex supplies their octet boundary
+value. Table 32 at ...page-071.tex maps `HLAASCIIchar`, `HLAbyte`, and
+`HLAunicodeChar` to `HLAoctet`/`HLAoctetPairBE`, and Table 35 at
+...page-074.tex maps `HLAASCIIstring` and `HLAunicodeString` to dynamic
+`HLAvariableArray` forms of their corresponding character types.
+requirements.json has no immutable helper candidate mentioning
+HLAinteger16BE, HLAinteger16LE, HLAunsignedInteger16BE,
+HLAunsignedInteger16LE, HLAoctetPairBE, HLAoctetPairLE, HLAinteger32LE, or
+HLAunsignedInteger32LE, HLAinteger64BE, HLAinteger64LE,
+HLAunsignedInteger64BE, HLAunsignedInteger64LE, HLAoctet, HLAASCIIchar,
+HLAbyte, HLAASCIIstring, HLAopaqueData, HLAfloat32BE, HLAfloat32LE,
+HLAfloat64BE, HLAfloat64LE, or HLAunicodeChar. The Lab does export broad FOM-table candidates
+that require some of these predefined types to appear in MIM/FOM/SOM tables,
+but those do not establish individual C++ helper wire behavior. The closest
+machine-checkable C++ candidate is the general §12.12.4.2 statement that all
+encoding helpers support encode/decode.
+
+**Umbra impact:** Umbra binds its bounded C++ helper implementation to that
+general 1516.1 candidate and records the independently inspected Table
+29/32/35/43 details in the contract notes and Catch2 byte vectors. It does not
+represent
+the generic helper candidate as a substitute for a missing per-row wire-format
+candidate, and it makes no interoperability or conformance claim.
+
+**Possible Lab refinement:** export stable table/cell records or derived
+requirements for normative predefined-representation and predefined-data-type
+rows, retaining the source table, row, and column identifiers. This would let
+consumers trace wire-format vectors directly without changing the existing
+generic C++ helper candidate.
+
+### RL-054 — Constructed-data encoder candidates lose exact subclause provenance and equation-level coverage
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+4f012fb1c21367cfde67aab8498ae00e2a64c615, immutable candidates
+`requirement-candidate-sections-semantic-clause-4c-page-080-l69-6`,
+`requirement-candidate-sections-semantic-clause-4c-page-080-l73-7`, and
+`requirement-candidate-sections-semantic-clause-4c-page-081-l36-2` for
+HLAfixedRecord, plus
+`requirement-candidate-sections-semantic-clause-4c-page-083-l92-16` and
+`requirement-candidate-sections-semantic-clause-4c-page-084-l71-5` for
+HLAfixedArray, plus
+`requirement-candidate-sections-semantic-clause-4c-page-081-l68-9`,
+`requirement-candidate-sections-semantic-clause-4c-page-081-l72-10`,
+`requirement-candidate-sections-semantic-clause-4c-page-081-l76-11`, and
+`requirement-candidate-sections-semantic-clause-4c-page-082-l47-3` for
+HLAvariantRecord, plus
+`requirement-candidate-sections-semantic-clause-4c-page-082-l75-10`,
+`requirement-candidate-sections-semantic-clause-4c-page-082-l79-11`,
+`requirement-candidate-sections-semantic-clause-4c-page-083-l40-3`,
+`requirement-candidate-sections-semantic-clause-4c-page-083-l44-4`, and
+`requirement-candidate-sections-semantic-clause-4c-page-083-l64-9` for
+HLAextendableVariantRecord, all export `clause`/`clause_id` as
+`4`/`clause-4`. The canonical reconstructed source at
+content-block-content-15162-page-080.tex instead places the fixed-record
+requirements under §4.14.10.1, pages 083 and 084 place the fixed-array
+requirements under §4.14.10.4, pages 081 and 082 place the variant-record
+requirements under §4.14.10.2, and pages 082 and 083 place the extendable
+variant-record requirements under §4.14.10.3. The fixed-array Equation (5),
+the variant-record Equation (2) and its `Size`/`V` definitions, the
+extendable-variant Equations (3)/(4) and their `Size`/`V` definitions, and the
+universal zero-padding statement are present in the reconstructed source but
+have no individual immutable candidate. The closest exported alignment
+candidate for the fixed array is the more general §4.14.10 record
+`requirement-candidate-sections-semantic-clause-4c-page-079-l77-9`. The
+extracted normative text is useful and the immutable candidate IDs remain
+valid; the exported metadata is too broad to preserve every source-level
+subclause and equation.
+
+**Umbra impact:** the fixed-record, fixed-array, variant-record, and
+extendable-variant-record contracts retain the immutable IDs and their exported
+attribution. They record the directly inspected §4.14.10.1, §4.14.10.4,
+§4.14.10.2, and §4.14.10.3 source locations and the relevant equation details
+in notes, rather than inventing a narrower `clause_id` or individual equation
+candidate that the Lab did not export. This is provenance hygiene, not a claim
+that Umbra has completed conformance evidence.
+
+**Possible Lab refinement:** preserve a `source_subclause` (or equivalent)
+field for section-derived candidate records and export stable paragraph/equation
+records for normative constructed-data layout prose, while retaining existing
+immutable IDs and extraction history. That would distinguish §4.14.10.1,
+§4.14.10.2, §4.14.10.3, and §4.14.10.4 from the broad Clause 4 container
+without changing the existing candidate text.
+
+### RL-055 — Logical-time candidates point to Annex/§12.4 metadata instead of the §12.3 source
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidates
+`requirement-candidate-content-clauses-11-management-object-model-page-354-l129-42`,
+`requirement-candidate-content-clauses-11-management-object-model-page-354-l183-60`,
+and
+`requirement-candidate-content-clauses-11-management-object-model-page-354-l207-68`
+all export `clause_id` as `clause-12.4` and titles rooted at
+`content/clauses/annexes-page-439.tex`. Their canonical reconstructed source,
+`content-block-content-15161-page-354.tex`, instead has the §12.3 heading
+“Logical time, timestamps, and lookahead” and contains the compact opaque
+encode/decode and factory initial/zero statements. The next heading on that
+page begins §12.4 only after those statements. The immutable IDs and extracted
+normative text remain useful, but the exported location and clause metadata do
+not preserve their source context.
+
+**Umbra impact:**
+`logical-time-encoding-requirements-contract.json` retains those immutable IDs
+and their exported `clause-12.4` values because the checker correctly detects
+metadata drift. Its notes and design documentation identify the directly
+inspected §12.3 source instead. This is source/test traceability only, not a
+claim that the Lab has supplied complete validation or conformance evidence.
+
+**Possible Lab refinement:** retain a source-page/subclause field for the
+logical-time candidate records or correct the exported source path and clause
+while preserving immutable IDs and extraction history. That would distinguish
+the §12.3 abstract-interface behavior from the following §12.4 standardized
+time-type table without rewriting historical candidate content.
+
+### RL-056 — Authorization candidates retain Annex/§12.8 metadata across the §§12.5-12.6 source
+
+**Status:** verified export-provenance drift; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, immutable candidate
+`requirement-candidate-content-clauses-11-management-object-model-page-357-l100-32`
+for the `HLAplainTextPassword` constructor and
+`requirement-candidate-content-clauses-11-management-object-model-page-357-l67-21`
+for the disabled-authorization credential result both export `clause_id` as
+`clause-12.8` and titles rooted at
+`content/clauses/annexes-page-439.tex`. The canonical reconstructed source at
+`content-block-content-15161-page-356.tex` begins §12.5 “Authorization,” and
+`content-block-content-15161-page-357.tex` places the selected rules under
+§12.6 “Predefined authorization service” before the later Connect and
+concurrency headings. The nearby §12.5 no-credentials candidates retain
+`clause-12.5`, but also retain the same Annex-rooted title. The immutable IDs
+and extracted normative text remain useful; their exported source location and
+§12.8 attribution do not preserve the applicable source context.
+
+**Umbra impact:**
+`authorization-requirements-contract.json` preserves the immutable IDs and
+exported clause values so the checker can detect a future correction. Its
+notes and `AUTHORIZATION-DESIGN.md` cite the directly inspected §§12.5-12.6
+source. This is source/test traceability only, not a claim that the Lab has
+supplied complete authorization validation or conformance evidence.
+
+**Possible Lab refinement:** preserve a source-page/subclause field for the
+authorization candidates or correct the exported source path and active
+subclause while retaining immutable IDs and extraction history. That would
+separate §12.5's credential-envelope rule from §12.6's reference-authorizer
+requirements and the later §12.8 concurrency material.
+
+### RL-057 — Authorization-library prose and official C++ header use different factory-method spellings
+
+**Status:** verified source/header discrepancy; possible Lab refinement, not a
+binding defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the reconstructed authorization-
+library prose on `content-block-content-15161-page-379.tex` describes the
+static member function
+`AuthorizerFactoryFactory::getAuthorizationFactory(std::wstring const &
+authorizerName)`. Its related immutable candidates include
+`requirement-candidate-content-clauses-11-management-object-model-page-379-l8-1`,
+`requirement-candidate-content-clauses-11-management-object-model-page-379-l44-13`,
+and
+`requirement-candidate-content-clauses-11-management-object-model-page-379-l59-18`.
+The unmodified official 2025 headers vendored for the C++ binding instead
+declare `getAuthorizerFactory` in both
+`RTI/auth/HLAauthorizerFactoryFactory.h` and
+`RTI/libauth/AuthorizerFactoryFactory.h`. The latter spelling is also what the
+headers' comments prescribe for forwarding.
+
+**Umbra impact:**
+`ieee1516_2025_authorizer.cpp` follows the actual official C++ declaration
+`AuthorizerFactoryFactory::getAuthorizerFactory`, and the authorization
+traceability contract cites the immutable forwarding candidate only as a
+source/test link. Umbra does not silently add a second, non-header method or
+treat the reconstructed prose spelling as a source of public API truth.
+
+**Possible Lab refinement:** retain the reconstructed source text verbatim but
+add an explicit header-API crosswalk or discrepancy annotation to these
+authorization-library candidates. That would make the spelling conflict
+visible to consumers without mutating immutable candidate content or implying
+that the Lab itself owns the official C++ header correction.
+
+### RL-058 — RID-backed authorization configuration has no public C++ binding surface
+
+**Status:** verified source/binding boundary; possible Lab inventory refinement,
+not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the canonical reconstructed
+1516.1 source defines RID as RTI vendor-specific information needed to run an
+RTI, supplied when required at RTI initialization
+(`content-block-content-15161-page-019.tex:56-57` and
+`content-block-content-15161-page-032.tex:65-66`).  The authorization source
+then requires both the choice to perform authorization and the selected
+authorization service to be configured through that RID
+(`content-block-content-15161-page-357.tex:55-58`).  The vendored official
+2025 C++ `RTIambassadorFactory` exposes only a no-argument
+`createRTIambassador()`, while `RtiConfiguration` is a Connect-time value with
+only configuration name, RTI address, and opaque additional-settings fields.
+The `RTI/libauth/AuthorizerFactoryFactory.h` comment likewise says its factory
+name comes from Runtime Initialization Data, but declares no RID reader or
+configuration representation.  The Lab export has useful authorization
+candidates, but no distinct C++ API surface or configuration model for that
+vendor-specific initialization step.
+
+**Umbra impact:** Umbra keeps `ReferenceAuthorizerConfiguration` private and
+test-only.  It deliberately does not define a plaintext-password convention in
+`RtiConfiguration::additionalSettings`, which is an opaque Connect-time field
+and is captured by the existing service-report initial-record model.  The
+embedded runtime remains an unconfigured authorization profile until a secure
+RID-backed initialization design establishes secret handling, selection,
+lifecycle, and failure behavior.  This observation supports a conservative
+boundary; it neither says that RID must be public C++ API nor creates a local
+RID syntax.
+
+**Possible Lab refinement:** add an edition-labelled resource/API inventory
+entry for vendor-specific RID configuration boundaries, explicitly marking the
+absence of a standard C++ configuration representation where applicable.  That
+would help consumers distinguish a deliberately implementation-dependent
+initialization concern from an omitted ordinary C++ service mapping, without
+inventing an API or changing immutable authorization candidates.
+
+### RL-059 — The Lab lacks a general authority and reconciliation policy for conflicting artifacts
+
+**Status:** verified cross-artifact reconciliation boundary; possible Lab
+design refinement, not a standards defect or conformance finding.
+
+The recent observations show a recurring pattern across different artifact
+types: reconstructed source prose, semantic tables, the official MIM, DIF/XSD
+schemas, supplied 2025 examples, and unmodified C++ headers can expose
+different values, shapes, spellings, or levels of detail for what appears to
+be the same fact. RL-041 records the Table 8 Static/Conditional difference;
+RL-042 records the Table 5 log-only return-shape ambiguity; RL-046 records the
+Static/`On change` example tension; and RL-057 records a reconstructed prose
+method spelling that differs from the official header.
+
+The Lab preserves these artifacts and provides useful source identifiers, but
+the portable contract does not yet provide one general reconciliation record
+that says which artifact is authoritative for which question, whether the
+difference is extraction drift, a schema limitation, an example deviation, an
+API/header discrepancy, or an unresolved standards interpretation.
+
+**Umbra impact:** each affected contract must manually preserve the competing
+values, select a deliberately bounded local interpretation or defer the rule,
+and explain why the result is not conformance evidence. Without a common
+reconciliation model, two future consumers could make different decisions
+from the same Lab export while both believing they had followed the available
+traceability data.
+
+**Possible Lab refinement:** add an edition- and artifact-labelled conflict
+record containing the shared semantic subject, each observed artifact/value,
+field or source location, relationship type, proposed precedence, review
+status, and permitted consumer action. At minimum, distinguish extraction
+error, source contradiction, schema representation limit, official-example
+deviation, header/API mismatch, and unresolved interpretation. The checker
+should require an explicit reviewed selection or a blocked/deferred status; it
+should never silently choose an artifact merely because it is easier to map.
+
+### RL-060 — Connection-loss automatic-resign candidate is split before its semantic object
+
+**Status:** verified source-extraction granularity limitation; possible Lab
+candidate-reconstruction refinement, not a standards defect or conformance
+finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the reconstructed 1516.1 source
+at `content-block-content-15161-page-050.tex:36-41` says that, after reporting
+lost federates, the RTI shall perform a resign on behalf of each lost federate
+using that federate's Automatic Resign Directive. The export retains
+`requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`,
+but its statement ends after “the RTI shall then”; the next continuation lines
+that identify the resignation and directive do not form part of that candidate.
+The candidate is therefore a useful source locator, but not a self-contained
+machine-readable requirement for the automatic-resign behavior.
+
+The same continuation contains two additional obligations that should not be
+lost behind the resignation sentence: federation-wide synchronized operations
+with the remaining joined federates shall continue as if the lost federates
+had resigned, and MOM data and advisories shall be updated to reflect the new
+state. The reviewed export does not expose either continuation as its own
+immutable candidate-level obligation. This means the Lab loses not only the
+Automatic Resign Directive's semantic object, but also two observable
+postconditions of the same loss-of-connection event.
+
+**Umbra impact:** the embedded connection-loss contract cites that immutable
+candidate only as the closest source anchor, explicitly records the truncation
+in its contract notes, and adds bounded Catch2 evidence for configured
+`DELETE_OBJECTS` and `UNCONDITIONALLY_DIVEST_ATTRIBUTES` paths. The generic
+Connection Lost requirements remain the selected lifecycle/callback evidence;
+Umbra does not overstate the split candidate as a complete semantic assertion
+or conformance proof.
+
+**Possible Lab refinement:** coalesce adjacent source fragments when a
+normative verb's semantic object continues across a layout line boundary, or
+publish a stable parent/continuation relation so consumers can reconstruct the
+complete sentence without guessing. Preserve the current immutable candidate
+ID and text, but expose the continuation relationship and a reviewable
+combined semantic statement.
+
+### RL-061 — Joined-federate guard and cross-machine semantics are hidden in unlinked prose
+
+**Status:** verified export-shape/state-machine semantic gap; possible Lab
+refinement, not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, semantic content element
+`content-element-content-15161-page-041-paragraph-001` points to
+`content/clauses/04-federation-management-page-041.tex:1-68` and has
+`record_ids: []`. The paragraph is more than figure context. It explains
+that guards enable transitions when their assertions become true, that a
+guard-only transition occurs immediately when its guard is true, and that the
+two parallel joined-federate state machines impose cross-machine constraints.
+It includes the `if and only if` relationship between `Active` and `Normal
+Activity Permitted`, the corresponding `Normal Activity Not Permitted`
+states, and the rule that an `Active` federate will not receive `Initiate
+Federate Save` unless it is `Not Constrained` or `Time Advancing`.
+
+These are operational guard semantics, automatic-transition behavior, and
+cross-machine invariants. They are exactly the sort of state-machine logic
+that a consumer needs in order to derive edge cases, but they are not emitted
+as linked guard, invariant, or transition-obligation records.
+
+**Umbra impact:** the implementation and tests must rediscover these rules
+from raw source and stateful behavior. A state-machine transition can be
+linked while its guard truth conditions, automatic execution rule, or
+cross-machine invariant remains absent from the traceability surface. This
+makes transition coverage look stronger than behavioral coverage and makes it
+easy for a future consumer to mark a path compliant without testing the
+conditions that actually govern whether the path is legal.
+
+**Possible Lab refinement:** split this explanatory prose into stable typed
+records for (1) guard semantics, (2) guard-only automatic transitions, (3)
+each `if and only if` invariant, and (4) the cross-machine save-delivery
+constraint. Link each record to the relevant state-machine and transition
+IDs, preserve the paragraph as source context, and generate trace seeds for
+true, false, and boundary cases. The Lab should make the invariant explicit
+even when the source presents it in prose around a figure.
+
+### RL-062 — Generic exception precedence is hidden in service-description prose
+
+**Status:** verified export-shape gap; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, semantic content element
+`content-element-content-15161-page-020-paragraph-001` points to
+`content-block-content-15161-page-020.tex:15-23` and has `record_ids: []`.
+The source defines the generic service-description fields and then states a
+cross-cutting rule: exceptions are listed in increasing precedence, and when
+more than one exception condition is met simultaneously, the RTI shall throw
+the exception appearing later in that list. The reviewed requirements export
+has no candidate for this page-level rule.
+
+This is not merely documentation of the table layout. It determines the
+observable result when multiple service preconditions fail at once, and it
+applies across service families. A consumer that extracts individual
+exception rows but misses this sentence cannot derive the pairwise collision
+behavior or know which error wins.
+
+**Umbra impact:** local service contracts can name the expected exceptions,
+but they must separately preserve the source-level precedence rule and write
+collision tests. A green test for each exception in isolation does not prove
+the ordering rule.
+
+**Possible Lab refinement:** emit a stable cross-cutting exception-precedence
+record, link it to the affected service and exception records, and generate
+pairwise precedence obligations where multiple exception conditions can be
+true. If two conditions are mutually exclusive, that should be represented
+explicitly rather than inferred from the absence of a test.
+
+### RL-063 — Object-instance state completeness is an unlinked global invariant
+
+**Status:** verified export-shape gap; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, semantic content element
+`content-element-content-15161-page-017-paragraph-009` points to
+`content-block-content-15161-page-017.tex:64-68` and has `record_ids: []`.
+The paragraph states that, from the federation perspective, the set of all
+attribute values for an object instance shall completely define that
+instance's state. It also draws the boundary that a federate may keep
+additional non-communicated state, but that state is outside the HLA FOM.
+Neither the completeness invariant nor that boundary is represented as a
+requirement candidate.
+
+This sentence is a global state invariant, not background prose. It affects
+how a consumer interprets partial updates, missing attributes, object
+discovery, persistence, and the distinction between federated state and
+application-private state.
+
+**Umbra impact:** object-management tests naturally exercise individual
+attribute delivery and ownership paths, but the Lab gives no explicit
+obligation for the aggregate-state invariant or its out-of-band-state
+boundary. A future implementation can appear to cover all update services
+while still lacking a reviewable statement of what constitutes the complete
+federated object state.
+
+**Possible Lab refinement:** emit the sentence as a typed cross-cutting
+object-state invariant, link it to object-instance and attribute records, and
+derive checks for complete, partial, and privately retained state. Preserve
+the source distinction so local application state is not accidentally treated
+as an HLA-synchronized attribute.
+
+### RL-064 — Definition records can be present but empty or behaviorally truncated
+
+**Status:** verified semantic-publication gap; possible Lab validation and
+extraction refinement, not a standards defect.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, several generated definition
+surfaces are structurally present but semantically unusable. The bodies of
+`definition-available-dimensions.tex`, `definition-inherited-dimension.tex`,
+`definition-known-class.tex`, `definition-overlap.tex`,
+`definition-published.tex`, `definition-subscribed.tex`,
+`definition-used-for-sending.tex`,
+`definition-used-for-subscription-of-a-class-attribute.tex`,
+`definition-used-for-subscription-of-an-interaction-class.tex`, and
+`definition-used-for-update.tex` contain only the generated `%` placeholder.
+The corresponding source definitions are present in content elements such as
+`content-element-content-15161-page-022-paragraph-012`,
+its continuation `content-element-content-15161-page-022-paragraph-013`,
+`content-element-content-15161-page-029-note-008`,
+`content-element-content-15161-page-033-note-002`, and
+`content-element-content-15161-page-036-note-002`.
+
+The time-advancing definition shows a second form of the problem:
+`definition-time-advancing-state.tex` stops after the list introduction,
+while source element `content-element-content-15161-page-034-note-002`, from
+`content-block-content-15161-page-034.tex:61-77`, continues with the allowed
+services and the rule that time does not actually advance until a Time
+Advance Grant or Flush Queue Grant is received. A definition link therefore
+exists, but its published text does not carry the full semantic object.
+
+These are not all requirement candidates by themselves. They are definitions
+and predicates on which requirements depend. The problem is that a consumer
+cannot tell whether an empty body means “definition intentionally omitted,”
+“definition available elsewhere,” or “publication failed,” and a truncated
+definition can silently remove the edge condition that gives it operational
+meaning.
+
+**Umbra impact:** service contracts must fall back to raw source and local
+interpretation for basic terms such as overlap, known class, subscription,
+and time advancement. That increases the chance that two consumers derive
+different predicates from the same standard and that tests cover the service
+name but not the definition's boundary conditions.
+
+**Possible Lab refinement:** fail publication or mark the record incomplete
+when a definition body is empty or ends at a continuation marker such as a
+colon. Preserve list children, continuation spans, and source links in the
+definition record; distinguish a complete definition, an intentionally
+external definition, and an extraction failure. Requirement consumers should
+be able to query which obligations depend on an incomplete definition.
 
 ## Recording rules
 

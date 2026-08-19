@@ -2,6 +2,10 @@
 #include <catch2/catch_approx.hpp>
 
 #include "internal/embedded_transport.hpp"
+#include "internal/mom_service_report_encoding.hpp"
+#include "internal/service_report_store.hpp"
+#include "internal/umbra_rti_ambassador.hpp"
+#include "internal/utf8_string.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -10,8 +14,10 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -19,10 +25,13 @@
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
+#include <RTI/encoding/BasicDataElements.h>
 #include <RTI/time/HLAfloat64Interval.h>
 #include <RTI/time/HLAfloat64Time.h>
 #include <RTI/time/HLAinteger64Interval.h>
 #include <RTI/time/HLAinteger64Time.h>
+
+#include <umbra/embedded_profile_configuration.hpp>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
 #error "The embedded federation-management tests require the Umbra source directory."
@@ -57,6 +66,7 @@ using rti1516_2025::RangeBounds;
 using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::ResignAction;
+using rti1516_2025::RtiConfiguration;
 using rti1516_2025::RestoreFailureReason;
 using rti1516_2025::SaveFailureReason;
 using rti1516_2025::SaveStatus;
@@ -318,6 +328,10 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
   struct MultipleObjectInstanceNameReservationReport {
     std::set<std::wstring> objectInstanceNames;
   };
+
+  void connectionLost(std::wstring const& faultDescription) override {
+    faultDescriptions.push_back(faultDescription);
+  }
 
   void reportFederationExecutions(
       rti1516_2025::FederationExecutionInformationVector const& report) override {
@@ -883,6 +897,7 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
   std::vector<rti1516_2025::FederationExecutionInformationVector> federationExecutionReports;
   std::vector<MemberReport> federationExecutionMemberReports;
   std::vector<std::wstring> missingFederationReports;
+  std::vector<std::wstring> faultDescriptions;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
   std::vector<FlushQueueGrantReport> flushQueueGrantReports;
   std::vector<SynchronizationPointRegistrationReport>
@@ -984,6 +999,26 @@ class ScopedTemporaryFile final {
   std::filesystem::path path_;
 };
 
+class ScopedTemporaryDirectory final {
+ public:
+  explicit ScopedTemporaryDirectory(std::filesystem::path path) : path_(std::move(path)) {}
+
+  ScopedTemporaryDirectory(ScopedTemporaryDirectory const&) = delete;
+  ScopedTemporaryDirectory& operator=(ScopedTemporaryDirectory const&) = delete;
+
+  ~ScopedTemporaryDirectory() {
+    std::error_code ignored;
+    std::filesystem::remove_all(path_, ignored);
+  }
+
+  [[nodiscard]] std::filesystem::path const& path() const noexcept {
+    return path_;
+  }
+
+ private:
+  std::filesystem::path path_;
+};
+
 ScopedTemporaryFile nrgEnabledRestaurantModule() {
   static std::atomic_uint64_t counter{0};
   std::ifstream input(resourcePath("examples/RestaurantFOMmodule-2025.xml"), std::ios::binary);
@@ -1012,12 +1047,88 @@ std::wstring nextFederationName() {
   return L"umbra-catch2-federation-" + std::to_wstring(++counter);
 }
 
+ScopedTemporaryDirectory temporaryServiceReportDirectory() {
+  static std::atomic_uint64_t counter{0};
+  return ScopedTemporaryDirectory(
+      std::filesystem::temp_directory_path() /
+      ("umbra-service-report-lifecycle-" + std::to_string(++counter)));
+}
+
+[[nodiscard]] RtiConfiguration configurationForServiceReportDirectory(
+    std::filesystem::path const& directory) {
+  return umbra::embedded::makeEmbeddedRtiConfiguration(
+      umbra::embedded::ServiceReportConfiguration{directory});
+}
+
+class FailingServiceReportStore final : public umbra::detail::ServiceReportStore {
+ public:
+  [[nodiscard]] std::unique_ptr<umbra::detail::ServiceReportWriter> createForJoinedFederate(
+      umbra::detail::JoinedFederateReportDescriptor const& descriptor) override {
+    static_cast<void>(descriptor);
+    ++createCalls;
+    throw std::runtime_error("intentional service-report store failure");
+  }
+
+  std::size_t createCalls = 0U;
+};
+
+std::vector<std::filesystem::path> serviceReportFiles(
+    std::filesystem::path const& directory) {
+  std::vector<std::filesystem::path> files;
+  for (auto const& entry : std::filesystem::directory_iterator(directory)) {
+    if (entry.is_regular_file()) {
+      files.push_back(entry.path());
+    }
+  }
+  std::sort(files.begin(), files.end());
+  return files;
+}
+
+std::string readTextFile(std::filesystem::path const& path) {
+  std::ifstream input(path, std::ios::binary);
+  REQUIRE(input.good());
+  return {
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+}
+
 std::vector<unsigned char> variableLengthDataBytes(VariableLengthData const& value) {
   auto const* bytes = static_cast<unsigned char const*>(value.data());
   if (bytes == nullptr) {
     return {};
   }
   return {bytes, bytes + value.size()};
+}
+
+std::optional<std::vector<std::wstring>> decodeHlaUnicodeStringList(
+    VariableLengthData const& encoded) {
+  try {
+    auto const rawBytes = variableLengthDataBytes(encoded);
+    std::vector<rti1516_2025::Octet> bytes(rawBytes.begin(), rawBytes.end());
+    rti1516_2025::HLAinteger32BE count;
+    auto index = count.decodeFrom(bytes, 0U);
+    auto const elementCount = count.get();
+    if (elementCount < 0) {
+      return std::nullopt;
+    }
+    std::vector<std::wstring> result;
+    result.reserve(static_cast<std::size_t>(elementCount));
+    for (rti1516_2025::Integer32 element = 0; element < elementCount; ++element) {
+      auto const remainder = index % 4U;
+      if (remainder != 0U) {
+        index += 4U - remainder;
+      }
+      rti1516_2025::HLAunicodeString designator;
+      index = designator.decodeFrom(bytes, index);
+      result.push_back(designator.get());
+    }
+    if (index != bytes.size()) {
+      return std::nullopt;
+    }
+    return result;
+  } catch (rti1516_2025::EncoderException const&) {
+    return std::nullopt;
+  }
 }
 
 }  // namespace
@@ -1846,6 +1957,453 @@ TEST_CASE(
   REQUIRE_NOTHROW(lost->disconnect());
   REQUIRE_NOTHROW(surviving->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(surviving->disconnect());
+}
+
+TEST_CASE(
+    "Embedded transport loss applies the configured automatic unconditional-divest directive",
+    "[integration][development-profile][federation-management][transport]"
+    "[ownership-management][rti.service.connection-lost]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[federate.callback.connection-lost]"
+    "[federate.callback.request-attribute-ownership-assumption]") {
+  FederationEventFederateAmbassador lostReports;
+  ReportingFederateAmbassador survivingReports;
+  auto lost = makeRti();
+  auto surviving = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(surviving->connect(survivingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(lost->joinFederationExecution(
+      L"automatic-divest-lost",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(surviving->joinFederationExecution(
+      L"automatic-divest-survivor",
+      L"subscriber",
+      federationName));
+
+  auto const server = lost->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = lost->getAttributeHandle(server, L"Efficiency");
+  auto const privilegeToDelete = lost->getAttributeHandle(
+      server,
+      L"HLAprivilegeToDeleteObject");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  AttributeHandleSet const expectedAssumption{efficiency, privilegeToDelete};
+  REQUIRE_NOTHROW(lost->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(surviving->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(surviving->publishObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = lost->registerObjectInstance(server));
+  auto const objectInstanceName = lost->getObjectInstanceName(objectInstance);
+  REQUIRE_FALSE(surviving->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(survivingReports.objectDiscoveryReports.size() == 1);
+
+  // IEEE 1516.1-2025 §4.1.5 requires loss cleanup to use the member's
+  // Automatic Resign Directive. Unlike the delete branch above, directive 1
+  // retains the object while unconditionally divesting its owned attributes.
+  REQUIRE_NOTHROW(lost->setAutomaticResignDirective(
+      rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+  REQUIRE(
+      lost->getAutomaticResignDirective() ==
+      rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+
+  REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost,
+      L"automatic unconditional-divest transport fault"));
+  REQUIRE(lostReports.faultDescriptions.empty());
+  REQUIRE(survivingReports.attributeOwnershipAssumptionReports.empty());
+  REQUIRE(survivingReports.objectRemovalReports.empty());
+
+  REQUIRE_FALSE(lost->evokeCallback(0.0));
+  REQUIRE(lostReports.faultDescriptions == std::vector<std::wstring>{
+      L"automatic unconditional-divest transport fault"});
+  REQUIRE_FALSE(surviving->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(survivingReports.attributeOwnershipAssumptionReports.size() == 1);
+  auto const& assumption = survivingReports.attributeOwnershipAssumptionReports.front();
+  REQUIRE(assumption.objectInstance == objectInstance);
+  REQUIRE(assumption.attributes == expectedAssumption);
+  REQUIRE(survivingReports.objectRemovalReports.empty());
+  REQUIRE(surviving->getObjectInstanceHandle(objectInstanceName) == objectInstance);
+
+  REQUIRE_NOTHROW(surviving->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->disconnect());
+  REQUIRE_NOTHROW(surviving->disconnect());
+}
+
+TEST_CASE(
+    "Embedded transport loss applies the configured automatic delete-then-divest directive",
+    "[integration][development-profile][federation-management][transport]"
+    "[ownership-management][object-management][rti.service.connection-lost]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[federate.callback.connection-lost]"
+    "[federate.callback.remove-object-instance]"
+    "[federate.callback.request-attribute-ownership-assumption]") {
+  ReportingFederateAmbassador lostReports;
+  ReportingFederateAmbassador survivingReports;
+  auto lost = makeRti();
+  auto surviving = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(surviving->connect(survivingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(lost->joinFederationExecution(
+      L"automatic-delete-then-divest-lost",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(surviving->joinFederationExecution(
+      L"automatic-delete-then-divest-survivor",
+      L"subscriber",
+      federationName));
+
+  auto const server = lost->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = lost->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(lost->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(lost->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(surviving->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(surviving->subscribeObjectClassAttributes(server, efficiencyOnly));
+
+  // The survivor owns this first object and deliberately transfers only its
+  // Efficiency attribute to the federate that will be lost. It stays alive
+  // after directive 4 because the lost federate never owns its delete
+  // privilege.
+  ObjectInstanceHandle retainedObject;
+  REQUIRE_NOTHROW(retainedObject = surviving->registerObjectInstance(server));
+  auto const retainedObjectName = surviving->getObjectInstanceName(retainedObject);
+  while (lost->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.objectDiscoveryReports.size() == 1);
+  unsigned char const manualDivestitureTagBytes[] = {0xD4, 0x25};
+  VariableLengthData const manualDivestitureTag(
+      manualDivestitureTagBytes,
+      sizeof(manualDivestitureTagBytes));
+  REQUIRE_NOTHROW(surviving->unconditionalAttributeOwnershipDivestiture(
+      retainedObject,
+      efficiencyOnly,
+      manualDivestitureTag));
+  while (lost->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.attributeOwnershipAssumptionReports.size() == 1);
+  REQUIRE(lostReports.attributeOwnershipAssumptionReports.front().objectInstance == retainedObject);
+  REQUIRE(lostReports.attributeOwnershipAssumptionReports.front().attributes == efficiencyOnly);
+
+  unsigned char const acquisitionTagBytes[] = {0xD5, 0x25};
+  VariableLengthData const acquisitionTag(acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  REQUIRE_NOTHROW(lost->attributeOwnershipAcquisitionIfAvailable(
+      retainedObject,
+      efficiencyOnly,
+      acquisitionTag));
+  while (lost->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.attributeOwnershipAcquisitionReports.size() == 1);
+  REQUIRE(lost->isAttributeOwnedByFederate(retainedObject, efficiency));
+
+  // The lost federate owns delete privilege for this separately registered
+  // object. Directive 4 must delete it before divesting the transferred
+  // attribute on retainedObject.
+  ObjectInstanceHandle deletedObject;
+  REQUIRE_NOTHROW(deletedObject = lost->registerObjectInstance(server));
+  auto const deletedObjectName = lost->getObjectInstanceName(deletedObject);
+  while (surviving->evokeCallback(0.0)) {
+  }
+  REQUIRE(survivingReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(survivingReports.objectDiscoveryReports.front().objectInstance == deletedObject);
+
+  REQUIRE_NOTHROW(lost->setAutomaticResignDirective(
+      rti1516_2025::DELETE_OBJECTS_THEN_DIVEST));
+  REQUIRE(
+      lost->getAutomaticResignDirective() ==
+      rti1516_2025::DELETE_OBJECTS_THEN_DIVEST);
+
+  REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost,
+      L"automatic delete-then-divest transport fault"));
+  REQUIRE(lostReports.faultDescriptions.empty());
+  REQUIRE(survivingReports.objectRemovalReports.empty());
+  REQUIRE(survivingReports.attributeOwnershipAssumptionReports.empty());
+
+  REQUIRE_FALSE(lost->evokeCallback(0.0));
+  REQUIRE(lostReports.faultDescriptions == std::vector<std::wstring>{
+      L"automatic delete-then-divest transport fault"});
+  while (surviving->evokeCallback(0.0)) {
+  }
+  REQUIRE(survivingReports.objectRemovalReports.size() == 1);
+  REQUIRE(survivingReports.objectRemovalReports.front().objectInstance == deletedObject);
+  REQUIRE(survivingReports.attributeOwnershipAssumptionReports.size() == 1);
+  auto const& assumption = survivingReports.attributeOwnershipAssumptionReports.front();
+  REQUIRE(assumption.objectInstance == retainedObject);
+  REQUIRE(assumption.attributes == efficiencyOnly);
+  REQUIRE(surviving->getObjectInstanceHandle(retainedObjectName) == retainedObject);
+  REQUIRE_THROWS_AS(
+      surviving->getObjectInstanceHandle(deletedObjectName),
+      rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE_FALSE(surviving->isAttributeOwnedByFederate(retainedObject, efficiency));
+
+  REQUIRE_NOTHROW(surviving->resignFederationExecution(rti1516_2025::DELETE_OBJECTS));
+  REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->disconnect());
+  REQUIRE_NOTHROW(surviving->disconnect());
+}
+
+TEST_CASE(
+    "Embedded transport loss cancels the lost federate's pending ownership acquisition",
+    "[integration][development-profile][federation-management][transport]"
+    "[ownership-management][rti.service.connection-lost]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[rti.service.attribute-ownership-acquisition]"
+    "[federate.callback.connection-lost]"
+    "[federate.callback.request-attribute-ownership-assumption]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador lostReports;
+  ReportingFederateAmbassador candidateReports;
+  auto owner = makeRti();
+  auto lost = makeRti();
+  auto candidate = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(candidate->connect(candidateReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"automatic-cancel-owner",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(lost->joinFederationExecution(
+      L"automatic-cancel-lost",
+      L"candidate",
+      federationName));
+  REQUIRE_NOTHROW(candidate->joinFederationExecution(
+      L"automatic-cancel-survivor",
+      L"candidate",
+      federationName));
+
+  auto const server = owner->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = owner->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(lost->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(lost->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(candidate->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(candidate->subscribeObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+  while (lost->evokeCallback(0.0)) {
+  }
+  while (candidate->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(candidateReports.objectDiscoveryReports.size() == 1);
+
+  unsigned char const acquisitionTagBytes[] = {0xD6, 0x25};
+  VariableLengthData const acquisitionTag(acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  REQUIRE_NOTHROW(lost->attributeOwnershipAcquisition(
+      objectInstance,
+      efficiencyOnly,
+      acquisitionTag));
+  REQUIRE(ownerReports.attributeOwnershipReleaseRequestReports.empty());
+  REQUIRE_NOTHROW(lost->setAutomaticResignDirective(
+      rti1516_2025::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS));
+  REQUIRE(
+      lost->getAutomaticResignDirective() ==
+      rti1516_2025::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS);
+
+  REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost,
+      L"automatic pending-acquisition cancellation transport fault"));
+  REQUIRE_FALSE(lost->evokeCallback(0.0));
+  REQUIRE(lostReports.faultDescriptions == std::vector<std::wstring>{
+      L"automatic pending-acquisition cancellation transport fault"});
+
+  // The old requester is gone before the owner can receive its queued release
+  // request. Delivery must recheck registry state and suppress that stale
+  // work, then the actual surviving candidate becomes eligible for a later
+  // unconditional divestiture offer.
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.attributeOwnershipReleaseRequestReports.empty());
+  unsigned char const divestitureTagBytes[] = {0xD7, 0x25};
+  VariableLengthData const divestitureTag(divestitureTagBytes, sizeof(divestitureTagBytes));
+  REQUIRE_NOTHROW(owner->unconditionalAttributeOwnershipDivestiture(
+      objectInstance,
+      efficiencyOnly,
+      divestitureTag));
+  while (candidate->evokeCallback(0.0)) {
+  }
+  REQUIRE(candidateReports.attributeOwnershipAssumptionReports.size() == 1);
+  auto const& assumption = candidateReports.attributeOwnershipAssumptionReports.front();
+  REQUIRE(assumption.objectInstance == objectInstance);
+  REQUIRE(assumption.attributes == efficiencyOnly);
+  REQUIRE_FALSE(candidate->isAttributeOwnedByFederate(objectInstance, efficiency));
+
+  REQUIRE_NOTHROW(candidate->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(rti1516_2025::DELETE_OBJECTS));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->disconnect());
+  REQUIRE_NOTHROW(candidate->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+    "[integration][development-profile][federation-management][transport]"
+    "[ownership-management][object-management][rti.service.connection-lost]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[rti.service.attribute-ownership-acquisition]"
+    "[federate.callback.connection-lost]"
+    "[federate.callback.remove-object-instance]"
+    "[federate.callback.request-attribute-ownership-assumption]") {
+  ReportingFederateAmbassador lostReports;
+  ReportingFederateAmbassador survivingReports;
+  auto lost = makeRti();
+  auto surviving = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(surviving->connect(survivingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(lost->joinFederationExecution(
+      L"automatic-combined-lost",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(surviving->joinFederationExecution(
+      L"automatic-combined-survivor",
+      L"subscriber",
+      federationName));
+
+  auto const server = lost->getObjectClassHandle(L"HLAobjectRoot.Employee.Server");
+  auto const efficiency = lost->getAttributeHandle(server, L"Efficiency");
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE_NOTHROW(lost->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(lost->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(surviving->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(surviving->subscribeObjectClassAttributes(server, efficiencyOnly));
+
+  // The survivor transfers one non-delete attribute to the federate that will
+  // be lost. Directive 5 must later offer it back only after cancellation and
+  // deletion have been handled.
+  ObjectInstanceHandle retainedObject;
+  REQUIRE_NOTHROW(retainedObject = surviving->registerObjectInstance(server));
+  auto const retainedObjectName = surviving->getObjectInstanceName(retainedObject);
+  while (lost->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.objectDiscoveryReports.size() == 1);
+  unsigned char const divestitureTagBytes[] = {0xD8, 0x25};
+  VariableLengthData const divestitureTag(divestitureTagBytes, sizeof(divestitureTagBytes));
+  REQUIRE_NOTHROW(surviving->unconditionalAttributeOwnershipDivestiture(
+      retainedObject,
+      efficiencyOnly,
+      divestitureTag));
+  while (lost->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.attributeOwnershipAssumptionReports.size() == 1);
+  unsigned char const retainedAcquisitionTagBytes[] = {0xD9, 0x25};
+  VariableLengthData const retainedAcquisitionTag(
+      retainedAcquisitionTagBytes,
+      sizeof(retainedAcquisitionTagBytes));
+  REQUIRE_NOTHROW(lost->attributeOwnershipAcquisitionIfAvailable(
+      retainedObject,
+      efficiencyOnly,
+      retainedAcquisitionTag));
+  while (lost->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.attributeOwnershipAcquisitionReports.size() == 1);
+  REQUIRE(lost->isAttributeOwnedByFederate(retainedObject, efficiency));
+
+  // The lost federate owns delete privilege for this final object, so the
+  // deletion phase has an observable Remove Object Instance callback.
+  ObjectInstanceHandle deletedObject;
+  REQUIRE_NOTHROW(deletedObject = lost->registerObjectInstance(server));
+  auto const deletedObjectName = lost->getObjectInstanceName(deletedObject);
+  while (surviving->evokeCallback(0.0)) {
+  }
+  REQUIRE(survivingReports.objectDiscoveryReports.size() == 1);
+  REQUIRE(survivingReports.objectDiscoveryReports.front().objectInstance == deletedObject);
+
+  // The pending regular acquisition queues an owner-release callback at the
+  // survivor. Directive 5's cancellation phase must make that queued work
+  // stale before delivery, rather than leave it aimed at the departed member.
+  ObjectInstanceHandle acquisitionTarget;
+  REQUIRE_NOTHROW(acquisitionTarget = surviving->registerObjectInstance(server));
+  while (lost->evokeCallback(0.0)) {
+  }
+  REQUIRE(lostReports.objectDiscoveryReports.size() == 2);
+  unsigned char const pendingAcquisitionTagBytes[] = {0xDA, 0x25};
+  VariableLengthData const pendingAcquisitionTag(
+      pendingAcquisitionTagBytes,
+      sizeof(pendingAcquisitionTagBytes));
+  REQUIRE_NOTHROW(lost->attributeOwnershipAcquisition(
+      acquisitionTarget,
+      efficiencyOnly,
+      pendingAcquisitionTag));
+  REQUIRE(survivingReports.attributeOwnershipReleaseRequestReports.empty());
+
+  REQUIRE_NOTHROW(lost->setAutomaticResignDirective(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE(
+      lost->getAutomaticResignDirective() ==
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST);
+
+  REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost,
+      L"automatic cancel-delete-divest transport fault"));
+  REQUIRE(lostReports.faultDescriptions.empty());
+  REQUIRE(survivingReports.objectRemovalReports.empty());
+  REQUIRE(survivingReports.attributeOwnershipAssumptionReports.empty());
+
+  REQUIRE_FALSE(lost->evokeCallback(0.0));
+  REQUIRE(lostReports.faultDescriptions == std::vector<std::wstring>{
+      L"automatic cancel-delete-divest transport fault"});
+  while (surviving->evokeCallback(0.0)) {
+  }
+  REQUIRE(survivingReports.attributeOwnershipReleaseRequestReports.empty());
+  REQUIRE(survivingReports.objectRemovalReports.size() == 1);
+  REQUIRE(survivingReports.objectRemovalReports.front().objectInstance == deletedObject);
+  REQUIRE(survivingReports.attributeOwnershipAssumptionReports.size() == 1);
+  auto const& assumption = survivingReports.attributeOwnershipAssumptionReports.front();
+  REQUIRE(assumption.objectInstance == retainedObject);
+  REQUIRE(assumption.attributes == efficiencyOnly);
+  REQUIRE(surviving->getObjectInstanceHandle(retainedObjectName) == retainedObject);
+  REQUIRE_THROWS_AS(
+      surviving->getObjectInstanceHandle(deletedObjectName),
+      rti1516_2025::ObjectInstanceNotKnown);
+  REQUIRE_FALSE(surviving->isAttributeOwnedByFederate(retainedObject, efficiency));
+
+  REQUIRE_NOTHROW(
+      surviving->resignFederationExecution(rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->disconnect());
   REQUIRE_NOTHROW(surviving->disconnect());
 }
 
@@ -5025,6 +5583,145 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded public handle decoders enforce lifecycle and preserve encoded identities",
+    "[integration][development-profile][federation-management][support-services][handles]"
+    "[rti.service.decode-federate-handle][rti.service.decode-object-class-handle]"
+    "[rti.service.decode-interaction-class-handle][rti.service.decode-object-instance-handle]"
+    "[rti.service.decode-attribute-handle][rti.service.decode-parameter-handle]"
+    "[rti.service.decode-dimension-handle][rti.service.decode-message-retraction-handle]") {
+  TestFederateAmbassador unjoinedFederate;
+  TestFederateAmbassador ownerFederate;
+  auto unjoined = makeRti();
+  auto owner = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const encodedRetractionBytes[] = {
+      0x00, 0x00, 0x00, 0x08, 0x01, 0x02,
+      0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+  };
+  VariableLengthData const encodedRetraction(
+      encodedRetractionBytes, sizeof(encodedRetractionBytes));
+
+  REQUIRE_THROWS_AS(
+      unjoined->decodeFederateHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeObjectClassHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeInteractionClassHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeObjectInstanceHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeAttributeHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeParameterHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeDimensionHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeMessageRetractionHandle(VariableLengthData{}),
+      rti1516_2025::NotConnected);
+
+  REQUIRE_NOTHROW(unjoined->connect(unjoinedFederate, HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      unjoined->decodeFederateHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeObjectClassHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeInteractionClassHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeObjectInstanceHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeAttributeHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeParameterHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeDimensionHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->decodeMessageRetractionHandle(VariableLengthData{}),
+      rti1516_2025::FederateNotExecutionMember);
+
+  REQUIRE_NOTHROW(owner->connect(ownerFederate, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle federate;
+  REQUIRE_NOTHROW(federate = owner->joinFederationExecution(
+      L"handle-decoder-owner", L"owner", federationName));
+
+  auto const objectClass = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const attribute = owner->getAttributeHandle(objectClass, L"Flavor");
+  auto const interactionClass = owner->getInteractionClassHandle(
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+  auto const parameter = owner->getParameterHandle(interactionClass, L"TemperatureOk");
+  auto const dimension = owner->getDimensionHandle(L"BarQuantity");
+  REQUIRE(federate.isValid());
+  REQUIRE(objectClass.isValid());
+  REQUIRE(attribute.isValid());
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(parameter.isValid());
+  REQUIRE(dimension.isValid());
+
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
+      objectClass, AttributeHandleSet{attribute}));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(objectClass));
+  REQUIRE(objectInstance.isValid());
+
+  REQUIRE(owner->decodeFederateHandle(federate.encode()) == federate);
+  REQUIRE(owner->decodeObjectClassHandle(objectClass.encode()) == objectClass);
+  REQUIRE(owner->decodeInteractionClassHandle(interactionClass.encode()) == interactionClass);
+  REQUIRE(owner->decodeObjectInstanceHandle(objectInstance.encode()) == objectInstance);
+  REQUIRE(owner->decodeAttributeHandle(attribute.encode()) == attribute);
+  REQUIRE(owner->decodeParameterHandle(parameter.encode()) == parameter);
+  REQUIRE(owner->decodeDimensionHandle(dimension.encode()) == dimension);
+  auto const decodedRetraction = owner->decodeMessageRetractionHandle(encodedRetraction);
+  REQUIRE(decodedRetraction.isValid());
+  REQUIRE(decodedRetraction.toString() == L"MessageRetractionHandle(72623859790382856)");
+
+  REQUIRE_THROWS_AS(
+      owner->decodeFederateHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+  REQUIRE_THROWS_AS(
+      owner->decodeObjectClassHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+  REQUIRE_THROWS_AS(
+      owner->decodeInteractionClassHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+  REQUIRE_THROWS_AS(
+      owner->decodeObjectInstanceHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+  REQUIRE_THROWS_AS(
+      owner->decodeAttributeHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+  REQUIRE_THROWS_AS(
+      owner->decodeParameterHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+  REQUIRE_THROWS_AS(
+      owner->decodeDimensionHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+  REQUIRE_THROWS_AS(
+      owner->decodeMessageRetractionHandle(VariableLengthData{}),
+      rti1516_2025::CouldNotDecode);
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(unjoined->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
     "Embedded 2025 region templates preserve pending and committed range state",
     "[integration][development-profile][federation-management][ddm][region-lifecycle]"
     "[rti.service.create-region][rti.service.commit-region-modifications]"
@@ -5534,6 +6231,433 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded joins preserve an explicit FOM NoAction automatic-resign directive",
+    "[integration][development-profile][federation-management][fom][switches]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.get-automatic-resign-directive]") {
+  TestFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-explicit-no-action-fom.xml")
+          .wstring();
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"explicit-no-action", L"observer", federationName));
+
+  // The configured NoAction value is not the omitted FDD default. It must
+  // reach the joined federate's per-member support-switch state unchanged.
+  REQUIRE(rti->getAutomaticResignDirective() == rti1516_2025::NO_ACTION);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded service-report files have one immutable joined-federate lifetime",
+    "[integration][development-profile][federation-management][mom][service-report-file]") {
+  TestFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml")
+          .wstring();
+  auto directory = temporaryServiceReportDirectory();
+  RtiConfiguration configuration = configurationForServiceReportDirectory(directory.path());
+  configuration.withConfigurationName(L"report-file-test").withRtiAddress(L"in-process");
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"service-report-subject", L"observer", federationName));
+  REQUIRE_FALSE(rti->getServiceReportingSwitch());
+  REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+  auto files = serviceReportFiles(directory.path());
+  REQUIRE(files.size() == 1U);
+  auto const firstFile = files.front();
+  auto const initialText = readTextFile(firstFile);
+  REQUIRE_FALSE(initialText.empty());
+  REQUIRE(initialText.front() == '{');
+  REQUIRE(initialText.find("\"CallbackModel\":\"HLA_EVOKED\"") != std::string::npos);
+  REQUIRE(initialText.find("\"ConfigurationName\":\"report-file-test\"") != std::string::npos);
+  REQUIRE(initialText.find("\"HLAfederationName\":\"umbra-catch2-federation-") !=
+          std::string::npos);
+  REQUIRE(initialText.find("\"HLAMIMDesignator\":\"HLAstandardMIM\"") != std::string::npos);
+  REQUIRE(initialText.find("\"HLAfederateName\":\"service-report-subject\"") !=
+          std::string::npos);
+  REQUIRE(initialText.find("\"HLAserialNumber\"") == std::string::npos);
+
+  // File reporting switches gate future report appends only. They cannot
+  // rotate or replace the preallocated joined-federate file, even when both
+  // switches were disabled at the join that created its initial record.
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(false));
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+  REQUIRE(serviceReportFiles(directory.path()) ==
+          std::vector<std::filesystem::path>{firstFile});
+  REQUIRE(readTextFile(firstFile) == initialText);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"service-report-subject", L"observer", federationName));
+  files = serviceReportFiles(directory.path());
+  REQUIRE(files.size() == 2U);
+  REQUIRE(files.front() != files.back());
+  REQUIRE(std::find(files.begin(), files.end(), firstFile) != files.end());
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded simultaneously joined federates receive independent service-report files",
+    "[integration][development-profile][federation-management][mom][service-report-file]") {
+  TestFederateAmbassador subjectReports;
+  TestFederateAmbassador observerReports;
+  auto subject = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml")
+          .wstring();
+  auto directory = temporaryServiceReportDirectory();
+  auto configuration = configurationForServiceReportDirectory(directory.path());
+  configuration.withRtiAddress(L"in-process");
+
+  REQUIRE_NOTHROW(subject->connect(subjectReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(observer->connect(observerReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(
+      subject->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(subject->joinFederationExecution(
+      L"independent-report-subject", L"subject", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"independent-report-observer", L"observer", federationName));
+
+  // The configured directory is shared, but each joined-federate lifetime
+  // owns one distinct report file and its own initial record.  This runs
+  // through the production factory path rather than the in-memory test seam.
+  auto const files = serviceReportFiles(directory.path());
+  REQUIRE(files.size() == 2U);
+  REQUIRE(files.front() != files.back());
+  auto const firstText = readTextFile(files.front());
+  auto const secondText = readTextFile(files.back());
+  auto const firstHasSubject =
+      firstText.find("\"HLAfederateName\":\"independent-report-subject\"") != std::string::npos;
+  auto const secondHasSubject =
+      secondText.find("\"HLAfederateName\":\"independent-report-subject\"") != std::string::npos;
+  auto const firstHasObserver =
+      firstText.find("\"HLAfederateName\":\"independent-report-observer\"") != std::string::npos;
+  auto const secondHasObserver =
+      secondText.find("\"HLAfederateName\":\"independent-report-observer\"") != std::string::npos;
+  REQUIRE(firstHasSubject != secondHasSubject);
+  REQUIRE(firstHasObserver != secondHasObserver);
+  REQUIRE(firstHasSubject != firstHasObserver);
+  REQUIRE(secondHasSubject != secondHasObserver);
+
+  REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(subject->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(observer->disconnect());
+  REQUIRE_NOTHROW(subject->disconnect());
+}
+
+TEST_CASE(
+    "Embedded service-report configuration rejects unusable directories without fallback",
+    "[integration][development-profile][federation-management][mom][service-report-file]"
+    "[service-report-store]") {
+  TestFederateAmbassador emptySettingReports;
+  auto emptySettingRti = makeRti();
+  auto const emptyDirectorySetting = configurationForServiceReportDirectory({});
+
+  // The typed profile configuration exposes a real directory, not a
+  // selectable memory sink. An empty explicit directory therefore fails
+  // before Connect changes lifecycle state, and a later ordinary Connect
+  // remains possible.
+  REQUIRE_THROWS_AS(
+      emptySettingRti->connect(emptySettingReports, HLA_EVOKED, emptyDirectorySetting),
+      rti1516_2025::RTIinternalError);
+  REQUIRE_NOTHROW(emptySettingRti->connect(emptySettingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(emptySettingRti->disconnect());
+
+  static std::atomic_uint64_t counter{0};
+  auto const filePath = std::filesystem::temp_directory_path() /
+      ("umbra-service-report-not-a-directory-" + std::to_string(++counter));
+  {
+    std::ofstream output(filePath, std::ios::binary | std::ios::trunc);
+    REQUIRE(output.good());
+    output << "not a directory";
+    REQUIRE(output.good());
+  }
+  ScopedTemporaryFile fileGuard(filePath);
+
+  TestFederateAmbassador fileSettingReports;
+  auto fileSettingRti = makeRti();
+  auto const fileDirectorySetting = RtiConfiguration::createConfiguration()
+      .withAdditionalSettings(L"serviceReportDirectory=" + filePath.wstring());
+  REQUIRE_THROWS_AS(
+      fileSettingRti->connect(fileSettingReports, HLA_EVOKED, fileDirectorySetting),
+      rti1516_2025::RTIinternalError);
+  REQUIRE_NOTHROW(fileSettingRti->connect(fileSettingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(fileSettingRti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot",
+    "[integration][development-profile][federation-management][mom][service-report-file]"
+    "[mom-object-foundation]") {
+  using rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador;
+
+  TestFederateAmbassador reports;
+  auto rti = std::make_unique<UmbraRtiAmbassador>();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml")
+          .wstring();
+  auto directory = temporaryServiceReportDirectory();
+  RtiConfiguration configuration = configurationForServiceReportDirectory(directory.path());
+  configuration.withRtiAddress(L"in-process");
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  auto const firstFederate = rti->joinFederationExecution(
+      L"mom-snapshot-subject", L"observer", federationName);
+  auto firstSnapshot = rti->joinedFederateMomObjectSnapshotForTesting();
+  REQUIRE(firstSnapshot);
+  REQUIRE(firstSnapshot->objectInstanceHandle != 0U);
+  REQUIRE(firstSnapshot->joinedFederateId != 0U);
+  REQUIRE(firstSnapshot->objectClassHandle != 0U);
+  REQUIRE(firstSnapshot->immutableFederatePoint.specificationCommitted);
+  REQUIRE(firstSnapshot->immutableFederatePoint.dimensionHandles.size() == 1U);
+  REQUIRE(firstSnapshot->immutableFederatePoint.committedRangeBounds.size() == 1U);
+  auto const& pointRange = firstSnapshot->immutableFederatePoint.committedRangeBounds.begin()->second;
+  REQUIRE(pointRange.upperBound == pointRange.lowerBound + 1U);
+
+  // The seven Table 8 direct initial values are present as official MIM wire
+  // encodings, including the public FederateHandle encoding and the exact
+  // filesystem pathname. The empty dynamic module-designator array is the
+  // correct value because this Join did not contribute an additional FOM.
+  REQUIRE(firstSnapshot->initialAttributeValues.size() == 7U);
+  auto containsEncodedValue = [&](VariableLengthData const& expected) {
+    auto const expectedBytes = variableLengthDataBytes(expected);
+    return std::any_of(
+        firstSnapshot->initialAttributeValues.begin(),
+        firstSnapshot->initialAttributeValues.end(),
+        [&](auto const& attribute) {
+          return variableLengthDataBytes(attribute.second) == expectedBytes;
+        });
+  };
+  auto files = serviceReportFiles(directory.path());
+  REQUIRE(files.size() == 1U);
+  REQUIRE(files.front().is_absolute());
+  REQUIRE(files.front().parent_path() ==
+          std::filesystem::absolute(directory.path()).lexically_normal());
+  REQUIRE(containsEncodedValue(firstFederate.encode()));
+  REQUIRE(containsEncodedValue(
+      rti1516_2025::HLAunicodeString{L"mom-snapshot-subject"}.encode()));
+  REQUIRE(containsEncodedValue(rti1516_2025::HLAunicodeString{L"observer"}.encode()));
+  REQUIRE(containsEncodedValue(
+      rti1516_2025::HLAunicodeString{L"umbra-embedded"}.encode()));
+  REQUIRE(containsEncodedValue(rti1516_2025::HLAunicodeString{L"Umbra 0.1.0"}.encode()));
+  REQUIRE(containsEncodedValue(rti1516_2025::HLAunicodeString{files.front().wstring()}.encode()));
+  REQUIRE(containsEncodedValue(rti1516_2025::HLAinteger32BE{0}.encode()));
+
+  // Switch changes gate later reporting only. They cannot replace the object
+  // identity or its already allocated report-file value.
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+  auto const afterEnable = rti->joinedFederateMomObjectSnapshotForTesting();
+  REQUIRE(afterEnable);
+  REQUIRE(afterEnable->objectInstanceHandle == firstSnapshot->objectInstanceHandle);
+  auto sameInitialValues = [](auto const& left, auto const& right) {
+    if (left.size() != right.size()) {
+      return false;
+    }
+    auto leftValue = left.begin();
+    auto rightValue = right.begin();
+    for (; leftValue != left.end(); ++leftValue, ++rightValue) {
+      if (leftValue->first != rightValue->first ||
+          variableLengthDataBytes(leftValue->second) !=
+              variableLengthDataBytes(rightValue->second)) {
+        return false;
+      }
+    }
+    return true;
+  };
+  REQUIRE(sameInitialValues(
+      afterEnable->initialAttributeValues,
+      firstSnapshot->initialAttributeValues));
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_FALSE(rti->joinedFederateMomObjectSnapshotForTesting());
+  auto const secondFederate = rti->joinFederationExecution(
+      L"mom-snapshot-subject", L"observer", federationName);
+  auto const secondSnapshot = rti->joinedFederateMomObjectSnapshotForTesting();
+  REQUIRE(secondSnapshot);
+  REQUIRE(secondFederate != firstFederate);
+  REQUIRE(secondSnapshot->objectInstanceHandle != firstSnapshot->objectInstanceHandle);
+  files = serviceReportFiles(directory.path());
+  REQUIRE(files.size() == 2U);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded joined-federate MOM snapshots retain only FOM modules supplied at Join",
+    "[integration][development-profile][federation-management][mom][mom-object-foundation][fom]") {
+  using rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador;
+
+  TestFederateAmbassador reports;
+  auto rti = std::make_unique<UmbraRtiAmbassador>();
+  auto const federationName = nextFederationName();
+  auto const baseFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-known-class-enabled-fom.xml")
+          .wstring();
+  auto const joinedFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml")
+          .wstring();
+  auto directory = temporaryServiceReportDirectory();
+  RtiConfiguration configuration = configurationForServiceReportDirectory(directory.path());
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, baseFom, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"mom-snapshot-additional-fom",
+      L"observer",
+      federationName,
+      std::vector<std::wstring>{joinedFom}));
+  auto const snapshot = rti->joinedFederateMomObjectSnapshotForTesting();
+  REQUIRE(snapshot);
+
+  bool foundJoinScopedModuleList = false;
+  for (auto const& [attributeHandle, value] : snapshot->initialAttributeValues) {
+    static_cast<void>(attributeHandle);
+    auto const designators = decodeHlaUnicodeStringList(value);
+    if (designators && *designators == std::vector<std::wstring>{joinedFom}) {
+      foundJoinScopedModuleList = true;
+      break;
+    }
+  }
+  REQUIRE(foundJoinScopedModuleList);
+
+  // The Table 5 initial report must use the same Join-scoped module list as
+  // the private MOM object. It must not claim that the base FOM was supplied
+  // by this federate at Join.
+  auto const files = serviceReportFiles(directory.path());
+  REQUIRE(files.size() == 1U);
+  auto const encodedJoinedFom =
+      umbra::detail::utf8FromWide(umbra::detail::formatMomString(joinedFom));
+  REQUIRE(encodedJoinedFom);
+  auto const joinScopedModuleList =
+      std::string{"\"HLAFOMmoduleDesignatorList\":["} +
+      *encodedJoinedFom + "]";
+  REQUIRE(readTextFile(files.front()).find(joinScopedModuleList) != std::string::npos);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Internal tests can inject an in-memory service-report store without changing runtime configuration",
+    "[unit][development-profile][federation-management][mom][service-report-store]") {
+  using rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador;
+
+  TestFederateAmbassador reports;
+  auto store = std::make_unique<umbra::detail::MemoryServiceReportStore>();
+  auto* const observedStore = store.get();
+  auto rti = std::make_unique<UmbraRtiAmbassador>(
+      UmbraRtiAmbassador::ServiceReportStoreTestSeam{}, std::move(store));
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml")
+          .wstring();
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      rti->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"memory-report-subject", L"observer", federationName));
+  REQUIRE(observedStore->records().size() == 1U);
+  REQUIRE(observedStore->records().front().find(
+              L"\"HLAfederateName\":\"memory-report-subject\"") != std::wstring::npos);
+
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(false));
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(false));
+  REQUIRE(observedStore->records().size() == 1U);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"memory-report-subject", L"observer", federationName));
+  REQUIRE(observedStore->records().size() == 2U);
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Service-report writer creation failure rejects the join without an in-memory fallback",
+    "[integration][development-profile][federation-management][mom][service-report-store]") {
+  using rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador;
+
+  TestFederateAmbassador failingReports;
+  TestFederateAmbassador peerReports;
+  auto failingStore = std::make_unique<FailingServiceReportStore>();
+  auto* const observedStore = failingStore.get();
+  auto failingRti = std::make_unique<UmbraRtiAmbassador>(
+      UmbraRtiAmbassador::ServiceReportStoreTestSeam{}, std::move(failingStore));
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "switch-nrg-disabled-fom.xml")
+          .wstring();
+  auto directory = temporaryServiceReportDirectory();
+  RtiConfiguration configuration = configurationForServiceReportDirectory(directory.path());
+
+  REQUIRE_NOTHROW(failingRti->connect(failingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(failingRti->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_THROWS_AS(
+      failingRti->joinFederationExecution(
+          L"failure-subject", L"observer", federationName),
+      rti1516_2025::RTIinternalError);
+  REQUIRE(observedStore->createCalls == 1U);
+
+  // A successful peer join with the rejected name proves that the failed
+  // local writer setup rolled the registry membership back instead of leaving
+  // a partial joined-federate identity behind.
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"failure-subject", L"observer", federationName));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(failingRti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(failingRti->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
     "Embedded MOM service-reporting state excludes report-service subscriptions",
     "[integration][development-profile][federation-management][mom][switches]"
     "[rti.service.set-service-reporting-switch]"
@@ -5874,6 +6998,7 @@ TEST_CASE(
   // or cross-execution-stable value. Verify the useful contract from both
   // joined ambassadors without asserting a homegrown coordinate scheme.
   auto const normalizedPeerHandle = owner->normalizeFederateHandle(peerHandle);
+  REQUIRE(normalizedPeerHandle < std::numeric_limits<unsigned long>::max());
   REQUIRE(normalizedPeerHandle == owner->normalizeFederateHandle(peerHandle));
   REQUIRE(normalizedPeerHandle == owner->normalizeFederateHandle(peerHandleCopy));
   REQUIRE(normalizedPeerHandle == peer->normalizeFederateHandle(peerHandle));
@@ -5881,16 +7006,19 @@ TEST_CASE(
           peer->normalizeFederateHandle(ownerHandle));
 
   auto const normalizedServer = owner->normalizeObjectClassHandle(server);
+  REQUIRE(normalizedServer < std::numeric_limits<unsigned long>::max());
   REQUIRE(normalizedServer == owner->normalizeObjectClassHandle(server));
   REQUIRE(normalizedServer == owner->normalizeObjectClassHandle(serverCopy));
   REQUIRE(normalizedServer == peer->normalizeObjectClassHandle(server));
 
   auto const normalizedTakeOrder = owner->normalizeInteractionClassHandle(takeOrder);
+  REQUIRE(normalizedTakeOrder < std::numeric_limits<unsigned long>::max());
   REQUIRE(normalizedTakeOrder == owner->normalizeInteractionClassHandle(takeOrder));
   REQUIRE(normalizedTakeOrder == owner->normalizeInteractionClassHandle(takeOrderCopy));
   REQUIRE(normalizedTakeOrder == peer->normalizeInteractionClassHandle(takeOrder));
 
   auto const normalizedObject = owner->normalizeObjectInstanceHandle(objectInstance);
+  REQUIRE(normalizedObject < std::numeric_limits<unsigned long>::max());
   REQUIRE(normalizedObject == owner->normalizeObjectInstanceHandle(objectInstance));
   REQUIRE(normalizedObject == owner->normalizeObjectInstanceHandle(objectInstanceCopy));
 
@@ -5905,7 +7033,7 @@ TEST_CASE(
   };
   for (auto const serviceGroup : standardServiceGroups) {
     auto const normalized = owner->normalizeServiceGroup(serviceGroup);
-    REQUIRE(normalized <= 7UL);
+    REQUIRE(normalized < 7UL);
     REQUIRE(normalized == owner->normalizeServiceGroup(serviceGroup));
     REQUIRE(normalized == peer->normalizeServiceGroup(serviceGroup));
   }
@@ -16877,7 +18005,9 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->releaseMultipleObjectInstanceNames({}));
 
   // A reserved RTI-generated spelling cannot shadow an unnamed registration.
-  // The handle sequence advances with the selected generated name.
+  // The standard does not prescribe a generated-name sequence; RTI-owned MOM
+  // object instances may also legitimately occupy identities in that shared
+  // object-instance namespace.
   auto const generatedName = std::wstring{L"UmbraObjectInstance-1"};
   REQUIRE_NOTHROW(owner->reserveObjectInstanceName(generatedName));
   REQUIRE_FALSE(owner->evokeMultipleCallbacks(0.0, 0.0));
@@ -16885,7 +18015,9 @@ TEST_CASE(
   auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
   REQUIRE_NOTHROW(owner->publishObjectClassAttributes(soda, AttributeHandleSet{flavor}));
   auto const generatedObject = owner->registerObjectInstance(soda);
-  REQUIRE(owner->getObjectInstanceName(generatedObject) == L"UmbraObjectInstance-2");
+  auto const actualGeneratedName = owner->getObjectInstanceName(generatedObject);
+  REQUIRE(actualGeneratedName != generatedName);
+  REQUIRE(actualGeneratedName.rfind(L"UmbraObjectInstance-", 0U) == 0U);
   REQUIRE_NOTHROW(owner->releaseObjectInstanceName(generatedName));
 
   // Resignation returns reservations to the federation-wide pool.

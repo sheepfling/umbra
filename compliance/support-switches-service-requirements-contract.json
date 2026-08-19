@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-support-switch-service-state-not-conformance-evidence",
-  "notes": "This contract records the bounded embedded support-switch service state. Per-federate setters remain independent, static federation-wide getters retain creation-time values, and automatic-resign enum validation uses the official 2025 values. Recipient-gated sent-region callback behavior is traced separately in convey-region-designator-callback-requirements-contract.json. The private embedded Connection Lost path now executes a configured DELETE_OBJECTS directive through the ordinary forced-resignation cleanup. The exact MOM report-service interaction is mutually excluded from enabled Service Reporting for both ordinary and regional subscriptions. The joined-federate HLAsetSwitches leaf accepts a non-empty subset of its nine predefined values, promotes compatible extension subclasses, and ignores extension parameters; its report-service interlock is surfaced through the bounded public Send Interaction error path rather than a normal MOM failure report. This is not emitted service reports, report-file output, generic MOM handling, or conformance evidence. The remaining automatic directive combinations, real transport faults, emitted service reports, and relaxed DDM/delayed subscription behavior remain open.",
+  "notes": "This contract records the bounded embedded support-switch service state. Per-federate setters remain independent, static federation-wide getters retain creation-time values, and automatic-resign enum validation uses the official 2025 values. Recipient-gated sent-region callback behavior is traced separately in convey-region-designator-callback-requirements-contract.json. The private embedded Connection Lost path now executes configured DELETE_OBJECTS, UNCONDITIONALLY_DIVEST_ATTRIBUTES, DELETE_OBJECTS_THEN_DIVEST, CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, and CANCEL_THEN_DELETE_THEN_DIVEST directives through ordinary forced-resignation cleanup. The exact MOM report-service interaction is mutually excluded from enabled Service Reporting for both ordinary and regional subscriptions. The joined-federate HLAsetSwitches leaf accepts a non-empty subset of its nine predefined values, promotes compatible extension subclasses, and ignores extension parameters; its report-service interlock is surfaced through the bounded public Send Interaction error path rather than a normal MOM failure report. This is not emitted service reports, report-file output, generic MOM handling, or conformance evidence. The bounded NO_ACTION forced-resign policy, real transport faults, emitted service reports, and relaxed DDM/delayed subscription behavior remain open.",
   "requirements": [
     {
       "id": "umbra-convey-region-designator-switch-state",
@@ -25,6 +25,10 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },

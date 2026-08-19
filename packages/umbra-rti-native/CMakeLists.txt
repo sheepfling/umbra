@@ -17,5 +17,9 @@ set_target_properties(umbra_rti umbra_fedtime PROPERTIES POSITION_INDEPENDENT_CO
 pybind11_add_module(_native MODULE src/native_module.cpp)
 target_compile_features(_native PRIVATE cxx_std_20)
 target_link_libraries(_native PRIVATE umbra::rti)
+# Umbra's opaque-handle codecs are deliberately provider-private.  The binding
+# uses them only to reconstruct standard C++ handle values from the portable
+# public Python encoding before invoking a real RTI service.
+target_include_directories(_native PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../cpp/src")
 
 install(TARGETS _native LIBRARY DESTINATION umbra/_native/rti1516_2025 RUNTIME DESTINATION umbra/_native/rti1516_2025)

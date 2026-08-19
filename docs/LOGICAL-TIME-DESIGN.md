@@ -29,6 +29,16 @@ metadata only. Umbra now provides the complete official reference-time ABI:
 - both official factories, `HLAlogicalTimeFactoryFactory`, and the separate
   static `umbra::fedtime` forwarding entry point.
 
+The official `HLAlogicalTime` and `HLAlogicalTimeInterval` encoding helpers
+now delegate their opaque byte representation to the selected factory. They
+retain a factory and an internally copied value, select the initial time or
+zero interval at construction, and do not define an Umbra-specific time wire
+layout. The current `decodeFrom` implementation is intentionally only for the
+fixed eight-octet reference profiles: `LogicalTimeFactory` does not provide a
+consumed-length result that could delimit arbitrary third-party variable-width
+time encodings in a containing byte stream. The wrappers are an SDK encoding
+foundation, not custom-time interoperability or public-service evidence.
+
 The float epsilon arithmetic uses the next representable value when native
 floating-point rounding would otherwise leave a time unchanged, as required by
 the source text. The opt-in embedded federation-management profile now selects

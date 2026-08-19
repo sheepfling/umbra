@@ -56,7 +56,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
-        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the official eight-byte value encoding"
+        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding"
       ]
     },
     {

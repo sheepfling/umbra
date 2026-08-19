@@ -3,6 +3,7 @@
 #include "internal/fdd_document.hpp"
 #include "internal/fom_catalog.hpp"
 #include "internal/libxml2_fom_document.hpp"
+#include "internal/utf8_string.hpp"
 
 #include <libxml/tree.h>
 #include <libxml/xmlerror.h>
@@ -44,7 +45,39 @@ struct SemanticNode {
   std::string text;
   std::map<std::string, std::string> attributes;
   std::map<NodeKey, SemanticNode> children;
+  // The map supplies stable identity lookup during module composition.  Some
+  // IEEE 1516.2 table semantics, however, depend on the order in which rows
+  // occur in the source table, so retain insertion order separately.
+  std::vector<NodeKey> childOrder;
 };
+
+void appendChild(SemanticNode& parent, NodeKey key, SemanticNode child) {
+  auto const [inserted, wasInserted] =
+      parent.children.emplace(std::move(key), std::move(child));
+  if (wasInserted) {
+    parent.childOrder.push_back(inserted->first);
+  }
+}
+
+std::vector<SemanticNode const*> childrenInDeclarationOrder(SemanticNode const& parent) {
+  std::vector<SemanticNode const*> ordered;
+  std::set<NodeKey> emitted;
+  for (NodeKey const& key : parent.childOrder) {
+    auto const child = parent.children.find(key);
+    if (child != parent.children.end() && emitted.insert(key).second) {
+      ordered.push_back(&child->second);
+    }
+  }
+  // Semantic nodes created before order retention, or maintained by a future
+  // merge path that omits it, retain the former deterministic map traversal
+  // instead of silently dropping a child from semantic validation.
+  for (auto const& [key, child] : parent.children) {
+    if (emitted.insert(key).second) {
+      ordered.push_back(&child);
+    }
+  }
+  return ordered;
+}
 
 std::string normalizedText(std::string value) {
   std::string result;
@@ -237,7 +270,8 @@ SemanticNode buildSemanticNode(xmlNode const* xml, NoteLabelMap const* noteLabel
       continue;
     }
     SemanticNode semanticChild = buildSemanticNode(child, noteLabels);
-    node.children.emplace(childKey(node, semanticChild), std::move(semanticChild));
+    NodeKey key = childKey(node, semanticChild);
+    appendChild(node, std::move(key), std::move(semanticChild));
   }
   return node;
 }
@@ -257,7 +291,8 @@ SemanticNode buildCompositionRoot(xmlDoc const* document, NoteLabelMap const* no
       continue;
     }
     SemanticNode section = buildSemanticNode(child, noteLabels);
-    root.children.emplace(childKey(root, section), std::move(section));
+    NodeKey key = childKey(root, section);
+    appendChild(root, std::move(key), std::move(section));
   }
   return root;
 }
@@ -266,7 +301,12 @@ std::string displayNode(SemanticNode const& node) {
   if (node.identity.empty()) {
     return node.localName;
   }
-  return node.localName + "[" + node.identity + "]";
+  auto const separator = node.identity.find('=');
+  if (separator == std::string::npos) {
+    return node.localName + "[" + quoteDiagnosticString(node.identity) + "]";
+  }
+  return node.localName + "[" + node.identity.substr(0, separator + 1U) +
+         quoteDiagnosticString(node.identity.substr(separator + 1U)) + "]";
 }
 
 std::string childPath(std::string const& parent, SemanticNode const& child) {
@@ -328,6 +368,13 @@ std::string resignActionValue(SemanticNode const& node) {
     return attribute->second;
   }
   if (attribute->second == "CancelThenDeleteThenDivest") {
+    return attribute->second;
+  }
+  if (attribute->second == "NoAction") {
+    // NoAction is a valid explicit Automatic Resign Action setting.  It is
+    // intentionally distinct from an omitted setting, whose source-derived
+    // 1516.2 table default is handled above despite the XSD default tension
+    // recorded in RL-024.
     return attribute->second;
   }
   // The DIF/FDD schema rejects an unknown lexical value.  Keep the private
@@ -392,7 +439,7 @@ bool mergeNodeFields(
     }
     if (existing != current.attributes.end() && !existing->second.empty() &&
         !candidateValue.empty() && existing->second != candidateValue) {
-      diagnostics = "Conflicting attribute " + name + " at " + path + ".";
+      diagnostics = "Conflicting attribute " + quoteDiagnosticString(name) + " at " + path + ".";
       return false;
     }
     if (existing == current.attributes.end() || existing->second.empty()) {
@@ -442,16 +489,17 @@ bool mergeSwitches(
   // the ordinary structural merge rules: the existing setting wins and a
   // non-equivalent duplicate is ignored with a warning rather than making the
   // entire FOM composition inconsistent. Unique switch names are inserted.
-  for (auto const& [key, candidateSwitch] : candidate.children) {
+  for (SemanticNode const* candidateSwitch : childrenInDeclarationOrder(candidate)) {
+    NodeKey const key = childKey(current, *candidateSwitch);
     auto const existing = current.children.find(key);
     if (existing == current.children.end()) {
-      current.children.emplace(key, candidateSwitch);
+      appendChild(current, key, *candidateSwitch);
       continue;
     }
-    if (!semanticNodesEquivalent(existing->second, candidateSwitch)) {
+    if (!semanticNodesEquivalent(existing->second, *candidateSwitch)) {
       warnings.push_back(
           "Annex C.8 warning: non-equivalent duplicate switch " +
-          displayNode(candidateSwitch) + " at " + path +
+          displayNode(*candidateSwitch) + " at " + path +
           " was ignored; the first module's setting is retained.");
     }
   }
@@ -472,16 +520,17 @@ bool mergeNode(
     return false;
   }
 
-  for (auto const& [key, candidateChild] : candidate.children) {
+  for (SemanticNode const* candidateChild : childrenInDeclarationOrder(candidate)) {
+    NodeKey const key = childKey(current, *candidateChild);
     auto existing = current.children.find(key);
     if (existing == current.children.end()) {
-      current.children.emplace(key, candidateChild);
+      appendChild(current, key, *candidateChild);
       continue;
     }
     if (!mergeNode(
             existing->second,
-            candidateChild,
-            childPath(path, candidateChild),
+            *candidateChild,
+            childPath(path, *candidateChild),
             diagnostics,
             warnings)) {
       return false;
@@ -492,6 +541,10 @@ bool mergeNode(
 
 std::string identityValue(SemanticNode const& node, std::string_view prefix) {
   return node.identity.starts_with(prefix) ? node.identity.substr(prefix.size()) : std::string{};
+}
+
+std::string quotedIdentityValue(SemanticNode const& node, std::string_view prefix) {
+  return quoteDiagnosticString(identityValue(node, prefix));
 }
 
 bool isDataTypeDeclaration(std::string_view local) {
@@ -538,7 +591,7 @@ bool validateDataTypeKinds(SemanticNode const& root, std::string& diagnostics) {
     }
     auto const [existing, inserted] = seen.emplace(name, std::make_pair(node.localName, path));
     if (!inserted && existing->second.first != node.localName) {
-      diagnostics = "Data type " + name + " has incompatible definitions at " +
+      diagnostics = "Data type " + quoteDiagnosticString(name) + " has incompatible definitions at " +
                     existing->second.second + " and " + path + ".";
       valid = false;
     }
@@ -550,8 +603,9 @@ bool validateDataTypeReferences(SemanticNode const& root, std::string& diagnosti
   std::set<std::string> declaredNames;
   walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const&) {
     // The 2025 OMT schema's dataTypeKey includes every data-type family,
-    // including basicData. Keep the private preflight aligned with that
-    // complete-model key rather than rejecting a schema-valid basic-data name.
+    // including basicData. Keep complete-model name resolution aligned with
+    // that key; narrower table-specific predicates below decide whether a
+    // resolved basic-data name is valid for an individual table column.
     if (!isDataTypeDeclaration(node.localName)) {
       return;
     }
@@ -567,12 +621,403 @@ bool validateDataTypeReferences(SemanticNode const& root, std::string& diagnosti
       return;
     }
     if (!declaredNames.contains(node.text)) {
-      diagnostics = "Data type reference " + node.text + " at " + path +
+      diagnostics = "Data type reference " + quoteDiagnosticString(node.text) + " at " + path +
                     " is not declared in the composed model.";
       valid = false;
     }
   });
   return valid;
+}
+
+bool isObjectAttributeOrInteractionParameterDataTypeKind(std::string_view kind) {
+  return kind == "simpleData" || kind == "enumeratedData" || kind == "referenceDataType" ||
+         kind == "arrayData" || kind == "fixedRecordData" || kind == "variantRecordData";
+}
+
+bool validateObjectAttributeAndInteractionParameterDataTypeKinds(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  DataTypeDeclarationKinds const kinds = dataTypeDeclarationKinds(root);
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || (node.localName != "attribute" && node.localName != "parameter")) {
+      return;
+    }
+    std::string const dataType = scalarChildValue(node, "dataType");
+    if (dataType.empty() || dataType == "NA") {
+      return;
+    }
+    auto const kind = kinds.find(dataType);
+    // The general data-type resolver runs first and reports a missing name.
+    // This table-specific rule classifies an already declared name. HLAtoken
+    // requires no name special case: the standard MIM declares it as arrayData.
+    if (kind == kinds.end() || isObjectAttributeOrInteractionParameterDataTypeKind(kind->second)) {
+      return;
+    }
+    std::string const owner = node.localName == "attribute" ? "Object attribute" : "Interaction parameter";
+    diagnostics = owner + " data type " + quoteDiagnosticString(dataType) + " at " + path +
+                  " is not permitted; it must name a simple, enumerated, reference, array, "
+                  "fixed-record, or variant-record data type (or NA).";
+    valid = false;
+  });
+  return valid;
+}
+
+bool validateAttributeNaCompanionFields(SemanticNode const& root, std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "attribute" ||
+        scalarChildValue(node, "dataType") != "NA") {
+      return;
+    }
+
+    std::string const attributeName = identityValue(node, "name=");
+    auto reject = [&](std::string_view fieldName, std::string_view expectation) {
+      diagnostics = "Attribute " + quoteDiagnosticString(attributeName) + " at " + path +
+                    " has data type NA but its " + std::string(fieldName) + " " +
+                    std::string(expectation) + ".";
+      valid = false;
+    };
+
+    // DIF permits incomplete rows at the module boundary. Check a companion
+    // only when the merged row actually supplies it, rather than manufacturing
+    // a missing table value. A completed FDD separately requires transportation
+    // and order before materialization.
+    if (auto const* transportation = firstChildNamed(node, "transportation");
+        transportation != nullptr && transportation->text == "NA") {
+      reject("transportation", "must name a non-NA transportation type");
+      return;
+    }
+    if (auto const* order = firstChildNamed(node, "order");
+        order != nullptr && order->text == "NA") {
+      reject("order", "must name a non-NA order type");
+      return;
+    }
+    if (auto const* updateType = firstChildNamed(node, "updateType");
+        updateType != nullptr && updateType->text != "NA") {
+      reject("update type", "must be NA");
+      return;
+    }
+    if (auto const* updateCondition = firstChildNamed(node, "updateCondition");
+        updateCondition != nullptr && updateCondition->text != "NA") {
+      reject("update condition", "must be NA");
+    }
+  });
+  return valid;
+}
+
+bool validateDynamicAttributeUpdateConditions(SemanticNode const& root, std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "attribute") {
+      return;
+    }
+    auto const* updateType = firstChildNamed(node, "updateType");
+    if (updateType == nullptr ||
+        (updateType->text != "Conditional" && updateType->text != "Periodic")) {
+      return;
+    }
+    auto const* updateCondition = firstChildNamed(node, "updateCondition");
+    // DIF permits incomplete attribute rows at the module boundary. Once a
+    // Conditional or Periodic row supplies its condition, the direct table
+    // predicate requires actual text. This deliberately does not interpret
+    // the conflicting Static/NA direction or parse a periodic-rate grammar.
+    if (updateCondition == nullptr ||
+        (!updateCondition->text.empty() && updateCondition->text != "NA")) {
+      return;
+    }
+    diagnostics = "Attribute " + quotedIdentityValue(node, "name=") + " at " + path +
+                  " has " + updateType->text +
+                  " update type but its supplied update condition must contain non-NA text.";
+    valid = false;
+  });
+  return valid;
+}
+
+bool validateUnsharedAttributeValueRequirement(SemanticNode const& root, std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "attribute") {
+      return;
+    }
+    auto const* sharing = firstChildNamed(node, "sharing");
+    auto const* valueRequired = firstChildNamed(node, "valueRequired");
+    // DIF permits partial attribute rows. Only apply this Table 10 predicate
+    // once the supplied merged row explicitly says the attribute is neither
+    // published nor subscribed and also supplies its Value Required field.
+    if (sharing == nullptr || sharing->text != "Neither" || valueRequired == nullptr ||
+        valueRequired->text == "false") {
+      return;
+    }
+    diagnostics = "Attribute " + quotedIdentityValue(node, "name=") + " at " + path +
+                  " is neither published nor subscribed but its value-required field must be false.";
+    valid = false;
+  });
+  return valid;
+}
+
+bool validateArrayElementDataTypeKinds(SemanticNode const& root, std::string& diagnostics) {
+  DataTypeDeclarationKinds const kinds = dataTypeDeclarationKinds(root);
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "arrayData") {
+      return;
+    }
+    std::string const dataType = scalarChildValue(node, "dataType");
+    // DIF deliberately permits incomplete rows. Keep an omitted element type
+    // and the established NA no-type marker representable; this completed-model
+    // rule classifies only a supplied named declaration.
+    if (dataType.empty() || dataType == "NA") {
+      return;
+    }
+    auto const kind = kinds.find(dataType);
+    // The general data-type resolver runs first and reports a missing name.
+    // Table 35 restricts an array element to a name from another data-type
+    // table, which excludes a raw basic-data representation.
+    if (kind == kinds.end() || isObjectAttributeOrInteractionParameterDataTypeKind(kind->second)) {
+      return;
+    }
+    diagnostics = "Array data type " + quotedIdentityValue(node, "name=") + " element type " +
+                  quoteDiagnosticString(dataType) +
+                  " at " + path +
+                  " is not permitted; it must name a simple, enumerated, reference, array, "
+                  "fixed-record, or variant-record data type (or NA).";
+    valid = false;
+  });
+  return valid;
+}
+
+bool validateFixedRecordFieldAndVariantRecordAlternativeDataTypeKinds(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  DataTypeDeclarationKinds const kinds = dataTypeDeclarationKinds(root);
+  bool valid = true;
+  auto validateMember = [&](SemanticNode const& record,
+                            SemanticNode const& member,
+                            std::string const& memberPath,
+                            std::string_view recordLabel,
+                            std::string_view memberLabel) {
+    std::string const dataType = scalarChildValue(member, "dataType");
+    // DIF deliberately permits incomplete rows. This completed-model rule
+    // classifies only a supplied named declaration.
+    if (dataType.empty() || dataType == "NA") {
+      return true;
+    }
+    auto const kind = kinds.find(dataType);
+    // The general resolver runs first and reports an unresolved name. The
+    // fixed-record Field Type and variant-record Alternative Type columns
+    // accept names from data-type tables, not a raw basic-data representation.
+    if (kind == kinds.end() || isObjectAttributeOrInteractionParameterDataTypeKind(kind->second)) {
+      return true;
+    }
+    diagnostics = std::string(recordLabel) + " " + quotedIdentityValue(record, "name=") + " " +
+                  std::string(memberLabel) + " " + quotedIdentityValue(member, "name=") +
+                  " data type " + quoteDiagnosticString(dataType) + " at " + memberPath +
+                  " is not permitted; it must name a simple, enumerated, reference, array, "
+                  "fixed-record, or variant-record data type (or NA).";
+    return false;
+  };
+
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || (node.localName != "fixedRecordData" && node.localName != "variantRecordData")) {
+      return;
+    }
+    std::string_view const memberName =
+        node.localName == "fixedRecordData" ? "field" : "alternative";
+    std::string_view const recordLabel =
+        node.localName == "fixedRecordData" ? "Fixed-record data type" : "Variant-record data type";
+    std::string_view const memberLabel =
+        node.localName == "fixedRecordData" ? "field" : "alternative";
+    for (auto const& [key, member] : node.children) {
+      (void)key;
+      if (member.localName != memberName) {
+        continue;
+      }
+      if (!validateMember(
+              node,
+              member,
+              childPath(path, member),
+              recordLabel,
+              memberLabel)) {
+        valid = false;
+        return;
+      }
+    }
+  });
+  return valid;
+}
+
+bool validateVariantRecordDiscriminantDataTypeKinds(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  DataTypeDeclarationKinds const kinds = dataTypeDeclarationKinds(root);
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "variantRecordData") {
+      return;
+    }
+    auto const* discriminantType = firstChildNamed(node, "dataType");
+    // DIF deliberately permits an incomplete record declaration. Once the
+    // discriminant type is supplied, the 2025 variant-record table requires
+    // an enumerated-data declaration; unlike several other table columns,
+    // that rule provides no NA marker path.
+    if (discriminantType == nullptr || discriminantType->text.empty()) {
+      return;
+    }
+    auto const kind = kinds.find(discriminantType->text);
+    // The general resolver runs first and reports an unresolved non-NA name.
+    // Keep NA here so this narrower predicate can reject it explicitly.
+    if (discriminantType->text != "NA" && kind == kinds.end()) {
+      return;
+    }
+    if (kind != kinds.end() && kind->second == "enumeratedData") {
+      return;
+    }
+    diagnostics = "Variant-record data type " + quotedIdentityValue(node, "name=") +
+                  " discriminant type " + quoteDiagnosticString(discriminantType->text) + " at " +
+                  childPath(path, *discriminantType) +
+                  " is not permitted; it must name an enumerated data type.";
+    valid = false;
+  });
+  return valid;
+}
+
+bool validateDimensionInputDataTypeKinds(SemanticNode const& root, std::string& diagnostics) {
+  auto const* dimensions = firstChildNamed(root, "dimensions");
+  if (dimensions == nullptr) {
+    return true;
+  }
+
+  DataTypeDeclarationKinds const kinds = dataTypeDeclarationKinds(root);
+  std::string const dimensionsPath = childPath("objectModel", *dimensions);
+  for (auto const& [key, dimension] : dimensions->children) {
+    (void)key;
+    if (dimension.localName != "dimension") {
+      continue;
+    }
+    std::string const dimensionPath = childPath(dimensionsPath, dimension);
+    for (auto const& [inputTypesKey, inputDataTypes] : dimension.children) {
+      (void)inputTypesKey;
+      if (inputDataTypes.localName != "inputDataTypes") {
+        continue;
+      }
+      std::string const inputTypesPath = childPath(dimensionPath, inputDataTypes);
+      for (auto const& [dataTypeKey, dataType] : inputDataTypes.children) {
+        (void)dataTypeKey;
+        if (dataType.localName != "dataType" || dataType.text.empty() || dataType.text == "NA") {
+          continue;
+        }
+        auto const kind = kinds.find(dataType.text);
+        // The general resolver runs first and reports a missing name. The
+        // Dimension Input data type column refers to the 4.14 data-type
+        // tables, so a raw basic-data representation is not a permitted name.
+        if (kind == kinds.end() || isObjectAttributeOrInteractionParameterDataTypeKind(kind->second)) {
+          continue;
+        }
+        diagnostics = "Dimension " + quotedIdentityValue(dimension, "name=") +
+                      " input data type " + quoteDiagnosticString(dataType.text) + " at " +
+                      childPath(inputTypesPath, dataType) +
+                      " is not permitted; it must name a simple, enumerated, reference, array, "
+                      "fixed-record, or variant-record data type (or NA).";
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool validateDimensionInputDataTypeNaExclusivity(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  auto const* dimensions = firstChildNamed(root, "dimensions");
+  if (dimensions == nullptr) {
+    return true;
+  }
+
+  std::string const dimensionsPath = childPath("objectModel", *dimensions);
+  for (auto const& [key, dimension] : dimensions->children) {
+    (void)key;
+    if (dimension.localName != "dimension") {
+      continue;
+    }
+    auto const* inputDataTypes = firstChildNamed(dimension, "inputDataTypes");
+    if (inputDataTypes == nullptr) {
+      continue;
+    }
+
+    bool hasNaMarker = false;
+    bool hasNamedInputType = false;
+    for (auto const& [inputTypeKey, inputDataType] : inputDataTypes->children) {
+      (void)inputTypeKey;
+      if (inputDataType.localName != "dataType" || inputDataType.text.empty()) {
+        continue;
+      }
+      if (inputDataType.text == "NA") {
+        hasNaMarker = true;
+      } else {
+        hasNamedInputType = true;
+      }
+    }
+
+    // Table 14 uses NA for the mutually exclusive no-suitable-named-type
+    // branch. The DIF maps the Input data type column to a sequence, so keep
+    // the no-type marker exclusive rather than allowing it beside a chosen
+    // table-defined data type.
+    if (hasNaMarker && hasNamedInputType) {
+      diagnostics = "Dimension " + quotedIdentityValue(dimension, "name=") + " at " +
+                    childPath(dimensionsPath, dimension) +
+                    " mixes the NA input data type marker with named input data types.";
+      return false;
+    }
+  }
+  return true;
+}
+
+bool validateDimensionInputDataTypeDescriptions(SemanticNode const& root, std::string& diagnostics) {
+  auto const* dimensions = firstChildNamed(root, "dimensions");
+  if (dimensions == nullptr) {
+    return true;
+  }
+
+  std::string const dimensionsPath = childPath("objectModel", *dimensions);
+  for (auto const& [key, dimension] : dimensions->children) {
+    (void)key;
+    if (dimension.localName != "dimension") {
+      continue;
+    }
+    auto const* inputDataTypes = firstChildNamed(dimension, "inputDataTypes");
+    auto const* inputDataDescription = firstChildNamed(dimension, "inputDataDescription");
+    // Both fields are required by the DIF schema for a completed Dimension
+    // entry. Preserve defensive behavior if an unchecked SemanticNode reaches
+    // this private preflight.
+    if (inputDataTypes == nullptr || inputDataDescription == nullptr) {
+      continue;
+    }
+
+    bool hasNamedInputType = false;
+    for (auto const& [inputTypeKey, inputDataType] : inputDataTypes->children) {
+      (void)inputTypeKey;
+      if (inputDataType.localName == "dataType" && !inputDataType.text.empty() &&
+          inputDataType.text != "NA") {
+        hasNamedInputType = true;
+        break;
+      }
+    }
+    // Table 14 permits the Input data type cell to be NA only when the third
+    // column supplies an unambiguous textual description. In DIF that table
+    // cell is a sequence, and the supplied official extension represents NA
+    // with an empty inputDataTypes element. Treat that form and the existing
+    // explicit dataType=NA marker equivalently, without trying to decide
+    // whether a suitable named type exists.
+    if (!hasNamedInputType &&
+        (inputDataDescription->text.empty() || inputDataDescription->text == "NA")) {
+      diagnostics = "Dimension " + quotedIdentityValue(dimension, "name=") + " at " +
+                    childPath(dimensionsPath, dimension) +
+                    " has no named input data type but its input data description must be non-NA text.";
+      return false;
+    }
+  }
+  return true;
 }
 
 bool isStandardInstanceIdentifierAttribute(std::string_view name);
@@ -602,7 +1047,7 @@ bool validateDataTypeRepresentationReferences(
     }
     auto const kind = kinds.find(representation);
     if (kind == kinds.end()) {
-      diagnostics = "Representation " + representation + " at " + path +
+      diagnostics = "Representation " + quoteDiagnosticString(representation) + " at " + path +
                     " is not declared in the composed data-type model.";
       valid = false;
       return;
@@ -610,19 +1055,28 @@ bool validateDataTypeRepresentationReferences(
 
     if (node.localName == "referenceDataType" &&
         (kind->second == "basicData" || kind->second == "referenceDataType")) {
-      diagnostics = "Reference data type " + identityValue(node, "name=") +
-                    " representation " + representation + " at " + path +
+      diagnostics = "Reference data type " + quotedIdentityValue(node, "name=") +
+                    " representation " + quoteDiagnosticString(representation) + " at " + path +
                     " must name a simple, enumerated, array, fixed-record, or variant-record "
                     "data type.";
       valid = false;
       return;
     }
 
-    // The 2025 source table describes simple/enumerated representations as
+    if (node.localName == "enumeratedData" && kind->second != "basicData") {
+      diagnostics = "Enumerated data type " + quotedIdentityValue(node, "name=") +
+                    " representation " + quoteDiagnosticString(representation) + " at " + path +
+                    " must name a basic-data representation.";
+      valid = false;
+      return;
+    }
+
+    // The 2025 source table describes simple-data representations as
     // basic-data rows, but the official MIM/Restaurant DIF pair uses
     // HLAboolean (an enumerated data type) as a simple-data representation.
-    // Require the name to resolve, while retaining that reviewed compatibility
-    // interpretation instead of rejecting the standard example.
+    // Keep simple-data representation checking at name resolution under the
+    // reviewed RL-009 interpretation. The enumerated-data table has its own
+    // unambiguous basic-data predicate above.
   });
   return valid;
 }
@@ -649,7 +1103,7 @@ bool validateTimeRepresentationDataTypeKinds(SemanticNode const& root, std::stri
     if (kind == kinds.end() || isTimeRepresentationDataTypeKind(kind->second)) {
       return;
     }
-    diagnostics = "Time representation data type " + dataType + " at " + path +
+    diagnostics = "Time representation data type " + quoteDiagnosticString(dataType) + " at " + path +
                   " is not permitted; it must name a simple, enumerated, array, fixed-record, or "
                   "variant-record data type (or NA).";
     valid = false;
@@ -665,8 +1119,7 @@ bool isTagDataTypeOwner(std::string_view localName) {
 }
 
 bool isTagDataTypeKind(std::string_view kind) {
-  return kind == "simpleData" || kind == "enumeratedData" || kind == "referenceDataType" ||
-         kind == "arrayData" || kind == "fixedRecordData" || kind == "variantRecordData";
+  return isObjectAttributeOrInteractionParameterDataTypeKind(kind);
 }
 
 bool validateTagDataTypeKinds(SemanticNode const& root, std::string& diagnostics) {
@@ -686,7 +1139,7 @@ bool validateTagDataTypeKinds(SemanticNode const& root, std::string& diagnostics
     if (kind == kinds.end() || isTagDataTypeKind(kind->second)) {
       return;
     }
-    diagnostics = "Tag data type " + dataType + " at " + path +
+    diagnostics = "Tag data type " + quoteDiagnosticString(dataType) + " at " + path +
                   " is not permitted; it must name a simple, enumerated, reference, array, "
                   "fixed-record, or variant-record data type (or NA).";
     valid = false;
@@ -752,8 +1205,8 @@ bool validateReferenceDataTypeClassReferences(SemanticNode const& root, std::str
     }
     std::string const referencedClass = scalarChildValue(node, "referenceClass");
     if (!referencedClass.empty() && !classes.contains(referencedClass)) {
-      diagnostics = "Reference data type " + identityValue(node, "name=") +
-                    " refers to object class " + referencedClass + " at " + path +
+      diagnostics = "Reference data type " + quotedIdentityValue(node, "name=") +
+                    " refers to object class " + quoteDiagnosticString(referencedClass) + " at " + path +
                     ", but that class is not declared in the composed model.";
       valid = false;
     }
@@ -805,16 +1258,17 @@ bool validateReferenceDataTypeAttributeReferences(SemanticNode const& root, std:
           referencedAttribute == "HLAobjectInstanceName" ? "HLAunicodeString"
                                                             : "HLAobjectInstanceHandle";
       if (scalarChildValue(node, "representation") != expectedRepresentation) {
-        diagnostics = "Reference data type " + identityValue(node, "name=") +
-                      " representation must be " + expectedRepresentation + " for " +
-                      referencedAttribute + " at " + path + ".";
+        diagnostics = "Reference data type " + quotedIdentityValue(node, "name=") +
+                      " representation must be " + quoteDiagnosticString(expectedRepresentation) +
+                      " for " + quoteDiagnosticString(referencedAttribute) + " at " + path + ".";
         valid = false;
         return;
       }
       auto const representation = kinds.find(expectedRepresentation);
       if (representation == kinds.end()) {
-        diagnostics = "Standard instance identifier representation " + expectedRepresentation +
-                      " for " + referencedAttribute + " at " + path +
+        diagnostics = "Standard instance identifier representation " +
+                      quoteDiagnosticString(expectedRepresentation) + " for " +
+                      quoteDiagnosticString(referencedAttribute) + " at " + path +
                       " is not declared in the composed data-type model.";
         valid = false;
       }
@@ -823,18 +1277,19 @@ bool validateReferenceDataTypeAttributeReferences(SemanticNode const& root, std:
     auto const attributeType =
         referencedAttributeDataType(classes, referencedClass, referencedAttribute);
     if (!attributeType.has_value()) {
-      diagnostics = "Reference data type " + identityValue(node, "name=") +
-                    " refers to attribute " + referencedAttribute + " of object class " +
-                    referencedClass + " at " + path +
+      diagnostics = "Reference data type " + quotedIdentityValue(node, "name=") +
+                    " refers to attribute " + quoteDiagnosticString(referencedAttribute) +
+                    " of object class " + quoteDiagnosticString(referencedClass) + " at " + path +
                     ", but that attribute is not declared by the class or an ancestor in the composed model.";
       valid = false;
       return;
     }
     std::string const representation = scalarChildValue(node, "representation");
     if (!representation.empty() && representation != *attributeType) {
-      diagnostics = "Reference data type " + identityValue(node, "name=") +
-                    " representation " + representation + " does not match referenced attribute " +
-                    referencedAttribute + " data type " + *attributeType + " at " + path + ".";
+      diagnostics = "Reference data type " + quotedIdentityValue(node, "name=") +
+                    " representation " + quoteDiagnosticString(representation) +
+                    " does not match referenced attribute " + quoteDiagnosticString(referencedAttribute) +
+                    " data type " + quoteDiagnosticString(*attributeType) + " at " + path + ".";
       valid = false;
     }
   });
@@ -874,7 +1329,7 @@ bool validateDirectedInteractionReferences(SemanticNode const& root, std::string
     }
     std::string const interactionName = scalarChildValue(node, "name");
     if (!interactionName.empty() && !interactionNames.contains(interactionName)) {
-      diagnostics = "Directed interaction " + interactionName + " at " + path +
+      diagnostics = "Directed interaction " + quoteDiagnosticString(interactionName) + " at " + path +
                     " is not declared in the composed interaction hierarchy.";
       valid = false;
     }
@@ -912,7 +1367,7 @@ bool validateAvailableDimensionReferences(SemanticNode const& root, std::string&
         continue;
       }
       if (!dimensionNames.contains(dimension.text)) {
-        diagnostics = "Available dimension " + dimension.text + " at " +
+        diagnostics = "Available dimension " + quoteDiagnosticString(dimension.text) + " at " +
                       childPath(path, dimension) +
                       " is not declared in the composed dimension table.";
         valid = false;
@@ -995,7 +1450,7 @@ bool validateDimensionDefaultValues(SemanticNode const& root, std::string& diagn
     auto const upperBound = parseDimensionValueInteger(upperBoundText);
     auto const path = childPath("objectModel/dimensions", dimension);
     if (!upperBound.has_value() || *upperBound == 0) {
-      diagnostics = "Dimension " + identityValue(dimension, "name=") + " at " + path +
+      diagnostics = "Dimension " + quotedIdentityValue(dimension, "name=") + " at " + path +
                     " supplies a default value but no positive upper bound.";
       valid = false;
       continue;
@@ -1004,7 +1459,8 @@ bool validateDimensionDefaultValues(SemanticNode const& root, std::string& diagn
     auto const range = parseDimensionValueRange(value, *upperBound);
     if (!range.has_value() || range->lower >= range->upper ||
         range->upper > *upperBound) {
-      diagnostics = "Dimension " + identityValue(dimension, "name=") + " value " + value +
+      diagnostics = "Dimension " + quotedIdentityValue(dimension, "name=") + " value " +
+                    quoteDiagnosticString(value) +
                     " at " + path + " must be a nonnegative integer subrange of [0, " +
                     upperBoundText + ").";
       valid = false;
@@ -1028,12 +1484,12 @@ bool validateUpdateRateValues(SemanticNode const& root, std::string& diagnostics
       std::size_t consumed = 0;
       double const rate = std::stod(rateText, &consumed);
       if (consumed != rateText.size() || !std::isfinite(rate) || rate <= 0.0) {
-        diagnostics = "Update rate " + identityValue(node, "name=") + " at " + path +
+        diagnostics = "Update rate " + quotedIdentityValue(node, "name=") + " at " + path +
                       " must be a decimal value greater than zero.";
         valid = false;
       }
     } catch (std::exception const&) {
-      diagnostics = "Update rate " + identityValue(node, "name=") + " at " + path +
+      diagnostics = "Update rate " + quotedIdentityValue(node, "name=") + " at " + path +
                     " must be a decimal value greater than zero.";
       valid = false;
     }
@@ -1067,12 +1523,47 @@ bool validateTransportationReferences(SemanticNode const& root, std::string& dia
     }
     std::string const transportation = scalarChildValue(node, "transportation");
     if (!transportation.empty() && !transportationNames.contains(transportation)) {
-      diagnostics = "Transportation " + transportation + " at " + path +
+      diagnostics = "Transportation " + quoteDiagnosticString(transportation) + " at " + path +
                     " is not declared in the composed transportation table.";
       valid = false;
     }
   });
   return valid;
+}
+
+bool validateStandardRootClassHierarchies(SemanticNode const& root, std::string& diagnostics) {
+  auto validate = [&](std::string_view sectionName,
+                      std::string_view classElementName,
+                      std::string_view requiredRootName,
+                      std::string_view hierarchyKind) {
+    auto const* section = firstChildNamed(root, sectionName);
+    if (section == nullptr) {
+      // DIF permits incomplete modules. A completed model that supplies this
+      // table must, however, express its classes under the standard root.
+      return true;
+    }
+
+    for (auto const& [key, classDefinition] : section->children) {
+      (void)key;
+      if (classDefinition.localName != classElementName) {
+        continue;
+      }
+      std::string const name = identityValue(classDefinition, "name=");
+      if (name == requiredRootName) {
+        continue;
+      }
+      diagnostics = std::string(hierarchyKind) + " class " + quoteDiagnosticString(name) + " at " +
+                    childPath("objectModel/" + std::string(sectionName), classDefinition) +
+                    " is not nested below " + quoteDiagnosticString(requiredRootName) +
+                    "; the completed hierarchy must be rooted by " +
+                    quoteDiagnosticString(requiredRootName) + ".";
+      return false;
+    }
+    return true;
+  };
+
+  return validate("objects", "objectClass", "HLAobjectRoot", "Object") &&
+         validate("interactions", "interactionClass", "HLAinteractionRoot", "Interaction");
 }
 
 bool validateInheritedObjectClassAttributeNames(SemanticNode const& root, std::string& diagnostics) {
@@ -1087,8 +1578,9 @@ bool validateInheritedObjectClassAttributeNames(SemanticNode const& root, std::s
           break;
         }
         if (parent->second.declaredAttributeTypes.contains(attributeName)) {
-          diagnostics = "Object class " + className + " duplicates inherited attribute " +
-                        attributeName + " from " + parentName + ".";
+          diagnostics = "Object class " + quoteDiagnosticString(className) +
+                        " duplicates inherited attribute " + quoteDiagnosticString(attributeName) +
+                        " from " + quoteDiagnosticString(parentName) + ".";
           return false;
         }
         parentName = parent->second.parentName;
@@ -1158,8 +1650,9 @@ bool validateInheritedInteractionClassParameterNames(
           break;
         }
         if (parent->second.declaredParameterNames.contains(parameterName)) {
-          diagnostics = "Interaction class " + className + " duplicates inherited parameter " +
-                        parameterName + " from " + parentName + ".";
+          diagnostics = "Interaction class " + quoteDiagnosticString(className) +
+                        " duplicates inherited parameter " + quoteDiagnosticString(parameterName) +
+                        " from " + quoteDiagnosticString(parentName) + ".";
           return false;
         }
         parentName = parent->second.parentName;
@@ -1189,49 +1682,10 @@ bool validateEnumeratedValues(SemanticNode const& root, std::string& diagnostics
         }
         auto const [existing, inserted] = valueOwners.emplace(value.text, enumeratorName);
         if (!inserted && existing->second != enumeratorName) {
-          diagnostics = "Enumerated data type " + identityValue(node, "name=") +
-                        " assigns value " + value.text + " to both " + existing->second + " and " +
-                        enumeratorName + " at " + path + ".";
-          valid = false;
-          return;
-        }
-      }
-    }
-  });
-  return valid;
-}
-
-bool validateVariantRecordAlternatives(SemanticNode const& root, std::string& diagnostics) {
-  bool valid = true;
-  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
-    if (!valid || node.localName != "variantRecordData") {
-      return;
-    }
-    bool const isExtendable =
-        scalarChildValue(node, "encoding") == "HLAextendableVariantRecord";
-    std::map<std::string, std::string> enumeratorOwners;
-    for (auto const& [key, alternative] : node.children) {
-      (void)key;
-      if (alternative.localName != "alternative") {
-        continue;
-      }
-      std::string const alternativeName = identityValue(alternative, "name=");
-      for (auto const& [enumeratorKey, enumerator] : alternative.children) {
-        (void)enumeratorKey;
-        if (enumerator.localName != "enumerator" || enumerator.text.empty()) {
-          continue;
-        }
-        if (isExtendable && enumerator.text == "HLAother") {
-          diagnostics = "Extendable variant record " + identityValue(node, "name=") +
-                        " uses the prohibited HLAother alternative at " + path + ".";
-          valid = false;
-          return;
-        }
-        auto const [existing, inserted] = enumeratorOwners.emplace(enumerator.text, alternativeName);
-        if (!inserted && existing->second != alternativeName) {
-          diagnostics = "Variant record " + identityValue(node, "name=") + " assigns enumerator " +
-                        enumerator.text + " to both " + existing->second + " and " + alternativeName +
-                        " at " + path + ".";
+          diagnostics = "Enumerated data type " + quotedIdentityValue(node, "name=") +
+                        " assigns value " + quoteDiagnosticString(value.text) + " to both " +
+                        quoteDiagnosticString(existing->second) + " and " +
+                        quoteDiagnosticString(enumeratorName) + " at " + path + ".";
           valid = false;
           return;
         }
@@ -1252,6 +1706,415 @@ std::string trimAsciiWhitespace(std::string value) {
     value.pop_back();
   }
   return value;
+}
+
+std::vector<SemanticNode const*> variantDiscriminantEnumeratorNodes(
+    SemanticNode const& alternative) {
+  std::vector<SemanticNode const*> enumerators;
+  for (SemanticNode const* child : childrenInDeclarationOrder(alternative)) {
+    if (child->localName == "enumerator") {
+      enumerators.push_back(child);
+    }
+  }
+  return enumerators;
+}
+
+struct VariantDiscriminantEnumeratorComponent {
+  std::string first;
+  std::optional<std::string> last;
+};
+
+std::vector<VariantDiscriminantEnumeratorComponent> variantDiscriminantEnumeratorComponents(
+    std::string expression) {
+  std::vector<VariantDiscriminantEnumeratorComponent> components;
+  expression = trimAsciiWhitespace(std::move(expression));
+  std::size_t componentStart = 0;
+  while (componentStart <= expression.size()) {
+    std::size_t const comma = expression.find(',', componentStart);
+    std::string const component = trimAsciiWhitespace(
+        expression.substr(
+            componentStart,
+            comma == std::string::npos ? std::string::npos : comma - componentStart));
+    if (component.empty()) {
+      return {};
+    }
+    if (component.size() >= 2 && component.front() == '[' && component.back() == ']') {
+      std::string const range = trimAsciiWhitespace(component.substr(1, component.size() - 2));
+      std::size_t const separator = range.find("..");
+      if (separator == std::string::npos) {
+        return {};
+      }
+      components.push_back({
+          trimAsciiWhitespace(range.substr(0, separator)),
+          trimAsciiWhitespace(range.substr(separator + 2)),
+      });
+    } else {
+      components.push_back({component, std::nullopt});
+    }
+    if (comma == std::string::npos) {
+      break;
+    }
+    componentStart = comma + 1;
+  }
+  return components;
+}
+
+bool validateVariantRecordDiscriminantEnumeratorSyntax(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "variantRecordData") {
+      return;
+    }
+
+    std::string const recordName = identityValue(node, "name=");
+    std::string hlaOtherPath;
+    for (SemanticNode const* alternative : childrenInDeclarationOrder(node)) {
+      if (alternative->localName != "alternative") {
+        continue;
+      }
+      for (SemanticNode const* enumerator : variantDiscriminantEnumeratorNodes(*alternative)) {
+        // DIF deliberately permits an incomplete alternative. This bounded
+        // completed-model rule checks only a supplied discriminant-enumerator
+        // field.
+        if (enumerator->text.empty()) {
+          continue;
+        }
+        std::string const enumeratorPath =
+            childPath(childPath(path, *alternative), *enumerator);
+        std::string const expression = trimAsciiWhitespace(enumerator->text);
+        if (expression.empty()) {
+          continue;
+        }
+
+        if (expression == "HLAother") {
+          if (!hlaOtherPath.empty()) {
+            diagnostics = "Variant-record data type " + quoteDiagnosticString(recordName) +
+                          " uses HLAother more than once at " + enumeratorPath +
+                          "; the first occurrence is at " + hlaOtherPath + ".";
+            valid = false;
+            return;
+          }
+          hlaOtherPath = enumeratorPath;
+          continue;
+        }
+
+        std::size_t componentStart = 0;
+        while (componentStart <= expression.size()) {
+          std::size_t const comma = expression.find(',', componentStart);
+          std::string const component = trimAsciiWhitespace(
+              expression.substr(
+                  componentStart,
+                  comma == std::string::npos ? std::string::npos : comma - componentStart));
+          if (component.empty()) {
+            diagnostics = "Variant-record data type " + quoteDiagnosticString(recordName) +
+                          " has an empty discriminant-enumerator component at " + enumeratorPath + ".";
+            valid = false;
+            return;
+          }
+          if (component == "HLAother") {
+            diagnostics = "Variant-record data type " + quoteDiagnosticString(recordName) +
+                          " must use HLAother as the complete discriminant-enumerator field at " +
+                          enumeratorPath + ".";
+            valid = false;
+            return;
+          }
+
+          bool const startsRange = component.starts_with('[');
+          bool const endsRange = component.ends_with(']');
+          if (startsRange != endsRange) {
+            diagnostics = "Variant-record data type " + quoteDiagnosticString(recordName) +
+                          " has a malformed discriminant-enumerator range at " + enumeratorPath + ".";
+            valid = false;
+            return;
+          }
+          if (startsRange) {
+            std::string const range =
+                trimAsciiWhitespace(component.substr(1, component.size() - 2));
+            std::size_t const separator = range.find("..");
+            if (separator == std::string::npos ||
+                range.find("..", separator + 2) != std::string::npos ||
+                range.find('[') != std::string::npos ||
+                range.find(']') != std::string::npos ||
+                trimAsciiWhitespace(range.substr(0, separator)).empty() ||
+                trimAsciiWhitespace(range.substr(separator + 2)).empty()) {
+              diagnostics = "Variant-record data type " + quoteDiagnosticString(recordName) +
+                            " has a malformed discriminant-enumerator range at " + enumeratorPath + ".";
+              valid = false;
+              return;
+            }
+          } else if (component.find("..") != std::string::npos ||
+                     component.find('[') != std::string::npos ||
+                     component.find(']') != std::string::npos) {
+            diagnostics = "Variant-record data type " + quoteDiagnosticString(recordName) +
+                          " has a malformed discriminant-enumerator range at " + enumeratorPath + ".";
+            valid = false;
+            return;
+          }
+
+          if (comma == std::string::npos) {
+            break;
+          }
+          componentStart = comma + 1;
+        }
+      }
+    }
+  });
+  return valid;
+}
+
+bool validateVariantRecordAlternatives(SemanticNode const& root, std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "variantRecordData") {
+      return;
+    }
+    bool const isExtendable =
+        scalarChildValue(node, "encoding") == "HLAextendableVariantRecord";
+    std::map<std::string, std::string> enumeratorOwners;
+    for (SemanticNode const* alternative : childrenInDeclarationOrder(node)) {
+      if (alternative->localName != "alternative") {
+        continue;
+      }
+      std::string const alternativeName = identityValue(*alternative, "name=");
+      for (SemanticNode const* enumerator : variantDiscriminantEnumeratorNodes(*alternative)) {
+        if (enumerator->text.empty()) {
+          continue;
+        }
+        std::string const expression = trimAsciiWhitespace(enumerator->text);
+        if (isExtendable && expression == "HLAother") {
+          diagnostics = "Extendable variant record " + quotedIdentityValue(node, "name=") +
+                        " uses the prohibited HLAother alternative at " + path + ".";
+          valid = false;
+          return;
+        }
+        auto const [existing, inserted] = enumeratorOwners.emplace(expression, alternativeName);
+        if (!inserted && existing->second != alternativeName) {
+          diagnostics = "Variant record " + quotedIdentityValue(node, "name=") +
+                        " assigns enumerator " + quoteDiagnosticString(expression) +
+                        " to both " + quoteDiagnosticString(existing->second) + " and " +
+                        quoteDiagnosticString(alternativeName) +
+                        " at " + path + ".";
+          valid = false;
+          return;
+        }
+      }
+    }
+  });
+  return valid;
+}
+
+struct EnumeratedDataTypeEnumerators {
+  std::vector<std::string> declarationOrder;
+  std::map<std::string, std::size_t> declarationIndex;
+};
+
+using EnumeratedDataTypeEnumeratorNames =
+    std::map<std::string, EnumeratedDataTypeEnumerators>;
+
+EnumeratedDataTypeEnumeratorNames enumeratedDataTypeEnumeratorNames(SemanticNode const& root) {
+  EnumeratedDataTypeEnumeratorNames names;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const&) {
+    if (node.localName != "enumeratedData") {
+      return;
+    }
+    std::string const dataTypeName = identityValue(node, "name=");
+    if (dataTypeName.empty()) {
+      return;
+    }
+    auto& enumerators = names[dataTypeName];
+    for (SemanticNode const* enumerator : childrenInDeclarationOrder(node)) {
+      if (enumerator->localName != "enumerator") {
+        continue;
+      }
+      std::string const enumeratorName = identityValue(*enumerator, "name=");
+      if (enumeratorName.empty()) {
+        continue;
+      }
+      auto const [existing, inserted] = enumerators.declarationIndex.emplace(
+          enumeratorName,
+          enumerators.declarationOrder.size());
+      (void)existing;
+      if (inserted) {
+        enumerators.declarationOrder.push_back(enumeratorName);
+      }
+    }
+  });
+  return names;
+}
+
+bool validateVariantRecordDiscriminantEnumeratorMembership(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  EnumeratedDataTypeEnumeratorNames const names = enumeratedDataTypeEnumeratorNames(root);
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "variantRecordData") {
+      return;
+    }
+
+    std::string const dataType = scalarChildValue(node, "dataType");
+    auto const namedEnumerators = names.find(dataType);
+    // This predicate follows the general resolver and discriminant-type
+    // category check. If the selected enumeration has no supplied enumerators,
+    // retain incomplete DIF without inventing a closed member set.
+    if (dataType.empty() || namedEnumerators == names.end() ||
+        namedEnumerators->second.declarationOrder.empty()) {
+      return;
+    }
+
+    std::string const recordName = identityValue(node, "name=");
+    auto validateMember = [&](std::string const& member, std::string const& enumeratorPath) {
+      if (namedEnumerators->second.declarationIndex.contains(member)) {
+        return true;
+      }
+      diagnostics = "Variant-record data type " + quoteDiagnosticString(recordName) +
+                    " uses discriminant enumerator " + quoteDiagnosticString(member) +
+                    " at " + enumeratorPath +
+                    " that is not declared by discriminant type " + quoteDiagnosticString(dataType) + ".";
+      return false;
+    };
+
+    for (SemanticNode const* alternative : childrenInDeclarationOrder(node)) {
+      if (alternative->localName != "alternative") {
+        continue;
+      }
+      for (SemanticNode const* enumerator : variantDiscriminantEnumeratorNodes(*alternative)) {
+        if (enumerator->text.empty()) {
+          continue;
+        }
+        std::string const expression = trimAsciiWhitespace(enumerator->text);
+        // The lexical predicate has already accepted the grammar. HLAother is
+        // not an enumerator name and therefore has no direct membership check.
+        if (expression.empty() || expression == "HLAother") {
+          continue;
+        }
+        std::string const enumeratorPath =
+            childPath(childPath(path, *alternative), *enumerator);
+        for (VariantDiscriminantEnumeratorComponent const& component :
+             variantDiscriminantEnumeratorComponents(expression)) {
+          if (component.last.has_value()) {
+            if (!validateMember(component.first, enumeratorPath) ||
+                !validateMember(*component.last, enumeratorPath)) {
+              valid = false;
+              return;
+            }
+          } else if (!validateMember(component.first, enumeratorPath)) {
+            valid = false;
+            return;
+          }
+        }
+      }
+    }
+  });
+  return valid;
+}
+
+bool validateVariantRecordDiscriminantEnumeratorAssignments(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  EnumeratedDataTypeEnumeratorNames const enumerators =
+      enumeratedDataTypeEnumeratorNames(root);
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != "variantRecordData") {
+      return;
+    }
+
+    std::string const dataType = scalarChildValue(node, "dataType");
+    auto const selected = enumerators.find(dataType);
+    // Preserve incomplete DIF that does not declare any members for the
+    // selected enumeration.  A populated enumerated table is sufficient to
+    // expand supplied ranges against its own declaration order.
+    if (dataType.empty() || selected == enumerators.end() ||
+        selected->second.declarationOrder.empty()) {
+      return;
+    }
+
+    std::string const recordName = identityValue(node, "name=");
+    std::map<std::string, std::string> owners;
+    std::string hlaOtherAlternative;
+    auto assign = [&](std::string const& enumeratorName,
+                      std::string const& alternativeName,
+                      std::string const& enumeratorPath) {
+      auto const [existing, inserted] = owners.emplace(enumeratorName, alternativeName);
+      if (inserted || existing->second == alternativeName) {
+        return true;
+      }
+      diagnostics = "Variant record " + quoteDiagnosticString(recordName) +
+                    " assigns discriminant enumerator " + quoteDiagnosticString(enumeratorName) +
+                    " to both named alternatives " + quoteDiagnosticString(existing->second) +
+                    " and " + quoteDiagnosticString(alternativeName) +
+                    " after expanding its discriminant-enumerator range at " +
+                    enumeratorPath + ".";
+      return false;
+    };
+
+    for (SemanticNode const* alternative : childrenInDeclarationOrder(node)) {
+      if (alternative->localName != "alternative") {
+        continue;
+      }
+      std::string const alternativeName = identityValue(*alternative, "name=");
+      for (SemanticNode const* enumerator : variantDiscriminantEnumeratorNodes(*alternative)) {
+        std::string const expression = trimAsciiWhitespace(enumerator->text);
+        if (expression.empty()) {
+          continue;
+        }
+        if (expression == "HLAother") {
+          hlaOtherAlternative = alternativeName;
+          continue;
+        }
+
+        std::string const enumeratorPath =
+            childPath(childPath(path, *alternative), *enumerator);
+        for (VariantDiscriminantEnumeratorComponent const& component :
+             variantDiscriminantEnumeratorComponents(expression)) {
+          if (!component.last.has_value()) {
+            if (selected->second.declarationIndex.contains(component.first) &&
+                !assign(component.first, alternativeName, enumeratorPath)) {
+              valid = false;
+              return;
+            }
+            continue;
+          }
+
+          auto const first = selected->second.declarationIndex.find(component.first);
+          auto const last = selected->second.declarationIndex.find(*component.last);
+          if (first == selected->second.declarationIndex.end() ||
+              last == selected->second.declarationIndex.end()) {
+            // The earlier membership predicate reports an actionable failure
+            // for this case; do not mask it with a range-expansion error.
+            continue;
+          }
+          // IEEE 1516.2 defines a range by the enumerators occurring between
+          // its endpoints in the table.  It does not establish a separate
+          // lower/upper endpoint convention, so use the inclusive table span.
+          std::size_t const rangeFirst = std::min(first->second, last->second);
+          std::size_t const rangeLast = std::max(first->second, last->second);
+          for (std::size_t index = rangeFirst; index <= rangeLast; ++index) {
+            if (!assign(
+                    selected->second.declarationOrder[index],
+                    alternativeName,
+                    enumeratorPath)) {
+              valid = false;
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    // HLAother is precisely the complement of every explicitly assigned
+    // member.  Retaining that assignment internally avoids treating it as a
+    // literal enumerator or as an overlap with an explicit range.
+    if (!hlaOtherAlternative.empty()) {
+      for (std::string const& enumeratorName : selected->second.declarationOrder) {
+        owners.try_emplace(enumeratorName, hlaOtherAlternative);
+      }
+    }
+  });
+  return valid;
 }
 
 bool parseNonNegativeCardinality(std::string value) {
@@ -1326,8 +2189,8 @@ bool validateArrayCardinalities(SemanticNode const& root, std::string& diagnosti
     if (cardinality.empty() || validArrayCardinality(cardinality)) {
       return;
     }
-    diagnostics = "Array data type " + identityValue(node, "name=") + " at " + path +
-                  " has invalid cardinality " + cardinality +
+    diagnostics = "Array data type " + quotedIdentityValue(node, "name=") + " at " + path +
+                  " has invalid cardinality " + quoteDiagnosticString(cardinality) +
                   "; expected a nonnegative integer, comma-separated integers, "
                   "a nonnegative [lower..upper] range, or Dynamic.";
     valid = false;
@@ -1401,8 +2264,8 @@ bool validateArrayEncodingCardinalityCompatibility(
     if (encodingIsVariable == *cardinality) {
       return;
     }
-    diagnostics = "Array data type " + identityValue(node, "name=") + " at " + path +
-                  " pairs " + encoding + " with a " +
+    diagnostics = "Array data type " + quotedIdentityValue(node, "name=") + " at " + path +
+                  " pairs " + quoteDiagnosticString(encoding) + " with a " +
                   (*cardinality ? "variable" : "fixed") +
                   " one-dimensional cardinality; the predefined encoding must be " +
                   (*cardinality ? "HLAvariableArray" : "HLAfixedArray") + ".";
@@ -1489,7 +2352,8 @@ bool mergeServiceAttributes(
     }
     if (existing != current.attributes.end() && !existing->second.empty() &&
         !candidateValue.empty() && existing->second != candidateValue) {
-      diagnostics = "Conflicting service-utilization attribute " + name + " at " + path + ".";
+      diagnostics = "Conflicting service-utilization attribute " + quoteDiagnosticString(name) +
+                    " at " + path + ".";
       return false;
     }
     if (existing == current.attributes.end() || existing->second.empty()) {
@@ -1512,29 +2376,30 @@ bool mergeServiceUtilization(
   if (!mergeServiceAttributes(current, candidate, "objectModel/serviceUtilization", diagnostics)) {
     return false;
   }
-  for (auto const& [key, candidateService] : candidate.children) {
+  for (SemanticNode const* candidateService : childrenInDeclarationOrder(candidate)) {
+    NodeKey const key = childKey(current, *candidateService);
     auto existing = current.children.find(key);
     if (existing == current.children.end()) {
-      SemanticNode inserted = candidateService;
-      inserted.attributes["isUsed"] = isUsed(candidateService) ? "true" : "false";
-      current.children.emplace(key, std::move(inserted));
+      SemanticNode inserted = *candidateService;
+      inserted.attributes["isUsed"] = isUsed(*candidateService) ? "true" : "false";
+      appendChild(current, key, std::move(inserted));
       continue;
     }
     if (!mergeServiceAttributes(
             existing->second,
-            candidateService,
-            childPath("objectModel/serviceUtilization", candidateService),
+            *candidateService,
+            childPath("objectModel/serviceUtilization", *candidateService),
             diagnostics)) {
       return false;
     }
-    if (!existing->second.text.empty() && !candidateService.text.empty() &&
-        existing->second.text != candidateService.text) {
+    if (!existing->second.text.empty() && !candidateService->text.empty() &&
+        existing->second.text != candidateService->text) {
       diagnostics = "Conflicting service-utilization value at " +
-                    childPath("objectModel/serviceUtilization", candidateService) + ".";
+                    childPath("objectModel/serviceUtilization", *candidateService) + ".";
       return false;
     }
     existing->second.attributes["isUsed"] =
-        (isUsed(existing->second) || isUsed(candidateService)) ? "true" : "false";
+        (isUsed(existing->second) || isUsed(*candidateService)) ? "true" : "false";
   }
   return true;
 }
@@ -1561,7 +2426,7 @@ std::optional<SemanticNode> selectedNotes(
         !referencedLabels.contains(identityValue(note, "label="))) {
       continue;
     }
-    result.children.emplace(key, note);
+    appendChild(result, key, note);
   }
   if (result.children.empty()) {
     return std::nullopt;
@@ -1821,7 +2686,7 @@ bool appendSemanticNode(
     std::string& diagnostics) {
   if (semantic.namespaceName != kHla2025Namespace) {
     diagnostics = "The FDD materializer does not accept an extension element outside the IEEE 1516-2025 namespace: " +
-                  semantic.localName + ".";
+                  quoteDiagnosticString(semantic.localName) + ".";
     return false;
   }
   xmlNode* output = xmlNewChild(
@@ -1830,7 +2695,8 @@ bool appendSemanticNode(
       BAD_CAST semantic.localName.c_str(),
       nullptr);
   if (output == nullptr) {
-    diagnostics = "Cannot allocate an FDD XML element for " + semantic.localName + ".";
+    diagnostics = "Cannot allocate an FDD XML element for " +
+                  quoteDiagnosticString(semantic.localName) + ".";
     return false;
   }
   if (!semantic.text.empty()) {
@@ -1839,11 +2705,12 @@ bool appendSemanticNode(
   for (auto const& [name, value] : semantic.attributes) {
     if (!name.empty() && name.front() == '{') {
       diagnostics = "The FDD materializer does not accept a namespaced attribute on " +
-                    semantic.localName + ".";
+                    quoteDiagnosticString(semantic.localName) + ".";
       return false;
     }
     if (xmlNewProp(output, BAD_CAST name.c_str(), BAD_CAST value.c_str()) == nullptr) {
-      diagnostics = "Cannot allocate an FDD XML attribute on " + semantic.localName + ".";
+      diagnostics = "Cannot allocate an FDD XML attribute on " +
+                    quoteDiagnosticString(semantic.localName) + ".";
       return false;
     }
   }
@@ -2238,11 +3105,16 @@ class FomCatalogBuilder final {
       } else if (child.localName == "attribute") {
         std::string const attributeName = identityValue(child, "name=");
         if (!attributeName.empty()) {
+          std::string const valueRequired = scalarChildValue(child, "valueRequired");
           definition.declaredAttributes.emplace(
               attributeName,
               FomAttributeDefinition{
                   attributeName,
                   scalarChildValue(child, "dataType"),
+                  scalarChildValue(child, "updateType"),
+                  scalarChildValue(child, "updateCondition"),
+                  valueRequired == "true" || valueRequired == "1",
+                  scalarChildValue(child, "ownership"),
                   scalarChildValue(child, "sharing"),
                   scalarChildValue(child, "transportation"),
                   scalarChildValue(child, "order"),
@@ -2318,7 +3190,15 @@ class FomCatalogBuilder final {
     if (name.empty()) {
       return;
     }
-    FomDimensionDefinition definition{name, {}, parseUnsignedLong(scalarChildValue(node, "upperBound"))};
+    // 1516.2 permits dimensions such as the MIM HLAfederate dimension to omit
+    // upperBound.  That denotes the full unsigned-long domain, not a zero
+    // sized domain; retaining zero here made every otherwise-valid point
+    // range for Normalize Federate Handle fail at commit time.
+    auto const upperBoundText = scalarChildValue(node, "upperBound");
+    auto const upperBound = upperBoundText.empty()
+        ? std::numeric_limits<unsigned long>::max()
+        : parseUnsignedLong(upperBoundText);
+    FomDimensionDefinition definition{name, {}, upperBound};
     if (auto const* inputDataTypes = firstChildNamed(node, "inputDataTypes"); inputDataTypes != nullptr) {
       for (auto const& [key, dataType] : inputDataTypes->children) {
         (void)key;
@@ -2414,6 +3294,7 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
     if (!mergeNode(merged, candidate, "objectModel", diagnostics, warnings) ||
         !validateDataTypeKinds(merged, diagnostics) ||
         !validateEnumeratedValues(merged, diagnostics) ||
+        !validateVariantRecordDiscriminantEnumeratorSyntax(merged, diagnostics) ||
         !validateVariantRecordAlternatives(merged, diagnostics)) {
       return {FomCompositionStatus::inconsistent_modules, {}, std::move(diagnostics)};
     }
@@ -2455,6 +3336,20 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   // later module can supply a type used by an earlier extension module.
   std::string referenceDiagnostics;
   if (!validateDataTypeReferences(merged, referenceDiagnostics) ||
+      !validateObjectAttributeAndInteractionParameterDataTypeKinds(merged, referenceDiagnostics) ||
+      !validateAttributeNaCompanionFields(merged, referenceDiagnostics) ||
+      !validateDynamicAttributeUpdateConditions(merged, referenceDiagnostics) ||
+      !validateUnsharedAttributeValueRequirement(merged, referenceDiagnostics) ||
+      !validateArrayElementDataTypeKinds(merged, referenceDiagnostics) ||
+      !validateFixedRecordFieldAndVariantRecordAlternativeDataTypeKinds(
+          merged,
+          referenceDiagnostics) ||
+      !validateVariantRecordDiscriminantDataTypeKinds(merged, referenceDiagnostics) ||
+      !validateVariantRecordDiscriminantEnumeratorMembership(merged, referenceDiagnostics) ||
+      !validateVariantRecordDiscriminantEnumeratorAssignments(merged, referenceDiagnostics) ||
+      !validateDimensionInputDataTypeKinds(merged, referenceDiagnostics) ||
+      !validateDimensionInputDataTypeNaExclusivity(merged, referenceDiagnostics) ||
+      !validateDimensionInputDataTypeDescriptions(merged, referenceDiagnostics) ||
       !validateDataTypeRepresentationReferences(merged, referenceDiagnostics) ||
       !validateTimeRepresentationDataTypeKinds(merged, referenceDiagnostics) ||
       !validateTagDataTypeKinds(merged, referenceDiagnostics) ||
@@ -2464,6 +3359,7 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
       !validateAvailableDimensionReferences(merged, referenceDiagnostics) ||
       !validateDimensionDefaultValues(merged, referenceDiagnostics) ||
       !validateTransportationReferences(merged, referenceDiagnostics) ||
+      !validateStandardRootClassHierarchies(merged, referenceDiagnostics) ||
       !validateUpdateRateValues(merged, referenceDiagnostics) ||
       !validateArrayCardinalities(merged, referenceDiagnostics) ||
       !validateArrayEncodingCardinalityCompatibility(merged, referenceDiagnostics) ||

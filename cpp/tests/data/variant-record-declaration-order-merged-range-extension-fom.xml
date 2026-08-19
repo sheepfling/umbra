@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes>
+        <enumeratedDataTypes>
+            <enumeratedData>
+                <name>UmbraDeclarationOrderRangeChoices</name>
+                <representation>HLAinteger32BE</representation>
+                <enumerator>
+                    <name>Omega</name>
+                    <value>2</value>
+                </enumerator>
+                <enumerator>
+                    <name>Alpha</name>
+                    <value>3</value>
+                </enumerator>
+            </enumeratedData>
+        </enumeratedDataTypes>
+        <variantRecordDataTypes>
+            <variantRecordData>
+                <name>UmbraDeclarationOrderMergedRange</name>
+                <discriminant>UmbraSelection</discriminant>
+                <dataType>UmbraDeclarationOrderRangeChoices</dataType>
+                <alternative>
+                    <enumerator>[Zulu .. Alpha]</enumerator>
+                    <name>UmbraMergedRangeAlternative</name>
+                </alternative>
+                <alternative>
+                    <enumerator>Omega</enumerator>
+                    <name>UmbraConflictingOmegaAlternative</name>
+                </alternative>
+                <encoding>HLAextendableVariantRecord</encoding>
+            </variantRecordData>
+        </variantRecordDataTypes>
+    </dataTypes>
+</objectModel>

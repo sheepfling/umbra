@@ -1,6 +1,7 @@
 #include "internal/transportation_type_handle.hpp"
+#include "internal/handle_variable_array_encoding.hpp"
 
-#include <array>
+#include <cstddef>
 #include <cstring>
 #include <limits>
 #include <optional>
@@ -10,34 +11,24 @@
 namespace rti1516_2025 {
 namespace {
 
-constexpr std::size_t kTransportationTypeHandleEncodedLength = 8;
+constexpr std::size_t kTransportationTypeHandleEncodedLength =
+    umbra_binding_detail::kUmbraHandleVariableArrayEncodedLength;
 constexpr std::uint64_t kHlaReliableTransportationType = 1;
 constexpr std::uint64_t kHlaBestEffortTransportationType = 2;
 
 std::uint64_t handleValue(TransportationTypeHandleImplementation const* implementation);
 
-std::array<unsigned char, kTransportationTypeHandleEncodedLength> encodeValue(std::uint64_t value) {
-  std::array<unsigned char, kTransportationTypeHandleEncodedLength> encoded{};
-  for (std::size_t index = 0; index < encoded.size(); ++index) {
-    std::size_t const shift = (encoded.size() - index - 1) * 8;
-    encoded[index] = static_cast<unsigned char>(value >> shift);
-  }
-  return encoded;
+auto encodeValue(std::uint64_t value) {
+  return umbra_binding_detail::encodeUmbraHandleVariableArray(value);
 }
 
 std::uint64_t decodeValue(VariableLengthData const& encodedValue) {
-  if (encodedValue.size() != kTransportationTypeHandleEncodedLength ||
-      encodedValue.data() == nullptr) {
-    throw CouldNotDecode(L"An Umbra TransportationTypeHandle must contain exactly eight bytes.");
+  auto const value = umbra_binding_detail::decodeUmbraHandleVariableArray(encodedValue);
+  if (!value.has_value()) {
+    throw CouldNotDecode(
+        L"An Umbra TransportationTypeHandle must contain an HLAvariableArray with exactly eight HLAbyte elements.");
   }
-
-  auto const* bytes = static_cast<unsigned char const*>(encodedValue.data());
-  std::uint64_t value = 0;
-  for (unsigned char byte : std::array<unsigned char, kTransportationTypeHandleEncodedLength>{
-           bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]}) {
-    value = (value << 8) | byte;
-  }
-  return value;
+  return *value;
 }
 
 }  // namespace
@@ -142,7 +133,7 @@ void TransportationTypeHandle::encode(VariableLengthData& buffer) const {
 size_t TransportationTypeHandle::encode(void* buffer, size_t bufferSize) const {
   if (buffer == nullptr || bufferSize < kTransportationTypeHandleEncodedLength) {
     throw CouldNotEncode(
-        L"The TransportationTypeHandle output buffer must contain at least eight bytes.");
+        L"The TransportationTypeHandle output buffer must contain at least twelve bytes.");
   }
 
   auto const encoded = encodeValue(handleValue(_impl));

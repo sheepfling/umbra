@@ -2,7 +2,10 @@
 
 #include "internal/callback_dispatcher.hpp"
 #include "internal/callback_session.hpp"
+#include "internal/embedded_transport.hpp"
+#include "internal/umbra_rti_ambassador.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <future>
@@ -18,7 +21,38 @@ using umbra::detail::CallbackDispatcher;
 using umbra::detail::CallbackDispatchModel;
 using rti1516_2025::NullFederateAmbassador;
 using rti1516_2025::umbra_binding_detail::CallbackSession;
+using rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador;
+using umbra::detail::InstrumentationLayer;
+using umbra::detail::InstrumentationOperationSnapshot;
+using umbra::detail::RuntimeInstrumentation;
 using namespace std::chrono_literals;
+
+InstrumentationOperationSnapshot const& operation(
+    umbra::detail::RuntimeInstrumentationSnapshot const& snapshot,
+    InstrumentationLayer layer,
+    std::string_view name) {
+  auto const found = std::find_if(
+      snapshot.operations.begin(),
+      snapshot.operations.end(),
+      [layer, name](InstrumentationOperationSnapshot const& candidate) {
+        return candidate.layer == layer && candidate.name == name;
+      });
+  REQUIRE(found != snapshot.operations.end());
+  return *found;
+}
+
+std::uint64_t callsFor(
+    umbra::detail::RuntimeInstrumentationSnapshot const& snapshot,
+    InstrumentationLayer layer,
+    std::string_view name) {
+  auto const found = std::find_if(
+      snapshot.operations.begin(),
+      snapshot.operations.end(),
+      [layer, name](InstrumentationOperationSnapshot const& candidate) {
+        return candidate.layer == layer && candidate.name == name;
+      });
+  return found == snapshot.operations.end() ? 0 : found->calls;
+}
 
 }  // namespace
 
@@ -156,4 +190,146 @@ TEST_CASE(
   bool staleInvocationRan = false;
   session.invoke([&](auto&) { staleInvocationRan = true; });
   REQUIRE_FALSE(staleInvocationRan);
+}
+
+TEST_CASE(
+    "Instrumentation times immediate callback dispatch and FederateAmbassador entry",
+    "[unit][kernel][instrumentation][callbacks]") {
+  auto instrumentation = std::make_shared<RuntimeInstrumentation>();
+  CallbackDispatcher dispatcher(CallbackDispatchModel::immediate, instrumentation);
+  NullFederateAmbassador federate;
+  CallbackSession session(federate, instrumentation);
+
+  dispatcher.submit([&] {
+    session.invoke([&](auto&) { std::this_thread::sleep_for(2ms); });
+  });
+
+  auto const snapshot = instrumentation->snapshot();
+  auto const& queueDelay = operation(
+      snapshot,
+      InstrumentationLayer::callback_dispatch,
+      "queue_delay.immediate");
+  auto const& dispatch = operation(
+      snapshot,
+      InstrumentationLayer::callback_dispatch,
+      "execute.immediate");
+  auto const& federateCallback = operation(
+      snapshot,
+      InstrumentationLayer::federate_ambassador,
+      "invoke.immediate");
+
+  REQUIRE(queueDelay.calls == 1);
+  REQUIRE(dispatch.calls == 1);
+  REQUIRE(federateCallback.calls == 1);
+  REQUIRE(dispatch.totalDurationNanoseconds > 0);
+  REQUIRE(federateCallback.totalDurationNanoseconds > 0);
+}
+
+TEST_CASE(
+    "Instrumentation times evoked callback queue delay separately from callback execution",
+    "[unit][kernel][instrumentation][callbacks]") {
+  auto instrumentation = std::make_shared<RuntimeInstrumentation>();
+  CallbackDispatcher dispatcher(CallbackDispatchModel::evoked, instrumentation);
+  NullFederateAmbassador federate;
+  CallbackSession session(federate, instrumentation);
+
+  dispatcher.submit([&] {
+    session.invoke([&](auto&) { std::this_thread::sleep_for(2ms); });
+  });
+  std::this_thread::sleep_for(2ms);
+
+  auto const before = instrumentation->snapshot();
+  REQUIRE(callsFor(
+              before,
+              InstrumentationLayer::callback_dispatch,
+              "execute.evoked") == 0);
+  REQUIRE(callsFor(
+              before,
+              InstrumentationLayer::federate_ambassador,
+              "invoke.evoked") == 0);
+
+  REQUIRE_FALSE(dispatcher.evokeOne(0ms));
+
+  auto const after = instrumentation->snapshot();
+  auto const& queueDelay = operation(
+      after,
+      InstrumentationLayer::callback_dispatch,
+      "queue_delay.evoked");
+  auto const& dispatch = operation(
+      after,
+      InstrumentationLayer::callback_dispatch,
+      "execute.evoked");
+  auto const& federateCallback = operation(
+      after,
+      InstrumentationLayer::federate_ambassador,
+      "invoke.evoked");
+
+  REQUIRE(queueDelay.calls == 1);
+  REQUIRE(dispatch.calls == 1);
+  REQUIRE(federateCallback.calls == 1);
+  REQUIRE(queueDelay.totalDurationNanoseconds > 0);
+  REQUIRE(dispatch.totalDurationNanoseconds > 0);
+  REQUIRE(federateCallback.totalDurationNanoseconds > 0);
+}
+
+TEST_CASE(
+    "The RTI ambassador exposes internal call timing without changing its public API",
+    "[unit][kernel][instrumentation][rti]") {
+  UmbraRtiAmbassador rti;
+  NullFederateAmbassador federate;
+
+  REQUIRE_NOTHROW(rti.connect(federate, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_FALSE(rti.evokeCallback(0.0));
+  REQUIRE_NOTHROW(rti.disconnect());
+
+  auto const snapshot = rti.runtimeInstrumentationSnapshotForTesting();
+  REQUIRE(operation(
+              snapshot,
+              InstrumentationLayer::rti_ambassador,
+              "connect")
+              .calls == 1);
+  REQUIRE(operation(
+              snapshot,
+              InstrumentationLayer::rti_ambassador,
+              "evokeCallback")
+              .calls == 1);
+  REQUIRE(operation(
+              snapshot,
+              InstrumentationLayer::rti_ambassador,
+              "disconnect")
+              .calls == 1);
+}
+
+TEST_CASE(
+    "Transport fault and forced-resignation paths publish internal timing",
+    "[unit][kernel][instrumentation][transport]") {
+  auto instrumentation = std::make_shared<RuntimeInstrumentation>();
+  int owner = 0;
+  bool faultDelivered = false;
+  umbra::detail::EmbeddedTransportConnection faultingConnection(
+      &owner,
+      [&](std::wstring) { faultDelivered = true; },
+      [](std::wstring) { return true; },
+      instrumentation);
+  faultingConnection.fail(L"test fault");
+  REQUIRE(faultDelivered);
+
+  umbra::detail::EmbeddedTransportConnection resigningConnection(
+      &owner,
+      [](std::wstring) {},
+      [](std::wstring) { return true; },
+      instrumentation);
+  REQUIRE(resigningConnection.forceFederateResignation(L"test resignation"));
+
+  auto const snapshot = instrumentation->snapshot();
+  REQUIRE(operation(
+              snapshot,
+              InstrumentationLayer::transport,
+              "fault")
+              .calls == 1);
+  REQUIRE(operation(
+              snapshot,
+              InstrumentationLayer::transport,
+              "forced_resignation")
+              .calls == 1);
 }

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins one bounded IEEE 1516.2-2025 Object Class Table cross-field preflight: when a composed object attribute has data type NA, supplied transportation and order values must be non-NA, while supplied update type and update condition values must be NA. The official DIF XSD has no per-attribute available-dimensions field, so that source phrase cannot be mapped without inventing a class-level restriction (RL-051). DIF modules can omit companion fields; Umbra validates the fields actually present after compatible modules merge, and the FDD schema still requires transportation and order before a complete FDD can materialize. Generic transportation reference resolution remains responsible for a non-NA named transportation type. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-attribute-na-companion-fields",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5",
+      "clause_id": "clause-4.5.2",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "validateAttributeNaCompanionFields",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates supplied NA attribute companions"
+      ]
+    }
+  ]
+}

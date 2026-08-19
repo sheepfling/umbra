@@ -61,7 +61,107 @@ type. The two standard instance identifier names are handled by a dedicated
 exception rule requiring `HLAunicodeString` or `HLAobjectInstanceHandle` as
 appropriate. The official MIM/Restaurant `HLAboolean` representation remains
 accepted under the reviewed RL-009 interpretation rather than being rejected
-by a generic basic-only predicate. Directed
+by a generic basic-only predicate. The paired
+`compliance/attribute-parameter-data-type-requirements-contract.json` scenario
+also rejects raw basic-data representations in object-attribute and
+interaction-parameter data-type columns while retaining the standard
+array-data `HLAtoken` case. The generic resolver retains basic-data names from
+the schema's complete key so table-specific predicates report the applicable
+category condition instead of an undeclared-name error. The separate
+`compliance/fom-attribute-na-companion-requirements-contract.json` scenario
+adds the bounded direct companion rule: for an attribute whose data type is
+`NA`, supplied transportation/order values must be non-`NA`, and supplied
+update type/update condition values must be `NA`. It accepts a partial DIF row
+that a later compatible module completes before FDD materialization, but does
+not manufacture omitted values. The 2025 DIF schema has no per-attribute
+available-dimensions representation, so the source phrase is not inferred as a
+class-wide restriction; RL-051 records that mapping limit. This is private
+traceability only.
+The paired
+`compliance/fom-attribute-value-required-sharing-requirements-contract.json`
+scenario adds the bounded `sharing=Neither` companion rule: a supplied
+`valueRequired` field must be `false`; omitted fields remain representable for
+a partial DIF attribute. It does not infer defaults or model declaration/runtime
+state. RL-052 records the candidate's broad exported clause metadata. This is
+private traceability only.
+The paired
+`compliance/fom-attribute-dynamic-update-condition-requirements-contract.json`
+scenario adds the bounded Dynamic Update Condition rule: when an attribute
+supplies update type Conditional or Periodic and also supplies Update Condition,
+the latter must be nonempty, non-NA text. An omitted condition remains
+representable in a partial DIF attribute row. This does not prove the periodic
+rate grammar or initial-condition prose. The distinct Static/NA source/example
+tension remains deferred under RL-046; it does not affect this independent
+predicate. This is private traceability only.
+The paired `compliance/fom-enumerated-representation-requirements-contract.json`
+scenario additionally requires a supplied enumerated-data representation to
+resolve to a basic-data declaration; it leaves omitted DIF fields and the
+separate simple-data RL-009 interpretation unchanged. This is private
+traceability only.
+The paired `compliance/fom-array-element-data-type-requirements-contract.json`
+scenario requires a supplied array Element Type to resolve to a simple,
+enumerated, reference, fixed-record, array, or variant-record declaration;
+raw basic-data names fail after complete-model resolution. Omitted Element Type
+remains representable for an incomplete DIF row. This is private traceability
+only.
+The paired `compliance/fom-record-member-data-type-requirements-contract.json`
+scenario applies that same bounded category rule to supplied fixed-record Field
+Type and variant-record Alternative Type values. Raw basic-data names fail,
+while omitted member types remain representable for incomplete DIF rows. The
+Requirements Lab candidates retain broad `clause-4` metadata; RL-047 records
+the verified source-provenance gap. This is private traceability only.
+The paired `compliance/fom-variant-discriminant-data-type-requirements-contract.json`
+scenario requires a supplied variant-record Discriminant Type to resolve
+specifically to an enumerated-data declaration. It permits an omitted field for
+an incomplete DIF row, but rejects `NA` because the applicable 2025
+variant-record rule does not provide that marker path. This is private
+traceability only.
+The paired `compliance/fom-variant-discriminant-enumerator-requirements-contract.json`
+scenario validates a supplied Discriminant Enumerator field's comma-separated
+list and bracketed two-endpoint range grammar. `HLAother` is a standalone,
+once-per-record marker; an omitted DIF field remains representable. It does not
+by itself expand ranges or resolve discriminant membership; those semantics are
+covered by the paired private scenarios below. This is private traceability
+only.
+The paired `compliance/fom-variant-discriminant-enumerator-membership-requirements-contract.json`
+scenario then requires each supplied individual discriminant enumerator and
+each range endpoint to be declared by the selected enumerated type after
+composition. It retains an incomplete DIF enumeration that supplies no members.
+The paired range-semantics scenario below uses that resolved table membership.
+RL-049 records the precise candidate's broad exported clause provenance. This
+is private traceability only.
+The paired `compliance/fom-variant-discriminant-enumerator-range-semantics-requirements-contract.json`
+scenario retains the enumerated table's declaration order, expands each
+bracketed range over the inclusive span between its endpoints, and rejects a
+member assigned through direct/range entries to more than one named alternative
+after composition. `HLAother` is represented internally as the complement of
+the explicit members. It retains an enumeration with no declared members as
+incomplete DIF and does not invent a directional endpoint rule. RL-049 and
+RL-050 record the Requirements Lab provenance limits. This is private
+traceability only.
+The paired `compliance/fom-dimension-input-data-type-requirements-contract.json`
+scenario requires each supplied Dimension-table Input data type to resolve to
+the same table-defined declaration families; raw basic-data names fail, while
+the `NA` marker remains valid. The paired
+`compliance/fom-dimension-input-data-description-requirements-contract.json`
+scenario adds the bounded companion direction: an `inputDataTypes` sequence
+with no named type requires non-`NA` description text. It accepts the official
+empty-list representation and retains named-type rows with either `NA` or
+amplifying descriptions. Neither predicate infers suitable-type selection or
+the unambiguity of a supplied description. RL-048 records the broad exported
+clause metadata. The additional
+`compliance/fom-dimension-input-data-type-na-exclusivity-requirements-contract.json`
+scenario rejects an explicit `NA` marker mixed with a named input type, without
+adding a suitability, cardinality, deduplication, or description-content
+judgment. This is private traceability only.
+The paired `compliance/fom-root-hierarchy-requirements-contract.json` scenario
+also rejects a nonstandard top-level object or interaction class after the
+completed model merges, while leaving an omitted table representable for an
+incomplete DIF module. It is private traceability only. The distinct
+Static/NA direction remains deferred under RL-046 because the supplied 2025
+Restaurant FOM uses Static with On change; Umbra does not reject the official
+example through a homegrown interpretation. The separate bounded
+Conditional/Periodic non-NA predicate remains active. Directed
 interaction names are likewise resolved after the complete interaction
 hierarchy is merged; this does not remove the separate official FDD-schema
 cardinality limitation for the supplied extension example. Object and
@@ -152,7 +252,7 @@ attribute forms, directed messages, HLA_IMMEDIATE/asynchronous, and
 lifecycle-race matrices. This remains development-profile traceability only;
 real connection-loss automatic resign, MOM service-report/report-file behavior,
 default/conveyed-region use, directed regional callbacks, broader relaxed-DDM
-matrices, the remaining delayed-subscription matrix, JUnit promotion, protected
+matrices, broader delayed-subscription lifecycle matrices, JUnit promotion, protected
 review, and conformance remain open. RL-018 records the Delay Subscription
 source-title/clause metadata mismatch, while RL-024 records the Lab/XSD
 automatic-resign default mismatch.
@@ -162,9 +262,24 @@ a federate with Service Reporting enabled cannot subscribe—ordinarily or with
 regions—to `HLAreportServiceInvocation`, and a federate with either exact
 subscription cannot enable the switch. The focused Catch2 case proves the two
 official exception types, passive-mode coverage, state preservation after a
-failed enable, and removal-before-enable recovery. It does not emit
-service-report interactions, write report files, or implement generic MOM
-handling; those remain separate work.
+failed enable, and removal-before-enable recovery. The bounded filesystem
+foundation now creates one RTI-owned initial-record file per joined federate,
+including when reporting starts disabled, preserves that file across switch
+changes, and allocates a new one on rejoin. It does not emit service-report
+interactions, append generated report records, publish
+`HLAreportServiceFile`, or implement generic MOM handling; those remain
+separate work.
+
+The same successful production-profile Join now establishes an unpublished
+RTI-owned joined-federate MOM snapshot behind the registry seam. It reserves a
+common-namespace object identity, preserves all effective MIM attribute
+metadata (including the inherited delete-privilege policy), captures a private
+normalized `HLAfederate` point, and encodes the seven direct initial values
+using official MIM types and the exact filesystem path. Switch changes preserve
+that state and resignation removes it. The Catch2 assertion is deliberately an
+internal inspection only: it does not register, discover, reflect, remove, or
+serve requested values for a public MOM object, because RL-043 still lacks a
+source-backed callback producer-designator rule.
 
 The same support-switch contract now traces the bounded joined-federate
 `HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches` control path. A non-empty
@@ -214,9 +329,12 @@ non-installable libxml2 development-profile option:
 
 `compliance/external-2025-fom-corpus.json` pins four external modules by
 digest, 2025 namespace, and DIF schema location. With that option, the
-development tests verify every module under DIF, materialize standard MIM plus
-the complete ordered set into a repeatable private FDD/catalog, and exercise
-that exact list through official Create/Join calls in the embedded profile.
+development tests verify every module under DIF, then prove that the exact
+MIM-first set is deterministically rejected by the source-backed
+object-attribute/interaction-parameter data-type rule and maps to
+`InconsistentFOM` at embedded federation creation. The pinned prototype uses
+raw basic-data representations in those application-table columns, so DIF
+acceptance alone is intentionally not treated as 2025 semantic acceptance.
 This is not raw Requirements-Lab evidence, a release dependency, a runtime
 scenario result, or a conformance claim. Umbra remains 2025-only; the SISO
 lane above remains an expected-rejection guard rather than a compatibility
@@ -433,6 +551,35 @@ selection boundary, to the Lab's source-derived requirement IDs. CTest runs it
 as `umbra.ieee1516_2025.reference_time_traceability`. It is not public
 `getTimeFactory`, Create, or time-management evidence, and it deliberately does
 not add an entry to the JUnit sidecar catalog.
+
+`compliance/logical-time-encoding-requirements-contract.json` separately pins
+the official `HLAlogicalTime` and `HLAlogicalTimeInterval` C++ helpers to the
+source-derived §12.3 behaviors for opaque factory encoding/decoding and
+factory-created initial or zero values. CTest runs it as
+`umbra.ieee1516_2025.logical_time_encoding_requirements_traceability`. The
+implementation delegates to the selected factory and has no universal Umbra
+time wire form; its nested `decodeFrom` path is deliberately limited to the
+fixed-width reference profile because `LogicalTimeFactory` does not report a
+consumed length. This is source/test traceability only, not public
+`getTimeFactory`, catalog, JUnit, package, interoperability, or conformance
+evidence. RL-055 records that the selected Lab candidates currently export
+§12.4/Annex provenance despite the reconstructed §12.3 source.
+
+`compliance/authorization-requirements-contract.json` separately pins the
+official `HLAplainTextPassword` C++ credential value to the source-derived
+`HLAunicodeString` constructor behavior, the `HLAauthorizer` and factory
+foundation, the standard factory-forwarding boundary, and the embedded
+profile's disabled-authorization Connect gate. CTest runs it as
+`umbra.ieee1516_2025.authorization_requirements_traceability`. The current
+profile accepts the explicit empty `HLAnoCredentials` form but rejects another
+supplied credential with `Unauthorized`; it does not select or execute the
+reference authorizer. Its global plaintext-password behavior is exercised
+only through an internal test seam pending secure RID configuration and
+runtime lifecycle work. This is source/test traceability only, not
+authorization conformance, catalog, JUnit, package, interoperability, or
+security-review evidence. RL-056 records the exported §12.8/Annex provenance
+drift from the reconstructed §§12.5-12.6 source; RL-057 records the
+authorization-library source/header method-name discrepancy.
 
 `compliance/federation-management-preparation-requirements-contract.json`
 separately pins the private MIM-first creation and additional-FOM preparation
@@ -1100,9 +1247,128 @@ installed SDK, not the source tree.  It currently verifies the official
 configuration-builder, ambassador-factory, and reference-time factory paths.
 The matching Catch2 tests cover `VariableLengthData` ownership replacement and
 custom deletion.  This is support-type/SDK-consumability evidence only; it is
-not a public service, data-element encoder, or conformance claim.  Basic
-`RTI/encoding/*` element implementations remain a separately gated scope that
-needs IEEE-source-derived byte-vector tests before implementation begins.
+not a public service or conformance claim. The bounded
+RTI/encoding/BasicDataElements.h implementation has IEEE-source-derived
+byte-vector coverage for HLAinteger32BE, HLAunsignedInteger32BE,
+HLAinteger32LE, HLAunsignedInteger32LE, HLAinteger64BE, HLAinteger64LE,
+HLAunsignedInteger64BE, HLAunsignedInteger64LE, HLAboolean, HLAunicodeString,
+the 16-bit signed/unsigned big- and little-endian helpers, the big-/little-
+endian octet-pair helpers, HLAoctet, HLAbyte, HLAASCIIchar, HLAASCIIstring,
+HLAunicodeChar, and HLAfloat32BE/LE and HLAfloat64BE/LE. The raw one-octet
+helpers preserve byte values; the ASCII helpers reject non-ASCII data and the
+string uses the separately traced signed HLAinteger32BE HLAvariableArray count;
+HLAunicodeChar carries exactly one UTF-16BE code unit; HLAunicodeString rejects
+unmatched source and decoded surrogates; and the floating helpers require
+32-bit/64-bit IEC 559 native float/double representations before applying the
+standard byte order. All official `BasicDataElements.h` helper classes now have
+definitions and source-derived direct Catch2 coverage, while the C++ helper and
+1516.2 BasicDataElements contracts are CTest Requirements-Lab checks. This is
+not generic constructed-data encoding, adapter exposure, interoperability, or
+conformance evidence.
+The distinct official `RTI/encoding/HLAopaqueData.h` C++ helper is now a
+separate bounded slice. Its 1516.2 Table 35 representation is a dynamic
+`HLAvariableArray` of `HLAbyte`: Catch2 fixes its signed `HLAinteger32BE`
+element count, raw-byte payload, four-octet boundary, nested decode, malformed
+input, and trailing-data behavior. The C++ header's external-memory form is
+implemented as caller-owned borrowed storage: encoding observes caller changes,
+while `set` and `decode` write only within the caller's declared buffer and
+raise `EncoderException` when it is too small. Umbra neither allocates into nor
+takes ownership of that storage. The separate 1516.1 helper contract and the
+existing 1516.2 variable-array contract are CTest Requirements-Lab checks;
+RL-053 records that the source-verified Table 27/Table 35 rows do not have
+individual immutable helper candidates. This remains a specific SDK foundation
+slice, not generic constructed encoding, adapter exposure, interoperability, or
+conformance evidence.
+The official `RTI/encoding/HLAfixedRecord.h` helper is now a separate bounded
+constructed-data slice. The direct 1516.2 candidates require declaration-order
+fields beginning at offset zero, zero padding between fields needed to align
+the following element, and no trailing padding. Catch2 fixes the source
+standard octet/boolean/float64 vector and covers reverse order, nesting,
+malformed padding, structural type checks, cloned elements, and raw pointer
+operations. Umbra treats the raw `DataElement*` operations as borrowed,
+non-owning references because the standard header does not define ownership
+transfer; that is an implementation safety policy rather than a standards
+claim. A dedicated CTest Requirements-Lab contract verifies the three direct
+candidate IDs. Their exported metadata remains broad `clause-4` even though
+the reconstructed source heading is §4.14.10.1; RL-054 records that provenance
+drift. Generic arrays or variants, model-specific encoder factories, adapter
+exposure, interoperability, and conformance remain open.
+The official `RTI/encoding/HLAfixedArray.h` helper is now a separate bounded
+constructed-data slice. §4.14.10.4 defines a fixed-cardinality element
+sequence beginning at offset zero, with zero inter-element padding determined
+by the prototype element's octet boundary and no padding after the final
+element. Catch2 fixes a source-derived array of fixed-record elements and
+covers nested use, malformed padding, full-decode trailing data, templated
+wrappers, prototype cloning, type checks, and externally supplied element
+pointers. The public header expressly leaves raw-pointer lifetime with the
+caller, so Umbra treats them as borrowed non-owning storage while copy/clone
+uses internal memory; that policy is an implementation safety decision, not a
+separate standard claim. A dedicated CTest Requirements-Lab contract validates
+the fixed-array candidates. The direct sequence/no-final candidates retain
+broad `clause-4` metadata and Equation (5)'s zero-padding source text lacks an
+individual candidate; RL-054 records both limitations. Model-specific factories, adapter exposure,
+interoperability, and conformance remain open.
+The official `RTI/encoding/HLAvariableArray.h` helper is now a separate
+bounded constructed-data slice. §4.14.10.5 requires a signed
+`HLAinteger32BE` number-of-elements component at offset zero, then sequence
+elements; its leading padding aligns the first element using the maximum of
+the element boundary and four, while later padding uses the fixed-array rule
+and no final padding is emitted. Catch2 fixes the source float64 leading-pad
+vector and covers nested decoding, negative/truncated/malformed input,
+full-decode trailing data, variable cardinality, fixed-record elements,
+templated wrappers, type checks, and externally supplied element pointers.
+The public header expressly leaves raw-pointer lifetime with the caller, so
+Umbra treats those slots as borrowed non-owning storage while copies use
+internal memory; that is an implementation safety decision, not a separate
+standard claim. A dedicated CTest Requirements-Lab contract validates the
+available direct candidates. Their metadata is broad `clause-4`, while the
+Equation (6) boundary definition and zero-byte statement lack individual
+candidates; RL-044 records those limits. Model-specific factories, adapter exposure, interoperability, and conformance
+remain open.
+The official `RTI/encoding/HLAvariantRecord.h` helper is now a separate
+bounded constructed-data slice. §4.14.10.2 places the discriminant at record
+offset zero and, when a mapped alternative exists, aligns that alternative by
+adding the smallest needed zero padding after the discriminant. The source
+defines the alignment boundary as the maximum across all alternatives. An
+unmapped discriminant receives neither padding nor a value; no padding follows
+a mapped alternative. Catch2 fixes a vector where a four-octet selected
+alternative is padded to an eight-octet boundary because of another
+alternative, and covers nested decoding, malformed padding, full-decode
+trailing data, unmapped values, mapping/type checks, templated wrappers,
+cloning, and externally supplied variant pointers. The public header expressly
+leaves raw-pointer lifetime with the caller, so Umbra retains those variants as
+borrowed non-owning storage while copies use internal memory. `DataElement::hash`
+is used as its declared mapping hook but confirmed with both type and encoded
+bytes before selecting a variant; collision handling is an implementation
+safety choice, not a separate standard claim. A dedicated CTest
+Requirements-Lab contract validates the direct candidates. Their metadata is
+broad `clause-4`, while Equation (2)'s `Size`/`V` definitions have no
+individual candidate; RL-054 records those limits. FOM-level enumerator ranges
+and `HLAother` expansion, model-specific factories, adapter exposure,
+interoperability, and conformance remain open.
+The official `RTI/encoding/HLAextendableVariantRecord.h` helper is now a
+separate bounded constructed-data slice. §4.14.10.3 places the discriminant at
+record offset zero, then pads it to the four-octet boundary of the
+`HLAinteger32BE` `encoded_length` element. The length describes only the
+alternative bytes, is zero when no alternative applies, and excludes the
+padding that follows it. A second zero-padding calculation aligns the
+alternative to its predefined eight-octet boundary; alternatives with a
+greater boundary are rejected. Umbra keeps that second layout padding in the
+zero-length form as well, producing one deterministic length-prefixed layout
+for an unknown discriminant to skip. No padding follows an alternative.
+Catch2 fixes mapped and unmapped vectors, leading and post-length alignment,
+nested decoding, strict zero-padding validation, declared-length mismatch,
+truncation, trailing data, unknown-alternative skips, mapping/type controls,
+templated wrappers, clones, the eight-octet boundary prohibition, and the
+official header's caller-owned raw-pointer lifetime. `DataElement::hash` is
+used as a mapping accelerator but checked with type and encoded bytes before a
+mapping is selected; that collision handling is an implementation safety
+choice, not a separate standard claim. A dedicated CTest Requirements-Lab
+contract validates the five direct candidates. Their metadata is broad
+`clause-4`, while Equations (3)/(4) and their `Size`/`V` definitions lack
+individual candidates; RL-054 records those limits. FOM-level enumerator
+ranges and `HLAother` expansion, model-specific factories, adapter exposure,
+interoperability, and conformance remain open.
 The official convenience header does not itself include the encoding helper
 headers, so consumer tests include the needed `RTI/encoding/*` header
 explicitly rather than relying on an Umbra-specific transitive include.
@@ -1150,10 +1416,15 @@ The embedded connection slice implements all four C++ connect overloads and the
 selected disconnect declaration through the official factory. It also binds the
 four callback-control declarations to a private immediate/evoked dispatcher.
 The configuration result explicitly reports that endpoint/additional settings
-are not yet used; credentials are accepted but not validated because the
-embedded backend has no authorizer. In the default packaged configuration,
-Create/Destroy/Join/Resign and all other unimplemented RTI services continue to
-throw RTIinternalError from the generated fallback. The opt-in development
+are not yet used except for the documented embedded service-report directory.
+The backend has no configured authorizer: the ordinary no-credentials forms
+remain usable, while an explicit non-`HLAnoCredentials` envelope is rejected
+with `Unauthorized` rather than silently accepted. `HLAplainTextPassword` and
+the reference authorizer/factory/library-forwarding foundation are present,
+but reference authorizer configuration and runtime authorization remain later
+work. In the default
+packaged configuration, Create/Destroy/Join/Resign and all other unimplemented
+RTI services continue to throw RTIinternalError from the generated fallback. The opt-in development
 profile wires Create/Destroy/Join/Resign through MIM-first prevalidation and a
 shared in-process registry. It additionally snapshots the registry for the
 official List Federation Executions and List Federation Execution Members
@@ -1165,15 +1436,30 @@ Resign cleanup, forces the ambassador to Not Connected, removes membership,
 and queues the official Connection Lost callback. A second multi-federate case
 sets `DELETE_OBJECTS` through the official Automatic Resign Directive service,
 then verifies delete-privileged object removal at the survivor. Its fault hook
-is test-only and does not claim socket/IPC or package support. The separate
-private in-session control hook exercises the distinct `Federate Resigned`
+is test-only and does not claim socket/IPC or package support. A third
+multi-federate case selects `UNCONDITIONALLY_DIVEST_ATTRIBUTES`, then proves
+that the survivor keeps the object known and receives the current eligible
+ownership-assumption callback after the loss. The closest Requirements-Lab
+candidate for the required automatic-resign step ends before its continuation
+explicitly names the directive; RL-060 records that source-extraction gap. A
+fourth case selects `DELETE_OBJECTS_THEN_DIVEST`, transfers a non-delete-
+privileged attribute to the future lost federate, and then proves the loss
+deletes its separately delete-privileged object before re-offering the retained
+attribute. A fifth case selects `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, leaves
+a regular acquisition request pending at the owner, then proves loss suppresses
+the stale queued release request and lets a real surviving candidate receive a
+later assumption offer. A sixth case selects
+`CANCEL_THEN_DELETE_THEN_DIVEST`, leaves a regular acquisition pending, and
+then proves the forced loss suppresses its stale release work, removes a known
+delete-privileged object, and re-offers a retained non-delete attribute. The
+separate private in-session control hook exercises the distinct `Federate Resigned`
 callback: it removes a clean joined member through the standard `NO_ACTION`
 registry path, keeps the connection open, and permits a new Join. It also
 proves that self-resignation and Connection Lost do not deliver that callback.
 The new paired Federate Resigned contracts select only the exact official C++
 callback despite the Lab crosswalk issue logged as RL-025. Other
-federation-event callbacks, remaining forced-resign disposition policy,
-remaining directive combinations, and complete object/ownership behavior
+federation-event callbacks, bounded `NO_ACTION` forced-resign disposition
+policy, remaining forced-resign disposition policy, and complete object/ownership behavior
 remain open. The paired
 `compliance/connection-lost-requirements-contract.json` and
 `compliance/connection-lost-api-contract.json` pin the two explicit Lab

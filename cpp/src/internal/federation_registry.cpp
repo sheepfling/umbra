@@ -3,6 +3,9 @@
 #include "internal/fom_catalog.hpp"
 #include "internal/federation_time_bounds.hpp"
 #include "internal/federation_time_grant_policy.hpp"
+#include "internal/handle_variable_array_encoding.hpp"
+
+#include <RTI/encoding/BasicDataElements.h>
 
 #include <algorithm>
 #include <atomic>
@@ -11,6 +14,7 @@
 #include <random>
 #include <set>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <tuple>
 #include <utility>
@@ -21,6 +25,66 @@ namespace {
 
 constexpr char kReportServiceInvocationInteractionClassName[] =
     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation";
+constexpr char kReportFederateLostInteractionClassName[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost";
+
+constexpr char kJoinedFederateMomObjectClassName[] =
+    "HLAobjectRoot.HLAmanager.HLAfederate";
+constexpr char kHlaFederateDimensionName[] = "HLAfederate";
+constexpr char kHlaPrivilegeToDeleteObjectAttributeName[] =
+    "HLAprivilegeToDeleteObject";
+constexpr char kHlaReportServiceFileAttributeName[] = "HLAreportServiceFile";
+constexpr char kHlaReportServiceFileMimConditionalUpdate[] = "Conditional";
+constexpr char kHlaReportServiceFileMimConditionalUpdateCondition[] =
+    "The first time that both HLAserviceReporting and "
+    "HLAsendServiceReportsToFile become true.";
+
+// Table 8's direct required joined-federate values. HLAreportServiceFile is
+// included in the initial private snapshot under the selected 1516.1 Static
+// policy; the unmodified 1516.2 MIM's contrary Conditional field is retained
+// in the composed catalog and must not be overwritten here.
+constexpr char kJoinedFederateInitialAttributeNames[][32] = {
+    "HLAfederateHandle",
+    "HLAfederateName",
+    "HLAfederateType",
+    "HLAfederateHost",
+    "HLARTIversion",
+    "HLAFOMmoduleDesignatorList",
+    "HLAreportServiceFile",
+};
+
+constexpr char kJoinedFederateInitialAttributeDataTypes[][24] = {
+    "HLAfederateHandle",
+    "HLAunicodeString",
+    "HLAunicodeString",
+    "HLAunicodeString",
+    "HLAunicodeString",
+    "HLAmoduleDesignatorList",
+    "HLAunicodeString",
+};
+
+constexpr char kMomServiceReportParameterNames[][24] = {
+    "HLAservice",
+    "HLAserviceType",
+    "HLAsuccessIndicator",
+    "HLAsuppliedArguments",
+    "HLAreturnedArgument",
+    "HLAexception",
+    "HLAserialNumber",
+};
+
+constexpr char kFederateLostFederateParameterName[] = "HLAfederate";
+constexpr char kFederateLostFederateNameParameterName[] = "HLAfederateName";
+constexpr char kFederateLostTimestampParameterName[] = "HLAtimeStamp";
+constexpr char kFederateLostFaultDescriptionParameterName[] = "HLAfaultDescription";
+
+// This value is never placed in Federation::regions.  It exists only in a
+// short-lived RegionSpecificationSnapshot override while evaluating the
+// RTI-owned §11.5 report endpoint, so federates cannot modify or delete it.
+constexpr std::uint64_t kMomServiceReportEndpointRegionHandle =
+    std::numeric_limits<std::uint64_t>::max();
+constexpr std::uint64_t kMomFederateLostEndpointRegionHandle =
+    std::numeric_limits<std::uint64_t>::max() - 1U;
 
 constexpr std::uint64_t kFederateNormalizationKind = 0xEB41A82B7D1E63F5ULL;
 constexpr std::uint64_t kObjectClassNormalizationKind = 0x49B17E0D9346AC27ULL;
@@ -52,6 +116,50 @@ std::uint64_t nextNormalizationSeed() noexcept {
     // because an optional entropy source is unavailable.
   }
   return mixedNormalizationValue(seed);
+}
+
+void appendPadding(std::vector<rti1516_2025::Octet>& output, std::size_t boundary) {
+  auto const remainder = output.size() % boundary;
+  if (remainder != 0U) {
+    output.insert(output.end(), boundary - remainder, static_cast<rti1516_2025::Octet>(0));
+  }
+}
+
+void appendDataElement(
+    std::vector<rti1516_2025::Octet>& output,
+    rti1516_2025::DataElement const& value) {
+  appendPadding(output, value.getOctetBoundary());
+  value.encodeInto(output);
+}
+
+rti1516_2025::VariableLengthData encodeModuleDesignatorList(
+    std::vector<PrevalidatedFomModule> const& modules) {
+  std::set<std::filesystem::path> seenSources;
+  std::vector<std::wstring> designators;
+  designators.reserve(modules.size());
+  for (auto const& module : modules) {
+    // Federation-management preparation canonicalizes every FOM source
+    // before it reaches this descriptor. Use that identity so the first
+    // supplied designator represents repeated references to one module.
+    if (seenSources.insert(module.sourcePath).second) {
+      designators.push_back(module.designator);
+    }
+  }
+  if (designators.size() >
+      static_cast<std::size_t>(std::numeric_limits<rti1516_2025::Integer32>::max())) {
+    throw rti1516_2025::EncoderException(
+        L"The joined federate supplied too many FOM-module designators.");
+  }
+
+  std::vector<rti1516_2025::Octet> bytes;
+  rti1516_2025::HLAinteger32BE count{
+      static_cast<rti1516_2025::Integer32>(designators.size())};
+  appendDataElement(bytes, count);
+  for (auto const& designator : designators) {
+    rti1516_2025::HLAunicodeString encodedDesignator{designator};
+    appendDataElement(bytes, encodedDesignator);
+  }
+  return rti1516_2025::VariableLengthData(bytes.data(), bytes.size());
 }
 
 }  // namespace
@@ -86,6 +194,9 @@ rti1516_2025::ResignAction resignActionFromFom(std::string const& value) {
   }
   if (value == "CancelThenDeleteThenDivest") {
     return rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST;
+  }
+  if (value == "NoAction") {
+    return rti1516_2025::NO_ACTION;
   }
   return rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST;
 }
@@ -137,13 +248,38 @@ unsigned long EmbeddedFederationRegistry::normalizedHandleValue(
     std::uint64_t normalizationSeed,
     std::uint64_t handleValue,
     std::uint64_t handleKind) noexcept {
+  // MOM report regions are half-open point ranges.  Reserve the maximum
+  // unsigned-long coordinate so every normalized handle can become [value,
+  // value + 1) without overflow; the value remains opaque and execution
+  // scoped rather than revealing the private handle sequence.
+  auto constexpr maximumPointCoordinate = std::numeric_limits<unsigned long>::max();
   return static_cast<unsigned long>(
-      mixedNormalizationValue(normalizationSeed ^ handleKind ^ handleValue));
+      mixedNormalizationValue(normalizationSeed ^ handleKind ^ handleValue) %
+      maximumPointCoordinate);
+}
+
+EmbeddedFederationRegistry::EmbeddedFederationRegistry(
+    std::shared_ptr<RuntimeInstrumentation> instrumentation)
+    : instrumentation_(
+          instrumentation ? std::move(instrumentation)
+                           : std::make_shared<RuntimeInstrumentation>()) {}
+
+RuntimeInstrumentationSnapshot
+EmbeddedFederationRegistry::runtimeInstrumentationSnapshotForTesting() const {
+  return instrumentation_->snapshot();
+}
+
+RuntimeInstrumentation::Scope EmbeddedFederationRegistry::beginInstrumentation(
+    std::string_view operation) const {
+  return instrumentation_->begin(
+      InstrumentationLayer::federation_registry,
+      operation);
 }
 
 FederationRegistryResult EmbeddedFederationRegistry::create(
     std::wstring const& federationName,
     FederationDefinition definition) {
+  auto instrumentationScope = beginInstrumentation("create");
   if (!validDefinition(federationName, definition)) {
     return {FederationRegistryStatus::invalid_request};
   }
@@ -214,6 +350,7 @@ FederationRegistryResult EmbeddedFederationRegistry::create(
 }
 
 FederationRegistryResult EmbeddedFederationRegistry::destroy(std::wstring const& federationName) {
+  auto instrumentationScope = beginInstrumentation("destroy");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -232,6 +369,7 @@ FederationJoinResult EmbeddedFederationRegistry::join(
     std::wstring const& federationName,
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName) {
+  auto instrumentationScope = beginInstrumentation("join");
   return joinImpl(
       federationName,
       nullptr,
@@ -247,6 +385,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithTimeState(
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
     InteractionCallbackRoute interactionCallbackRoute) {
+  auto instrumentationScope = beginInstrumentation("joinWithTimeState");
   return joinImpl(
       federationName,
       nullptr,
@@ -261,6 +400,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinition(
     FederationDefinition definition,
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName) {
+  auto instrumentationScope = beginInstrumentation("joinWithDefinition");
   return joinImpl(
       federationName,
       &definition,
@@ -277,6 +417,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinitionAndTimeState(
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
     InteractionCallbackRoute interactionCallbackRoute) {
+  auto instrumentationScope = beginInstrumentation("joinWithDefinitionAndTimeState");
   return joinImpl(
       federationName,
       &definition,
@@ -547,6 +688,204 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
   return {FederationRegistryStatus::applied, std::move(membership)};
 }
 
+JoinedFederateMomObjectStatus
+EmbeddedFederationRegistry::establishJoinedFederateMomObject(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    JoinedFederateMomObjectDescriptor const& descriptor) {
+  auto instrumentationScope = beginInstrumentation("establishJoinedFederateMomObject");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return JoinedFederateMomObjectStatus::federation_does_not_exist;
+  }
+  auto const member = federation->second.members.find(federateId);
+  if (member == federation->second.members.end()) {
+    return JoinedFederateMomObjectStatus::federate_not_member;
+  }
+  if (descriptor.reportServiceFile.empty()) {
+    return JoinedFederateMomObjectStatus::invalid_descriptor;
+  }
+  for (auto const& module : descriptor.fomModulesSpecifiedAtJoin) {
+    if (module.kind != FomModuleKind::fom || module.sourcePath.empty()) {
+      return JoinedFederateMomObjectStatus::invalid_descriptor;
+    }
+  }
+  for (auto const& [objectHandle, object] :
+       federation->second.rtiOwnedJoinedFederateMomObjects) {
+    static_cast<void>(objectHandle);
+    if (object.joinedFederateId == federateId) {
+      return JoinedFederateMomObjectStatus::already_established;
+    }
+  }
+  if (!federation->second.definition.catalog ||
+      !federation->second.objectClassHandles ||
+      !federation->second.attributeHandles ||
+      !federation->second.dimensionHandles) {
+    return JoinedFederateMomObjectStatus::inconsistent_catalog;
+  }
+
+  auto const objectClassHandle = federation->second.objectClassHandles->handleFor(
+      kJoinedFederateMomObjectClassName);
+  auto const federateDimensionHandle = federation->second.dimensionHandles->handleFor(
+      kHlaFederateDimensionName);
+  auto const effectiveAttributes =
+      federation->second.definition.catalog->effectiveObjectClassAttributes(
+          kJoinedFederateMomObjectClassName);
+  if (!objectClassHandle || !federateDimensionHandle || !effectiveAttributes) {
+    return JoinedFederateMomObjectStatus::inconsistent_catalog;
+  }
+
+  std::map<std::string, std::uint64_t> attributeHandlesByName;
+  std::set<std::uint64_t> effectiveAttributeHandles;
+  for (auto const& [attributeName, attribute] : *effectiveAttributes) {
+    static_cast<void>(attribute);
+    auto const attributeHandle = federation->second.attributeHandles->handleFor(
+        federation->second.definition.catalog.get(),
+        kJoinedFederateMomObjectClassName,
+        attributeName);
+    if (!attributeHandle || !effectiveAttributeHandles.insert(*attributeHandle).second ||
+        !attributeHandlesByName.emplace(attributeName, *attributeHandle).second) {
+      return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+  }
+
+  auto const deletePrivilege = effectiveAttributes->find(
+      kHlaPrivilegeToDeleteObjectAttributeName);
+  if (deletePrivilege == effectiveAttributes->end() ||
+      deletePrivilege->second.dataType != "HLAtoken" ||
+      deletePrivilege->second.valueRequired ||
+      deletePrivilege->second.ownership != "DivestAcquire" ||
+      !attributeHandlesByName.contains(kHlaPrivilegeToDeleteObjectAttributeName)) {
+    return JoinedFederateMomObjectStatus::inconsistent_catalog;
+  }
+
+  for (std::size_t index = 0; index < std::size(kJoinedFederateInitialAttributeNames); ++index) {
+    auto const attribute = effectiveAttributes->find(kJoinedFederateInitialAttributeNames[index]);
+    if (attribute == effectiveAttributes->end() ||
+        attribute->second.dataType != kJoinedFederateInitialAttributeDataTypes[index] ||
+        !attribute->second.valueRequired ||
+        attribute->second.ownership != "NoTransfer" ||
+        !attributeHandlesByName.contains(kJoinedFederateInitialAttributeNames[index])) {
+      return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+    // The 1516.1-2025 Table 8 source calls HLAreportServiceFile Static,
+    // while the unmodified MIM catalog records one precise Conditional rule.
+    // Preserve the conflict without broadening it into an arbitrary policy:
+    // a future malformed catalog must not be treated as a valid joined-
+    // federate MOM foundation. The other six direct initial values must have
+    // the MIM's Static policy.
+    if (std::string_view{kJoinedFederateInitialAttributeNames[index]} ==
+        kHlaReportServiceFileAttributeName) {
+      bool const tableEightStatic = attribute->second.updateType == "Static";
+      bool const vendoredMimConditional =
+          attribute->second.updateType == kHlaReportServiceFileMimConditionalUpdate &&
+          attribute->second.updateCondition ==
+              kHlaReportServiceFileMimConditionalUpdateCondition;
+      if (!tableEightStatic && !vendoredMimConditional) {
+        return JoinedFederateMomObjectStatus::inconsistent_catalog;
+      }
+    } else if (attribute->second.updateType != "Static") {
+      return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+  }
+
+  std::map<std::uint64_t, rti1516_2025::VariableLengthData> initialAttributeValues;
+  auto addInitialValue = [&](char const* attributeName,
+                             rti1516_2025::VariableLengthData value) {
+    auto const attributeHandle = attributeHandlesByName.find(attributeName);
+    return attributeHandle != attributeHandlesByName.end() &&
+        initialAttributeValues.emplace(attributeHandle->second, std::move(value)).second;
+  };
+  try {
+    auto const encodedFederateHandle =
+        rti1516_2025::umbra_binding_detail::encodeUmbraHandleVariableArray(federateId);
+    if (!addInitialValue(
+            "HLAfederateHandle",
+            rti1516_2025::VariableLengthData(
+                encodedFederateHandle.data(), encodedFederateHandle.size())) ||
+        !addInitialValue(
+            "HLAfederateName",
+            rti1516_2025::HLAunicodeString{member->second.name}.encode()) ||
+        !addInitialValue(
+            "HLAfederateType",
+            rti1516_2025::HLAunicodeString{member->second.type}.encode()) ||
+        !addInitialValue(
+            "HLAfederateHost",
+            rti1516_2025::HLAunicodeString{descriptor.federateHost}.encode()) ||
+        !addInitialValue(
+            "HLARTIversion",
+            rti1516_2025::HLAunicodeString{descriptor.rtiVersion}.encode()) ||
+        !addInitialValue(
+            "HLAFOMmoduleDesignatorList",
+            encodeModuleDesignatorList(descriptor.fomModulesSpecifiedAtJoin)) ||
+        !addInitialValue(
+            "HLAreportServiceFile",
+            rti1516_2025::HLAunicodeString{descriptor.reportServiceFile}.encode())) {
+      return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+  } catch (rti1516_2025::EncoderException const&) {
+    return JoinedFederateMomObjectStatus::invalid_descriptor;
+  }
+
+  std::uint64_t objectInstanceHandle = federation->second.nextObjectInstanceHandle;
+  while (objectInstanceHandle == 0 ||
+         objectInstanceHandle == std::numeric_limits<std::uint64_t>::max() ||
+         federation->second.objectInstances.contains(objectInstanceHandle) ||
+         federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    if (objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
+      return JoinedFederateMomObjectStatus::object_instance_handle_exhausted;
+    }
+    ++objectInstanceHandle;
+  }
+
+  auto const normalizedFederate = normalizedHandleValue(
+      federation->second.normalizationSeed,
+      federateId,
+      kFederateNormalizationKind);
+  JoinedFederateMomObjectSnapshot object;
+  object.objectInstanceHandle = objectInstanceHandle;
+  object.joinedFederateId = federateId;
+  object.objectClassHandle = *objectClassHandle;
+  object.immutableFederatePoint = {
+      {*federateDimensionHandle},
+      {{*federateDimensionHandle, {normalizedFederate, normalizedFederate + 1U}}},
+      true,
+  };
+  object.effectiveAttributeHandles = std::move(effectiveAttributeHandles);
+  object.initialAttributeValues = std::move(initialAttributeValues);
+
+  auto const [position, inserted] = federation->second.rtiOwnedJoinedFederateMomObjects.emplace(
+      objectInstanceHandle,
+      std::move(object));
+  static_cast<void>(position);
+  if (!inserted) {
+    return JoinedFederateMomObjectStatus::inconsistent_catalog;
+  }
+  federation->second.nextObjectInstanceHandle = objectInstanceHandle + 1U;
+  return JoinedFederateMomObjectStatus::applied;
+}
+
+std::optional<JoinedFederateMomObjectSnapshot>
+EmbeddedFederationRegistry::joinedFederateMomObjectFor(
+    std::wstring const& federationName,
+    std::uint64_t federateId) const {
+  auto instrumentationScope = beginInstrumentation("joinedFederateMomObjectFor");
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return std::nullopt;
+  }
+  for (auto const& [objectHandle, object] :
+       federation->second.rtiOwnedJoinedFederateMomObjects) {
+    static_cast<void>(objectHandle);
+    if (object.joinedFederateId == federateId) {
+      return object;
+    }
+  }
+  return std::nullopt;
+}
+
 SynchronizationPointRegistrationPlan
 EmbeddedFederationRegistry::registerSynchronizationPoint(
     std::wstring const& federationName,
@@ -554,6 +893,7 @@ EmbeddedFederationRegistry::registerSynchronizationPoint(
     std::wstring label,
     std::vector<unsigned char> userSuppliedTag,
     std::set<std::uint64_t> const& requestedSynchronizationSet) {
+  auto instrumentationScope = beginInstrumentation("registerSynchronizationPoint");
   SynchronizationPointRegistrationPlan plan;
   plan.label = label;
   plan.userSuppliedTag = userSuppliedTag;
@@ -679,6 +1019,7 @@ SynchronizationPointAchievedPlan EmbeddedFederationRegistry::achieveSynchronizat
     std::uint64_t achievingFederateId,
     std::wstring const& label,
     bool successfully) {
+  auto instrumentationScope = beginInstrumentation("achieveSynchronizationPoint");
   SynchronizationPointAchievedPlan plan;
 
   std::scoped_lock lock(mutex_);
@@ -736,6 +1077,7 @@ FederationRegistryResult EmbeddedFederationRegistry::resign(
     std::wstring const& federationName,
     std::uint64_t federateId,
     rti1516_2025::ResignAction resignAction) {
+  auto instrumentationScope = beginInstrumentation("resign");
   std::scoped_lock lock(mutex_);
   return resignLocked(federationName, federateId, resignAction, false);
 }
@@ -743,6 +1085,7 @@ FederationRegistryResult EmbeddedFederationRegistry::resign(
 FederationRegistryResult EmbeddedFederationRegistry::connectionLost(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("connectionLost");
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -1486,6 +1829,19 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
       record.timestamp.reset();
     }
   }
+  // One RTI-owned joined-federate MOM object has exactly the active joined
+  // membership's lifetime. It is deliberately not subjected to the
+  // resign-action object/ownership machinery above: that machinery governs
+  // federate-created instances, while this private snapshot has no transfer
+  // state or public removal callback path yet.
+  for (auto momObject = federation->second.rtiOwnedJoinedFederateMomObjects.begin();
+       momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end();) {
+    if (momObject->second.joinedFederateId == federateId) {
+      momObject = federation->second.rtiOwnedJoinedFederateMomObjects.erase(momObject);
+    } else {
+      ++momObject;
+    }
+  }
   federation->second.memberIdsByName.erase(member->second.name);
   federation->second.members.erase(member);
   reclaimTsoMessagePayloads(federation->second);
@@ -1613,6 +1969,7 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   // it is safer than invoking a copied std::function against stale state.
   target.pendingTimeAdvanceGrants.clear();
   target.regions = snapshot.regions;
+  target.rtiOwnedJoinedFederateMomObjects = snapshot.rtiOwnedJoinedFederateMomObjects;
   target.objectInstances = snapshot.objectInstances;
   target.objectInstanceHandlesByName = snapshot.objectInstanceHandlesByName;
   target.reservedObjectInstanceNamesByFederate =
@@ -1685,6 +2042,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
     std::wstring label) {
+  auto instrumentationScope = beginInstrumentation("requestFederationSave");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -1885,6 +2243,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
     std::uint64_t requestingFederateId,
     std::wstring label,
     std::shared_ptr<rti1516_2025::LogicalTime const> timestamp) {
+  auto instrumentationScope = beginInstrumentation("requestFederationSave");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2242,6 +2601,7 @@ EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary(
 
 FederationSaveControlResult EmbeddedFederationRegistry::reevaluateTimedFederationSave(
     std::wstring const& federationName) {
+  auto instrumentationScope = beginInstrumentation("reevaluateTimedFederationSave");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2318,6 +2678,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::reevaluateTimedFederatio
 FederationSaveControlResult EmbeddedFederationRegistry::federateSaveBegun(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("federateSaveBegun");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2351,6 +2712,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::federateSaveBegun(
 FederationSaveControlResult EmbeddedFederationRegistry::federateSaveComplete(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("federateSaveComplete");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2422,6 +2784,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::federateSaveComplete(
 FederationSaveControlResult EmbeddedFederationRegistry::federateSaveNotComplete(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("federateSaveNotComplete");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2461,6 +2824,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::federateSaveNotComplete(
 FederationSaveControlResult EmbeddedFederationRegistry::abortFederationSave(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("abortFederationSave");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2494,6 +2858,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::abortFederationSave(
 FederationSaveControlResult EmbeddedFederationRegistry::queryFederationSaveStatus(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("queryFederationSaveStatus");
   FederationSaveControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2536,6 +2901,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::queryFederationSaveStatu
 FederationServiceOperationStatus EmbeddedFederationRegistry::serviceOperationStatus(
     std::wstring const& federationName,
     std::uint64_t federateId) const {
+  auto instrumentationScope = beginInstrumentation("serviceOperationStatus");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -2557,6 +2923,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
     std::wstring label) {
+  auto instrumentationScope = beginInstrumentation("requestFederationRestore");
   FederationRestoreControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2681,6 +3048,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
 FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComplete(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("federateRestoreComplete");
   FederationRestoreControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2783,6 +3151,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
 FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreNotComplete(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("federateRestoreNotComplete");
   FederationRestoreControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2821,6 +3190,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreNotCom
 FederationRestoreControlResult EmbeddedFederationRegistry::abortFederationRestore(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("abortFederationRestore");
   FederationRestoreControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2853,6 +3223,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::abortFederationRestor
 FederationRestoreControlResult EmbeddedFederationRegistry::queryFederationRestoreStatus(
     std::wstring const& federationName,
     std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation("queryFederationRestoreStatus");
   FederationRestoreControlResult result;
 
   std::scoped_lock lock(mutex_);
@@ -2959,6 +3330,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setAttributeScopeAdvisorySw
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setAttributeScopeAdvisorySwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -2991,6 +3363,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setObjectClassRelevanceAdvi
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setObjectClassRelevanceAdvisorySwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3023,6 +3396,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setAttributeRelevanceAdviso
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setAttributeRelevanceAdvisorySwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3129,6 +3503,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setConveyRegionDesignatorSe
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setConveyRegionDesignatorSetsSwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3162,6 +3537,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setAutomaticResignAction(
     std::wstring const& federationName,
     std::uint64_t federateId,
     rti1516_2025::ResignAction resignAction) {
+  auto instrumentationScope = beginInstrumentation("setAutomaticResignAction");
   switch (resignAction) {
     case rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES:
     case rti1516_2025::DELETE_OBJECTS:
@@ -3206,6 +3582,7 @@ ServiceReportingSwitchStatus EmbeddedFederationRegistry::setServiceReportingSwit
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setServiceReportingSwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3229,6 +3606,7 @@ FederateMOMSwitchUpdateStatus EmbeddedFederationRegistry::applyFederateMOMSwitch
     std::wstring const& federationName,
     std::uint64_t federateId,
     FederateMOMSwitchUpdate const& update) {
+  auto instrumentationScope = beginInstrumentation("applyFederateMOMSwitchUpdate");
   if (update.automaticResignAction) {
     switch (*update.automaticResignAction) {
       case rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES:
@@ -3311,6 +3689,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setExceptionReportingSwitch
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setExceptionReportingSwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3343,6 +3722,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setSendServiceReportsToFile
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setSendServiceReportsToFileSwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3384,6 +3764,7 @@ FederationRegistryStatus EmbeddedFederationRegistry::setInteractionRelevanceAdvi
     std::wstring const& federationName,
     std::uint64_t federateId,
     bool switchValue) {
+  auto instrumentationScope = beginInstrumentation("setInteractionRelevanceAdvisorySwitch");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3472,6 +3853,7 @@ FederationTimeGrantDispatchResult EmbeddedFederationRegistry::requestTimeAdvance
     std::uint64_t federateId,
     std::uint64_t generation,
     FederationTimeGrantDispatch dispatch) {
+  auto instrumentationScope = beginInstrumentation("requestTimeAdvanceGrant");
   if (federateId == 0 || generation == 0 || !dispatch) {
     return {FederationTimeGrantStatus::inconsistent_temporal_state, {}};
   }
@@ -3501,6 +3883,7 @@ FederationTimeGrantDispatchResult EmbeddedFederationRegistry::requestTimeAdvance
 
 FederationTimeGrantDispatchResult EmbeddedFederationRegistry::reevaluateTimeAdvanceGrants(
     std::wstring const& federationName) {
+  auto instrumentationScope = beginInstrumentation("reevaluateTimeAdvanceGrants");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3513,6 +3896,7 @@ FederationTimeGrantStatus EmbeddedFederationRegistry::beginTimeAdvanceGrant(
     std::wstring const& federationName,
     std::uint64_t federateId,
     std::uint64_t generation) {
+  auto instrumentationScope = beginInstrumentation("beginTimeAdvanceGrant");
   if (federateId == 0 || generation == 0) {
     return FederationTimeGrantStatus::inconsistent_temporal_state;
   }
@@ -3578,6 +3962,7 @@ FederationTimeGrantStatus EmbeddedFederationRegistry::beginTimeAdvanceGrant(
 
 FederationTsoMessageIdResult EmbeddedFederationRegistry::allocateTsoMessageId(
     std::wstring const& federationName) {
+  auto instrumentationScope = beginInstrumentation("allocateTsoMessageId");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3595,6 +3980,7 @@ FederationTsoEnqueueResult EmbeddedFederationRegistry::enqueueTsoMessage(
     std::uint64_t messageId,
     std::uint64_t recipientFederateId,
     std::shared_ptr<rti1516_2025::LogicalTime const> timestamp) {
+  auto instrumentationScope = beginInstrumentation("enqueueTsoMessage");
   if (messageId == 0 || recipientFederateId == 0 || !timestamp) {
     return {FederationTsoRegistryStatus::invalid_request,
             TsoMessageQueueStatus::invalid_message_id};
@@ -3637,6 +4023,7 @@ FederationTsoInteractionEnqueueResult EmbeddedFederationRegistry::enqueueTsoInte
     TsoInteractionMessage message,
     std::vector<std::uint64_t> const& queuedRecipientFederateIds,
     std::vector<std::uint64_t> const& allTimestampedRecipientFederateIds) {
+  auto instrumentationScope = beginInstrumentation("enqueueTsoInteraction");
   if (message.producingFederateId == 0 || message.sentInteractionClassHandle == 0 ||
       !message.timestamp || message.timestamp->isInitial() || message.timestamp->isFinal()) {
     return {FederationTsoRegistryStatus::invalid_request,
@@ -3767,6 +4154,7 @@ EmbeddedFederationRegistry::enqueueTsoAttributeUpdate(
     TsoAttributeUpdateMessage message,
     std::vector<std::uint64_t> const& queuedRecipientFederateIds,
     std::vector<std::uint64_t> const& allTimestampedRecipientFederateIds) {
+  auto instrumentationScope = beginInstrumentation("enqueueTsoAttributeUpdate");
   if (message.producingFederateId == 0 ||
       message.objectInstanceHandle == 0 ||
       message.attributes.empty() ||
@@ -3899,6 +4287,7 @@ ObjectInstanceDeletionPlan EmbeddedFederationRegistry::planTsoObjectInstanceDele
     std::wstring const& federationName,
     std::uint64_t producingFederateId,
     std::uint64_t objectInstanceHandle) const {
+  auto instrumentationScope = beginInstrumentation("planTsoObjectInstanceDeletion");
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -3969,6 +4358,7 @@ EmbeddedFederationRegistry::enqueueTsoObjectDeletion(
     std::uint64_t objectInstanceHandle,
     TsoObjectDeletionMessage message,
     std::vector<std::uint64_t> const& recipientFederateIds) {
+  auto instrumentationScope = beginInstrumentation("enqueueTsoObjectDeletion");
   FederationTsoObjectDeletionEnqueueResult invalid;
   invalid.status = FederationTsoRegistryStatus::invalid_request;
   invalid.queueStatus = TsoMessageQueueStatus::invalid_message_id;
@@ -4178,6 +4568,7 @@ EmbeddedFederationRegistry::enqueueTsoDirectedInteraction(
     std::wstring const& federationName,
     TsoDirectedInteractionMessage message,
     std::vector<std::uint64_t> const& queuedRecipientFederateIds) {
+  auto instrumentationScope = beginInstrumentation("enqueueTsoDirectedInteraction");
   if (message.producingFederateId == 0 ||
       message.objectInstanceHandle == 0 ||
       message.sentInteractionClassHandle == 0 ||
@@ -4306,6 +4697,7 @@ EmbeddedFederationRegistry::enqueueTsoDirectedInteraction(
 FederationTsoRetractionResult EmbeddedFederationRegistry::retractTsoMessage(
     std::wstring const& federationName,
     std::uint64_t messageId) {
+  auto instrumentationScope = beginInstrumentation("retractTsoMessage");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -4324,6 +4716,7 @@ FederationTsoRetractionResult EmbeddedFederationRegistry::retractTsoInteraction(
     std::wstring const& federationName,
     std::uint64_t producingFederateId,
     std::uint64_t messageId) {
+  auto instrumentationScope = beginInstrumentation("retractTsoInteraction");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -4390,6 +4783,7 @@ FederationTsoRetractionResult EmbeddedFederationRegistry::retractTsoMessageForPr
     std::uint64_t producingFederateId,
     std::uint64_t messageId,
     std::shared_ptr<rti1516_2025::LogicalTime const> const& retractionLowerBound) {
+  auto instrumentationScope = beginInstrumentation("retractTsoMessageForProducer");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -4618,6 +5012,7 @@ bool EmbeddedFederationRegistry::beginTsoInteractionCallback(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
     std::uint64_t messageId) {
+  auto instrumentationScope = beginInstrumentation("beginTsoInteractionCallback");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end() || receivingFederateId == 0 ||
@@ -4642,6 +5037,7 @@ bool EmbeddedFederationRegistry::beginTsoAttributeUpdateCallback(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
     std::uint64_t messageId) {
+  auto instrumentationScope = beginInstrumentation("beginTsoAttributeUpdateCallback");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end() || receivingFederateId == 0 ||
@@ -4687,6 +5083,7 @@ FederationTsoDeliveryRegistryResult EmbeddedFederationRegistry::beginTsoDelivery
     std::uint64_t recipientFederateId,
     rti1516_2025::LogicalTime const& boundary,
     bool inclusive) {
+  auto instrumentationScope = beginInstrumentation("beginTsoDelivery");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -4900,6 +5297,7 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
 FederationTsoDeliveryRegistryResult EmbeddedFederationRegistry::completeTsoDelivery(
     std::wstring const& federationName,
     TsoQueuedMessage const& message) {
+  auto instrumentationScope = beginInstrumentation("completeTsoDelivery");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -5212,7 +5610,8 @@ EmbeddedFederationRegistry::normalizedObjectInstanceHandleValueFor(
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end() ||
-      !federation->second.objectInstances.contains(objectInstanceHandle)) {
+      (!federation->second.objectInstances.contains(objectInstanceHandle) &&
+       !federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle))) {
     return std::nullopt;
   }
   return normalizedHandleValue(
@@ -7505,14 +7904,21 @@ EmbeddedFederationRegistry::candidateAttributeOwnershipQueryRecipient(
 std::optional<ReceiveOrderInteractionRecipient>
 EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
     Federation const& federation,
-    std::uint64_t producingFederateId,
+    InteractionProducer const& producingSource,
     std::uint64_t receivingFederateId,
     std::uint64_t sentInteractionClassHandle,
     std::vector<std::uint64_t> const& sentParameterHandles,
-    std::set<std::uint64_t> const* sentRegionHandles) {
-  // IEEE 1516.1-2025 prevents a sender from receiving its own induced Receive
-  // Interaction callback, independent of its subscription state.
-  if (producingFederateId == receivingFederateId ||
+    std::set<std::uint64_t> const* sentRegionHandles,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides) {
+  // IEEE 1516.1-2025 prevents a joined-federate sender from receiving its own
+  // induced Receive Interaction callback, independent of subscription state.
+  // An RTI-originated MOM interaction has no joined-federate source to
+  // exclude. Its source remains private until a standards-backed public
+  // callback producer-designator rule is available.
+  auto const producingFederateId = producingSource.joinedFederateId();
+  if ((producingSource.kind() == InteractionProducer::Kind::joined_federate &&
+       (!producingFederateId || *producingFederateId == 0U ||
+        *producingFederateId == receivingFederateId)) ||
       !federation.members.contains(receivingFederateId) ||
       !federation.definition.catalog ||
       !federation.interactionClassHandles ||
@@ -7559,7 +7965,8 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
     if (!subscribedWithoutRegion && hasExplicitSubscriptionRegion) {
       if (sentRegionHandles == nullptr) {
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          if (active && regionOverlapsDefault(federation, subscribedRegionHandle)) {
+          if (active && regionOverlapsDefault(
+                            federation, subscribedRegionHandle, regionOverrides)) {
             subscribedWithRegion = true;
             break;
           }
@@ -7570,7 +7977,8 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
             continue;
           }
           for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
-            if (regionsOverlap(federation, subscribedRegionHandle, sentRegionHandle)) {
+            if (regionsOverlap(
+                    federation, subscribedRegionHandle, sentRegionHandle, regionOverrides)) {
               subscribedWithRegion = true;
               break;
             }
@@ -8308,6 +8716,7 @@ EmbeddedFederationRegistry::interactionClassDeclarationFor(
 
 std::vector<DeclarationAdvisory> EmbeddedFederationRegistry::planDeclarationAdvisories(
     std::wstring const& federationName) {
+  auto instrumentationScope = beginInstrumentation("planDeclarationAdvisories");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -9232,6 +9641,7 @@ EmbeddedFederationRegistry::reserveObjectInstanceName(
     std::wstring const& federationName,
     std::uint64_t federateId,
     std::wstring const& objectInstanceName) {
+  auto instrumentationScope = beginInstrumentation("reserveObjectInstanceName");
   std::scoped_lock lock(mutex_);
   ObjectInstanceNameReservationResult result;
   result.objectInstanceName = objectInstanceName;
@@ -9282,6 +9692,7 @@ EmbeddedFederationRegistry::releaseObjectInstanceName(
     std::wstring const& federationName,
     std::uint64_t federateId,
     std::wstring const& objectInstanceName) {
+  auto instrumentationScope = beginInstrumentation("releaseObjectInstanceName");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -9404,6 +9815,7 @@ ObjectInstanceRegistrationResult EmbeddedFederationRegistry::registerObjectInsta
     std::uint64_t objectClassHandle,
     std::map<std::uint64_t, std::set<std::uint64_t>> const* updateRegionsByAttribute,
     std::wstring const* requestedObjectInstanceName) {
+  auto instrumentationScope = beginInstrumentation("registerObjectInstance");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -9507,6 +9919,7 @@ ObjectInstanceRegistrationResult EmbeddedFederationRegistry::registerObjectInsta
       objectInstanceName =
           L"UmbraObjectInstance-" + std::to_wstring(objectInstanceHandle);
       if (!federation->second.objectInstances.contains(objectInstanceHandle) &&
+          !federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle) &&
           !federation->second.objectInstanceHandlesByName.contains(objectInstanceName) &&
           !federation->second.reservedObjectInstanceNamesByFederate.contains(objectInstanceName)) {
         break;
@@ -9514,7 +9927,8 @@ ObjectInstanceRegistrationResult EmbeddedFederationRegistry::registerObjectInsta
       ++objectInstanceHandle;
     } while (true);
   } else {
-    while (federation->second.objectInstances.contains(objectInstanceHandle)) {
+    while (federation->second.objectInstances.contains(objectInstanceHandle) ||
+           federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
       if (objectInstanceHandle == 0 ||
           objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
         return {ObjectInstanceRegistrationStatus::object_instance_handle_exhausted};
@@ -9702,6 +10116,7 @@ ObjectInstanceRegionAssociationStatus EmbeddedFederationRegistry::associateRegio
     std::uint64_t federateId,
     std::uint64_t objectInstanceHandle,
     std::map<std::uint64_t, std::set<std::uint64_t>> const& attributesAndRegions) {
+  auto instrumentationScope = beginInstrumentation("associateRegionsForUpdates");
   return associateRegionsForUpdatesWithScopeChanges(
              federationName,
              federateId,
@@ -9785,6 +10200,7 @@ ObjectInstanceRegionAssociationStatus EmbeddedFederationRegistry::unassociateReg
     std::uint64_t federateId,
     std::uint64_t objectInstanceHandle,
     std::map<std::uint64_t, std::set<std::uint64_t>> const& attributesAndRegions) {
+  auto instrumentationScope = beginInstrumentation("unassociateRegionsForUpdates");
   return unassociateRegionsForUpdatesWithScopeChanges(
              federationName,
              federateId,
@@ -9797,6 +10213,7 @@ ObjectInstanceDeletionPlan EmbeddedFederationRegistry::deleteObjectInstance(
     std::wstring const& federationName,
     std::uint64_t deletingFederateId,
     std::uint64_t objectInstanceHandle) {
+  auto instrumentationScope = beginInstrumentation("deleteObjectInstance");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -9901,6 +10318,7 @@ LocalObjectInstanceDeletionStatus EmbeddedFederationRegistry::localDeleteObjectI
     std::wstring const& federationName,
     std::uint64_t deletingFederateId,
     std::uint64_t objectInstanceHandle) {
+  auto instrumentationScope = beginInstrumentation("localDeleteObjectInstance");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -10168,6 +10586,7 @@ EmbeddedFederationRegistry::beginObjectInstanceRemoval(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle) {
+  auto instrumentationScope = beginInstrumentation("beginObjectInstanceRemoval");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -10226,6 +10645,7 @@ EmbeddedFederationRegistry::beginObjectInstanceDiscovery(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle) {
+  auto instrumentationScope = beginInstrumentation("beginObjectInstanceDiscovery");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -10478,18 +10898,14 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
     passel.sentRegionHandles = std::get<2>(passelKey);
     passel.defaultRegionUsed = std::get<3>(passelKey);
     // §8.1.8 makes subscription evaluation a federation-wide,
-    // creation-time policy. For an ordinary Update Attribute Values passel,
-    // retain every joined non-source federate with a live callback route when
-    // delayed evaluation is enabled and no current subscription qualifies.
-    // The callback re-evaluates the receiver's current attribute projection
-    // at its actual receive-order or TSO delivery boundary, so a later
-    // subscription can make the passel deliverable. Passels associated with
-    // explicit update regions deliberately retain their planning-time DDM
-    // selection until the broader regional delayed-evaluation matrix is
-    // specified.
-    bool const delayOrdinarySubscriptionEvaluation =
-        federation->second.delaySubscriptionEvaluationSwitch &&
-        passel.sentRegionHandles.empty();
+    // creation-time policy. Retain every joined non-source federate with a
+    // live callback route when delayed evaluation is enabled, including
+    // explicit regional passels. The callback re-evaluates the receiver's
+    // current attribute and region projection at its actual receive-order or
+    // TSO delivery boundary, so a later declaration can make the passel
+    // deliverable.
+    bool const delaySubscriptionEvaluation =
+        federation->second.delaySubscriptionEvaluationSwitch;
     for (auto const& [federateId, membership] : federation->second.members) {
       static_cast<void>(membership);
       auto recipient = candidateReceiveOrderAttributeUpdateRecipient(
@@ -10503,7 +10919,7 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
         passel.recipients.push_back(std::move(*recipient));
         continue;
       }
-      if (!delayOrdinarySubscriptionEvaluation || federateId == producingFederateId) {
+      if (!delaySubscriptionEvaluation || federateId == producingFederateId) {
         continue;
       }
       auto const callbackRoute = federation->second.interactionCallbackRoutes.find(federateId);
@@ -13581,21 +13997,18 @@ ReceiveOrderInteractionPlan EmbeddedFederationRegistry::planReceiveOrderInteract
     }
   }
   // 8.1.8 makes subscription evaluation a federation-wide, creation-time
-  // policy.  For the bounded ordinary Send Interaction forms, retain every
-  // joined non-source recipient with a live callback route when delayed
-  // evaluation is enabled.  The route re-evaluates the full subscription
+  // policy. Retain every joined non-source recipient with a live callback
+  // route when delayed evaluation is enabled, including explicit regional
+  // sends. The route re-evaluates the full subscription and region-overlap
   // projection at its actual receive-order or TSO delivery boundary, so a
-  // later subscription can make the message deliverable.  Explicit regional
-  // sends deliberately retain their current planning-time DDM selection
-  // until the broader regional delayed-evaluation matrix is specified.
-  bool const delayOrdinarySubscriptionEvaluation =
-      federation->second.delaySubscriptionEvaluationSwitch &&
-      sentRegionHandles == nullptr;
+  // later declaration can make the message deliverable.
+  bool const delaySubscriptionEvaluation =
+      federation->second.delaySubscriptionEvaluationSwitch;
   for (auto const& [federateId, membership] : federation->second.members) {
     static_cast<void>(membership);
     auto recipient = candidateReceiveOrderInteractionRecipient(
         federation->second,
-        producingFederateId,
+        InteractionProducer::joinedFederate(producingFederateId),
         federateId,
         sentInteractionClassHandle,
         sentParameterHandles,
@@ -13604,7 +14017,7 @@ ReceiveOrderInteractionPlan EmbeddedFederationRegistry::planReceiveOrderInteract
       result.recipients.push_back(std::move(*recipient));
       continue;
     }
-    if (!delayOrdinarySubscriptionEvaluation || federateId == producingFederateId) {
+    if (!delaySubscriptionEvaluation || federateId == producingFederateId) {
       continue;
     }
     auto const callbackRoute = federation->second.interactionCallbackRoutes.find(federateId);
@@ -13639,11 +14052,375 @@ EmbeddedFederationRegistry::receiveOrderInteractionRecipientFor(
   }
   return candidateReceiveOrderInteractionRecipient(
       federation->second,
-      producingFederateId,
+      InteractionProducer::joinedFederate(producingFederateId),
       receivingFederateId,
       sentInteractionClassHandle,
       sentParameterHandles,
       sentRegionHandles);
+}
+
+MomServiceReportRoutingPlan EmbeddedFederationRegistry::planMomServiceReport(
+    std::wstring const& federationName,
+    std::uint64_t reportedFederateId,
+    std::uint16_t serviceGroup) const {
+  auto instrumentationScope = beginInstrumentation("planMomServiceReport");
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return {MomServiceReportDisposition::inconsistent_catalog};
+  }
+  return momServiceReportRoutingPlanFor(federation->second, reportedFederateId, serviceGroup);
+}
+
+MomServiceReportRoutingPlan EmbeddedFederationRegistry::momServiceReportRoutingPlanFor(
+    Federation const& federation,
+    std::uint64_t reportedFederateId,
+    std::uint16_t serviceGroup) {
+  auto const reportedMember = federation.members.find(reportedFederateId);
+  if (reportedMember == federation.members.end()) {
+    return {MomServiceReportDisposition::reported_federate_not_member};
+  }
+  if (serviceGroup > 6U) {
+    return {MomServiceReportDisposition::invalid_service_group};
+  }
+  if (!reportedMember->second.serviceReportingSwitch) {
+    return {};
+  }
+  if (reportedMember->second.sendServiceReportsToFileSwitch) {
+    return {MomServiceReportDisposition::report_to_file};
+  }
+  if (!federation.definition.catalog ||
+      !federation.interactionClassHandles ||
+      !federation.parameterHandles ||
+      !federation.dimensionHandles) {
+    return {MomServiceReportDisposition::inconsistent_catalog};
+  }
+
+  auto const reportClassHandle = federation.interactionClassHandles->handleFor(
+      kReportServiceInvocationInteractionClassName);
+  auto const federateDimensionHandle = federation.dimensionHandles->handleFor(
+      "HLAfederate");
+  auto const serviceGroupDimensionHandle = federation.dimensionHandles->handleFor(
+      "HLAserviceGroup");
+  if (!reportClassHandle || !federateDimensionHandle || !serviceGroupDimensionHandle) {
+    return {MomServiceReportDisposition::inconsistent_catalog};
+  }
+
+  std::vector<std::uint64_t> reportParameterHandles;
+  reportParameterHandles.reserve(std::size(kMomServiceReportParameterNames));
+  for (char const* parameterName : kMomServiceReportParameterNames) {
+    auto const parameterHandle = federation.parameterHandles->handleFor(
+        federation.definition.catalog.get(),
+        kReportServiceInvocationInteractionClassName,
+        parameterName);
+    if (!parameterHandle) {
+      return {MomServiceReportDisposition::inconsistent_catalog};
+    }
+    reportParameterHandles.push_back(*parameterHandle);
+  }
+
+  auto const normalizedFederate = normalizedHandleValue(
+      federation.normalizationSeed,
+      reportedFederateId,
+      kFederateNormalizationKind);
+  RegionSpecificationSnapshot endpointRegion{
+      {*federateDimensionHandle, *serviceGroupDimensionHandle},
+      {
+          {*federateDimensionHandle, {normalizedFederate, normalizedFederate + 1U}},
+          {*serviceGroupDimensionHandle,
+           {static_cast<unsigned long>(serviceGroup),
+            static_cast<unsigned long>(serviceGroup) + 1U}},
+      },
+      true,
+  };
+  std::map<std::uint64_t, RegionSpecificationSnapshot> endpointOverride{
+      {kMomServiceReportEndpointRegionHandle, endpointRegion},
+  };
+  std::set<std::uint64_t> const endpointRegionHandles{
+      kMomServiceReportEndpointRegionHandle,
+  };
+
+  MomServiceReportRoutingPlan result;
+  result.disposition = MomServiceReportDisposition::interaction;
+  result.interactionClassHandle = *reportClassHandle;
+  result.endpointRegionHandle = kMomServiceReportEndpointRegionHandle;
+  result.endpointRegion = endpointRegion;
+  for (auto const& [federateId, membership] : federation.members) {
+    static_cast<void>(membership);
+    auto recipient = candidateReceiveOrderInteractionRecipient(
+        federation,
+        InteractionProducer::rti(),
+        federateId,
+        *reportClassHandle,
+        reportParameterHandles,
+        &endpointRegionHandles,
+        &endpointOverride);
+    if (recipient) {
+      result.recipients.push_back(std::move(*recipient));
+    }
+  }
+  return result;
+}
+
+ReservedMomServiceReport EmbeddedFederationRegistry::reserveMomServiceReport(
+    std::wstring const& federationName,
+    std::uint64_t reportedFederateId,
+    std::uint16_t serviceGroup) {
+  auto instrumentationScope = beginInstrumentation("reserveMomServiceReport");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return {{MomServiceReportDisposition::inconsistent_catalog}};
+  }
+  ReservedMomServiceReport result;
+  result.routing = momServiceReportRoutingPlanFor(
+      federation->second, reportedFederateId, serviceGroup);
+  if (result.routing.disposition != MomServiceReportDisposition::interaction &&
+      result.routing.disposition != MomServiceReportDisposition::report_to_file) {
+    return result;
+  }
+  auto const reportedMember = federation->second.members.find(reportedFederateId);
+  if (reportedMember == federation->second.members.end()) {
+    // The private helper already checked this invariant. Preserve an explicit
+    // no-reservation outcome if future state evolution changes that boundary.
+    result.routing = {MomServiceReportDisposition::reported_federate_not_member};
+    return result;
+  }
+  result.serialNumber = reportedMember->second.nextMomServiceReportSerialNumber;
+  ++reportedMember->second.nextMomServiceReportSerialNumber;
+  result.acceptedForEmission = true;
+  return result;
+}
+
+std::optional<ReceiveOrderInteractionRecipient>
+EmbeddedFederationRegistry::momServiceReportRecipientFor(
+    std::wstring const& federationName,
+    std::uint64_t reportedFederateId,
+    std::uint64_t receivingFederateId,
+    std::uint16_t serviceGroup) const {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end() || serviceGroup > 6U) {
+    return std::nullopt;
+  }
+  auto const reportedMember = federation->second.members.find(reportedFederateId);
+  if (reportedMember == federation->second.members.end() ||
+      !reportedMember->second.serviceReportingSwitch ||
+      reportedMember->second.sendServiceReportsToFileSwitch ||
+      !federation->second.definition.catalog ||
+      !federation->second.interactionClassHandles ||
+      !federation->second.parameterHandles ||
+      !federation->second.dimensionHandles) {
+    return std::nullopt;
+  }
+  auto const reportClassHandle = federation->second.interactionClassHandles->handleFor(
+      kReportServiceInvocationInteractionClassName);
+  auto const federateDimensionHandle = federation->second.dimensionHandles->handleFor(
+      "HLAfederate");
+  auto const serviceGroupDimensionHandle = federation->second.dimensionHandles->handleFor(
+      "HLAserviceGroup");
+  if (!reportClassHandle || !federateDimensionHandle || !serviceGroupDimensionHandle) {
+    return std::nullopt;
+  }
+  std::vector<std::uint64_t> reportParameterHandles;
+  for (char const* parameterName : kMomServiceReportParameterNames) {
+    auto const parameterHandle = federation->second.parameterHandles->handleFor(
+        federation->second.definition.catalog.get(),
+        kReportServiceInvocationInteractionClassName,
+        parameterName);
+    if (!parameterHandle) {
+      return std::nullopt;
+    }
+    reportParameterHandles.push_back(*parameterHandle);
+  }
+  auto const normalizedFederate = normalizedHandleValue(
+      federation->second.normalizationSeed,
+      reportedFederateId,
+      kFederateNormalizationKind);
+  std::map<std::uint64_t, RegionSpecificationSnapshot> endpointOverride{
+      {kMomServiceReportEndpointRegionHandle,
+       {{*federateDimensionHandle, *serviceGroupDimensionHandle},
+        {{*federateDimensionHandle, {normalizedFederate, normalizedFederate + 1U}},
+         {*serviceGroupDimensionHandle,
+          {static_cast<unsigned long>(serviceGroup), static_cast<unsigned long>(serviceGroup) + 1U}}},
+        true}},
+  };
+  std::set<std::uint64_t> const endpointRegionHandles{
+      kMomServiceReportEndpointRegionHandle,
+  };
+  return candidateReceiveOrderInteractionRecipient(
+      federation->second,
+      InteractionProducer::rti(),
+      receivingFederateId,
+      *reportClassHandle,
+      reportParameterHandles,
+      &endpointRegionHandles,
+      &endpointOverride);
+}
+
+std::optional<FederateLostReportRouting>
+EmbeddedFederationRegistry::federateLostReportRoutingFor(
+    Federation const& federation,
+    std::uint64_t reportedFederateId) {
+  if (reportedFederateId == 0U || !federation.definition.catalog ||
+      !federation.interactionClassHandles || !federation.parameterHandles ||
+      !federation.dimensionHandles) {
+    return std::nullopt;
+  }
+
+  auto const reportClassHandle = federation.interactionClassHandles->handleFor(
+      kReportFederateLostInteractionClassName);
+  auto const federateDimensionHandle = federation.dimensionHandles->handleFor(
+      kHlaFederateDimensionName);
+  auto const federateParameterHandle = federation.parameterHandles->handleFor(
+      federation.definition.catalog.get(),
+      kReportFederateLostInteractionClassName,
+      kFederateLostFederateParameterName);
+  auto const federateNameParameterHandle = federation.parameterHandles->handleFor(
+      federation.definition.catalog.get(),
+      kReportFederateLostInteractionClassName,
+      kFederateLostFederateNameParameterName);
+  auto const timestampParameterHandle = federation.parameterHandles->handleFor(
+      federation.definition.catalog.get(),
+      kReportFederateLostInteractionClassName,
+      kFederateLostTimestampParameterName);
+  auto const faultDescriptionParameterHandle = federation.parameterHandles->handleFor(
+      federation.definition.catalog.get(),
+      kReportFederateLostInteractionClassName,
+      kFederateLostFaultDescriptionParameterName);
+  if (!reportClassHandle || !federateDimensionHandle || !federateParameterHandle ||
+      !federateNameParameterHandle || !timestampParameterHandle ||
+      !faultDescriptionParameterHandle) {
+    return std::nullopt;
+  }
+
+  auto const normalizedFederate = normalizedHandleValue(
+      federation.normalizationSeed,
+      reportedFederateId,
+      kFederateNormalizationKind);
+  FederateLostReportRouting result;
+  result.interactionClassHandle = *reportClassHandle;
+  result.federateParameterHandle = *federateParameterHandle;
+  result.federateNameParameterHandle = *federateNameParameterHandle;
+  result.timestampParameterHandle = *timestampParameterHandle;
+  result.faultDescriptionParameterHandle = *faultDescriptionParameterHandle;
+  result.endpointRegionHandle = kMomFederateLostEndpointRegionHandle;
+  result.endpointRegion = {
+      {*federateDimensionHandle},
+      {{*federateDimensionHandle, {normalizedFederate, normalizedFederate + 1U}}},
+      true,
+  };
+  return result;
+}
+
+FederateLostReportPlan EmbeddedFederationRegistry::planFederateLostReport(
+    std::wstring const& federationName,
+    std::uint64_t reportedFederateId) const {
+  auto instrumentationScope = beginInstrumentation("planFederateLostReport");
+  std::scoped_lock lock(mutex_);
+  FederateLostReportPlan result;
+  result.reportedFederateId = reportedFederateId;
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    result.status = FederateLostReportStatus::federation_does_not_exist;
+    return result;
+  }
+  auto const reportedMember = federation->second.members.find(reportedFederateId);
+  if (reportedMember == federation->second.members.end()) {
+    result.status = FederateLostReportStatus::reported_federate_not_member;
+    return result;
+  }
+  auto routing = federateLostReportRoutingFor(federation->second, reportedFederateId);
+  if (!routing) {
+    result.status = FederateLostReportStatus::inconsistent_catalog;
+    return result;
+  }
+  auto const timeState = federation->second.timeCoordinator.timeStateFor(reportedFederateId);
+  if (!timeState) {
+    result.status = FederateLostReportStatus::inconsistent_time_state;
+    return result;
+  }
+  auto const time = timeState->snapshot();
+  if (!time.active || !time.currentTime) {
+    result.status = FederateLostReportStatus::inconsistent_time_state;
+    return result;
+  }
+
+  result.reportedFederateName = reportedMember->second.name;
+  result.reportedFederateWasTimeRegulating = time.timeRegulating;
+  result.lastKnownTime = time.currentTime;
+  result.routing = std::move(*routing);
+  std::vector<std::uint64_t> const sentParameterHandles{
+      result.routing.federateParameterHandle,
+      result.routing.federateNameParameterHandle,
+      result.routing.timestampParameterHandle,
+      result.routing.faultDescriptionParameterHandle,
+  };
+  std::map<std::uint64_t, RegionSpecificationSnapshot> const endpointOverride{
+      {result.routing.endpointRegionHandle, result.routing.endpointRegion},
+  };
+  std::set<std::uint64_t> const endpointRegionHandles{
+      result.routing.endpointRegionHandle,
+  };
+  for (auto const& [federateId, membership] : federation->second.members) {
+    static_cast<void>(membership);
+    // The source names joined federates that remain in the federation. The
+    // transport-fault target is still a member while this plan is captured,
+    // so it must be excluded explicitly before its resignation occurs.
+    if (federateId == reportedFederateId) {
+      continue;
+    }
+    auto recipient = candidateReceiveOrderInteractionRecipient(
+        federation->second,
+        InteractionProducer::rti(),
+        federateId,
+        result.routing.interactionClassHandle,
+        sentParameterHandles,
+        &endpointRegionHandles,
+        &endpointOverride);
+    if (recipient) {
+      result.recipients.push_back(std::move(*recipient));
+    }
+  }
+  return result;
+}
+
+std::optional<ReceiveOrderInteractionRecipient>
+EmbeddedFederationRegistry::federateLostReportRecipientFor(
+    std::wstring const& federationName,
+    std::uint64_t reportedFederateId,
+    std::uint64_t receivingFederateId) const {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end() || receivingFederateId == reportedFederateId ||
+      !federation->second.members.contains(receivingFederateId) ||
+      !federation->second.federateNamesById.contains(reportedFederateId)) {
+    return std::nullopt;
+  }
+  auto routing = federateLostReportRoutingFor(federation->second, reportedFederateId);
+  if (!routing) {
+    return std::nullopt;
+  }
+  std::vector<std::uint64_t> const sentParameterHandles{
+      routing->federateParameterHandle,
+      routing->federateNameParameterHandle,
+      routing->timestampParameterHandle,
+      routing->faultDescriptionParameterHandle,
+  };
+  std::map<std::uint64_t, RegionSpecificationSnapshot> const endpointOverride{
+      {routing->endpointRegionHandle, routing->endpointRegion},
+  };
+  std::set<std::uint64_t> const endpointRegionHandles{
+      routing->endpointRegionHandle,
+  };
+  return candidateReceiveOrderInteractionRecipient(
+      federation->second,
+      InteractionProducer::rti(),
+      receivingFederateId,
+      routing->interactionClassHandle,
+      sentParameterHandles,
+      &endpointRegionHandles,
+      &endpointOverride);
 }
 
 AttributeTransportationTypeChangePlan

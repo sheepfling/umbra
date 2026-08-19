@@ -14,22 +14,35 @@ has been copied into Umbra.
 
 ### Implemented external-corpus guardrails
 
-Umbra now has an optional, developer-configured **2025-positive** lane for
-four external modules: a base plus MessageTest, TimeMgmtTest, and SpaceLite
-extensions. `compliance/external-2025-fom-corpus.json` locks a reviewed local
-snapshot's paths, digests, namespace, and schema location without copying the
-XML into this repository. The lane validates every module with the official
-2025 DIF schema, composes standard MIM plus all four modules into a private
-FDD/catalog twice for a deterministic result, and exercises the resulting
-ordered module list through the embedded Create/Join development profile.
+Umbra has an optional, developer-configured **2025 schema-positive,
+semantic-negative** lane for four external modules: a base plus MessageTest,
+TimeMgmtTest, and SpaceLite extensions.
+`compliance/external-2025-fom-corpus.json` locks a reviewed local snapshot's
+paths, digests, namespace, and schema location without copying the XML into
+this repository. Every module validates with the official 2025 DIF schema.
 
-Those results are deliberately only `schema/preflight accepted` plus the
-bounded embedded lifecycle scenario. They do not claim the MessageTest,
-TimeMgmtTest, or SpaceLite runtime scenarios work: Umbra has not yet
-implemented their object/interaction, callback, TSO, DDM, or save/restore
-requirements. The fixtures stay unvendored because their source identifies
-them as prototype engineering material, and the 2025-only project scope
-precludes an adapter or conversion path for other editions.
+The pinned prototype snapshot nevertheless uses raw basic-data representations
+in object-attribute and interaction-parameter data-type columns. That violates
+the explicit IEEE 1516.2 table rule that requires a declared simple,
+enumerated, reference, array, fixed-record, or variant-record data type. The
+lane now asserts the resulting MIM-first preflight rejection is deterministic
+and that embedded federation creation reports `InconsistentFOM`; it does not
+weaken Umbra's 2025 semantic rule to preserve a prototype-only positive claim.
+This is a corpus finding, not a Requirements-Lab defect. The fixtures stay
+unvendored because their source identifies them as prototype engineering
+material, and the 2025-only project scope precludes an adapter or conversion
+path for other editions.
+
+The same optional 2025 manifest also pins a small standalone source named
+DirectedTSORestore2025. It is DIF-valid and composes successfully with the
+official MIM, making it a small schema/composition guard only; its historical
+filename must not be interpreted as proof of a directed-interaction, TSO, or
+restore runtime scenario. The paired DirectedDDMRestore2025 source is a
+separate **expected schema rejection**: it omits required Dimension-table
+input data fields and places dimensions beneath attributes/interactions rather
+than the official class-level containers. Umbra records its exact digest and
+rejects it through the official 2025 DIF schema instead of repairing or
+converting it. Neither source is copied into Umbra.
 
 Umbra now has an optional, developer-configured SISO boundary lane. It keeps
 the external XML out of this repository while pinning a local snapshot's paths,
@@ -74,8 +87,8 @@ inputs; it does not replace them.
 | `packages/hla-rti-core/src/hla/fom/resources/proto2025/foms/Proto2025_MessageTest.xml` | 32,789 bytes | `328A5ABA4EF346DB5DA682B58E81498D4D737AD99136CD8E105F5573AF608E31` | 2025 extension over the Proto base. |
 | `packages/hla-rti-core/src/hla/fom/resources/proto2025/foms/Proto2025_TimeMgmtTest.xml` | 23,760 bytes | `74033B39B4AA1BF84AE7BBCD567C2362F2CBD1161AC73E1F90C7CEAE332BC870` | 2025 extension over the Proto base. |
 | `packages/hla-rti-core/src/hla/fom/resources/proto2025/foms/Proto2025_SpaceLite.xml` | 29,132 bytes | `D6DF966B6623CB9B6AA91EC65E75DA20B6248F3D2E5D77ECC1AF8F34BA7AEFFB` | 2025 extension over the Proto base. |
-| `packages/hla-rti-core/src/hla/fom/resources/proto2025/foms/DirectedTSORestore2025.xml` | 1,603 bytes | `672757D28088D8C87056F228AD6995FFEFF764D6DEFEA5F949BA0F2BFD11867D` | Small 2025 directed TSO/save-restore fixture. |
-| `packages/hla-rti-core/src/hla/fom/resources/proto2025/foms/DirectedDDMRestore2025.xml` | 1,830 bytes | `742ED390ABC0A059099EB92FEA904F4E5494A21F74DA433CF031E838E2A0B711` | Small 2025 directed DDM/save-restore fixture. |
+| `packages/hla-rti-core/src/hla/fom/resources/proto2025/foms/DirectedTSORestore2025.xml` | 1,603 bytes | `672757D28088D8C87056F228AD6995FFEFF764D6DEFEA5F949BA0F2BFD11867D` | 2025 DIF-valid standalone composition guard; not a runtime directed/TSO/restore claim. |
+| `packages/hla-rti-core/src/hla/fom/resources/proto2025/foms/DirectedDDMRestore2025.xml` | 1,830 bytes | `742ED390ABC0A059099EB92FEA904F4E5494A21F74DA433CF031E838E2A0B711` | 2025 namespace but official-DIF schema-negative source; preserved as an expected-rejection guard. |
 
 ## Intake gate
 
@@ -110,11 +123,11 @@ None of these categories alone establishes a broad conformance claim.
 | ID | Candidate and stress value | First admissible Umbra use | Important boundary |
 | --- | --- | --- | --- |
 | `FOM-STR-001` | **Target Radar.** The sibling's MIM-merged overview contains six object rows and 86 interaction rows, and its scenarios cover lifecycle, declaration, object, DDM, ownership, synchronization, and save/restore shapes.  This is a useful broader-than-tutorial model and scenario vocabulary. | Design reference only; excluded from Umbra's current 2025-only implementation plan. | The sibling records this as cross-edition and selects an effective 2010 validation path. It is not a default 2025 input, and no direct import is planned. |
-| `FOM-STR-002` | **Proto base + MessageTest.** A 2025-native base/extension pair with a concrete multi-federate plan: discovery and attributes, stimulus/response correlation, 100 cases with 1,000 steps, timeout/fault paths, late join, and replay. | The external 2025 lane now proves DIF validation, full MIM-first composition, and Create/Join with the complete four-module set. Build the scenario only once Umbra owns FOM handles, declaration, object/interaction delivery, and callbacks; recreate the smallest legal Umbra-owned fixture first. | The source plan is a scenario design, not an oracle for C++ callback order or fault semantics. |
-| `FOM-STR-003` | **Proto base + TimeMgmtTest.** A 2025-native time scenario family covering RO load, out-of-wall-clock TSO order, equal-timestamp batches, TAR/NER cycles, positive/zero lookahead, past events, retraction/flush probing, replay, and late join. | The external 2025 lane now proves only its schema/preflight and embedded lifecycle admission. Use receive-order and TAR portions only after the corresponding private service exists; reserve broader public TSO portions for the coordinator/service phase. | Umbra's private queue is integrated into the temporal snapshot and GALT/LITS calculator, including retraction and in-transit state, and the public profile has five bounded timestamped paths: interaction, attribute update, object deletion/removal, directed interaction, and region-context interaction. NER, flush, and the remaining timestamped families are not enabled; no broader TSO claim may be inferred. |
-| `FOM-STR-004` | **Proto base + SpaceLite.** A 2025-native hierarchy/data-model scenario: reference-frame graph validity, entity/sensor state, attach/detach, freeze/resume, pacing, and late join. | The external 2025 lane now proves only schema/preflight and embedded lifecycle admission. Add graph, discovery, and callback assertions after object/interaction state is real. | It is a compact scenario model, not a substitute for the independent SISO Space FOM family. |
-| `FOM-STR-005` | **Directed TSO Restore.** A deliberately small 2025 fixture with one user object class and a timestamped interaction, aimed at directed-TSO cleanup across restore. | TSO plus save/restore phase, after recipient-scoped queues and restore state exist. | It must not be used to paper over missing TSO delivery or restore semantics. |
-| `FOM-STR-006` | **Directed DDM Restore.** A deliberately small 2025 fixture with one user object class, a routing dimension, routed object attribute/interaction, and restore focus. | DDM plus save/restore phase, after regions, routing, and restoration state exist. | It is useful specifically because it combines capability groups; do not add it until both groups have real invariants. |
+| `FOM-STR-002` | **Proto base + MessageTest.** A 2025-native base/extension pair with a concrete multi-federate plan: discovery and attributes, stimulus/response correlation, 100 cases with 1,000 steps, timeout/fault paths, late join, and replay. | The current digested prototype is DIF-valid but semantically rejected because it uses raw basic-data names in application-table columns. Repair or recreate a compact Umbra-owned legal fixture before using the plan to drive a service slice. | The source plan is a scenario design, not an oracle for C++ callback order or fault semantics. |
+| `FOM-STR-003` | **Proto base + TimeMgmtTest.** A 2025-native time scenario family covering RO load, out-of-wall-clock TSO order, equal-timestamp batches, TAR/NER cycles, positive/zero lookahead, past events, retraction/flush probing, replay, and late join. | Keep as a schema-positive/preflight-negative guard until a reviewed legal snapshot or a compact Umbra-owned fixture is available. Then use the non-TSO subset only after each time service is genuinely implemented. | Umbra's private queue is integrated into the temporal snapshot and GALT/LITS calculator, including retraction and in-transit state, and the public profile has five bounded timestamped paths: interaction, attribute update, object deletion/removal, directed interaction, and region-context interaction. NER, flush, and the remaining timestamped families are not enabled; no broader TSO claim may be inferred. |
+| `FOM-STR-004` | **Proto base + SpaceLite.** A 2025-native hierarchy/data-model scenario: reference-frame graph validity, entity/sensor state, attach/detach, freeze/resume, pacing, and late join. | Keep as a schema-positive/preflight-negative guard until a reviewed legal snapshot or a compact Umbra-owned fixture is available. Then add graph, discovery, and callback assertions after object/interaction state is real. | It is a compact scenario model, not a substitute for the independent SISO Space FOM family. |
+| `FOM-STR-005` | **Directed TSO Restore.** A small 2025 source with one user object class and a timestamped interaction. | Current MIM-first schema/composition guard only; runtime TSO plus save/restore work remains later. | The source filename does not establish a directed interaction or a runtime restore oracle. It must not paper over missing TSO delivery or restore semantics. |
+| `FOM-STR-006` | **Directed DDM Restore.** A small 2025-namespaced source with a routing dimension and restore focus. | Current official-DIF expected rejection; repair/recreation must precede any runtime use. | It places dimensions in a schema-incompatible shape and omits required Dimension-table fields. Do not silently transform it or use it to claim DDM/restore support. |
 | `FOM-STR-007` | **RPR 2.0 ordered family.** A large tactical-model family with Foundation through Warfare modules; the sibling also exercises an integrated Link 16 shape.  It pressures ordered composition, datatypes, and deep class trees. | Later third-party parser/composition lane only, starting from a licensed immutable acquisition. | Its source manifest requires preservation of upstream SISO attribution.  The model family is treated there as 2010-shaped, not a ready 2025 runtime root. |
 | `FOM-STR-008` | **Link 16 extension.** A companion to the RPR 2.0 family that is valuable as an incomplete-extension negative case and as an explicit ordered-composition test. | Controlled expected-rejection fixture first; integrated family only after ordered RPR 2.0 composition is supported. | Standalone Link 16 is not a normal federation root.  A green test must say whether it proves rejection or full integrated composition. |
 | `FOM-STR-009` | **RPR 3.0.** The adjacent corpus separates an Annex A ordered family from an informative merged 1516-2010 packet.  Together they offer current-family and single-large-document stress shapes. | License/provenance review, then parser-only experiments under an explicitly stated edition policy. | A 2025-labelled family name does not by itself establish that every module or merged packet is valid in Umbra's 2025 FDD pipeline. |

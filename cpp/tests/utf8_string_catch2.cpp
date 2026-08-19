@@ -12,6 +12,16 @@ TEST_CASE("The private FOM name boundary round-trips valid Unicode scalars", "[u
   REQUIRE(umbra::detail::wideFromUtf8(utf8) == wide);
 }
 
+TEST_CASE("Diagnostic strings are quoted and escaped", "[unit][kernel][utf8][diagnostics]") {
+  REQUIRE(
+      umbra::detail::quoteDiagnosticString("name with spaces\"\\\n\t") ==
+      "\"name with spaces\\\"\\\\\\n\\t\"");
+  REQUIRE(
+      umbra::detail::quoteDiagnosticString(std::wstring{L"name with spaces\"\\\n\t"}) ==
+      L"\"name with spaces\\\"\\\\\\n\\t\"");
+  REQUIRE(umbra::detail::quoteDiagnosticString("\x01") == "\"\\x01\"");
+}
+
 TEST_CASE("The private FOM name boundary rejects malformed Unicode", "[unit][kernel][utf8]") {
   std::wstring malformedWide;
   if constexpr (sizeof(wchar_t) == 2) {

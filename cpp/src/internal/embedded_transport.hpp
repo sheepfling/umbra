@@ -1,5 +1,7 @@
 #pragma once
 
+#include "internal/runtime_instrumentation.hpp"
+
 #include <RTI/RTIambassador.h>
 
 #include <functional>
@@ -22,7 +24,8 @@ class EmbeddedTransportConnection final {
   EmbeddedTransportConnection(
       void* owner,
       FailureHandler failureHandler,
-      ForcedResignationHandler forcedResignationHandler);
+      ForcedResignationHandler forcedResignationHandler,
+      std::shared_ptr<RuntimeInstrumentation> instrumentation = {});
 
   EmbeddedTransportConnection(EmbeddedTransportConnection const&) = delete;
   EmbeddedTransportConnection& operator=(EmbeddedTransportConnection const&) = delete;
@@ -51,6 +54,7 @@ class EmbeddedTransportConnection final {
   void* owner_ = nullptr;
   FailureHandler failureHandler_;
   ForcedResignationHandler forcedResignationHandler_;
+  std::shared_ptr<RuntimeInstrumentation> instrumentation_;
   bool open_ = true;
 };
 
@@ -65,7 +69,8 @@ class EmbeddedTransportHub final {
   std::shared_ptr<EmbeddedTransportConnection> connect(
       void* owner,
       EmbeddedTransportConnection::FailureHandler failureHandler,
-      EmbeddedTransportConnection::ForcedResignationHandler forcedResignationHandler);
+      EmbeddedTransportConnection::ForcedResignationHandler forcedResignationHandler,
+      std::shared_ptr<RuntimeInstrumentation> instrumentation = {});
 
   void disconnect(void* owner) noexcept;
 

@@ -28,7 +28,8 @@ def main() -> int:
 
     manifest, _ = _load_manifest(arguments.manifest)
     assert manifest is not None
-    print(f"External 2025 FOM corpus integrity: PASS ({len(manifest['fixtures'])} fixtures)")
+    fixture_count = len(manifest["fixtures"]) + len(manifest.get("schema_negative_fixtures", []))
+    print(f"External 2025 FOM corpus integrity: PASS ({fixture_count} fixtures)")
     return 0
 
 

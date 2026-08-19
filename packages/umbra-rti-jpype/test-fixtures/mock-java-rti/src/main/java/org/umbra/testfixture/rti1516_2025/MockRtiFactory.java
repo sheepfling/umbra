@@ -2,6 +2,7 @@ package org.umbra.testfixture.rti1516_2025;
 
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
+import hla.rti1516_2025.encoding.EncoderFactory;
 
 public final class MockRtiFactory implements RtiFactory {
    public static final String NAME = "Umbra Mock Java RTI";
@@ -12,8 +13,8 @@ public final class MockRtiFactory implements RtiFactory {
    }
 
    @Override
-   public Object getEncoderFactory() {
-      return new Object();
+   public EncoderFactory getEncoderFactory() {
+      return new MockEncoderFactory();
    }
 
    @Override

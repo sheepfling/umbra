@@ -1,8 +1,11 @@
 #pragma once
 
+#include "internal/runtime_instrumentation.hpp"
+
 #include <condition_variable>
 #include <cstddef>
 #include <functional>
+#include <memory>
 #include <mutex>
 
 namespace rti1516_2025 {
@@ -20,7 +23,9 @@ class CallbackSession final {
  public:
   using Invocation = std::function<void(FederateAmbassador&)>;
 
-  explicit CallbackSession(FederateAmbassador& recipient);
+  explicit CallbackSession(
+      FederateAmbassador& recipient,
+      std::shared_ptr<umbra::detail::RuntimeInstrumentation> instrumentation = {});
 
   CallbackSession(CallbackSession const&) = delete;
   CallbackSession& operator=(CallbackSession const&) = delete;
@@ -36,6 +41,7 @@ class CallbackSession final {
   FederateAmbassador* recipient_ = nullptr;
   std::size_t invocationsInFlight_ = 0;
   bool closed_ = false;
+  std::shared_ptr<umbra::detail::RuntimeInstrumentation> instrumentation_;
 };
 
 }  // namespace rti1516_2025::umbra_binding_detail

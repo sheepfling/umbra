@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 federation-execution lifecycle foundation to the official C++ RTIambassador declarations exported by the Requirements Lab. The embedded development profile prevalidates the composed FOM/MIM and selected logical-time implementation before publishing a federation definition, preserves connection and membership boundaries, and supports named/unnamed joins with additional FOM modules. The linked Catch2 scenarios cover representative success and failure paths, not every declared exception or distributed lifecycle race. MIM extension interoperability, remote transport, package/JUnit/protected-review evidence, and conformance remain outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-create-federation-execution-single-fom",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void createFederationExecution( std::wstring const & federationName, std::wstring const & fomModule, std::wstring const & logicalTimeImplementationName = L\"\") = 0",
+      "exception_types": ["CouldNotCreateLogicalTimeFactory", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "InvalidMIM", "ErrorReadingMIM", "CouldNotOpenMIM", "DesignatorIsHLAstandardMIM", "FederationExecutionAlreadyExists", "Unauthorized", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged"
+      ]
+    },
+    {
+      "id": "umbra-embedded-create-federation-execution-module-vector",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void createFederationExecution( std::wstring const & federationName, std::vector<std::wstring> const & fomModules, std::wstring const & logicalTimeImplementationName = L\"\") = 0",
+      "exception_types": ["CouldNotCreateLogicalTimeFactory", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "FederationExecutionAlreadyExists", "Unauthorized", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+      ]
+    },
+    {
+      "id": "umbra-embedded-create-federation-execution-with-mim",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.createfederationexecutionwithmim.1de0ecdf0f4b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void createFederationExecutionWithMIM( std::wstring const & federationName, std::vector<std::wstring> const & fomModules, std::wstring const & mimModule, std::wstring const & logicalTimeImplementationName = L\"\") = 0",
+      "exception_types": ["InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "InvalidMIM", "ErrorReadingMIM", "CouldNotOpenMIM", "DesignatorIsHLAstandardMIM", "FederationExecutionAlreadyExists", "Unauthorized", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createFederationExecutionWithMIM",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition"
+      ]
+    },
+    {
+      "id": "umbra-embedded-destroy-federation-execution",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void destroyFederationExecution( std::wstring const & federationName) = 0",
+      "exception_types": ["FederatesCurrentlyJoined", "FederationExecutionDoesNotExist", "Unauthorized", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::destroyFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition"
+      ]
+    },
+    {
+      "id": "umbra-embedded-join-federation-execution-unnamed",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.joinfederationexecution.ec791fdee4a1",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual FederateHandle joinFederationExecution( std::wstring const & federateType, std::wstring const & federationName, std::vector<std::wstring> const & additionalFomModules = std::vector<std::wstring>()) = 0",
+      "exception_types": ["CouldNotCreateLogicalTimeFactory", "FederationExecutionDoesNotExist", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "SaveInProgress", "RestoreInProgress", "FederateAlreadyExecutionMember", "Unauthorized", "NotConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::joinFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition"
+      ]
+    },
+    {
+      "id": "umbra-embedded-join-federation-execution-named",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual FederateHandle joinFederationExecution( std::wstring const & federateName, std::wstring const & federateType, std::wstring const & federationName, std::vector<std::wstring> const & additionalFomModules = std::vector<std::wstring>()) = 0",
+      "exception_types": ["CouldNotCreateLogicalTimeFactory", "FederateNameAlreadyInUse", "FederationExecutionDoesNotExist", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "SaveInProgress", "RestoreInProgress", "FederateAlreadyExecutionMember", "Unauthorized", "NotConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::joinFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition"
+      ]
+    }
+  ]
+}

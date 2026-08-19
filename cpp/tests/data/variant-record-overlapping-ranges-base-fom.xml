@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes>
+        <enumeratedDataTypes>
+            <enumeratedData>
+                <name>UmbraOverlappingRangeChoices</name>
+                <representation>HLAinteger32BE</representation>
+                <enumerator>
+                    <name>UmbraOne</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>UmbraTwo</name>
+                    <value>2</value>
+                </enumerator>
+                <enumerator>
+                    <name>UmbraThree</name>
+                    <value>3</value>
+                </enumerator>
+                <enumerator>
+                    <name>UmbraFour</name>
+                    <value>4</value>
+                </enumerator>
+            </enumeratedData>
+        </enumeratedDataTypes>
+        <variantRecordDataTypes>
+            <variantRecordData>
+                <name>UmbraOverlappingRanges</name>
+                <discriminant>UmbraSelection</discriminant>
+                <dataType>UmbraOverlappingRangeChoices</dataType>
+                <alternative>
+                    <enumerator>[UmbraOne .. UmbraThree]</enumerator>
+                    <name>UmbraFirstRangeAlternative</name>
+                </alternative>
+                <encoding>HLAextendableVariantRecord</encoding>
+            </variantRecordData>
+        </variantRecordDataTypes>
+    </dataTypes>
+</objectModel>

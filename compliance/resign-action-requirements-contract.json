@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This contract records the bounded IEEE 1516.1-2025 resign-action transition now implemented in Umbra's opt-in, non-installable development profile. Directive 1 makes the resigning federate's owned attributes unowned and emits current eligible Request Attribute Ownership Assumption callbacks; directive 2 deletes objects for which it owns HLAprivilegeToDeleteObject and emits Remove Object Instance callbacks; directive 5 cancels the resigning federate's pending acquisition work before applying delete/divest cleanup. The final-federate rule in 4.12.4 is also covered: directive 2 is applied even when the final federate supplies NO_ACTION. The bounded Connection Lost slice additionally proves that a joined federate's configured DELETE_OBJECTS Automatic Resign Directive reaches the same deletion/removal path. The bounded continuation search now reconsiders an unowned attribute after a later eligible publication or join/discovery transition, while suppressing duplicate offers. The tests also retain the official FederateOwnsAttributes and OwnershipAcquisitionPending rejection boundaries. This is source/test traceability only, not a service catalog entry, JUnit result, protected-review result, package claim, or conformance claim. Complete owner-search/arbitration after terminal callbacks, remaining automatic-directive combinations, full forced-resign disposition policy, remote transport, and remaining ownership forms remain separate work.",
+  "notes": "This contract records the bounded IEEE 1516.1-2025 resign-action transition now implemented in Umbra's opt-in, non-installable development profile. Directive 1 makes the resigning federate's owned attributes unowned and emits current eligible Request Attribute Ownership Assumption callbacks; directive 2 deletes objects for which it owns HLAprivilegeToDeleteObject and emits Remove Object Instance callbacks; directive 5 cancels the resigning federate's pending acquisition work before applying delete/divest cleanup. The final-federate rule in 4.12.4 is also covered: directive 2 is applied even when the final federate supplies NO_ACTION. The bounded Connection Lost slice proves that configured DELETE_OBJECTS, UNCONDITIONALLY_DIVEST_ATTRIBUTES, DELETE_OBJECTS_THEN_DIVEST, CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, and CANCEL_THEN_DELETE_THEN_DIVEST Automatic Resign Directives reach their corresponding deletion/removal, divestiture/assumption, combined ordering, and stale-acquisition cleanup paths. The bounded continuation search now reconsiders an unowned attribute after a later eligible publication or join/discovery transition, while suppressing duplicate offers. The tests also retain the official FederateOwnsAttributes and OwnershipAcquisitionPending rejection boundaries. This is source/test traceability only, not a service catalog entry, JUnit result, protected-review result, package claim, or conformance claim. Complete owner-search/arbitration after terminal callbacks, the bounded NO_ACTION forced-resign policy, full forced-resign disposition policy, remote transport, and remaining ownership forms remain separate work.",
   "requirements": [
     {
       "id": "umbra-resign-action-resolves-owned-instance-attributes",
@@ -15,7 +15,11 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action deletes delete-privileged objects and reports removal",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action rejects pending ownership acquisition work",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive"
       ]
     },
     {
@@ -25,7 +29,10 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resign",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive"
       ]
     },
     {
@@ -35,7 +42,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resign",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive"
       ]
     },
     {

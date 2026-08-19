@@ -22,7 +22,242 @@
         "reference-resolution"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This private composition slice rejects unresolved simple/enumerated representations and invalid ordinary reference representations, while applying the reviewed HLAobjectInstanceName/HLAobjectInstanceHandle exception. RL-009 records the source/schema/example tension for simple/enumerated representation wording; remaining lookahead non-negative inference, full table constraints, directed-interaction materialization, dependency packaging, JUnit/protected review, and conformance remain open."
+      "next_action": "This private composition slice rejects unresolved simple/enumerated representations and invalid ordinary reference representations, while applying the reviewed HLAobjectInstanceName/HLAobjectInstanceHandle exception. RL-009 records the source/schema/example tension for simple-data representation wording; the separate enumerated-representation test now applies the exact 2025 basic-data predicate. Remaining lookahead non-negative inference, full table constraints, directed-interaction materialization, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-attribute-parameter-data-type-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-048-l105-4",
+        "requirement-candidate-sections-semantic-clause-4b-page-053-l47-4"
+      ],
+      "test_case": "The FOM composition preflight rejects raw basic data types for attributes and parameters",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "table-constraints",
+        "data-types"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects a raw basic-data representation in an object-attribute or interaction-parameter data-type column after complete-model resolution. Generic name resolution retains basic-data names from the schema key, while table-specific predicates determine their permitted roles; the standard HLAtoken is naturally accepted as array data. The paired attribute-NA companion slice handles the bounded direct cross fields; full table constraints, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-attribute-na-companion-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5"
+      ],
+      "test_case": "The FOM composition preflight validates supplied NA attribute companions",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "attribute-na-companion-fields"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private completed-model preflight requires supplied transportation/order values to be non-NA and supplied update type/update condition values to be NA whenever an object attribute data type is NA. A partial DIF row may be completed by a later compatible module before FDD materialization. The official DIF schema represents dimensions at object-class, not per-attribute, scope, so the source's available-dimensions phrase is intentionally not inferred as a class-wide rule (RL-051). The separate Static/Update Condition example tension, remaining table constraints, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-attribute-dynamic-update-condition-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2"
+      ],
+      "test_case": "The FOM composition preflight requires supplied dynamic update conditions",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "attribute-dynamic-update-condition"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private completed-model preflight rejects a supplied empty or NA Update Condition for a Conditional or Periodic attribute, accepts supplied non-NA text, and preserves an omitted condition in a partial DIF row. It does not prove the Periodic rate grammar or initial-condition semantics. It deliberately leaves the candidate's Static/NA direction unimplemented because official 2025 material contains Static/On change; RL-046 records that tension. Dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-attribute-value-required-sharing-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-049-l58-6"
+      ],
+      "test_case": "The FOM composition preflight requires unshared attributes to be not value-required",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "attribute-sharing-value-required"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private completed-model preflight rejects an explicit sharing=Neither/valueRequired=true combination, accepts sharing=Neither/valueRequired=false, and preserves an omitted Value Required field in a partial DIF attribute row. It does not infer defaults, FOM/SOM declaration state, other sharing modes, runtime behavior, dependency packaging, JUnit/protected review, or conformance. RL-052 records the source candidate's broad clause-4 provenance."
+    },
+    {
+      "id": "umbra-cpp-fom-root-hierarchy-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4a-page-047-l59-4",
+        "requirement-candidate-sections-semantic-clause-4b-page-052-l34-6"
+      ],
+      "test_case": "The FOM composition preflight requires standard object and interaction roots",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "root-hierarchy"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private completed-model preflight rejects a nonstandard top-level object or interaction class after compatible DIF modules merge, while retaining omitted object/interaction tables for incomplete modules. The root rule does not resolve remaining attribute-NA cross fields, representation/example tensions, complete Annex C merge, dependency packaging, JUnit/protected review, or conformance."
+    },
+    {
+      "id": "umbra-cpp-fom-enumerated-representation-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-072-l128-3"
+      ],
+      "test_case": "The FOM composition preflight requires basic representations for enumerated data types",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "enumerated-representation"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects an enumerated data type whose supplied representation resolves to a non-basic declaration, while retaining omitted representation for an incomplete DIF row. It deliberately leaves the distinct simple-data representation tension under RL-009, remaining data-type/table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance open."
+    },
+    {
+      "id": "umbra-cpp-fom-array-element-data-type-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-074-l56-3"
+      ],
+      "test_case": "The FOM composition preflight requires table-defined data types for array elements",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "array-element-data-type"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects a raw basic-data representation in a supplied array Element Type after complete-model resolution, while retaining an omitted element type for an incomplete DIF row and accepting the standard MIM/Restaurant arrays. Remaining data-type/table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-record-member-data-type-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-076-l52-2",
+        "requirement-candidate-sections-semantic-clause-4c-page-077-l78-7"
+      ],
+      "test_case": "The FOM composition preflight requires table-defined data types for fixed-record fields and variant alternatives",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "record-member-data-type"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects a raw basic-data representation in a supplied fixed-record Field Type or variant-record Alternative Type after complete-model resolution, while retaining omitted member types for incomplete DIF rows and accepting the standard MIM/Restaurant records. RL-047 records the Requirements Lab export's broad clause-4 metadata for these otherwise precise source candidates. Remaining data-type/table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-variant-discriminant-data-type-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11"
+      ],
+      "test_case": "The FOM composition preflight requires enumerated data types for variant-record discriminants",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "variant-discriminant-data-type"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects a raw basic-data representation, a simple data type, and NA in a supplied variant-record Discriminant Type after complete-model resolution, while retaining an omitted type for an incomplete DIF row and accepting the standard MIM/Restaurant records. Paired slices verify individual enumerators/range endpoints, declaration-order range expansion, overlapping named alternatives, and the HLAother complement model. Complete Annex C merge, dependency packaging, JUnit/protected review evidence, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-variant-discriminant-enumerator-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clauses-5-6-page-095-l58-12",
+        "requirement-candidate-sections-semantic-clauses-5-6-page-095-l62-13",
+        "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14"
+      ],
+      "test_case": "The FOM composition preflight validates variant-record discriminant-enumerator syntax",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "variant-discriminant-enumerator"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects malformed discriminant-enumerator ranges and composite HLAother forms, retains an omitted field for incomplete DIF, and accepts the official Restaurant range and standalone HLAother vectors. Paired slices verify supplied identifiers/endpoints, declaration-order range expansion, overlapping named alternatives, and the HLAother complement model. Complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-variant-discriminant-enumerator-membership-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-077-l70-5"
+      ],
+      "test_case": "The FOM composition preflight requires declared members for variant-record discriminants",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "variant-discriminant-enumerator-membership"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects an unknown direct discriminant enumerator and an unknown range endpoint, permits a later module to supply the selected enumeration, and preserves incomplete DIF when the selected enumeration supplies no members. The paired range-semantics slice then expands declared ranges in table order, detects direct/range overlap across named alternatives, and models HLAother as the explicit-set complement. Complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open. RL-049 records the Requirements Lab export's broad clause-4 provenance for the precise source candidate."
+    },
+    {
+      "id": "umbra-cpp-fom-variant-discriminant-enumerator-range-semantics-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-077-l70-5",
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1"
+      ],
+      "test_case": "The FOM composition preflight expands variant-record ranges in enumerator-table order",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "variant-discriminant-enumerator-range-semantics"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice preserves enumerated-table declaration order, expands direct/range assignments after the complete module set merges, rejects a member reached by more than one named alternative, and models non-extendable HLAother as the complement of explicit members. It retains an enumeration with no declared members as incomplete DIF. It intentionally does not infer a separate endpoint-direction rule, complete Annex C merge, dependency packaging, JUnit/protected review, or conformance. RL-049 and RL-050 record the Requirements Lab provenance limits."
+    },
+    {
+      "id": "umbra-cpp-fom-dimension-input-data-type-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2"
+      ],
+      "test_case": "The FOM composition preflight requires table-defined data types for dimension inputs",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "dimension-input-data-type",
+        "ddm"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private composition slice rejects a raw basic-data representation in a supplied Dimension-table Input data type after complete-model resolution, retains the source's NA marker path, and accepts the standard MIM/Restaurant dimensions. The paired input-description slice handles the bounded no-named-input path; suitable-type selection and the semantic judgment of whether a description is unambiguous remain open. RL-048 records the Requirements Lab export's broad clause-4 metadata for this otherwise precise source candidate. Remaining table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-dimension-input-data-type-na-exclusivity-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2"
+      ],
+      "test_case": "The FOM composition preflight keeps the NA dimension input marker exclusive",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "dimension-input-data-type-na-exclusivity",
+        "ddm"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private completed-model preflight keeps the Dimension-table NA Input data type marker exclusive with the no-suitable-named-type branch: an explicit NA marker mixed with a named type fails, while the existing explicit-NA, empty-list, and named-type paths remain separately covered. It does not decide whether a suitable type exists, impose a cardinality or deduplication rule, or judge the companion description's unambiguity. RL-048 records the Requirements Lab export's broad clause-4 metadata. Remaining table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-fom-dimension-input-data-description-composition-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-056-l10-2"
+      ],
+      "test_case": "The FOM composition preflight requires descriptions for dimensions without named input types",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "dimension-input-data-description",
+        "ddm"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private completed-model preflight requires non-NA text in Input data type description whenever the DIF inputDataTypes sequence carries no named type. It covers the official empty-list representation and retains both Restaurant patterns for named types (NA or amplifying text). It deliberately does not decide whether a suitable FOM type exists, whether a description is unambiguous, or whether named types should have NA descriptions. RL-048 records the Requirements Lab export's broad clause-4 metadata. Remaining table constraints, complete Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
     },
     {
       "id": "umbra-cpp-fom-table-constraints-composition-integration",
@@ -119,6 +354,106 @@
       "next_action": "This case sets DELETE_OBJECTS through the official per-federate support service, then proves an embedded fault deletes the lost federate's delete-privileged object, queues both removal and Connection Lost callbacks, removes membership, and permits reconnect. Cover the remaining directive combinations and ownership edge cases, then add remote transport, package/JUnit/protected-review evidence, and conformance before making a validation claim."
     },
     {
+      "id": "umbra-cpp-connection-lost-automatic-unconditional-divest-integration",
+      "requirements_lab_mapping_id": "rti.callback.connection-lost",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
+        "api.2025.cpp.rtiambassador.getautomaticresigndirective.0d958079c7f9",
+        "api.2025.cpp.rtiambassador.setautomaticresigndirective.4a48b2996c54"
+      ],
+      "test_case": "Embedded transport loss applies the configured automatic unconditional-divest directive",
+      "tags": [
+        "development-profile",
+        "federation-management",
+        "transport",
+        "ownership-management",
+        "rti.service.connection-lost",
+        "rti.service.get-automatic-resign-directive",
+        "rti.service.set-automatic-resign-directive",
+        "federate.callback.connection-lost",
+        "federate.callback.request-attribute-ownership-assumption"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This case sets UNCONDITIONALLY_DIVEST_ATTRIBUTES through the official per-federate support service, then proves an embedded fault keeps the object known, makes its former attributes eligible, queues Request Attribute Ownership Assumption and Connection Lost callbacks, removes membership, and permits reconnect. RL-060 records that the closest Lab candidate omits the continuation explicitly naming the Automatic Resign Directive. Cover the remaining directive combinations and ownership edge cases, then add remote transport, package/JUnit/protected-review evidence, and conformance before making a validation claim."
+    },
+    {
+      "id": "umbra-cpp-connection-lost-automatic-delete-then-divest-integration",
+      "requirements_lab_mapping_id": "rti.callback.connection-lost",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
+        "api.2025.cpp.rtiambassador.getautomaticresigndirective.0d958079c7f9",
+        "api.2025.cpp.rtiambassador.setautomaticresigndirective.4a48b2996c54"
+      ],
+      "test_case": "Embedded transport loss applies the configured automatic delete-then-divest directive",
+      "tags": [
+        "development-profile",
+        "federation-management",
+        "transport",
+        "ownership-management",
+        "object-management",
+        "rti.service.connection-lost",
+        "rti.service.get-automatic-resign-directive",
+        "rti.service.set-automatic-resign-directive",
+        "federate.callback.connection-lost",
+        "federate.callback.remove-object-instance",
+        "federate.callback.request-attribute-ownership-assumption"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This case sets DELETE_OBJECTS_THEN_DIVEST through the official per-federate support service. It transfers a non-delete-privileged attribute to the future lost federate, then proves fault cleanup deletes a separately delete-privileged object while retaining and re-offering the transferred object attribute. The combined cancellation case is covered separately; define and cover the bounded NoAction forced-resign policy, then add remote transport, package/JUnit/protected-review evidence, and conformance before making a validation claim."
+    },
+    {
+      "id": "umbra-cpp-connection-lost-automatic-cancel-pending-acquisition-integration",
+      "requirements_lab_mapping_id": "rti.callback.connection-lost",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
+        "api.2025.cpp.rtiambassador.getautomaticresigndirective.0d958079c7f9",
+        "api.2025.cpp.rtiambassador.setautomaticresigndirective.4a48b2996c54",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b"
+      ],
+      "test_case": "Embedded transport loss cancels the lost federate's pending ownership acquisition",
+      "tags": [
+        "development-profile",
+        "federation-management",
+        "transport",
+        "ownership-management",
+        "rti.service.connection-lost",
+        "rti.service.get-automatic-resign-directive",
+        "rti.service.set-automatic-resign-directive",
+        "rti.service.attribute-ownership-acquisition",
+        "federate.callback.connection-lost",
+        "federate.callback.request-attribute-ownership-assumption"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This case sets CANCEL_PENDING_OWNERSHIP_ACQUISITIONS through the official per-federate support service after creating a regular pending request. It proves loss suppresses the stale queued owner release request and lets a real remaining candidate receive a subsequent assumption offer. The all-three combined directive is covered separately; define and cover the bounded NoAction forced-resign policy, then add remote transport, package/JUnit/protected-review evidence, and conformance before making a validation claim."
+    },
+    {
+      "id": "umbra-cpp-connection-lost-automatic-cancel-delete-divest-integration",
+      "requirements_lab_mapping_id": "rti.callback.connection-lost",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
+        "api.2025.cpp.rtiambassador.getautomaticresigndirective.0d958079c7f9",
+        "api.2025.cpp.rtiambassador.setautomaticresigndirective.4a48b2996c54",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b"
+      ],
+      "test_case": "Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+      "tags": [
+        "development-profile",
+        "federation-management",
+        "transport",
+        "ownership-management",
+        "object-management",
+        "rti.service.connection-lost",
+        "rti.service.get-automatic-resign-directive",
+        "rti.service.set-automatic-resign-directive",
+        "rti.service.attribute-ownership-acquisition",
+        "federate.callback.connection-lost",
+        "federate.callback.remove-object-instance",
+        "federate.callback.request-attribute-ownership-assumption"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This case sets CANCEL_THEN_DELETE_THEN_DIVEST through the official per-federate support service. It leaves a regular acquisition pending, proves the loss suppresses its stale queued release work, removes a known delete-privileged object, and re-offers a retained non-delete attribute. Define and cover the bounded NoAction forced-resign policy, then add remote transport, package/JUnit/protected-review evidence, and conformance before making a validation claim."
+    },
+    {
       "id": "umbra-cpp-federate-resigned-integration",
       "requirements_lab_mapping_id": "rti.callback.federate-resigned",
       "selected_cpp_api_surface_ids": [
@@ -150,7 +485,7 @@
       "test_case": "Embedded resign action unconditionally divests attributes for the 2025 ownership model",
       "tags": ["development-profile", "federation-management", "ownership-management", "rti.service.resign-federation-execution", "federate.callback.request-attribute-ownership-assumption"],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This bounded directive-1 path proves unowned transition, current eligible assumption offers, and later acquisition. Separate cases now cover continuation after later publication/discovery and one Connection Lost automatic DELETE_OBJECTS path; add terminal-callback re-search, remaining directive combinations, RTI-owned state, package/JUnit/protected-review evidence, and conformance before making any validation claim."
+      "next_action": "This bounded directive-1 path proves unowned transition, current eligible assumption offers, and later acquisition. Separate cases now cover continuation after later publication/discovery plus Connection Lost automatic DELETE_OBJECTS and UNCONDITIONALLY_DIVEST_ATTRIBUTES paths; add terminal-callback re-search, remaining directive combinations, RTI-owned state, package/JUnit/protected-review evidence, and conformance before making any validation claim."
     },
     {
       "id": "umbra-cpp-resign-action-delete-integration",
@@ -200,16 +535,44 @@
     {
       "id": "umbra-cpp-connect-integration",
       "requirements_lab_mapping_id": "rti.service.connect",
-      "candidate_cpp_api_surface_ids": [
+      "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.connect.027cac2b3705",
         "api.2025.cpp.rtiambassador.connect.b1de99b1fee7",
         "api.2025.cpp.rtiambassador.connect.ed13bdcc70d7",
         "api.2025.cpp.rtiambassador.connect.fd07798bb3a7"
       ],
-      "test_case": "planned standard connect behavior",
+      "test_case": "RTIambassador Connect exposes all four official C++ overloads",
       "tags": ["compliance", "rti.service.connect"],
-      "status": "implemented-awaiting-crosswalk-resolution",
-      "next_action": "Umbra tests all four standard overloads. The Requirements Lab still marks their aggregate C++ service mapping ambiguous, so resolve its selected API surfaces before creating a compliance catalog entry."
+      "status": "implemented-api-traceability-not-conformance-evidence",
+      "next_action": "The Requirements Lab still marks its aggregate C++ Connect service mapping ambiguous. Umbra's API-only contract nevertheless pins each exact official declaration to the existing Catch2 scenario; do not treat that local declaration trace as a resolved aggregate mapping, catalog result, JUnit/protected-review result, package claim, or conformance claim."
+    },
+    {
+      "id": "umbra-cpp-callback-control-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.rtiambassador.evokemultiplecallbacks.3383e661b1ba",
+        "api.2025.cpp.rtiambassador.enablecallbacks.a4711464793a",
+        "api.2025.cpp.rtiambassador.disablecallbacks.d279fd678306"
+      ],
+      "test_case": "RTIambassador callback controls honor both models with an empty embedded queue",
+      "tags": ["development-profile", "callbacks", "api-traceability"],
+      "status": "implemented-public-api-not-conformance-evidence",
+      "next_action": "The API-only contract pins the four callback-control declarations to a real two-model Catch2 scenario. Extend this bounded empty-queue baseline with more callback reentrancy, error, save/restore, remote-transport, package/JUnit/protected-review, and conformance evidence before making broader claims."
+    },
+    {
+      "id": "umbra-cpp-federation-execution-lifecycle-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+        "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578",
+        "api.2025.cpp.rtiambassador.createfederationexecutionwithmim.1de0ecdf0f4b",
+        "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.ec791fdee4a1",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992"
+      ],
+      "test_case": "Embedded federation-management services commit only a prevalidated federation definition",
+      "tags": ["development-profile", "federation-management", "fom", "api-traceability"],
+      "status": "implemented-public-api-not-conformance-evidence",
+      "next_action": "The API-only contract pins the six creation, destruction, and join declarations to the existing real Catch2 lifecycle scenarios. Add external MIM/interoperability, remote transport, package/JUnit/protected-review, and conformance evidence before making a broader lifecycle claim."
     },
     {
       "id": "umbra-cpp-get-time-factory-integration",
@@ -2394,7 +2757,7 @@
         "rti.service.get-allow-relaxed-ddm-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This bounded slice proves FDD parsing, per-federate initialization and mutation, static getter sharing, and official invalid-resign-action handling. The dedicated Convey Region Designator callback slice covers recipient-gated regional metadata, while the dedicated Delay Subscription Evaluation cases cover ordinary receive-order and time-constrained timestamped interaction and known-object attribute-update paths. A separate Relaxed DDM integration case proves the documented exact-boundary regional-interaction policy, and the dedicated MOM interlock case covers the exact report-service switch/subscription exclusion. Real connection-loss automatic resign, MOM service-report emission/file behavior, broader relaxed-DDM semantics, the remaining delayed-subscription matrix, package/JUnit/protected-review evidence, and conformance remain open."
+      "next_action": "This bounded slice proves FDD parsing, per-federate initialization and mutation, static getter sharing, and official invalid-resign-action handling. The dedicated Convey Region Designator callback slice covers recipient-gated regional metadata, while the dedicated Delay Subscription Evaluation cases cover ordinary receive-order and time-constrained timestamped interaction and known-object attribute-update paths. A separate Relaxed DDM integration case proves the documented exact-boundary regional-interaction policy, and the dedicated MOM interlock case covers the exact report-service switch/subscription exclusion. The separate filesystem lifecycle case now covers an initial record and immutable per-join file identity, but generated MOM service-report emission, report-record appends, HLAreportServiceFile publication, real connection-loss automatic resign, broader relaxed-DDM semantics, the remaining delayed-subscription matrix, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
       "id": "umbra-cpp-mom-service-reporting-interlock-integration",
@@ -2428,7 +2791,193 @@
         "rti.service.commit-region-modifications"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This safety slice proves the exact HLAreportServiceInvocation exclusion in both directions: enabled Service Reporting rejects ordinary and regional subscription attempts, while either exact subscription rejects a later enable without changing the switch state. It also proves passive subscriptions and removal-before-enable recovery. It does not generate service-report interactions, encode service arguments, route reports to other federates, write report files, implement generic MOM interactions, package the profile, create JUnit/protected-review evidence, or establish conformance. RL-031 records that the direct §10.47 candidate is misattributed by the pinned Lab export, so this plan uses the correctly owned §11.5.1 candidate for the cross-cutting interlock."
+      "next_action": "This safety slice proves the exact HLAreportServiceInvocation exclusion in both directions: enabled Service Reporting rejects ordinary and regional subscription attempts, while either exact subscription rejects a later enable without changing the switch state. It also proves passive subscriptions and removal-before-enable recovery. A separate filesystem case creates a private initial-record file for each joined federate, but this safety slice does not generate service-report interactions, encode service arguments, route reports to other federates, append generated report records, publish HLAreportServiceFile, implement generic MOM interactions, package the profile, create JUnit/protected-review evidence, or establish conformance. RL-031 records that the direct §10.47 candidate is misattributed by the pinned Lab export, so this plan uses the correctly owned §11.5.1 candidate for the cross-cutting interlock."
+    },
+    {
+      "id": "umbra-cpp-mom-attribute-policy-catalog-unit",
+      "test_case": "The FDD catalog preserves MIM attribute policy for a future RTI-owned MOM object",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "mom",
+        "service-report-file"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This resource-level regression preserves the unmodified 2025 MIM's HLAreportServiceFile data type, update policy, required-value bit, ownership, sharing, transportation, and order in Umbra's composed catalog. The embedded-profile runtime decision separately follows the 1516.1 Table 8 Static entry when the future MOM object is established; RL-041 preserves the contrary MIM field. This test does not register MOM objects, publish HLAreportServiceFile, create JUnit/protected-review evidence, or establish conformance. RL-034 records the missing immutable Table 5 record-structure candidates, so this entry intentionally has no Requirements Lab requirement mapping."
+    },
+    {
+      "id": "umbra-cpp-mom-service-report-routing-unit",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
+      ],
+      "test_case": "The registry plans 2025 MOM reports with an RTI-owned normalized endpoint",
+      "tags": [
+        "unit",
+        "kernel",
+        "federation-registry",
+        "mom",
+        "ddm",
+        "service-report-routing"
+      ],
+      "status": "implemented-private-unpublished-foundation-not-conformance-evidence",
+      "next_action": "This registry-level regression proves MIM-driven Report Service Invocation lookup, the private HLAfederate/HLAserviceGroup point endpoint, subscriber selection and callback-time regional withdrawal/recheck, mutually exclusive interaction-versus-file disposition, and per-federate serial reservation without consuming rejected reports. It also preserves explicit RTI-source routing with no numeric federate sentinel. The RTI source is intentionally not accepted by Umbra's public Receive Interaction callback queue: source material does not establish a callback-visible producing FederateHandle for RTI-originated MOM traffic (RL-043). It does not generate a service report, append a Table 5 record, register/discover a MOM object, or establish conformance; the log return-record interpretation remains separately blocked by RL-042."
+    },
+    {
+      "id": "umbra-cpp-mom-effective-attribute-policy-catalog-unit",
+      "test_case": "The FDD catalog resolves complete inherited policy for a joined-federate MOM object",
+      "tags": [
+        "unit",
+        "fom",
+        "composition",
+        "mom",
+        "object-management"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This resource-level regression proves that a composed MIM catalog preserves inherited object attributes without silently overriding their policy: HLAmanager.HLAfederate includes HLAobjectRoot.HLAprivilegeToDeleteObject with its declared optional-value/DivestAcquire policy as well as the direct required-value/NoTransfer MOM attributes. It is a prerequisite for complete RTI-owned MOM-object construction only. It does not decide MOM deletion/ownership semantics, register or discover a MOM instance, publish HLAreportServiceFile, resolve the RTI-created callback producer-designator question (RL-043), create JUnit/protected-review evidence, or establish conformance."
+    },
+    {
+      "id": "umbra-cpp-service-report-file-lifecycle-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42"
+      ],
+      "test_case": "Embedded service-report files have one immutable joined-federate lifetime",
+      "tags": [
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-report-file",
+        "rti.service.set-service-reporting-switch",
+        "rti.service.set-send-service-reports-to-file-switch"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This private lifecycle regression proves that a configured real filesystem directory receives one Table 5-style initial record at join even when reporting and file reporting begin disabled; the companion MOM-foundation regression verifies that its federate FOM-designator list contains only modules supplied with that Join. Switching the file-reporting switches off and on does not replace or modify the file, and a rejoin receives a new file. It does not prove generated service-report record appends, interaction-versus-file routing, HLAreportServiceFile MOM publication, host discovery, transport, JUnit/protected-review evidence, or conformance. The selected §11.5.2 candidate has incorrect Annex title provenance in the pinned Lab export; RL-041 records that source-traceability limitation."
+    },
+    {
+      "id": "umbra-cpp-service-report-file-multifederate-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42"
+      ],
+      "test_case": "Embedded simultaneously joined federates receive independent service-report files",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-report-file"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This production-path regression connects two official C++ ambassadors with one configured directory, joins both into the same federation execution, and verifies two distinct initial-record files with the correct joined-federate identity in each. It exercises the runtime FilesystemServiceReportStore rather than the injected memory seam. It does not prove generated service-report record appends, interaction-versus-file routing, HLAreportServiceFile MOM publication, host discovery, transport, JUnit/protected-review evidence, or conformance. The selected §11.5.2 candidate has incorrect Annex title provenance in the pinned Lab export; RL-041 records that source-traceability limitation."
+    },
+    {
+      "id": "umbra-cpp-joined-federate-mom-object-foundation-integration",
+      "test_case": "Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-report-file",
+        "mom-object-foundation"
+      ],
+      "status": "implemented-private-unpublished-foundation-not-conformance-evidence",
+      "next_action": "This internal-seam regression proves that a successful production-profile Join reserves a distinct RTI-owned object-instance identity, retains every effective MIM attribute as metadata, captures an immutable normalized HLAfederate point, and encodes the seven direct initial values from the official MIM types—including the real report-file path—before lifecycle visibility. It proves switch toggles preserve that identity and a later rejoin receives a new one. No public MOM object registration, discovery, reflection, requested-value response, removal callback, ownership behavior, or HLAreportServiceFile publication occurs. Those steps remain blocked on the RTI-created callback producer-designator mapping recorded in RL-043; this test is not Requirements Lab validation or conformance evidence."
+    },
+    {
+      "id": "umbra-cpp-service-report-directory-configuration-integration",
+      "test_case": "Embedded service-report configuration rejects unusable directories without fallback",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-report-file",
+        "service-report-store"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This implementation-quality regression verifies that an empty explicit directory setting and a path occupied by a regular file both fail Connect deterministically with RTIinternalError, leave the ambassador reconnectable, and do not select an in-memory fallback. The directory setting itself is implementation-defined under the official opaque additional-settings field, so this entry has no direct Requirements Lab requirement mapping and is not conformance evidence. Add deployment permission, disk-full, ACL, symlink, and remote-configuration matrices with the eventual deployment profile."
+    },
+    {
+      "id": "umbra-cpp-typed-service-report-directory-configuration-integration",
+      "test_case": "Umbra embedded profile configuration exposes a typed service-report directory",
+      "tags": [
+        "integration",
+        "development-profile",
+        "connection",
+        "mom",
+        "service-report-file",
+        "service-report-store",
+        "configuration"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This implementation-quality regression proves that Umbra's public embedded-profile convenience type accepts a std::filesystem::path, constructs the official RtiConfiguration, and selects the production filesystem directory without exposing a memory/store-backend choice. It remains an implementation-defined wrapper around the official opaque additional-settings field, has no direct Requirements Lab requirement mapping, and is not conformance evidence. The private MemoryServiceReportStore remains an injected test seam only; retain deterministic invalid-directory coverage separately."
+    },
+    {
+      "id": "umbra-cpp-joined-federate-mom-object-module-unit",
+      "test_case": "The registry builds a private joined-federate MOM snapshot from canonical Join FOM modules",
+      "tags": [
+        "unit",
+        "kernel",
+        "federation-registry",
+        "fom",
+        "mom",
+        "mom-object-foundation"
+      ],
+      "status": "implemented-private-unpublished-foundation-not-conformance-evidence",
+      "next_action": "This registry-level regression verifies that the snapshot retains inherited MIM metadata, encodes all seven direct Table 8 values using their official MIM representations, and emits HLAFOMmoduleDesignatorList as an HLAvariableArray of HLAunicodeString values, keeping the first designator when two Join records identify the same canonical FOM source. It also proves snapshot removal at resignation. The test does not decide semantic equality of distinct same-content FOM files, expose a public MOM object, or establish conformance. Preserve the input-module identity rule as private source-level traceability until the full public MOM lifecycle is sourced and implemented."
+    },
+    {
+      "id": "umbra-cpp-service-report-file-exclusive-allocation-unit",
+      "test_case": "Filesystem service-report stores reserve unique files under concurrent join pressure",
+      "tags": [
+        "unit",
+        "mom",
+        "service-report-store",
+        "filesystem",
+        "concurrency"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This in-process stress case proves that concurrent same-descriptor joins receive distinct exclusively created filesystem paths and intact initial records. The production implementation uses CREATE_NEW on Windows and O_EXCL on POSIX so a same-name cross-process collision retries without truncation. Add a separate cross-process harness plus permission, full-disk, and abrupt-process-failure matrices when the deployment profile is specified. This is implementation-quality evidence, not a direct Requirements Lab mapping or conformance result."
+    },
+    {
+      "id": "umbra-cpp-service-report-file-whole-record-append-unit",
+      "test_case": "Filesystem service-report writers preserve whole records under concurrent appends",
+      "tags": [
+        "unit",
+        "mom",
+        "service-report-store",
+        "filesystem",
+        "concurrency"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This in-process stress case verifies that one writer's mutex preserves every brace-delimited service-report record intact when multiple local service wrappers append concurrently. It is deliberately limited to one process and simple Table 5-shaped records; add cross-process append, large-record, permission, abrupt-process-failure, and deployment locking matrices when that profile is specified. This is implementation-quality evidence, not a direct Requirements Lab mapping or conformance result."
+    },
+    {
+      "id": "umbra-cpp-service-report-file-no-recreate-unit",
+      "test_case": "Filesystem service-report writers do not recreate a missing joined-federate file",
+      "tags": [
+        "unit",
+        "mom",
+        "service-report-store",
+        "filesystem",
+        "failure-handling"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This implementation-quality regression deletes an allocated test report file and verifies that a later writer append fails without recreating it. The runtime uses OPEN_EXISTING on Windows and O_APPEND without O_CREAT on POSIX, preserving the one-file identity invariant instead of treating a missing path as a new report file. Add deployment permission, concurrent external-deletion, abrupt-process-failure, and cross-process failure matrices when the profile is specified. This is not a direct Requirements Lab mapping or conformance result."
+    },
+    {
+      "id": "umbra-cpp-service-report-writer-failure-integration",
+      "test_case": "Service-report writer creation failure rejects the join without an in-memory fallback",
+      "tags": [
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-report-store",
+        "failure-handling"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This deterministic internal-store regression forces writer creation to fail, verifies RTIinternalError rather than a memory fallback, and proves the attempted membership is rolled back by allowing a peer to reuse the same federate name. It is implementation-quality evidence, not a direct Requirements Lab requirement mapping or conformance result. Add real permission, full-disk, abrupt-process-failure, and cross-process deployment coverage when the production profile is specified."
     },
     {
       "id": "umbra-cpp-delay-subscription-evaluation-receive-order-interaction-integration",
@@ -3301,13 +3850,246 @@
       "next_action": "This bounded slice verifies official API exception declarations, connection/member fences, each invalid designator, stable equality for equal federate/object-class/interaction-class/object-instance values, an in-domain service-group coordinate, and post-resign federate-designator stability. It does not yet prove distributed coordinate generation, full general DDM, RTI-originated MOM region realization, report routing/encoding, save/restore normalization behavior, package/JUnit/protected-review evidence, or conformance. RL-033 records source-candidate clause attribution drift."
     },
     {
+      "id": "umbra-cpp-hla-variable-array-encoding-unit",
+      "official_header_source": "RTI/encoding/BasicDataElements.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11",
+        "requirement-candidate-sections-semantic-clause-4c-page-085-l63-4"
+      ],
+      "test_case": "Official HLAunicodeString uses a UTF-16BE element-count payload; MOM service-report records use the standard MIM fixed-record layout",
+      "tags": ["baseline", "encoding", "unit", "mom", "private-foundation"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded private foundation proves the 1516.2 HLAvariableArray element-count and padding rules for HLAunicodeString and the MIM HLAargumentList record sequence. It does not implement every BasicDataElements helper, a generic constructed-data encoder, public MOM reporting, package/JUnit/protected-review evidence, or conformance. RL-044 records that the Lab's precise 4.14.10.5 provenance is lost in the candidate metadata."
+    },
+    {
+      "id": "umbra-cpp-hla-opaque-data-encoding-unit",
+      "official_header_source": "RTI/encoding/HLAopaqueData.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+        "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11"
+      ],
+      "test_case": "Official HLAopaqueData uses an HLAbyte HLAvariableArray payload; Official HLAopaqueData retains caller-owned external storage without inventing ownership",
+      "tags": ["baseline", "encoding", "unit", "opaque-data", "predefined-data", "external-storage"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice implements HLAopaqueData as the 1516.2 Table 35 dynamic HLAvariableArray of HLAbyte: signed HLAinteger32BE element count, raw byte payload, four-octet boundary, round trips, nested decode, malformed input, and trailing-data rejection. Its official external-memory interface remains borrowed: encoding observes caller changes, set/decode write only to the supplied buffer, and a too-small buffer raises EncoderException rather than allocating, taking ownership, or silently detaching. The exact Table 27/Table 35 rows are source-checked but lack individual immutable Requirements-Lab helper candidates; RL-053 records that boundary. This does not establish generic constructed-data encoding, adapter exposure, interoperability, package/JUnit/protected-review evidence, or conformance."
+    },
+    {
+      "id": "umbra-cpp-hla-fixed-record-encoding-unit",
+      "official_header_source": "RTI/encoding/HLAfixedRecord.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-080-l69-6",
+        "requirement-candidate-sections-semantic-clause-4c-page-080-l73-7",
+        "requirement-candidate-sections-semantic-clause-4c-page-081-l36-2"
+      ],
+      "test_case": "Official HLAfixedRecord uses declaration order and zero padding for the next field; Official HLAfixedRecord copies or borrows elements through its declared operations",
+      "tags": ["baseline", "encoding", "unit", "fixed-record", "constructed-data", "element-lifetime"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice implements HLAfixedRecord with declaration-order fields beginning at offset zero, zero inter-field padding determined by the following field's octet boundary, no final padding, and a record boundary equal to its greatest element boundary. Catch2 covers the source-standard octet/boolean/float64 vector, reverse order, nesting, malformed padding, type checks, cloning, and Umbra's explicit borrowed raw-pointer policy. The direct candidates retain the Requirements Lab's broad clause-4 metadata even though the reconstructed source heading is §4.14.10.1; RL-054 records that provenance drift. This does not establish generic arrays or variants, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, or conformance."
+    },
+    {
+      "id": "umbra-cpp-hla-fixed-array-encoding-unit",
+      "official_header_source": "RTI/encoding/HLAfixedArray.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-079-l73-8",
+        "requirement-candidate-sections-semantic-clause-4c-page-079-l77-9",
+        "requirement-candidate-sections-semantic-clause-4c-page-083-l92-16",
+        "requirement-candidate-sections-semantic-clause-4c-page-084-l71-5"
+      ],
+      "test_case": "Official HLAfixedArray uses fixed cardinality and zero inter-element padding; Official HLAfixedArray clones its prototype and borrows caller pointer elements",
+      "tags": ["baseline", "encoding", "unit", "fixed-array", "constructed-data", "element-lifetime"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice implements HLAfixedArray as a fixed-cardinality sequence beginning at offset zero, with zero padding after each nonfinal element based on its prototype's octet boundary and no final padding. Catch2 covers the 1516.2 fixed-record element example, nesting, malformed padding, full-decode trailing data, templated wrappers, prototype clones, type checks, and the header-documented borrowed raw-pointer lifetime. The exact §4.14.10.4 source heading and Equation (5) are source-checked; the direct candidates retain broad clause-4 metadata and the equation has no individual candidate, as recorded by RL-054. This does not establish HLAvariableArray or variant records, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, or conformance."
+    },
+    {
+      "id": "umbra-cpp-hla-variable-array-encoding-unit",
+      "official_header_source": "RTI/encoding/HLAvariableArray.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11",
+        "requirement-candidate-sections-semantic-clause-4c-page-085-l51-1",
+        "requirement-candidate-sections-semantic-clause-4c-page-085-l63-4",
+        "requirement-candidate-sections-semantic-clause-4c-page-084-l71-5"
+      ],
+      "test_case": "Official HLAvariableArray uses a signed element count and zero padding to align elements; Official HLAvariableArray copies or borrows element instances through its declared operations",
+      "tags": ["baseline", "encoding", "unit", "variable-array", "constructed-data", "element-lifetime"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice implements HLAvariableArray as a signed HLAinteger32BE element count at offset zero, leading zero padding based on max(element boundary, 4), and zero inter-element padding under the HLAfixedArray rule without a final pad. Catch2 covers the §4.14.10.5 float64 leading-pad example, nested decode, negative/truncated/malformed input, full-decode trailing data, variable cardinality, fixed-record elements, templated wrappers, type checks, and the header-documented borrowed raw-pointer lifetime. The exact §4.14.10.5 source heading and Equation (6) are source-checked; direct candidate metadata is broad and the equation's boundary definition lacks an individual candidate, as recorded by RL-044. This does not establish variants, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, or conformance."
+    },
+    {
+      "id": "umbra-cpp-hla-variant-record-encoding-unit",
+      "official_header_source": "RTI/encoding/HLAvariantRecord.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-081-l68-9",
+        "requirement-candidate-sections-semantic-clause-4c-page-081-l72-10",
+        "requirement-candidate-sections-semantic-clause-4c-page-081-l76-11",
+        "requirement-candidate-sections-semantic-clause-4c-page-082-l47-3"
+      ],
+      "test_case": "Official HLAvariantRecord encodes mapped and unmapped discriminants with required alignment; Official HLAvariantRecord copies mapping values and borrows caller pointer variants",
+      "tags": ["baseline", "encoding", "unit", "variant-record", "constructed-data", "element-lifetime"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice implements HLAvariantRecord with a discriminant at offset zero, a mapped alternative following the smallest zero padding selected by Equation (2), and an unmapped discriminant with no following padding or alternative. The padding boundary is the maximum of all registered alternative boundaries, not merely the selected alternative's boundary; no padding follows an alternative. Catch2 covers the max-boundary vector, nested decoding, malformed padding, full-decode trailing data, unmapped discriminants, mapping/type checks, templated wrappers, clones, and the header-documented borrowed raw-pointer lifetime. The direct candidates retain broad clause-4 metadata and the source-defined Equation (2) Size/V operands have no individual immutable candidate, as recorded by RL-054. FOM-level enumerator-range/HLAother expansion, HLAextendableVariantRecord, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-hla-extendable-variant-record-encoding-unit",
+      "official_header_source": "RTI/encoding/HLAextendableVariantRecord.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-082-l75-10",
+        "requirement-candidate-sections-semantic-clause-4c-page-082-l79-11",
+        "requirement-candidate-sections-semantic-clause-4c-page-083-l40-3",
+        "requirement-candidate-sections-semantic-clause-4c-page-083-l44-4",
+        "requirement-candidate-sections-semantic-clause-4c-page-083-l64-9"
+      ],
+      "test_case": "Official HLAextendableVariantRecord uses its length field and predefined eight-octet alternative boundary; Official HLAextendableVariantRecord copies mapping values and borrows caller pointer variants",
+      "tags": ["baseline", "encoding", "unit", "extendable-variant-record", "constructed-data", "element-lifetime"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice implements HLAextendableVariantRecord as a discriminant at offset zero, zero padding to the HLAinteger32BE encoded_length field's four-octet boundary, the length field, then zero padding to the predefined eight-octet alternative boundary and any mapped alternative. The length excludes the second padding and is zero when no alternative applies; Umbra retains the structural post-length alignment padding for the zero-length form so an unknown alternative has one deterministic length-prefixed layout. No padding follows the alternative, and alternatives with a boundary greater than eight fail deterministically. Catch2 covers exact vectors, nesting, malformed padding, declared-length mismatch, truncation, full-decode trailing data, unknown alternative skips, mapping/type checks, templated wrappers, clones, the max-boundary prohibition, and the header-documented borrowed raw-pointer lifetime. The direct candidates retain broad clause-4 metadata and the source-defined Equation (3)/(4) Size/V operands have no individual immutable candidate, as recorded by RL-054. FOM-level enumerator-range/HLAother expansion, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-hla-logical-time-encoding-unit",
+      "official_header_sources": [
+        "RTI/encoding/HLAlogicalTime.h",
+        "RTI/encoding/HLAlogicalTimeInterval.h"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-354-l129-42",
+        "requirement-candidate-content-clauses-11-management-object-model-page-354-l183-60",
+        "requirement-candidate-content-clauses-11-management-object-model-page-354-l207-68"
+      ],
+      "test_case": "HLAlogicalTime delegates opaque bytes to the selected reference factory; HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory",
+      "tags": ["baseline", "encoding", "unit", "logical-time", "logical-time-encoding", "reference-time"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice delegates HLAlogicalTime and HLAlogicalTimeInterval encoding, decoding, initial/zero values, and copies to the logical-time factory returned by the supplied RTI ambassador; it does not invent a universal time wire form. Catch2 covers both required reference selections, exact eight-octet vectors, nested fixed-width decode, type mismatches, malformed values, cloning, and initial/zero values. The factory interface has no consumed-length return, so decodeFrom is deliberately limited to Umbra's current fixed-width HLAinteger64Time/HLAfloat64Time reference profile; third-party variable-width time implementations, encoder-factory materialization, adapter exposure, public getTimeFactory service behavior, package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-055 records that the direct candidates' exported §12.4/annex provenance conflicts with the reconstructed §12.3 source."
+    },
+    {
+      "id": "umbra-cpp-hla-plain-text-password-unit",
+      "official_header_source": "RTI/auth/HLAplainTextPassword.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-357-l100-32",
+        "requirement-candidate-content-clauses-11-management-object-model-page-357-l67-21"
+      ],
+      "test_case": "HLAplainTextPassword stores the standard HLAunicodeString credential payload; HLAplainTextPassword rejects malformed HLAunicodeString credential payloads; Embedded Connect rejects supplied credentials while authorization is disabled",
+      "tags": ["baseline", "authorization", "credentials", "connection", "unit"],
+      "status": "implemented-sdk-authorization-credential-foundation-not-conformance-evidence",
+      "next_action": "This bounded official C++ header slice implements HLAplainTextPassword as its prescribed HLAunicodeString credential data, including exact UTF-16BE-code-unit payloads and malformed-value rejection. The current embedded profile has no configured authorizer: a no-credentials call or empty HLAnoCredentials envelope remains permitted, while any other supplied credential is rejected before connection state changes. The separate reference HLAauthorizer/factory foundation is covered by its own entry, but neither slice enables runtime authorization: secure RID configuration, global-password lifecycle, Create/Destroy/Join authorization, custom credentials, adapter exposure, package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-056 records that the direct candidates retain inaccurate §12.8/annex metadata rather than their reconstructed §§12.5-12.6 context."
+    },
+    {
+      "id": "umbra-cpp-reference-authorizer-factory-unit",
+      "official_header_source": "RTI/auth/HLAauthorizerFactoryFactory.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-357-l76-24",
+        "requirement-candidate-content-clauses-11-management-object-model-page-357-l106-34",
+        "requirement-candidate-content-clauses-11-management-object-model-page-357-l130-42",
+        "requirement-candidate-content-clauses-11-management-object-model-page-357-l151-49",
+        "requirement-candidate-content-clauses-11-management-object-model-page-379-l44-13"
+      ],
+      "test_case": "HLAauthorizer factories select and forward the standard reference service; Configured reference HLAauthorizer recognizes only valid matching plaintext credentials",
+      "tags": ["baseline", "authorization", "credentials", "authorizer", "factory", "library", "unit"],
+      "status": "implemented-sdk-reference-authorizer-foundation-not-runtime-or-conformance-evidence",
+      "next_action": "The native C++ foundation provides the HLAauthorizer name, factory-created reference authorizer, exact HLAplainTextPassword matching behavior through an internal test configuration seam, and the static library-level AuthorizerFactoryFactory forwarding entry point. It does not select an authorizer through RID, expose a plaintext password through public configuration, invoke authorization for Connect/Create/Destroy/Join, provide custom library loading or the SISO dynamic-link/nomenclature contract, or supply catalog/JUnit/package/interoperability/security-review/conformance evidence. The public factory remains unconfigured until that secure runtime slice exists. RL-056 records authorization candidate provenance drift; RL-057 records the source/header factory-method spelling discrepancy."
+    },
+    {
+      "id": "umbra-cpp-basic-data-elements-16-bit-encoding-unit",
+      "official_header_source": "RTI/encoding/BasicDataElements.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12"
+      ],
+      "test_case": "Official 16-bit basic encoding helpers use 1516.2 Table 29 wire forms",
+      "tags": ["baseline", "encoding", "unit", "basic-data-elements"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded C++ header-baseline slice implements the 1516.2 Table 29 HLAinteger16BE/LE, HLAunsignedInteger16BE/LE, and HLAoctetPairBE/LE helpers with byte-vector, round-trip, boundary, and truncated-input coverage. It does not imply all BasicDataElements helpers, generic constructed-data encoders, adapter exposure, package/JUnit/protected-review evidence, interoperability, or conformance. The generic C++ helper candidate is machine-checked; RL-053 records that Table 29/Table 43 cells are not individual Requirements-Lab candidates."
+    },
+    {
+      "id": "umbra-cpp-basic-data-elements-octet-byte-ascii-encoding-unit",
+      "official_header_source": "RTI/encoding/BasicDataElements.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+        "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11"
+      ],
+      "test_case": "Official octet, byte, and ASCII basic encoding helpers use their 1516.2 wire representations",
+      "tags": ["baseline", "encoding", "unit", "basic-data-elements", "ascii"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded C++ header-baseline slice implements raw HLAoctet and HLAbyte values, HLAASCIIchar validation, and HLAASCIIstring's signed HLAinteger32BE HLAvariableArray element count with byte-vector, round-trip, boundary, and malformed-input coverage. It does not establish generic constructed-data encoders, adapter exposure, package/JUnit/protected-review evidence, interoperability, or conformance. The generic C++ helper and variable-array candidates are machine-checked; RL-053 records that the exact predefined representation and simple/array table rows are not individual helper candidates."
+    },
+    {
+      "id": "umbra-cpp-basic-data-elements-ieee754-float-encoding-unit",
+      "official_header_source": "RTI/encoding/BasicDataElements.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12"
+      ],
+      "test_case": "Official IEEE-754 basic encoding helpers use 1516.2 Table 29 wire forms",
+      "tags": ["baseline", "encoding", "unit", "basic-data-elements", "float"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded C++ header-baseline slice implements the Table 29 HLAfloat32BE/LE and HLAfloat64BE/LE helpers with exact IEC 559 byte vectors, round trips, boundaries, and truncated-input coverage. It deliberately requires 32-bit/64-bit IEC 559 native float/double support, matching Umbra's existing reference-time foundation, rather than emitting host-format data. It does not establish generic constructed-data encoders, adapter exposure, package/JUnit/protected-review evidence, interoperability, or conformance. RL-053 records that the precise Table 29/Table 43 cells are not individual Requirements-Lab candidates."
+    },
+    {
+      "id": "umbra-cpp-basic-data-elements-unicode-char-encoding-unit",
+      "official_header_source": "RTI/encoding/BasicDataElements.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12"
+      ],
+      "test_case": "Official HLAunicodeChar uses one UTF-16BE code unit",
+      "tags": ["baseline", "encoding", "unit", "basic-data-elements", "unicode"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded C++ header-baseline slice completes the official helper catalog with HLAunicodeChar as one UTF-16BE code unit. It preserves a surrogate code unit, rejects a supplementary scalar where the host wchar_t can represent one directly, and verifies exact bytes, boundary, round trip, truncation, and trailing data. HLAunicodeString now rejects unmatched source surrogates symmetrically with decoding. It does not establish generic constructed-data encoding, adapter exposure, package/JUnit/protected-review evidence, interoperability, or conformance. RL-053 records that the exact Table 32 row is not an individual Requirements-Lab helper candidate."
+    },
+    {
+      "id": "umbra-cpp-basic-data-elements-32-bit-little-endian-encoding-unit",
+      "official_header_source": "RTI/encoding/BasicDataElements.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12"
+      ],
+      "test_case": "Official 32-bit little-endian basic encoding helpers use 1516.2 Table 29 wire forms",
+      "tags": ["baseline", "encoding", "unit", "basic-data-elements", "integer32"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded C++ header-baseline slice implements the 1516.2 Table 29 HLAinteger32LE and HLAunsignedInteger32LE helpers with byte-vector, round-trip, boundary, and truncated-input coverage. It does not imply all BasicDataElements helpers, generic constructed-data encoders, adapter exposure, package/JUnit/protected-review evidence, interoperability, or conformance. The generic C++ helper candidate is machine-checked; RL-053 records that Table 29/Table 43 cells are not individual Requirements-Lab candidates."
+    },
+    {
+      "id": "umbra-cpp-basic-data-elements-64-bit-encoding-unit",
+      "official_header_source": "RTI/encoding/BasicDataElements.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12"
+      ],
+      "test_case": "Official 64-bit basic encoding helpers use 1516.2 Table 29 wire forms",
+      "tags": ["baseline", "encoding", "unit", "basic-data-elements", "integer64"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "This bounded C++ header-baseline slice implements the 1516.2 Table 29 HLAinteger64BE/LE and HLAunsignedInteger64BE/LE helpers with byte-vector, round-trip, boundary, and truncated-input coverage. It does not imply all BasicDataElements helpers, generic constructed-data encoders, adapter exposure, package/JUnit/protected-review evidence, interoperability, or conformance. The generic C++ helper candidate is machine-checked; RL-053 records that Table 29/Table 43 cells are not individual Requirements-Lab candidates."
+    },
+    {
+      "id": "umbra-cpp-handle-variable-array-encoding-unit",
+      "official_header_source": "RTI/Handle.h",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-382-l24-7"
+      ],
+      "test_case": "The embedded public handle types use HLAvariableArray-wrapped identities",
+      "tags": ["baseline", "encoding", "unit", "handles", "private-foundation"],
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence",
+      "next_action": "All ten official C++ handle types now emit their corresponding standard-MIM HLA<type>Handle value: a 1516.2 HLAvariableArray count followed by Umbra's fixed eight-octet private identity. The companion 1516.2 contract pins the count rule. Add cross-language/cross-RTI interoperability vectors only when a real transport or adapter consumes these values; do not treat these private SDK vectors as package, JUnit, protected-review, or conformance evidence. RL-041 records the candidate title/source attribution drift."
+    },
+    {
+      "id": "umbra-cpp-public-handle-decoding-integration",
+      "official_header_source": "RTI/RTIambassador.h",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.decodefederatehandle.aa248435d7ce",
+        "api.2025.cpp.rtiambassador.decodeobjectclasshandle.296ee1447ab1",
+        "api.2025.cpp.rtiambassador.decodeinteractionclasshandle.636a180cd003",
+        "api.2025.cpp.rtiambassador.decodeobjectinstancehandle.66eb6a41649f",
+        "api.2025.cpp.rtiambassador.decodeattributehandle.db5ad2442ff4",
+        "api.2025.cpp.rtiambassador.decodeparameterhandle.b93d8d67f6cb",
+        "api.2025.cpp.rtiambassador.decodedimensionhandle.65ef7c439b31",
+        "api.2025.cpp.rtiambassador.decodemessageretractionhandle.40172f9abf8a"
+      ],
+      "test_case": "Embedded public handle decoders enforce lifecycle and preserve encoded identities",
+      "tags": ["development-profile", "federation-management", "support-services", "handles", "api-traceability"],
+      "status": "implemented-public-api-not-conformance-evidence",
+      "next_action": "The exact 2025 C++ declarations are traced through the Requirements Lab API inventory. This integration test proves lifecycle exceptions, successful round trips for federation-scoped handles obtained through public services, and malformed empty-value rejection. Add cross-RTI vectors, external transport, package/JUnit/protected-review evidence, and a separately grounded conformance claim only when those prerequisites exist."
+    },
+    {
       "id": "umbra-cpp-variable-length-data-sdk-baseline",
       "official_header_source": "RTI/VariableLengthData.h",
       "requirements_lab_api_surface_status": "support-type declarations are not exported as standalone API surfaces",
       "test_case": "VariableLengthData preserves caller copies, materializes copies of borrowed storage, and releases adopted storage exactly once",
       "tags": ["baseline", "support", "variable-length-data", "sdk-consumability"],
       "status": "implemented-sdk-consumability-not-conformance-evidence",
-      "next_action": "Keep the installed-package client smoke green. Add BasicDataElements byte-vector tests only after their IEEE encoding source and independent golden vectors are reviewed; do not treat this support-type test as a public RTI-service or conformance result."
+      "next_action": "Keep the installed-package client smoke green. The separate HLAvariableArray basic-data-element vectors now have reviewed 1516.2 source traceability; do not treat either support-type test as a public RTI-service or conformance result."
     }
   ]
 }

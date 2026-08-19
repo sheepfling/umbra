@@ -12,7 +12,9 @@ and Java, if added later, will be adapters around the native C++ implementation.
 The official factory, `rtiName`, and `rtiVersion` link from `umbra::rti`.
 That target also provides the two mandated reference logical-time types and
 factories; the standard `libfedtime` forwarding entry point is packaged as the
-separate static `umbra::fedtime` target. The default packaged profile keeps
+separate static `umbra::fedtime` target. The reference `HLAauthorizer` and its
+factory reside in `umbra::rti`, while its library-level forwarding entry point
+is packaged as separate static `umbra::authorizer` target. The default packaged profile keeps
 public `getTimeFactory`, federate, object-class, interaction-class, attribute, parameter, transportation-type, and order-type lookup, interaction declaration, object-class attribute declaration, receive-order interaction and attribute-update/reflection, object-instance and object-class request/provide attribute-value update, federation creation,
 object-instance registration/discovery/deletion, and time-management services unavailable.
 `RTIambassador::connect` (all four official C++ overloads), `disconnect`,
@@ -280,8 +282,8 @@ values/factories and encodings, private federation/handle kernel invariants,
 all four official C++ Connect overloads, and—in the development profile—the
 standards-shaped federation-listing, time-advance, and metadata-only region
 template/range paths.
-CTest also installs and consumes the exported `umbra::rti` and
-`umbra::fedtime` targets in a clean package-smoke build.
+CTest also installs and consumes the exported `umbra::rti`, `umbra::fedtime`,
+and `umbra::authorizer` targets in a clean package-smoke build.
 
 To exercise the development-only federation-management vertical slice, use a
 separate build tree. It is deliberately non-installable until libxml2 and the

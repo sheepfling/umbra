@@ -2,6 +2,7 @@
 
 #include "internal/federation_registry.hpp"
 
+#include <algorithm>
 #include <memory>
 
 #include <RTI/time/HLAinteger64Time.h>
@@ -14,6 +15,7 @@ using umbra::detail::FederationRegistryStatus;
 using umbra::detail::FederationTimeGrantStatus;
 using umbra::detail::FomModuleKind;
 using umbra::detail::PrevalidatedFomModule;
+using umbra::detail::InstrumentationLayer;
 
 PrevalidatedFomModule module(std::wstring designator, std::wstring source) {
   return {
@@ -49,6 +51,28 @@ TEST_CASE("The embedded federation registry preserves a prevalidated definition"
   REQUIRE(definition->fomModules.size() == 2);
   REQUIRE(definition->fomModules.front().designator == L"file:///fom/base.xml");
   REQUIRE(definition->fomModules.front().schemaDesignator == L"IEEE1516-DIF-2025.xsd");
+}
+
+TEST_CASE(
+    "The embedded federation registry exposes internal operation timing",
+    "[unit][kernel][federation-registry][instrumentation]") {
+  auto instrumentation = std::make_shared<umbra::detail::RuntimeInstrumentation>();
+  EmbeddedFederationRegistry registry(instrumentation);
+
+  REQUIRE(registry.create(L"instrumented", validDefinition()).status ==
+      FederationRegistryStatus::applied);
+
+  auto const snapshot = registry.runtimeInstrumentationSnapshotForTesting();
+  auto const found = std::find_if(
+      snapshot.operations.begin(),
+      snapshot.operations.end(),
+      [](umbra::detail::InstrumentationOperationSnapshot const& operation) {
+        return operation.layer == InstrumentationLayer::federation_registry &&
+            operation.name == "create";
+      });
+  REQUIRE(found != snapshot.operations.end());
+  REQUIRE(found->calls == 1);
+  REQUIRE(found->totalDurationNanoseconds > 0);
 }
 
 TEST_CASE("The embedded federation registry rejects missing definitions without imposing name policy", "[unit][kernel][federation-registry]") {

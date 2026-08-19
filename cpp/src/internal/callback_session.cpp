@@ -1,5 +1,7 @@
 #include "internal/callback_session.hpp"
 
+#include "internal/callback_dispatcher.hpp"
+
 #include <RTI/FederateAmbassador.h>
 
 #include <utility>
@@ -24,7 +26,10 @@ class CallbackInvocationScope final {
 
 }  // namespace
 
-CallbackSession::CallbackSession(FederateAmbassador& recipient) : recipient_(&recipient) {}
+CallbackSession::CallbackSession(
+    FederateAmbassador& recipient,
+    std::shared_ptr<umbra::detail::RuntimeInstrumentation> instrumentation)
+    : recipient_(&recipient), instrumentation_(std::move(instrumentation)) {}
 
 void CallbackSession::close() {
   std::unique_lock lock(mutex_);
@@ -52,6 +57,18 @@ void CallbackSession::invoke(Invocation invocation) {
     recipient = recipient_;
   }
 
+  auto const dispatchModel = umbra::detail::currentCallbackDispatchModel();
+  auto const callbackOperation =
+      dispatchModel && *dispatchModel == umbra::detail::CallbackDispatchModel::immediate
+      ? "invoke.immediate"
+      : dispatchModel && *dispatchModel == umbra::detail::CallbackDispatchModel::evoked
+          ? "invoke.evoked"
+          : "invoke";
+  auto instrumentationScope = instrumentation_
+      ? instrumentation_->begin(
+            umbra::detail::InstrumentationLayer::federate_ambassador,
+            callbackOperation)
+      : umbra::detail::RuntimeInstrumentation::Scope{};
   CallbackInvocationScope callbackScope(*this);
   try {
     invocation(*recipient);

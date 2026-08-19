@@ -1,6 +1,7 @@
 #include "internal/reference_time_selection.hpp"
 
 #include "internal/fom_catalog.hpp"
+#include "internal/utf8_string.hpp"
 
 #include <RTI/time/HLAlogicalTimeFactoryFactory.h>
 
@@ -34,9 +35,10 @@ std::string describeMismatch(
     std::string_view column,
     std::string const& actual,
     std::string_view expected) {
-  return "The composed FDD documents " + std::string(column) + " data type '" + actual +
-         "', which is incompatible with Umbra's selected reference implementation '" +
-         std::string(expected) + "'.";
+  return "The composed FDD documents " + std::string(column) + " data type " +
+         quoteDiagnosticString(actual) +
+         ", which is incompatible with Umbra's selected reference implementation " +
+         quoteDiagnosticString(expected) + ".";
 }
 
 }  // namespace

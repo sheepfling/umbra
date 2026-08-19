@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-embedded-transport-traceability-not-conformance-evidence",
-  "notes": "This contract pins the embedded Connection Lost scenario to the exact IEEE 1516.1-2025 C++ FederateAmbassador callback. The callback is invoked on a best-effort basis after the private transport endpoint forces the member out of the execution; the second case also validates a configured DELETE_OBJECTS automatic-resign disposition before that callback. It is source/API traceability only; protected review, package support, remote transport, and conformance remain open.",
+  "notes": "This contract pins the embedded Connection Lost scenario to the exact IEEE 1516.1-2025 C++ FederateAmbassador callback. The callback is invoked on a best-effort basis after the private transport endpoint forces the member out of the execution; the directive cases validate configured DELETE_OBJECTS, UNCONDITIONALLY_DIVEST_ATTRIBUTES, DELETE_OBJECTS_THEN_DIVEST, CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, and CANCEL_THEN_DELETE_THEN_DIVEST automatic-resign dispositions before that callback. It is source/API traceability only; protected review, package support, remote transport, and conformance remain open.",
   "api_surfaces": [
     {
       "id": "umbra-connection-lost-cpp-callback",
@@ -18,7 +18,11 @@
       "source_symbol": "UmbraRtiAmbassador::handleEmbeddedTransportFailure",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss forces the official connection-lost transition",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive"
       ]
     }
   ]

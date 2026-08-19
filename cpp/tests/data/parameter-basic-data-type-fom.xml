@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>UmbraBasicParameterDataTypeFixture</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <semantics>Schema-valid fixture interaction.</semantics>
+                <parameter>
+                    <name>UmbraRawBasicDataParameter</name>
+                    <dataType>HLAinteger32BE</dataType>
+                    <semantics>Schema-valid fixture whose parameter incorrectly names a basic data representation.</semantics>
+                </parameter>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

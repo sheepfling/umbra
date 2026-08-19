@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/encoding/HLAfixedArray.h class. IEEE 1516.2 §4.14.10.4 defines HLAfixedArray as a fixed-cardinality sequence whose first element begins at offset zero. For each nonfinal element, Equation (5) chooses the smallest nonnegative padding needed to reach the sole element type's octet boundary; the general constructed-type source also requires padding bytes to be zero. No padding follows the final element, and the encoded size includes inter-element padding. The Requirements Lab exports direct sequence and no-trailing-padding candidates with broad clause-4 metadata although the reconstructed heading is §4.14.10.4; it does not export a separate immutable candidate for Equation (5) or the zero-byte statement. RL-054 records both provenance and candidate-coverage boundaries. The official C++ header expressly assigns raw element-pointer lifetime responsibility to the caller, so Umbra retains those pointers as borrowed, non-owning storage and copies/clone operations use internal memory. That lifetime policy is an implementation safety choice, not a separate standards or conformance result. This does not establish HLAvariableArray or variant-record support, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-omt-fixed-array-element-sequence",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-083-l92-16",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_fixed_array.cpp",
+      "source_symbol": "HLAfixedArray::encodeInto",
+      "related_source_symbols": [
+        "HLAfixedArray::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAfixedArray uses fixed cardinality and zero inter-element padding"
+      ]
+    },
+    {
+      "id": "umbra-omt-fixed-array-element-alignment",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l77-9",
+      "clause_id": "clause-4.14.10",
+      "source": "cpp/src/ieee1516_2025_fixed_array.cpp",
+      "source_symbol": "paddingAfterElement",
+      "related_source_symbols": [
+        "appendZeroPadding",
+        "requireZeroPadding",
+        "HLAfixedArray::encodeInto",
+        "HLAfixedArray::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAfixedArray uses fixed cardinality and zero inter-element padding"
+      ]
+    },
+    {
+      "id": "umbra-omt-fixed-array-no-trailing-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-084-l71-5",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_fixed_array.cpp",
+      "source_symbol": "HLAfixedArray::getEncodedLength",
+      "related_source_symbols": [
+        "HLAfixedArray::encodeInto"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAfixedArray uses fixed cardinality and zero inter-element padding"
+      ]
+    }
+  ]
+}

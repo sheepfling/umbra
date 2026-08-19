@@ -14,6 +14,7 @@ from .core import (
     ConfigurationResult,
     FederateAmbassador,
     FederationExecutionInformationSet,
+    FederationExecutionMemberInformationSet,
     RtiFactory,
     RtiConfiguration,
 )
@@ -139,7 +140,9 @@ class ConnectionOverloadConformanceMixin:
             RtiConfiguration.createConfiguration()
             .withConfigurationName("python-conformance")
             .withRtiAddress("localhost")
-            .withAdditionalSettings("test=true")
+            # This contract checks the standard overload shape, not a
+            # provider-specific additional-settings grammar.
+            .withAdditionalSettings("")
         )
         credentials = HLAnoCredentials()
         overload_arguments = (
@@ -189,7 +192,48 @@ class FederationExecutionDiscoveryConformanceMixin:
                 ambassador.connect(callback, callback_model)
                 ambassador.listFederationExecutions()
                 if callback_model is CallbackModel.HLA_EVOKED:
-                    ambassador.evokeCallback(0.0)
+                    ambassador.evokeMultipleCallbacks(0.0, 0.1)
                 self.assertEqual(len(callback.reports), 1)
                 self.assertIsInstance(callback.reports[0], FederationExecutionInformationSet)
+                ambassador.disconnect()
+
+
+class FederationExecutionMemberDiscoveryConformanceMixin:
+    """Verify the missing-federation half of the member-reporting service."""
+
+    @abstractmethod
+    def make_factory(self) -> RtiFactory:
+        """Return the configured provider factory under test."""
+
+    def test_list_federation_execution_members_requires_a_connection(self) -> None:
+        with self.assertRaises(NotConnected):
+            self.make_factory().getRtiAmbassador().listFederationExecutionMembers("missing")
+
+    def test_missing_federation_execution_is_reported_through_the_callback_model(self) -> None:
+        class RecordingFederateAmbassador(FederateAmbassador):
+            def __init__(self) -> None:
+                self.member_reports: list[tuple[str, FederationExecutionMemberInformationSet]] = []
+                self.missing_federations: list[str] = []
+
+            def reportFederationExecutionMembers(
+                self,
+                federationExecutionName: str,
+                report: FederationExecutionMemberInformationSet,
+            ) -> None:
+                self.member_reports.append((federationExecutionName, report))
+
+            def reportFederationExecutionDoesNotExist(self, federationExecutionName: str) -> None:
+                self.missing_federations.append(federationExecutionName)
+
+        for callback_model in CallbackModel:
+            with self.subTest(callback_model=callback_model):
+                callback = RecordingFederateAmbassador()
+                ambassador = self.make_factory().getRtiAmbassador()
+                missing_name = "python-conformance-missing-federation"
+                ambassador.connect(callback, callback_model)
+                ambassador.listFederationExecutionMembers(missing_name)
+                if callback_model is CallbackModel.HLA_EVOKED:
+                    ambassador.evokeMultipleCallbacks(0.0, 0.1)
+                self.assertEqual(callback.member_reports, [])
+                self.assertEqual(callback.missing_federations, [missing_name])
                 ambassador.disconnect()

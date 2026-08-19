@@ -1,5 +1,9 @@
 #include <RTI/RTI1516.h>
+#include <RTI/auth/Authorizer.h>
+#include <RTI/auth/AuthorizerFactory.h>
+#include <RTI/auth/HLAauthorizerFactoryFactory.h>
 #include <RTI/encoding/EncodingConfig.h>
+#include <RTI/libauth/AuthorizerFactoryFactory.h>
 
 #include <array>
 #include <cstring>
@@ -63,6 +67,17 @@ int main() {
     return 7;
   }
 
+  auto authorizerFactory = rti1516_2025::AuthorizerFactoryFactory::getAuthorizerFactory(
+      rti1516_2025::HLAauthorizerName);
+  if (!authorizerFactory || authorizerFactory->getName() != rti1516_2025::HLAauthorizerName) {
+    return 8;
+  }
+
+  auto authorizer = authorizerFactory->getAuthorizer();
+  if (!authorizer || authorizer->getName() != rti1516_2025::HLAauthorizerName) {
+    return 9;
+  }
+
   auto initialTime = defaultFactory->makeInitial();
-  return initialTime && initialTime->implementationName() == L"HLAfloat64Time" ? 0 : 8;
+  return initialTime && initialTime->implementationName() == L"HLAfloat64Time" ? 0 : 10;
 }

@@ -150,17 +150,26 @@ preflight warning rather than rejecting the whole module set.
 
 Targeted checks currently cover incompatible data-type kinds, duplicate
 enumerated values assigned to different enumerator names, extension of a
-non-extendable variant record, duplicate variant discriminants, and the
-prohibited `HLAother` alternative in an extendable variant record, plus the
-Annex C.8 first-setting and warning behavior for repeated switches. It also
-rejects an object-class attribute or interaction-class parameter that overloads
-a name declared by an ancestor. The backend then emits only FDD-shaped
-information: `modelIdentification` deliberately
+non-extendable variant record, direct or range-expanded discriminants that
+would select more than one named alternative, and the prohibited `HLAother`
+alternative in an extendable variant record, plus the Annex C.8 first-setting
+and warning behavior for repeated switches. It also rejects an object-class
+attribute or interaction-class parameter that overloads a name declared by an
+ancestor. The backend then emits only FDD-shaped information: `modelIdentification` deliberately
 contains only Annex C.1 `Composed_From` references, referenced notes receive
 new deterministic `UmbraNoteN` labels before their `noteReferences` values are
 merged, and matching service-usage entries combine their `isUsed` value with a
 logical OR. The generated XML is validated against the official relaxed FDD
 schema before it becomes an immutable `MaterializedFdd` artifact.
+
+When the completed model supplies object or interaction class tables, their
+top-level class must be `HLAobjectRoot` or `HLAinteractionRoot`, respectively.
+Every other class is structurally nested below that standard root. The check
+runs only after compatible DIF modules have merged, so a module that omits an
+entire table remains representable; a nonstandard top-level root does not. Its
+source/test traceability is
+`compliance/fom-root-hierarchy-requirements-contract.json`, not public FOM
+conformance evidence.
 
 The preflight also resolves every direct `dataType` value in the merged
 supported model against the composed data-type key. As in the vendored 2025
@@ -168,6 +177,92 @@ OMT XSD, that key includes basic-data representations as well as simple,
 enumerated, reference, array, fixed-record, and variant-record declarations.
 It runs only after all supplied modules have merged, so an extension can refer
 to a type supplied by a later module. `NA` remains a permitted no-type marker.
+That general resolver only establishes the complete-model name: narrower table
+predicates decide whether the resolved declaration family is valid for each
+column. The object-attribute and interaction-parameter columns, and now the
+array-data Element Type column, each require a simple, enumerated, reference,
+array, fixed-record, or variant-record type. A raw basic-data representation is
+not valid in those columns. `HLAtoken` requires no Umbra name exception because
+the official MIM declares it as an array type. For `arrayData`, an omitted
+Element Type (and the established `NA` marker) remains representable for an
+incomplete DIF row; a supplied name is checked after composition. The bounded
+attribute-`NA` companion predicate checks supplied direct fields after merging:
+transportation and order must be non-`NA`, while update type and update
+condition must be `NA`. A partial DIF attribute can be completed by a later
+compatible module; a complete FDD still requires transportation and order.
+The official DIF schema represents dimensions at object-class scope, not
+per-attribute scope, so this predicate does not invent a class-wide mapping for
+the source's available-dimensions phrase (RL-051). Its source/test trace is
+`compliance/fom-attribute-na-companion-requirements-contract.json`; it is
+private preflight evidence, not a FOM conformance claim. A separate attribute
+sharing predicate rejects a supplied `sharing` value of `Neither` paired with a
+supplied `valueRequired=true`; an omitted Value Required field remains a partial
+DIF row rather than an invented default. Its source/test trace is
+`compliance/fom-attribute-value-required-sharing-requirements-contract.json`;
+RL-052 records its broad exported clause metadata. A separate dynamic
+attribute update-condition predicate rejects a supplied empty or NA condition
+when the supplied update type is Conditional or Periodic. It preserves an
+omitted condition in a partial DIF row and does not parse periodic-rate grammar
+or initial-condition prose. Its source/test trace is
+`compliance/fom-attribute-dynamic-update-condition-requirements-contract.json`;
+the conflicting Static/NA direction remains outside the predicate under
+RL-046. The same completed-model
+category predicate applies to a supplied fixed-record Field Type and
+variant-record Alternative Type; omitted member types remain representable for
+incomplete DIF rows. That bounded record-member slice is traced by
+`compliance/fom-record-member-data-type-requirements-contract.json`. Its two
+Requirements Lab candidates retain the export's broad `clause-4` metadata;
+RL-047 records the precise source-heading provenance issue. The Dimension
+table's supplied Input data type members apply the same category boundary,
+while `NA` remains a supported no-type marker. The paired Dimension input-
+description predicate requires non-`NA` text when the DIF `inputDataTypes`
+sequence supplies no named type; this covers the official empty-list form and
+the established explicit `NA` marker without deciding whether a suitable named
+type exists. Named types may still use `NA` or amplifying text. Its source/test
+trace is `compliance/fom-dimension-input-data-description-requirements-contract.json`.
+The separate NA-exclusivity predicate keeps that no-type marker out of an
+otherwise named `inputDataTypes` sequence: it rejects an explicit `NA` beside a
+supplied named type, but does not infer suitability, cardinality, duplicate
+names, or description unambiguity. Its trace is
+`compliance/fom-dimension-input-data-type-na-exclusivity-requirements-contract.json`.
+A distinct 2025
+variant-record predicate requires a supplied Discriminant Type to resolve
+specifically to an enumerated-data declaration. It preserves an omitted field
+for incomplete DIF, but does not accept `NA`: the source rule supplies no
+no-type marker for that column. The discriminant predicate is traced by
+`compliance/fom-variant-discriminant-data-type-requirements-contract.json`;
+the paired discriminant-enumerator predicate validates comma-separated
+enumerators, bracketed two-endpoint ranges, and standalone one-per-record
+`HLAother` through
+`compliance/fom-variant-discriminant-enumerator-requirements-contract.json`.
+It preserves an omitted field for incomplete DIF. The paired membership
+predicate checks every supplied individual enumerator and range endpoint
+against the selected enumeration after all modules merge; an enumeration with
+no supplied members remains incomplete DIF rather than an invented closed set.
+That bounded source/test trace is
+`compliance/fom-variant-discriminant-enumerator-membership-requirements-contract.json`;
+RL-049 records its broad exported clause provenance. The paired range-semantics
+predicate retains enumerator rows in their source-table declaration order,
+expands a bracketed range over the inclusive span between its declared
+endpoints, and rejects a member reached by more than one named alternative.
+It represents `HLAother` as the complement of explicitly assigned members, not
+as a literal enumerator. The text does not establish a separate
+lower-versus-upper endpoint convention, so this bounded predicate uses the
+inclusive table span rather than inventing one. Its source/test trace is
+`compliance/fom-variant-discriminant-enumerator-range-semantics-requirements-contract.json`;
+RL-049 and RL-050 record the exported provenance limits. The Dimension input
+predicates do not infer whether a named type is suitable, whether a textual
+description is unambiguous, or whether named types need `NA` descriptions. The
+category, NA-exclusivity, and no-named-type description traces are
+`compliance/fom-dimension-input-data-type-requirements-contract.json` and
+`compliance/fom-dimension-input-data-type-na-exclusivity-requirements-contract.json`,
+and `compliance/fom-dimension-input-data-description-requirements-contract.json`;
+RL-048 records the candidate's broad exported clause metadata.
+The separate Static/NA direction remains deferred: the source table's NA
+wording conflicts with the supplied 2025 Restaurant FOM's Static/On change
+row. RL-046 records that cross-artifact tension rather than allowing a generic
+preflight rule to reject the official example. This does not defer the
+independent bounded Conditional/Periodic non-NA predicate.
 The time table applies a narrower completed rule: a logical-time or interval
 representation must name a simple, enumerated, array, fixed-record, or
 variant-record data type, or `NA`. It deliberately does not yet prove that a
@@ -176,17 +271,20 @@ User-supplied and synchronization tags apply a related completed rule: their
 data type may name a simple, enumerated, reference, array, fixed-record, or
 variant-record data type, or `NA`; basic-data names are not permitted there.
 Representation fields now receive a bounded composition check as well. Simple
-and enumerated representation names must resolve in the composed model; the
-official MIM/Restaurant `HLAboolean` example is retained under the reviewed
-RL-009 compatibility interpretation even though the source table wording calls
-for a basic-data row. Ordinary reference-data representations must resolve to a
-simple, enumerated, array, fixed-record, or variant-record type and cannot point
-to a basic or another reference type. The two standard instance-identifier
+representation names must resolve in the composed model; the official
+MIM/Restaurant `HLAboolean` example is retained under the reviewed RL-009
+compatibility interpretation even though the source table wording calls for a
+basic-data row. An enumerated data type has a separate completed predicate:
+its supplied representation must resolve to a basic-data declaration. Ordinary
+reference-data representations must resolve to a simple, enumerated, array,
+fixed-record, or variant-record type and cannot point to a basic or another
+reference type. The two standard instance-identifier
 references are handled as an explicit exception with their standardized
 `HLAunicodeString` and `HLAobjectInstanceHandle` representations. This is still
 not the full OMT reference checker: lookahead non-negative inference and the
 remaining table-specific referential constraints remain separately tracked
-work.
+work. The enumerated predicate is traced by
+`compliance/fom-enumerated-representation-requirements-contract.json`.
 The FOM-specific synchronization-capability predicate is also intentionally
 deferred: its 2025 source record requires `NA`, while the supplied Restaurant
 FOM uses other schema-permitted capability values. Umbra does not add a rule
@@ -227,9 +325,10 @@ The table-specific preflight rejects a supplied non-positive/non-finite update
 rate and checks each supplied dimension `value` against its dimension
 `upperBound`. Integer and half-open range forms must describe a nonnegative
 subrange of `[0, upperBound)`; `Excluded` remains valid. Missing values remain
-allowed for incomplete DIF modules, while the 2025 FOM XSD already enforces
-positive dimension upper bounds and the official MIM/Restaurant corpus
-supplies valid values. These checks are traced by
+allowed for incomplete DIF modules. A missing `upperBound` is also valid for
+dimensions such as the standard MIM `HLAfederate`; the composed catalog maps
+that form to the full unsigned-long coordinate domain rather than a zero-sized
+domain. A supplied upper bound must be positive. These checks are traced by
 `compliance/fom-table-constraints-requirements-contract.json` and
 `compliance/fom-dimension-default-value-requirements-contract.json`; the
 `arrayData/cardinality` field is also checked when supplied: nonnegative scalar,
@@ -241,8 +340,10 @@ cardinality remains representable for incomplete DIF modules. For a supplied
 one-dimensional predefined encoding, `HLAfixedArray` is paired with fixed
 cardinality and `HLAvariableArray` with varying or `Dynamic` cardinality;
 multidimensional interpretation and provider-defined encodings remain outside
-this bounded rule. The remaining table work includes non-negative lookahead
-inference and other Annex C rules.
+this bounded rule. The array Element Type category check is separately traced
+by `compliance/fom-array-element-data-type-requirements-contract.json`; the
+remaining table work includes non-negative lookahead inference and other Annex
+C rules.
 
 The standard MIM plus Restaurant base FOM produces such an FDD; an identical
 duplicate base is accepted as well. The supplied Restaurant extension is
@@ -314,29 +415,28 @@ accidental cross-edition acceptance.
 
 ## Optional external 2025 corpus boundary
 
-The optional 2025 lane adds realistic positive model pressure without turning
+The optional 2025 lane keeps realistic external model pressure without turning
 external XML into an Umbra dependency. A developer explicitly supplies its
 local root through `UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY`; the
-`compliance/external-2025-fom-corpus.json` manifest then pins four 2025-native
-modules by relative path, SHA-256, namespace, and schema location. The CTest
-integrity check runs before Catch2 reads the files.
+`compliance/external-2025-fom-corpus.json` manifest pins four 2025-native
+prototype modules by relative path, SHA-256, namespace, and schema location.
+The CTest integrity check runs before Catch2 reads the files.
 
-With that option enabled, Catch2 proves three bounded properties for the
-ordered standard MIM plus the four external modules:
+The currently pinned snapshot is deliberately a schema-positive,
+semantic-negative guard. Each module validates under the official 2025 DIF
+schema, but the MIM-first set uses raw basic-data representations in
+object-attribute and interaction-parameter data-type columns. Under the
+explicit 1516.2 table rules enforced above, the set must fail private
+composition deterministically and the embedded `createFederationExecution`
+path must map that outcome to `InconsistentFOM`. This keeps the corpus useful
+as regression pressure while refusing to call XSD acceptance a complete 2025
+model-validation result.
 
-1. each individual module is valid under the official 2025 DIF schema;
-2. the MIM-first set materializes a valid private FDD/catalog, and repeated
-   composition produces the same private FDD bytes; and
-3. in the non-installable embedded development profile, the exact module list
-   reaches official `createFederationExecution` and two official
-   `joinFederationExecution` calls.
-
-This is development-profile evidence for FOM preparation and the existing
-federation lifecycle slice only. It does not establish object, interaction,
+The official 2025 MIM and Restaurant examples remain Umbra's packaged positive
+baseline; the external XML is not copied into this repository or released with
+the SDK. This expected-rejection lane establishes no object, interaction,
 declaration, callback, time-management, transport, interoperability, or
-conformance behavior for the external model. The official 2025 MIM and
-Restaurant examples remain Umbra's packaged baseline; the external XML is not
-copied into this repository or released with the SDK.
+conformance behavior for the external model.
 
 Remaining required tests are:
 

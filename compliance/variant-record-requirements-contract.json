@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/encoding/HLAvariantRecord.h class. IEEE 1516.2 §4.14.10.2 defines the encoding as a discriminant at record offset zero followed by its mapped alternative. An unmapped discriminant has no following padding or alternative. A mapped alternative is preceded by the smallest nonnegative zero padding satisfying Equation (2); the directly inspected source defines Size as the discriminant's encoded length and V as the maximum octet boundary across all alternatives. No padding follows the alternative, and the record size includes the preceding padding. The Requirements Lab exports four direct candidate statements with broad clause-4 metadata, but has no individual immutable candidate for Equation (2) or its Size/V definitions; RL-054 records both the provenance and source-candidate coverage boundaries. The official C++ DataElement header identifies hash() as the mapping hook for discriminants. Umbra uses it as a lookup accelerator and also verifies type plus encoded bytes so a hash collision cannot select a different alternative; this is an implementation safety choice, not a separate standards or conformance result. The raw DataElement* variant operations remain caller-owned borrowed storage exactly as the official header documents, while copy/clone operations use internal copies. FOM-level enumerator ranges and HLAother expansion, HLAextendableVariantRecord, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, and conformance remain outside this bounded slice.",
+  "requirements": [
+    {
+      "id": "umbra-omt-variant-record-discriminant-and-alternative",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-081-l68-9",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variant_record.cpp",
+      "source_symbol": "HLAvariantRecord::encodeInto",
+      "related_source_symbols": [
+        "HLAvariantRecord::decodeFrom",
+        "HLAvariantRecord::setDiscriminant",
+        "findVariant"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariantRecord encodes mapped and unmapped discriminants with required alignment"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-record-unmapped-no-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-081-l72-10",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variant_record.cpp",
+      "source_symbol": "HLAvariantRecord::encodeInto",
+      "related_source_symbols": [
+        "HLAvariantRecord::decodeFrom",
+        "HLAvariantRecord::getEncodedLength"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariantRecord encodes mapped and unmapped discriminants with required alignment"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-record-mapped-alternative-alignment",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-081-l76-11",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variant_record.cpp",
+      "source_symbol": "maximumAlternativeBoundary",
+      "related_source_symbols": [
+        "paddingToBoundary",
+        "appendZeroPadding",
+        "requireZeroPadding",
+        "HLAvariantRecord::encodeInto",
+        "HLAvariantRecord::decodeFrom",
+        "HLAvariantRecord::getEncodedLength"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariantRecord encodes mapped and unmapped discriminants with required alignment"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-record-no-trailing-alternative-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-082-l47-3",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variant_record.cpp",
+      "source_symbol": "HLAvariantRecord::getEncodedLength",
+      "related_source_symbols": [
+        "HLAvariantRecord::encodeInto"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariantRecord encodes mapped and unmapped discriminants with required alignment"
+      ]
+    }
+  ]
+}

@@ -4,13 +4,53 @@ from unittest.mock import patch
 import hla.rti1516_2025.exceptions as exceptions
 from hla.rti1516_2025 import (
     AdditionalSettingsResultCode,
+    AttributeHandle,
+    AttributeHandleSet,
+    AttributeHandleValueMap,
+    AttributeSetRegionSetPair,
+    AttributeSetRegionSetPairList,
     CallbackModel,
     ConfigurationResult,
+    DimensionHandle,
+    DimensionHandleSet,
+    FederateHandle,
+    FederationExecutionMemberInformation,
+    FederationExecutionMemberInformationSet,
+    HLAinteger64Interval,
+    HLAinteger64Time,
+    InteractionClassHandle,
+    MutableAttributeHandleSet,
+    MutableAttributeHandleValueMap,
+    MutableDimensionHandleSet,
+    MutableFederateHandleSet,
+    MutableParameterHandleValueMap,
+    MutableRegionHandleSet,
+    LogicalTime,
+    LogicalTimeInterval,
+    RangeBounds,
+    RegionHandle,
+    RegionHandleSet,
+    ObjectClassHandle,
+    ObjectInstanceHandle,
+    OrderType,
+    ParameterHandle,
+    ParameterHandleValueMap,
     RtiFactory,
     RtiFactoryFactory,
     RtiConfiguration,
+    ResignAction,
+    ServiceGroup,
+    TransportationTypeHandle,
 )
 from hla.rti1516_2025.auth import Credentials, HLAnoCredentials
+from hla.rti1516_2025.encoding import (
+    DataElement,
+    EncoderFactory,
+    HLAboolean,
+    HLAinteger32BE,
+    HLAunicodeString,
+    HLAunsignedInteger32BE,
+)
 from hla.rti1516_2025.exceptions import RTIinternalError, UnsupportedCallbackModel
 from hla.rti1516_2025.core import _require_callback_model
 from hla.rti1516_2025.exceptions import (
@@ -52,6 +92,7 @@ class ContractsTest(unittest.TestCase):
         )
 
         self.assertEqual(CallbackModel.HLA_EVOKED.name, "HLA_EVOKED")
+        self.assertEqual(ServiceGroup.DATA_DISTRIBUTION_MANAGEMENT.name, "DATA_DISTRIBUTION_MANAGEMENT")
         self.assertFalse(result.configurationUsed)
         self.assertEqual(result.message, "")
 
@@ -60,6 +101,13 @@ class ContractsTest(unittest.TestCase):
             factory = RtiFactoryFactory.getRtiFactory("java")
 
         self.assertEqual(factory.rtiName(), "A dynamically discovered vendor name")
+
+    def test_available_factories_are_materialized_from_entry_points(self) -> None:
+        with patch("hla.rti1516_2025.core.entry_points", return_value=[_EntryPoint()]):
+            factories = RtiFactoryFactory.getAvailableRtiFactories()
+
+        self.assertEqual(len(factories), 1)
+        self.assertEqual(factories[0].rtiName(), "A dynamically discovered vendor name")
 
     def test_duplicate_entry_point_aliases_are_rejected(self) -> None:
         with patch(
@@ -89,6 +137,164 @@ class ContractsTest(unittest.TestCase):
         self.assertEqual(credentials.getType(), "token")
         self.assertEqual(credentials.getData(), b"secret")
         self.assertEqual(HLAnoCredentials().getData(), b"")
+
+    def test_federation_member_callback_values_are_immutable_snapshots(self) -> None:
+        member = FederationExecutionMemberInformation("dish-service", "restaurant")
+        report = FederationExecutionMemberInformationSet([member])
+
+        self.assertEqual(member.federateName, "dish-service")
+        self.assertEqual(member.federateType, "restaurant")
+        self.assertEqual(report, FederationExecutionMemberInformationSet([member]))
+        with self.assertRaises(AttributeError):
+            member.federateName = "other"  # type: ignore[misc]
+
+    def test_federate_handles_copy_encoded_bytes_and_resign_actions_keep_java_names(self) -> None:
+        handle = FederateHandle(bytearray(b"handle"))
+        destination = bytearray(b"xx------")
+
+        handle.encode(destination, 2)
+        self.assertEqual(handle.encodedValue, b"handle")
+        self.assertEqual(handle.encodedLength(), 6)
+        self.assertEqual(destination, b"xxhandle")
+        self.assertEqual(ResignAction.NO_ACTION.name, "NO_ACTION")
+        self.assertEqual(OrderType.RECEIVE.name, "RECEIVE")
+
+    def test_portable_handle_domains_are_immutable_and_remain_distinct(self) -> None:
+        encoded = bytearray(b"provider-owned-handle")
+        handles = (
+            FederateHandle(encoded),
+            ObjectClassHandle(encoded),
+            ObjectInstanceHandle(encoded),
+            AttributeHandle(encoded),
+            InteractionClassHandle(encoded),
+            ParameterHandle(encoded),
+            TransportationTypeHandle(encoded),
+            DimensionHandle(encoded),
+        )
+
+        encoded[:] = b"x" * len(encoded)
+        self.assertTrue(all(handle.encodedValue == b"provider-owned-handle" for handle in handles))
+        self.assertEqual(len(set(handles)), len(handles))
+        destination = bytearray(len(handles[1].encodedValue))
+        handles[1].encode(destination)
+        self.assertEqual(bytes(destination), handles[1].encodedValue)
+        self.assertEqual(AttributeHandleSet([handles[2], handles[2]]), AttributeHandleSet([handles[2]]))
+        with self.assertRaises(AttributeError):
+            handles[1].encodedValue = b"other"  # type: ignore[misc]
+
+    def test_attribute_handle_value_maps_copy_bytes_and_enforce_their_key_domain(self) -> None:
+        attribute = AttributeHandle(b"attribute")
+        source_value = bytearray(b"value")
+        values = AttributeHandleValueMap({attribute: source_value})
+
+        source_value[:] = b"other"
+        self.assertEqual(values, {attribute: b"value"})
+        self.assertEqual(values[attribute], b"value")
+        with self.assertRaises(TypeError):
+            AttributeHandleValueMap({ObjectClassHandle(b"object"): b"value"})
+        with self.assertRaises(TypeError):
+            values[attribute] = b"other"  # type: ignore[index]
+
+    def test_factory_builders_are_mutable_but_keep_provider_handle_domains(self) -> None:
+        attribute = AttributeHandle(b"attribute")
+        dimension = DimensionHandle(b"dimension")
+        federate = FederateHandle(b"federate")
+        region = RegionHandle(b"region")
+
+        attribute_set = MutableAttributeHandleSet()
+        dimension_set = MutableDimensionHandleSet()
+        federate_set = MutableFederateHandleSet()
+        region_set = MutableRegionHandleSet()
+        attribute_set.add(attribute)
+        dimension_set.add(dimension)
+        federate_set.add(federate)
+        region_set.add(region)
+        self.assertEqual(tuple(attribute_set), (attribute,))
+        self.assertEqual(tuple(dimension_set), (dimension,))
+        self.assertEqual(tuple(federate_set), (federate,))
+        self.assertEqual(tuple(region_set), (region,))
+        with self.assertRaises(TypeError):
+            attribute_set.add(ObjectClassHandle(b"wrong"))  # type: ignore[arg-type]
+
+        attribute_values = MutableAttributeHandleValueMap()
+        parameter_values = MutableParameterHandleValueMap()
+        source = bytearray(b"value")
+        attribute_values[attribute] = source
+        parameter_values[ParameterHandle(b"parameter")] = source
+        source[:] = b"other"
+        self.assertEqual(attribute_values[attribute], b"value")
+        self.assertEqual(parameter_values[ParameterHandle(b"parameter")], b"value")
+        with self.assertRaises(TypeError):
+            attribute_values[ObjectClassHandle(b"wrong")] = b"value"  # type: ignore[index]
+
+    def test_parameter_handle_value_maps_copy_bytes_and_enforce_their_key_domain(self) -> None:
+        parameter = ParameterHandle(b"parameter")
+        source_value = bytearray(b"value")
+        values = ParameterHandleValueMap({parameter: source_value})
+
+        source_value[:] = b"other"
+        self.assertEqual(values, {parameter: b"value"})
+        with self.assertRaises(TypeError):
+            ParameterHandleValueMap({AttributeHandle(b"attribute"): b"value"})
+
+    def test_encoding_contract_is_provider_owned_and_not_python_constructed(self) -> None:
+        self.assertTrue(issubclass(HLAinteger32BE, DataElement))
+        self.assertTrue(issubclass(HLAunsignedInteger32BE, DataElement))
+        self.assertTrue(issubclass(HLAboolean, DataElement))
+        self.assertTrue(issubclass(HLAunicodeString, DataElement))
+        with self.assertRaises(TypeError):
+            EncoderFactory()
+        with self.assertRaises(TypeError):
+            HLAinteger32BE()
+
+    def test_logical_time_snapshots_preserve_provider_encoding_and_java_shape(self) -> None:
+        source = bytearray(b"\x00\x00\x00\x00\x00\x00\x00\x05")
+        time = HLAinteger64Time(source, "HLAinteger64Time", value=5, text="5")
+        interval = HLAinteger64Interval(b"\x00" * 8, "HLAinteger64Time", zero=True, value=0)
+        source[:] = b"x" * 8
+
+        self.assertIsInstance(time, LogicalTime)
+        self.assertIsInstance(interval, LogicalTimeInterval)
+        self.assertEqual(time.getTime(), 5)
+        self.assertEqual(time.implementationName(), "HLAinteger64Time")
+        self.assertEqual(time.toByteArray(), b"\x00\x00\x00\x00\x00\x00\x00\x05")
+        self.assertEqual(interval.getInterval(), 0)
+        self.assertTrue(interval.isZero())
+        destination = bytearray(9)
+        time.encode(destination, 1)
+        self.assertEqual(bytes(destination), b"\x00\x00\x00\x00\x00\x00\x00\x00\x05")
+        with self.assertRaises(AttributeError):
+            time.value = 7  # type: ignore[misc]
+
+    def test_region_values_keep_distinct_handle_sets_and_java_range_methods(self) -> None:
+        dimension = DimensionHandle(b"dimension")
+        region = RegionHandle(b"region")
+        bounds = RangeBounds(1, 3)
+
+        self.assertEqual(DimensionHandleSet([dimension]), DimensionHandleSet([dimension]))
+        self.assertEqual(RegionHandleSet([region]), RegionHandleSet([region]))
+        self.assertIsInstance(region, RegionHandle)
+        self.assertEqual(bounds.getLowerBound(), 1)
+        self.assertEqual(bounds.getUpperBound(), 3)
+        bounds.setLowerBound(2)
+        bounds.setUpperBound(4)
+        self.assertEqual((bounds.getLowerBound(), bounds.getUpperBound()), (2, 4))
+
+    def test_attribute_region_pair_vectors_are_immutable_and_domain_checked(self) -> None:
+        attribute = AttributeHandle(b"attribute")
+        region = RegionHandle(b"region")
+        pair = AttributeSetRegionSetPair(
+            AttributeHandleSet([attribute]), RegionHandleSet([region])
+        )
+        pairs = AttributeSetRegionSetPairList([pair])
+
+        self.assertEqual(pairs[0], pair)
+        self.assertEqual(pairs[0].attributes, AttributeHandleSet([attribute]))
+        self.assertEqual(pairs[0].regions, RegionHandleSet([region]))
+        with self.assertRaises(TypeError):
+            AttributeSetRegionSetPair(AttributeHandleSet([attribute]), DimensionHandleSet())  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            AttributeSetRegionSetPairList([("not a pair",)])  # type: ignore[list-item]
 
     def test_all_provider_edges_map_official_exception_names_to_specific_types(self) -> None:
         self.assertEqual(len(exceptions._EXCEPTION_TYPES), 100)

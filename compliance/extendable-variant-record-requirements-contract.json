@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/encoding/HLAextendableVariantRecord.h class. IEEE 1516.2 \u00a74.14.10.3 defines a discriminant at record offset zero, followed by an HLAinteger32BE encoded_length and the mapped alternative. The discriminant is zero-padded by the smallest amount needed to align encoded_length to its four-octet boundary. The encoded_length holds the alternative's byte length, is zero when no alternative applies, and excludes the padding after it. That post-length padding uses the predefined eight-octet alternative boundary; an alternative with a greater boundary is prohibited. Padding is not added after the alternative. Umbra treats the post-length padding as structural even when encoded_length is zero: the source requires it after encoded_length to align the alternative layout, and this preserves a single length-prefixed layout for successful unknown-alternative skips. The Requirements Lab exports five direct candidate statements with broad clause-4 metadata, but has no individual immutable candidate for Equations (3)/(4) or their Size/V definitions; RL-054 records both the provenance and source-candidate coverage boundaries. The official C++ DataElement header identifies hash() as the mapping hook for discriminants. Umbra uses it as a lookup accelerator and also verifies type plus encoded bytes so a hash collision cannot select a different alternative; this is an implementation safety choice, not a separate standards or conformance result. The raw DataElement* variant operations remain caller-owned borrowed storage exactly as the official header documents, while copy/clone operations use internal copies. FOM-level enumerator ranges and HLAother expansion, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, and conformance remain outside this bounded slice.",
+  "requirements": [
+    {
+      "id": "umbra-omt-extendable-variant-record-structure-and-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-082-l75-10",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_extendable_variant_record.cpp",
+      "source_symbol": "HLAextendableVariantRecord::encodeInto",
+      "related_source_symbols": [
+        "HLAextendableVariantRecord::decodeFrom",
+        "HLAextendableVariantRecord::getOctetBoundary",
+        "requireSupportedAlternative"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAextendableVariantRecord uses its length field and predefined eight-octet alternative boundary",
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAextendableVariantRecord copies mapping values and borrows caller pointer variants"
+      ]
+    },
+    {
+      "id": "umbra-omt-extendable-variant-record-encoded-length-alignment",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-082-l79-11",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_extendable_variant_record.cpp",
+      "source_symbol": "HLAextendableVariantRecord::encodeInto",
+      "related_source_symbols": [
+        "paddingToBoundary",
+        "appendZeroPadding",
+        "requireZeroPadding",
+        "HLAextendableVariantRecord::decodeFrom",
+        "HLAextendableVariantRecord::getEncodedLength"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAextendableVariantRecord uses its length field and predefined eight-octet alternative boundary"
+      ]
+    },
+    {
+      "id": "umbra-omt-extendable-variant-record-length-and-unmapped-form",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-083-l40-3",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_extendable_variant_record.cpp",
+      "source_symbol": "HLAextendableVariantRecord::encodeInto",
+      "related_source_symbols": [
+        "HLAextendableVariantRecord::decodeFrom",
+        "HLAextendableVariantRecord::getEncodedLength",
+        "requireEncodableAlternativeLength"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAextendableVariantRecord uses its length field and predefined eight-octet alternative boundary"
+      ]
+    },
+    {
+      "id": "umbra-omt-extendable-variant-record-alternative-alignment",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-083-l44-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_extendable_variant_record.cpp",
+      "source_symbol": "HLAextendableVariantRecord::encodeInto",
+      "related_source_symbols": [
+        "paddingToBoundary",
+        "appendZeroPadding",
+        "requireZeroPadding",
+        "HLAextendableVariantRecord::decodeFrom",
+        "HLAextendableVariantRecord::getEncodedLength"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAextendableVariantRecord uses its length field and predefined eight-octet alternative boundary"
+      ]
+    },
+    {
+      "id": "umbra-omt-extendable-variant-record-no-trailing-alternative-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-083-l64-9",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_extendable_variant_record.cpp",
+      "source_symbol": "HLAextendableVariantRecord::getEncodedLength",
+      "related_source_symbols": [
+        "HLAextendableVariantRecord::encodeInto"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAextendableVariantRecord uses its length field and predefined eight-octet alternative boundary"
+      ]
+    }
+  ]
+}

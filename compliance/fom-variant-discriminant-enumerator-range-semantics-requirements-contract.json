@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins a bounded IEEE 1516.2-2025 variant-record Discriminant Enumerator semantic slice. Supplied bracketed ranges expand over the selected enumerated data type's source-table declaration order, and a discriminant enumerator reached directly or through a range cannot determine more than one named alternative after composition. HLAother is retained internally as the complement of explicit members, not a literal enumerator. An enumeration with no declared members remains representable as incomplete DIF. The precise table candidate exports broad clause-4 provenance (RL-049); the Annex C.3 continuation candidate exports clause-7 provenance despite the visible C.3 context (RL-050). This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-variant-record-discriminant-enumerator-range-semantics",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l70-5",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "validateVariantRecordDiscriminantEnumeratorAssignments",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight expands variant-record ranges in enumerator-table order"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-variant-record-range-overlap-preflight",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1",
+      "clause_id": "clause-7",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "validateVariantRecordDiscriminantEnumeratorAssignments",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight expands variant-record ranges in enumerator-table order"
+      ]
+    }
+  ]
+}

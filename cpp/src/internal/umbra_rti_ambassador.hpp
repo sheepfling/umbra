@@ -3,13 +3,18 @@
 #include "generated/rti_ambassador_shell.hpp"
 #include "internal/callback_dispatcher.hpp"
 #include "internal/callback_session.hpp"
+#include "internal/runtime_instrumentation.hpp"
+#include "internal/runtime_instrumentation_output.hpp"
+#include "internal/service_report_store.hpp"
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "internal/embedded_transport.hpp"
+#include "internal/federation_registry.hpp"
 #endif
 #include "internal/federate_lifecycle.hpp"
 #include "internal/federate_time_state.hpp"
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -19,11 +24,66 @@
 
 namespace rti1516_2025::umbra_binding_detail {
 
+// Connection fields are retained by every embedded-profile connection. In a
+// federation-management build they later seed the joined-federate report file;
+// the public configuration surface remains the official RtiConfiguration type.
+// Umbra's typed embedded-profile directory helper only constructs that
+// official type; it does not select a store.
+struct ServiceReportConnectionSnapshot final {
+  CallbackModel callbackModel = HLA_EVOKED;
+  std::wstring configurationName;
+  std::wstring rtiAddress;
+  std::wstring additionalSettings;
+};
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+// One instance exists only during one joined-federate lifetime.  Retaining
+// both the path and writer here prevents a switch toggle from allocating a
+// replacement report file later in that lifetime.
+struct JoinedServiceReportState final {
+  std::uint64_t federateId = 0;
+  std::uint64_t joinIdentifier = 0;
+  std::filesystem::path location;
+  std::unique_ptr<umbra::detail::ServiceReportWriter> writer;
+};
+#endif
+
 // Private adapter for the embedded connection slice. It deliberately exposes
 // no Umbra-specific public surface: callers use only RTIambassador.
 class UmbraRtiAmbassador final : public RtiAmbassadorShell {
  public:
+  UmbraRtiAmbassador() = default;
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  // This tag and constructor live only in Umbra's non-installed internal
+  // header. They let unit tests inject a deterministic store without making
+  // the report backend a normal RTI configuration choice.
+  struct ServiceReportStoreTestSeam final {};
+
+  explicit UmbraRtiAmbassador(
+      ServiceReportStoreTestSeam,
+      std::unique_ptr<umbra::detail::ServiceReportStore> serviceReportStore);
+
+  // Non-installed test inspection only. It exposes the private, unpublished
+  // RTI-owned joined-federate MOM snapshot so integration tests can verify
+  // lifecycle and exact initial encodings without manufacturing public MOM
+  // discovery/reflection callbacks.
+  [[nodiscard]] std::optional<umbra::detail::JoinedFederateMomObjectSnapshot>
+  joinedFederateMomObjectSnapshotForTesting() const;
+#endif
+
   ~UmbraRtiAmbassador() override;
+
+  // Non-installed diagnostic inspection only. The public RTI API deliberately
+  // has no statistics or tracing surface.
+  [[nodiscard]] umbra::detail::RuntimeInstrumentationSnapshot
+  runtimeInstrumentationSnapshotForTesting() const;
+
+  // Non-installed diagnostic setup only. The provider includes the shared
+  // embedded federation registry totals when that profile is enabled. The
+  // caller must stop any sampler before destroying this ambassador.
+  [[nodiscard]] umbra::detail::RuntimeInstrumentationSnapshotProvider
+  runtimeInstrumentationSnapshotProviderForTesting() const;
 
   ConfigurationResult connect(
       FederateAmbassador& federateAmbassador,
@@ -590,6 +650,27 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 
   void retract(MessageRetractionHandle const& retraction) override;
 
+  FederateHandle decodeFederateHandle(
+      VariableLengthData const& encodedValue) const override;
+
+  ObjectClassHandle decodeObjectClassHandle(
+      VariableLengthData const& encodedValue) const override;
+
+  InteractionClassHandle decodeInteractionClassHandle(
+      VariableLengthData const& encodedValue) const override;
+
+  ObjectInstanceHandle decodeObjectInstanceHandle(
+      VariableLengthData const& encodedValue) const override;
+
+  AttributeHandle decodeAttributeHandle(
+      VariableLengthData const& encodedValue) const override;
+
+  ParameterHandle decodeParameterHandle(
+      VariableLengthData const& encodedValue) const override;
+
+  DimensionHandle decodeDimensionHandle(
+      VariableLengthData const& encodedValue) const override;
+
   RegionHandle decodeRegionHandle(
       VariableLengthData const& encodedValue) const override;
 
@@ -598,6 +679,9 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 #endif
 
  private:
+  [[nodiscard]] umbra::detail::RuntimeInstrumentation::Scope beginRtiCall(
+      std::string_view operation) const;
+
   ConfigurationResult connectImpl(
       FederateAmbassador& federateAmbassador,
       CallbackModel callbackModel,
@@ -634,13 +718,26 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 
   mutable std::mutex mutex_;
   umbra::detail::FederateLifecycle lifecycle_;
+  std::shared_ptr<umbra::detail::RuntimeInstrumentation> instrumentation_ =
+      std::make_shared<umbra::detail::RuntimeInstrumentation>();
   std::shared_ptr<umbra::detail::CallbackDispatcher> callbacks_ =
-      std::make_shared<umbra::detail::CallbackDispatcher>();
+      std::make_shared<umbra::detail::CallbackDispatcher>(
+          umbra::detail::CallbackDispatchModel::evoked,
+          instrumentation_);
   std::shared_ptr<CallbackSession> callbackSession_;
   CallbackModel callbackModel_ = HLA_EVOKED;
+  // A factory-created ambassador always retains a filesystem store selected
+  // from its connection configuration. The federation-management profile
+  // later uses it to allocate a per-joined-federate writer.
+  std::unique_ptr<umbra::detail::ServiceReportStore> serviceReportStore_;
+  ServiceReportConnectionSnapshot serviceReportConnection_;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   std::shared_ptr<umbra::detail::EmbeddedTransportConnection>
       transportConnection_;
+  std::unique_ptr<umbra::detail::ServiceReportStore>
+      injectedServiceReportStoreForTesting_;
+  bool activeServiceReportStoreIsTestOnly_ = false;
+  std::optional<JoinedServiceReportState> joinedServiceReport_;
   std::optional<std::wstring> joinedFederationName_;
   std::optional<std::uint64_t> joinedFederateId_;
   std::shared_ptr<umbra::detail::FederateTimeState> federateTimeState_;

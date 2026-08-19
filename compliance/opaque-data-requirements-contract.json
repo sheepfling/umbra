@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/encoding/HLAopaqueData.h class. IEEE 1516.1 Table 27 maps HLAopaqueData to the C++ HLAopaqueData helper and VariableLengthData. IEEE 1516.2 Table 35 defines the representation as a dynamic HLAvariableArray of HLAbyte whose semantics are an uninterpreted sequence of bytes; the companion 1516.2 BasicDataElements contract separately pins the signed HLAinteger32BE element-count rule. The exact Table 27/Table 35 rows are source-checked but are not exported as immutable helper requirement candidates; RL-053 records that Requirements Lab boundary. The official C++ header's external-memory API is implemented as caller-owned borrowed storage: encoding observes caller mutations and set/decode writes only within the declared buffer. The deterministic insufficient-capacity error is an implementation safety choice required to avoid inventing allocation or ownership semantics; it is not presented as a separate standards or conformance result. This does not establish generic constructed-data encoding, an adapter surface, interoperability, package/JUnit/protected-review evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-hla-opaque-data-helper-encode-decode",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+      "clause_id": "clause-12.12.4.2",
+      "source": "cpp/src/ieee1516_2025_opaque_data.cpp",
+      "source_symbol": "HLAopaqueData::encodeInto",
+      "related_source_symbols": [
+        "HLAopaqueData::decodeFrom",
+        "HLAopaqueData::setDataPointer",
+        "HLAopaqueDataImplementation::setData",
+        "HLAopaqueData::getEncodedLength"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAopaqueData uses an HLAbyte HLAvariableArray payload",
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAopaqueData retains caller-owned external storage without inventing ownership"
+      ]
+    }
+  ]
+}

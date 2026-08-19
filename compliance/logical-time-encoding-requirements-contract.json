@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/encoding/HLAlogicalTime.h and RTI/encoding/HLAlogicalTimeInterval.h classes. IEEE 1516.1-2025 §12.3 requires LogicalTime and LogicalTimeInterval abstract interfaces to support compact, opaque network representations and creation from those representations. These helpers therefore add no Umbra-defined time wire format: they delegate bytes to the logical-time factory selected by the supplied RTIambassador, retain that factory for the helper lifetime, and copy a value through that factory's decode path. Umbra's current supported factories are only HLAinteger64Time and HLAfloat64Time, each with a fixed eight-octet encoding. The standard factory interface does not report a decoded byte count, so decodeFrom is intentionally bounded to the current selected reference value's encodedLength(); it is not a generic third-party variable-width logical-time decoder. getOctetBoundary() returning one is an Umbra opaque-stream policy, not a universal custom-time layout claim. The tests use a private factory-returning ambassador shell; they do not prove a joined-federate getTimeFactory service, catalog result, JUnit sidecar result, package behavior, interoperability, or conformance. The direct Lab candidates retain exported clause-12.4/annex provenance although the reconstructed normative source is §12.3; RL-055 records that source-export drift.",
+  "requirements": [
+    {
+      "id": "umbra-logical-time-opaque-network-encoding",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-354-l129-42",
+      "clause_id": "clause-12.4",
+      "source": "cpp/src/ieee1516_2025_logical_time_encoding.cpp",
+      "source_symbol": "HLAlogicalTime::encodeInto",
+      "related_source_symbols": [
+        "HLAlogicalTime::decode",
+        "HLAlogicalTime::decodeFrom",
+        "HLAlogicalTimeInterval::encodeInto",
+        "HLAlogicalTimeInterval::decode",
+        "HLAlogicalTimeInterval::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::HLAlogicalTime delegates opaque bytes to the selected reference factory",
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory"
+      ]
+    },
+    {
+      "id": "umbra-logical-time-factory-initial-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-354-l183-60",
+      "clause_id": "clause-12.4",
+      "source": "cpp/src/ieee1516_2025_logical_time_encoding.cpp",
+      "source_symbol": "HLAlogicalTime::HLAlogicalTime",
+      "related_source_symbols": [
+        "factoryStateFor",
+        "initialTime",
+        "copyTime"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::HLAlogicalTime delegates opaque bytes to the selected reference factory"
+      ]
+    },
+    {
+      "id": "umbra-logical-time-factory-zero-interval",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-354-l207-68",
+      "clause_id": "clause-12.4",
+      "source": "cpp/src/ieee1516_2025_logical_time_encoding.cpp",
+      "source_symbol": "HLAlogicalTimeInterval::HLAlogicalTimeInterval",
+      "related_source_symbols": [
+        "factoryStateFor",
+        "zeroInterval",
+        "copyInterval"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory"
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@
 #include "internal/interaction_class_handle_directory.hpp"
 #include "internal/object_class_handle_directory.hpp"
 #include "internal/parameter_handle_directory.hpp"
+#include "internal/runtime_instrumentation.hpp"
 
 #include <RTI/Enums.h>
 #include <RTI/Typedefs.h>
@@ -22,6 +23,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 #include <variant>
@@ -64,6 +66,9 @@ struct FederateMembership {
   bool serviceReportingSwitch = false;
   bool exceptionReportingSwitch = false;
   bool sendServiceReportsToFileSwitch = false;
+  // HLAreportServiceInvocation uses an HLAcount serial number per joined
+  // federate. The next accepted report starts at zero.
+  std::uint32_t nextMomServiceReportSerialNumber = 0;
 };
 
 // A federation-owned snapshot captured while the registry holds its member
@@ -399,6 +404,50 @@ struct RegionSpecificationSnapshot {
   std::set<std::uint64_t> dimensionHandles;
   std::map<std::uint64_t, RegionRangeBounds> committedRangeBounds;
   bool specificationCommitted = false;
+};
+
+// Input to the private RTI-owned joined-federate MOM object foundation. It
+// intentionally uses validated module records rather than raw Join arguments:
+// their canonical source paths let the runtime retain only the first
+// designator when a federate supplied the same FOM module more than once.
+// This is internal state, not an extension of the public RTI API.
+struct JoinedFederateMomObjectDescriptor {
+  std::wstring federateHost;
+  std::wstring rtiVersion;
+  std::vector<PrevalidatedFomModule> fomModulesSpecifiedAtJoin;
+  // The embedded production profile supplies the immutable absolute
+  // filesystem location allocated at Join. Test-only in-memory report stores
+  // never establish this standards-facing object state.
+  std::wstring reportServiceFile;
+};
+
+enum class JoinedFederateMomObjectStatus {
+  applied,
+  federation_does_not_exist,
+  federate_not_member,
+  already_established,
+  invalid_descriptor,
+  object_instance_handle_exhausted,
+  inconsistent_catalog,
+};
+
+// An unpublished, registry-owned representation of the MIM object for one
+// joined federate. It reserves an ObjectInstanceHandle from the federation's
+// common namespace but is deliberately kept outside the federate-created
+// ObjectInstance map until RTI-originated discovery/reflection has a
+// source-backed producer-designator rule. No public object service observes
+// this snapshot yet.
+struct JoinedFederateMomObjectSnapshot {
+  std::uint64_t objectInstanceHandle = 0;
+  std::uint64_t joinedFederateId = 0;
+  std::uint64_t objectClassHandle = 0;
+  RegionSpecificationSnapshot immutableFederatePoint;
+  // Every effective MIM attribute is retained as metadata, including the
+  // inherited optional HLAprivilegeToDeleteObject. Only required initial
+  // joined-federate values are encoded here; the scheduler for dynamic values
+  // and ordinary reflection delivery remains a later layer.
+  std::set<std::uint64_t> effectiveAttributeHandles;
+  std::map<std::uint64_t, rti1516_2025::VariableLengthData> initialAttributeValues;
 };
 
 enum class RegionServiceStatus {
@@ -1186,6 +1235,43 @@ enum class ReceiveOrderInteractionStatus {
   inconsistent_catalog,
 };
 
+// An interaction's source is a private routing fact, not necessarily a
+// callback-visible FederateHandle.  In particular, an RTI-originated MOM
+// interaction has no sourced public producing-federate designator yet.  Keep
+// that distinction explicit so a numeric zero can never become an accidental
+// stand-in for a joined federate at a future callback boundary.
+class InteractionProducer final {
+ public:
+  enum class Kind {
+    joined_federate,
+    rti,
+  };
+
+  [[nodiscard]] static InteractionProducer joinedFederate(
+      std::uint64_t federateId) noexcept {
+    return InteractionProducer{Kind::joined_federate, federateId};
+  }
+
+  [[nodiscard]] static InteractionProducer rti() noexcept {
+    return InteractionProducer{Kind::rti, std::nullopt};
+  }
+
+  [[nodiscard]] Kind kind() const noexcept { return kind_; }
+
+  [[nodiscard]] std::optional<std::uint64_t> joinedFederateId() const noexcept {
+    return joinedFederateId_;
+  }
+
+ private:
+  InteractionProducer(
+      Kind kind,
+      std::optional<std::uint64_t> joinedFederateId) noexcept
+      : kind_(kind), joinedFederateId_(joinedFederateId) {}
+
+  Kind kind_;
+  std::optional<std::uint64_t> joinedFederateId_;
+};
+
 struct ReceiveOrderInteractionRecipient {
   std::uint64_t federateId = 0;
   std::uint64_t receivedInteractionClassHandle = 0;
@@ -1203,6 +1289,74 @@ struct ReceiveOrderInteractionPlan {
   // available dimensions, without exposing a caller-visible region handle.
   bool defaultRegionUsed = false;
   rti1516_2025::OrderType preferredOrderType = rti1516_2025::RECEIVE;
+  std::vector<ReceiveOrderInteractionRecipient> recipients;
+};
+
+// §11.5 service reports are RTI-originated receive-order interactions.  This
+// routing result deliberately remains private: an application must neither
+// publish the MOM report class nor provide its private update region.
+enum class MomServiceReportDisposition {
+  suppressed,
+  report_to_file,
+  interaction,
+  inconsistent_catalog,
+  reported_federate_not_member,
+  invalid_service_group,
+};
+
+struct MomServiceReportRoutingPlan {
+  MomServiceReportDisposition disposition = MomServiceReportDisposition::suppressed;
+  // This stays an RTI source fact only.  It must not be converted into a
+  // FederateHandle for a public Receive Interaction callback until the 2025
+  // producer-designator rule for RTI-created MOM traffic is sourced.
+  InteractionProducer producer = InteractionProducer::rti();
+  std::uint64_t interactionClassHandle = 0;
+  std::uint64_t endpointRegionHandle = 0;
+  RegionSpecificationSnapshot endpointRegion;
+  std::vector<ReceiveOrderInteractionRecipient> recipients;
+};
+
+struct ReservedMomServiceReport {
+  MomServiceReportRoutingPlan routing;
+  std::uint32_t serialNumber = 0;
+  bool acceptedForEmission = false;
+};
+
+// A fault report is distinct from §11.5 service reporting: it is mandated for
+// a lost federate regardless of that federate's reporting switches.  The
+// routing fact remains explicitly RTI-originated; the C++ callback's required
+// FederateHandle representation is selected at the binding boundary and is
+// not inferred from this private source marker.
+enum class FederateLostReportStatus {
+  applied,
+  federation_does_not_exist,
+  reported_federate_not_member,
+  inconsistent_catalog,
+  inconsistent_time_state,
+};
+
+struct FederateLostReportRouting {
+  std::uint64_t interactionClassHandle = 0;
+  std::uint64_t federateParameterHandle = 0;
+  std::uint64_t federateNameParameterHandle = 0;
+  std::uint64_t timestampParameterHandle = 0;
+  std::uint64_t faultDescriptionParameterHandle = 0;
+  // The endpoint is private RTI routing state, not a public RegionHandle that
+  // can be conveyed through the Receive Interaction callback.
+  std::uint64_t endpointRegionHandle = 0;
+  RegionSpecificationSnapshot endpointRegion;
+};
+
+struct FederateLostReportPlan {
+  FederateLostReportStatus status = FederateLostReportStatus::applied;
+  InteractionProducer producer = InteractionProducer::rti();
+  std::uint64_t reportedFederateId = 0;
+  std::wstring reportedFederateName;
+  bool reportedFederateWasTimeRegulating = false;
+  // Captured before the registry removes the lost member's time state.  For a
+  // regulating federate this is the profile's last granted logical time.
+  std::shared_ptr<rti1516_2025::LogicalTime const> lastKnownTime;
+  FederateLostReportRouting routing;
   std::vector<ReceiveOrderInteractionRecipient> recipients;
 };
 
@@ -1621,6 +1775,12 @@ struct FederationTsoPayloadDeliveryRegistryResult {
 // after FOM, logical-time, and callback behavior are available.
 class EmbeddedFederationRegistry final {
  public:
+  explicit EmbeddedFederationRegistry(
+      std::shared_ptr<RuntimeInstrumentation> instrumentation = {});
+
+  [[nodiscard]] RuntimeInstrumentationSnapshot
+  runtimeInstrumentationSnapshotForTesting() const;
+
   FederationRegistryResult create(
       std::wstring const& federationName,
       FederationDefinition definition);
@@ -1664,6 +1824,20 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t federateId,
       rti1516_2025::ResignAction resignAction = rti1516_2025::NO_ACTION);
+
+  // Establishes the registry-owned, as-yet-unpublished MIM object after the
+  // real report-file writer has chosen its immutable location. This is kept
+  // separate from joinImpl because a filesystem failure must roll membership
+  // back before a successful Join becomes externally visible.
+  [[nodiscard]] JoinedFederateMomObjectStatus establishJoinedFederateMomObject(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      JoinedFederateMomObjectDescriptor const& descriptor);
+
+  [[nodiscard]] std::optional<JoinedFederateMomObjectSnapshot>
+  joinedFederateMomObjectFor(
+      std::wstring const& federationName,
+      std::uint64_t federateId) const;
 
   // A transport fault applies the member's current Automatic Resign
   // Directive while forcing the membership transition even when a normal
@@ -2892,6 +3066,48 @@ class EmbeddedFederationRegistry final {
       std::vector<std::uint64_t> const& sentParameterHandles,
       std::set<std::uint64_t> const* sentRegionHandles = nullptr) const;
 
+  // Plans the private RTI report endpoint mandated by §11.5.1.  The exact
+  // endpoint contains HLAfederate and HLAserviceGroup point ranges only;
+  // report-to-file selects a distinct sink and therefore never also delivers
+  // to interaction subscribers.
+  [[nodiscard]] MomServiceReportRoutingPlan planMomServiceReport(
+      std::wstring const& federationName,
+      std::uint64_t reportedFederateId,
+      std::uint16_t serviceGroup) const;
+
+  // Atomically obtains the routing decision and serial value for one report
+  // accepted for an interaction or report-file sink. Suppressed and invalid
+  // requests leave the joined federate's sequence untouched.
+  [[nodiscard]] ReservedMomServiceReport reserveMomServiceReport(
+      std::wstring const& federationName,
+      std::uint64_t reportedFederateId,
+      std::uint16_t serviceGroup);
+
+  [[nodiscard]] std::optional<ReceiveOrderInteractionRecipient>
+  momServiceReportRecipientFor(
+      std::wstring const& federationName,
+      std::uint64_t reportedFederateId,
+      std::uint64_t receivingFederateId,
+      std::uint16_t serviceGroup) const;
+
+  // Captures the mandatory HLAreportFederateLost traffic before a fault-driven
+  // resignation removes the affected membership and its time state. The
+  // selected recipients are current surviving subscribers; an empty list is
+  // a valid outcome when no surviving federate subscribed.
+  [[nodiscard]] FederateLostReportPlan planFederateLostReport(
+      std::wstring const& federationName,
+      std::uint64_t reportedFederateId) const;
+
+  // Rechecks one queued report after the lost membership was removed. Unlike
+  // ordinary send interaction routing, the reported federate is deliberately
+  // allowed to be departed; its lifetime designator remains in
+  // federateNamesById while the receiving federate must still be joined.
+  [[nodiscard]] std::optional<ReceiveOrderInteractionRecipient>
+  federateLostReportRecipientFor(
+      std::wstring const& federationName,
+      std::uint64_t reportedFederateId,
+      std::uint64_t receivingFederateId) const;
+
   [[nodiscard]] AttributeTransportationTypeChangePlan
   planAttributeTransportationTypeChange(
       std::wstring const& federationName,
@@ -3007,6 +3223,9 @@ class EmbeddedFederationRegistry final {
       std::vector<std::uint64_t> const& sentParameterHandles) const;
 
  private:
+  [[nodiscard]] RuntimeInstrumentation::Scope beginInstrumentation(
+      std::string_view operation) const;
+
   [[nodiscard]] FederationSaveAdmission admitTimedFederationSaveAtGrantBoundary(
       std::wstring const& federationName,
       std::uint64_t federateId,
@@ -3297,6 +3516,13 @@ class EmbeddedFederationRegistry final {
         tsoDirectedInteractionMessages;
     std::map<std::uint64_t, PendingTimeAdvanceGrant> pendingTimeAdvanceGrants;
     std::map<std::uint64_t, Region> regions;
+    // RTI-created joined-federate MOM objects reserve common object-instance
+    // handle values but are not inserted into objectInstances. The ordinary
+    // object-management paths therefore cannot accidentally treat them as
+    // federate-produced, transfer-capable instances before the RTI-owned
+    // callback protocol is implemented.
+    std::map<std::uint64_t, JoinedFederateMomObjectSnapshot>
+        rtiOwnedJoinedFederateMomObjects;
     std::map<std::uint64_t, ObjectInstance> objectInstances;
     std::map<std::wstring, std::uint64_t> objectInstanceHandlesByName;
     std::map<std::wstring, std::uint64_t> reservedObjectInstanceNamesByFederate;
@@ -3327,11 +3553,20 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] static std::optional<ReceiveOrderInteractionRecipient>
   candidateReceiveOrderInteractionRecipient(
       Federation const& federation,
-      std::uint64_t producingFederateId,
+      InteractionProducer const& producingSource,
       std::uint64_t receivingFederateId,
       std::uint64_t sentInteractionClassHandle,
       std::vector<std::uint64_t> const& sentParameterHandles,
-      std::set<std::uint64_t> const* sentRegionHandles);
+      std::set<std::uint64_t> const* sentRegionHandles,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides = nullptr);
+  [[nodiscard]] static MomServiceReportRoutingPlan momServiceReportRoutingPlanFor(
+      Federation const& federation,
+      std::uint64_t reportedFederateId,
+      std::uint16_t serviceGroup);
+  [[nodiscard]] static std::optional<FederateLostReportRouting>
+  federateLostReportRoutingFor(
+      Federation const& federation,
+      std::uint64_t reportedFederateId);
   [[nodiscard]] static bool validDirectedInteractionForObjectClass(
       Federation const& federation,
       std::uint64_t objectClassHandle,
@@ -3594,6 +3829,7 @@ class EmbeddedFederationRegistry final {
       bool forcedConnectionLoss);
 
   mutable std::mutex mutex_;
+  std::shared_ptr<RuntimeInstrumentation> instrumentation_;
   std::map<std::wstring, Federation> federations_;
   // One or more completed labels may be restored while the federation
   // remains alive.  These snapshots are intentionally process-local and

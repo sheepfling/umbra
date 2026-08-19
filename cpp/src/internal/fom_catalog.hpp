@@ -3,6 +3,8 @@
 #include "internal/fom_validation.hpp"
 
 #include <map>
+#include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -15,6 +17,14 @@ namespace umbra::detail {
 struct FomAttributeDefinition {
   std::string name;
   std::string dataType;
+  // The composed catalog does not execute update policy itself. Retaining the
+  // standard policy and required-value bit here lets a later RTI-owned
+  // MOM-object runtime consume the MIM declaration instead of introducing a
+  // parallel hand-written attribute table.
+  std::string updateType;
+  std::string updateCondition;
+  bool valueRequired = false;
+  std::string ownership;
   std::string sharing;
   std::string transportation;
   std::string order;
@@ -143,6 +153,44 @@ class FomCatalog final {
       std::string const& name) const noexcept {
     auto const found = objectClasses_.find(name);
     return found == objectClasses_.end() ? nullptr : &found->second;
+  }
+
+  // Returns every attribute available at an object class, including inherited
+  // attributes.  Composition already rejects an attribute that redeclares an
+  // inherited name; retain that invariant here instead of silently letting a
+  // derived definition hide a base-class policy.  A missing class, broken
+  // parent chain, duplicate, or cycle therefore has no usable projection.
+  //
+  // This is especially important for MOM object construction: the standard
+  // HLAmanager.HLAfederate class inherits HLAprivilegeToDeleteObject from
+  // HLAobjectRoot, whose ownership policy differs from the joined-federate
+  // attributes declared directly on HLAfederate.
+  [[nodiscard]] std::optional<std::map<std::string, FomAttributeDefinition>>
+  effectiveObjectClassAttributes(std::string const& name) const {
+    if (name.empty()) {
+      return std::nullopt;
+    }
+    std::vector<FomObjectClassDefinition const*> hierarchy;
+    std::set<std::string> visited;
+    std::string currentName = name;
+    while (!currentName.empty()) {
+      auto const current = objectClasses_.find(currentName);
+      if (current == objectClasses_.end() || !visited.insert(currentName).second) {
+        return std::nullopt;
+      }
+      hierarchy.push_back(&current->second);
+      currentName = current->second.parentName;
+    }
+
+    std::map<std::string, FomAttributeDefinition> result;
+    for (auto current = hierarchy.rbegin(); current != hierarchy.rend(); ++current) {
+      for (auto const& [attributeName, attribute] : (*current)->declaredAttributes) {
+        if (!result.emplace(attributeName, attribute).second) {
+          return std::nullopt;
+        }
+      }
+    }
+    return result;
   }
 
   // Names are emitted in the catalog's deterministic map order. A federation

@@ -35,7 +35,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness",
-        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the official eight-byte value encoding"
+        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding"
       ]
     },
     {

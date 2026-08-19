@@ -37,7 +37,11 @@ extraction remain private to the runtime. The same
 target now implements the official HLAinteger64Time/HLAfloat64Time values,
 intervals, factories, encodings, and HLAlogicalTimeFactoryFactory. The
 separate static umbra::fedtime target owns the standard libfedtime forwarding
-entry point and propagates STATIC_FEDTIME to consumers.
+entry point and propagates STATIC_FEDTIME to consumers. `umbra::rti` also
+contains the reference `HLAauthorizer` and factory foundation, while the
+separate static `umbra::authorizer` target owns the corresponding
+library-level factory forwarding entry point and propagates
+STATIC_AUTHORIZER.
 
 The private generated RtiAmbassadorShell overrides all 181 RTIambassador pure
 virtual members and throws RTIinternalError by default. UmbraRtiAmbassador
@@ -102,8 +106,13 @@ connection from not_connected to not_joined, and rejects repeated connects with
 AlreadyConnected. Optional configuration fields are not yet consumed by the
 embedded backend, so all Connect overloads truthfully return a
 ConfigurationResult with configuration/address false and settings ignored.
-Credentials are accepted because the initial backend has no authorizer; it
-does not claim credential validation. A valid Disconnect moves an unjoined
+The initial backend has no configured authorizer. The no-credentials Connect
+overloads and an explicit empty `HLAnoCredentials` envelope remain usable, but
+another supplied credential is rejected with `Unauthorized` rather than being
+silently treated as authenticated. `HLAplainTextPassword` has its standard
+credential-value encoding, and a reference authorizer/factory exists behind an
+internal test configuration seam; secure RID configuration and a live runtime
+`HLAauthorizer` remain separate work. A valid Disconnect moves an unjoined
 federate back to not_connected; the obvious invalid states map to NotConnected
 and FederateIsExecutionMember.
 
@@ -437,10 +446,16 @@ seed is restored with a saved execution. `HLAserviceGroup` instead uses the
 official enum coordinate because its standard MIM dimension is bounded to
 seven. This is a prerequisite for, not an implementation of, RTI-originated
 MOM report regions. This does not
-yet drive a real connection-loss resign, MOM service-report emission/file
-behavior, default/conveyed-region reuse,
-directed regional callbacks, or the remaining delayed-subscription filtering
-matrix. The shared explicit-region predicate also implements Umbra's
+yet drive a real connection-loss resign, MOM service-report interaction
+emission or `HLAreportServiceFile` publication; it does create a local
+initial-record report file with immutable joined-federate lifetime and retain
+an unpublished RTI-owned joined-federate MOM snapshot with a common object
+identity, full effective-attribute metadata, an immutable `HLAfederate` point,
+and the real report-file value. Default-region and conveyed-region reuse, and
+directed regional callbacks, remain bounded profile gaps. Explicit regional
+interaction and object-update delivery now re-evaluates subscription overlap
+at the callback boundary when the static delayed-subscription policy is
+enabled. The shared explicit-region predicate also implements Umbra's
 documented Allow Relaxed DDM policy: when the static federation switch is
 enabled, exact boundary-touching committed ranges qualify without removing any
 strict overlap; a nonzero gap never qualifies. See

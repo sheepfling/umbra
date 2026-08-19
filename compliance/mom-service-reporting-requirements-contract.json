@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-traceability-not-conformance-evidence",
+  "notes": "This contract traces Umbra's private 2025 MOM service-report routing, serial-reservation, immutable filesystem initial-record, and unpublished joined-federate MOM-object foundation to the Requirements Lab export. The registered Catch2 evidence covers MIM-driven class/parameter lookup, private normalized DDM point routing, explicit RTI source separation without a numeric federate sentinel, mutually exclusive sink selection, per-federate serial allocation, a real per-joined-federate filesystem record created even when file reporting starts disabled, and a registry-owned snapshot with a common object identity, immutable HLAfederate point, complete effective-attribute metadata, exact report-file value, and the Join-scoped federate FOM-designator list used by both representations. It proves neither an emitted Receive Interaction callback nor public MOM registration/discovery/reflection/HLAreportServiceFile publication. The 11.5.2 candidate titles currently point to an unrelated Annex source (RL-041), while public RTI-created callback producer identity remains unresolved (RL-043), so the object-foundation and file-lifecycle entries are source-level traceability only. It is not a Requirements Lab validation record or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-mom-service-report-routing-selects-the-standard-sink",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::momServiceReportRoutingPlanFor",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry plans 2025 MOM reports with an RTI-owned normalized endpoint"
+      ]
+    },
+    {
+      "id": "umbra-mom-service-report-reservation-uses-a-per-federate-serial",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::reserveMomServiceReport",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry plans 2025 MOM reports with an RTI-owned normalized endpoint"
+      ]
+    },
+    {
+      "id": "umbra-service-report-file-initial-record-has-an-immutable-joined-federate-lifetime",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::joinFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service-report files have one immutable joined-federate lifetime",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM snapshots retain only FOM modules supplied at Join"
+      ]
+    }
+  ]
+}

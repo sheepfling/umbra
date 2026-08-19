@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes>
+        <fixedRecordDataTypes>
+            <fixedRecordData>
+                <name>UmbraOmittedFixedRecordFieldType</name>
+                <field>
+                    <name>UmbraOmittedFieldType</name>
+                </field>
+            </fixedRecordData>
+        </fixedRecordDataTypes>
+        <variantRecordDataTypes>
+            <variantRecordData>
+                <name>UmbraOmittedVariantAlternativeType</name>
+                <discriminant>Kind</discriminant>
+                <dataType>HLAboolean</dataType>
+                <alternative>
+                    <enumerator>HLAtrue</enumerator>
+                    <name>UmbraOmittedAlternativeType</name>
+                </alternative>
+                <encoding>HLAvariantRecord</encoding>
+            </variantRecordData>
+        </variantRecordDataTypes>
+    </dataTypes>
+</objectModel>

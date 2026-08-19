@@ -44,7 +44,7 @@
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
-        "cpp/tests/object_instance_handle_catch2.cpp::The embedded ObjectInstanceHandle encoding is a round-trippable eight-byte identity"
+        "cpp/tests/object_instance_handle_catch2.cpp::The embedded ObjectInstanceHandle encoding is an HLAvariableArray-wrapped identity"
       ]
     },
     {

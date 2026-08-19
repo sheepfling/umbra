@@ -6,9 +6,9 @@
         <dimension>
             <name>UmbraInvalidDefaultDimension</name>
             <inputDataTypes>
-                <dataType>HLAinteger32BE</dataType>
+                <dataType>HLAcount</dataType>
             </inputDataTypes>
-            <inputDataDescription>Fixture coordinates expressed as integers.</inputDataDescription>
+            <inputDataDescription>NA</inputDataDescription>
             <upperBound>100</upperBound>
             <normalization>Fixture normalization.</normalization>
             <outputDataSemantics>Fixture normalized coordinate.</outputDataSemantics>

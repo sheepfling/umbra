@@ -30,25 +30,28 @@ selection, `rtiName()` returns the actual Java provider name.
 | Family | Java API factories | C++ basis | Required before Python binding |
 | --- | --- | --- | --- |
 | Encoding | `EncoderFactory`, `DataElementFactory` | No concrete encoder/data-element runtime yet | Implement all standard data elements, byte-wrapper rules, encode/decode behavior, and exceptions; then bind the complete factory family |
-| Handles and collections | Attribute, dimension, federate, interaction, object, parameter, region, transportation, and message-retraction handle factories; set/map/pair-list factories | Native C++ has private handle construction/decoding plus standard containers, but no Java-style factory interface | Bind immutable handle values and their encodings first; then implement the Java-shaped Python factories without exposing C++ private identities |
+| Handles and collections | Attribute, dimension, federate, interaction, object, parameter, region, and transportation handle factories; set/map/pair-list factories (Java exposes no public message-retraction factory) | Native C++ uses its provider-owned handle decoders and standard containers; Java exposes the standard handle/set/map factories | Implemented for all Java-declared handle decoders, federate/dimension/region/attribute sets, and attribute/parameter maps. Python returns immutable snapshots plus mutable factory builders; C++ transport handles use Umbra's private codec because the C++ RTIambassador has no transport decode service. Message-retraction decoding remains provider-owned. |
 | Logical time | `LogicalTimeFactoryFactory`, `HLAfloat64TimeFactory`, `HLAinteger64TimeFactory` | Both reference C++ time factories and values are implemented | Bind time/interval value semantics and encoding first; expose the factories only when the Python types can preserve their standard behavior. `RTIambassador.getTimeFactory` also depends on the current federation-management profile becoming package-safe |
-| Authorization | `AuthorizerFactory`, `AuthorizerFactoryFactory` | API headers exist; Umbra has no authorizer implementation | Implement the native authorization slice and its credentials/result values before binding |
+| Authorization | `AuthorizerFactory`, `AuthorizerFactoryFactory` | `HLAplainTextPassword`, the native reference `HLAauthorizer`/factory, and a static library-forwarding boundary exist; no RID-backed runtime selection or service lifecycle exists | Keep authorization factories and values unbound until native `HLAauthorizer` configuration, lifecycle, and service checks exist |
 
-The Java `RTIambassador` also declares handle/map factory accessors. Those are
-not C++ 2025 API methods: C++ uses value types and standard containers instead.
-The Python binding will provide Java-compatible accessors only after the
-corresponding Python values and factories exist.
+The Java `RTIambassador` declares handle/set/map factory accessors while C++
+uses value types and standard containers instead. The Python binding exposes
+the same Java-shaped accessors, but returns provider-neutral Python builders;
+native handle decoders still validate through Umbra's real C++ handle codecs.
 
 ## Dependency order
 
 1. Complete native encoding values and `EncoderFactory`.
 2. Bind encoded bytes, exceptions, and the shared Python data-element lifetime
    model.
-3. Bind handles and add the handle/set/map factory family.
+3. Bind handles and add the handle/set/map factory family. **Complete** for
+   the Java-declared factories; message-retraction remains an internal
+   provider boundary because Java has no corresponding public decoder.
 4. Bind reference logical time/interval values and factories.
 5. Bind `RTIambassador` factory accessors as the native service profile makes
    each one valid.
-6. Add authorization factories after native authorization exists.
+6. Add authorization factories after RID-backed native authorization runtime
+   selection and service lifecycle exist.
 7. Repeat the inventory for the independent `hla.rti1516e` C++ lane; no 2010
    provider is implied by the 2025 implementation.
 

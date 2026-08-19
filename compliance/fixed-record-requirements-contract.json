@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/encoding/HLAfixedRecord.h class. IEEE 1516.2 §4.14.10.1 requires fields to encode sequentially in declaration order, with the first field beginning at offset zero. It requires zero-valued padding after each nonfinal field as needed to align the following field, and explicitly forbids trailing padding after the final field. The Requirements Lab exports the immutable direct candidates below with broad clause-4 metadata even though the reconstructed source heading is §4.14.10.1; RL-054 records that provenance drift. The raw DataElement* pointer-taking operations are implemented as borrowed, non-owning references because the official header does not describe ownership transfer. That lifetime policy is an Umbra implementation safety choice, not a separate standards or conformance result. This does not establish generic arrays or variants, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-omt-fixed-record-declaration-order",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-080-l69-6",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_fixed_record.cpp",
+      "source_symbol": "HLAfixedRecord::encodeInto",
+      "related_source_symbols": [
+        "HLAfixedRecord::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAfixedRecord uses declaration order and zero padding for the next field"
+      ]
+    },
+    {
+      "id": "umbra-omt-fixed-record-inter-field-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-080-l73-7",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_fixed_record.cpp",
+      "source_symbol": "paddingAfter",
+      "related_source_symbols": [
+        "appendZeroPadding",
+        "requireZeroPadding",
+        "HLAfixedRecord::encodeInto",
+        "HLAfixedRecord::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAfixedRecord uses declaration order and zero padding for the next field"
+      ]
+    },
+    {
+      "id": "umbra-omt-fixed-record-no-trailing-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-081-l36-2",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_fixed_record.cpp",
+      "source_symbol": "HLAfixedRecord::getEncodedLength",
+      "related_source_symbols": [
+        "HLAfixedRecord::encodeInto"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAfixedRecord uses declaration order and zero padding for the next field"
+      ]
+    }
+  ]
+}

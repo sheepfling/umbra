@@ -1,11 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
 #include <array>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 
 #include <RTI/RTI1516.h>
 #include <RTI/NullFederateAmbassador.h>
+
+#include <umbra/embedded_profile_configuration.hpp>
 
 namespace {
 
@@ -14,11 +19,15 @@ using rti1516_2025::ConfigurationResult;
 using rti1516_2025::HLA_EVOKED;
 using rti1516_2025::HLA_IMMEDIATE;
 using rti1516_2025::HLAnoCredentials;
+using rti1516_2025::HLAplainTextPassword;
 using rti1516_2025::NullFederateAmbassador;
 using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
+using rti1516_2025::RTIinternalError;
 using rti1516_2025::RtiConfiguration;
+using rti1516_2025::SETTINGS_APPLIED;
 using rti1516_2025::SETTINGS_IGNORED;
+using rti1516_2025::Unauthorized;
 using rti1516_2025::VariableLengthData;
 
 using TestFederateAmbassador = NullFederateAmbassador;
@@ -26,6 +35,12 @@ using TestFederateAmbassador = NullFederateAmbassador;
 std::unique_ptr<RTIambassador> makeRti() {
   RTIambassadorFactory factory;
   return factory.createRTIambassador();
+}
+
+std::filesystem::path temporaryServiceReportDirectory() {
+  static std::atomic_uint64_t next{0};
+  return std::filesystem::temp_directory_path() /
+      ("umbra-service-report-configuration-" + std::to_string(++next));
 }
 
 void requireIgnoredConfiguration(ConfigurationResult const& result) {
@@ -92,6 +107,101 @@ TEST_CASE("RTIambassador Connect exposes all four official C++ overloads", "[int
     requireIgnoredConfiguration(rti->connect(federate, HLA_EVOKED, configuration, credentials));
     REQUIRE_NOTHROW(rti->disconnect());
   }
+}
+
+TEST_CASE(
+    "Embedded Connect rejects supplied credentials while authorization is disabled",
+    "[integration][connection][authorization][credentials]") {
+  TestFederateAmbassador federate;
+  HLAplainTextPassword password(L"test-password");
+  RtiConfiguration configuration = RtiConfiguration::createConfiguration()
+                                     .withConfigurationName(L"embedded")
+                                     .withRtiAddress(L"in-process");
+
+  SECTION("credentials overload") {
+    auto rti = makeRti();
+    REQUIRE_THROWS_AS(rti->connect(federate, HLA_EVOKED, password), Unauthorized);
+    REQUIRE_NOTHROW(rti->connect(federate, HLA_EVOKED));
+    REQUIRE_NOTHROW(rti->disconnect());
+  }
+
+  SECTION("configuration and credentials overload") {
+    auto rti = makeRti();
+    REQUIRE_THROWS_AS(
+        rti->connect(federate, HLA_EVOKED, configuration, password),
+        Unauthorized);
+    REQUIRE_NOTHROW(rti->connect(federate, HLA_EVOKED));
+    REQUIRE_NOTHROW(rti->disconnect());
+  }
+}
+
+TEST_CASE("Embedded Connect accepts only its filesystem service-report directory setting", "[integration][connection][mom]") {
+  TestFederateAmbassador federate;
+  auto const directory = temporaryServiceReportDirectory();
+  RtiConfiguration configuration = RtiConfiguration::createConfiguration()
+                                     .withAdditionalSettings(
+                                         L"serviceReportDirectory=" + directory.wstring());
+  auto rti = makeRti();
+
+  auto const result = rti->connect(federate, HLA_EVOKED, configuration);
+  REQUIRE(result.configurationUsed);
+  REQUIRE_FALSE(result.addressUsed);
+  REQUIRE(result.additionalSettingsResult == SETTINGS_APPLIED);
+  REQUIRE(std::filesystem::is_directory(directory));
+  REQUIRE_NOTHROW(rti->disconnect());
+
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Umbra embedded profile configuration exposes a typed service-report directory",
+    "[integration][connection][mom][service-report-store][configuration]") {
+  auto const directory = temporaryServiceReportDirectory();
+  auto configuration = umbra::embedded::makeEmbeddedRtiConfiguration(
+      umbra::embedded::ServiceReportConfiguration{directory});
+  configuration.withConfigurationName(L"typed-service-report")
+      .withRtiAddress(L"in-process");
+
+  REQUIRE(configuration.additionalSettings() ==
+          L"serviceReportDirectory=" + directory.wstring());
+  REQUIRE(configuration.configurationName() == L"typed-service-report");
+  REQUIRE(configuration.rtiAddress() == L"in-process");
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto const result = rti->connect(federate, HLA_EVOKED, configuration);
+  REQUIRE(result.configurationUsed);
+  REQUIRE_FALSE(result.addressUsed);
+  REQUIRE(result.additionalSettingsResult == SETTINGS_APPLIED);
+  REQUIRE(std::filesystem::is_directory(directory));
+  REQUIRE_NOTHROW(rti->disconnect());
+
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE("Embedded Connect fails deterministically for an unusable service-report directory", "[integration][connection][mom]") {
+  TestFederateAmbassador federate;
+  auto const parent = temporaryServiceReportDirectory();
+  std::filesystem::create_directories(parent);
+  auto const regularFile = parent / "not-a-directory";
+  std::ofstream output(regularFile, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output.close();
+
+  RtiConfiguration configuration = RtiConfiguration::createConfiguration()
+                                     .withAdditionalSettings(
+                                         L"serviceReportDirectory=" + regularFile.wstring());
+  auto rti = makeRti();
+  REQUIRE_THROWS_AS(rti->connect(federate, HLA_EVOKED, configuration), RTIinternalError);
+  // A rejected configuration is not a partial connection and never falls
+  // back to the in-memory test store.
+  REQUIRE_NOTHROW(rti->connect(federate, HLA_EVOKED));
+  REQUIRE_NOTHROW(rti->disconnect());
+
+  std::error_code ignored;
+  std::filesystem::remove_all(parent, ignored);
 }
 
 TEST_CASE("RTIambassador Connect rejects unsupported callback models without connecting", "[integration][connection]") {

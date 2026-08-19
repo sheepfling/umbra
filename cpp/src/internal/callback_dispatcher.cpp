@@ -1,30 +1,45 @@
 #include "internal/callback_dispatcher.hpp"
 
 #include <algorithm>
+#include <optional>
 #include <utility>
 
 namespace umbra::detail {
 namespace {
 
 thread_local std::size_t callbackExecutionDepth = 0;
+thread_local std::optional<CallbackDispatchModel> callbackDispatchModel;
 
 class CallbackExecutionScope final {
  public:
-  CallbackExecutionScope() {
+  explicit CallbackExecutionScope(CallbackDispatchModel dispatchModel)
+      : previousModel_(callbackDispatchModel) {
     ++callbackExecutionDepth;
+    callbackDispatchModel = dispatchModel;
   }
 
   ~CallbackExecutionScope() {
     --callbackExecutionDepth;
+    callbackDispatchModel = previousModel_;
   }
+
+ private:
+  std::optional<CallbackDispatchModel> previousModel_;
 };
 
 }  // namespace
 
-CallbackDispatcher::CallbackDispatcher(CallbackDispatchModel model) : model_(model) {}
+std::optional<CallbackDispatchModel> currentCallbackDispatchModel() noexcept {
+  return callbackDispatchModel;
+}
+
+CallbackDispatcher::CallbackDispatcher(
+    CallbackDispatchModel model,
+    std::shared_ptr<RuntimeInstrumentation> instrumentation)
+    : model_(model), instrumentation_(std::move(instrumentation)) {}
 
 void CallbackDispatcher::configure(CallbackDispatchModel model) {
-  std::deque<CallbackTask> immediateTasks;
+  std::deque<QueuedCallback> immediateTasks;
   {
     std::scoped_lock lock(mutex_);
     model_ = model;
@@ -34,8 +49,8 @@ void CallbackDispatcher::configure(CallbackDispatchModel model) {
   }
   callbackAvailable_.notify_all();
 
-  for (CallbackTask& callback : immediateTasks) {
-    invoke(std::move(callback));
+  for (QueuedCallback& callback : immediateTasks) {
+    invoke(std::move(callback), CallbackDispatchModel::immediate);
   }
 }
 
@@ -49,7 +64,7 @@ void CallbackDispatcher::reset() {
 }
 
 void CallbackDispatcher::setEnabled(bool enabled) {
-  std::deque<CallbackTask> immediateTasks;
+  std::deque<QueuedCallback> immediateTasks;
   {
     std::scoped_lock lock(mutex_);
     enabled_ = enabled;
@@ -59,8 +74,8 @@ void CallbackDispatcher::setEnabled(bool enabled) {
   }
   callbackAvailable_.notify_all();
 
-  for (CallbackTask& callback : immediateTasks) {
-    invoke(std::move(callback));
+  for (QueuedCallback& callback : immediateTasks) {
+    invoke(std::move(callback), CallbackDispatchModel::immediate);
   }
 }
 
@@ -83,25 +98,30 @@ void CallbackDispatcher::submit(CallbackTask callback) {
     return;
   }
 
-  CallbackTask immediateTask;
+  auto submitScope = instrumentation_
+      ? instrumentation_->begin(
+            InstrumentationLayer::callback_dispatch,
+            "submit")
+      : RuntimeInstrumentation::Scope{};
+  QueuedCallback immediateTask;
   {
     std::scoped_lock lock(mutex_);
-    pending_.push_back(std::move(callback));
+    pending_.push_back({std::move(callback), RuntimeInstrumentation::Clock::now()});
     if (model_ == CallbackDispatchModel::immediate && enabled_) {
       immediateTask = takeNextLocked();
     }
   }
   callbackAvailable_.notify_one();
 
-  if (immediateTask) {
-    invoke(std::move(immediateTask));
+  if (immediateTask.callback) {
+    invoke(std::move(immediateTask), CallbackDispatchModel::immediate);
   }
 }
 
 bool CallbackDispatcher::evokeOne(std::chrono::milliseconds minimumWait) {
   minimumWait = nonNegative(minimumWait);
 
-  CallbackTask callback;
+  QueuedCallback callback;
   {
     std::unique_lock lock(mutex_);
     if (model_ != CallbackDispatchModel::evoked) {
@@ -122,7 +142,7 @@ bool CallbackDispatcher::evokeOne(std::chrono::milliseconds minimumWait) {
     callback = takeNextLocked();
   }
 
-  invoke(std::move(callback));
+  invoke(std::move(callback), CallbackDispatchModel::evoked);
 
   std::scoped_lock lock(mutex_);
   return !pending_.empty();
@@ -161,9 +181,9 @@ bool CallbackDispatcher::evokeMultiple(
       continue;
     }
 
-    CallbackTask callback = takeNextLocked();
+    QueuedCallback callback = takeNextLocked();
     lock.unlock();
-    invoke(std::move(callback));
+    invoke(std::move(callback), CallbackDispatchModel::evoked);
     lock.lock();
 
     if (std::chrono::steady_clock::now() >= maximumDeadline) {
@@ -176,18 +196,38 @@ std::chrono::milliseconds CallbackDispatcher::nonNegative(std::chrono::milliseco
   return std::max(value, std::chrono::milliseconds::zero());
 }
 
-void CallbackDispatcher::invoke(CallbackTask callback) {
-  CallbackExecutionScope scope;
-  callback();
+void CallbackDispatcher::invoke(
+    QueuedCallback callback,
+    CallbackDispatchModel dispatchModel) {
+  CallbackExecutionScope scope(dispatchModel);
+  auto const queueDelayName = dispatchModel == CallbackDispatchModel::immediate
+      ? "queue_delay.immediate"
+      : "queue_delay.evoked";
+  auto const executeName = dispatchModel == CallbackDispatchModel::immediate
+      ? "execute.immediate"
+      : "execute.evoked";
+  auto queueDelayScope = instrumentation_
+      ? instrumentation_->beginAt(
+            InstrumentationLayer::callback_dispatch,
+            queueDelayName,
+            callback.submittedAt)
+      : RuntimeInstrumentation::Scope{};
+  queueDelayScope.complete();
+  auto executionScope = instrumentation_
+      ? instrumentation_->begin(
+            InstrumentationLayer::callback_dispatch,
+            executeName)
+      : RuntimeInstrumentation::Scope{};
+  callback.callback();
 }
 
-CallbackDispatcher::CallbackTask CallbackDispatcher::takeNextLocked() {
-  CallbackTask callback = std::move(pending_.front());
+CallbackDispatcher::QueuedCallback CallbackDispatcher::takeNextLocked() {
+  QueuedCallback callback = std::move(pending_.front());
   pending_.pop_front();
   return callback;
 }
 
-std::deque<CallbackDispatcher::CallbackTask> CallbackDispatcher::takeAllLocked() {
+std::deque<CallbackDispatcher::QueuedCallback> CallbackDispatcher::takeAllLocked() {
   return std::exchange(pending_, {});
 }
 

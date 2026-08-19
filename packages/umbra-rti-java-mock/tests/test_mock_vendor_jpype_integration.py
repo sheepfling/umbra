@@ -12,11 +12,14 @@ from hla.rti1516_2025 import (
     FederateAmbassador,
     FederationExecutionInformation,
     FederationExecutionInformationSet,
+    FederationExecutionMemberInformationSet,
+    ResignAction,
 )
 from hla.rti1516_2025.exceptions import AlreadyConnected
 from hla.rti1516_2025.testing import (
     ConnectionFoundationConformanceMixin,
     FederationExecutionDiscoveryConformanceMixin,
+    FederationExecutionMemberDiscoveryConformanceMixin,
     ConnectionOverloadConformanceMixin,
 )
 from umbra._java.mock_rti1516_2025 import MockJavaRtiFactory
@@ -50,6 +53,10 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def __init__(self) -> None:
         self.connection_losses: list[str] = []
         self.federation_execution_reports: list[FederationExecutionInformationSet] = []
+        self.federation_execution_member_reports: list[
+            tuple[str, FederationExecutionMemberInformationSet]
+        ] = []
+        self.missing_federation_executions: list[str] = []
 
     def connectionLost(self, faultDescription: str) -> None:
         self.connection_losses.append(faultDescription)
@@ -57,12 +64,23 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def reportFederationExecutions(self, report: FederationExecutionInformationSet) -> None:
         self.federation_execution_reports.append(report)
 
+    def reportFederationExecutionMembers(
+        self,
+        federationExecutionName: str,
+        report: FederationExecutionMemberInformationSet,
+    ) -> None:
+        self.federation_execution_member_reports.append((federationExecutionName, report))
+
+    def reportFederationExecutionDoesNotExist(self, federationExecutionName: str) -> None:
+        self.missing_federation_executions.append(federationExecutionName)
+
 
 @unittest.skipUnless(JPYPE_AVAILABLE and _java_toolchain_available(), "requires JPype and a JDK")
 class MockVendorJPypeIntegrationTest(
     ConnectionFoundationConformanceMixin,
     ConnectionOverloadConformanceMixin,
     FederationExecutionDiscoveryConformanceMixin,
+    FederationExecutionMemberDiscoveryConformanceMixin,
     unittest.TestCase,
 ):
     @classmethod
@@ -104,6 +122,20 @@ class MockVendorJPypeIntegrationTest(
             callbacks.federation_execution_reports[-1],
         )
         ambassador.destroyFederationExecution("Vendor adapter federation")
+
+        ambassador.listFederationExecutionMembers("Umbra Mock Federation")
+        self.assertTrue(ambassador.evokeCallback(0.0))
+        self.assertEqual(
+            callbacks.federation_execution_member_reports,
+            [("Umbra Mock Federation", FederationExecutionMemberInformationSet())],
+        )
+        ambassador.listFederationExecutionMembers("Missing vendor federation")
+        self.assertTrue(ambassador.evokeCallback(0.0))
+        self.assertEqual(callbacks.missing_federation_executions, ["Missing vendor federation"])
+
+        handle = ambassador.joinFederationExecution("observer", "Umbra Mock Federation")
+        self.assertEqual(handle.encodedValue, b"Umbra Mock Federation:observer:observer")
+        ambassador.resignFederationExecution(ResignAction.NO_ACTION)
 
         with self.assertRaises(AlreadyConnected):
             ambassador.connect(callbacks, CallbackModel.HLA_EVOKED)

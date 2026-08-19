@@ -7,10 +7,12 @@ namespace umbra::detail {
 EmbeddedTransportConnection::EmbeddedTransportConnection(
     void* owner,
     FailureHandler failureHandler,
-    ForcedResignationHandler forcedResignationHandler)
+    ForcedResignationHandler forcedResignationHandler,
+    std::shared_ptr<RuntimeInstrumentation> instrumentation)
     : owner_(owner),
       failureHandler_(std::move(failureHandler)),
-      forcedResignationHandler_(std::move(forcedResignationHandler)) {}
+      forcedResignationHandler_(std::move(forcedResignationHandler)),
+      instrumentation_(std::move(instrumentation)) {}
 
 EmbeddedTransportConnection::~EmbeddedTransportConnection() {
   close();
@@ -24,10 +26,14 @@ void EmbeddedTransportConnection::close() noexcept {
 }
 
 void EmbeddedTransportConnection::fail(std::wstring faultDescription) {
+  auto instrumentationScope = instrumentation_
+      ? instrumentation_->begin(InstrumentationLayer::transport, "fault")
+      : RuntimeInstrumentation::Scope{};
   FailureHandler failureHandler;
   {
     std::scoped_lock lock(mutex_);
     if (!open_) {
+      instrumentationScope.complete(InstrumentationOutcome::failure);
       return;
     }
     open_ = false;
@@ -38,15 +44,23 @@ void EmbeddedTransportConnection::fail(std::wstring faultDescription) {
 
   if (failureHandler) {
     failureHandler(std::move(faultDescription));
+  } else {
+    instrumentationScope.complete(InstrumentationOutcome::failure);
   }
 }
 
 bool EmbeddedTransportConnection::forceFederateResignation(
     std::wstring reasonForResign) {
+  auto instrumentationScope = instrumentation_
+      ? instrumentation_->begin(
+            InstrumentationLayer::transport,
+            "forced_resignation")
+      : RuntimeInstrumentation::Scope{};
   ForcedResignationHandler forcedResignationHandler;
   {
     std::scoped_lock lock(mutex_);
     if (!open_) {
+      instrumentationScope.complete(InstrumentationOutcome::failure);
       return false;
     }
     // Do not consume this handler: the same live connection may join a later
@@ -54,9 +68,15 @@ bool EmbeddedTransportConnection::forceFederateResignation(
     forcedResignationHandler = forcedResignationHandler_;
   }
 
-  return forcedResignationHandler
-      ? forcedResignationHandler(std::move(reasonForResign))
-      : false;
+  if (!forcedResignationHandler) {
+    instrumentationScope.complete(InstrumentationOutcome::failure);
+    return false;
+  }
+  auto const result = forcedResignationHandler(std::move(reasonForResign));
+  if (!result) {
+    instrumentationScope.complete(InstrumentationOutcome::failure);
+  }
+  return result;
 }
 
 bool EmbeddedTransportConnection::open() const noexcept {
@@ -72,11 +92,13 @@ void* EmbeddedTransportConnection::owner() const noexcept {
 std::shared_ptr<EmbeddedTransportConnection> EmbeddedTransportHub::connect(
     void* owner,
     EmbeddedTransportConnection::FailureHandler failureHandler,
-    EmbeddedTransportConnection::ForcedResignationHandler forcedResignationHandler) {
+    EmbeddedTransportConnection::ForcedResignationHandler forcedResignationHandler,
+    std::shared_ptr<RuntimeInstrumentation> instrumentation) {
   auto connection = std::make_shared<EmbeddedTransportConnection>(
       owner,
       std::move(failureHandler),
-      std::move(forcedResignationHandler));
+      std::move(forcedResignationHandler),
+      std::move(instrumentation));
   std::weak_ptr<EmbeddedTransportConnection> previous;
   {
     std::scoped_lock lock(mutex_);

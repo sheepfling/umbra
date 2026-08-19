@@ -10,6 +10,12 @@
 - [x] Generate and check the 244-member abstract binding inventory.
 - [x] Record a small Requirements-Lab API baseline for Connect, Join, Resign,
       Disconnect, Connection Lost, and Federate Resigned.
+- [x] Account for all 181 official C++ `RTIambassador` API surfaces in the
+      Catch2 plan, with individual Requirements-Lab API contracts where the
+      source supports a bounded implementation slice. This is declaration and
+      test-plan traceability only: it neither resolves the Lab's aggregate
+      Connect mapping ambiguity nor establishes complete behavior, review,
+      package, interoperability, or conformance evidence.
 - [x] Wire Catch2 and the Requirements-Lab sidecar workflow without creating
       premature implementation evidence.
 
@@ -24,6 +30,128 @@ Umbra-owned replacement public API.
       override inventories from the official headers.
 - [x] Implement the standard factory, rtiName, and rtiVersion entry points
       with a generated fallback that explicitly rejects unimplemented services.
+- [x] Extend the official C++ BasicDataElements implementation with the
+      bounded 1516.2 Table 29 integer/pair family:
+      HLAinteger16BE/LE, HLAunsignedInteger16BE/LE, HLAoctetPairBE/LE,
+      HLAinteger32LE, HLAunsignedInteger32LE, HLAinteger64BE/LE, and
+      HLAunsignedInteger64BE/LE. Catch2 pins signed two's-complement and
+      unsigned endian vectors, pair ordering, two-, four-, and eight-octet
+      boundaries, round trips, and malformed input. This remains a header/SDK
+      foundation rather than complete basic-element support, adapter exposure,
+      interoperability, or conformance; RL-053 records the Requirements Lab's
+      table-row evidence boundary.
+- [x] Add the raw-octet and ASCII helper slice from the official
+      `RTI/encoding/BasicDataElements.h`: `HLAoctet`, `HLAbyte`,
+      `HLAASCIIchar`, and `HLAASCIIstring`. Catch2 fixes one-octet raw-byte
+      preservation, ASCII rejection, the signed `HLAinteger32BE` element
+      count, and malformed input. The 1516.2 BasicDataElements contract is now
+      also an independent CTest Requirements-Lab check. This remains bounded
+      SDK foundation work, not generic constructed encoding, adapter,
+      interoperability, or conformance evidence.
+- [x] Add all four official IEEE-754 basic helpers: `HLAfloat32BE/LE` and
+      `HLAfloat64BE/LE`. The implementation has an explicit 32-bit/64-bit
+      IEC 559 platform requirement—consistent with the existing reference-time
+      implementation—and converts the representation bits before applying the
+      standard endian order. Catch2 fixes exact byte vectors, boundaries,
+      round trips, and truncation behavior. This is still bounded SDK
+      foundation work, not generic encoding, adapter, interoperability, or
+      conformance evidence.
+- [x] Complete the `RTI/encoding/BasicDataElements.h` helper catalog with
+      `HLAunicodeChar` as exactly one UTF-16BE code unit. The implementation
+      preserves a surrogate code unit, rejects a directly representable
+      supplementary scalar, and fixes source-side unpaired-surrogate rejection
+      in `HLAunicodeString` to match decode behavior. Direct helper definitions
+      and source-derived Catch2 vectors are complete; generic constructed
+      encoding, adapter exposure, interoperability, review/package evidence,
+      and conformance remain open.
+- [x] Implement the separate official `RTI/encoding/HLAopaqueData.h` C++
+      helper. Its 1516.2 Table 35 representation is a dynamic
+      `HLAvariableArray` of `HLAbyte`, so Catch2 fixes the signed
+      `HLAinteger32BE` element count, raw byte payload, four-octet boundary,
+      nested decode, and malformed-input behavior. The official external
+      storage surface remains caller-owned borrowed memory: encoding observes
+      caller changes and `set`/`decode` write within the declared capacity;
+      insufficient capacity raises a deterministic error rather than
+      reallocating, assuming ownership, or silently detaching. This is a
+      bounded SDK foundation with separate 1516.1/1516.2 traceability, not
+      generic constructed encoding, adapter exposure, interoperability, or
+      conformance evidence.
+- [x] Implement the official `RTI/encoding/HLAfixedRecord.h` C++ helper.
+      Fields encode in declaration order starting at offset zero, with zero
+      padding only between fields as required by the following field's octet
+      boundary and no final padding. Catch2 covers the 1516.2 source example,
+      reverse order, nesting, malformed padding, structural type checks,
+      cloning, and the explicit non-owning raw-pointer policy. This is a
+      bounded constructed-data foundation with direct 1516.2 traceability;
+      generic arrays or variants, adapters, interoperability, and conformance
+      remain open. RL-054 records the Requirements Lab provenance drift.
+- [x] Implement the official `RTI/encoding/HLAfixedArray.h` C++ helper.
+      Fixed cardinality, declaration-order elements at offset zero, zero
+      inter-element padding at the prototype boundary, and no final padding
+      follow §4.14.10.4 directly. Catch2 exercises fixed-record elements,
+      nesting, malformed padding, templated wrappers, prototype cloning,
+      type checks, and the header-documented caller-owned raw-pointer
+      lifetime. This remains a bounded constructed-data foundation: FOM-level
+      materialization, adapters, interoperability, and conformance remain open.
+      RL-054 captures the source-candidate boundary.
+- [x] Implement the official `RTI/encoding/HLAvariableArray.h` C++ helper.
+      A signed `HLAinteger32BE` element count begins at offset zero; leading
+      zero padding aligns the first element using the maximum of four and its
+      octet boundary, while subsequent padding follows the fixed-array rule
+      without a final pad. Catch2 fixes the §4.14.10.5 float64 vector and
+      covers fixed-record elements, malformed count/padding data, cardinality
+      changes during decode, templated wrappers, type checks, and the
+      header-documented caller-owned raw-pointer lifetime. This remains a
+      bounded constructed-data foundation: FOM-level materialization, adapters,
+      interoperability, and conformance remain open. RL-044 captures the
+      source-candidate boundary.
+- [x] Implement the official `RTI/encoding/HLAvariantRecord.h` C++ helper.
+      The discriminant begins at offset zero. A mapped alternative follows
+      zero padding chosen from the maximum octet boundary of all alternatives;
+      an unmapped discriminant has no following padding or value, and no
+      padding follows a mapped alternative. Catch2 covers the max-boundary
+      vector, malformed input, unmapped decoding, type/mapping controls,
+      cloning, templated wrappers, and the header-documented borrowed
+      raw-pointer lifetime. This remains a bounded constructed-data
+      foundation: FOM-level enumerator-range/HLAother expansion, model-specific
+      factories, adapters, interoperability, and conformance remain open.
+      RL-054 records the source-candidate boundary.
+- [x] Implement the official `RTI/encoding/HLAextendableVariantRecord.h` C++
+      helper. It writes a discriminant at offset zero, zero padding to the
+      four-octet `HLAinteger32BE` encoded-length field, and then zero padding
+      to its predefined eight-octet alternative boundary. The encoded length
+      excludes the latter padding and allows an unmapped alternative to be
+      skipped. Catch2 fixes exact mapped, unmapped, nested, malformed, and
+      max-boundary vectors; it also covers mapping/type checks, clones,
+      templated wrappers, and the header-documented caller-owned raw-pointer
+      lifetime. This remains a bounded constructed-data foundation: FOM-level
+      enumerator-range/HLAother expansion, model-specific factories, adapters,
+      interoperability, and conformance remain open. RL-054 records the
+      source-candidate boundary.
+- [x] Implement the official `RTI/encoding/HLAlogicalTime.h` and
+      `HLAlogicalTimeInterval.h` helpers. They delegate opaque bytes, initial
+      or zero values, and value copies to the selected `LogicalTimeFactory`;
+      Umbra deliberately defines no bespoke logical-time wire form. Catch2
+      covers both required reference factories, exact vectors, nested decode,
+      mismatch and malformed input, and clones. `decodeFrom` is intentionally
+      bounded to the current fixed-width reference profile because the factory
+      API does not return a decoded byte count. Custom variable-width time
+      providers, public service evidence, adapters, interoperability, and
+      conformance remain open. RL-055 records the Lab provenance drift.
+- [x] Implement the official `RTI/auth/HLAplainTextPassword.h` credential
+      value with the exact `HLAunicodeString` representation, including
+      malformed UTF-16/length rejection, plus the native reference
+      `HLAauthorizer`, its factory, and the separate static
+      `AuthorizerFactoryFactory` forwarding boundary. The private test seam
+      verifies global-password matching without exposing a password in public
+      settings. The currently unconfigured embedded authorization profile
+      accepts the standard empty `HLAnoCredentials` form but rejects other
+      supplied credentials with `Unauthorized` rather than silently accepting
+      them; it does not invoke the reference authorizer. Secure RID
+      configuration, runtime selection/lifecycle, Create/Destroy/Join checks,
+      custom library loading, adapters, and conformance remain a later
+      coordinated slice. RL-056 records the Lab provenance drift and RL-057
+      the source/header factory-method spelling discrepancy.
 - [x] Implement the private top-level federate lifecycle projection from the
       Requirements Lab, then bind its Connect and Disconnect transitions to the
       official C++ API.
@@ -273,10 +401,11 @@ Umbra-owned replacement public API.
       profile. Per-federate values are independent; static federation-wide
       values are captured at creation. The exact MOM report-service
       subscription/switch interlock is also covered for ordinary and regional
-      subscriptions. This has Requirements-Lab contracts and Catch2 coverage,
-      but connection-loss execution, MOM report emission/file behavior,
-      broader relaxed-DDM behavior, the remaining delayed-subscription matrix,
-      package evidence, and conformance remain open. RL-024 records the
+      subscriptions. This has Requirements-Lab contracts and Catch2 coverage;
+      the bounded embedded Connection Lost path exercises directives 1 through
+      5, while `NO_ACTION` forced-resign policy, MOM report emission/file
+      behavior, broader relaxed-DDM behavior, package evidence, and conformance
+      remain open. RL-024 records the
       unresolved Lab/XSD automatic-resign default discrepancy.
 - [x] Implement an explicit, bounded Allow Relaxed DDM policy at the shared
       committed-region overlap predicate. With the static federation switch
@@ -299,7 +428,9 @@ Umbra-owned replacement public API.
       establish object discovery to isolate declaration timing. Regional sends,
       explicit update-region attribute passels, directed interactions, complete
       callback-mode/lifecycle/retraction matrices, relaxed DDM, packaging, and
-      conformance remain separate. RL-018 logs the Requirements Lab metadata
+      conformance remain separate in this embedded Catch2 profile; the Python
+      native and Java-provider paths now exercise the explicit regional
+      interaction/update callback-boundary cases. RL-018 logs the Requirements Lab metadata
       mismatch for the source §8.1.8 candidates.
 - [x] Apply the recipient's Convey Region Designator Sets switch at the
       callback boundary for the bounded regional reflection and interaction
@@ -483,6 +614,129 @@ Umbra-owned replacement public API.
       The MIM/Restaurant `HLAboolean` compatibility interpretation remains
       recorded as RL-009; this slice has a paired 1516.2 Requirements-Lab
       contract and Catch2 coverage, but is not FOM conformance evidence.
+- [x] Enforce the 2025 object-attribute and interaction-parameter data-type
+      category rule in the private composition preflight. Both columns now
+      reject a raw basic-data representation after complete-model resolution,
+      while `HLAtoken` remains valid through its official array-data
+      declaration. The generic resolver recognizes the complete schema key;
+      each table-specific predicate determines the valid declaration family.
+      The paired 1516.2 Requirements-Lab contract and Catch2 case are
+      traceability only; the paired attribute-`NA` companion predicate and
+      remaining table constraints remain separately scoped.
+- [x] Enforce the bounded 2025 attribute-`NA` direct companion rule in the
+      private composition preflight. For an attribute whose data type is `NA`,
+      supplied transportation/order values must be non-`NA`, while supplied
+      update type/update condition values must be `NA`. A partial DIF attribute
+      can be completed by a later compatible module before FDD materialization;
+      it does not receive invented values. The DIF schema has no per-attribute
+      available-dimensions field, so Umbra does not turn that source phrase
+      into a class-wide restriction (RL-051). The paired 1516.2 Requirements-
+      Lab contract and Catch2 case are traceability only; the separate
+      `Static`/Update Condition tension, remaining table constraints, and
+      conformance remain open.
+- [x] Enforce the bounded 2025 attribute `sharing=Neither` / Value Required
+      companion rule in the private composition preflight. A supplied Value
+      Required field must be `false`; an omitted field remains representable in
+      a partial DIF row. The paired 1516.2 Requirements-Lab contract and
+      Catch2 case are traceability only; the rule does not infer defaults,
+      FOM/SOM declaration state, runtime behavior, or conformance. RL-052
+      records the source candidate's broad `clause-4` provenance.
+- [x] Enforce the bounded 2025 dynamic-attribute Update Condition predicate in
+      the private composition preflight. A supplied condition for a
+      Conditional or Periodic update type must be nonempty and non-NA; an
+      omitted condition remains representable in a partial DIF row. This does
+      not parse periodic-rate grammar or initial-condition prose. The paired
+      1516.2 Requirements-Lab contract and Catch2 case are traceability only.
+      The separate Static/NA direction remains deferred under RL-046 because
+      supplied official 2025 material uses Static with On change.
+- [x] Enforce the 2025 standard root-hierarchy rule in the private composition
+      preflight. A completed object or interaction table must be rooted by
+      `HLAobjectRoot` or `HLAinteractionRoot`; omitted tables remain valid for
+      incomplete DIF modules. The paired 1516.2 Requirements-Lab contract and
+      Catch2 case are traceability only. The separate Static/NA direction is
+      logged as RL-046 and is intentionally not enforced through a homegrown
+      rejection rule.
+- [x] Enforce the 2025 enumerated-data representation rule in the private
+      composition preflight. A supplied enumerated representation must resolve
+      to a basic-data declaration, while an omitted DIF field remains
+      representable. The paired 1516.2 Requirements-Lab contract and Catch2
+      case are traceability only; the distinct simple-data interpretation
+      remains deferred under RL-009.
+- [x] Enforce the 2025 array-data Element Type category rule in the private
+      composition preflight. A supplied element type must resolve to a simple,
+      enumerated, reference, fixed-record, array, or variant-record declaration;
+      raw basic-data representations fail after complete-model resolution.
+      Omitted Element Type remains representable for incomplete DIF rows. The
+      paired 1516.2 Requirements-Lab contract and Catch2 case are traceability
+      only; remaining data-type/table constraints remain open.
+- [x] Enforce the 2025 fixed-record Field Type and variant-record Alternative
+      Type category rules in the private composition preflight. Supplied member
+      types must resolve to a simple, enumerated, reference, fixed-record,
+      array, or variant-record declaration; raw basic-data representations fail
+      after complete-model resolution, while omitted member types remain
+      representable for incomplete DIF rows. The paired 1516.2 Requirements-Lab
+      contract and Catch2 case are traceability only; RL-047 records that the
+      exact source candidates currently export broad `clause-4` provenance.
+- [x] Enforce the 2025 variant-record Discriminant Type category rule in the
+      private composition preflight. A supplied discriminant type must resolve
+      specifically to an enumerated-data declaration; raw basic-data
+      representations, other declaration families, and `NA` fail after
+      complete-model resolution. An omitted field remains representable for an
+      incomplete DIF row. The paired 1516.2 Requirements-Lab contract and
+      Catch2 case are traceability only; companion enumerator slices cover
+      membership and range semantics, while broader encoding/conformance work
+      remains deferred.
+- [x] Enforce the 2025 variant-record Discriminant Enumerator lexical rules in
+      the private composition preflight. Supplied fields use comma-separated
+      enumerators or bracketed two-endpoint ranges; `HLAother` is standalone
+      and can occur only once per record. Omitted fields remain representable
+      for incomplete DIF rows. The paired 1516.2 Requirements-Lab contract and
+      Catch2 case are traceability only; companion slices cover membership and
+      range semantics, while broader encoding/conformance work remains
+      deferred.
+- [x] Enforce the 2025 variant-record Discriminant Enumerator membership
+      boundary in the private composition preflight. Each supplied individual
+      enumerator and range endpoint must be declared by the selected
+      enumerated-data type after the complete module set merges. An
+      enumeration with no supplied members remains representable as incomplete
+      DIF. The paired 1516.2 Requirements-Lab contract and Catch2 case are
+      traceability only; RL-049 records the source candidate's broad
+      `clause-4` provenance, while the companion range-semantics slice covers
+      table-order expansion, overlap, and `HLAother` complement behavior.
+- [x] Enforce bounded 2025 variant-record Discriminant Enumerator range
+      semantics in the private composition preflight. Enumerator-table source
+      declaration order is retained; bracketed ranges expand over the inclusive
+      table span, and a member cannot be assigned through direct/range entries
+      to more than one named alternative after composition. `HLAother` is
+      represented as the complement of explicit members, while a selected
+      enumeration with no declared members remains incomplete DIF. The paired
+      1516.2 Requirements-Lab contract and Catch2 case are traceability only;
+      RL-049 and RL-050 record the candidate provenance limits. Complete Annex
+      C merge, runtime encoding, and conformance remain open.
+- [x] Enforce the 2025 Dimension-table Input data type category rule in the
+      private composition preflight. Each supplied input type must resolve to a
+      simple, enumerated, reference, fixed-record, array, or variant-record
+      declaration; raw basic-data representations fail after complete-model
+      resolution, while `NA` remains valid. Suitable-type selection and the
+      semantic judgment of input-description text remain separately scoped.
+      The paired 1516.2 Requirements-Lab contract and Catch2 case are
+      traceability only; RL-048 records the candidate's broad `clause-4`
+      provenance.
+- [x] Enforce the bounded 2025 Dimension-table Input data type `NA`-marker
+      exclusivity rule in the private composition preflight. The no-suitable-
+      type `NA` marker cannot coexist with a supplied named input type in one
+      DIF `inputDataTypes` sequence. The paired 1516.2 Requirements-Lab
+      contract and Catch2 case are traceability only; suitability, cardinality,
+      duplicate names, description unambiguity, and complete Annex C merge
+      remain open.
+- [x] Enforce the bounded 2025 Dimension-table no-named-input description rule
+      in the private composition preflight. An empty DIF `inputDataTypes` list
+      (or the retained explicit `NA` marker) requires non-`NA` Input data type
+      description text. Named inputs retain both official Restaurant forms:
+      `NA` when no amplifying text is needed and textual amplification when it
+      is useful. The paired 1516.2 Requirements-Lab contract and Catch2 case
+      are traceability only; suitable-type selection and whether a description
+      is unambiguous remain open.
 - [x] Enforce the 2025 strictly positive supplied update-rate table constraint
       in the private composition preflight. Incomplete DIF rows remain
       representable, while supplied zero/non-positive values fail with explicit
@@ -524,10 +778,19 @@ Umbra-owned replacement public API.
        endpoint. A one-shot fault applies the member's Automatic Resign
        Directive through forced registry cleanup, transitions the ambassador to
        Not Connected, queues the official callback, and permits a fresh
-       Connect. The bounded multi-federate case sets `DELETE_OBJECTS` through
-       the official support service and proves delete-privileged removal.
-       Remote transport, the remaining directive combinations, package support,
-       protected review, and conformance remain open.
+       Connect. Bounded multi-federate cases set `DELETE_OBJECTS`,
+       `UNCONDITIONALLY_DIVEST_ATTRIBUTES`, and `DELETE_OBJECTS_THEN_DIVEST`
+       through the official support service, proving delete-privileged removal,
+       current eligible ownership-assumption delivery, and the combined
+       delete-before-divest path respectively. A fourth case sets
+       `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, suppresses a stale queued owner
+       release request after loss, and proves a current surviving candidate can
+       receive the later assumption offer. A fifth case sets
+       `CANCEL_THEN_DELETE_THEN_DIVEST` and proves all three mandated stages:
+       stale acquisition cleanup, known delete-privileged object removal, and
+       retained-attribute re-offer. Remote transport, the bounded `NO_ACTION`
+       forced-resign policy, package support, protected review, and conformance
+       remain open.
 - [x] Drive the distinct Federate Resigned callback from a private embedded
        in-session RTI-control seam. The bounded path removes a clean joined
        member through the ordinary `NO_ACTION` registry transition, retains its
@@ -568,6 +831,17 @@ Umbra-owned replacement public API.
       point-region realization/report routing, distributed execution, package
       evidence, and conformance remain separate work; this item has only
       source/API traceability.
+- [x] Complete public API traceability for the eight official handle-decoding
+      services in the non-installable development profile: federate,
+      object-class, interaction-class, object-instance, attribute, parameter,
+      dimension, and message retraction. The seven previously inherited
+      decoders now enforce the public connection/member boundary before using
+      their matching typed decoder; the focused regression also covers the
+      preexisting message-retraction decoder. It proves those boundary
+      exceptions, public-service round trips, and malformed-encoding rejection.
+      The Requirements Lab exports API surfaces but no direct requirement IDs
+      for this group, so this has API traceability only—not interoperability,
+      package, protected-review, or conformance evidence.
 - [x] Exercise object-class name/handle lookup through the official support
       services in the non-installable development profile, including invalid
       handles and stable values after a compatible additional-FOM join. This

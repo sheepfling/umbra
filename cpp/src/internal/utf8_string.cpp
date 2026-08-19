@@ -131,6 +131,54 @@ std::optional<std::uint32_t> nextUtf8Scalar(std::string_view value, std::size_t&
   return scalar;
 }
 
+template <typename String, typename Char>
+String quoteDiagnosticStringImpl(std::basic_string_view<Char> value) {
+  String result;
+  result.reserve(value.size() + 2U);
+  result.push_back(static_cast<Char>('"'));
+  constexpr char hexDigits[] = "0123456789abcdef";
+  for (Char const character : value) {
+    switch (character) {
+      case static_cast<Char>('"'):
+        result.push_back(static_cast<Char>('\\'));
+        result.push_back(static_cast<Char>('"'));
+        break;
+      case static_cast<Char>('\\'):
+        result.push_back(static_cast<Char>('\\'));
+        result.push_back(static_cast<Char>('\\'));
+        break;
+      case static_cast<Char>('\n'):
+        result.push_back(static_cast<Char>('\\'));
+        result.push_back(static_cast<Char>('n'));
+        break;
+      case static_cast<Char>('\r'):
+        result.push_back(static_cast<Char>('\\'));
+        result.push_back(static_cast<Char>('r'));
+        break;
+      case static_cast<Char>('\t'):
+        result.push_back(static_cast<Char>('\\'));
+        result.push_back(static_cast<Char>('t'));
+        break;
+      default: {
+        using UnsignedChar = std::make_unsigned_t<Char>;
+        auto const unsignedCharacter = static_cast<std::uint32_t>(
+            static_cast<UnsignedChar>(character));
+        if (unsignedCharacter < 0x20U || unsignedCharacter == 0x7FU) {
+          result.push_back(static_cast<Char>('\\'));
+          result.push_back(static_cast<Char>('x'));
+          result.push_back(static_cast<Char>(hexDigits[(unsignedCharacter >> 4U) & 0x0FU]));
+          result.push_back(static_cast<Char>(hexDigits[unsignedCharacter & 0x0FU]));
+        } else {
+          result.push_back(character);
+        }
+        break;
+      }
+    }
+  }
+  result.push_back(static_cast<Char>('"'));
+  return result;
+}
+
 }  // namespace
 
 std::optional<std::string> utf8FromWide(std::wstring_view value) {
@@ -163,6 +211,14 @@ std::optional<std::wstring> wideFromUtf8(std::string_view value) {
     appendWide(*scalar, result);
   }
   return result;
+}
+
+std::string quoteDiagnosticString(std::string_view value) {
+  return quoteDiagnosticStringImpl<std::string>(value);
+}
+
+std::wstring quoteDiagnosticString(std::wstring_view value) {
+  return quoteDiagnosticStringImpl<std::wstring>(value);
 }
 
 }  // namespace umbra::detail

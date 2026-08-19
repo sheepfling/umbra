@@ -1,11 +1,15 @@
 #pragma once
 
+#include "internal/runtime_instrumentation.hpp"
+
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
 #include <deque>
 #include <functional>
+#include <memory>
 #include <mutex>
+#include <optional>
 
 namespace umbra::detail {
 
@@ -14,6 +18,12 @@ enum class CallbackDispatchModel {
   evoked,
 };
 
+// Private callback-delivery context. CallbackSession uses this only while a
+// dispatcher task is executing so actual FederateAmbassador timing retains the
+// selected immediate/evoked model without changing the public callback API.
+[[nodiscard]] std::optional<CallbackDispatchModel>
+currentCallbackDispatchModel() noexcept;
+
 // Private implementation of the two HLA callback models. Service adapters
 // own conversion to the public CallbackModel enum and must never hold their
 // state mutex while one of these tasks invokes federate code.
@@ -21,7 +31,9 @@ class CallbackDispatcher final {
  public:
   using CallbackTask = std::function<void()>;
 
-  explicit CallbackDispatcher(CallbackDispatchModel model = CallbackDispatchModel::evoked);
+  explicit CallbackDispatcher(
+      CallbackDispatchModel model = CallbackDispatchModel::evoked,
+      std::shared_ptr<RuntimeInstrumentation> instrumentation = {});
 
   void configure(CallbackDispatchModel model);
   void reset();
@@ -43,17 +55,23 @@ class CallbackDispatcher final {
       std::chrono::milliseconds maximumWait);
 
  private:
-  static std::chrono::milliseconds nonNegative(std::chrono::milliseconds value) noexcept;
-  static void invoke(CallbackTask callback);
+  struct QueuedCallback final {
+    CallbackTask callback;
+    RuntimeInstrumentation::Clock::time_point submittedAt;
+  };
 
-  CallbackTask takeNextLocked();
-  std::deque<CallbackTask> takeAllLocked();
+  static std::chrono::milliseconds nonNegative(std::chrono::milliseconds value) noexcept;
+  void invoke(QueuedCallback callback, CallbackDispatchModel dispatchModel);
+
+  QueuedCallback takeNextLocked();
+  std::deque<QueuedCallback> takeAllLocked();
 
   mutable std::mutex mutex_;
   std::condition_variable callbackAvailable_;
   CallbackDispatchModel model_;
   bool enabled_ = true;
-  std::deque<CallbackTask> pending_;
+  std::deque<QueuedCallback> pending_;
+  std::shared_ptr<RuntimeInstrumentation> instrumentation_;
 };
 
 }  // namespace umbra::detail

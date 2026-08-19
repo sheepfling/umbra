@@ -1,6 +1,7 @@
 #include "internal/parameter_handle.hpp"
+#include "internal/handle_variable_array_encoding.hpp"
 
-#include <array>
+#include <cstddef>
 #include <cstring>
 #include <limits>
 #include <optional>
@@ -10,31 +11,22 @@
 namespace rti1516_2025 {
 namespace {
 
-constexpr std::size_t kParameterHandleEncodedLength = 8;
+constexpr std::size_t kParameterHandleEncodedLength =
+    umbra_binding_detail::kUmbraHandleVariableArrayEncodedLength;
 
 std::uint64_t handleValue(ParameterHandleImplementation const* implementation);
 
-std::array<unsigned char, kParameterHandleEncodedLength> encodeValue(std::uint64_t value) {
-  std::array<unsigned char, kParameterHandleEncodedLength> encoded{};
-  for (std::size_t index = 0; index < encoded.size(); ++index) {
-    std::size_t const shift = (encoded.size() - index - 1) * 8;
-    encoded[index] = static_cast<unsigned char>(value >> shift);
-  }
-  return encoded;
+auto encodeValue(std::uint64_t value) {
+  return umbra_binding_detail::encodeUmbraHandleVariableArray(value);
 }
 
 std::uint64_t decodeValue(VariableLengthData const& encodedValue) {
-  if (encodedValue.size() != kParameterHandleEncodedLength || encodedValue.data() == nullptr) {
-    throw CouldNotDecode(L"An Umbra ParameterHandle must contain exactly eight bytes.");
+  auto const value = umbra_binding_detail::decodeUmbraHandleVariableArray(encodedValue);
+  if (!value.has_value()) {
+    throw CouldNotDecode(
+        L"An Umbra ParameterHandle must contain an HLAvariableArray with exactly eight HLAbyte elements.");
   }
-
-  auto const* bytes = static_cast<unsigned char const*>(encodedValue.data());
-  std::uint64_t value = 0;
-  for (unsigned char byte : std::array<unsigned char, kParameterHandleEncodedLength>{
-           bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]}) {
-    value = (value << 8) | byte;
-  }
-  return value;
+  return *value;
 }
 
 }  // namespace
@@ -134,7 +126,7 @@ void ParameterHandle::encode(VariableLengthData& buffer) const {
 
 size_t ParameterHandle::encode(void* buffer, size_t bufferSize) const {
   if (buffer == nullptr || bufferSize < kParameterHandleEncodedLength) {
-    throw CouldNotEncode(L"The ParameterHandle output buffer must contain at least eight bytes.");
+    throw CouldNotEncode(L"The ParameterHandle output buffer must contain at least twelve bytes.");
   }
 
   auto const encoded = encodeValue(handleValue(_impl));

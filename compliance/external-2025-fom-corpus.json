@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "purpose": "Optional, unvendored 2025-native XML corpus used to exercise positive DIF validation and MIM-first FDD composition beyond the official Restaurant examples.",
-  "status": "development-only-positive-preflight-fixtures",
+  "purpose": "Optional, unvendored 2025-native XML corpus used to exercise positive DIF validation, a deterministic semantic-preflight rejection, one standalone composition acceptance, and a recorded schema-negative boundary beyond the official Restaurant examples.",
+  "status": "development-only-schema-positive-semantic-negative-and-composition-fixtures",
   "source_boundary": {
     "acquisition": "A developer supplies the local corpus root explicitly through UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY.",
     "redistribution": "No external XML is copied into Umbra by this manifest or its tests.",
@@ -15,7 +15,8 @@
       "Proto2025_TimeMgmtTest.xml",
       "Proto2025_SpaceLite.xml"
     ],
-    "expected_2025_preflight_status": "valid"
+    "expected_2025_preflight_status": "inconsistent_modules",
+    "preflight_note": "The pinned prototype snapshot uses raw basic-data representations in object-attribute and interaction-parameter data-type columns. Each module is DIF-valid, but the MIM-first set is expected to fail Umbra's source-backed 1516.2 table checks."
   },
   "fixtures": [
     {
@@ -49,6 +50,27 @@
       "xml_namespace": "http://standards.ieee.org/IEEE1516-2025",
       "schema_location": "http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd",
       "expected_2025_dif_status": "valid"
+    },
+    {
+      "id": "external-2025-directed-tso-restore",
+      "path": "DirectedTSORestore2025.xml",
+      "sha256": "672757d28088d8c87056f228ad6995ffeff764d6defea5f949ba0f2bfd11867d",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2025",
+      "schema_location": null,
+      "expected_2025_dif_status": "valid",
+      "expected_2025_preflight_status": "valid",
+      "preflight_note": "This standalone source is retained only as an MIM-first schema/composition guard. Its filename is historical source provenance; the current XML does not itself establish a directed-interaction runtime scenario."
+    }
+  ],
+  "schema_negative_fixtures": [
+    {
+      "id": "external-2025-directed-ddm-restore",
+      "path": "DirectedDDMRestore2025.xml",
+      "sha256": "742ed390abc0a059099eb92fea904f4e5494a21f74da433cf031e838e2a0b711",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2025",
+      "schema_location": null,
+      "expected_2025_dif_status": "invalid_model",
+      "preflight_note": "The source places dimension entries directly beneath attributes/interactions and omits the required Dimension-table inputDataTypes/inputDataDescription fields. Umbra must reject it under the official 2025 DIF schema rather than repairing or converting it."
     }
   ]
 }

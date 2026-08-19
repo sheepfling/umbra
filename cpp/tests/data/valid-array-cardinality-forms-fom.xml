@@ -6,31 +6,31 @@
         <arrayDataTypes>
             <arrayData>
                 <name>UmbraScalarArrayCardinality</name>
-                <dataType>HLAinteger32BE</dataType>
+                <dataType>HLAbyte</dataType>
                 <cardinality>10</cardinality>
                 <encoding>HLAfixedArray</encoding>
             </arrayData>
             <arrayData>
                 <name>UmbraListArrayCardinality</name>
-                <dataType>HLAinteger32BE</dataType>
+                <dataType>HLAbyte</dataType>
                 <cardinality>1,2,3</cardinality>
                 <encoding>HLAvariableArray</encoding>
             </arrayData>
             <arrayData>
                 <name>UmbraRangeArrayCardinality</name>
-                <dataType>HLAinteger32BE</dataType>
+                <dataType>HLAbyte</dataType>
                 <cardinality>[1..4]</cardinality>
                 <encoding>HLAvariableArray</encoding>
             </arrayData>
             <arrayData>
                 <name>UmbraDynamicArrayCardinality</name>
-                <dataType>HLAinteger32BE</dataType>
+                <dataType>HLAbyte</dataType>
                 <cardinality>Dynamic</cardinality>
                 <encoding>HLAvariableArray</encoding>
             </arrayData>
             <arrayData>
                 <name>UmbraMixedArrayCardinality</name>
-                <dataType>HLAinteger32BE</dataType>
+                <dataType>HLAbyte</dataType>
                 <cardinality>Dynamic,[2..4]</cardinality>
                 <encoding>HLAvariableArray</encoding>
             </arrayData>

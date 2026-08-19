@@ -63,9 +63,19 @@ connection foundation plus one bounded federation-execution discovery slice:
 The federation-execution slice adds the scalar
 `createFederationExecution`, `destroyFederationExecution`, and
 `listFederationExecutions` services with the typed
-`reportFederationExecutions` callback. It does not imply that joining,
-membership, FOM-management variants, or the rest of federation management are
-ready for Python.
+`reportFederationExecutions` callback. It also adds
+`listFederationExecutionMembers` with typed
+`reportFederationExecutionMembers` and
+`reportFederationExecutionDoesNotExist` callbacks. It does not imply that
+member-management, FOM-management variants, or the rest of
+federation management are ready for Python.
+
+The scalar join/resign pair is also available: `joinFederationExecution`
+supports the two Java overloads without additional FOM modules, and
+`resignFederationExecution` accepts the standard `ResignAction` values. Its
+returned `FederateHandle` is an immutable copy of the standard encoded handle
+bytes, never a C++ pointer or Java proxy. Additional-FOM join overloads remain
+unbound until their sequence boundary is designed and tested.
 
 `ConfigurationResult`, `RtiConfiguration`, `auth.Credentials`,
 `auth.HLAnoCredentials`, callback-model values, and the small connection error
@@ -74,8 +84,9 @@ native slice accepts the no-credentials marker; credential mechanisms beyond
 that remain provider capabilities rather than a fabricated shared feature. The native provider derives an
 internal C++ bridge from the official `NullFederateAmbassador`, holds the
 Python callback object for the connection lifetime, and overrides only the
-currently exposed `connectionLost` callback. Future callback overrides are
-added alongside their native service and API contract—never pre-declared as
+currently exposed `connectionLost`, federation-execution, and
+federation-member callback family. Future callback overrides are added
+alongside their native service and API contract—never pre-declared as
 successful Python behavior.
 
 This makes the pure package useful for application typing, fake providers, and
@@ -129,6 +140,12 @@ The complete Java-factory inventory and its native implementation gates are in
 [Python factory inventory](PYTHON-FACTORY-INVENTORY.md). The provider factory
 is implemented now; the remaining factory families are added only with their
 native value and lifecycle prerequisites.
+
+The staged service and callback coverage strategy is maintained in
+[Python API coverage plan](PYTHON-API-COVERAGE-PLAN.md). It records only
+end-to-end bound capability as coverage and establishes the next vertical
+slice, so public Python declarations cannot run ahead of the native and Java
+provider implementations.
 
 The optional Java adapter's configuration, lifecycle, and raw-object migration
 boundary are described in [Python Java adapter](PYTHON-JAVA-ADAPTER.md).

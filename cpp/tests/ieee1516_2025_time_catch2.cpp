@@ -6,30 +6,44 @@
 #include <limits>
 #include <memory>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include <RTI/RTI1516.h>
+#include <RTI/encoding/EncodingExceptions.h>
+#include <RTI/encoding/HLAlogicalTime.h>
+#include <RTI/encoding/HLAlogicalTimeInterval.h>
 #include <RTI/time/HLAfloat64Interval.h>
 #include <RTI/time/HLAfloat64Time.h>
 #include <RTI/time/HLAfloat64TimeFactory.h>
 #include <RTI/time/HLAinteger64Interval.h>
 #include <RTI/time/HLAinteger64Time.h>
 #include <RTI/time/HLAinteger64TimeFactory.h>
+#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+
+#include "generated/rti_ambassador_shell.hpp"
 
 namespace {
 
 using rti1516_2025::CouldNotDecode;
 using rti1516_2025::CouldNotEncode;
+using rti1516_2025::EncoderException;
 using rti1516_2025::HLAfloat64Interval;
 using rti1516_2025::HLAfloat64Time;
 using rti1516_2025::HLAfloat64TimeFactory;
 using rti1516_2025::HLAinteger64Interval;
 using rti1516_2025::HLAinteger64Time;
 using rti1516_2025::HLAinteger64TimeFactory;
+using rti1516_2025::HLAlogicalTime;
+using rti1516_2025::HLAlogicalTimeFactoryFactory;
+using rti1516_2025::HLAlogicalTimeInterval;
 using rti1516_2025::IllegalTimeArithmetic;
 using rti1516_2025::Integer64;
 using rti1516_2025::InvalidLogicalTime;
+using rti1516_2025::InvalidLogicalTimeInterval;
 using rti1516_2025::LogicalTimeFactory;
 using rti1516_2025::LogicalTimeFactoryFactory;
+using rti1516_2025::Octet;
 using rti1516_2025::VariableLengthData;
 
 template <std::size_t Size>
@@ -37,6 +51,20 @@ bool encodedEquals(VariableLengthData const& actual, std::array<unsigned char, S
   return actual.size() == expected.size() &&
          std::memcmp(actual.data(), expected.data(), expected.size()) == 0;
 }
+
+class ReferenceTimeAmbassador final
+    : public rti1516_2025::umbra_binding_detail::RtiAmbassadorShell {
+ public:
+  explicit ReferenceTimeAmbassador(std::wstring const& implementationName)
+      : implementationName_(implementationName) {}
+
+  std::unique_ptr<LogicalTimeFactory> getTimeFactory() const override {
+    return HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(implementationName_);
+  }
+
+ private:
+  std::wstring implementationName_;
+};
 
 }  // namespace
 
@@ -176,4 +204,112 @@ TEST_CASE("IEEE reference factory selection returns both mandated names and defa
   auto time = defaultFactory->makeInitial();
   stream << *time;
   REQUIRE(stream.str() == L"0");
+}
+
+TEST_CASE(
+    "HLAlogicalTime delegates opaque bytes to the selected reference factory",
+    "[baseline][time][logical-time-encoding]") {
+  ReferenceTimeAmbassador floatAmbassador(L"HLAfloat64Time");
+  ReferenceTimeAmbassador integerAmbassador(L"HLAinteger64Time");
+  HLAlogicalTime value(&floatAmbassador);
+  HLAlogicalTime integerValue(&integerAmbassador);
+
+  std::array<unsigned char, 8> const initialBytes{};
+  REQUIRE(encodedEquals(value.encode(), initialBytes));
+  REQUIRE(value.getEncodedLength() == initialBytes.size());
+  REQUIRE(value.getOctetBoundary() == 1U);
+  REQUIRE_FALSE(value.isSameTypeAs(integerValue));
+  REQUIRE_THROWS_AS(HLAlogicalTime(nullptr), EncoderException);
+
+  HLAfloat64Time source(1.5);
+  value.set(source);
+  std::array<unsigned char, 8> const expected{0x3F, 0xF8, 0, 0, 0, 0, 0, 0};
+  REQUIRE(encodedEquals(value.encode(), expected));
+
+  std::vector<Octet> nested{static_cast<Octet>(0xA4)};
+  value.encodeInto(nested);
+  nested.push_back(0x5A);
+  HLAlogicalTime decoded(&floatAmbassador);
+  REQUIRE(decoded.decodeFrom(nested, 1U) == 9U);
+  REQUIRE(static_cast<unsigned char>(nested[0]) == 0xA4);
+  REQUIRE(nested[9] == 0x5A);
+  HLAfloat64Time recovered;
+  decoded.get(recovered);
+  REQUIRE(recovered.getTime() == 1.5);
+
+  HLAlogicalTime copied(value);
+  auto clone = value.clone();
+  auto* cloned = dynamic_cast<HLAlogicalTime*>(clone.get());
+  REQUIRE(cloned != nullptr);
+  value.set(HLAfloat64Time(2.0));
+  HLAfloat64Time copiedValue;
+  HLAfloat64Time clonedValue;
+  copied.get(copiedValue);
+  cloned->get(clonedValue);
+  REQUIRE(copiedValue.getTime() == 1.5);
+  REQUIRE(clonedValue.getTime() == 1.5);
+
+  HLAinteger64Time incompatibleTime;
+  REQUIRE_THROWS_AS(value.set(incompatibleTime), EncoderException);
+  REQUIRE_THROWS_AS(value.get(incompatibleTime), InvalidLogicalTime);
+
+  std::array<unsigned char, 7> const truncated{};
+  VariableLengthData malformed(truncated.data(), truncated.size());
+  REQUIRE_THROWS_AS(decoded.decode(malformed), CouldNotDecode);
+  std::vector<Octet> const tooShort(truncated.begin(), truncated.end());
+  REQUIRE_THROWS_AS(decoded.decodeFrom(tooShort, 0U), EncoderException);
+}
+
+TEST_CASE(
+    "HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory",
+    "[baseline][time][logical-time-encoding]") {
+  ReferenceTimeAmbassador integerAmbassador(L"HLAinteger64Time");
+  ReferenceTimeAmbassador floatAmbassador(L"HLAfloat64Time");
+  HLAlogicalTimeInterval value(&integerAmbassador);
+  HLAlogicalTimeInterval floatValue(&floatAmbassador);
+
+  std::array<unsigned char, 8> const initialBytes{};
+  REQUIRE(encodedEquals(value.encode(), initialBytes));
+  REQUIRE(value.getEncodedLength() == initialBytes.size());
+  REQUIRE(value.getOctetBoundary() == 1U);
+  REQUIRE_FALSE(value.isSameTypeAs(floatValue));
+  REQUIRE_THROWS_AS(HLAlogicalTimeInterval(nullptr), EncoderException);
+
+  HLAinteger64Interval source(9);
+  value.set(source);
+  std::array<unsigned char, 8> const expected{0, 0, 0, 0, 0, 0, 0, 9};
+  REQUIRE(encodedEquals(value.encode(), expected));
+
+  std::vector<Octet> nested{static_cast<Octet>(0xA4)};
+  value.encodeInto(nested);
+  nested.push_back(0x5A);
+  HLAlogicalTimeInterval decoded(&integerAmbassador);
+  REQUIRE(decoded.decodeFrom(nested, 1U) == 9U);
+  REQUIRE(static_cast<unsigned char>(nested[0]) == 0xA4);
+  REQUIRE(nested[9] == 0x5A);
+  HLAinteger64Interval recovered;
+  decoded.get(recovered);
+  REQUIRE(recovered.getInterval() == 9);
+
+  HLAlogicalTimeInterval copied(value);
+  auto clone = value.clone();
+  auto* cloned = dynamic_cast<HLAlogicalTimeInterval*>(clone.get());
+  REQUIRE(cloned != nullptr);
+  value.set(HLAinteger64Interval(12));
+  HLAinteger64Interval copiedValue;
+  HLAinteger64Interval clonedValue;
+  copied.get(copiedValue);
+  cloned->get(clonedValue);
+  REQUIRE(copiedValue.getInterval() == 9);
+  REQUIRE(clonedValue.getInterval() == 9);
+
+  HLAfloat64Interval incompatibleInterval;
+  REQUIRE_THROWS_AS(value.set(incompatibleInterval), EncoderException);
+  REQUIRE_THROWS_AS(value.get(incompatibleInterval), InvalidLogicalTimeInterval);
+
+  std::array<unsigned char, 7> const truncated{};
+  VariableLengthData malformed(truncated.data(), truncated.size());
+  REQUIRE_THROWS_AS(decoded.decode(malformed), CouldNotDecode);
+  std::vector<Octet> const tooShort(truncated.begin(), truncated.end());
+  REQUIRE_THROWS_AS(decoded.decodeFrom(tooShort, 0U), EncoderException);
 }

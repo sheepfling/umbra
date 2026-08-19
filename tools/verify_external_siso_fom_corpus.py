@@ -30,6 +30,9 @@ def _load_manifest(path: Path) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
     fixtures = payload.get("fixtures")
     if not isinstance(fixtures, list) or not fixtures:
         return None, ("corpus manifest must contain a non-empty fixtures array",)
+    schema_negative_fixtures = payload.get("schema_negative_fixtures", [])
+    if not isinstance(schema_negative_fixtures, list):
+        return None, ("corpus manifest schema_negative_fixtures must be an array when present",)
     return payload, ()
 
 
@@ -53,7 +56,10 @@ def verify(root: Path, manifest_path: Path) -> tuple[str, ...]:
         return findings
 
     validated_ids: set[str] = set()
-    for fixture in manifest["fixtures"]:
+    for fixture in [
+        *manifest["fixtures"],
+        *manifest.get("schema_negative_fixtures", []),
+    ]:
         if not isinstance(fixture, dict):
             findings += ("corpus manifest contains a non-object fixture",)
             continue
@@ -70,7 +76,7 @@ def verify(root: Path, manifest_path: Path) -> tuple[str, ...]:
             or Path(relative_path).is_absolute()
             or not isinstance(digest, str)
             or not isinstance(namespace, str)
-            or not isinstance(schema_location, str)
+            or (schema_location is not None and not isinstance(schema_location, str))
         ):
             findings += ("corpus manifest contains an invalid or duplicate fixture",)
             continue

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dimensions>
+        <dimension>
+            <name>UmbraMixedNaDimensionInput</name>
+            <inputDataTypes>
+                <dataType>NA</dataType>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Fixture deliberately mixes the no-type marker with a named type.</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Fixture normalization.</normalization>
+            <outputDataSemantics>Fixture normalized coordinate.</outputDataSemantics>
+        </dimension>
+    </dimensions>
+</objectModel>

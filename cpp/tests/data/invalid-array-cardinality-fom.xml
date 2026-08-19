@@ -6,7 +6,7 @@
         <arrayDataTypes>
             <arrayData>
                 <name>UmbraInvalidArrayCardinality</name>
-                <dataType>HLAinteger32BE</dataType>
+                <dataType>HLAbyte</dataType>
                 <cardinality>[5..2]</cardinality>
                 <encoding>HLAvariableArray</encoding>
             </arrayData>

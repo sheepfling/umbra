@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/encoding/HLAvariableArray.h class. IEEE 1516.2 §4.14.10.5 defines HLAvariableArray as a signed HLAinteger32BE number_of_elements component at offset zero followed by each element in sequence. When an element follows, Equation (6) adds the smallest nonnegative zero padding after the count to align that first element using the maximum of the element boundary and HLAinteger32BE's four-octet boundary. Later element padding follows the HLAfixedArray rule and the encoded size includes added padding; no padding follows the final element. The Requirements Lab exports direct count, leading-padding, and inter-element-padding candidates with broad clause-4 metadata, but not standalone candidates for Equation (6)'s boundary definition, the zero-byte statement, or the inherited no-final-padding rule. RL-044 records those provenance and candidate-coverage boundaries. The official C++ header expressly assigns raw element-pointer lifetime responsibility to the caller, so Umbra retains those pointers as borrowed, non-owning storage and copies/clone operations use internal memory. That lifetime policy is an implementation safety choice, not a separate standards or conformance result. This does not establish HLAextendableVariantRecord support, model-specific encoder factories, adapter exposure, interoperability, package/JUnit/protected-review evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-omt-variable-array-element-count-and-sequence",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variable_array.cpp",
+      "source_symbol": "HLAvariableArray::encodeInto",
+      "related_source_symbols": [
+        "HLAvariableArray::decodeFrom",
+        "requireEncodableCount"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariableArray uses a signed element count and zero padding to align elements"
+      ]
+    },
+    {
+      "id": "umbra-omt-variable-array-leading-element-alignment",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-085-l51-1",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variable_array.cpp",
+      "source_symbol": "arrayBoundary",
+      "related_source_symbols": [
+        "paddingToBoundary",
+        "appendZeroPadding",
+        "requireZeroPadding",
+        "HLAvariableArray::encodeInto",
+        "HLAvariableArray::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariableArray uses a signed element count and zero padding to align elements"
+      ]
+    },
+    {
+      "id": "umbra-omt-variable-array-inter-element-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-085-l63-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variable_array.cpp",
+      "source_symbol": "paddingToBoundary",
+      "related_source_symbols": [
+        "HLAvariableArray::getEncodedLength",
+        "HLAvariableArray::encodeInto",
+        "HLAvariableArray::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariableArray copies or borrows element instances through its declared operations"
+      ]
+    },
+    {
+      "id": "umbra-omt-variable-array-inherited-no-trailing-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-084-l71-5",
+      "clause_id": "clause-4",
+      "source": "cpp/src/ieee1516_2025_variable_array.cpp",
+      "source_symbol": "HLAvariableArray::getEncodedLength",
+      "related_source_symbols": [
+        "HLAvariableArray::encodeInto"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAvariableArray copies or borrows element instances through its declared operations"
+      ]
+    }
+  ]
+}
