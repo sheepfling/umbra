@@ -31,14 +31,14 @@ Umbra's repository fixture remains a fast compatibility harness; it is not
 the authority for Java API compatibility. On 2026-08-21, the JNI façade was
 compiled and smoke-tested against an independently obtained IEEE
 1516.1-2025 Java API JAR, then exercised through C++ → JNI → Java → JPype →
-the public Python API. The focused JNI integration module now runs 178 test
+the public Python API. The focused JNI integration module now runs 179 test
 cases (all passed, including the standard named and no-argument
 `RtiFactoryFactory` discovery checks and the structural/runtime gates). The
 exception-surface check loads every C++ exception whose exact
 standard Java class is present in the external API; the independently supplied
 API remains authoritative for its vocabulary and intentionally omits a few
 legacy advisory exception names. Running Python's complete JPype test-package discovery against the same
-artifact now executes 209 discovered tests (208 passed and one deliberate
+artifact now executes 210 discovered tests (209 passed and one deliberate
 skip). An artifact gate
 additionally verifies that the JNI bridge JAR contains
 no `hla/rti1516_2025` API classes and exposes only its expected
@@ -177,7 +177,11 @@ Java `EncoderFactory`. The companion `HLAsetTiming` vector sends the official
 `HLAfederate`/`HLAreportPeriod` parameters through the standard Java
 `sendInteraction` overload, rejects a negative period without mutation, and
 proves one periodic logical-time/lookahead reflection plus clean disablement
-through both `HLA_EVOKED` and `HLA_IMMEDIATE` callback models.
+through both `HLA_EVOKED` and `HLA_IMMEDIATE` callback models. The
+`HLAGALT`/`HLALITS` vector then derives defined federation bounds from the
+regulator's C++ time state, observes the same values through direct and
+periodic MOM reflection, and verifies both attributes return the standard
+empty logical-time encoding after regulation is disabled.
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, observes the RTI-owned `HLAFOMmoduleDesignatorList`
 through standard MOM reflection, decodes the `HLAmoduleDesignatorList` with the
