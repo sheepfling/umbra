@@ -23,7 +23,11 @@ generic JPype adapter, while C++ remains the only RTI state/semantics owner.
 The same values can be supplied as constructor arguments.  For a build
 directory produced by `packages/umbra-rti-jni/build.ps1`, pass the directory
 directly or set `UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY`; the adapter finds the
-bridge JAR and native library there and still requires the standard API JAR.
+bridge JAR and native library there. If that directory also contains exactly
+one top-level JAR other than `umbra-rti-jni.jar`, it uses that JAR as the
+standard API automatically. With multiple sibling API/dependency JARs, keep
+the selection explicit through `api_jar` or `UMBRA_JNI_JAVA_API_JAR` rather
+than relying on an ambiguous guess.
 
 ```python
 from umbra._java.jni_rti1516_2025 import JniRtiFactory

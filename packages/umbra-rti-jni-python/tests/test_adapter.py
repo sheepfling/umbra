@@ -139,6 +139,38 @@ class JniRtiFactoryTest(unittest.TestCase):
                 )
             )
 
+    def test_artifact_directory_discovers_one_adjacent_api_jar(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "umbra-rti-jni.jar").touch()
+            (root / "umbra_rti_jni.dll").touch()
+            api = root / "hla-4-api-2.1.0.jar"
+            api.touch()
+
+            runtime = _FakeRuntime()
+            factory = JniRtiFactory(artifact_directory=root, runtime=runtime)
+
+            self.assertEqual(factory.rtiVersion(), "test")
+            self.assertEqual(
+                runtime.configuration.classpath,
+                (str(api), str(root / "umbra-rti-jni.jar")),
+            )
+
+    def test_artifact_directory_does_not_guess_between_sibling_api_jars(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "umbra-rti-jni.jar").touch()
+            (root / "umbra_rti_jni.dll").touch()
+            (root / "hla-4-api.jar").touch()
+            (root / "hla-4-api-extra.jar").touch()
+
+            runtime = _FakeRuntime()
+            factory = JniRtiFactory(artifact_directory=root, runtime=runtime)
+
+            with self.assertRaises(RTIinternalError):
+                factory.rtiVersion()
+            self.assertIsNone(runtime.configuration)
+
     def test_missing_artifacts_fail_before_starting_jvm(self):
         runtime = _FakeRuntime()
         factory = JniRtiFactory(runtime=runtime)

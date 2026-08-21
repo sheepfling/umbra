@@ -52,7 +52,7 @@ class JniRtiFactory(JavaRtiFactory):
         selected_api = self._selected_path(
             api_jar,
             self.API_JAR_ENVIRONMENT_VARIABLE,
-            None,
+            self._api_jar_from_directory(directory),
         )
         selected_bridge = self._selected_path(
             bridge_jar,
@@ -114,6 +114,26 @@ class JniRtiFactory(JavaRtiFactory):
                 return candidate
         # Preserve a useful path in the eventual missing-artifact diagnostic.
         return directory / "umbra_rti_jni.dll"
+
+    @staticmethod
+    def _api_jar_from_directory(directory: Path | None) -> Path | None:
+        """Select one adjacent API JAR without guessing across dependencies.
+
+        A release directory may contain the bridge/native pair plus the
+        independently obtained IEEE API artifact.  Select it only when there
+        is exactly one top-level JAR other than the bridge itself; dependency
+        directories and ambiguous sibling JARs must still be supplied through
+        ``api_jar`` or ``UMBRA_JNI_JAVA_API_JAR`` explicitly.
+        """
+
+        if directory is None or not directory.is_dir():
+            return None
+        candidates = sorted(
+            candidate
+            for candidate in directory.glob("*.jar")
+            if candidate.is_file() and candidate.name != "umbra-rti-jni.jar"
+        )
+        return candidates[0] if len(candidates) == 1 else None
 
     def _java_factory(self) -> object:
         missing = [

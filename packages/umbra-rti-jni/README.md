@@ -412,6 +412,27 @@ It produces:
 - `umbra-mock-java-rti.jar` — only when `-JavaApiJar` is omitted, for the
   repository integration fixture.
 
+Before publishing or handing the directory to the Python adapter, run the
+release verifier against the same independently obtained API JAR. It checks
+the API digest, required standard classes, absence of shadow API classes in
+the bridge, exact `ServiceLoader` descriptors, native-library presence, and
+the Java smoke path. `-ManifestPath` writes a reproducible file/digest record
+without embedding or redistributing the API artifact:
+
+```powershell
+$bridgeDirectory = 'C:\path\to\umbra-rti-jni-build'
+.\verify.ps1 `
+  -ArtifactDirectory $bridgeDirectory `
+  -JavaApiJar C:\path\to\ieee-1516.1-2025-java-api.jar `
+  -ExpectedApiSha256 '<publisher-supplied-sha256>' `
+  -ManifestPath (Join-Path $bridgeDirectory 'umbra-jni-manifest.json')
+```
+
+The Python adapter accepts the same directory directly. If it contains one
+top-level API JAR beside `umbra-rti-jni.jar`, that JAR is selected; multiple
+siblings remain explicit-only so dependencies cannot be mistaken for the
+standards API.
+
 The Python integration test starts a fresh JPype JVM with those first two JARs
 and `-Dumbra.rti.jni.library=<absolute DLL path>`. It is opt-in because it
 builds the embedded C++ development profile:
