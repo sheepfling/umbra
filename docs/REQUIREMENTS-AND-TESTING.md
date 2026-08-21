@@ -299,8 +299,12 @@ text immediately before `discoverObjectInstance()` enters user code. The
 focused HLA_EVOKED regression proves no record exists while discovery remains
 queued, that the exact record is present at callback entry, and that a later
 unsubscribe suppresses both callback and file append. This remains private
-Table 5 file text, not public MOM interaction delivery; regional discovery
-variants remain separate work.
+Table 5 file text, not public MOM interaction delivery. The separate public
+MOM object-management regressions now prove the bounded RTI-owned discovery
+path for active ordinary subscriptions and matching regional subscriptions,
+including the reliable initial
+`HLAreportServiceFile` reflection; it uses the local default-invalid producer
+policy documented in RL-043 and is not conformance evidence.
 
 The receive-order §6.17 `Remove Object Instance` callback now follows the
 same recipient-local route. Its report is withheld while HLA_EVOKED delivery
@@ -723,16 +727,42 @@ RL-098 records that the Lab exports regional overlap, region mutation, and
 Connection Lost/cleanup records separately; the remaining transport,
 review, and conformance boundaries are still open.
 
-The same successful production-profile Join now establishes an unpublished
-RTI-owned joined-federate MOM snapshot behind the registry seam. It reserves a
+The same successful production-profile Join now establishes an RTI-owned
+joined-federate MOM snapshot behind the registry seam. It reserves a
 common-namespace object identity, preserves all effective MIM attribute
 metadata (including the inherited delete-privilege policy), captures a private
 normalized `HLAfederate` point, and encodes the seven direct initial values
-using official MIM types and the exact filesystem path. Switch changes preserve
-that state and resignation removes it. The Catch2 assertion is deliberately an
-internal inspection only: it does not register, discover, reflect, remove, or
-serve requested values for a public MOM object, because RL-043 still lacks a
-source-backed callback producer-designator rule.
+using official MIM types and the exact filesystem path. The first public
+object-management slice now uses that ledger for active ordinary and
+immutable-point-matching regional discovery, reliable reflection of all seven
+required Table 8 initial values,
+direct known-object requested-value reflection for the same complete initial
+projection, and removal on represented-federate resignation. The regional
+case filters against the immutable `HLAfederate` point and exercises matching
+versus disjoint regions in both callback models. Switch changes preserve the
+state and resignation removes it. A companion public regression covers
+event-driven reflections of all nine predefined conditional switch attributes
+after their successful setters and accepted `HLAsetSwitches` subset, plus four
+bounded temporal-state attributes after successful role transitions and all
+five time-advance request/grant forms, in both callback models; it also covers
+direct known-object requests for their current encodings. It now also requests
+the MIM-periodic `HLAlogicalTime` and `HLAlookahead` values directly, using the
+selected official time-provider encodings even before a report period is set.
+A focused `HLAsetTiming` companion now validates the official
+`HLAfederateReference`/`HLAseconds` pair, rejects a negative period without
+mutation, and drives one catalog-declared periodic reflection after a
+wall-clock deadline at an `HLA_EVOKED` callback boundary; zero disables later
+reflections. The private Catch2 assertion remains the stronger
+identity/metadata check. Remaining periodic/other conditional scheduling,
+idle `HLA_IMMEDIATE` background delivery, optional/inherited non-initial
+attributes, public MOM interactions, and the source-backed callback
+producer-designator mapping remain open, so neither lane is conformance
+evidence. A save/restore companion now drives the official
+`HLAfederateState` values (1/3/5) from the real operation ledgers at the
+corresponding callback boundaries and verifies both callback models. It also
+checks that save initiation suppresses the event reflection at the saving
+federate itself without weakening direct known-object AVU. This is still a
+bounded development-profile projection rather than full MOM conformance.
 
 The same support-switch contract now traces the bounded joined-federate
 `HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches` control path. A non-empty
@@ -743,7 +773,10 @@ state guard. It also proves that a FOM-added parameter and a compatible
 extension subclass are received, while only inherited predefined values are
 processed. The current local error is deliberately not represented as a normal
 MOM failure-report interaction, and this does not add MOM objects, reports,
-or report-file behavior. RL-032 records the Requirements Lab's missing
+or report-file behavior. The public joined-federate MOM companion now
+re-reflects each changed predefined switch value from both individual setters
+and the accepted `HLAsetSwitches` subset, while leaving periodic/other
+conditional scheduling separate. RL-032 records the Requirements Lab's missing
 per-parameter Table 20 candidates and truncated at-least-one candidate.
 
 The basic DDM/MOM prerequisite is now real rather than a generated binding
@@ -1356,8 +1389,9 @@ than unpublish a class attribute required by the bounded acquisition-if-
 available path. RL-014 records that the pinned Lab export has no granular
 candidate for that 5.3.3(f) rule. Ordinary Start/Stop Registration relevance
 advisories are now traced by the separate declaration-relevance-advisory
-contract; regional advisory behavior, full ownership, update-rate enforcement,
-regions, catalog evidence, and conformance remain outside this slice.
+contract; regional advisory behavior, full ownership, complete update-rate
+producer/timing evidence, regions, catalog evidence, and conformance remain
+outside this slice.
 
 The separate `compliance/whole-object-class-declaration-requirements-contract.json`
 and `compliance/whole-object-class-declaration-api-contract.json` cover the
@@ -1592,9 +1626,9 @@ The adapter rechecks the switch, ownership, known instance, current scope, and
 retained designator before callback entry. The rate-bearing path is covered for
 an explicit `High` designator in both ordinary and regional transitions;
 initial registration/discovery-time advisory generation, complete regional DDM,
-update-rate enforcement, package/JUnit/protected-review evidence, and
-conformance remain explicitly unimplemented. These contracts are source/API
-traceability only.
+complete update-rate producer/timing evidence, package/JUnit/protected-review
+evidence, and conformance remain explicitly unimplemented. These contracts are
+source/API traceability only.
 
 `compliance/advisories-use-known-class-requirements-contract.json` and
 `compliance/advisories-use-known-class-api-contract.json` pin the official
@@ -1614,11 +1648,14 @@ the `HLAdefault` no-reduction boundary, invalid-designator handling, retained
 ordinary subscription rates, unsubscribe removal, and known-object/defined-
 attribute exception paths. The paired
 `compliance/update-rate-subscription-api-contract.json` pins the two official
-designator-bearing subscription declarations. Throttling and rate reduction
-are kept as the next runtime slice. RL-099 records that the Lab exports the
-eligibility, best-effort, reliable, producer/subscriber, and wall-clock rules
-as separate candidates without a cross-cutting delivery relation, so that
-slice will receive its own contract and Catch2 lane. The Lab's exported second requirement
+designator-bearing subscription declarations. The private `UpdateRateGate` now
+enforces retained FDD rates per projected attribute for bounded receive-order
+and timestamped callbacks, with reliable bypass and federation-lifetime reset.
+`compliance/update-rate-reduction-requirements-contract.json` and its focused
+Catch2/CTest lanes bind the five fragmented candidates without presenting them
+as conformance evidence; the timestamped lane proves a real two-federate
+queued-delivery boundary. RL-099 records the Lab's missing cross-cutting
+delivery relation, and RL-100 records the implementation boundary. The Lab's exported second requirement
 retains clause `10.13.2` even though its source-page heading has a `10.12`
 numbering drift; that discrepancy is documented separately. These contracts
 are development traceability only, not validation or conformance evidence.

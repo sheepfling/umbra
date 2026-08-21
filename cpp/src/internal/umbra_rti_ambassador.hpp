@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <thread>
 
 namespace rti1516_2025::umbra_binding_detail {
 
@@ -769,6 +770,13 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   [[nodiscard]] bool handleEmbeddedMembershipLoss(
       EmbeddedMembershipLossKind kind,
       std::wstring reason);
+
+  // HLA_IMMEDIATE has no caller-side Evoke boundary. The scheduler claims
+  // due RTI-owned periodic MOM work on a private thread, while the ordinary
+  // callback dispatcher still controls callback enable/disable and lifetime.
+  void startPeriodicMomScheduler();
+  void stopPeriodicMomScheduler() noexcept;
+  void periodicMomSchedulerLoop(std::stop_token stopToken);
 #endif
 
   mutable std::mutex mutex_;
@@ -796,6 +804,7 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   std::optional<std::wstring> joinedFederationName_;
   std::optional<std::uint64_t> joinedFederateId_;
   std::shared_ptr<umbra::detail::FederateTimeState> federateTimeState_;
+  std::jthread periodicMomScheduler_;
 #endif
 };
 

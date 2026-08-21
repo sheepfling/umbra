@@ -2,8 +2,8 @@
 
 ## Status
 
-This is an embedded-profile design with a bounded filesystem and private
-joined-federate-MOM foundation. Umbra now creates a real per-joined-federate
+This is an embedded-profile design with a bounded filesystem and an incrementally
+public joined-federate-MOM foundation. Umbra now creates a real per-joined-federate
 report file and its Table 5 initial record, and appends source-backed
 successful-void records for seven Support Services when that file sink is
 selected: six Boolean setters (the four relevance/scope advisory setters,
@@ -480,9 +480,30 @@ the exact file location. The bounded interaction sink now emits the standard
 seven MIM parameters, private-endpoint DDM selection, callback-time
 revalidation, reliable receive-order delivery, the region-set supplied
 argument, and the timestamped logical-time/message-retraction fields. Generic
-return/failure records, public MOM object/attribute
-registration and reflection, Requirements Lab validation, and broad
-conformance claims remain deferred.
+return/failure records, periodic/other conditional MOM behavior, public MOM
+interactions, Requirements
+Lab validation of the callback producer mapping, and broad conformance claims
+remain deferred. The first public object-management slice is now implemented:
+active ordinary subscribers and matching regional subscribers receive
+RTI-owned `HLAfederate` discovery, a reliable initial reflection of all seven
+required Table 8 values (including `HLAreportServiceFile`), direct
+requested-value reflection for a known object, and removal when the
+represented federate resigns. Regional eligibility is evaluated against the
+immutable `HLAfederate` point. That slice uses the local default-invalid RTI producer policy recorded
+in RL-043 and is explicitly development-profile traceability, not conformance
+evidence. A companion event-driven conditional projection now reflects all nine
+predefined `HLAfederate` switch attributes after successful individual setters
+and accepted `HLAsetSwitches` subsets, plus four bounded temporal-state
+attributes after their successful role transitions or time-advance request and
+grant transitions, and answers known-object requests from current membership
+state. A focused save/restore companion now projects the official
+`HLAfederateState` enumeration (`ActiveFederate=1`,
+`FederateSaveInProgress=3`, `FederateRestoreInProgress=5`) from the operation
+ledgers at the corresponding callback boundaries in both callback models. It
+suppresses the save-state event reflection at the federate that is itself
+saving while preserving direct known-object AVU access to the current value.
+It does not claim the periodic scheduler, other conditional/non-initial
+values, or a complete standard producer mapping.
 
 ## Authorities
 
@@ -615,11 +636,14 @@ specific Join, not from the federation's accumulated FDD. The registry uses
 the validation layer's canonical source identity to retain the first supplied
 designator when the same module appears more than once.
 
-This is deliberately not public object registration. The snapshot is held
-outside the federate-created object map, so current object-management,
-ownership, discovery, reflection, and removal callbacks cannot accidentally
-treat it as a federate-produced object. A non-installed test inspection seam
-verifies this state without manufacturing a callback producer handle.
+This is deliberately not public federate-owned object registration. The
+snapshot is held outside the federate-created object map, with a dedicated
+RTI-owned object-management ledger. That ledger now feeds the bounded public
+discovery, complete seven-value initial reflection, known-object requested-value,
+and resignation-removal callbacks; it does not claim ordinary ownership semantics
+or a standards-resolved producer handle. A non-installed test inspection seam
+still verifies the complete private state without manufacturing a joined
+producer identity.
 
 The composed FOM catalog now retains each object's standard attribute
 `updateType`, `updateCondition`, `valueRequired`, and `ownership` alongside
@@ -641,16 +665,17 @@ attribute declares `DivestAcquire`, unlike the direct joined-federate
 attributes' `NoTransfer` policy. This is a construction prerequisite, not an
 ownership implementation or a claim that a federate may delete a MOM object.
 
-The private snapshot now holds the real `HLAreportServiceFile` value, but it
-does not expose that value through a public MOM attribute update. The embedded
-profile's runtime decision is fixed: the eventual public initial update follows
+The private snapshot now holds the real `HLAreportServiceFile` value, and the
+first public MOM slice exposes that value through the normal reliable attribute
+reflection route for active ordinary or matching regional subscriptions. The embedded profile's
+runtime decision is fixed: the initial update follows
 the IEEE 1516.1-2025 Table 8 `Static` entry and uses the already allocated
 immutable pathname. The vendored 1516.2 MIM calls the attribute `Conditional`
 at the first time both switches become true; Umbra retains that cross-artifact
 discrepancy in RL-041 and in the catalog, but it does not let the conflicting
 field postpone pathname selection or create a second file on later enablement.
 
-## MOM-object publication prerequisite
+## MOM-object publication and remaining scheduler boundary
 
 The standard MIM says that the RTI publishes `HLAmanager.HLAfederate` and
 registers one object instance for every joined federate. It also requires the
@@ -663,6 +688,27 @@ federate-owned `registerObjectInstance` path.
 The public registration path currently requires a joined federate's
 publication and models its transfer-capable attribute ownership. A standards
 facing MOM object layer needs a distinct, RTI-owned producer model instead.
+Umbra now has that dedicated ledger and a bounded object-management adapter
+for the complete seven-value initial projection. Regional discovery is now
+implemented for the immutable `HLAfederate` point, and successful changes to
+all nine predefined switch attributes plus four bounded temporal-state
+attributes produce event-driven current-value reflections. Save/restore now
+also drives the bounded `HLAfederateState` enumeration from the real operation
+ledgers and omits the save-state event reflection at the saving federate while
+leaving direct AVU unaffected. Direct known-object AVU now also supplies the
+MIM-periodic `HLAlogicalTime` and `HLAlookahead` values from the selected
+official time provider (or the MIM empty-array undefined form), even before a
+report period is configured. The bounded `HLAsetTiming` slice now accepts the
+official target/reference and `HLAseconds` pair, arms one target-local
+wall-clock deadline, and routes the catalog-declared periodic subset through
+the ordinary active-subscription planner at an Evoke callback boundary. Idle
+`HLA_IMMEDIATE` background delivery, the remaining periodic/other conditional
+updates, optional/inherited non-initial attributes, public MOM interactions,
+and the standard callback producer mapping remain separate work.
+For deferred callback models, each event-driven reflection retains the encoded
+value captured at the successful transition while revalidating object lifetime
+and subscription eligibility at callback delivery; recomputing only at delivery
+would lose transient states such as `TimeAdvancing` after a grant is queued.
 The bounded non-timestamped, timestamped, and region-context `Send Interaction`
 report slice uses the existing
 default-invalid `FederateHandle` boundary representation for the RTI producer;
@@ -695,15 +741,25 @@ The intended implementation order is:
 1. Retain the MIM object-attribute policy in the composed catalog (complete).
 2. Add a private RTI-owned object-instance foundation with a common-namespace
    identity, full effective-attribute metadata, seven encoded initial values,
-   and an immutable `HLAfederate` dimension point (complete; unpublished).
-3. Register the complete required joined-federate MOM object at join, retain
-   its object-instance identity through resignation, and serve requested
-   attribute values through the normal reflection route.
-4. Implement the static, conditional, and periodic attribute update scheduler
-   from catalog metadata and the relevant 2025 source rules.
-5. Add `HLAreportServiceFile` to that complete object model with the already
-   allocated filesystem pathname using the selected Table 8 static
-   publication event.
+   and an immutable `HLAfederate` dimension point (complete).
+3. Expose the bounded initial public object-management route: active ordinary
+   and immutable-point-filtered regional discovery, reliable reflection of all
+   seven required initial values, known-object requested-value reflection for
+   that projection, and resignation removal (complete for the development
+   profile; local producer policy, not conformance).
+4. Register the remaining required joined-federate MOM attributes through the
+   same public route and implement the remaining static, conditional, and
+   periodic attribute update scheduler from catalog metadata and the relevant
+   2025 source rules. Direct AVU for the first two MIM-periodic time values is
+   now covered, and the bounded `HLAsetTiming` deadline pump emits the
+   catalog-declared periodic subset at an Evoke boundary; the remaining
+   periodic/conditional attributes and idle `HLA_IMMEDIATE` background timer
+   remain open. The nine event-driven switch projections and four bounded
+   temporal-state projections remain the other bounded subset.
+5. Add regional updates, public MOM interactions, and a source-backed
+   producer-designator rule before any conformance claim. The
+   `HLAreportServiceFile` value already uses the allocated filesystem pathname
+   and selected Table 8 static publication event in the bounded slice.
 
 This sequence deliberately avoids a partial one-attribute MOM implementation.
 It gives all MOM attributes one RTI-owned object foundation and keeps public
@@ -1152,8 +1208,10 @@ decision rather than making an unmarked embedded-profile choice.
 
 ## Implementation order and evidence
 
-1. Resolve the RTI-created callback producer-designator rule (RL-043), then
-   connect the established joined-federate snapshot to ordinary public
+1. Keep the bounded public object-management slice covered while resolving the
+   RTI-created callback producer-designator rule (RL-043). Its current local
+   default-invalid producer policy is not conformance evidence. Extend the
+   established joined-federate snapshot to the remaining public
    discovery/reflection and requested-value handling without changing its
    already allocated file identity. Preserve the Table 8/MIM discrepancy as
    RL-041 source traceability. The explicit successful-void `[null]` case is

@@ -12,17 +12,20 @@
 #include <atomic>
 #include <cstdint>
 #include <chrono>
+#include <condition_variable>
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -91,6 +94,74 @@ class FederationEventFederateAmbassador final : public NullFederateAmbassador {
 
   std::vector<std::wstring> faultDescriptions;
   std::vector<std::wstring> resignationDescriptions;
+};
+
+// HLA_IMMEDIATE periodic MOM delivery is produced by the RTI scheduler
+// thread, so this focused observer protects only the callback evidence it
+// owns. The broad ReportingFederateAmbassador remains intentionally simple
+// for the caller-gated HLA_EVOKED matrix.
+class ImmediatePeriodicFederateAmbassador final : public NullFederateAmbassador {
+ public:
+  struct Reflection final {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleValueMap attributeValues;
+    TransportationTypeHandle transportationType;
+    FederateHandle producingFederate;
+    bool sentRegionsSupplied = false;
+  };
+
+  void discoverObjectInstance(
+      ObjectInstanceHandle const& objectInstance,
+      ObjectClassHandle const& objectClass,
+      std::wstring const& objectInstanceName,
+      FederateHandle const& producingFederate) override {
+    static_cast<void>(objectClass);
+    static_cast<void>(objectInstanceName);
+    static_cast<void>(producingFederate);
+    std::scoped_lock lock(mutex_);
+    discoveredObjects.push_back(objectInstance);
+    callbacks_.notify_all();
+  }
+
+  void reflectAttributeValues(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleValueMap const& attributeValues,
+      VariableLengthData const& userSuppliedTag,
+      TransportationTypeHandle const& transportationType,
+      FederateHandle const& producingFederate,
+      RegionHandleSet const* optionalSentRegions) override {
+    static_cast<void>(userSuppliedTag);
+    std::scoped_lock lock(mutex_);
+    reflections.push_back({
+        objectInstance,
+        attributeValues,
+        transportationType,
+        producingFederate,
+        optionalSentRegions != nullptr,
+    });
+    callbacks_.notify_all();
+  }
+
+  [[nodiscard]] bool waitForReflectionCount(
+      std::size_t expected,
+      std::chrono::milliseconds timeout) const {
+    std::unique_lock lock(mutex_);
+    return callbacks_.wait_for(lock, timeout, [this, expected] {
+      return reflections.size() >= expected;
+    });
+  }
+
+  [[nodiscard]] std::vector<Reflection> reflectionSnapshot() const {
+    std::scoped_lock lock(mutex_);
+    return reflections;
+  }
+
+  std::vector<ObjectInstanceHandle> discoveredObjects;
+  std::vector<Reflection> reflections;
+
+ private:
+  mutable std::mutex mutex_;
+  mutable std::condition_variable callbacks_;
 };
 
 class ReportingFederateAmbassador final : public NullFederateAmbassador {
@@ -1045,6 +1116,20 @@ TEST_CASE(
   now += std::chrono::milliseconds(400);
   REQUIRE(gate.admit("producer/subscriber", 2.0, false));
 
+  // Distinct projected attributes keep independent admission histories.
+  REQUIRE(gate.admit("receiver/fast-attribute", 10.0, false));
+  REQUIRE(gate.admit("receiver/slow-attribute", 1.0, false));
+  now += std::chrono::milliseconds(50);
+  REQUIRE_FALSE(gate.admit("receiver/fast-attribute", 10.0, false));
+  REQUIRE_FALSE(gate.admit("receiver/slow-attribute", 1.0, false));
+
+  // A subscription mutation is encoded into the delivery key by the
+  // registry.  A later generation therefore starts with a fresh admission
+  // history even when the federate/object/attribute identity is unchanged.
+  REQUIRE(gate.admit("receiver/object/generation-1/attribute", 2.0, false));
+  REQUIRE_FALSE(gate.admit("receiver/object/generation-1/attribute", 2.0, false));
+  REQUIRE(gate.admit("receiver/object/generation-2/attribute", 2.0, false));
+
   REQUIRE(gate.admit("reliable", 0.001, true));
   REQUIRE(gate.admit("reliable", 0.001, true));
   REQUIRE(gate.admit("default", 0.0, false));
@@ -1122,6 +1207,37 @@ ScopedTemporaryFile nrgEnabledRestaurantModule() {
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile lowRateAttributeUpdatePasselModule() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+      "cpp" / "tests" / "data" / "attribute-update-passel-fom.xml";
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+  auto const marker = std::string{"</objects>"};
+  auto const insertion = fomText.find(marker);
+  REQUIRE(insertion != std::string::npos);
+  fomText.insert(
+      insertion + marker.size(),
+      "\n    <updateRates>\n"
+      "        <updateRate>\n"
+      "            <name>Low</name>\n"
+      "            <rate>0.2</rate>\n"
+      "        </updateRate>\n"
+      "    </updateRates>");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-update-rate-attribute-passel-" +
+       std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output.write(fomText.data(), static_cast<std::streamsize>(fomText.size()));
   REQUIRE(output.good());
   return ScopedTemporaryFile(path);
 }
@@ -14014,6 +14130,1341 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+    "[integration][development-profile][federation-management][mom][object-management]"
+    "[service-report-file][service-reporting]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador subjectReports;
+    ReportingFederateAmbassador observerReports;
+    auto subject = makeRti();
+    auto observer = makeRti();
+    auto subjectDirectory = temporaryServiceReportDirectory();
+    auto observerDirectory = temporaryServiceReportDirectory();
+    auto subjectConfiguration = configurationForServiceReportDirectory(subjectDirectory.path());
+    auto observerConfiguration = configurationForServiceReportDirectory(observerDirectory.path());
+    subjectConfiguration.withRtiAddress(L"in-process");
+    observerConfiguration.withRtiAddress(L"in-process");
+    auto const federationName = nextFederationName();
+    auto const fomModule =
+        (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+         "switch-nrg-disabled-fom.xml")
+            .wstring();
+
+    REQUIRE_NOTHROW(subject->connect(subjectReports, callbackModel, subjectConfiguration));
+    REQUIRE_NOTHROW(observer->connect(observerReports, callbackModel, observerConfiguration));
+    REQUIRE_NOTHROW(
+        subject->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+    auto const subjectFederate = subject->joinFederationExecution(
+        L"public-mom-subject", L"subject", federationName);
+    REQUIRE_NOTHROW(observer->joinFederationExecution(
+        L"public-mom-observer", L"observer", federationName));
+
+    auto const momClass = observer->getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederate");
+    auto const reportFileAttribute = observer->getAttributeHandle(
+        momClass, L"HLAreportServiceFile");
+    auto const federateHandleAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateHandle");
+    auto const federateNameAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateName");
+    auto const federateTypeAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateType");
+    auto const federateHostAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateHost");
+    auto const rtiVersionAttribute = observer->getAttributeHandle(
+        momClass, L"HLARTIversion");
+    auto const fomModuleListAttribute = observer->getAttributeHandle(
+        momClass, L"HLAFOMmoduleDesignatorList");
+    auto const reliable = observer->getTransportationTypeHandle(L"HLAreliable");
+    AttributeHandleSet const initialAttributes{
+        federateHandleAttribute,
+        federateNameAttribute,
+        federateTypeAttribute,
+        federateHostAttribute,
+        rtiVersionAttribute,
+        fomModuleListAttribute,
+        reportFileAttribute,
+    };
+    REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+        momClass,
+        initialAttributes,
+        true));
+    while (observer->evokeCallback(0.0)) {
+    }
+
+    auto const subjectFiles = serviceReportFiles(subjectDirectory.path());
+    REQUIRE(subjectFiles.size() == 1U);
+    auto const expectedReportFile =
+        rti1516_2025::HLAunicodeString{subjectFiles.front().wstring()}.encode();
+    auto const reflectedSubject = std::find_if(
+        observerReports.attributeReflectionReports.begin(),
+        observerReports.attributeReflectionReports.end(),
+        [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+          auto const value = report.attributeValues.find(reportFileAttribute);
+          return value != report.attributeValues.end() &&
+              variableLengthDataBytes(value->second) == variableLengthDataBytes(expectedReportFile);
+        });
+    REQUIRE(reflectedSubject != observerReports.attributeReflectionReports.end());
+    auto const subjectObjectInstance = reflectedSubject->objectInstance;
+    REQUIRE(reflectedSubject->attributeValues.size() == initialAttributes.size());
+    REQUIRE(variableLengthDataBytes(reflectedSubject->attributeValues.at(
+                federateHandleAttribute)) ==
+            variableLengthDataBytes(subjectFederate.encode()));
+    REQUIRE(variableLengthDataBytes(reflectedSubject->attributeValues.at(
+                federateNameAttribute)) ==
+            variableLengthDataBytes(
+                rti1516_2025::HLAunicodeString{L"public-mom-subject"}.encode()));
+    REQUIRE(variableLengthDataBytes(reflectedSubject->attributeValues.at(
+                federateTypeAttribute)) ==
+            variableLengthDataBytes(rti1516_2025::HLAunicodeString{L"subject"}.encode()));
+    REQUIRE(variableLengthDataBytes(reflectedSubject->attributeValues.at(
+                federateHostAttribute)) ==
+            variableLengthDataBytes(rti1516_2025::HLAunicodeString{L"umbra-embedded"}.encode()));
+    REQUIRE(variableLengthDataBytes(reflectedSubject->attributeValues.at(
+                rtiVersionAttribute)) ==
+            variableLengthDataBytes(rti1516_2025::HLAunicodeString{L"Umbra 0.1.0"}.encode()));
+    auto const reflectedModuleList = decodeHlaUnicodeStringList(
+        reflectedSubject->attributeValues.at(fomModuleListAttribute));
+    REQUIRE(reflectedModuleList);
+    REQUIRE(reflectedModuleList->empty());
+    REQUIRE(reflectedSubject->transportationType == reliable);
+    REQUIRE_FALSE(reflectedSubject->producingFederate.isValid());
+    REQUIRE_FALSE(reflectedSubject->sentRegionsSupplied);
+    REQUIRE(reflectedSubject->userSuppliedTag.size() == 0U);
+    auto const discoveredSubject = std::find_if(
+        observerReports.objectDiscoveryReports.begin(),
+        observerReports.objectDiscoveryReports.end(),
+        [&](ReportingFederateAmbassador::ObjectDiscoveryReport const& report) {
+          return report.objectInstance == subjectObjectInstance;
+        });
+    REQUIRE(discoveredSubject != observerReports.objectDiscoveryReports.end());
+    REQUIRE(discoveredSubject->objectClass == momClass);
+    REQUIRE_FALSE(discoveredSubject->objectInstanceName.empty());
+    REQUIRE_FALSE(discoveredSubject->producingFederate.isValid());
+
+    auto const reflectedCountBeforeRequest = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+        subjectObjectInstance,
+        initialAttributes,
+        VariableLengthData{}));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE(observerReports.attributeReflectionReports.size() == reflectedCountBeforeRequest + 1U);
+    auto const& requestedReflection = observerReports.attributeReflectionReports.back();
+    REQUIRE(requestedReflection.objectInstance == subjectObjectInstance);
+    REQUIRE(requestedReflection.attributeValues.size() == initialAttributes.size());
+    REQUIRE(variableLengthDataBytes(requestedReflection.attributeValues.at(
+                federateHandleAttribute)) ==
+            variableLengthDataBytes(subjectFederate.encode()));
+    REQUIRE(variableLengthDataBytes(requestedReflection.attributeValues.at(
+                federateNameAttribute)) ==
+            variableLengthDataBytes(
+                rti1516_2025::HLAunicodeString{L"public-mom-subject"}.encode()));
+    REQUIRE(variableLengthDataBytes(requestedReflection.attributeValues.at(
+                federateTypeAttribute)) ==
+            variableLengthDataBytes(rti1516_2025::HLAunicodeString{L"subject"}.encode()));
+    REQUIRE(variableLengthDataBytes(requestedReflection.attributeValues.at(
+                federateHostAttribute)) ==
+            variableLengthDataBytes(rti1516_2025::HLAunicodeString{L"umbra-embedded"}.encode()));
+    REQUIRE(variableLengthDataBytes(requestedReflection.attributeValues.at(
+                rtiVersionAttribute)) ==
+            variableLengthDataBytes(rti1516_2025::HLAunicodeString{L"Umbra 0.1.0"}.encode()));
+    auto const requestedModuleList = decodeHlaUnicodeStringList(
+        requestedReflection.attributeValues.at(fomModuleListAttribute));
+    REQUIRE(requestedModuleList);
+    REQUIRE(requestedModuleList->empty());
+    REQUIRE(requestedReflection.transportationType == reliable);
+    REQUIRE_FALSE(requestedReflection.producingFederate.isValid());
+    REQUIRE(variableLengthDataBytes(requestedReflection.attributeValues.at(reportFileAttribute)) ==
+            variableLengthDataBytes(expectedReportFile));
+
+    REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+    while (observer->evokeCallback(0.0)) {
+    }
+    auto const removedSubject = std::find_if(
+        observerReports.objectRemovalReports.begin(),
+        observerReports.objectRemovalReports.end(),
+        [&](ReportingFederateAmbassador::ObjectRemovalReport const& report) {
+          return report.objectInstance == subjectObjectInstance;
+        });
+    REQUIRE(removedSubject != observerReports.objectRemovalReports.end());
+    REQUIRE_FALSE(removedSubject->producingFederate.isValid());
+
+    auto* const subjectAmbassador =
+        dynamic_cast<rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador*>(subject.get());
+    REQUIRE(subjectAmbassador != nullptr);
+    REQUIRE_FALSE(subjectAmbassador->joinedFederateMomObjectSnapshotForTesting());
+
+    REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(observer->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subject->disconnect());
+    REQUIRE_NOTHROW(observer->disconnect());
+    static_cast<void>(subjectFederate);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point",
+    "[integration][development-profile][federation-management][mom][object-management][ddm]"
+    "[service-report-file][rti.service.create-region]"
+    "[rti.service.set-range-bounds][rti.service.commit-region-modifications]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.request-attribute-value-update]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values][federate.callback.remove-object-instance]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador subjectReports;
+    ReportingFederateAmbassador matchingReports;
+    ReportingFederateAmbassador disjointReports;
+    auto subject = makeRti();
+    auto matching = makeRti();
+    auto disjoint = makeRti();
+    auto subjectDirectory = temporaryServiceReportDirectory();
+    auto matchingDirectory = temporaryServiceReportDirectory();
+    auto disjointDirectory = temporaryServiceReportDirectory();
+    auto subjectConfiguration = configurationForServiceReportDirectory(subjectDirectory.path());
+    auto matchingConfiguration = configurationForServiceReportDirectory(matchingDirectory.path());
+    auto disjointConfiguration = configurationForServiceReportDirectory(disjointDirectory.path());
+    subjectConfiguration.withRtiAddress(L"in-process");
+    matchingConfiguration.withRtiAddress(L"in-process");
+    disjointConfiguration.withRtiAddress(L"in-process");
+    auto const federationName = nextFederationName();
+    auto const fomModule =
+        (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+         "switch-nrg-disabled-fom.xml")
+            .wstring();
+
+    REQUIRE_NOTHROW(subject->connect(subjectReports, callbackModel, subjectConfiguration));
+    REQUIRE_NOTHROW(matching->connect(matchingReports, callbackModel, matchingConfiguration));
+    REQUIRE_NOTHROW(disjoint->connect(disjointReports, callbackModel, disjointConfiguration));
+    REQUIRE_NOTHROW(
+        subject->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+    auto const subjectFederate = subject->joinFederationExecution(
+        L"regional-mom-subject", L"subject", federationName);
+    REQUIRE_NOTHROW(matching->joinFederationExecution(
+        L"regional-mom-matching", L"observer", federationName));
+    REQUIRE_NOTHROW(disjoint->joinFederationExecution(
+        L"regional-mom-disjoint", L"observer", federationName));
+
+    auto const momClass = matching->getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederate");
+    auto const federateNameAttribute = matching->getAttributeHandle(
+        momClass, L"HLAfederateName");
+    auto const federateDimension = matching->getDimensionHandle(L"HLAfederate");
+    auto const reliable = matching->getTransportationTypeHandle(L"HLAreliable");
+    REQUIRE(momClass.isValid());
+    REQUIRE(federateNameAttribute.isValid());
+    REQUIRE(federateDimension.isValid());
+    REQUIRE(reliable.isValid());
+
+    auto const normalizedSubject = matching->normalizeFederateHandle(subjectFederate);
+    REQUIRE(normalizedSubject < std::numeric_limits<unsigned long>::max());
+    auto const disjointPoint = normalizedSubject == 0UL ? 1UL : normalizedSubject - 1UL;
+    auto const matchingRegion = matching->createRegion(DimensionHandleSet{federateDimension});
+    auto const disjointRegion = disjoint->createRegion(DimensionHandleSet{federateDimension});
+    REQUIRE_NOTHROW(matching->setRangeBounds(
+        matchingRegion,
+        federateDimension,
+        RangeBounds(disjointPoint, disjointPoint + 1UL)));
+    REQUIRE_NOTHROW(disjoint->setRangeBounds(
+        disjointRegion,
+        federateDimension,
+        RangeBounds(disjointPoint, disjointPoint + 1UL)));
+    REQUIRE_NOTHROW(matching->commitRegionModifications(RegionHandleSet{matchingRegion}));
+    REQUIRE_NOTHROW(disjoint->commitRegionModifications(RegionHandleSet{disjointRegion}));
+
+    AttributeHandleSetRegionHandleSetPairVector const matchingPair{{
+        AttributeHandleSet{federateNameAttribute},
+        RegionHandleSet{matchingRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const disjointPair{{
+        AttributeHandleSet{federateNameAttribute},
+        RegionHandleSet{disjointRegion},
+    }};
+    REQUIRE_NOTHROW(matching->subscribeObjectClassAttributesWithRegions(
+        momClass,
+        matchingPair));
+    REQUIRE_NOTHROW(disjoint->subscribeObjectClassAttributesWithRegions(
+        momClass,
+        disjointPair));
+    while (matching->evokeCallback(0.0)) {
+    }
+    while (disjoint->evokeCallback(0.0)) {
+    }
+    REQUIRE(matchingReports.objectDiscoveryReports.empty());
+    REQUIRE(disjointReports.objectDiscoveryReports.empty());
+
+    // A committed range mutation must re-evaluate existing regional MOM
+    // subscriptions and discover the point once it becomes eligible.
+    REQUIRE_NOTHROW(matching->setRangeBounds(
+        matchingRegion,
+        federateDimension,
+        RangeBounds(normalizedSubject, normalizedSubject + 1UL)));
+    REQUIRE_NOTHROW(matching->commitRegionModifications(RegionHandleSet{matchingRegion}));
+    while (matching->evokeCallback(0.0)) {
+    }
+    while (disjoint->evokeCallback(0.0)) {
+    }
+
+    auto const discovered = std::find_if(
+        matchingReports.objectDiscoveryReports.begin(),
+        matchingReports.objectDiscoveryReports.end(),
+        [&](ReportingFederateAmbassador::ObjectDiscoveryReport const& report) {
+          return report.objectClass == momClass;
+        });
+    REQUIRE(discovered != matchingReports.objectDiscoveryReports.end());
+    REQUIRE_FALSE(discovered->producingFederate.isValid());
+    REQUIRE(disjointReports.objectDiscoveryReports.empty());
+
+    auto const reflected = std::find_if(
+        matchingReports.attributeReflectionReports.begin(),
+        matchingReports.attributeReflectionReports.end(),
+        [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+          return report.objectInstance == discovered->objectInstance &&
+              report.attributeValues.contains(federateNameAttribute);
+        });
+    REQUIRE(reflected != matchingReports.attributeReflectionReports.end());
+    REQUIRE(reflected->attributeValues.size() == 1U);
+    rti1516_2025::HLAunicodeString reflectedName;
+    REQUIRE_NOTHROW(reflectedName.decode(
+        reflected->attributeValues.at(federateNameAttribute)));
+    REQUIRE(reflectedName.get() == L"regional-mom-subject");
+    REQUIRE(reflected->transportationType == reliable);
+    REQUIRE_FALSE(reflected->producingFederate.isValid());
+    REQUIRE_FALSE(reflected->sentRegionsSupplied);
+
+    auto const reflectionCount = matchingReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(matching->requestAttributeValueUpdate(
+        discovered->objectInstance,
+        AttributeHandleSet{federateNameAttribute},
+        VariableLengthData{}));
+    while (matching->evokeCallback(0.0)) {
+    }
+    REQUIRE(matchingReports.attributeReflectionReports.size() == reflectionCount + 1U);
+    auto const& requested = matchingReports.attributeReflectionReports.back();
+    REQUIRE(requested.objectInstance == discovered->objectInstance);
+    REQUIRE(requested.attributeValues.size() == 1U);
+    REQUIRE(requested.transportationType == reliable);
+    REQUIRE_FALSE(requested.producingFederate.isValid());
+
+    REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+    while (matching->evokeCallback(0.0)) {
+    }
+    while (disjoint->evokeCallback(0.0)) {
+    }
+    auto const removed = std::find_if(
+        matchingReports.objectRemovalReports.begin(),
+        matchingReports.objectRemovalReports.end(),
+        [&](ReportingFederateAmbassador::ObjectRemovalReport const& report) {
+          return report.objectInstance == discovered->objectInstance;
+        });
+    REQUIRE(removed != matchingReports.objectRemovalReports.end());
+    REQUIRE_FALSE(removed->producingFederate.isValid());
+    auto const disjointRemoved = std::find_if(
+        disjointReports.objectRemovalReports.begin(),
+        disjointReports.objectRemovalReports.end(),
+        [&](ReportingFederateAmbassador::ObjectRemovalReport const& report) {
+          return report.objectInstance == discovered->objectInstance;
+        });
+    REQUIRE(disjointRemoved == disjointReports.objectRemovalReports.end());
+
+    REQUIRE_NOTHROW(matching->unsubscribeObjectClassAttributesWithRegions(
+        momClass,
+        matchingPair));
+    REQUIRE_NOTHROW(disjoint->unsubscribeObjectClassAttributesWithRegions(
+        momClass,
+        disjointPair));
+    REQUIRE_NOTHROW(matching->deleteRegion(matchingRegion));
+    REQUIRE_NOTHROW(disjoint->deleteRegion(disjointRegion));
+    REQUIRE_NOTHROW(matching->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(disjoint->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(matching->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subject->disconnect());
+    REQUIRE_NOTHROW(matching->disconnect());
+    REQUIRE_NOTHROW(disjoint->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Embedded joined-federate MOM conditional reflections track current state",
+    "[integration][development-profile][federation-management][mom][object-management]"
+    "[mom-switches][service-report-file][service-reporting]"
+    "[rti.service.set-object-class-relevance-advisory-switch]"
+    "[rti.service.set-attribute-relevance-advisory-switch]"
+    "[rti.service.set-attribute-scope-advisory-switch]"
+    "[rti.service.set-interaction-relevance-advisory-switch]"
+    "[rti.service.set-convey-region-designator-sets-switch]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.set-exception-reporting-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.enable-time-regulation][rti.service.disable-time-regulation]"
+    "[rti.service.enable-time-constrained][rti.service.disable-time-constrained]"
+    "[rti.service.enable-asynchronous-delivery]"
+    "[rti.service.disable-asynchronous-delivery]"
+    "[rti.service.time-advance-request][rti.service.time-advance-request-available]"
+    "[rti.service.next-message-request][rti.service.next-message-request-available]"
+    "[rti.service.flush-queue-request]"
+    "[rti.service.request-attribute-value-update]"
+    "[rti.service.send-interaction]"
+    "[federate.callback.reflect-attribute-values]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador subjectReports;
+    ReportingFederateAmbassador observerReports;
+    auto subject = makeRti();
+    auto observer = makeRti();
+    auto subjectDirectory = temporaryServiceReportDirectory();
+    auto observerDirectory = temporaryServiceReportDirectory();
+    auto subjectConfiguration = configurationForServiceReportDirectory(subjectDirectory.path());
+    auto observerConfiguration = configurationForServiceReportDirectory(observerDirectory.path());
+    subjectConfiguration.withRtiAddress(L"in-process");
+    observerConfiguration.withRtiAddress(L"in-process");
+    auto const federationName = nextFederationName();
+    auto const fomModule =
+        (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+         "switch-nrg-disabled-fom.xml")
+            .wstring();
+
+    REQUIRE_NOTHROW(subject->connect(subjectReports, callbackModel, subjectConfiguration));
+    REQUIRE_NOTHROW(observer->connect(observerReports, callbackModel, observerConfiguration));
+    REQUIRE_NOTHROW(
+        subject->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+    auto const subjectFederate = subject->joinFederationExecution(
+        L"conditional-mom-subject", L"subject", federationName);
+    REQUIRE_NOTHROW(observer->joinFederationExecution(
+        L"conditional-mom-observer", L"observer", federationName));
+
+    auto const momClass = observer->getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederate");
+    auto const federateHandleAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateHandle");
+    auto const federateNameAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateName");
+    auto const federateTypeAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateType");
+    auto const federateHostAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateHost");
+    auto const rtiVersionAttribute = observer->getAttributeHandle(
+        momClass, L"HLARTIversion");
+    auto const fomModuleListAttribute = observer->getAttributeHandle(
+        momClass, L"HLAFOMmoduleDesignatorList");
+    auto const reportFileAttribute = observer->getAttributeHandle(
+        momClass, L"HLAreportServiceFile");
+    auto const objectClassRelevanceAttribute = observer->getAttributeHandle(
+        momClass, L"HLAobjectClassRelevanceAdvisory");
+    auto const attributeRelevanceAttribute = observer->getAttributeHandle(
+        momClass, L"HLAattributeRelevanceAdvisory");
+    auto const attributeScopeAttribute = observer->getAttributeHandle(
+        momClass, L"HLAattributeScopeAdvisory");
+    auto const interactionRelevanceAttribute = observer->getAttributeHandle(
+        momClass, L"HLAinteractionRelevanceAdvisory");
+    auto const conveyRegionsAttribute = observer->getAttributeHandle(
+        momClass, L"HLAconveyRegionDesignatorSets");
+    auto const automaticResignAttribute = observer->getAttributeHandle(
+        momClass, L"HLAautomaticResignAction");
+    auto const serviceReportingAttribute = observer->getAttributeHandle(
+        momClass, L"HLAserviceReporting");
+    auto const exceptionReportingAttribute = observer->getAttributeHandle(
+        momClass, L"HLAexceptionReporting");
+    auto const sendServiceReportsToFileAttribute = observer->getAttributeHandle(
+        momClass, L"HLAsendServiceReportsToFile");
+    auto const timeConstrainedAttribute = observer->getAttributeHandle(
+        momClass, L"HLAtimeConstrained");
+    auto const timeRegulatingAttribute = observer->getAttributeHandle(
+        momClass, L"HLAtimeRegulating");
+    auto const asynchronousDeliveryAttribute = observer->getAttributeHandle(
+        momClass, L"HLAasynchronousDelivery");
+    auto const timeManagerStateAttribute = observer->getAttributeHandle(
+        momClass, L"HLAtimeManagerState");
+    auto const logicalTimeAttribute = observer->getAttributeHandle(
+        momClass, L"HLAlogicalTime");
+    auto const lookaheadAttribute = observer->getAttributeHandle(
+        momClass, L"HLAlookahead");
+    auto const reliable = observer->getTransportationTypeHandle(L"HLAreliable");
+    REQUIRE(momClass.isValid());
+    REQUIRE(federateHandleAttribute.isValid());
+    REQUIRE(federateNameAttribute.isValid());
+    REQUIRE(federateTypeAttribute.isValid());
+    REQUIRE(federateHostAttribute.isValid());
+    REQUIRE(rtiVersionAttribute.isValid());
+    REQUIRE(fomModuleListAttribute.isValid());
+    REQUIRE(reportFileAttribute.isValid());
+    REQUIRE(objectClassRelevanceAttribute.isValid());
+    REQUIRE(attributeRelevanceAttribute.isValid());
+    REQUIRE(attributeScopeAttribute.isValid());
+    REQUIRE(interactionRelevanceAttribute.isValid());
+    REQUIRE(conveyRegionsAttribute.isValid());
+    REQUIRE(automaticResignAttribute.isValid());
+    REQUIRE(serviceReportingAttribute.isValid());
+    REQUIRE(exceptionReportingAttribute.isValid());
+    REQUIRE(sendServiceReportsToFileAttribute.isValid());
+    REQUIRE(timeConstrainedAttribute.isValid());
+    REQUIRE(timeRegulatingAttribute.isValid());
+    REQUIRE(asynchronousDeliveryAttribute.isValid());
+    REQUIRE(timeManagerStateAttribute.isValid());
+    REQUIRE(logicalTimeAttribute.isValid());
+    REQUIRE(lookaheadAttribute.isValid());
+    REQUIRE(reliable.isValid());
+
+    AttributeHandleSet const subscribedAttributes{
+        federateHandleAttribute,
+        federateNameAttribute,
+        federateTypeAttribute,
+        federateHostAttribute,
+        rtiVersionAttribute,
+        fomModuleListAttribute,
+        reportFileAttribute,
+        objectClassRelevanceAttribute,
+        attributeRelevanceAttribute,
+        attributeScopeAttribute,
+        interactionRelevanceAttribute,
+        conveyRegionsAttribute,
+        automaticResignAttribute,
+        serviceReportingAttribute,
+        exceptionReportingAttribute,
+        sendServiceReportsToFileAttribute,
+        timeConstrainedAttribute,
+        timeRegulatingAttribute,
+        asynchronousDeliveryAttribute,
+        timeManagerStateAttribute,
+        logicalTimeAttribute,
+        lookaheadAttribute,
+    };
+    REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+        momClass,
+        subscribedAttributes,
+        true));
+    while (observer->evokeCallback(0.0)) {
+    }
+
+    auto const subjectFiles = serviceReportFiles(subjectDirectory.path());
+    REQUIRE(subjectFiles.size() == 1U);
+    auto const reflectedSubject = std::find_if(
+        observerReports.attributeReflectionReports.begin(),
+        observerReports.attributeReflectionReports.end(),
+        [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+          auto const value = report.attributeValues.find(federateHandleAttribute);
+          return value != report.attributeValues.end() &&
+              variableLengthDataBytes(value->second) ==
+                  variableLengthDataBytes(subjectFederate.encode());
+        });
+    REQUIRE(reflectedSubject != observerReports.attributeReflectionReports.end());
+    auto const subjectObjectInstance = reflectedSubject->objectInstance;
+    REQUIRE(reflectedSubject->attributeValues.size() == 7U);
+    REQUIRE(reflectedSubject->attributeValues.find(objectClassRelevanceAttribute) ==
+            reflectedSubject->attributeValues.end());
+
+    AttributeHandleSet const conditionalAttributes{
+        objectClassRelevanceAttribute,
+        attributeRelevanceAttribute,
+        attributeScopeAttribute,
+        interactionRelevanceAttribute,
+        conveyRegionsAttribute,
+        automaticResignAttribute,
+        serviceReportingAttribute,
+        exceptionReportingAttribute,
+        sendServiceReportsToFileAttribute,
+    };
+    auto expectConditionalReflection = [&](std::size_t const before,
+                                           AttributeHandle const attribute,
+                                           std::int32_t const expected) {
+      auto const reflected = std::find_if(
+          observerReports.attributeReflectionReports.begin() +
+              static_cast<std::ptrdiff_t>(before),
+          observerReports.attributeReflectionReports.end(),
+          [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+            return report.objectInstance == subjectObjectInstance &&
+                report.attributeValues.contains(attribute);
+          });
+      REQUIRE(reflected != observerReports.attributeReflectionReports.end());
+      REQUIRE(reflected->attributeValues.size() == 1U);
+      rti1516_2025::HLAinteger32BE decoded;
+      REQUIRE_NOTHROW(decoded.decode(reflected->attributeValues.at(attribute)));
+      REQUIRE(decoded.get() == expected);
+      REQUIRE(reflected->transportationType == reliable);
+      REQUIRE_FALSE(reflected->producingFederate.isValid());
+      REQUIRE_FALSE(reflected->sentRegionsSupplied);
+    };
+    auto applySwitchAndCheck = [&](auto setter,
+                                   AttributeHandle const attribute,
+                                   std::int32_t const expected) {
+      auto const before = observerReports.attributeReflectionReports.size();
+      REQUIRE_NOTHROW(setter());
+      while (observer->evokeCallback(0.0)) {
+      }
+      REQUIRE(observerReports.attributeReflectionReports.size() > before);
+      expectConditionalReflection(before, attribute, expected);
+    };
+    auto expectBooleanConditionalReflection = [&](std::size_t const before,
+                                                  AttributeHandle const attribute,
+                                                  bool const expected) {
+      auto const reflected = std::find_if(
+          observerReports.attributeReflectionReports.begin() +
+              static_cast<std::ptrdiff_t>(before),
+          observerReports.attributeReflectionReports.end(),
+          [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+            return report.objectInstance == subjectObjectInstance &&
+                report.attributeValues.contains(attribute);
+          });
+      REQUIRE(reflected != observerReports.attributeReflectionReports.end());
+      REQUIRE(reflected->attributeValues.size() == 1U);
+      rti1516_2025::HLAboolean decoded;
+      REQUIRE_NOTHROW(decoded.decode(reflected->attributeValues.at(attribute)));
+      REQUIRE(decoded.get() == expected);
+      REQUIRE(reflected->transportationType == reliable);
+      REQUIRE_FALSE(reflected->producingFederate.isValid());
+      REQUIRE_FALSE(reflected->sentRegionsSupplied);
+    };
+    auto applyTimeStateAndCheck = [&](auto service,
+                                      AttributeHandle const attribute,
+                                      bool const expected) {
+      auto const before = observerReports.attributeReflectionReports.size();
+      REQUIRE_NOTHROW(service());
+      while (subject->evokeCallback(0.0)) {
+      }
+      while (observer->evokeCallback(0.0)) {
+      }
+      REQUIRE(observerReports.attributeReflectionReports.size() > before);
+      expectBooleanConditionalReflection(before, attribute, expected);
+    };
+
+    // Before time regulation is enabled, HLAlookahead is undefined.  The
+    // MIM represents that periodic value as an empty variable array, while
+    // HLAlogicalTime is already defined at the provider's initial value.
+    auto const beforeUndefinedPeriodicRequest =
+        observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+        subjectObjectInstance,
+        AttributeHandleSet{logicalTimeAttribute, lookaheadAttribute},
+        VariableLengthData{}));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE(observerReports.attributeReflectionReports.size() ==
+            beforeUndefinedPeriodicRequest + 1U);
+    auto const& undefinedPeriodicRequest = observerReports.attributeReflectionReports.back();
+    REQUIRE(undefinedPeriodicRequest.objectInstance == subjectObjectInstance);
+    REQUIRE(undefinedPeriodicRequest.attributeValues.size() == 2U);
+    rti1516_2025::HLAinteger64Time undefinedLogicalTime;
+    REQUIRE_NOTHROW(undefinedLogicalTime.decode(
+        undefinedPeriodicRequest.attributeValues.at(logicalTimeAttribute)));
+    REQUIRE(undefinedLogicalTime.getTime() == 0);
+    REQUIRE(undefinedPeriodicRequest.attributeValues.at(lookaheadAttribute).size() == 0U);
+
+    applyTimeStateAndCheck(
+        [&] { subject->enableTimeConstrained(); },
+        timeConstrainedAttribute,
+        true);
+    applyTimeStateAndCheck(
+        [&] { subject->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)); },
+        timeRegulatingAttribute,
+        true);
+
+    // The MIM marks these two values Periodic, but §11.4.1 requires their
+    // values on a direct Request Attribute Value Update even before a future
+    // HLAsetTiming wall-clock scheduler is enabled.  The current integer-time
+    // provider therefore supplies its exact official encodings here.
+    auto const beforePeriodicRequest = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+        subjectObjectInstance,
+        AttributeHandleSet{logicalTimeAttribute, lookaheadAttribute},
+        VariableLengthData{}));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE(observerReports.attributeReflectionReports.size() == beforePeriodicRequest + 1U);
+    auto const& periodicRequest = observerReports.attributeReflectionReports.back();
+    REQUIRE(periodicRequest.objectInstance == subjectObjectInstance);
+    REQUIRE(periodicRequest.attributeValues.size() == 2U);
+    rti1516_2025::HLAinteger64Time periodicLogicalTime;
+    REQUIRE_NOTHROW(periodicLogicalTime.decode(
+        periodicRequest.attributeValues.at(logicalTimeAttribute)));
+    REQUIRE(periodicLogicalTime.getTime() == 0);
+    rti1516_2025::HLAinteger64Interval periodicLookahead;
+    REQUIRE_NOTHROW(periodicLookahead.decode(
+        periodicRequest.attributeValues.at(lookaheadAttribute)));
+    REQUIRE(periodicLookahead.getInterval() == 1);
+    REQUIRE(periodicRequest.transportationType == reliable);
+    REQUIRE_FALSE(periodicRequest.producingFederate.isValid());
+    REQUIRE_FALSE(periodicRequest.sentRegionsSupplied);
+
+    applyTimeStateAndCheck(
+        [&] { subject->enableAsynchronousDelivery(); },
+        asynchronousDeliveryAttribute,
+        true);
+    applyTimeStateAndCheck(
+        [&] { subject->disableAsynchronousDelivery(); },
+        asynchronousDeliveryAttribute,
+        false);
+    applyTimeStateAndCheck(
+        [&] { subject->disableTimeRegulation(); },
+        timeRegulatingAttribute,
+        false);
+    applyTimeStateAndCheck(
+        [&] { subject->disableTimeConstrained(); },
+        timeConstrainedAttribute,
+        false);
+
+    applySwitchAndCheck(
+        [&] { subject->setObjectClassRelevanceAdvisorySwitch(true); },
+        objectClassRelevanceAttribute,
+        1);
+    applySwitchAndCheck(
+        [&] { subject->setAttributeRelevanceAdvisorySwitch(true); },
+        attributeRelevanceAttribute,
+        1);
+    applySwitchAndCheck(
+        [&] { subject->setAttributeScopeAdvisorySwitch(true); },
+        attributeScopeAttribute,
+        1);
+    applySwitchAndCheck(
+        [&] { subject->setInteractionRelevanceAdvisorySwitch(true); },
+        interactionRelevanceAttribute,
+        1);
+    applySwitchAndCheck(
+        [&] { subject->setConveyRegionDesignatorSetsSwitch(false); },
+        conveyRegionsAttribute,
+        0);
+    applySwitchAndCheck(
+        [&] { subject->setAutomaticResignDirective(rti1516_2025::NO_ACTION); },
+        automaticResignAttribute,
+        5);
+    applySwitchAndCheck(
+        [&] { subject->setServiceReportingSwitch(true); },
+        serviceReportingAttribute,
+        1);
+    applySwitchAndCheck(
+        [&] { subject->setExceptionReportingSwitch(false); },
+        exceptionReportingAttribute,
+        0);
+    applySwitchAndCheck(
+        [&] { subject->setSendServiceReportsToFileSwitch(true); },
+        sendServiceReportsToFileAttribute,
+        1);
+
+    auto const beforeRequest = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+        subjectObjectInstance,
+        conditionalAttributes,
+        VariableLengthData{}));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE(observerReports.attributeReflectionReports.size() == beforeRequest + 1U);
+    auto const& requested = observerReports.attributeReflectionReports.back();
+    REQUIRE(requested.objectInstance == subjectObjectInstance);
+    REQUIRE(requested.attributeValues.size() == conditionalAttributes.size());
+    for (auto const& [attribute, expected] : std::vector<std::pair<AttributeHandle, std::int32_t>>{
+             {objectClassRelevanceAttribute, 1},
+             {attributeRelevanceAttribute, 1},
+             {attributeScopeAttribute, 1},
+             {interactionRelevanceAttribute, 1},
+             {conveyRegionsAttribute, 0},
+             {automaticResignAttribute, 5},
+             {serviceReportingAttribute, 1},
+             {exceptionReportingAttribute, 0},
+             {sendServiceReportsToFileAttribute, 1},
+         }) {
+      rti1516_2025::HLAinteger32BE decoded;
+      REQUIRE_NOTHROW(decoded.decode(requested.attributeValues.at(attribute)));
+      REQUIRE(decoded.get() == expected);
+    }
+    REQUIRE(requested.transportationType == reliable);
+    REQUIRE_FALSE(requested.producingFederate.isValid());
+
+    // The standard HLAsetSwitches MOM interaction is another state-changing
+    // route.  Its accepted subset must drive the same current-value
+    // projection as the individual support-service setters.
+    auto const setSwitches = subject->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    auto const serviceReportingParameter = subject->getParameterHandle(
+        setSwitches,
+        L"HLAserviceReporting");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(serviceReportingParameter.isValid());
+    auto const disabledSwitch = rti1516_2025::HLAinteger32BE{0}.encode();
+    auto const beforeMomAdjustment = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(subject->sendInteraction(
+        setSwitches,
+        ParameterHandleValueMap{{serviceReportingParameter, disabledSwitch}},
+        VariableLengthData{}));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE(observerReports.attributeReflectionReports.size() > beforeMomAdjustment);
+    expectConditionalReflection(beforeMomAdjustment, serviceReportingAttribute, 0);
+
+    AttributeHandleSet const timeAttributes{
+        timeConstrainedAttribute,
+        timeRegulatingAttribute,
+        asynchronousDeliveryAttribute,
+    };
+    auto const beforeTimeRequest = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+        subjectObjectInstance,
+        timeAttributes,
+        VariableLengthData{}));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE(observerReports.attributeReflectionReports.size() == beforeTimeRequest + 1U);
+    auto const& requestedTime = observerReports.attributeReflectionReports.back();
+    REQUIRE(requestedTime.objectInstance == subjectObjectInstance);
+    REQUIRE(requestedTime.attributeValues.size() == timeAttributes.size());
+    for (auto const& attribute : timeAttributes) {
+      rti1516_2025::HLAboolean decoded;
+      REQUIRE_NOTHROW(decoded.decode(requestedTime.attributeValues.at(attribute)));
+      REQUIRE_FALSE(decoded.get());
+    }
+    REQUIRE(requestedTime.transportationType == reliable);
+    REQUIRE_FALSE(requestedTime.producingFederate.isValid());
+
+    auto expectTimeManagerTransitions = [&](std::size_t const before) {
+      std::set<std::int32_t> observed;
+      for (auto iterator = observerReports.attributeReflectionReports.begin() +
+                                static_cast<std::ptrdiff_t>(before);
+           iterator != observerReports.attributeReflectionReports.end();
+           ++iterator) {
+        auto const value = iterator->attributeValues.find(timeManagerStateAttribute);
+        if (iterator->objectInstance != subjectObjectInstance ||
+            value == iterator->attributeValues.end()) {
+          continue;
+        }
+        REQUIRE(iterator->attributeValues.size() == 1U);
+        rti1516_2025::HLAinteger32BE decoded;
+        REQUIRE_NOTHROW(decoded.decode(value->second));
+        observed.insert(decoded.get());
+        REQUIRE(iterator->transportationType == reliable);
+        REQUIRE_FALSE(iterator->producingFederate.isValid());
+        REQUIRE_FALSE(iterator->sentRegionsSupplied);
+      }
+      REQUIRE(observed.contains(0));
+      REQUIRE(observed.contains(1));
+    };
+    auto applyTimeAdvanceAndCheck = [&](auto request) {
+      auto const before = observerReports.attributeReflectionReports.size();
+      REQUIRE_NOTHROW(request());
+      while (subject->evokeCallback(0.0)) {
+      }
+      while (observer->evokeCallback(0.0)) {
+      }
+      expectTimeManagerTransitions(before);
+    };
+
+    // Each accepted request publishes TimeAdvancing (1), and its matching
+    // grant publishes TimeGranted (0). Exercise all five request forms so
+    // this conditional field cannot accidentally be coupled to one API.
+    applyTimeAdvanceAndCheck(
+        [&] { subject->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)); });
+    applyTimeAdvanceAndCheck(
+        [&] { subject->timeAdvanceRequestAvailable(rti1516_2025::HLAinteger64Time(2)); });
+    applyTimeAdvanceAndCheck(
+        [&] { subject->nextMessageRequest(rti1516_2025::HLAinteger64Time(3)); });
+    applyTimeAdvanceAndCheck(
+        [&] { subject->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(4)); });
+    applyTimeAdvanceAndCheck(
+        [&] { subject->flushQueueRequest(rti1516_2025::HLAinteger64Time(5)); });
+
+    auto const beforeTimeManagerRequest = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+        subjectObjectInstance,
+        AttributeHandleSet{timeManagerStateAttribute},
+        VariableLengthData{}));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE(observerReports.attributeReflectionReports.size() == beforeTimeManagerRequest + 1U);
+    auto const& requestedTimeManager = observerReports.attributeReflectionReports.back();
+    REQUIRE(requestedTimeManager.objectInstance == subjectObjectInstance);
+    REQUIRE(requestedTimeManager.attributeValues.size() == 1U);
+    rti1516_2025::HLAinteger32BE requestedTimeManagerState;
+    REQUIRE_NOTHROW(requestedTimeManagerState.decode(
+        requestedTimeManager.attributeValues.at(timeManagerStateAttribute)));
+    REQUIRE(requestedTimeManagerState.get() == 0);
+    REQUIRE(requestedTimeManager.transportationType == reliable);
+    REQUIRE_FALSE(requestedTimeManager.producingFederate.isValid());
+
+    REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+    while (observer->evokeCallback(0.0)) {
+    }
+    REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(observer->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subject->disconnect());
+    REQUIRE_NOTHROW(observer->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Embedded MOM HLAsetTiming drives joined-federate periodic values",
+    "[integration][development-profile][federation-management][mom][periodic-mom]"
+    "[rti.service.send-interaction][rti.service.request-attribute-value-update]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador subjectReports;
+  ReportingFederateAmbassador observerReports;
+  auto subject = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(subject->connect(subjectReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      subject->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"mom-periodic-observer", L"observer", federationName));
+
+  auto const momClass = observer->getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = observer->getAttributeHandle(
+      momClass, L"HLAfederateHandle");
+  auto const logicalTimeAttribute = observer->getAttributeHandle(
+      momClass, L"HLAlogicalTime");
+  auto const lookaheadAttribute = observer->getAttributeHandle(
+      momClass, L"HLAlookahead");
+  REQUIRE(momClass.isValid());
+  REQUIRE(federateHandleAttribute.isValid());
+  REQUIRE(logicalTimeAttribute.isValid());
+  REQUIRE(lookaheadAttribute.isValid());
+  REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+      momClass,
+      AttributeHandleSet{
+          federateHandleAttribute,
+          logicalTimeAttribute,
+          lookaheadAttribute},
+      true));
+
+  auto const subjectFederate = subject->joinFederationExecution(
+      L"mom-periodic-subject", L"subject", federationName);
+  while (observer->evokeMultipleCallbacks(0.0, 0.0)) {
+  }
+  auto const reflectedSubject = std::find_if(
+      observerReports.attributeReflectionReports.begin(),
+      observerReports.attributeReflectionReports.end(),
+      [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+        auto const value = report.attributeValues.find(federateHandleAttribute);
+        return value != report.attributeValues.end() &&
+            variableLengthDataBytes(value->second) ==
+                variableLengthDataBytes(subjectFederate.encode());
+      });
+  REQUIRE(reflectedSubject != observerReports.attributeReflectionReports.end());
+  auto const subjectObjectInstance = reflectedSubject->objectInstance;
+  auto const beforeTiming = observerReports.attributeReflectionReports.size();
+
+  auto const setTiming = observer->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const federateParameter = observer->getParameterHandle(setTiming, L"HLAfederate");
+  auto const periodParameter = observer->getParameterHandle(setTiming, L"HLAreportPeriod");
+  REQUIRE(setTiming.isValid());
+  REQUIRE(federateParameter.isValid());
+  REQUIRE(periodParameter.isValid());
+
+  auto const subjectReference = subjectFederate.encode();
+  auto sendTiming = [&](std::int32_t const seconds) {
+    REQUIRE_NOTHROW(observer->sendInteraction(
+        setTiming,
+        ParameterHandleValueMap{
+            {federateParameter, subjectReference},
+            {periodParameter, rti1516_2025::HLAinteger32BE{seconds}.encode()}},
+        VariableLengthData{}));
+  };
+
+  // HLAseconds is the official signed HLAinteger32BE representation in the
+  // 2025 MIM.  A negative period is invalid and must not arm the scheduler.
+  REQUIRE_THROWS_AS(
+      observer->sendInteraction(
+          setTiming,
+          ParameterHandleValueMap{
+              {federateParameter, subjectReference},
+              {periodParameter, rti1516_2025::HLAinteger32BE{-1}.encode()}},
+          VariableLengthData{}),
+      rti1516_2025::RTIinternalError);
+  REQUIRE(observerReports.attributeReflectionReports.size() == beforeTiming);
+
+  sendTiming(1);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+  while (observer->evokeCallback(0.0)) {
+  }
+
+  auto const periodicReflection = std::find_if(
+      observerReports.attributeReflectionReports.begin() +
+          static_cast<std::ptrdiff_t>(beforeTiming),
+      observerReports.attributeReflectionReports.end(),
+      [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+        return report.objectInstance == subjectObjectInstance &&
+            report.attributeValues.contains(logicalTimeAttribute) &&
+            report.attributeValues.contains(lookaheadAttribute);
+      });
+  REQUIRE(periodicReflection != observerReports.attributeReflectionReports.end());
+  REQUIRE(periodicReflection->attributeValues.size() == 2U);
+  rti1516_2025::HLAinteger64Time periodicLogicalTime;
+  REQUIRE_NOTHROW(periodicLogicalTime.decode(
+      periodicReflection->attributeValues.at(logicalTimeAttribute)));
+  REQUIRE(periodicLogicalTime.getTime() == 0);
+  // The subject has not enabled time regulation, so the official undefined
+  // HLAlookahead value remains the MIM's empty variable-array form.
+  REQUIRE(periodicReflection->attributeValues.at(lookaheadAttribute).size() == 0U);
+  REQUIRE(periodicReflection->transportationType ==
+          observer->getTransportationTypeHandle(L"HLAreliable"));
+  REQUIRE_FALSE(periodicReflection->producingFederate.isValid());
+  REQUIRE_FALSE(periodicReflection->sentRegionsSupplied);
+
+  auto const beforeDisable = observerReports.attributeReflectionReports.size();
+  sendTiming(0);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+  while (observer->evokeCallback(0.0)) {
+  }
+  REQUIRE(observerReports.attributeReflectionReports.size() == beforeDisable);
+
+  REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(observer->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subject->disconnect());
+  REQUIRE_NOTHROW(observer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded MOM HLAsetTiming drives HLA_IMMEDIATE periodic values without Evoke",
+    "[integration][development-profile][federation-management][mom][periodic-mom]"
+    "[callback-model][immediate-callback][rti.service.send-interaction]"
+    "[federate.callback.reflect-attribute-values]") {
+  NullFederateAmbassador subjectReports;
+  ImmediatePeriodicFederateAmbassador observerReports;
+  auto subject = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(subject->connect(subjectReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(
+      subject->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"mom-immediate-observer", L"observer", federationName));
+
+  auto const momClass = observer->getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = observer->getAttributeHandle(
+      momClass, L"HLAfederateHandle");
+  auto const logicalTimeAttribute = observer->getAttributeHandle(
+      momClass, L"HLAlogicalTime");
+  auto const lookaheadAttribute = observer->getAttributeHandle(
+      momClass, L"HLAlookahead");
+  REQUIRE(momClass.isValid());
+  REQUIRE(federateHandleAttribute.isValid());
+  REQUIRE(logicalTimeAttribute.isValid());
+  REQUIRE(lookaheadAttribute.isValid());
+  REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+      momClass,
+      AttributeHandleSet{
+          federateHandleAttribute,
+          logicalTimeAttribute,
+          lookaheadAttribute},
+      true));
+
+  auto const subjectFederate = subject->joinFederationExecution(
+      L"mom-immediate-subject", L"subject", federationName);
+  REQUIRE(observerReports.waitForReflectionCount(1U, std::chrono::milliseconds(1000)));
+  auto initialReflections = observerReports.reflectionSnapshot();
+  auto const reflectedSubject = std::find_if(
+      initialReflections.begin(),
+      initialReflections.end(),
+      [&](ImmediatePeriodicFederateAmbassador::Reflection const& reflection) {
+        auto const value = reflection.attributeValues.find(federateHandleAttribute);
+        return value != reflection.attributeValues.end() &&
+            variableLengthDataBytes(value->second) ==
+                variableLengthDataBytes(subjectFederate.encode());
+      });
+  REQUIRE(reflectedSubject != initialReflections.end());
+  auto const subjectObjectInstance = reflectedSubject->objectInstance;
+  auto const beforeTiming = initialReflections.size();
+
+  auto const setTiming = observer->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const federateParameter = observer->getParameterHandle(setTiming, L"HLAfederate");
+  auto const periodParameter = observer->getParameterHandle(setTiming, L"HLAreportPeriod");
+  REQUIRE(setTiming.isValid());
+  REQUIRE(federateParameter.isValid());
+  REQUIRE(periodParameter.isValid());
+
+  REQUIRE_NOTHROW(observer->sendInteraction(
+      setTiming,
+      ParameterHandleValueMap{
+          {federateParameter, subjectFederate.encode()},
+          {periodParameter, rti1516_2025::HLAinteger32BE{1}.encode()}},
+      VariableLengthData{}));
+
+  // No Evoke call is made on the HLA_IMMEDIATE observer.  The RTI-owned
+  // scheduler must nevertheless enter the callback once the one-second
+  // HLAsetTiming deadline elapses.
+  REQUIRE(observerReports.waitForReflectionCount(
+      beforeTiming + 1U,
+      std::chrono::milliseconds(2500)));
+  auto periodicReflections = observerReports.reflectionSnapshot();
+  auto const periodicReflection = std::find_if(
+      periodicReflections.begin() + static_cast<std::ptrdiff_t>(beforeTiming),
+      periodicReflections.end(),
+      [&](ImmediatePeriodicFederateAmbassador::Reflection const& reflection) {
+        return reflection.objectInstance == subjectObjectInstance &&
+            reflection.attributeValues.contains(logicalTimeAttribute) &&
+            reflection.attributeValues.contains(lookaheadAttribute);
+      });
+  REQUIRE(periodicReflection != periodicReflections.end());
+  REQUIRE(periodicReflection->attributeValues.size() == 2U);
+  REQUIRE(periodicReflection->transportationType ==
+          observer->getTransportationTypeHandle(L"HLAreliable"));
+  REQUIRE_FALSE(periodicReflection->producingFederate.isValid());
+  REQUIRE_FALSE(periodicReflection->sentRegionsSupplied);
+
+  REQUIRE_NOTHROW(observer->sendInteraction(
+      setTiming,
+      ParameterHandleValueMap{
+          {federateParameter, subjectFederate.encode()},
+          {periodParameter, rti1516_2025::HLAinteger32BE{0}.encode()}},
+      VariableLengthData{}));
+  auto const afterDisable = observerReports.reflectionSnapshot().size();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+  REQUIRE(observerReports.reflectionSnapshot().size() == afterDisable);
+
+  REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(observer->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subject->disconnect());
+  REQUIRE_NOTHROW(observer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded joined-federate MOM HLAfederateState follows save and restore callbacks",
+    "[integration][development-profile][federation-management][mom][save-restore]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.confirm-federation-restoration-request]"
+    "[rti.service.federate-restore-complete]"
+    "[federate.callback.initiate-federate-save]"
+    "[federate.callback.federation-saved]"
+    "[federate.callback.federation-restore-begun]"
+    "[federate.callback.initiate-federate-restore]"
+    "[federate.callback.federation-restored]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador subjectReports;
+    ReportingFederateAmbassador observerReports;
+    auto subject = makeRti();
+    auto observer = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+    REQUIRE_NOTHROW(subject->connect(subjectReports, callbackModel));
+    REQUIRE_NOTHROW(observer->connect(observerReports, callbackModel));
+    REQUIRE_NOTHROW(
+        subject->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(observer->joinFederationExecution(
+        L"mom-save-restore-observer", L"observer", federationName));
+
+    auto const momClass = observer->getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederate");
+    auto const federateHandleAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateHandle");
+    auto const federateStateAttribute = observer->getAttributeHandle(
+        momClass, L"HLAfederateState");
+    REQUIRE(momClass.isValid());
+    REQUIRE(federateHandleAttribute.isValid());
+    REQUIRE(federateStateAttribute.isValid());
+    REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+        momClass,
+        AttributeHandleSet{federateHandleAttribute, federateStateAttribute},
+        true));
+
+    // Keep the observer subscribed before the subject joins so the
+    // Join-Federation-Execution conditional boundary is exercised for a new
+    // RTI-owned HLAfederate object as well as the later save/restore states.
+    auto const subjectFederate = subject->joinFederationExecution(
+        L"mom-save-restore-subject", L"subject", federationName);
+
+    // Subscribe the saving federate as well.  The MIM permits an observer to
+    // receive the save-state reflection, but suppresses the corresponding
+    // HLAfederateState reflect at the joined federate that is itself in
+    // FederateSaveInProgress.  A direct AVU first establishes that the
+    // subject knows its own RTI-owned MOM object; the event-only suppression
+    // below must not affect that direct query path.
+    auto const subjectMomClass = subject->getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederate");
+    auto const subjectFederateHandleAttribute = subject->getAttributeHandle(
+        subjectMomClass, L"HLAfederateHandle");
+    auto const subjectFederateStateAttribute = subject->getAttributeHandle(
+        subjectMomClass, L"HLAfederateState");
+    REQUIRE(subjectMomClass.isValid());
+    REQUIRE(subjectFederateHandleAttribute.isValid());
+    REQUIRE(subjectFederateStateAttribute.isValid());
+    REQUIRE_NOTHROW(subject->subscribeObjectClassAttributes(
+        subjectMomClass,
+        AttributeHandleSet{
+            subjectFederateHandleAttribute,
+            subjectFederateStateAttribute},
+        true));
+
+    auto drainCallbacks = [&] {
+      while (subject->evokeCallback(0.0)) {
+      }
+      while (observer->evokeCallback(0.0)) {
+      }
+    };
+    drainCallbacks();
+
+    auto const reflectedSubject = std::find_if(
+        observerReports.attributeReflectionReports.begin(),
+        observerReports.attributeReflectionReports.end(),
+        [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+          auto const value = report.attributeValues.find(federateHandleAttribute);
+          return value != report.attributeValues.end() &&
+              variableLengthDataBytes(value->second) ==
+                  variableLengthDataBytes(subjectFederate.encode());
+        });
+    REQUIRE(reflectedSubject != observerReports.attributeReflectionReports.end());
+    auto const subjectObjectInstance = reflectedSubject->objectInstance;
+    REQUIRE(reflectedSubject->attributeValues.find(federateStateAttribute) ==
+            reflectedSubject->attributeValues.end());
+
+    auto const reflectedSubjectToSelf = std::find_if(
+        subjectReports.attributeReflectionReports.begin(),
+        subjectReports.attributeReflectionReports.end(),
+        [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+          auto const value = report.attributeValues.find(
+              subjectFederateHandleAttribute);
+          return value != report.attributeValues.end() &&
+              variableLengthDataBytes(value->second) ==
+                  variableLengthDataBytes(subjectFederate.encode());
+        });
+    REQUIRE(reflectedSubjectToSelf != subjectReports.attributeReflectionReports.end());
+    auto const subjectSelfObjectInstance = reflectedSubjectToSelf->objectInstance;
+    REQUIRE(reflectedSubjectToSelf->attributeValues.find(
+                subjectFederateStateAttribute) ==
+            reflectedSubjectToSelf->attributeValues.end());
+
+    auto decodeState = [&](ReportingFederateAmbassador::AttributeReflectionReport const& report) {
+      rti1516_2025::HLAinteger32BE state;
+      REQUIRE_NOTHROW(state.decode(report.attributeValues.at(federateStateAttribute)));
+      return state.get();
+    };
+    auto requireStateReflection = [&](std::size_t const before, std::int32_t const expected) {
+      bool found = false;
+      for (auto iterator = observerReports.attributeReflectionReports.begin() +
+                                static_cast<std::ptrdiff_t>(before);
+           iterator != observerReports.attributeReflectionReports.end();
+           ++iterator) {
+        if (iterator->objectInstance != subjectObjectInstance ||
+            !iterator->attributeValues.contains(federateStateAttribute)) {
+          continue;
+        }
+        REQUIRE(iterator->attributeValues.size() == 1U);
+        REQUIRE(iterator->transportationType ==
+                observer->getTransportationTypeHandle(L"HLAreliable"));
+        REQUIRE_FALSE(iterator->producingFederate.isValid());
+        REQUIRE_FALSE(iterator->sentRegionsSupplied);
+        if (decodeState(*iterator) == expected) {
+          found = true;
+        }
+      }
+      REQUIRE(found);
+    };
+
+    auto requireNoSubjectSaveStateReflection = [&](std::size_t const before) {
+      std::size_t stateReflections = 0U;
+      for (auto iterator = subjectReports.attributeReflectionReports.begin() +
+                                static_cast<std::ptrdiff_t>(before);
+           iterator != subjectReports.attributeReflectionReports.end();
+           ++iterator) {
+        if (iterator->objectInstance == subjectSelfObjectInstance &&
+            iterator->attributeValues.contains(subjectFederateStateAttribute)) {
+          ++stateReflections;
+        }
+      }
+      REQUIRE(stateReflections == 0U);
+    };
+
+    auto const beforeInitialQuery = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+        subjectObjectInstance,
+        AttributeHandleSet{federateStateAttribute},
+        VariableLengthData{}));
+    auto const beforeSubjectInitialQuery = subjectReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(subject->requestAttributeValueUpdate(
+        subjectSelfObjectInstance,
+        AttributeHandleSet{subjectFederateStateAttribute},
+        VariableLengthData{}));
+    drainCallbacks();
+    REQUIRE(observerReports.attributeReflectionReports.size() == beforeInitialQuery + 1U);
+    REQUIRE(subjectReports.attributeReflectionReports.size() ==
+            beforeSubjectInitialQuery + 1U);
+    auto const& initialState = observerReports.attributeReflectionReports.back();
+    REQUIRE(initialState.objectInstance == subjectObjectInstance);
+    REQUIRE(initialState.attributeValues.size() == 1U);
+    REQUIRE(decodeState(initialState) == 1);
+    auto const& subjectInitialState = subjectReports.attributeReflectionReports.back();
+    REQUIRE(subjectInitialState.objectInstance == subjectSelfObjectInstance);
+    REQUIRE(subjectInitialState.attributeValues.size() == 1U);
+    rti1516_2025::HLAinteger32BE subjectState;
+    REQUIRE_NOTHROW(subjectState.decode(
+        subjectInitialState.attributeValues.at(subjectFederateStateAttribute)));
+    REQUIRE(subjectState.get() == 1);
+
+    auto const beforeSave = observerReports.attributeReflectionReports.size();
+    auto const beforeSubjectSave = subjectReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(subject->requestFederationSave(L"mom-state-save"));
+    drainCallbacks();
+    requireStateReflection(beforeSave, 3);
+    requireNoSubjectSaveStateReflection(beforeSubjectSave);
+
+    REQUIRE_NOTHROW(subject->federateSaveBegun());
+    REQUIRE_NOTHROW(observer->federateSaveBegun());
+    REQUIRE_NOTHROW(subject->federateSaveComplete());
+    auto const beforeSaveCompletion = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->federateSaveComplete());
+    drainCallbacks();
+    requireStateReflection(beforeSaveCompletion, 1);
+
+    auto const beforeRestore = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(subject->requestFederationRestore(L"mom-state-save"));
+    drainCallbacks();
+    requireStateReflection(beforeRestore, 5);
+
+    REQUIRE_NOTHROW(subject->federateRestoreComplete());
+    auto const beforeRestoreCompletion = observerReports.attributeReflectionReports.size();
+    REQUIRE_NOTHROW(observer->federateRestoreComplete());
+    drainCallbacks();
+    requireStateReflection(beforeRestoreCompletion, 1);
+
+    REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+    drainCallbacks();
+    REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(subject->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subject->disconnect());
+    REQUIRE_NOTHROW(observer->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
     "Internal tests can inject an in-memory service-report store without changing runtime configuration",
     "[unit][development-profile][federation-management][mom][service-report-store][service-reporting]") {
   using rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador;
@@ -25702,6 +27153,152 @@ TEST_CASE(
   REQUIRE(bestEffortReported);
   REQUIRE_THROWS_AS(
       publisher->retract(secondHandle),
+      rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped attribute reduction suppresses excess best-effort but retains reliable",
+    "[integration][development-profile][object-management][time-management]"
+    "[timestamped-attribute-update][update-rate-reduction][tso]"
+    "[rti.service.subscribe-object-class-attributes][rti.service.update-attribute-values]"
+    "[federate.callback.reflect-attribute-values][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = lowRateAttributeUpdatePasselModule();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule.path().wstring(),
+      L"HLAinteger64Time"));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"timestamped-update-rate-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"timestamped-update-rate-receiver", L"subscriber", federationName));
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const reliable = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  auto const bestEffort = publisher->getAttributeHandle(child, L"BestEffortBase");
+  REQUIRE(child.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  AttributeHandleValueMap values;
+  unsigned char const reliableBytes[] = {0x71, 0x72};
+  unsigned char const bestEffortBytes[] = {0x81, 0x82};
+  values.emplace(
+      reliable,
+      VariableLengthData(reliableBytes, sizeof(reliableBytes)));
+  values.emplace(
+      bestEffort,
+      VariableLengthData(bestEffortBytes, sizeof(bestEffortBytes)));
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(
+      child,
+      AttributeHandleSet{reliable}));
+  // The update-rate assertion concerns delivery eligibility, so this
+  // declaration is active.  A passive subscription records interest for MOM
+  // and advisory purposes but is intentionally not used by the RTI to arrange
+  // data delivery (IEEE 1516.2-2025, "passive subscription").
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(
+      child,
+      AttributeHandleSet{bestEffort},
+      true,
+      L"Low"));
+  REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(
+      child,
+      attributes,
+      TIMESTAMP));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(child));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+
+  unsigned char const tagBytes[] = {0x91};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  auto const first = publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(first.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 2U);
+
+  auto countAttribute = [&](AttributeHandle const handle) {
+    std::size_t count = 0;
+    for (auto const& report : receiverReports.attributeReflectionReports) {
+      if (report.attributeValues.contains(handle)) {
+        ++count;
+      }
+    }
+    return count;
+  };
+  REQUIRE(countAttribute(reliable) == 1U);
+  REQUIRE(countAttribute(bestEffort) == 1U);
+
+  auto const second = publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(second.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 3U);
+  REQUIRE(countAttribute(reliable) == 2U);
+  REQUIRE(countAttribute(bestEffort) == 1U);
+  REQUIRE(receiverReports.attributeReflectionReports.back().producingFederate == publisherHandle);
+
+  // A message containing only the throttled passel must still consume its
+  // TSO recipient boundary without inducing a user callback or retaining a
+  // retraction payload indefinitely.
+  AttributeHandleValueMap bestEffortOnly;
+  bestEffortOnly.emplace(bestEffort, values.at(bestEffort));
+  auto const suppressed = publisher->updateAttributeValues(
+      objectInstance,
+      bestEffortOnly,
+      tag,
+      rti1516_2025::HLAinteger64Time(8));
+  REQUIRE(suppressed.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(8)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_FALSE(publisher->evokeCallback(0.0));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 3U);
+  REQUIRE_NOTHROW(publisher->retract(suppressed));
+  REQUIRE_THROWS_AS(
+      publisher->retract(suppressed),
       rti1516_2025::MessageCanNoLongerBeRetracted);
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));

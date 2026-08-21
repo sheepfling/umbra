@@ -7524,7 +7524,33 @@
         "mom-object-foundation"
       ],
       "status": "implemented-private-unpublished-foundation-not-conformance-evidence",
-      "next_action": "This internal-seam regression proves that a successful production-profile Join reserves a distinct RTI-owned object-instance identity, retains every effective MIM attribute as metadata, captures an immutable normalized HLAfederate point, and encodes the seven direct initial values from the official MIM types—including the real report-file path—before lifecycle visibility. It proves switch toggles preserve that identity and a later rejoin receives a new one. No public MOM object registration, discovery, reflection, requested-value response, removal callback, ownership behavior, or HLAreportServiceFile publication occurs. Those steps remain blocked on the RTI-created callback producer-designator mapping recorded in RL-043; this test is not Requirements Lab validation or conformance evidence."
+      "next_action": "This internal-seam regression proves that a successful production-profile Join reserves a distinct RTI-owned object-instance identity, retains every effective MIM attribute as metadata, captures an immutable normalized HLAfederate point, and encodes the seven direct initial values from the official MIM types—including the real report-file path—before lifecycle visibility. It proves switch toggles preserve that identity and a later rejoin receives a new one. The separate public object-management integrations now cover bounded active-ordinary and immutable-point-filtered regional discovery, complete seven-value initial reflection, known-object requested-value, and resignation-removal routes; this private test remains the stronger identity/metadata foundation. Scheduler behavior, optional/inherited non-initial attributes, public MOM interactions, standard producer mapping, JUnit/protected-review evidence, remote transport, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-joined-federate-mom-public-object-management-integration",
+      "test_case": "Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+      "requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l119-39",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l122-40",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l131-43"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "object-management",
+        "service-report-file",
+        "service-reporting",
+        "ddm"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This focused public object-management coverage proves that an active ordinary subscription discovers RTI-owned HLAmanager.HLAfederate objects, while the paired regional case filters the same object against the immutable HLAfederate point with matching and disjoint regions in both HLA_EVOKED and HLA_IMMEDIATE. The regional case also proves that a committed range mutation re-evaluates an existing subscription and discovers the point when it becomes eligible. The cases reflect all seven required Table 8 initial values with reliable transport and a default-invalid RTI producer, answer a known-object Request Attribute Value Update for the complete initial projection directly without inducing Provide Attribute Value Update, and remove the represented object on resignation. The initial values include the immutable filesystem path and Join-scoped module-designator list. A companion conditional-state case now covers event-driven reflections of all nine predefined switch attributes plus four bounded temporal-state attributes, including direct requests for their live values; periodic/other conditional scheduler behavior, complex HLAfederateState, optional/inherited non-initial attributes, public MOM interactions, producer-designator standard mapping, JUnit/protected-review evidence, remote transport, and conformance remain open. RL-043 records the producer-designator boundary; RL-041 records the Table 8 Static versus vendored MIM Conditional HLAreportServiceFile conflict."
     },
     {
       "id": "umbra-cpp-service-report-directory-configuration-integration",
@@ -7556,6 +7582,69 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This implementation-quality regression proves that Umbra's public embedded-profile convenience type accepts a std::filesystem::path, constructs the official RtiConfiguration, and selects the production filesystem directory without exposing a memory/store-backend choice. It remains an implementation-defined wrapper around the official opaque additional-settings field, has no direct Requirements Lab requirement mapping, and is not conformance evidence. The private MemoryServiceReportStore remains an injected test seam only; retain deterministic invalid-directory coverage separately."
+    },
+    {
+      "id": "umbra-cpp-joined-federate-mom-conditional-switch-reflection-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
+      ],
+      "test_case": "Embedded joined-federate MOM conditional reflections track current state",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "object-management",
+        "mom-switches",
+        "service-report-file",
+        "service-reporting",
+        "time-management",
+        "time-advance-request",
+        "periodic-mom"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This focused public RTI-owned HLAfederate regression covers the nine predefined switch attributes plus HLAtimeConstrained, HLAtimeRegulating, HLAasynchronousDelivery, and HLAtimeManagerState: successful individual setters and time-role transitions, all five accepted time-advance request forms and their grants, plus an accepted HLAsetSwitches subset, produce reliable one-attribute reflections with the current official encodings in both HLA_EVOKED and HLA_IMMEDIATE, and known-object Request Attribute Value Update returns the same live values. It now also verifies direct requests for the MIM-periodic HLAlogicalTime and HLAlookahead values using the selected official time encodings, as required even without HLAsetTiming. A companion save/restore case now covers the bounded HLAfederateState enumeration at Initiate/Federation Saved and Federation Restore Begun/Initiate/Federation Restored boundaries in both callback models. The companion HLAsetTiming case now covers the official HLAfederateReference/HLAseconds pair and one Evoke-boundary deadline-driven periodic reflection. Remaining periodic/conditional attributes, idle HLA_IMMEDIATE delivery, optional/inherited non-initial attributes, public MOM interactions, source-backed producer mapping, JUnit/protected-review evidence, remote transport, and conformance remain open."
+    },
+    {
+      "id": "umbra-cpp-joined-federate-mom-hla-set-timing-periodic-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
+      ],
+      "test_case": "Embedded MOM HLAsetTiming drives joined-federate periodic values",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "periodic-mom",
+        "time-management",
+        "send-interaction",
+        "callbacks"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This focused case validates the official HLAfederateReference/HLAseconds(HLAinteger32BE) HLAsetTiming pair, rejects negative periods without mutation, emits the catalog-defined HLAfederate periodic subset after one wall-clock deadline through HLA_EVOKED active-subscription reflection, and disables on zero. It deliberately does not claim idle-background HLA_IMMEDIATE delivery, remaining periodic/conditional attributes, public MOM producer mapping, JUnit/protected-review evidence, remote transport, or conformance."
+    },
+    {
+      "id": "umbra-cpp-joined-federate-mom-federate-state-save-restore-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
+      ],
+      "test_case": "Embedded joined-federate MOM HLAfederateState follows save and restore callbacks",
+    "tags": [
+      "integration",
+      "development-profile",
+      "federation-management",
+      "mom",
+      "object-management",
+      "save-restore",
+      "service-reporting",
+      "federate-state",
+      "federate-state-self-suppression",
+      "join-federation-execution",
+      "confirm-federation-restoration-request"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+    "next_action": "This focused case proves the official HLAinteger32BE HLAfederateState values ActiveFederate=1, FederateSaveInProgress=3, and FederateRestoreInProgress=5 through the real save/restore operation ledgers. It checks direct known-object value requests, observer event-time conditional reflections after save initiation and completion, suppression of the save-state reflect at the saving federate itself, restore begin/initiation and completion, and both HLA_EVOKED and HLA_IMMEDIATE callback models. It is a bounded public development-profile projection; the companion HLAsetTiming case covers one Evoke-boundary periodic subset, while remaining periodic/conditional scheduling, idle HLA_IMMEDIATE delivery, complete producer mapping, public MOM interactions, JUnit/protected review, remote transport, and conformance remain open."
     },
     {
       "id": "umbra-cpp-joined-federate-mom-object-module-unit",
@@ -10490,6 +10579,27 @@
       "tags": ["unit", "object-management", "update-rate-gate", "update-rate-reduction"],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This deterministic private seam proves wall-clock spacing, faster-producer/slower-subscriber suppression, reliable bypass, default no-reduction behavior, and state reset. It is not yet a complete producer-rate measurement, remote transport, MOM, JUnit, protected-review, or conformance scenario."
+    },
+    {
+      "id": "umbra-cpp-update-rate-reduction-timestamped-integration",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-112-l75-22",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l90-27",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l99-30",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l105-32",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l138-43"
+      ],
+      "test_case": "Embedded timestamped attribute reduction suppresses excess best-effort but retains reliable",
+      "tags": [
+        "integration",
+        "object-management",
+        "time-management",
+        "timestamped-attribute-update",
+        "update-rate-reduction",
+        "tso"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This bounded two-federate TSO case uses an active Low (0.2 Hz) FDD subscription and verifies the real queued delivery boundary suppresses the second best-effort attribute while retaining both reliable updates. It also consumes an all-best-effort-suppressed message and proves the retraction ledger terminates without a user callback. It does not claim producer-rate measurement, other transportation forms, MOM, remote transport, JUnit, protected review, or conformance."
     }
   ]
 }

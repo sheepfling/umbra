@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This bounded contract covers the first public RTI-owned HLAmanager.HLAfederate object-management route in the non-installable embedded profile: active ordinary and immutable-point-filtered regional subscription discovery, reliable reflection of all seven required Table 8 initial values, event-driven reflections of the nine predefined switch attributes and four bounded temporal-state attributes after their successful service transitions, accepted time-advance requests/grants, or accepted HLAsetSwitches subset, plus the save/restore lifecycle projection of HLAfederateState (ActiveFederate=1, FederateSaveInProgress=3, FederateRestoreInProgress=5) at the corresponding callback boundaries. Known-object Request Attribute Value Update covers the complete initial and bounded conditional projections plus direct values for the MIM-periodic HLAlogicalTime and HLAlookahead attributes, as required even before a periodic timer is configured; resignation removal is covered. The bounded HLAsetTiming interaction now accepts the official HLAfederateReference/HLAseconds pair, arms or disables a target joined-federate deadline, and emits the catalog-defined periodic subset through the normal active-subscription reflection planner. HLA_EVOKED remains caller-gated at an Evoke boundary; HLA_IMMEDIATE now has an embedded per-ambassador scheduler that invokes the same callback route without an Evoke call. The implementation keeps the real filesystem-backed report path and Join-scoped module-designator list as standards-facing values and uses the default-invalid FederateHandle only as an explicitly documented local policy for RTI-originated callbacks. It does not claim the remaining periodic/other conditional attributes, optional/inherited non-initial attributes beyond this bounded state projection, public MOM interactions beyond HLAsetTiming/HLAsetSwitches, a resolved standard producer mapping, JUnit/protected review, remote transport, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-joined-federate-mom-discovery-ordinary-subscription",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
+      "clause_id": "clause-6.1.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planJoinedFederateMomObjectDiscoveriesForFederate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-discovery-subscription-eligibility",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+      "clause_id": "clause-6.1.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateJoinedFederateMomObjectDiscoveryClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-discover-object-instance-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
+      "clause_id": "clause-6.9.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueObjectInstanceDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-rti-updates-federate-object",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM conditional reflections track current state"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-federate-state-save-restore",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM HLAfederateState follows save and restore callbacks"
+      ],
+      "notes": "This is a bounded projection of the MIM HLAfederateState enumeration, driven by the embedded save/restore operation ledgers and reflected after Initiate/Federation Saved and Federation Restore Begun/Initiate/Federation Restored callback boundaries in both callback models. During save initiation the event-only MOM planner suppresses the state reflect at the saving federate itself while retaining direct Request Attribute Value Update access to the current value; observer reflections remain reliable and RTI-originated. It is not a claim that every conditional HLAfederate attribute, producer mapping, or conformance obligation is complete."
+    },
+    {
+      "id": "umbra-joined-federate-mom-direct-periodic-time-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM conditional reflections track current state"
+      ],
+      "notes": "The official HLAstandardMIM marks HLAlogicalTime and HLAlookahead Periodic, while §11.4.1 requires Request Attribute Value Update to supply static, periodic, and conditional values alike. This bounded slice returns the selected official LogicalTime/LogicalTimeInterval encodings (or the MIM empty-array undefined form) through the known-object direct-request path. It deliberately does not claim HLAsetTiming wall-clock scheduling, the remaining periodic attributes, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-hla-set-timing-periodic-updates",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setFederateMomReportPeriod",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives joined-federate periodic values"
+      ],
+      "notes": "The official HLAstandardMIM defines HLAsetTiming.HLAreportPeriod as HLAseconds represented by HLAinteger32BE and targets a joined federate through HLAfederateReference. This bounded slice validates the signed wire value, rejects negative periods without state mutation, stores one target-local wall-clock deadline, disables on zero, and claims the MIM-declared Periodic attribute handles through the ordinary active-subscription reflection planner at an Evoke callback boundary. It deliberately does not claim idle-background HLA_IMMEDIATE delivery, the remaining periodic/conditional attributes, public MOM producer mapping, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-hla-set-timing-immediate-scheduler",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::periodicMomSchedulerLoop",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives HLA_IMMEDIATE periodic values without Evoke"
+      ],
+      "notes": "The embedded profile's HLA_IMMEDIATE callback model now runs a private per-ambassador scheduler that claims the same registry-owned HLAsetTiming deadline and invokes the ordinary active-subscription reflection route without an Evoke call. The focused case uses a thread-safe observer, verifies a periodic HLAlogicalTime/HLAlookahead reflection after one second, and verifies that HLAreportPeriod=0 stops later reflections. The scheduler is an embedded development-profile implementation detail; remaining periodic/conditional attributes, remote transport, producer mapping, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-report-file-path",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l119-39",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::establishJoinedFederateMomObject",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-initial-record-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l122-40",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::establishJoinedFederateMomObject",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-initial-record-independent-of-switch",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::joinFederationExecutionImpl",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-following-service-report-records",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l131-43",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends a Table 5 void-service record to the selected filesystem sink"
+      ]
+    }
+  ]
+}

@@ -40,6 +40,7 @@
 #include <cstdint>
 #include <exception>
 #include <filesystem>
+#include <initializer_list>
 #include <limits>
 #include <map>
 #include <mutex>
@@ -835,6 +836,31 @@ void requireConnected(umbra::detail::FederateLifecycle const& lifecycle) {
   }
   throw RTIinternalError(
       L"Umbra encountered an unknown Request Attribute Value Update planning outcome.");
+}
+
+[[noreturn]] void throwJoinedFederateMomAttributeValueUpdateFailure(
+    umbra::detail::JoinedFederateMomAttributeValueUpdateStatus status) {
+  using Status = umbra::detail::JoinedFederateMomAttributeValueUpdateStatus;
+  switch (status) {
+    case Status::federation_does_not_exist:
+    case Status::requesting_federate_not_member:
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    case Status::object_instance_not_known:
+      throw ObjectInstanceNotKnown(
+          L"The supplied ObjectInstanceHandle is not known to this federate.");
+    case Status::attribute_not_defined:
+      throw AttributeNotDefined(
+          L"The supplied AttributeHandle is not defined for this MOM object instance.");
+    case Status::inconsistent_catalog:
+      throw RTIinternalError(
+          L"Umbra could not resolve a coherent joined-federate MOM attribute request.");
+    case Status::applied:
+    case Status::not_rti_owned_object:
+      break;
+  }
+  throw RTIinternalError(
+      L"Umbra encountered an unknown joined-federate MOM attribute request outcome.");
 }
 
 [[noreturn]] void throwAttributeValueUpdateClassRequestFailure(
@@ -2307,7 +2333,18 @@ enum class FederationSaveServiceFailure {
   throw RTIinternalError(operation + L" encountered an unknown save-control outcome.");
 }
 
+// Save/restore notification submission is defined before the generic MOM
+// queue helpers below.  Keep this narrow declaration here so callback
+// delivery can publish the event-time HLAfederateState transition without
+// changing the public API or coupling the registry to the ambassador.
+void queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+    std::wstring const& federationName,
+    std::uint64_t joinedFederateId,
+    std::vector<std::string_view> attributeNames,
+    std::optional<std::uint64_t> excludedReceivingFederateId = std::nullopt);
+
 void submitFederationSaveNotifications(
+    std::wstring const& federationName,
     std::vector<umbra::detail::FederationSaveNotification> notifications) {
   for (auto& notification : notifications) {
     if (!notification.callbackRoute) {
@@ -2350,6 +2387,8 @@ void submitFederationSaveNotifications(
               });
         }
         notification.callbackRoute([
+            federationName,
+            receivingFederateId = notification.receivingFederateId,
             label = std::move(notification.label),
             timestamp = std::move(notification.timestamp)](FederateAmbassador& recipient) {
           if (timestamp) {
@@ -2357,6 +2396,11 @@ void submitFederationSaveNotifications(
           } else {
             recipient.initiateFederateSave(label);
           }
+          queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+              federationName,
+              receivingFederateId,
+              {"HLAfederateState"},
+              receivingFederateId);
         });
         break;
       case umbra::detail::FederationSaveNotificationKind::completed:
@@ -2395,8 +2439,15 @@ void submitFederationSaveNotifications(
               });
         }
         if (notification.successful) {
-          notification.callbackRoute([](FederateAmbassador& recipient) {
+          notification.callbackRoute([
+              federationName,
+              receivingFederateId = notification.receivingFederateId](
+              FederateAmbassador& recipient) {
             recipient.federationSaved();
+            queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+                federationName,
+                receivingFederateId,
+                {"HLAfederateState"});
           });
         } else {
           auto const reason = notification.failureReason;
@@ -2488,6 +2539,7 @@ enum class FederationRestoreServiceFailure {
 }
 
 void submitFederationRestoreNotifications(
+    std::wstring const& federationName,
     std::vector<umbra::detail::FederationRestoreNotification> notifications) {
   for (auto& notification : notifications) {
     if (!notification.callbackRoute) {
@@ -2515,8 +2567,18 @@ void submitFederationRestoreNotifications(
               });
         }
         notification.callbackRoute([
+            federationName,
+            receivingFederateId = notification.receivingFederateId,
             label = std::move(notification.label)](FederateAmbassador& recipient) {
           recipient.requestFederationRestoreSucceeded(label);
+          // The successful Confirm Federation Restoration Request service is
+          // one of the MIM-defined HLAfederateState update boundaries.  The
+          // restore ledger is already in FederateRestoreInProgress here, so
+          // capture that event-time value through the normal MOM seam.
+          queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+              federationName,
+              receivingFederateId,
+              {"HLAfederateState"});
         });
         break;
       case umbra::detail::FederationRestoreNotificationKind::request_failed:
@@ -2559,8 +2621,15 @@ void submitFederationRestoreNotifications(
                     {});
               });
         }
-        notification.callbackRoute([](FederateAmbassador& recipient) {
+        notification.callbackRoute([
+            federationName,
+            receivingFederateId = notification.receivingFederateId](
+            FederateAmbassador& recipient) {
           recipient.federationRestoreBegun();
+          queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+              federationName,
+              receivingFederateId,
+              {"HLAfederateState"});
         });
         break;
       case umbra::detail::FederationRestoreNotificationKind::initiate:
@@ -2591,6 +2660,8 @@ void submitFederationRestoreNotifications(
               });
         }
         notification.callbackRoute([
+            federationName,
+            receivingFederateId = notification.receivingFederateId,
             label = std::move(notification.label),
             federateName = std::move(notification.federateName),
             postRestoreFederateId = notification.postRestoreFederateId](
@@ -2599,12 +2670,23 @@ void submitFederationRestoreNotifications(
               label,
               federateName,
               makeFederateHandle(postRestoreFederateId));
+          queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+              federationName,
+              receivingFederateId,
+              {"HLAfederateState"});
         });
         break;
       case umbra::detail::FederationRestoreNotificationKind::completed:
         if (notification.successful) {
-          notification.callbackRoute([](FederateAmbassador& recipient) {
+          notification.callbackRoute([
+              federationName,
+              receivingFederateId = notification.receivingFederateId](
+              FederateAmbassador& recipient) {
             recipient.federationRestored();
+            queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+                federationName,
+                receivingFederateId,
+                {"HLAfederateState"});
           });
         } else {
           auto const reason = notification.failureReason;
@@ -3307,7 +3389,6 @@ void queueTimestampedReflectAttributeUpdate(
     bool callbackBegan = false;
     for (auto const& passel : passels) {
       std::optional<umbra::detail::ReceiveOrderAttributeUpdateRecipient> projection;
-      bool callbackMayBegin = !retractionMessageId;
       {
         std::scoped_lock lock(federationManagementMutex());
         auto& registry = embeddedFederationManagement().registry();
@@ -3319,47 +3400,11 @@ void queueTimestampedReflectAttributeUpdate(
                 objectInstanceHandle,
                 passel.sentAttributeHandles,
                 passel.sentRegionHandles.empty() ? nullptr : &passel.sentRegionHandles);
-        if (projection && retractionMessageId) {
-          callbackMayBegin = registry.beginTsoAttributeUpdateCallback(
-              federationName,
-              receivingFederateId,
-              *retractionMessageId);
-        }
       }
       if (!projection) {
         continue;
       }
-      if (!callbackMayBegin) {
-        return;
-      }
-
-      auto const encodedGateKey = umbra::detail::utf8FromWide(
-          federationName + L"/" + std::to_wstring(receivingFederateId) + L"/" +
-          std::to_wstring(objectInstanceHandle) + L"/" +
-          [&passel] {
-            std::wstring value;
-            for (auto const handle : passel.sentAttributeHandles) {
-              value += std::to_wstring(handle) + L",";
-            }
-            return value;
-          }());
       auto const reliableTransportation = passel.transportationName == "HLAreliable";
-      if (encodedGateKey && !updateRateGate().admit(
-              *encodedGateKey,
-              projection->maximumUpdateRate,
-              reliableTransportation)) {
-        if (retractionMessageId) {
-          std::scoped_lock lock(federationManagementMutex());
-          static_cast<void>(embeddedFederationManagement().registry()
-                                .finishTsoRecipientCallbackSuppressed(
-                                    federationName,
-                                    receivingFederateId,
-                                    *retractionMessageId));
-        }
-        continue;
-      }
-
-      callbackBegan = true;
 
       auto const transportationName = umbra::detail::wideFromUtf8(
           passel.transportationName);
@@ -3374,6 +3419,48 @@ void queueTimestampedReflectAttributeUpdate(
       AttributeHandleValueMap attributeValues = projectAttributeValues(
           sentAttributes,
           projection->receivedAttributeHandles);
+      if (!reliableTransportation) {
+        for (auto iterator = attributeValues.begin(); iterator != attributeValues.end();) {
+          std::uint64_t numeric = 0;
+          for (auto const candidate : passel.sentAttributeHandles) {
+            if (makeAttributeHandle(candidate) == iterator->first) {
+              numeric = candidate;
+              break;
+            }
+          }
+          auto const rate = projection->maximumUpdateRatesByAttribute.find(numeric);
+          auto const key = federationName + L"/" +
+              std::to_wstring(receivingFederateId) + L"/" +
+              std::to_wstring(objectInstanceHandle) + L"/" +
+              std::to_wstring(projection->subscriptionGeneration) + L"/" +
+              std::to_wstring(numeric);
+          auto const encoded = umbra::detail::utf8FromWide(key);
+          bool const admitted = !encoded || updateRateGate().admit(
+              *encoded,
+              rate == projection->maximumUpdateRatesByAttribute.end()
+                  ? projection->maximumUpdateRate
+                  : rate->second,
+              false);
+          if (!admitted) {
+            iterator = attributeValues.erase(iterator);
+          } else {
+            ++iterator;
+          }
+        }
+      }
+      if (attributeValues.empty()) {
+        continue;
+      }
+      if (retractionMessageId) {
+        std::scoped_lock lock(federationManagementMutex());
+        if (!embeddedFederationManagement().registry().beginTsoAttributeUpdateCallback(
+                federationName,
+                receivingFederateId,
+                *retractionMessageId)) {
+          return;
+        }
+      }
+      callbackBegan = true;
       std::optional<RegionHandleSet> optionalSentRegions;
       if (projection->conveyRegionDesignatorSets &&
           (!passel.sentRegionHandles.empty() || passel.defaultRegionUsed)) {
@@ -3628,6 +3715,7 @@ void queueReceiveOrderAttributeUpdate(
         auto const key = federationName + L"/" +
             std::to_wstring(receivingFederateId) + L"/" +
             std::to_wstring(objectInstanceHandle) + L"/" +
+            std::to_wstring(projection->subscriptionGeneration) + L"/" +
             std::to_wstring(numeric);
         auto const encoded = umbra::detail::utf8FromWide(key);
         bool const admitted = !encoded ||
@@ -4519,19 +4607,29 @@ void queueObjectInstanceDiscovery(
     umbra::detail::FederateServiceReportRoute serviceReportRoute,
     std::wstring federationName,
     std::uint64_t receivingFederateId,
-    std::uint64_t objectInstanceHandle) {
+    std::uint64_t objectInstanceHandle,
+    bool rtiOwnedMomObject) {
   callbackRoute([
       federationName = std::move(federationName),
       receivingFederateId,
       objectInstanceHandle,
+      rtiOwnedMomObject,
       serviceReportRoute = std::move(serviceReportRoute)](FederateAmbassador& recipient) {
     std::optional<umbra::detail::KnownObjectInstanceSnapshot> discovery;
     {
       std::scoped_lock lock(federationManagementMutex());
-      discovery = embeddedFederationManagement().registry().beginObjectInstanceDiscovery(
-          federationName,
-          receivingFederateId,
-          objectInstanceHandle);
+      if (rtiOwnedMomObject) {
+        discovery = embeddedFederationManagement().registry()
+                        .beginJoinedFederateMomObjectDiscovery(
+                            federationName,
+                            receivingFederateId,
+                            objectInstanceHandle);
+      } else {
+        discovery = embeddedFederationManagement().registry().beginObjectInstanceDiscovery(
+            federationName,
+            receivingFederateId,
+            objectInstanceHandle);
+      }
     }
     if (!discovery) {
       return;
@@ -4567,7 +4665,51 @@ void queueObjectInstanceDiscovery(
         makeObjectInstanceHandle(discovery->objectInstanceHandle),
         makeObjectClassHandle(discovery->knownObjectClassHandle),
         discovery->objectInstanceName,
-        makeFederateHandle(discovery->producingFederateId));
+        rtiOwnedMomObject
+            ? FederateHandle{}
+            : makeFederateHandle(discovery->producingFederateId));
+
+    if (rtiOwnedMomObject) {
+      // The initial MOM values are RTI-owned and are reflected directly after
+      // discovery. Revalidate the known-instance and active subscription
+      // boundary so a queued callback cannot leak values after a declaration
+      // change. Regional eligibility is evaluated against the immutable
+      // HLAfederate point; periodic and other conditional scheduling remains
+      // a later slice (event-driven switch updates use their own queue path).
+      std::optional<umbra::detail::JoinedFederateMomAttributeValueUpdateRecipient>
+          initialValues;
+      {
+        std::scoped_lock lock(federationManagementMutex());
+        auto plan = embeddedFederationManagement().registry()
+                        .planJoinedFederateMomAttributeValueUpdate(
+                            federationName,
+                            receivingFederateId,
+                            objectInstanceHandle,
+                            discovery->initialAttributeHandles,
+                            true);
+        if (plan.status ==
+                umbra::detail::JoinedFederateMomAttributeValueUpdateStatus::applied &&
+            plan.recipient) {
+          initialValues = std::move(plan.recipient);
+        }
+      }
+      if (initialValues && !initialValues->attributeValues.empty()) {
+        AttributeHandleValueMap attributeValues;
+        for (auto const& [attributeHandle, value] : initialValues->attributeValues) {
+          attributeValues.emplace(makeAttributeHandle(attributeHandle), value);
+        }
+        recipient.reflectAttributeValues(
+            makeObjectInstanceHandle(initialValues->objectInstanceHandle),
+            attributeValues,
+            VariableLengthData{},
+            transportationHandleFromEmbeddedName(
+                "HLAreliable",
+                L"The embedded federation could not reconstruct the MOM transportation type."),
+            FederateHandle{},
+            nullptr);
+      }
+      return;
+    }
 
     // Auto Provide is an RTI-invoked service that follows a newly completed
     // discovery. It solicits each current owner of an in-scope attribute with
@@ -4641,7 +4783,8 @@ void queueObjectInstanceDiscoveries(
           std::move(discovery.serviceReportRoute),
           federationName,
           discovery.receivingFederateId,
-          discovery.objectInstanceHandle);
+          discovery.objectInstanceHandle,
+          discovery.rtiOwnedMomObject);
     } catch (...) {
       // An immediate callback can have committed known-instance state before
       // propagating a user exception.  The registry clears only still-pending
@@ -4650,13 +4793,195 @@ void queueObjectInstanceDiscoveries(
       std::scoped_lock lock(federationManagementMutex());
       auto& registry = embeddedFederationManagement().registry();
       for (std::size_t pending = index; pending < discoveries.size(); ++pending) {
-        registry.cancelObjectInstanceDiscovery(
-            federationName,
-            discoveries[pending].receivingFederateId,
-            discoveries[pending].objectInstanceHandle);
+        if (discoveries[pending].rtiOwnedMomObject) {
+          registry.cancelJoinedFederateMomObjectDiscovery(
+              federationName,
+              discoveries[pending].receivingFederateId,
+              discoveries[pending].objectInstanceHandle);
+        } else {
+          registry.cancelObjectInstanceDiscovery(
+              federationName,
+              discoveries[pending].receivingFederateId,
+              discoveries[pending].objectInstanceHandle);
+        }
       }
       throw;
     }
+  }
+}
+
+void queueJoinedFederateMomAttributeValueUpdate(
+    umbra::detail::ObjectInstanceCallbackRoute callbackRoute,
+    std::wstring federationName,
+    std::uint64_t receivingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::set<std::uint64_t> requestedAttributeHandles,
+    bool requireActiveSubscription = false,
+    std::optional<std::map<std::uint64_t, VariableLengthData>>
+        plannedAttributeValues = std::nullopt) {
+  if (!callbackRoute) {
+    throw RTIinternalError(
+        L"The embedded federation has a MOM attribute reflection without a callback route.");
+  }
+  callbackRoute([
+      federationName = std::move(federationName),
+      receivingFederateId,
+      objectInstanceHandle,
+      requestedAttributeHandles = std::move(requestedAttributeHandles),
+      requireActiveSubscription,
+      plannedAttributeValues = std::move(plannedAttributeValues)](
+      FederateAmbassador& recipient) mutable {
+    std::optional<umbra::detail::JoinedFederateMomAttributeValueUpdateRecipient>
+        reflection;
+    {
+      std::scoped_lock lock(federationManagementMutex());
+      auto plan = embeddedFederationManagement().registry()
+                      .planJoinedFederateMomAttributeValueUpdate(
+                          federationName,
+                          receivingFederateId,
+                          objectInstanceHandle,
+                          requestedAttributeHandles,
+                          requireActiveSubscription);
+      if (plan.status ==
+              umbra::detail::JoinedFederateMomAttributeValueUpdateStatus::applied &&
+          plan.recipient) {
+        reflection = std::move(plan.recipient);
+      }
+    }
+    if (!reflection || reflection->attributeValues.empty()) {
+      return;
+    }
+
+    AttributeHandleValueMap attributeValues;
+    auto const& values = plannedAttributeValues.has_value()
+        ? *plannedAttributeValues
+        : reflection->attributeValues;
+    for (auto const& [attributeHandle, value] : values) {
+      attributeValues.emplace(makeAttributeHandle(attributeHandle), value);
+    }
+    recipient.reflectAttributeValues(
+        makeObjectInstanceHandle(reflection->objectInstanceHandle),
+        attributeValues,
+        VariableLengthData{},
+        transportationHandleFromEmbeddedName(
+            "HLAreliable",
+            L"The embedded federation could not reconstruct the MOM transportation type."),
+        FederateHandle{},
+        nullptr);
+  });
+}
+
+void queueJoinedFederateMomConditionalAttributeUpdate(
+    std::wstring const& federationName,
+    std::uint64_t objectInstanceHandle,
+    std::set<std::uint64_t> requestedAttributeHandles,
+    std::optional<std::uint64_t> excludedReceivingFederateId = std::nullopt) {
+  umbra::detail::JoinedFederateMomAttributeValueUpdateClassPlan plan;
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    plan = embeddedFederationManagement().registry()
+               .planJoinedFederateMomAttributeValueUpdateForObject(
+                   federationName,
+                   objectInstanceHandle,
+                   requestedAttributeHandles,
+                   true,
+                   excludedReceivingFederateId);
+  }
+  for (auto& recipient : plan.recipients) {
+    if (!recipient.callbackRoute || recipient.attributeValues.empty()) {
+      continue;
+    }
+    queueJoinedFederateMomAttributeValueUpdate(
+        std::move(recipient.callbackRoute),
+        federationName,
+        recipient.receivingFederateId,
+        recipient.objectInstanceHandle,
+        requestedAttributeHandles,
+        true,
+        std::move(recipient.attributeValues));
+  }
+}
+
+struct JoinedFederateMomConditionalWork {
+  std::wstring federationName;
+  std::uint64_t objectInstanceHandle = 0;
+  std::set<std::uint64_t> attributeHandles;
+};
+
+std::optional<JoinedFederateMomConditionalWork>
+joinedFederateMomConditionalWorkFor(
+    umbra::detail::EmbeddedFederationRegistry& registry,
+    std::wstring const& federationName,
+    std::uint64_t joinedFederateId,
+    std::vector<std::string_view> attributeNames) {
+  auto const object = registry.joinedFederateMomObjectFor(
+      federationName,
+      joinedFederateId);
+  if (!object) {
+    return std::nullopt;
+  }
+  JoinedFederateMomConditionalWork result;
+  result.federationName = federationName;
+  result.objectInstanceHandle = object->objectInstanceHandle;
+  for (std::string_view const attributeName : attributeNames) {
+    auto const handle = registry.attributeHandleFor(
+        federationName,
+        "HLAobjectRoot.HLAmanager.HLAfederate",
+        std::string(attributeName));
+    if (!handle) {
+      return std::nullopt;
+    }
+    result.attributeHandles.insert(*handle);
+  }
+  return result;
+}
+
+void queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+    std::wstring const& federationName,
+    std::uint64_t joinedFederateId,
+    std::vector<std::string_view> attributeNames,
+    std::optional<std::uint64_t> excludedReceivingFederateId) {
+  std::optional<JoinedFederateMomConditionalWork> work;
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    work = joinedFederateMomConditionalWorkFor(
+        embeddedFederationManagement().registry(),
+        federationName,
+        joinedFederateId,
+        std::move(attributeNames));
+  }
+  if (work) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        work->federationName,
+        work->objectInstanceHandle,
+        std::move(work->attributeHandles),
+        excludedReceivingFederateId);
+  }
+}
+
+// HLA_EVOKED applications expose callback delivery through the Evoke
+// services, so the embedded profile claims due wall-clock periods at the
+// callback boundary rather than running user code from a registry timer
+// thread.  The registry owns each target's immutable deadline and advances it
+// once; this helper only applies the ordinary active-subscription MOM planner
+// after releasing the federation lock.
+void pumpDueJoinedFederateMomPeriodicUpdates(std::wstring const& federationName) {
+  std::vector<umbra::detail::JoinedFederateMomPeriodicUpdate> due;
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    due = embeddedFederationManagement().registry()
+        .takeDueJoinedFederateMomPeriodicUpdates(
+            federationName,
+            std::chrono::steady_clock::now());
+  }
+  for (auto const& update : due) {
+    if (update.objectInstanceHandle == 0U || update.attributeHandles.empty()) {
+      continue;
+    }
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        federationName,
+        update.objectInstanceHandle,
+        update.attributeHandles);
   }
 }
 
@@ -4802,7 +5127,8 @@ void queueObjectInstanceRemoval(
     std::wstring federationName,
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle,
-    VariableLengthData userSuppliedTag) {
+    VariableLengthData userSuppliedTag,
+    bool rtiOwnedMomObject) {
   submitReceiveOrderCallback(
       std::move(callbackRoute),
       federationName,
@@ -4811,15 +5137,22 @@ void queueObjectInstanceRemoval(
       federationName,
       receivingFederateId,
       objectInstanceHandle,
+      rtiOwnedMomObject,
       userSuppliedTag = std::move(userSuppliedTag),
       serviceReportRoute = std::move(serviceReportRoute)](FederateAmbassador& recipient) mutable {
     std::optional<umbra::detail::RemovedObjectInstanceSnapshot> removal;
     {
       std::scoped_lock lock(federationManagementMutex());
-      removal = embeddedFederationManagement().registry().beginObjectInstanceRemoval(
-          federationName,
-          receivingFederateId,
-          objectInstanceHandle);
+      auto& registry = embeddedFederationManagement().registry();
+      removal = rtiOwnedMomObject
+          ? registry.beginJoinedFederateMomObjectRemoval(
+                federationName,
+                receivingFederateId,
+                objectInstanceHandle)
+          : registry.beginObjectInstanceRemoval(
+                federationName,
+                receivingFederateId,
+                objectInstanceHandle);
     }
     if (!removal) {
       return;
@@ -4854,7 +5187,9 @@ void queueObjectInstanceRemoval(
     recipient.removeObjectInstance(
         makeObjectInstanceHandle(removal->objectInstanceHandle),
         userSuppliedTag,
-        makeFederateHandle(removal->producingFederateId));
+        rtiOwnedMomObject
+            ? FederateHandle{}
+            : makeFederateHandle(removal->producingFederateId));
   });
 }
 
@@ -4878,7 +5213,8 @@ void queueObjectInstanceRemovals(
           federationName,
           removal.receivingFederateId,
           removal.objectInstanceHandle,
-          userSuppliedTag);
+          userSuppliedTag,
+          removal.rtiOwnedMomObject);
     } catch (...) {
       // A synchronous callback may already have removed the current
       // recipient's known state. Clear only still-pending reservations so the
@@ -4886,10 +5222,17 @@ void queueObjectInstanceRemovals(
       std::scoped_lock lock(federationManagementMutex());
       auto& registry = embeddedFederationManagement().registry();
       for (std::size_t pending = index; pending < removals.size(); ++pending) {
-        registry.cancelObjectInstanceRemoval(
-            federationName,
-            removals[pending].receivingFederateId,
-            removals[pending].objectInstanceHandle);
+        if (removals[pending].rtiOwnedMomObject) {
+          registry.cancelJoinedFederateMomObjectRemoval(
+              federationName,
+              removals[pending].receivingFederateId,
+              removals[pending].objectInstanceHandle);
+        } else {
+          registry.cancelObjectInstanceRemoval(
+              federationName,
+              removals[pending].receivingFederateId,
+              removals[pending].objectInstanceHandle);
+        }
       }
       throw;
     }
@@ -5021,6 +5364,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
       std::vector<umbra::detail::FederationSaveNotification> timedSaveNotifications;
       std::vector<umbra::detail::ObjectInstanceRemovalRecipient>
           postGrantObjectRemovals;
+      bool grantCompleted = false;
       callbackSession->invoke([
           timeState = std::move(timeState),
           federationName,
@@ -5030,7 +5374,8 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           &newlyEligible,
           &immediateSaveNotifications,
           &timedSaveNotifications,
-          &postGrantObjectRemovals](FederateAmbassador& recipient) {
+          &postGrantObjectRemovals,
+          &grantCompleted](FederateAmbassador& recipient) {
         auto const pendingSnapshot = timeState->snapshot();
         bool const flushQueue =
             pendingSnapshot.advanceMode ==
@@ -5071,6 +5416,11 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           // this recipient's Time Advance Grant.
           if (immediateSaveLabel.has_value()) {
             recipient.initiateFederateSave(*immediateSaveLabel);
+            queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+                federationName,
+                federateId,
+                {"HLAfederateState"},
+                federateId);
           }
 
           {
@@ -5279,21 +5629,10 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                                 passel.sentRegionHandles.empty()
                                     ? nullptr
                                     : &passel.sentRegionHandles);
-                        if (projection) {
-                          callbackMayBegin = registry.beginTsoAttributeUpdateCallback(
-                              federationName,
-                              federateId,
-                              message.messageId);
-                        }
                       }
                       if (!projection) {
                         continue;
                       }
-                      if (!callbackMayBegin) {
-                        return;
-                      }
-
-                      callbackBegan = true;
 
                       auto const transportationName = umbra::detail::wideFromUtf8(
                           passel.transportationName);
@@ -5307,6 +5646,59 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                       AttributeHandleValueMap attributeValues = projectAttributeValues(
                           message.attributes,
                           projection->receivedAttributeHandles);
+                      // Update-rate reduction is a delivery-boundary policy.
+                      // The queued TSO path must apply the same per-attribute
+                      // gate as the immediate timestamped path; otherwise a
+                      // time-constrained recipient would bypass the FDD rate
+                      // selected by its subscription.
+                      if (passel.transportationName != "HLAreliable") {
+                        for (auto iterator = attributeValues.begin();
+                             iterator != attributeValues.end();) {
+                          std::uint64_t numeric = 0;
+                          for (auto const candidate : passel.sentAttributeHandles) {
+                            if (makeAttributeHandle(candidate) == iterator->first) {
+                              numeric = candidate;
+                              break;
+                            }
+                          }
+                          auto const rate = projection->maximumUpdateRatesByAttribute.find(
+                              numeric);
+                          auto const key = federationName + L"/" +
+                              std::to_wstring(federateId) + L"/" +
+                              std::to_wstring(message.objectInstanceHandle) + L"/" +
+                              std::to_wstring(projection->subscriptionGeneration) + L"/" +
+                              std::to_wstring(numeric);
+                          auto const encoded = umbra::detail::utf8FromWide(key);
+                          bool const admitted = !encoded || updateRateGate().admit(
+                              *encoded,
+                              rate == projection->maximumUpdateRatesByAttribute.end()
+                                  ? projection->maximumUpdateRate
+                                  : rate->second,
+                              false);
+                          if (!admitted) {
+                            iterator = attributeValues.erase(iterator);
+                          } else {
+                            ++iterator;
+                          }
+                        }
+                      }
+                      if (attributeValues.empty()) {
+                        continue;
+                      }
+                      {
+                        std::scoped_lock lock(federationManagementMutex());
+                        callbackMayBegin = embeddedFederationManagement().registry()
+                            .beginTsoAttributeUpdateCallback(
+                                federationName,
+                                federateId,
+                                message.messageId);
+                      }
+                      if (!callbackMayBegin) {
+                        return;
+                      }
+
+                      callbackBegan = true;
+
                       std::optional<RegionHandleSet> optionalSentRegions;
                       if (projection->conveyRegionDesignatorSets &&
                           (!passel.sentRegionHandles.empty() || passel.defaultRegionUsed)) {
@@ -5541,6 +5933,11 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             recipient.initiateFederateSave(
                 *timedSaveLabel,
                 *timedSaveTimestamp);
+            queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+                federationName,
+                federateId,
+                {"HLAfederateState"},
+                federateId);
           }
 
           {
@@ -5550,6 +5947,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             if (!grantedTime) {
               return;
             }
+            grantCompleted = true;
             auto scheduled = registry.reevaluateTimeAdvanceGrants(federationName);
             if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
               newlyEligible = std::move(scheduled.dispatches);
@@ -5592,6 +5990,11 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             recipient.initiateFederateSave(
                 *timedSaveLabel,
                 *timedSaveTimestamp);
+            queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+                federationName,
+                federateId,
+                {"HLAfederateState"},
+                federateId);
           }
 
           {
@@ -5614,6 +6017,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             }
             grantedTime = timeState->currentTime();
             optimisticTime = std::move(flushQueueOptimisticTime);
+            grantCompleted = true;
             auto scheduled = registry.reevaluateTimeAdvanceGrants(federationName);
             if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
               newlyEligible = std::move(scheduled.dispatches);
@@ -5635,6 +6039,16 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
 
       });
 
+      if (grantCompleted) {
+        // The grant has completed the private transition back to Time Granted
+        // (or the Flush Queue equivalent).  Publish the conditional MOM value
+        // only after the matching public callback has been invoked.
+        queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+            federationName,
+            federateId,
+            {"HLAtimeManagerState"});
+      }
+
       // A receive-order automatic-resign removal that encountered a protected
       // connection-loss TSO boundary is resubmitted only after the matching
       // grant callback. That preserves the reflection/directed callback first
@@ -5644,8 +6058,12 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           std::move(postGrantObjectRemovals),
           federationName,
           VariableLengthData());
-      submitFederationSaveNotifications(std::move(immediateSaveNotifications));
-      submitFederationSaveNotifications(std::move(timedSaveNotifications));
+      submitFederationSaveNotifications(
+          federationName,
+          std::move(immediateSaveNotifications));
+      submitFederationSaveNotifications(
+          federationName,
+          std::move(timedSaveNotifications));
       submitTimeAdvanceGrantDispatches(std::move(newlyEligible));
     });
   };
@@ -5723,6 +6141,46 @@ void requireValidResignAction(ResignAction resignAction) {
 }  // namespace
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+void UmbraRtiAmbassador::startPeriodicMomScheduler() {
+  if (callbackModel_ != HLA_IMMEDIATE || periodicMomScheduler_.joinable()) {
+    return;
+  }
+  periodicMomScheduler_ = std::jthread(
+      [this](std::stop_token stopToken) {
+        periodicMomSchedulerLoop(stopToken);
+      });
+}
+
+void UmbraRtiAmbassador::stopPeriodicMomScheduler() noexcept {
+  if (!periodicMomScheduler_.joinable()) {
+    return;
+  }
+  periodicMomScheduler_.request_stop();
+  periodicMomScheduler_.join();
+}
+
+void UmbraRtiAmbassador::periodicMomSchedulerLoop(std::stop_token stopToken) {
+  using namespace std::chrono_literals;
+  while (!stopToken.stop_requested()) {
+    std::optional<std::wstring> federationName;
+    {
+      std::scoped_lock lock(mutex_, federationManagementMutex());
+      if (lifecycle_.state() == umbra::detail::FederateLifecycleState::joined &&
+          callbackModel_ == HLA_IMMEDIATE && joinedFederationName_ &&
+          joinedFederateId_) {
+        federationName = *joinedFederationName_;
+      }
+    }
+    if (federationName) {
+      // The registry owns deadline claiming. This thread only supplies the
+      // immediate callback model's missing callback-boundary pump; routing
+      // and callback-time revalidation remain in the ordinary planner.
+      pumpDueJoinedFederateMomPeriodicUpdates(*federationName);
+    }
+    std::this_thread::sleep_for(25ms);
+  }
+}
+
 UmbraRtiAmbassador::UmbraRtiAmbassador(
     ServiceReportStoreTestSeam,
     std::unique_ptr<umbra::detail::ServiceReportStore> serviceReportStore)
@@ -5872,12 +6330,14 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   transportConnection_ = std::move(transportConnection);
   activeServiceReportStoreIsTestOnly_ = useInjectedServiceReportStore;
+  startPeriodicMomScheduler();
 #endif
   return result;
 }
 
 UmbraRtiAmbassador::~UmbraRtiAmbassador() {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  stopPeriodicMomScheduler();
   if (transportConnection_) {
     umbra::detail::embeddedTransportHub().disconnect(static_cast<RTIambassador*>(this));
     transportConnection_->close();
@@ -5959,6 +6419,8 @@ void UmbraRtiAmbassador::disconnect() {
     callbacks_->reset();
   }
 
+  stopPeriodicMomScheduler();
+
   // Do not hold the ambassador lock while an in-flight callback drains: the
   // recipient may make a re-entrant RTI call before it returns.
   if (callbackSession) {
@@ -5978,7 +6440,30 @@ bool UmbraRtiAmbassador::evokeCallback(double approximateMinimumTimeInSeconds) {
     throw CallNotAllowedFromWithinCallback(
         L"Evoke Callback cannot be called from within a federate callback.");
   }
-  return callbacks_->evokeOne(callbackWaitDuration(approximateMinimumTimeInSeconds));
+  auto pumpPeriodicMomUpdates = [this] {
+    std::optional<std::wstring> federationName;
+    {
+      std::scoped_lock lock(mutex_, federationManagementMutex());
+      if (lifecycle_.state() == umbra::detail::FederateLifecycleState::joined &&
+          joinedFederationName_ && joinedFederateId_) {
+        federationName = *joinedFederationName_;
+      }
+    }
+    if (federationName) {
+      pumpDueJoinedFederateMomPeriodicUpdates(*federationName);
+    }
+  };
+  pumpPeriodicMomUpdates();
+  auto result = callbacks_->evokeOne(callbackWaitDuration(approximateMinimumTimeInSeconds));
+  if (!result) {
+    // A deadline may have elapsed while the dispatcher was waiting.  Claim
+    // and submit it now, then give this Evoke call one normal callback slot.
+    pumpPeriodicMomUpdates();
+    if (callbacks_->pendingCount() != 0U) {
+      result = callbacks_->evokeOne(std::chrono::milliseconds::zero());
+    }
+  }
+  return result;
 }
 
 bool UmbraRtiAmbassador::evokeMultipleCallbacks(
@@ -5989,9 +6474,25 @@ bool UmbraRtiAmbassador::evokeMultipleCallbacks(
     throw CallNotAllowedFromWithinCallback(
         L"Evoke Multiple Callbacks cannot be called from within a federate callback.");
   }
-  return callbacks_->evokeMultiple(
+  auto pumpPeriodicMomUpdates = [this] {
+    std::optional<std::wstring> federationName;
+    {
+      std::scoped_lock lock(mutex_, federationManagementMutex());
+      if (lifecycle_.state() == umbra::detail::FederateLifecycleState::joined &&
+          joinedFederationName_ && joinedFederateId_) {
+        federationName = *joinedFederationName_;
+      }
+    }
+    if (federationName) {
+      pumpDueJoinedFederateMomPeriodicUpdates(*federationName);
+    }
+  };
+  pumpPeriodicMomUpdates();
+  auto const result = callbacks_->evokeMultiple(
       callbackWaitDuration(approximateMinimumTimeInSeconds),
       callbackWaitDuration(approximateMaximumTimeInSeconds));
+  pumpPeriodicMomUpdates();
+  return result || callbacks_->pendingCount() != 0U;
 }
 
 void UmbraRtiAmbassador::enableCallbacks() {
@@ -6309,6 +6810,8 @@ bool UmbraRtiAmbassador::handleEmbeddedMembershipLoss(
             removal.receivingFederateId,
             removal.objectInstanceHandle,
             std::move(removal.callbackRoute),
+            std::move(removal.serviceReportRoute),
+            removal.rtiOwnedMomObject,
         });
       }
       ownershipAssumptions.reserve(resigned.resignOwnershipAssumptions.size());
@@ -6412,8 +6915,12 @@ bool UmbraRtiAmbassador::handleEmbeddedMembershipLoss(
         reason);
   }
   submitTimeAdvanceGrantDispatches(std::move(newlyEligible));
-  submitFederationSaveNotifications(std::move(saveNotifications));
-  submitFederationRestoreNotifications(std::move(restoreNotifications));
+  submitFederationSaveNotifications(
+      federationName,
+      std::move(saveNotifications));
+  submitFederationRestoreNotifications(
+      federationName,
+      std::move(restoreNotifications));
   submitFederationSynchronizedNotifications(std::move(synchronizationNotifications));
   queueDeclarationAdvisories(std::move(declarationAdvisories));
   VariableLengthData emptyMembershipLossTag;
@@ -6683,6 +7190,9 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
       newlyJoinedSynchronizationAnnouncements;
   std::vector<umbra::detail::AttributeOwnershipAssumptionRecipient>
       newlyEligibleOwnershipAssumptions;
+  std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient>
+      newlyJoinedMomDiscoveries;
+  std::uint64_t joinedFederateId = 0;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -6899,8 +7409,21 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
 
     joinedFederationName_ = federationName;
     joinedFederateId_ = joined.membership->id;
+    joinedFederateId = joined.membership->id;
     federateTimeState_ = std::move(timeState);
     result = makeFederateHandle(joined.membership->id);
+
+    // The RTI-owned joined-federate MOM object was established before the
+    // lifecycle transition. Existing subscribers may therefore need a
+    // discovery now that this joined-federate lifetime is visible.
+    if (auto const momObject = management.registry().joinedFederateMomObjectFor(
+            federationName,
+            joined.membership->id)) {
+      newlyJoinedMomDiscoveries = management.registry()
+          .planJoinedFederateMomObjectDiscoveriesForInstance(
+              federationName,
+              momObject->objectInstanceHandle);
+    }
 
     auto synchronizationAnnouncements =
         management.registry().announcePendingSynchronizationPoints(
@@ -6937,6 +7460,15 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
       std::move(newlyEligibleOwnershipAssumptions),
       federationName,
       VariableLengthData());
+  queueObjectInstanceDiscoveries(std::move(newlyJoinedMomDiscoveries), federationName);
+  // Join Federation Execution is an explicit HLAfederateState conditional
+  // update boundary.  Queue it after discovery so an immediate subscriber
+  // observes the object before its state reflection, while the conditional
+  // helper still snapshots ActiveFederate from the committed ledger.
+  queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+      federationName,
+      joinedFederateId,
+      {"HLAfederateState"});
   return result;
   } catch (Exception const& exception) {
     emitExceptionReport(L"Join Federation Execution", exception);
@@ -7035,6 +7567,8 @@ void UmbraRtiAmbassador::resignFederationExecution(ResignAction resignAction) {
           removal.receivingFederateId,
           removal.objectInstanceHandle,
           std::move(removal.callbackRoute),
+          std::move(removal.serviceReportRoute),
+          removal.rtiOwnedMomObject,
       });
     }
     resignOwnershipAssumptions.reserve(resigned.resignOwnershipAssumptions.size());
@@ -7079,8 +7613,12 @@ void UmbraRtiAmbassador::resignFederationExecution(ResignAction resignAction) {
     }
   }
   submitTimeAdvanceGrantDispatches(std::move(newlyEligible));
-  submitFederationSaveNotifications(std::move(saveNotifications));
-  submitFederationRestoreNotifications(std::move(restoreNotifications));
+  submitFederationSaveNotifications(
+      federationName,
+      std::move(saveNotifications));
+  submitFederationRestoreNotifications(
+      federationName,
+      std::move(restoreNotifications));
   submitFederationSynchronizedNotifications(std::move(synchronizationNotifications));
   queueDeclarationAdvisories(std::move(declarationAdvisories));
   VariableLengthData emptyResignTag;
@@ -7334,7 +7872,9 @@ void UmbraRtiAmbassador::requestFederationSave(std::wstring const& label) {
           umbra::detail::formatMomNull()}});
     notifications = std::move(result.notifications);
   }
-  submitFederationSaveNotifications(std::move(notifications));
+  submitFederationSaveNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Request Federation Save", exception);
     throw;
@@ -7498,7 +8038,9 @@ void UmbraRtiAmbassador::requestFederationSave(
          reportTimestampArgument});
     notifications = std::move(result.notifications);
   }
-  submitFederationSaveNotifications(std::move(notifications));
+  submitFederationSaveNotifications(
+      federationName,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Request Federation Save", exception);
     throw;
@@ -7573,7 +8115,9 @@ void UmbraRtiAmbassador::federateSaveComplete() {
           umbra::detail::formatMomBoolean(true)}});
     notifications = std::move(result.notifications);
   }
-  submitFederationSaveNotifications(std::move(notifications));
+  submitFederationSaveNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Federate Save Complete", exception);
     throw;
@@ -7612,7 +8156,9 @@ void UmbraRtiAmbassador::federateSaveNotComplete() {
           umbra::detail::formatMomBoolean(false)}});
     notifications = std::move(result.notifications);
   }
-  submitFederationSaveNotifications(std::move(notifications));
+  submitFederationSaveNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Federate Save Complete", exception);
     throw;
@@ -7650,7 +8196,9 @@ void UmbraRtiAmbassador::abortFederationSave() {
         {});
     notifications = std::move(result.notifications);
   }
-  submitFederationSaveNotifications(std::move(notifications));
+  submitFederationSaveNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Abort Federation Save", exception);
     throw;
@@ -7688,7 +8236,9 @@ void UmbraRtiAmbassador::queryFederationSaveStatus() {
         {});
     notifications = std::move(result.notifications);
   }
-  submitFederationSaveNotifications(std::move(notifications));
+  submitFederationSaveNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Query Federation Save Status", exception);
     throw;
@@ -7733,7 +8283,9 @@ void UmbraRtiAmbassador::requestFederationRestore(std::wstring const& label) {
           umbra::detail::formatMomString(label)}});
     notifications = std::move(result.notifications);
   }
-  submitFederationRestoreNotifications(std::move(notifications));
+  submitFederationRestoreNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Request Federation Restore", exception);
     throw;
@@ -7778,7 +8330,9 @@ void UmbraRtiAmbassador::federateRestoreComplete() {
     notifications = std::move(result.notifications);
     timeAdvanceGrantDispatches = std::move(result.timeAdvanceGrantDispatches);
   }
-  submitFederationRestoreNotifications(std::move(notifications));
+  submitFederationRestoreNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   submitTimeAdvanceGrantDispatches(std::move(timeAdvanceGrantDispatches));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Federate Restore Complete", exception);
@@ -7819,7 +8373,9 @@ void UmbraRtiAmbassador::federateRestoreNotComplete() {
           umbra::detail::formatMomBoolean(false)}});
     notifications = std::move(result.notifications);
   }
-  submitFederationRestoreNotifications(std::move(notifications));
+  submitFederationRestoreNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Federate Restore Complete", exception);
     throw;
@@ -7857,7 +8413,9 @@ void UmbraRtiAmbassador::abortFederationRestore() {
         {});
     notifications = std::move(result.notifications);
   }
-  submitFederationRestoreNotifications(std::move(notifications));
+  submitFederationRestoreNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Abort Federation Restore", exception);
     throw;
@@ -7895,7 +8453,9 @@ void UmbraRtiAmbassador::queryFederationRestoreStatus() {
         {});
     notifications = std::move(result.notifications);
   }
-  submitFederationRestoreNotifications(std::move(notifications));
+  submitFederationRestoreNotifications(
+      *joinedFederationName_,
+      std::move(notifications));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Query Federation Restore Status", exception);
     throw;
@@ -8481,6 +9041,7 @@ void UmbraRtiAmbassador::subscribeObjectClassAttributes(
   std::wstring federationName;
   std::vector<umbra::detail::DeclarationAdvisory> declarationAdvisories;
   std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient> discoveries;
+  std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient> momDiscoveries;
   std::vector<umbra::detail::ObjectInstanceScopeChangeRecipient> changes;
   std::vector<umbra::detail::AttributeRelevanceAdvisoryRecipient>
       attributeRelevanceAdvisories;
@@ -8558,11 +9119,15 @@ void UmbraRtiAmbassador::subscribeObjectClassAttributes(
     discoveries = registry.planObjectInstanceDiscoveriesForFederate(
         federationName,
         *joinedFederateId_);
+    momDiscoveries = registry.planJoinedFederateMomObjectDiscoveriesForFederate(
+        federationName,
+        *joinedFederateId_);
   }
   queueDeclarationAdvisories(std::move(declarationAdvisories));
   queueObjectInstanceScopeChanges(std::move(changes), federationName);
   queueAttributeRelevanceAdvisories(std::move(attributeRelevanceAdvisories), federationName);
   queueObjectInstanceDiscoveries(std::move(discoveries), federationName);
+  queueObjectInstanceDiscoveries(std::move(momDiscoveries), federationName);
   } catch (Exception const& exception) {
     emitExceptionReport(L"Subscribe Object Class Attributes", exception);
     throw;
@@ -9195,6 +9760,7 @@ void UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions(
   try {
   std::wstring federationName;
   std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient> discoveries;
+  std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient> momDiscoveries;
   std::vector<umbra::detail::ObjectInstanceScopeChangeRecipient> changes;
   std::vector<umbra::detail::AttributeRelevanceAdvisoryRecipient>
       attributeRelevanceAdvisories;
@@ -9273,10 +9839,18 @@ void UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions(
     discoveries = registry.planObjectInstanceDiscoveriesForFederate(
         federationName,
         *joinedFederateId_);
+    // Regional declarations are evaluated against the RTI-owned
+    // HLAfederate point as well as ordinary object instances.  The registry
+    // planner performs the callback-time recheck, so this reservation is
+    // safe for both evoked and immediate callback models.
+    momDiscoveries = registry.planJoinedFederateMomObjectDiscoveriesForFederate(
+        federationName,
+        *joinedFederateId_);
   }
   queueObjectInstanceScopeChanges(std::move(changes), federationName);
   queueAttributeRelevanceAdvisories(std::move(attributeRelevanceAdvisories), federationName);
   queueObjectInstanceDiscoveries(std::move(discoveries), federationName);
+  queueObjectInstanceDiscoveries(std::move(momDiscoveries), federationName);
   } catch (Exception const& exception) {
     emitExceptionReport(L"Subscribe Object Class Attributes With Regions", exception);
     throw;
@@ -10169,6 +10743,63 @@ void UmbraRtiAmbassador::requestAttributeValueUpdate(
         L"Request Attribute Value Update requires defined AttributeHandle values.");
   }
 
+  // A joined-federate MOM object is RTI-owned: Request Attribute Value Update
+  // reflects the immutable MOM values directly and never induces a Provide
+  // Attribute Value Update callback at a federate. Keep this branch separate
+  // from the ordinary ownership planner so the private MOM ledger is not
+  // mistaken for a federate-created object instance.
+  std::optional<umbra::detail::ObjectInstanceCallbackRoute> momCallbackRoute;
+  std::wstring momFederationName;
+  std::uint64_t momFederateId = 0;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Request Attribute Value Update");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Request Attribute Value Update requires membership in a federation execution.");
+    }
+    auto& registry = embeddedFederationManagement().registry();
+    auto momPlan = registry.planJoinedFederateMomAttributeValueUpdate(
+        *joinedFederationName_,
+        *joinedFederateId_,
+        *objectInstanceHandle,
+        *requestedAttributeHandles);
+    if (momPlan.rtiOwnedMomObject) {
+      if (momPlan.status !=
+          umbra::detail::JoinedFederateMomAttributeValueUpdateStatus::applied ||
+          !momPlan.recipient) {
+        throwJoinedFederateMomAttributeValueUpdateFailure(momPlan.status);
+      }
+      VariableLengthData copiedTag(userSuppliedTag);
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"RequestAttributeValueUpdate",
+          umbra::detail::MomServiceType::object_management,
+          {{umbra::detail::MomArgumentType::object_instance_handle,
+            L"Object instance designator",
+            umbra::detail::formatMomObjectInstanceHandle(objectInstance)},
+           {umbra::detail::MomArgumentType::attribute_handle_set,
+            L"Set of attribute designators",
+            umbra::detail::formatMomAttributeHandleSet(attributes)},
+           {umbra::detail::MomArgumentType::table_5_user_supplied_tag,
+            L"User-supplied tag",
+            umbra::detail::formatMomUserSuppliedTag(copiedTag)}});
+      momFederationName = *joinedFederationName_;
+      momFederateId = *joinedFederateId_;
+      momCallbackRoute = std::move(momPlan.recipient->callbackRoute);
+    }
+  }
+  if (momCallbackRoute) {
+    queueJoinedFederateMomAttributeValueUpdate(
+        std::move(*momCallbackRoute),
+        std::move(momFederationName),
+        momFederateId,
+        *objectInstanceHandle,
+        *requestedAttributeHandles);
+    return;
+  }
+
   std::optional<std::wstring> federationName;
   std::optional<std::uint64_t> requestingFederateId;
   std::optional<std::vector<umbra::detail::MomServiceArgument>> reportArguments;
@@ -10317,6 +10948,68 @@ void UmbraRtiAmbassador::requestAttributeValueUpdate(
   if (!requestedAttributeHandles) {
     throw AttributeNotDefined(
         L"Request Attribute Value Update requires defined AttributeHandle values.");
+  }
+
+  std::vector<umbra::detail::JoinedFederateMomAttributeValueUpdateRecipient>
+      momRecipients;
+  std::wstring momFederationName;
+  std::uint64_t momFederateId = 0;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Request Attribute Value Update");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Request Attribute Value Update requires membership in a federation execution.");
+    }
+    auto& registry = embeddedFederationManagement().registry();
+    auto momPlan = registry.planJoinedFederateMomAttributeValueUpdateClass(
+        *joinedFederationName_,
+        *joinedFederateId_,
+        *requestedObjectClassHandle,
+        *requestedAttributeHandles);
+    if (momPlan.rtiOwnedMomObject) {
+      // Reuse the ordinary class planner's validation boundary for the public
+      // class designator and requested attributes, then route only the
+      // RTI-owned MOM values discovered by the dedicated plan.
+      auto validation = registry.planAttributeValueUpdateClassRequest(
+          *joinedFederationName_,
+          *joinedFederateId_,
+          *requestedObjectClassHandle,
+          *requestedAttributeHandles);
+      if (validation.status !=
+          umbra::detail::AttributeValueUpdateClassRequestStatus::applied) {
+        throwAttributeValueUpdateClassRequestFailure(validation.status);
+      }
+      VariableLengthData copiedTag(userSuppliedTag);
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"RequestAttributeValueUpdate",
+          umbra::detail::MomServiceType::object_management,
+          {{umbra::detail::MomArgumentType::object_class_handle,
+            L"Object class designator",
+            umbra::detail::formatMomObjectClassHandle(objectClass)},
+           {umbra::detail::MomArgumentType::attribute_handle_set,
+            L"Set of attribute designators",
+            umbra::detail::formatMomAttributeHandleSet(attributes)},
+           {umbra::detail::MomArgumentType::table_5_user_supplied_tag,
+            L"User-supplied tag",
+            umbra::detail::formatMomUserSuppliedTag(copiedTag)}});
+      momFederationName = *joinedFederationName_;
+      momFederateId = *joinedFederateId_;
+      momRecipients = std::move(momPlan.recipients);
+    }
+  }
+  if (!momRecipients.empty() || !momFederationName.empty()) {
+    for (auto& recipient : momRecipients) {
+      queueJoinedFederateMomAttributeValueUpdate(
+          std::move(recipient.callbackRoute),
+          momFederationName,
+          momFederateId,
+          recipient.objectInstanceHandle,
+          *requestedAttributeHandles);
+    }
+    return;
   }
 
   std::optional<std::wstring> federationName;
@@ -12739,6 +13432,7 @@ void UmbraRtiAmbassador::sendInteraction(
         L"Send Interaction requires defined ParameterHandle values.");
   }
 
+  std::optional<JoinedFederateMomConditionalWork> momSwitchWork;
   auto const handleMomSwitchAdjustment = [&]() {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -12760,6 +13454,85 @@ void UmbraRtiAmbassador::sendInteraction(
         *interactionClassHandle);
     if (!interactionClassName) {
       return false;
+    }
+    auto const isFederateSetTiming = registry.interactionClassIsSameOrDescendantOf(
+        *federationName,
+        *interactionClassHandle,
+        "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+    if (!isFederateSetTiming) {
+      throw RTIinternalError(
+          L"The embedded federation cannot resolve the HLAsetTiming MOM class hierarchy.");
+    }
+    if (*isFederateSetTiming) {
+      std::optional<std::uint64_t> targetFederateId;
+      std::optional<std::int32_t> reportPeriodSeconds;
+      for (auto const& [parameterHandle, parameterValue] : parameterValues) {
+        auto const suppliedParameterHandleValue = parameterHandleValue(parameterHandle);
+        if (!suppliedParameterHandleValue) {
+          throw InteractionParameterNotDefined(
+              L"HLAsetTiming received an invalid parameter handle.");
+        }
+        auto const parameterName = registry.parameterNameFor(
+            *federationName,
+            *interactionClassName,
+            *suppliedParameterHandleValue);
+        if (!parameterName) {
+          throw InteractionParameterNotDefined(
+              L"HLAsetTiming received an unknown parameter for this interaction class.");
+        }
+        if (*parameterName == "HLAfederate") {
+          try {
+            auto const decodedHandle =
+                ::rti1516_2025::umbra_binding_detail::decodeFederateHandle(parameterValue);
+            targetFederateId =
+                ::rti1516_2025::umbra_binding_detail::federateHandleValue(decodedHandle);
+          } catch (Exception const&) {
+            throw RTIinternalError(
+                L"HLAsetTiming received an invalid HLAfederateReference value.");
+          }
+          if (!targetFederateId) {
+            throw RTIinternalError(
+                L"HLAsetTiming received an invalid HLAfederateReference value.");
+          }
+          continue;
+        }
+        if (*parameterName == "HLAreportPeriod") {
+          rti1516_2025::HLAinteger32BE decodedPeriod;
+          try {
+            decodedPeriod.decode(parameterValue);
+          } catch (Exception const&) {
+            throw RTIinternalError(
+                L"HLAsetTiming received an invalid HLAseconds HLAinteger32BE value.");
+          }
+          reportPeriodSeconds = decodedPeriod.get();
+          continue;
+        }
+        // A compatible MOM extension may carry an additional parameter.  It
+        // is received but does not alter the predefined HLAsetTiming state.
+      }
+      if (!targetFederateId || !reportPeriodSeconds) {
+        throw InteractionParameterNotDefined(
+            L"HLAsetTiming requires both HLAfederate and HLAreportPeriod parameters.");
+      }
+      auto const result = registry.setFederateMomReportPeriod(
+          *federationName,
+          *producingFederateId,
+          *targetFederateId,
+          *reportPeriodSeconds);
+      switch (result) {
+        case umbra::detail::FederateMOMTimingUpdateStatus::applied:
+          return true;
+        case umbra::detail::FederateMOMTimingUpdateStatus::federation_does_not_exist:
+        case umbra::detail::FederateMOMTimingUpdateStatus::requesting_federate_not_member:
+        case umbra::detail::FederateMOMTimingUpdateStatus::target_federate_not_member:
+          throw FederateNotExecutionMember(
+              L"HLAsetTiming requires both the requesting and target federates to be joined.");
+        case umbra::detail::FederateMOMTimingUpdateStatus::invalid_report_period:
+          throw RTIinternalError(
+              L"HLAsetTiming requires a non-negative HLAreportPeriod value.");
+      }
+      throw RTIinternalError(
+          L"The embedded federation rejected the HLAsetTiming adjustment.");
     }
     auto const isFederationSetSwitches = registry.interactionClassIsSameOrDescendantOf(
         *federationName,
@@ -12905,6 +13678,43 @@ void UmbraRtiAmbassador::sendInteraction(
         update);
     switch (result) {
       case umbra::detail::FederateMOMSwitchUpdateStatus::applied:
+        {
+          std::vector<std::string_view> changedAttributes;
+          if (update.objectClassRelevanceAdvisory) {
+            changedAttributes.emplace_back("HLAobjectClassRelevanceAdvisory");
+          }
+          if (update.attributeRelevanceAdvisory) {
+            changedAttributes.emplace_back("HLAattributeRelevanceAdvisory");
+          }
+          if (update.attributeScopeAdvisory) {
+            changedAttributes.emplace_back("HLAattributeScopeAdvisory");
+          }
+          if (update.interactionRelevanceAdvisory) {
+            changedAttributes.emplace_back("HLAinteractionRelevanceAdvisory");
+          }
+          if (update.conveyRegionDesignatorSets) {
+            changedAttributes.emplace_back("HLAconveyRegionDesignatorSets");
+          }
+          if (update.automaticResignAction) {
+            changedAttributes.emplace_back("HLAautomaticResignAction");
+          }
+          if (update.serviceReporting) {
+            changedAttributes.emplace_back("HLAserviceReporting");
+          }
+          if (update.exceptionReporting) {
+            changedAttributes.emplace_back("HLAexceptionReporting");
+          }
+          if (update.sendServiceReportsToFile) {
+            changedAttributes.emplace_back("HLAsendServiceReportsToFile");
+          }
+          if (!changedAttributes.empty()) {
+            momSwitchWork = joinedFederateMomConditionalWorkFor(
+                registry,
+                *federationName,
+                *producingFederateId,
+                std::move(changedAttributes));
+          }
+        }
         return true;
       case umbra::detail::FederateMOMSwitchUpdateStatus::federation_does_not_exist:
       case umbra::detail::FederateMOMSwitchUpdateStatus::federate_not_member:
@@ -12929,6 +13739,12 @@ void UmbraRtiAmbassador::sendInteraction(
   };
 
   if (handleMomSwitchAdjustment()) {
+    if (momSwitchWork) {
+      queueJoinedFederateMomConditionalAttributeUpdate(
+          momSwitchWork->federationName,
+          momSwitchWork->objectInstanceHandle,
+          std::move(momSwitchWork->attributeHandles));
+    }
     return;
   }
 
@@ -15020,6 +15836,7 @@ void UmbraRtiAmbassador::commitRegionModifications(RegionHandleSet const& region
   std::vector<umbra::detail::ObjectInstanceScopeChangeRecipient> changes;
   std::vector<umbra::detail::AttributeRelevanceAdvisoryRecipient>
       attributeRelevanceAdvisories;
+  std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient> momDiscoveries;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -15054,9 +15871,17 @@ void UmbraRtiAmbassador::commitRegionModifications(RegionHandleSet const& region
     federationName = *joinedFederationName_;
     changes = std::move(scopePlan.recipients);
     attributeRelevanceAdvisories = std::move(scopePlan.attributeRelevanceAdvisories);
+    // A committed region mutation can make an existing RTI-owned MOM point
+    // newly eligible without changing the subscription declaration. Reuse
+    // the normal MOM planner so discovery is reserved exactly once and is
+    // rechecked again at callback entry.
+    momDiscoveries = registry.planJoinedFederateMomObjectDiscoveriesForFederate(
+        federationName,
+        *joinedFederateId_);
   }
   queueObjectInstanceScopeChanges(std::move(changes), federationName);
   queueAttributeRelevanceAdvisories(std::move(attributeRelevanceAdvisories), federationName);
+  queueObjectInstanceDiscoveries(std::move(momDiscoveries), federationName);
   } catch (Exception const& exception) {
     emitExceptionReport(L"Commit Region Modifications", exception);
     throw;
@@ -15425,31 +16250,45 @@ bool UmbraRtiAmbassador::getAttributeScopeAdvisorySwitch() const {
 void UmbraRtiAmbassador::setAttributeScopeAdvisorySwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setAttributeScopeAdvisorySwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(L"Set Attribute Scope Advisory Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Attribute Scope Advisory Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Set Attribute Scope Advisory Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Attribute Scope Advisory Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry().setAttributeScopeAdvisorySwitch(
+        *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"SetAttributeScopeAdvisorySwitch",
+          umbra::detail::MomServiceType::support_services,
+          {{umbra::detail::MomArgumentType::boolean,
+            L"SwitchValue",
+            umbra::detail::formatMomBoolean(switchValue)}});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAattributeScopeAdvisory"});
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Attribute Scope Advisory Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry().setAttributeScopeAdvisorySwitch(
-      *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"SetAttributeScopeAdvisorySwitch",
-        umbra::detail::MomServiceType::support_services,
-        {{umbra::detail::MomArgumentType::boolean,
-          L"SwitchValue",
-          umbra::detail::formatMomBoolean(switchValue)}});
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(L"Set Attribute Scope Advisory Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Attribute Scope Advisory Switch", exception);
     throw;
@@ -15484,34 +16323,47 @@ bool UmbraRtiAmbassador::getObjectClassRelevanceAdvisorySwitch() const {
 void UmbraRtiAmbassador::setObjectClassRelevanceAdvisorySwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setObjectClassRelevanceAdvisorySwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(
-      L"Set Object Class Relevance Advisory Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Object Class Relevance Advisory Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(
+        L"Set Object Class Relevance Advisory Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Object Class Relevance Advisory Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry()
+        .setObjectClassRelevanceAdvisorySwitch(
+            *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"SetObjectClassRelevanceAdvisorySwitch",
+          umbra::detail::MomServiceType::support_services,
+          {{umbra::detail::MomArgumentType::boolean,
+            L"SwitchValue",
+            umbra::detail::formatMomBoolean(switchValue)}});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAobjectClassRelevanceAdvisory"});
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Object Class Relevance Advisory Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry()
-      .setObjectClassRelevanceAdvisorySwitch(
-          *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"SetObjectClassRelevanceAdvisorySwitch",
-        umbra::detail::MomServiceType::support_services,
-        {{umbra::detail::MomArgumentType::boolean,
-          L"SwitchValue",
-          umbra::detail::formatMomBoolean(switchValue)}});
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(
-      L"Set Object Class Relevance Advisory Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Object Class Relevance Advisory Switch", exception);
     throw;
@@ -15546,34 +16398,47 @@ bool UmbraRtiAmbassador::getAttributeRelevanceAdvisorySwitch() const {
 void UmbraRtiAmbassador::setAttributeRelevanceAdvisorySwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setAttributeRelevanceAdvisorySwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(
-      L"Set Attribute Relevance Advisory Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Attribute Relevance Advisory Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(
+        L"Set Attribute Relevance Advisory Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Attribute Relevance Advisory Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry()
+        .setAttributeRelevanceAdvisorySwitch(
+            *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"SetAttributeRelevanceAdvisorySwitch",
+          umbra::detail::MomServiceType::support_services,
+          {{umbra::detail::MomArgumentType::boolean,
+            L"SwitchValue",
+            umbra::detail::formatMomBoolean(switchValue)}});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAattributeRelevanceAdvisory"});
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Attribute Relevance Advisory Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry()
-      .setAttributeRelevanceAdvisorySwitch(
-          *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"SetAttributeRelevanceAdvisorySwitch",
-        umbra::detail::MomServiceType::support_services,
-        {{umbra::detail::MomArgumentType::boolean,
-          L"SwitchValue",
-          umbra::detail::formatMomBoolean(switchValue)}});
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(
-      L"Set Attribute Relevance Advisory Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Attribute Relevance Advisory Switch", exception);
     throw;
@@ -15608,34 +16473,47 @@ bool UmbraRtiAmbassador::getInteractionRelevanceAdvisorySwitch() const {
 void UmbraRtiAmbassador::setInteractionRelevanceAdvisorySwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setInteractionRelevanceAdvisorySwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(
-      L"Set Interaction Relevance Advisory Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Interaction Relevance Advisory Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(
+        L"Set Interaction Relevance Advisory Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Interaction Relevance Advisory Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry()
+        .setInteractionRelevanceAdvisorySwitch(
+            *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"SetInteractionRelevanceAdvisorySwitch",
+          umbra::detail::MomServiceType::support_services,
+          {{umbra::detail::MomArgumentType::boolean,
+            L"SwitchValue",
+            umbra::detail::formatMomBoolean(switchValue)}});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAinteractionRelevanceAdvisory"});
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Interaction Relevance Advisory Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry()
-      .setInteractionRelevanceAdvisorySwitch(
-          *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"SetInteractionRelevanceAdvisorySwitch",
-        umbra::detail::MomServiceType::support_services,
-        {{umbra::detail::MomArgumentType::boolean,
-          L"SwitchValue",
-          umbra::detail::formatMomBoolean(switchValue)}});
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(
-      L"Set Interaction Relevance Advisory Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Interaction Relevance Advisory Switch", exception);
     throw;
@@ -15670,34 +16548,47 @@ bool UmbraRtiAmbassador::getConveyRegionDesignatorSetsSwitch() const {
 void UmbraRtiAmbassador::setConveyRegionDesignatorSetsSwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setConveyRegionDesignatorSetsSwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(
-      L"Set Convey Region Designator Sets Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Convey Region Designator Sets Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(
+        L"Set Convey Region Designator Sets Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Convey Region Designator Sets Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry()
+        .setConveyRegionDesignatorSetsSwitch(
+            *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"SetConveyRegionDesignatorSetsSwitch",
+          umbra::detail::MomServiceType::support_services,
+          {{umbra::detail::MomArgumentType::boolean,
+            L"SwitchValue",
+            umbra::detail::formatMomBoolean(switchValue)}});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAconveyRegionDesignatorSets"});
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Convey Region Designator Sets Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry()
-      .setConveyRegionDesignatorSetsSwitch(
-          *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"SetConveyRegionDesignatorSetsSwitch",
-        umbra::detail::MomServiceType::support_services,
-        {{umbra::detail::MomArgumentType::boolean,
-          L"SwitchValue",
-          umbra::detail::formatMomBoolean(switchValue)}});
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(
-      L"Set Convey Region Designator Sets Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Convey Region Designator Sets Switch", exception);
     throw;
@@ -15731,36 +16622,49 @@ ResignAction UmbraRtiAmbassador::getAutomaticResignDirective() {
 void UmbraRtiAmbassador::setAutomaticResignDirective(ResignAction resignAction) {
   auto instrumentationScope = beginRtiCall("setAutomaticResignDirective");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(L"Set Automatic Resign Directive");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Automatic Resign Directive requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Set Automatic Resign Directive");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Automatic Resign Directive requires membership in a federation execution.");
+    }
+    requireValidResignAction(resignAction);
+    auto const status = embeddedFederationManagement().registry().setAutomaticResignAction(
+        *joinedFederationName_, *joinedFederateId_, resignAction);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"SetAutomaticResignDirective",
+          umbra::detail::MomServiceType::support_services,
+          {{umbra::detail::MomArgumentType::resign_action,
+            L"AutomaticResignDirective",
+            umbra::detail::formatMomResignAction(resignAction)}});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAautomaticResignAction"});
+    } else if (status == umbra::detail::FederationRegistryStatus::invalid_resign_action) {
+      throw InvalidResignAction(
+          L"The supplied resign action is not an IEEE 1516.1 ResignAction value.");
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Automatic Resign Directive encountered an unknown outcome.");
+    }
   }
-  requireValidResignAction(resignAction);
-  auto const status = embeddedFederationManagement().registry().setAutomaticResignAction(
-      *joinedFederationName_, *joinedFederateId_, resignAction);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"SetAutomaticResignDirective",
-        umbra::detail::MomServiceType::support_services,
-        {{umbra::detail::MomArgumentType::resign_action,
-          L"AutomaticResignDirective",
-          umbra::detail::formatMomResignAction(resignAction)}});
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::invalid_resign_action) {
-    throw InvalidResignAction(
-        L"The supplied resign action is not an IEEE 1516.1 ResignAction value.");
-  }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(L"Set Automatic Resign Directive encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Automatic Resign Directive", exception);
     throw;
@@ -15794,30 +16698,43 @@ bool UmbraRtiAmbassador::getServiceReportingSwitch() const {
 void UmbraRtiAmbassador::setServiceReportingSwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setServiceReportingSwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(L"Set Service Reporting Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Service Reporting Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Set Service Reporting Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Service Reporting Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry().setServiceReportingSwitch(
+        *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::ServiceReportingSwitchStatus::applied) {
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAserviceReporting"});
+    } else if (status == umbra::detail::ServiceReportingSwitchStatus::
+                   report_service_invocations_are_subscribed) {
+      throw ReportServiceInvocationsAreSubscribed(
+          L"The Service Reporting Switch cannot be enabled while the report-service-invocation interaction is subscribed.");
+    } else if (status == umbra::detail::ServiceReportingSwitchStatus::
+                   federation_does_not_exist ||
+               status == umbra::detail::ServiceReportingSwitchStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(L"Set Service Reporting Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry().setServiceReportingSwitch(
-      *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::ServiceReportingSwitchStatus::applied) {
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::ServiceReportingSwitchStatus::
-          report_service_invocations_are_subscribed) {
-    throw ReportServiceInvocationsAreSubscribed(
-        L"The Service Reporting Switch cannot be enabled while the report-service-invocation interaction is subscribed.");
-  }
-  if (status == umbra::detail::ServiceReportingSwitchStatus::federation_does_not_exist ||
-      status == umbra::detail::ServiceReportingSwitchStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(L"Set Service Reporting Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Service Reporting Switch", exception);
     throw;
@@ -15851,31 +16768,45 @@ bool UmbraRtiAmbassador::getExceptionReportingSwitch() const {
 void UmbraRtiAmbassador::setExceptionReportingSwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setExceptionReportingSwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(L"Set Exception Reporting Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Exception Reporting Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Set Exception Reporting Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Exception Reporting Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry().setExceptionReportingSwitch(
+        *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"SetExceptionReportingSwitch",
+          umbra::detail::MomServiceType::support_services,
+          {{umbra::detail::MomArgumentType::boolean,
+            L"SwitchValue",
+            umbra::detail::formatMomBoolean(switchValue)}});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAexceptionReporting"});
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Exception Reporting Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry().setExceptionReportingSwitch(
-      *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"SetExceptionReportingSwitch",
-        umbra::detail::MomServiceType::support_services,
-        {{umbra::detail::MomArgumentType::boolean,
-          L"SwitchValue",
-          umbra::detail::formatMomBoolean(switchValue)}});
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(L"Set Exception Reporting Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Exception Reporting Switch", exception);
     throw;
@@ -15909,28 +16840,41 @@ bool UmbraRtiAmbassador::getSendServiceReportsToFileSwitch() const {
 void UmbraRtiAmbassador::setSendServiceReportsToFileSwitch(bool switchValue) {
   auto instrumentationScope = beginRtiCall("setSendServiceReportsToFileSwitch");
   try {
-  std::scoped_lock lock(mutex_, federationManagementMutex());
-  requireConnected(lifecycle_);
-  requireFederationServiceOperationAvailable(
-      L"Set Send Service Reports To File Switch");
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"Set Send Service Reports To File Switch requires membership in a federation execution.");
+  std::optional<JoinedFederateMomConditionalWork> momWork;
+  {
+    std::scoped_lock lock(mutex_, federationManagementMutex());
+    requireConnected(lifecycle_);
+    requireFederationServiceOperationAvailable(
+        L"Set Send Service Reports To File Switch");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Set Send Service Reports To File Switch requires membership in a federation execution.");
+    }
+    auto const status = embeddedFederationManagement().registry()
+        .setSendServiceReportsToFileSwitch(
+            *joinedFederationName_, *joinedFederateId_, switchValue);
+    if (status == umbra::detail::FederationRegistryStatus::applied) {
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAsendServiceReportsToFile"});
+    } else if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
+               status == umbra::detail::FederationRegistryStatus::federate_not_member) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    } else {
+      throw RTIinternalError(
+          L"Set Send Service Reports To File Switch encountered an unknown outcome.");
+    }
   }
-  auto const status = embeddedFederationManagement().registry()
-      .setSendServiceReportsToFileSwitch(
-          *joinedFederationName_, *joinedFederateId_, switchValue);
-  if (status == umbra::detail::FederationRegistryStatus::applied) {
-    return;
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
-  if (status == umbra::detail::FederationRegistryStatus::federation_does_not_exist ||
-      status == umbra::detail::FederationRegistryStatus::federate_not_member) {
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador as a member.");
-  }
-  throw RTIinternalError(
-      L"Set Send Service Reports To File Switch encountered an unknown outcome.");
   } catch (Exception const& exception) {
     emitExceptionReport(L"Set Send Service Reports To File Switch", exception);
     throw;
@@ -16201,6 +17145,7 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   std::shared_ptr<CallbackSession> callbackSession;
   std::wstring federationName;
+  std::uint64_t federateId = 0;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -16214,6 +17159,7 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
     timeState = federateTimeState_;
     callbackSession = callbackSession_;
     federationName = *joinedFederationName_;
+    federateId = *joinedFederateId_;
     if (!callbackSession) {
       throw RTIinternalError(
           L"The embedded connection has no federate ambassador callback recipient.");
@@ -16287,9 +17233,11 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
       callbackSession = std::move(callbackSession),
       timeState = std::move(timeState),
       federationName = std::move(federationName),
+      federateId,
       generation = result.generation] {
     std::vector<umbra::detail::FederationTimeGrantDispatch> newlyEligible;
-    callbackSession->invoke([timeState, federationName, generation, &newlyEligible](FederateAmbassador& recipient) {
+    bool granted = false;
+    callbackSession->invoke([timeState, federationName, generation, &newlyEligible, &granted](FederateAmbassador& recipient) {
       std::shared_ptr<LogicalTime const> enabledTime;
       {
         std::scoped_lock lock(federationManagementMutex());
@@ -16297,6 +17245,7 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
         if (!enabledTime) {
           return;
         }
+        granted = true;
         auto scheduled = embeddedFederationManagement().registry().reevaluateTimeAdvanceGrants(
             federationName);
         if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
@@ -16305,6 +17254,12 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
       }
       recipient.timeRegulationEnabled(*enabledTime);
     });
+    if (granted) {
+      queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+          federationName,
+          federateId,
+          {"HLAtimeRegulating"});
+    }
     submitTimeAdvanceGrantDispatches(std::move(newlyEligible));
   });
   } catch (Exception const& exception) {
@@ -16318,6 +17273,7 @@ void UmbraRtiAmbassador::disableTimeRegulation() {
   try {
   umbra::detail::FederateTimeDisableStatus result;
   std::vector<umbra::detail::FederationTimeGrantDispatch> newlyEligible;
+  std::optional<JoinedFederateMomConditionalWork> momWork;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -16338,7 +17294,19 @@ void UmbraRtiAmbassador::disableTimeRegulation() {
       if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
         newlyEligible = std::move(scheduled.dispatches);
       }
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAtimeRegulating"});
     }
+  }
+
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
 
   switch (result) {
@@ -16364,6 +17332,8 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
   try {
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   std::shared_ptr<CallbackSession> callbackSession;
+  std::wstring federationName;
+  std::uint64_t federateId = 0;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -16376,6 +17346,8 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
 
     timeState = federateTimeState_;
     callbackSession = callbackSession_;
+    federationName = *joinedFederationName_;
+    federateId = *joinedFederateId_;
     if (!callbackSession) {
       throw RTIinternalError(
           L"The embedded connection has no federate ambassador callback recipient.");
@@ -16429,14 +17401,24 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
   callbacks_->submit([
       callbackSession = std::move(callbackSession),
       timeState = std::move(timeState),
+      federationName = std::move(federationName),
+      federateId,
       generation = result.generation] {
-    callbackSession->invoke([timeState, generation](FederateAmbassador& recipient) {
+    bool granted = false;
+    callbackSession->invoke([timeState, generation, &granted](FederateAmbassador& recipient) {
       auto enabledTime = timeState->grantTimeConstrained(generation);
       if (!enabledTime) {
         return;
       }
+      granted = true;
       recipient.timeConstrainedEnabled(*enabledTime);
     });
+    if (granted) {
+      queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+          federationName,
+          federateId,
+          {"HLAtimeConstrained"});
+    }
   });
   } catch (Exception const& exception) {
     emitExceptionReport(L"Enable Time Constrained", exception);
@@ -16450,6 +17432,7 @@ void UmbraRtiAmbassador::disableTimeConstrained() {
   umbra::detail::FederateTimeDisableStatus result;
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   std::vector<umbra::detail::FederationTimeGrantDispatch> newlyEligible;
+  std::optional<JoinedFederateMomConditionalWork> momWork;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -16471,7 +17454,19 @@ void UmbraRtiAmbassador::disableTimeConstrained() {
       if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
         newlyEligible = std::move(scheduled.dispatches);
       }
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAtimeConstrained"});
     }
+  }
+
+  if (momWork) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        momWork->federationName,
+        momWork->objectInstanceHandle,
+        std::move(momWork->attributeHandles));
   }
 
   switch (result) {
@@ -16500,6 +17495,7 @@ void UmbraRtiAmbassador::enableAsynchronousDelivery() {
   try {
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   umbra::detail::FederateAsynchronousDeliveryStatus result;
+  std::optional<JoinedFederateMomConditionalWork> momWork;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -16516,6 +17512,11 @@ void UmbraRtiAmbassador::enableAsynchronousDelivery() {
           L"EnableAsynchronousDelivery",
           umbra::detail::MomServiceType::time_management,
           {});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAasynchronousDelivery"});
     }
   }
 
@@ -16523,6 +17524,12 @@ void UmbraRtiAmbassador::enableAsynchronousDelivery() {
     case umbra::detail::FederateAsynchronousDeliveryStatus::applied:
       // Enabling the switch also makes receive-order callbacks that arrived
       // while the constrained federate was Time Granted immediately eligible.
+      if (momWork) {
+        queueJoinedFederateMomConditionalAttributeUpdate(
+            momWork->federationName,
+            momWork->objectInstanceHandle,
+            std::move(momWork->attributeHandles));
+      }
       flushAsynchronousReceiveCallbacks(timeState);
       return;
     case umbra::detail::FederateAsynchronousDeliveryStatus::already_enabled:
@@ -16547,6 +17554,7 @@ void UmbraRtiAmbassador::disableAsynchronousDelivery() {
   try {
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   umbra::detail::FederateAsynchronousDeliveryStatus result;
+  std::optional<JoinedFederateMomConditionalWork> momWork;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -16563,11 +17571,22 @@ void UmbraRtiAmbassador::disableAsynchronousDelivery() {
           L"DisableAsynchronousDelivery",
           umbra::detail::MomServiceType::time_management,
           {});
+      momWork = joinedFederateMomConditionalWorkFor(
+          embeddedFederationManagement().registry(),
+          *joinedFederationName_,
+          *joinedFederateId_,
+          {"HLAasynchronousDelivery"});
     }
   }
 
   switch (result) {
     case umbra::detail::FederateAsynchronousDeliveryStatus::applied:
+      if (momWork) {
+        queueJoinedFederateMomConditionalAttributeUpdate(
+            momWork->federationName,
+            momWork->objectInstanceHandle,
+            std::move(momWork->attributeHandles));
+      }
       return;
     case umbra::detail::FederateAsynchronousDeliveryStatus::already_disabled:
       throw AsynchronousDeliveryAlreadyDisabled(
@@ -16683,6 +17702,14 @@ void UmbraRtiAmbassador::timeAdvanceRequest(LogicalTime const& time) {
     throw RTIinternalError(
         L"Umbra could not register the accepted Time Advance Request with its federation scheduler.");
   }
+
+  // The request has now entered Time Advancing.  Reflect the current MOM
+  // HLAtimeManagerState from the federation-owned temporal state; the grant
+  // callback will publish the return to Time Granted separately.
+  queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+      federationName,
+      federateId,
+      {"HLAtimeManagerState"});
 
   // The registry admits nonconstrained requests immediately and holds a
   // constrained TAR until strict GALT/NRG policy allows delivery. Every action
@@ -16854,6 +17881,11 @@ void UmbraRtiAmbassador::requestAvailableTimeAdvance(
         serviceName + L" could not register the accepted request with its federation scheduler.");
   }
 
+  queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+      federationName,
+      federateId,
+      {"HLAtimeManagerState"});
+
   // The shared grant dispatch delivers any selected queued TSO cohort before
   // the ordinary Time Advance Grant callback. With no selected message, the
   // effective target remains the caller's supplied request.
@@ -17016,6 +18048,11 @@ void UmbraRtiAmbassador::nextMessageRequest(LogicalTime const& time) {
         L"Umbra could not register the accepted Next Message Request with its federation scheduler.");
   }
 
+  queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+      federationName,
+      federateId,
+      {"HLAtimeManagerState"});
+
   // The shared grant dispatch delivers the selected TSO timestamp cohort
   // before the ordinary Time Advance Grant callback. If no queued timestamp
   // is eligible, the state target remains the caller's requested time.
@@ -17125,6 +18162,11 @@ void UmbraRtiAmbassador::flushQueueRequest(LogicalTime const& time) {
     throw RTIinternalError(
         L"Umbra could not register the accepted Flush Queue Request with its federation scheduler.");
   }
+
+  queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+      federationName,
+      federateId,
+      {"HLAtimeManagerState"});
 
   // The successful invocation records its supplied boundary. Flush Queue Grant
   // later reports the actual and optimistic logical times selected at callback

@@ -1010,7 +1010,7 @@ Umbra-owned replacement public API.
       resign. Only active declaration state feeds the limited unnamed
       registration/discovery slice and the bounded ordinary Start/Stop Registration relevance
       advisories, including the per-federate relevance switch. Full ownership,
-      update-rate enforcement, remaining object-attribute regional forms, and
+      complete update-rate producer/timing evidence, remaining object-attribute regional forms, and
       broader DDM remain unimplemented. This has source/API
       traceability only and no catalog or conformance claim.
 - [x] Bind ordinary declaration-management relevance advisories in the
@@ -1021,7 +1021,7 @@ Umbra-owned replacement public API.
       per-federate switch values are seeded from the composed FDD, with the
       1516.2 Disabled default for omitted entries, and remain mutable through
       the official accessors. Regional declaration advisories, MOM behavior,
-      update-rate enforcement, package evidence, and conformance remain
+      complete update-rate producer/timing evidence, package evidence, and conformance remain
       separate work; the paired Requirements-Lab contracts and Catch2 scenario
       are traceability only.
 - [x] Bind the whole-object-class `unpublishObjectClass` and
@@ -1083,7 +1083,7 @@ Umbra-owned replacement public API.
       passive suppression, and optional sent-region callback metadata. Timestamped/retraction behavior,
       additional regional request edge cases, default-region
       synthesis, broader DDM routing,
-      update-rate reduction, ownership transfer, custom
+      complete update-rate producer/timing evidence, ownership transfer, custom
       transportation, FOM sharing policy, save/restore, and remote transport
       remain unimplemented. This has source/API traceability only and no
       catalog or conformance claim.
@@ -1140,8 +1140,10 @@ Umbra-owned replacement public API.
       retained designators use the rate-bearing overload, with queued callback
       entry re-resolving the current designator. The paired Requirements-Lab
       contracts and Catch2 cases are traceability only. Initial registration/discovery advisories, complete regional DDM,
-      update-rate enforcement, package evidence, and conformance remain future
-      work.
+      complete update-rate producer/timing evidence, package evidence, and
+      conformance remain future work. A separate bounded UpdateRateGate and
+      timestamped two-federate Catch2 lane now exercise the development-profile
+      delivery boundary.
 - [x] Retain composed 2025 FDD `updateRates` metadata and bind the official
       `getUpdateRateValue` / `getUpdateRateValueForAttribute` support queries
       in the non-installable development profile. Named Restaurant FOM rates,
@@ -1149,9 +1151,11 @@ Umbra-owned replacement public API.
       known-object/defined-attribute validation have exact Requirements-Lab
       contracts and Catch2 coverage. Ordinary and regional subscription
       declarations now retain FDD designators, and the attribute query reports
-      the corresponding rate or the default `0.0` after unsubscribe. Throttling,
-      rate reduction, MOM, package
-      evidence, and conformance remain future work.
+      the corresponding rate or the default `0.0` after unsubscribe. A separate
+      bounded UpdateRateGate and timestamped two-federate Catch2 lane now cover
+      per-attribute best-effort suppression and reliable bypass. Complete
+      producer-rate/timing matrices, MOM, package evidence, and conformance
+      remain future work.
 - [x] Exercise the object-instance `Request Attribute Value Update` overload
       and matching `Provide Attribute Value Update` callback in the
       non-installable development profile. The private registry validates the
@@ -1180,12 +1184,46 @@ Umbra-owned replacement public API.
       standard federation-wide `HLAsetSwitches` MOM interaction now accepts
       the official `HLAswitch` encoding and changes the value for all current
       members. The separately bounded joined-federate `HLAsetSwitches` path
-      updates its sender's selected support switches, handles compatible
-      extension parameters/subclasses, and preserves the report-service
-      interlock without claiming normal MOM reporting. Other MOM
+       updates its sender's selected support switches, handles compatible
+       extension parameters/subclasses, and preserves the report-service
+       interlock. The public joined-federate MOM route now re-reflects changed
+       predefined switch values from both individual setters and this accepted
+       subset, without claiming normal service-report interaction delivery.
+       Other MOM
       control/reporting families, complete multi-owner/regional/update-rate
       behavior, package evidence, protected review, JUnit
       promotion, and conformance remain future work.
+- [x] Expose the first public RTI-owned joined-federate MOM object-management
+      slice in the non-installable development profile. Active ordinary and
+      immutable-point-matching regional subscriptions discover each joined federate's
+      `HLAmanager.HLAfederate` object, receives a reliable initial
+      `HLAreportServiceFile` reflection using the immutable filesystem path,
+      can request that known value directly, and receives removal on the
+      represented federate's resignation. The complete private snapshot and
+      public initial projection both retain all seven required MIM values and
+      identity metadata. Regional discovery filters subscriptions against the
+      immutable `HLAfederate` point in both callback models. A companion
+      event-driven regression reflects all nine predefined conditional switch
+      attributes after successful setters and the accepted `HLAsetSwitches`
+      subset, plus four bounded temporal-state attributes after successful role
+      transitions and all five time-advance request/grant forms, and answers
+      their current values by direct known-object request in both callback
+      models. Direct known-object requests also supply the MIM-periodic
+      `HLAlogicalTime` and `HLAlookahead` values from the selected official
+      time provider before any report period is configured. A save/restore companion now projects the official bounded
+      `HLAfederateState` enumeration from the real operation ledgers at
+      initiation/begin and completion boundaries in both callback models; its
+      save-state event reflection is suppressed at the federate that is itself
+      saving while direct known-object AVU remains available. A bounded
+      `HLAsetTiming` case now accepts the official
+      `HLAfederateReference`/`HLAseconds` pair and emits the catalog-declared
+      periodic subset after a target-local wall-clock deadline at an
+      `HLA_EVOKED` callback boundary; zero disables later updates.
+      Idle `HLA_IMMEDIATE` background delivery, the remaining periodic/other
+      conditional attributes, optional/inherited non-initial attributes, public MOM interactions,
+      source-backed producer mapping,
+      JUnit/protected-review evidence, remote transport, and conformance remain
+      future work; the paired Requirements-Lab contract is traceability only.
 - [x] Exercise the object-class `Request Attribute Value Update` overload and
       matching `Provide Attribute Value Update` callback in the non-installable
       development profile. The private registry validates selected-class

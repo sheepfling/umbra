@@ -1273,11 +1273,12 @@ its title names `content/clauses/annexes-page-439.tex:24`, while its structured
 **Umbra impact:** Umbra chooses a report-file path and writes the initial
 record at join, retaining that identity until resignation. Its private
 RTI-owned joined-federate snapshot now encodes that exact path as an initial
-value under the IEEE 1516.1-2025 Table 8 `Static` decision, but does not yet
-expose the value through public MOM discovery/reflection. The contrary MIM
-field remains recorded rather than silently discarded. The filesystem and
-snapshot lifecycle tests are private source-level traceability only; they are
-not promoted to Lab validation or conformance results.
+value under the IEEE 1516.1-2025 Table 8 `Static` decision, and the public
+MOM discovery/reflection lane exposes it for ordinary subscribers and
+matching immutable-point regional subscribers. The contrary MIM field remains
+recorded rather than silently discarded. The filesystem and snapshot
+lifecycle tests are private source-level traceability only; the public Catch2
+lane is still not promoted to Lab validation or conformance results.
 
 The handle-encoding contract likewise retains the immutable candidate ID and
 the structured source path rather than relying on the stale generated title.
@@ -1494,15 +1495,40 @@ federate mapping for the §6.9 callback argument. This must not be inferred
 from the represented federate's `HLAfederateHandle`.
 
 **Umbra impact:** Umbra will not copy an unjoined `FederateHandle(0)` numeric
-sentinel into its public callback path. A private, registry-owned
-joined-federate MOM snapshot may reserve a common object identity, retain
-complete MIM metadata, an immutable point, and encoded initial values, but it
-is deliberately outside public object discovery and reflection. The complete
-public RTI-owned MOM-object lifecycle and requested-value work remain pending
-a source-backed producer-designator rule. Generic RTI-created MOM traffic
-and generic RTI-originated service-report interactions still are not routed
-through a public callback. The bounded fault-only
-`HLAreportFederateLost` route makes one explicit local adapter choice: its
+sentinel into its public callback path. The first public RTI-owned
+joined-federate MOM object-management slice now uses the dedicated ledger for
+active ordinary and immutable-point-matching regional discovery, reliable initial
+`HLAreportServiceFile` reflection, direct known-object requested-value
+reflection, event-driven current-value projection for all nine predefined
+conditional switch attributes, and resignation removal. Because the Lab still supplies no
+callback-visible producer mapping, this bounded development-profile route uses
+a default-invalid `FederateHandle{}` for its RTI-originated discovery,
+reflection, and removal callbacks. That is an explicit local adapter policy,
+not a standards interpretation or conformance evidence. The private snapshot
+still retains complete MIM metadata, an immutable point, and all seven encoded
+initial values; the seven-value initial public projection, immutable-point
+regional discovery, event-driven switch projection, four bounded temporal-state
+projections, and the save/restore-driven `HLAfederateState` enumeration are now
+covered. The bounded `HLAsetTiming` deadline pump now also exercises the
+catalog-declared periodic subset at an `HLA_EVOKED` callback boundary. Idle
+`HLA_IMMEDIATE` background delivery, remaining periodic/other conditional
+scheduling, optional/inherited non-initial attributes, and generic RTI-created
+traffic remain open.
+Implementation note: the Lab's callback-model distinction makes conditional
+MOM timing observable. A queued reflection that recomputes its value only when
+the callback runs can miss a short-lived event state when a later grant has
+already committed; Umbra now snapshots the event-time encoded value while
+still revalidating object existence and subscription eligibility at delivery.
+The same save/restore case now exercises the MIM's save-state self-reflection
+boundary: the event planner suppresses the save-state reflection at the
+federate that is itself saving, while a direct known-object AVU remains
+available. This is an implementation rule covered by native Catch2, not a
+new Lab producer mapping.
+This is an implementation hazard worth retaining in any future Lab test
+generator for conditional attributes.
+
+The bounded fault-only `HLAreportFederateLost` route makes one explicit local
+adapter choice: its
 normal non-timestamped `Receive Interaction` callback receives a
 default-invalid `FederateHandle{}` to represent no joined-federate producer.
 It is not a numeric sentinel, not the lost federate's handle, not a
@@ -3869,12 +3895,13 @@ recipient eligibility, and callback spacing as one testable delivery relation.
 The existing update-rate contract therefore correctly stops at metadata and
 lookup behavior; it cannot by itself express a throttling scenario.
 
-**Umbra impact:** the next runtime slice must use a dedicated contract and
-real Catch2 scenario that distinguishes best-effort dropping from reliable
-retention and observes wall-clock delivery spacing. The sibling verification
-scenario is useful as a non-normative test shape, but it is not imported as
-evidence or treated as a substitute for the official C++ requirements. No
-update-rate reduction or conformance claim is made yet.
+**Umbra impact:** this gap led to a dedicated contract and real Catch2
+scenarios that distinguish best-effort dropping from reliable retention and
+exercise wall-clock delivery spacing. The sibling verification scenario was
+used only as a non-normative test shape; it was not imported as evidence or
+treated as a substitute for the official C++ requirements. The resulting
+evidence remains development-profile traceability, not an update-rate or
+conformance claim.
 
 **Possible Lab/tooling refinement:** emit a cross-cutting update-rate delivery
 relation with explicit producer rate, subscribed maximum, transportation type,
@@ -3882,38 +3909,65 @@ passel eligibility, and timing/drop outcome fields. Keep the immutable clause
 records as source anchors while allowing one relation to generate separate
 best-effort and reliable scenarios.
 
-### RL-100 — Runtime delivery path has no update-rate eligibility state
+### RL-100 — Update-rate delivery relation was missing at the runtime boundary
 
-**Status:** verified Umbra implementation gap; not a Requirements Lab
-extraction defect or conformance evidence.
+**Status:** verified implementation boundary and local mitigation; not a
+Requirements Lab extraction defect or conformance evidence.
 
 At the pinned Lab revision
 `4f012fb1c21367cfde67aab8498ae00e2a64c615`, the update-rate candidates remain
 the authoritative anchors: `requirement-candidate-content-clauses-06-object-
 management-page-112-l75-22`, `...page-112-l90-27`, `...page-112-l99-30`,
-`...page-112-l105-32`, and `...page-112-l138-43`. In the current Umbra path,
-`EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate` selects recipients
-and `UmbraRtiAmbassador::queueReceiveOrderAttributeUpdate` queues each eligible
-passel immediately. The retained subscription designator is available for
-lookup, but there is no recipient/attribute last-delivery timestamp or
-wall-clock eligibility gate. Consequently, the implementation cannot yet
-prove spacing, best-effort suppression, or reliable no-drop behavior.
+`...page-112-l105-32`, and `...page-112-l138-43`. Before the update-rate slice,
+`EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate` selected
+recipients and `UmbraRtiAmbassador::queueReceiveOrderAttributeUpdate` queued
+each eligible passel immediately. The retained subscription designator was
+available for lookup, but there was no recipient/attribute last-delivery
+timestamp or wall-clock eligibility gate. Consequently, the implementation
+could not prove spacing, best-effort suppression, or reliable no-drop behavior.
 
-**Umbra impact:** this is the implementation boundary for the next slice. The
-private `UpdateRateGate` now supplies the first internal clock/test seam and
-per-stream admission state without changing the official API. It bypasses
-reliable transportation and is independent of logical timestamps; integration
-with recipient delivery and FDD-derived rates is now present for both bounded
-non-timestamped and timestamped attribute callback paths. Timestamped
-best-effort suppression closes the pending retraction state, while reliable
-passels bypass the gate. Admission is now keyed per projected attribute. The
-cross-cutting Lab relation and end-to-end producer/subscriber evidence remain
-pending.
+**Umbra impact:** the private `UpdateRateGate` supplies an internal
+clock-injectable test seam and per-stream admission state without changing the
+official API. It bypasses reliable transportation and is independent of
+logical timestamps; integration with recipient delivery and FDD-derived rates
+is present for both bounded non-timestamped and timestamped attribute callback
+paths. Timestamped best-effort suppression closes the pending retraction state,
+while reliable passels bypass the gate. Admission is keyed per projected
+attribute, and subscription mutations advance a federation-owned generation key
+so a later unsubscribe/resubscribe cannot inherit stale wall-clock history.
+The bounded two-federate TSO case now supplies end-to-end subscriber-boundary
+evidence for one active FDD rate and both reliable/best-effort transport
+classes. A generated cross-cutting Lab relation and a complete producer-rate /
+subscriber-rate timing matrix remain pending.
 
 **Possible Lab/tooling refinement:** expose a generated relation joining the
 subscription designator, FDD rate, transportation reliability, producer rate,
 and delivery/drop timestamps so the five fragmented candidates can generate a
 single deterministic scenario family.
+
+### RL-101 — Timestamped ownership transition is not an official service
+
+**Status:** verified planning gap; not a Requirements Lab extraction defect,
+standards finding, or conformance evidence.
+
+The official 2025 C++ binding exposes ownership-management services without a
+`LogicalTime` argument; timestamped ownership transition is therefore not an
+API that Umbra should invent. The pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615` does export ownership-management and
+timestamped-delivery material as separate candidate families, but it does not
+provide one relation for the *ownership effects* of a timestamped object
+update, including source ownership, recipient eligibility, callback order, and
+retraction or resignation outcome.
+
+**Umbra impact:** do not add a fictional timestamped ownership API. Any future
+slice will test timestamped object-update behavior across ownership changes,
+using only the official ownership services and existing TSO update APIs. No
+timestamped ownership-transition conformance claim is made.
+
+**Possible Lab/tooling refinement:** emit a cross-family relation for timestamped
+object updates whose source ownership changes before callback delivery, with
+explicit source/target ownership state, logical time, grant/retraction boundary,
+and resignation disposition fields.
 
 ## Recording rules
 

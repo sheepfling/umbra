@@ -16,6 +16,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
@@ -92,6 +93,13 @@ struct FederateMembership {
   bool serviceReportingSwitch = false;
   bool exceptionReportingSwitch = false;
   bool sendServiceReportsToFileSwitch = false;
+  // HLAsetTiming stores the target joined federate's wall-clock report
+  // period.  Zero means that periodic MOM updates are disabled.  The
+  // deadline is runtime state rather than a public API value; keeping it on
+  // the membership lets the registry arbitrate one timer per joined-federate
+  // MOM object while retaining the standard's target-federate semantics.
+  std::int32_t momReportPeriodSeconds = 0;
+  std::optional<std::chrono::steady_clock::time_point> nextMomReportAt;
   // HLAreportServiceInvocation uses an HLAcount serial number per joined
   // federate. The next accepted report starts at zero.
   std::uint32_t nextMomServiceReportSerialNumber = 0;
@@ -213,6 +221,10 @@ enum class FederationSaveNotificationKind {
 // separate layers.
 struct FederationSaveNotification {
   FederationSaveNotificationKind kind = FederationSaveNotificationKind::initiate;
+  // The joined federate whose callback route receives this notification.  It
+  // also identifies the MOM HLAfederate object whose state transition is
+  // reflected alongside the save callback.
+  std::uint64_t receivingFederateId = 0;
   std::wstring label;
   // Set only for a timestamped Request Federation Save.  The callback must
   // retain the requested save time, not the later grant boundary that admits
@@ -275,6 +287,10 @@ enum class FederationRestoreNotificationKind {
 struct FederationRestoreNotification {
   FederationRestoreNotificationKind kind =
       FederationRestoreNotificationKind::request_failed;
+  // The joined federate whose callback route receives this notification.  A
+  // restore callback may carry a different pre/post designator pair, so keep
+  // the receiving identity explicit for MOM state reflection.
+  std::uint64_t receivingFederateId = 0;
   std::wstring label;
   std::wstring federateName;
   std::uint64_t preRestoreFederateId = 0;
@@ -314,6 +330,8 @@ struct FederationResignObjectRemoval {
   std::uint64_t receivingFederateId = 0;
   std::uint64_t objectInstanceHandle = 0;
   FederateCallbackRoute callbackRoute;
+  FederateServiceReportRoute serviceReportRoute;
+  bool rtiOwnedMomObject = false;
 };
 
 struct FederationResignOwnershipAssumption {
@@ -481,23 +499,53 @@ enum class JoinedFederateMomObjectStatus {
   inconsistent_catalog,
 };
 
-// An unpublished, registry-owned representation of the MIM object for one
+// A registry-owned representation of the RTI-created MIM object for one
 // joined federate. It reserves an ObjectInstanceHandle from the federation's
-// common namespace but is deliberately kept outside the federate-created
-// ObjectInstance map until RTI-originated discovery/reflection has a
-// source-backed producer-designator rule. No public object service observes
-// this snapshot yet.
+// common namespace but remains outside the federate-created ObjectInstance map
+// so RTI-owned discovery/reflection and ownership state cannot be confused
+// with a federate-produced instance.
 struct JoinedFederateMomObjectSnapshot {
   std::uint64_t objectInstanceHandle = 0;
   std::uint64_t joinedFederateId = 0;
   std::uint64_t objectClassHandle = 0;
   RegionSpecificationSnapshot immutableFederatePoint;
   // Every effective MIM attribute is retained as metadata, including the
-  // inherited optional HLAprivilegeToDeleteObject. Only required initial
-  // joined-federate values are encoded here; the scheduler for dynamic values
-  // and ordinary reflection delivery remains a later layer.
+  // inherited optional HLAprivilegeToDeleteObject. Required initial values and
+  // the bounded direct-request projection for HLAlogicalTime/HLAlookahead are
+  // encoded through the ordinary reflection planner. HLAsetTiming currently
+  // schedules the catalog-declared Periodic subset at an Evoke boundary;
+  // remaining dynamic values and idle HLA_IMMEDIATE delivery remain later
+  // layers.
   std::set<std::uint64_t> effectiveAttributeHandles;
+  // MIM updateType metadata is retained as handles so HLAsetTiming can
+  // schedule the exact Periodic subset without inventing a second attribute
+  // table in the runtime.
+  std::set<std::uint64_t> periodicAttributeHandles;
   std::map<std::uint64_t, rti1516_2025::VariableLengthData> initialAttributeValues;
+  // RTI-owned MOM instances use a separate known-instance ledger. Keeping it
+  // on the snapshot preserves the distinction from federate-created object
+  // state while retaining the same discovery/reflection lifetime boundary.
+  std::set<std::uint64_t> pendingDiscoveryFederateIds;
+  std::set<std::uint64_t> pendingRemovalFederateIds;
+  std::set<std::uint64_t> knownFederateIds;
+};
+
+// One due wall-clock period for an RTI-owned HLAfederate object.  The
+// registry advances the target's deadline while holding its federation lock;
+// the adapter then uses the ordinary MOM reflection planner to recheck
+// subscriptions and queue callbacks without invoking user code under that
+// lock.
+struct JoinedFederateMomPeriodicUpdate {
+  std::uint64_t objectInstanceHandle = 0;
+  std::set<std::uint64_t> attributeHandles;
+};
+
+enum class FederateMOMTimingUpdateStatus {
+  applied,
+  federation_does_not_exist,
+  requesting_federate_not_member,
+  target_federate_not_member,
+  invalid_report_period,
 };
 
 enum class RegionServiceStatus {
@@ -707,6 +755,9 @@ struct ObjectInstanceDiscoveryRecipient {
   // §6.9 must not report a discovery that a callback-time recheck cancels, so
   // retain the recipient-local route until actual callback delivery.
   FederateServiceReportRoute serviceReportRoute;
+  // RTI-owned MOM instances use a separate registry ledger and the default-
+  // invalid callback producer handle. Ordinary instances leave this false.
+  bool rtiOwnedMomObject = false;
 };
 
 // Private result for the bounded 2025 Attribute Scope Advisory path. A
@@ -775,6 +826,9 @@ struct KnownObjectInstanceSnapshot {
   std::uint64_t knownObjectClassHandle = 0;
   std::wstring objectInstanceName;
   std::uint64_t producingFederateId = 0;
+  // Populated for an RTI-owned joined-federate MOM discovery so the adapter
+  // can request the complete required initial-value set at callback time.
+  std::set<std::uint64_t> initialAttributeHandles;
 };
 
 // The receive-order Delete Object Instance path owns no timestamp/retraction
@@ -798,6 +852,9 @@ struct ObjectInstanceRemovalRecipient {
   // federate's report route with the queued work so a cancelled removal does
   // not consume a report-file serial or leave a stale record.
   FederateServiceReportRoute serviceReportRoute;
+  // RTI-owned MOM objects do not use the federate-created ownership/deletion
+  // state machine.
+  bool rtiOwnedMomObject = false;
 };
 
 struct ObjectInstanceDeletionPlan {
@@ -845,6 +902,7 @@ struct ReceiveOrderAttributeUpdateRecipient {
   // default/no-reduction designator or an unavailable rate.
   double maximumUpdateRate = 0.0;
   std::map<std::uint64_t, double> maximumUpdateRatesByAttribute;
+  std::uint64_t subscriptionGeneration = 0;
   // The receiver's Convey Region Designator Sets switch is projected at the
   // same callback-time fence as the subscription.  Regional routing still
   // uses the sent regions, but the adapter must omit the optional callback
@@ -899,6 +957,40 @@ struct AttributeValueUpdateProvideRecipient {
 struct AttributeValueUpdateRequestPlan {
   AttributeValueUpdateRequestStatus status = AttributeValueUpdateRequestStatus::applied;
   std::vector<AttributeValueUpdateProvideRecipient> recipients;
+};
+
+// RTI-owned joined-federate MOM attributes are supplied directly by the RTI;
+// they never induce a Provide Attribute Value Update callback at a joined
+// federate. This private result carries the recipient route and the immutable
+// initial values through the same callback-time revalidation boundary used by
+// ordinary reflection.
+enum class JoinedFederateMomAttributeValueUpdateStatus {
+  applied,
+  not_rti_owned_object,
+  federation_does_not_exist,
+  requesting_federate_not_member,
+  object_instance_not_known,
+  attribute_not_defined,
+  inconsistent_catalog,
+};
+
+struct JoinedFederateMomAttributeValueUpdateRecipient {
+  std::uint64_t receivingFederateId = 0;
+  std::uint64_t objectInstanceHandle = 0;
+  std::map<std::uint64_t, rti1516_2025::VariableLengthData> attributeValues;
+  ObjectInstanceCallbackRoute callbackRoute;
+};
+
+struct JoinedFederateMomAttributeValueUpdatePlan {
+  JoinedFederateMomAttributeValueUpdateStatus status =
+      JoinedFederateMomAttributeValueUpdateStatus::not_rti_owned_object;
+  bool rtiOwnedMomObject = false;
+  std::optional<JoinedFederateMomAttributeValueUpdateRecipient> recipient;
+};
+
+struct JoinedFederateMomAttributeValueUpdateClassPlan {
+  bool rtiOwnedMomObject = false;
+  std::vector<JoinedFederateMomAttributeValueUpdateRecipient> recipients;
 };
 
 // Private immutable routing result for the object-class Request Attribute
@@ -2187,6 +2279,24 @@ class EmbeddedFederationRegistry final {
       std::uint64_t federateId,
       bool switchValue);
 
+  // Applies the standard HLAmanager.HLAfederate.HLAadjust.HLAsetTiming
+  // parameter pair after the public adapter has decoded HLAfederateReference
+  // and HLAseconds.  The requesting member may target any current joined
+  // federate; a zero period disables automatic MOM updates.
+  [[nodiscard]] FederateMOMTimingUpdateStatus setFederateMomReportPeriod(
+      std::wstring const& federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t targetFederateId,
+      std::int32_t reportPeriodSeconds);
+
+  // Claims each target whose HLAsetTiming deadline has elapsed once.  The
+  // returned object/attribute pairs are immutable routing inputs; callback
+  // eligibility is rechecked later by the ordinary MOM planner.
+  [[nodiscard]] std::vector<JoinedFederateMomPeriodicUpdate>
+  takeDueJoinedFederateMomPeriodicUpdates(
+      std::wstring const& federationName,
+      std::chrono::steady_clock::time_point now);
+
   // Applies the standard joined-federate HLAsetSwitches parameter subset as
   // one registry mutation.  This is intentionally private-runtime state: the
   // official public API exposes the individual switch services separately.
@@ -2809,10 +2919,28 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t receivingFederateId);
 
+  // RTI-owned joined-federate MOM objects are planned separately from
+  // federate-created instances. Their eligibility still follows the active
+  // ordinary subscription declaration, while regional MOM realization and
+  // dynamic update scheduling remain explicit follow-on slices.
+  [[nodiscard]] std::vector<ObjectInstanceDiscoveryRecipient>
+  planJoinedFederateMomObjectDiscoveriesForInstance(
+      std::wstring const& federationName,
+      std::uint64_t objectInstanceHandle);
+  [[nodiscard]] std::vector<ObjectInstanceDiscoveryRecipient>
+  planJoinedFederateMomObjectDiscoveriesForFederate(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId);
+
   // Releases a reservation whose callback route could not accept delivery.
   // This deliberately preserves an already-known instance, so it is safe to
   // use after a synchronous HLA_IMMEDIATE callback has entered user code.
   void cancelObjectInstanceDiscovery(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t objectInstanceHandle);
+
+  void cancelJoinedFederateMomObjectDiscovery(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle);
@@ -2839,9 +2967,20 @@ class EmbeddedFederationRegistry final {
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle);
 
+  [[nodiscard]] std::optional<RemovedObjectInstanceSnapshot>
+  beginJoinedFederateMomObjectRemoval(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t objectInstanceHandle);
+
   // Releases only an undelivered removal reservation. It preserves the
   // recipient's known-instance state so a future recovery path can replan it.
   void cancelObjectInstanceRemoval(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t objectInstanceHandle);
+
+  void cancelJoinedFederateMomObjectRemoval(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle);
@@ -2851,6 +2990,12 @@ class EmbeddedFederationRegistry final {
   // changed subscription, resignation, or stale queued callback becomes an
   // ordinary no-delivery outcome.
   [[nodiscard]] std::optional<KnownObjectInstanceSnapshot> beginObjectInstanceDiscovery(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t objectInstanceHandle);
+
+  [[nodiscard]] std::optional<KnownObjectInstanceSnapshot>
+  beginJoinedFederateMomObjectDiscovery(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle);
@@ -2906,6 +3051,34 @@ class EmbeddedFederationRegistry final {
       std::uint64_t requestingFederateId,
       std::uint64_t objectInstanceHandle,
       std::set<std::uint64_t> const& requestedAttributeHandles) const;
+
+  [[nodiscard]] JoinedFederateMomAttributeValueUpdatePlan
+  planJoinedFederateMomAttributeValueUpdate(
+      std::wstring const& federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      bool requireActiveSubscription = false) const;
+
+  [[nodiscard]] JoinedFederateMomAttributeValueUpdateClassPlan
+  planJoinedFederateMomAttributeValueUpdateClass(
+      std::wstring const& federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectClassHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      bool requireActiveSubscription = false) const;
+
+  // Plans an RTI-originated conditional update for one joined-federate MOM
+  // object. Automatic updates set requireActiveSubscription so only current
+  // ordinary/regional subscribers receive them; public Request Attribute
+  // Value Update keeps the instance/class forms above without that policy.
+  [[nodiscard]] JoinedFederateMomAttributeValueUpdateClassPlan
+  planJoinedFederateMomAttributeValueUpdateForObject(
+      std::wstring const& federationName,
+      std::uint64_t objectInstanceHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      bool requireActiveSubscription = true,
+      std::optional<std::uint64_t> excludedReceivingFederateId = std::nullopt) const;
 
   // Rechecks one original owner group immediately before Provide Attribute
   // Value Update delivery. A removed instance, resigned owner/requester, or
@@ -3547,6 +3720,7 @@ class EmbeddedFederationRegistry final {
       };
 
       std::map<std::uint64_t, PerObjectClass> byObjectClass;
+      std::uint64_t subscriptionGeneration = 0;
     };
 
     struct Region {
@@ -3750,6 +3924,7 @@ class EmbeddedFederationRegistry final {
     std::map<std::wstring, std::uint64_t> objectInstanceHandlesByName;
     std::map<std::wstring, std::uint64_t> reservedObjectInstanceNamesByFederate;
     std::uint64_t nextRegionHandle = 1;
+    std::uint64_t nextSubscriptionGeneration = 1;
     std::uint64_t nextObjectInstanceHandle = 1;
     std::uint64_t nextAttributeOwnershipAcquisitionIfAvailableRequestId = 1;
     std::uint64_t nextAttributeOwnershipAcquisitionRequestId = 1;
@@ -3907,6 +4082,18 @@ class EmbeddedFederationRegistry final {
       std::uint64_t firstRegionHandle,
       std::uint64_t secondRegionHandle,
       std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides);
+  [[nodiscard]] static bool regionSnapshotsOverlap(
+      Federation const& federation,
+      RegionSpecificationSnapshot const& first,
+      RegionSpecificationSnapshot const& second);
+  // The RTI-owned HLAfederate object has an immutable point region rather
+  // than a public RegionHandle.  Regional MOM discovery compares a
+  // subscriber's committed region with that snapshot using the same strict
+  // overlap and Allow Relaxed DDM policy as ordinary object routing.
+  [[nodiscard]] static bool regionOverlapsSnapshot(
+      Federation const& federation,
+      std::uint64_t regionHandle,
+      RegionSpecificationSnapshot const& snapshot);
   // The standard default region spans every FDD dimension and cannot be
   // referenced by a federate.  This predicate preserves that invisible
   // relationship without allocating a synthetic public RegionHandle.  An
@@ -3977,6 +4164,24 @@ class EmbeddedFederationRegistry final {
       Federation const& federation,
       Federation::ObjectInstance const& objectInstance,
       std::uint64_t receivingFederateId);
+  [[nodiscard]] static std::optional<std::uint64_t>
+  candidateJoinedFederateMomObjectDiscoveryClass(
+      Federation const& federation,
+      JoinedFederateMomObjectSnapshot const& object,
+      std::uint64_t receivingFederateId);
+  [[nodiscard]] static std::optional<std::map<std::uint64_t,
+                                               rti1516_2025::VariableLengthData>>
+  joinedFederateMomObjectAttributeValues(
+      Federation const& federation,
+      JoinedFederateMomObjectSnapshot const& object,
+      std::uint64_t receivingFederateId,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      bool requireActiveSubscription = false);
+  [[nodiscard]] static std::optional<rti1516_2025::VariableLengthData>
+  joinedFederateMomObjectAttributeValue(
+      Federation const& federation,
+      JoinedFederateMomObjectSnapshot const& object,
+      std::uint64_t attributeHandle);
   [[nodiscard]] static bool objectAttributeInScope(
       Federation const& federation,
       Federation::ObjectInstance const& objectInstance,

@@ -1709,6 +1709,88 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             creator._implementation.close()
             joiner._implementation.close()
 
+    def test_cpp_jni_java_jpype_join_fom_seeds_advisory_switches_per_member(
+        self,
+    ) -> None:
+        """Keep join-time composed-FDD switch defaults scoped to the new member."""
+        base_fom = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        advisory_fom = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-join-fom-switches-{uuid4()}"
+        base = self.factory.getRtiAmbassador()
+        extension = self.factory.getRtiAmbassador()
+        base_callbacks = _JniCallbacks()
+        extension_callbacks = _JniCallbacks()
+        base_connected = extension_connected = False
+        base_joined = extension_joined = created = False
+        try:
+            base.connect(base_callbacks, CallbackModel.HLA_EVOKED)
+            base_connected = True
+            extension.connect(extension_callbacks, CallbackModel.HLA_EVOKED)
+            extension_connected = True
+            base.createFederationExecution(
+                federation_name, str(base_fom), "HLAinteger64Time"
+            )
+            created = True
+            base.joinFederationExecution(
+                "switch-base",
+                federation_name,
+                federateName="switch-base",
+            )
+            base_joined = True
+            self.assertFalse(base.getObjectClassRelevanceAdvisorySwitch())
+            self.assertFalse(base.getInteractionRelevanceAdvisorySwitch())
+
+            extension.joinFederationExecution(
+                "switch-extension",
+                federation_name,
+                federateName="switch-extension",
+                additionalFomModules=[str(advisory_fom)],
+            )
+            extension_joined = True
+            self.assertTrue(extension.getObjectClassRelevanceAdvisorySwitch())
+            self.assertTrue(extension.getInteractionRelevanceAdvisorySwitch())
+            self.assertFalse(base.getObjectClassRelevanceAdvisorySwitch())
+            self.assertFalse(base.getInteractionRelevanceAdvisorySwitch())
+        finally:
+            if extension_joined:
+                try:
+                    extension.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if base_joined:
+                try:
+                    base.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    base.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            for ambassador, connected in (
+                (extension, extension_connected),
+                (base, base_connected),
+            ):
+                if connected:
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                ambassador._implementation.close()
+
     def test_cpp_jni_java_jpype_federate_lookup_preserves_departed_designator(
         self,
     ) -> None:

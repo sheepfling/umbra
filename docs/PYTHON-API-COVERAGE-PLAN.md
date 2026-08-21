@@ -57,7 +57,10 @@ joined preserves the typed `FederateIsExecutionMember` precondition. It also cre
 federation executions, verifies both typed records through
 `listFederationExecutions`, and supplies a compatible extension FOM through
 the join-time `String[]` overload before resolving its extension-defined
-object class. The same run now exercises the
+object class. The join-time composed-FDD vector additionally proves that
+advisory-switch defaults contributed by that additional FOM are seeded only
+for the new Java member; the existing C++ member retains its prior switch
+values. The same run now exercises the
 official `getHLAversion()` Java method, the standard send-report-file switch,
 and direct standard Java two-argument scalar-`String` and `String[]`
 federation-create, unnamed-join, and
