@@ -5,6 +5,7 @@ import java.util.Set;
 import hla.rti1516_2025.exceptions.AlreadyConnected;
 import hla.rti1516_2025.exceptions.FederateNotExecutionMember;
 import hla.rti1516_2025.exceptions.NotConnected;
+import hla.rti1516_2025.exceptions.RTIexception;
 import hla.rti1516_2025.exceptions.ObjectInstanceNotKnown;
 import hla.rti1516_2025.auth.Credentials;
 
@@ -76,7 +77,7 @@ public interface RTIambassador {
 
    void requestFederationSave(String label) throws NotConnected;
 
-   void requestFederationSave(String label, LogicalTime time) throws NotConnected;
+   void requestFederationSave(String label, LogicalTime time) throws RTIexception;
 
    void federateSaveBegun() throws NotConnected;
 
@@ -558,7 +559,7 @@ public interface RTIambassador {
 
    LogicalTimeFactory getTimeFactory() throws NotConnected;
 
-   void enableTimeRegulation(LogicalTimeInterval lookahead) throws NotConnected;
+   void enableTimeRegulation(LogicalTimeInterval lookahead) throws RTIexception;
 
    void disableTimeRegulation() throws NotConnected;
 
@@ -574,7 +575,7 @@ public interface RTIambassador {
 
    LogicalTimeInterval queryLookahead() throws NotConnected;
 
-   void timeAdvanceRequest(LogicalTime time) throws NotConnected;
+   void timeAdvanceRequest(LogicalTime time) throws RTIexception;
 
    void timeAdvanceRequestAvailable(LogicalTime time) throws NotConnected;
 

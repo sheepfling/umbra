@@ -12,9 +12,9 @@ import hla.rti1516_2025.AttributeSetRegionSetPairList;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.InteractionClassHandle;
-import hla.rti1516_2025.time.LogicalTime;
-import hla.rti1516_2025.time.LogicalTimeFactory;
-import hla.rti1516_2025.time.LogicalTimeInterval;
+import hla.rti1516_2025.LogicalTime;
+import hla.rti1516_2025.LogicalTimeFactory;
+import hla.rti1516_2025.LogicalTimeInterval;
 import hla.rti1516_2025.MessageRetractionHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ParameterHandle;
@@ -871,7 +871,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          return null;
       }
       if ("queryLookahead".equals(name) && values.length == 0) {
-         return selectedLogicalTimeFactory().decodeInterval(
+         return selectedLogicalTimeFactory().decodeLogicalTimeInterval(
             NativeBridge.nativeQueryLookahead(requireNativeHandle()), 0);
       }
       if ("timeAdvanceRequest".equals(name) && values.length == 1) {
@@ -900,7 +900,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          return null;
       }
       if ("queryLogicalTime".equals(name) && values.length == 0) {
-         return selectedLogicalTimeFactory().decodeTime(
+         return selectedLogicalTimeFactory().decodeLogicalTime(
             NativeBridge.nativeQueryLogicalTime(requireNativeHandle()), 0);
       }
       if ("queryGALT".equals(name) && values.length == 0) {
@@ -1403,7 +1403,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
       return result;
    }
 
-   private byte[] encodedLogicalTime(LogicalTime<?, ?> value) throws RTIinternalError {
+   private byte[] encodedLogicalTime(LogicalTime value) throws RTIinternalError {
       // Keep typed IEEE validation exceptions from the C++ RTI visible.  Do
       // not include this call in the encoding catch below, which is reserved
       // for malformed Java value-object encodings and would otherwise erase
@@ -1419,7 +1419,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
       }
    }
 
-   private byte[] encodedLogicalTimeInterval(LogicalTimeInterval<?> value) throws RTIinternalError {
+   private byte[] encodedLogicalTimeInterval(LogicalTimeInterval value) throws RTIinternalError {
       // See encodedLogicalTime: the C++ InvalidLookahead must cross JNI
       // unchanged rather than being wrapped as a generic encoding failure.
       NativeBridge.nativeValidateLogicalTimeImplementation(
@@ -1459,7 +1459,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
       }
    }
 
-   private LogicalTimeFactory<?, ?> selectedLogicalTimeFactory() throws RTIinternalError {
+   private LogicalTimeFactory selectedLogicalTimeFactory() throws RTIinternalError {
       String factoryName = NativeBridge.nativeGetTimeFactoryName(requireNativeHandle());
       try {
          return NativeLogicalTimeFactories.forName(factoryName, requireNativeHandle());
@@ -1474,7 +1474,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          throw new IllegalStateException("The native time-query result is malformed");
       }
       try {
-         LogicalTime<?, ?> time = selectedLogicalTimeFactory().decodeTime(
+         LogicalTime time = selectedLogicalTimeFactory().decodeLogicalTime(
             Arrays.copyOfRange(encodedResult, 1, encodedResult.length), 0);
          return new hla.rti1516_2025.TimeQueryReturn(encodedResult[0] != 0, time);
       } catch (Exception error) {

@@ -4008,8 +4008,8 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
           environment,
           factoriesClass,
           "forName",
-          "(Ljava/lang/String;J)Lhla/rti1516_2025/time/LogicalTimeFactory;");
-      factoryInterface = environment->FindClass("hla/rti1516_2025/time/LogicalTimeFactory");
+          "(Ljava/lang/String;J)Lhla/rti1516_2025/LogicalTimeFactory;");
+      factoryInterface = environment->FindClass("hla/rti1516_2025/LogicalTimeFactory");
       if (factoryInterface == nullptr) {
         clearJavaException(environment);
         throw rti::FederateInternalError(L"Umbra could not find the standard Java logical-time factory interface.");
@@ -4018,7 +4018,7 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
           environment,
           factoryInterface,
           "decodeTime",
-          "([BI)Lhla/rti1516_2025/time/LogicalTime;");
+          "([BI)Lhla/rti1516_2025/LogicalTime;");
       javaFactoryName = javaString(environment, factoryName);
       factory = environment->CallStaticObjectMethod(
           factoriesClass, forName, javaFactoryName, nativeHandle_);

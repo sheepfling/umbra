@@ -14,8 +14,11 @@ $env:UMBRA_JNI_NATIVE_LIBRARY = 'C:\vendor\umbra_rti_jni.dll'
 The adapter places the API and bridge JARs on the JVM class path, sets the
 native-library property, and asks the exact Java
 `hla.rti1516_2025.RtiFactoryFactory` to discover the bridge's
-`NativeRtiFactory`.  Python calls and callbacks then use the existing generic
-JPype adapter, while C++ remains the only RTI state/semantics owner.
+`NativeRtiFactory` by its standard `rtiName()` value.  The named overload is
+intentional: an API/classpath may contain another provider's `ServiceLoader`
+descriptor, and the JNI adapter must not silently select that provider through
+the no-argument overload.  Python calls and callbacks then use the existing
+generic JPype adapter, while C++ remains the only RTI state/semantics owner.
 
 The same values can be supplied as constructor arguments.  For a build
 directory produced by `packages/umbra-rti-jni/build.ps1`, set

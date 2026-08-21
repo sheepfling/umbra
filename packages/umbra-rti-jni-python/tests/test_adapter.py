@@ -70,7 +70,10 @@ class JniRtiFactoryTest(unittest.TestCase):
 
             self.assertEqual(factory.rtiName(), "Umbra JNI C++ RTI")
             self.assertEqual(runtime.configuration.classpath, (str(api), str(bridge)))
-            self.assertIsNone(runtime.configuration.rti_factory_name)
+            self.assertEqual(
+                runtime.configuration.rti_factory_name,
+                JniRtiFactory.JAVA_FACTORY_NAME,
+            )
             self.assertTrue(
                 any(
                     option.startswith("-Dumbra.rti.jni.library=")

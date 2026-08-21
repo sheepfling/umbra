@@ -76,9 +76,12 @@ class JniRtiFactory(JavaRtiFactory):
                 classpath=tuple(
                     path for path in (selected_api, selected_bridge) if path is not None
                 ),
-                # Leave selection to the exact Java ServiceLoader descriptor
-                # in the bridge JAR.  The name remains available as metadata.
-                rti_factory_name=None,
+                # Use the standard named factory overload.  A supplied API
+                # JAR may legitimately carry another provider descriptor
+                # (as the conformance fixture does); the JNI bridge must not
+                # silently select that provider through the no-argument
+                # overload.
+                rti_factory_name=self.JAVA_FACTORY_NAME,
                 jvm_path=jvm_path,
                 jvm_options=options,
             ),

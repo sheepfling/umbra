@@ -1,14 +1,8 @@
 package org.umbra.jni.rti1516_2025;
 
-import hla.rti1516_2025.time.HLAfloat64Interval;
-import hla.rti1516_2025.time.HLAfloat64Time;
-import hla.rti1516_2025.time.HLAfloat64TimeFactory;
-import hla.rti1516_2025.time.HLAinteger64Interval;
-import hla.rti1516_2025.time.HLAinteger64Time;
-import hla.rti1516_2025.time.HLAinteger64TimeFactory;
-import hla.rti1516_2025.time.LogicalTime;
-import hla.rti1516_2025.time.LogicalTimeFactory;
-import hla.rti1516_2025.time.LogicalTimeInterval;
+import hla.rti1516_2025.LogicalTime;
+import hla.rti1516_2025.LogicalTimeFactory;
+import hla.rti1516_2025.LogicalTimeInterval;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -27,10 +21,138 @@ import java.util.Arrays;
 public final class NativeLogicalTimeFactories {
    private NativeLogicalTimeFactories() { }
 
-   public static LogicalTimeFactory<?, ?> forName(String factoryName, long nativeHandle) {
-      if ("HLAinteger64Time".equals(factoryName)) return new Integer64Factory(nativeHandle);
-      if ("HLAfloat64Time".equals(factoryName)) return new Float64Factory(nativeHandle);
+   /** Edition-neutral creators exposed only as an adapter convenience. */
+   public interface IntegerFactorySurface {
+      Object makeLogicalTime(long value);
+      Object makeLogicalTimeInterval(long value);
+      Object makeTime(long value);
+      Object makeInterval(long value);
+   }
+
+   /** Edition-neutral creators exposed only as an adapter convenience. */
+   public interface FloatFactorySurface {
+      Object makeLogicalTime(double value);
+      Object makeLogicalTimeInterval(double value);
+      Object makeTime(double value);
+      Object makeInterval(double value);
+   }
+
+   /** Compatibility accessors retained for the Python value normalizer. */
+   public interface IntegerCarrierSurface {
+      long getValue();
+      long getTime();
+      long getInterval();
+   }
+
+   /** Compatibility accessors retained for the Python value normalizer. */
+   public interface FloatCarrierSurface {
+      double getValue();
+      double getTime();
+      double getInterval();
+   }
+
+   public static LogicalTimeFactory forName(String factoryName, long nativeHandle) {
+      if ("HLAinteger64Time".equals(factoryName)) {
+         return factory(nativeHandle, false);
+      }
+      if ("HLAfloat64Time".equals(factoryName)) {
+         return factory(nativeHandle, true);
+      }
       throw new IllegalArgumentException("Unsupported C++ logical-time factory: " + factoryName);
+   }
+
+   private static LogicalTimeFactory factory(long nativeHandle, boolean floatingPoint) {
+      Class<?> creators = floatingPoint ? FloatFactorySurface.class : IntegerFactorySurface.class;
+      return (LogicalTimeFactory) Proxy.newProxyInstance(
+         LogicalTimeFactory.class.getClassLoader(),
+         new Class<?>[] { LogicalTimeFactory.class, creators },
+         new Factory(nativeHandle, floatingPoint));
+   }
+
+   private static final class Factory implements InvocationHandler {
+      private final long nativeHandle;
+      private final boolean floatingPoint;
+
+      Factory(long nativeHandle, boolean floatingPoint) {
+         this.nativeHandle = nativeHandle;
+         this.floatingPoint = floatingPoint;
+      }
+
+      @Override public Object invoke(Object proxy, Method method, Object[] arguments) {
+         Object[] values = arguments == null ? new Object[0] : arguments;
+         String name = method.getName();
+         if (method.getDeclaringClass() == Object.class) {
+            if ("toString".equals(name)) return floatingPoint ? "HLAfloat64Time" : "HLAinteger64Time";
+            if ("hashCode".equals(name)) return System.identityHashCode(proxy);
+            if ("equals".equals(name)) return proxy == values[0];
+         }
+         if ("getName".equals(name)) return floatingPoint ? "HLAfloat64Time" : "HLAinteger64Time";
+         if ("makeInitial".equals(name)) {
+            return floatingPoint ? makeFloatTimeValue(0.0d) : makeIntegerTimeValue(0L);
+         }
+         if ("makeFinal".equals(name)) {
+            return floatingPoint ? makeFloatTimeValue(Double.MAX_VALUE) : makeIntegerTimeValue(Long.MAX_VALUE);
+         }
+         if ("makeLogicalTime".equals(name) || "makeTime".equals(name)) {
+            Number value = (Number) values[0];
+            return floatingPoint
+               ? makeFloatTimeValue(value.doubleValue())
+               : makeIntegerTimeValue(value.longValue());
+         }
+         if ("makeZero".equals(name)) {
+            return floatingPoint ? makeFloatIntervalValue(0.0d) : makeIntegerIntervalValue(0L);
+         }
+         if ("makeEpsilon".equals(name)) {
+            return floatingPoint
+               ? makeFloatIntervalValue(Double.MIN_VALUE)
+               : makeIntegerIntervalValue(1L);
+         }
+         if ("makeLogicalTimeInterval".equals(name) || "makeInterval".equals(name)) {
+            Number value = (Number) values[0];
+            return floatingPoint
+               ? makeFloatIntervalValue(value.doubleValue())
+               : makeIntegerIntervalValue(value.longValue());
+         }
+         if ("decodeLogicalTime".equals(name) || "decodeTime".equals(name)) {
+            return decodeTimeValue((byte[]) values[0], ((Integer) values[1]).intValue());
+         }
+         if ("decodeLogicalTimeInterval".equals(name) || "decodeInterval".equals(name)) {
+            return decodeIntervalValue((byte[]) values[0], ((Integer) values[1]).intValue());
+         }
+         throw new UnsupportedOperationException("Unsupported logical-time factory operation: " + method);
+      }
+
+      private Object makeIntegerTimeValue(long value) {
+         return new Carrier(nativeHandle, true,
+            decodeLong(NativeBridge.nativeMakeIntegerLogicalTime(nativeHandle, value))).proxy();
+      }
+
+      private Object makeFloatTimeValue(double value) {
+         return new Carrier(nativeHandle, true,
+            decodeDouble(NativeBridge.nativeMakeFloatLogicalTime(nativeHandle, value))).proxy();
+      }
+
+      private Object makeIntegerIntervalValue(long value) {
+         return new Carrier(nativeHandle, false,
+            decodeLong(NativeBridge.nativeMakeIntegerLogicalTimeInterval(nativeHandle, value))).proxy();
+      }
+
+      private Object makeFloatIntervalValue(double value) {
+         return new Carrier(nativeHandle, false,
+            decodeDouble(NativeBridge.nativeMakeFloatLogicalTimeInterval(nativeHandle, value))).proxy();
+      }
+
+      private Object decodeTimeValue(byte[] encoded, int offset) {
+         byte[] result = nativeDecode(nativeHandle, encoded, offset, false);
+         if (floatingPoint) return new Carrier(nativeHandle, true, decodeDouble(result)).proxy();
+         return new Carrier(nativeHandle, true, decodeLong(result)).proxy();
+      }
+
+      private Object decodeIntervalValue(byte[] encoded, int offset) {
+         byte[] result = nativeDecode(nativeHandle, encoded, offset, true);
+         if (floatingPoint) return new Carrier(nativeHandle, false, decodeDouble(result)).proxy();
+         return new Carrier(nativeHandle, false, decodeLong(result)).proxy();
+      }
    }
 
    /**
@@ -50,12 +172,9 @@ public final class NativeLogicalTimeFactories {
             return ((Carrier) handler).floatingPoint ? "HLAfloat64Time" : "HLAinteger64Time";
          }
       }
-      if (value instanceof HLAinteger64Time || value instanceof HLAinteger64Interval) {
-         return "HLAinteger64Time";
-      }
-      if (value instanceof HLAfloat64Time || value instanceof HLAfloat64Interval) {
-         return "HLAfloat64Time";
-      }
+      String typeName = value.getClass().getName();
+      if (typeName.contains("HLAinteger64")) return "HLAinteger64Time";
+      if (typeName.contains("HLAfloat64")) return "HLAfloat64Time";
       throw new IllegalArgumentException(
          "Unsupported standard logical-time implementation: " + value.getClass().getName());
    }
@@ -101,16 +220,27 @@ public final class NativeLogicalTimeFactories {
       }
 
       Object proxy() {
-         Class<?> type;
-         if (floatingPoint) type = time ? HLAfloat64Time.class : HLAfloat64Interval.class;
-         else type = time ? HLAinteger64Time.class : HLAinteger64Interval.class;
-         return Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, this);
+         Class<?> type = time ? LogicalTime.class : LogicalTimeInterval.class;
+         Class<?> surface = floatingPoint ? FloatCarrierSurface.class : IntegerCarrierSurface.class;
+         return Proxy.newProxyInstance(
+            type.getClassLoader(), new Class<?>[] { type, surface }, this);
       }
 
       @Override public Object invoke(Object proxy, Method method, Object[] arguments) throws Throwable {
          Object[] values = arguments == null ? new Object[0] : arguments;
          String name = method.getName();
          if ("getValue".equals(name) && values.length == 0) {
+            if (floatingPoint) return Double.valueOf(floatingValue);
+            return Long.valueOf(integerValue);
+         }
+         if ("implementationName".equals(name) && values.length == 0) {
+            return floatingPoint ? "HLAfloat64Time" : "HLAinteger64Time";
+         }
+         if ("getTime".equals(name) && values.length == 0) {
+            if (floatingPoint) return Double.valueOf(floatingValue);
+            return Long.valueOf(integerValue);
+         }
+         if ("getInterval".equals(name) && values.length == 0) {
             if (floatingPoint) return Double.valueOf(floatingValue);
             return Long.valueOf(integerValue);
          }
@@ -217,70 +347,6 @@ public final class NativeLogicalTimeFactories {
          }
          return result;
       }
-   }
-
-   private static final class Integer64Factory implements HLAinteger64TimeFactory {
-      private final long nativeHandle;
-
-      Integer64Factory(long nativeHandle) { this.nativeHandle = nativeHandle; }
-
-      @Override public HLAinteger64Time decodeTime(byte[] encoded, int offset) {
-         return (HLAinteger64Time) new Carrier(
-            nativeHandle, true,
-            decodeLong(nativeDecode(nativeHandle, encoded, offset, false))).proxy();
-      }
-      @Override public HLAinteger64Interval decodeInterval(byte[] encoded, int offset) {
-         return (HLAinteger64Interval) new Carrier(
-            nativeHandle, false,
-            decodeLong(nativeDecode(nativeHandle, encoded, offset, true))).proxy();
-      }
-      @Override public HLAinteger64Time makeInitial() { return makeTime(0L); }
-      @Override public HLAinteger64Time makeFinal() { return makeTime(Long.MAX_VALUE); }
-      @Override public HLAinteger64Time makeTime(long value) {
-         return (HLAinteger64Time) new Carrier(
-            nativeHandle, true,
-            decodeLong(NativeBridge.nativeMakeIntegerLogicalTime(nativeHandle, value))).proxy();
-      }
-      @Override public HLAinteger64Interval makeZero() { return makeInterval(0L); }
-      @Override public HLAinteger64Interval makeEpsilon() { return makeInterval(1L); }
-      @Override public HLAinteger64Interval makeInterval(long value) {
-         return (HLAinteger64Interval) new Carrier(
-            nativeHandle, false,
-            decodeLong(NativeBridge.nativeMakeIntegerLogicalTimeInterval(nativeHandle, value))).proxy();
-      }
-      @Override public String getName() { return "HLAinteger64Time"; }
-   }
-
-   private static final class Float64Factory implements HLAfloat64TimeFactory {
-      private final long nativeHandle;
-
-      Float64Factory(long nativeHandle) { this.nativeHandle = nativeHandle; }
-
-      @Override public HLAfloat64Time decodeTime(byte[] encoded, int offset) {
-         return (HLAfloat64Time) new Carrier(
-            nativeHandle, true,
-            decodeDouble(nativeDecode(nativeHandle, encoded, offset, false))).proxy();
-      }
-      @Override public HLAfloat64Interval decodeInterval(byte[] encoded, int offset) {
-         return (HLAfloat64Interval) new Carrier(
-            nativeHandle, false,
-            decodeDouble(nativeDecode(nativeHandle, encoded, offset, true))).proxy();
-      }
-      @Override public HLAfloat64Time makeInitial() { return makeTime(0.0d); }
-      @Override public HLAfloat64Time makeFinal() { return makeTime(Double.MAX_VALUE); }
-      @Override public HLAfloat64Time makeTime(double value) {
-         return (HLAfloat64Time) new Carrier(
-            nativeHandle, true,
-            decodeDouble(NativeBridge.nativeMakeFloatLogicalTime(nativeHandle, value))).proxy();
-      }
-      @Override public HLAfloat64Interval makeZero() { return makeInterval(0.0d); }
-      @Override public HLAfloat64Interval makeEpsilon() { return makeInterval(Double.MIN_VALUE); }
-      @Override public HLAfloat64Interval makeInterval(double value) {
-         return (HLAfloat64Interval) new Carrier(
-            nativeHandle, false,
-            decodeDouble(NativeBridge.nativeMakeFloatLogicalTimeInterval(nativeHandle, value))).proxy();
-      }
-      @Override public String getName() { return "HLAfloat64Time"; }
    }
 
    private static byte[] nativeDecode(

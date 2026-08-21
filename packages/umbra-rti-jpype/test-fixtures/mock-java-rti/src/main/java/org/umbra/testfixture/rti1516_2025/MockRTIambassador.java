@@ -33,6 +33,7 @@ import hla.rti1516_2025.LogicalTimeFactory;
 import hla.rti1516_2025.LogicalTimeInterval;
 import hla.rti1516_2025.HLAfloat64TimeFactory;
 import hla.rti1516_2025.HLAfloat64Time;
+import hla.rti1516_2025.exceptions.RTIexception;
 import hla.rti1516_2025.HLAfloat64Interval;
 import hla.rti1516_2025.HLAinteger64Interval;
 import hla.rti1516_2025.MessageRetractionHandle;
@@ -3542,7 +3543,11 @@ public class MockRTIambassador implements RTIambassador {
    private LogicalTime copyLogicalTime(LogicalTime value) {
       byte[] encoded = new byte[value.encodedLength()];
       value.encode(encoded, 0);
-      return timeFactory.decodeLogicalTime(encoded, 0);
+      try {
+         return timeFactory.decodeLogicalTime(encoded, 0);
+      } catch (RTIexception error) {
+         throw new IllegalStateException("Fixture logical-time copy failed", error);
+      }
    }
 
    private LogicalTimeInterval copyLogicalTimeInterval(LogicalTimeInterval value) {
@@ -3551,7 +3556,11 @@ public class MockRTIambassador implements RTIambassador {
       }
       byte[] encoded = new byte[value.encodedLength()];
       value.encode(encoded, 0);
-      return timeFactory.decodeLogicalTimeInterval(encoded, 0);
+      try {
+         return timeFactory.decodeLogicalTimeInterval(encoded, 0);
+      } catch (RTIexception error) {
+         throw new IllegalStateException("Fixture logical-time interval copy failed", error);
+      }
    }
 
    @Override

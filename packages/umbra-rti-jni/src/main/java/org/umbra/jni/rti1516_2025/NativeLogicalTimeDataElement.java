@@ -29,7 +29,9 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
       }
       Class<?> ambassadorType = Class.forName("hla.rti1516_2025.RTIambassador");
       Object factory = ambassadorType.getMethod("getTimeFactory").invoke(ambassador);
-      Class<?> factoryType = Class.forName("hla.rti1516_2025.time.LogicalTimeFactory");
+      Class<?> factoryType = standardType(
+         "hla.rti1516_2025.LogicalTimeFactory",
+         "hla.rti1516_2025.time.LogicalTimeFactory");
       Object value = initial;
       if (value == null) {
          value = factoryType.getMethod(interval ? "makeZero" : "makeInitial").invoke(factory);
@@ -42,7 +44,8 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
    }
 
    private byte[] encodedValue() throws Throwable {
-      Class<?> valueType = Class.forName(
+      Class<?> valueType = standardType(
+         "hla.rti1516_2025." + (interval ? "LogicalTimeInterval" : "LogicalTime"),
          "hla.rti1516_2025.time." + (interval ? "LogicalTimeInterval" : "LogicalTime"));
       Method lengthMethod = valueType.getMethod("encodedLength");
       Method encodeMethod = valueType.getMethod("encode", byte[].class, int.class);
@@ -55,11 +58,22 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
 
    private Object decode(byte[] encoded) throws Throwable {
       if (encoded == null) throw new IllegalArgumentException("Logical-time encoding must not be null");
-      Class<?> factoryType = Class.forName("hla.rti1516_2025.time.LogicalTimeFactory");
+      Class<?> factoryType = standardType(
+         "hla.rti1516_2025.LogicalTimeFactory",
+         "hla.rti1516_2025.time.LogicalTimeFactory");
       value = factoryType.getMethod(
          interval ? "decodeInterval" : "decodeTime", byte[].class, int.class)
          .invoke(factory, encoded, Integer.valueOf(0));
       return proxy;
+   }
+
+   private static Class<?> standardType(String preferred, String fallback)
+      throws ClassNotFoundException {
+      try {
+         return Class.forName(preferred);
+      } catch (ClassNotFoundException ignored) {
+         return Class.forName(fallback);
+      }
    }
 
    private static Throwable unwrap(Throwable error) {
