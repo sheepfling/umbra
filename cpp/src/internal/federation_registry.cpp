@@ -3389,6 +3389,33 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
   return FederationRegistryStatus::applied;
 }
 
+FederationRegistryStatus
+EmbeddedFederationRegistry::recordSuccessfulObjectInstanceReflection(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    std::uint64_t objectInstanceHandle) {
+  auto instrumentationScope = beginInstrumentation(
+      "recordSuccessfulObjectInstanceReflection");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return FederationRegistryStatus::federation_does_not_exist;
+  }
+  auto member = federation->second.members.find(federateId);
+  if (member == federation->second.members.end()) {
+    return FederationRegistryStatus::federate_not_member;
+  }
+  auto instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end() ||
+      instance->second.deleteAccepted ||
+      !instance->second.knownObjectClassHandlesByFederate.contains(federateId)) {
+    return FederationRegistryStatus::invalid_request;
+  }
+  member->second.successfullyReflectedObjectInstanceHandles.insert(
+      objectInstanceHandle);
+  return FederationRegistryStatus::applied;
+}
+
 FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRestore(
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
@@ -8095,6 +8122,18 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     auto const count = member->second.successfulObjectInstanceDiscoveriesCount;
     auto const encodedCount = count >
             static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAobjectInstancesReflected") {
+    // HLAstandardMIM defines this HLAcount as the number of distinct object
+    // instances for which the represented joined federate has received a
+    // Reflect Attribute Values callback. The membership-owned handle set
+    // prevents repeated updates for one object from inflating the value.
+    auto const count = member->second.successfullyReflectedObjectInstanceHandles.size();
+    auto const encodedCount = count >
+            static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
         ? std::numeric_limits<std::int32_t>::max()
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();

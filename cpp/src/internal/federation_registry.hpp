@@ -164,6 +164,10 @@ struct FederateMembership {
   // callbacks delivered to this joined federate. A local delete followed by
   // rediscovery therefore contributes another accepted callback.
   std::uint64_t successfulObjectInstanceDiscoveriesCount = 0;
+  // HLAobjectInstancesReflected counts distinct application object instances
+  // for which this joined federate has received an accepted Reflect Attribute
+  // Values callback. MOM-owned objects are deliberately excluded.
+  std::set<std::uint64_t> successfullyReflectedObjectInstanceHandles;
 };
 
 // A federation-owned snapshot captured while the registry holds its member
@@ -2218,6 +2222,15 @@ class EmbeddedFederationRegistry final {
   // callback- or payload-derived estimates.
   [[nodiscard]] FederationRegistryStatus
   recordSuccessfulUpdateAttributeValues(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectInstanceHandle);
+
+  // Records one accepted application-object Reflect Attribute Values callback
+  // at the receiving federate's callback boundary. The retained handle set is
+  // the RTI-owned source for HLAobjectInstancesReflected.
+  [[nodiscard]] FederationRegistryStatus
+  recordSuccessfulObjectInstanceReflection(
       std::wstring const& federationName,
       std::uint64_t federateId,
       std::uint64_t objectInstanceHandle);

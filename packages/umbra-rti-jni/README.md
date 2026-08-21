@@ -910,6 +910,9 @@ direct requests at one and two afterward. The same vector verifies
 Instance callbacks and at one and two afterward. It also verifies
 `HLAobjectInstancesDiscovered` on the receiving federate’s MOM object at zero,
 one, and two as the two application-object discovery callbacks commit.
+It also keeps `HLAobjectInstancesReflected` distinct by object: the first
+application reflection raises it to one, a repeated update remains one, and a
+second object raises it to two.
 
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`

@@ -12722,6 +12722,22 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     "timed out waiting for the receiver MOM reflection through Java"
                 )
 
+            def wait_for_application_reflection(
+                object_handle: ObjectInstanceHandle, timeout_seconds: float = 2.5
+            ) -> None:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    if any(
+                        reflection[0].encodedValue == object_handle.encodedValue
+                        for reflection in observer_callbacks.reflected_attributes
+                    ):
+                        return
+                    time.sleep(0.025)
+                self.fail(
+                    "timed out waiting for the application reflection through Java"
+                )
+
             try:
                 subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
                 subject_connected = True
@@ -12800,6 +12816,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject_discovered_objects_attribute = subject.getAttributeHandle(
                     subject_mom_class, "HLAobjectInstancesDiscovered"
                 )
+                subject_reflected_objects_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAobjectInstancesReflected"
+                )
                 subject.subscribeObjectClassAttributes(
                     subject_mom_class,
                     AttributeHandleSet(
@@ -12807,6 +12826,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                             subject_federate_handle_attribute,
                             subject_removed_objects_attribute,
                             subject_discovered_objects_attribute,
+                            subject_reflected_objects_attribute,
                         ]
                     ),
                     active=True,
@@ -12887,6 +12907,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
 
                 request_receiver_mom_count(subject_removed_objects_attribute, 0)
                 request_receiver_mom_count(subject_discovered_objects_attribute, 0)
+                request_receiver_mom_count(subject_reflected_objects_attribute, 0)
                 request_count(updates_sent_attribute, 0)
                 request_count(updated_objects_attribute, 0)
                 request_count(registered_objects_attribute, 0)
@@ -12909,10 +12930,14 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 request_receiver_mom_count(subject_discovered_objects_attribute, 1)
                 self.assertGreaterEqual(len(observer_callbacks.discovered_objects), 1)
                 subject.updateAttributeValues(first_object, update_values, b"")
+                wait_for_application_reflection(first_object)
+                request_receiver_mom_count(subject_reflected_objects_attribute, 1)
                 request_count(updates_sent_attribute, 1)
                 request_count(updated_objects_attribute, 1)
 
                 subject.updateAttributeValues(first_object, update_values, b"")
+                wait_for_application_reflection(first_object)
+                request_receiver_mom_count(subject_reflected_objects_attribute, 1)
                 request_count(updates_sent_attribute, 2)
                 request_count(updated_objects_attribute, 1)
 
@@ -12921,6 +12946,8 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 request_receiver_mom_count(subject_discovered_objects_attribute, 2)
                 self.assertGreaterEqual(len(observer_callbacks.discovered_objects), 2)
                 subject.updateAttributeValues(second_object, update_values, b"")
+                wait_for_application_reflection(second_object)
+                request_receiver_mom_count(subject_reflected_objects_attribute, 2)
                 request_count(updates_sent_attribute, 3)
                 request_count(updated_objects_attribute, 2)
 

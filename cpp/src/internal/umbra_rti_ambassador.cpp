@@ -3496,6 +3496,14 @@ void queueTimestampedReflectAttributeUpdate(
         }
       }
       callbackBegan = true;
+      {
+        std::scoped_lock lock(federationManagementMutex());
+        static_cast<void>(embeddedFederationManagement().registry()
+                              .recordSuccessfulObjectInstanceReflection(
+                                  federationName,
+                                  receivingFederateId,
+                                  objectInstanceHandle));
+      }
       std::optional<RegionHandleSet> optionalSentRegions;
       if (projection->conveyRegionDesignatorSets &&
           (!passel.sentRegionHandles.empty() || passel.defaultRegionUsed)) {
@@ -3777,6 +3785,14 @@ void queueReceiveOrderAttributeUpdate(
           optionalSentRegions->insert(makeRegionHandle(regionHandle));
         }
       }
+    }
+    {
+      std::scoped_lock lock(federationManagementMutex());
+      static_cast<void>(embeddedFederationManagement().registry()
+                            .recordSuccessfulObjectInstanceReflection(
+                                federationName,
+                                receivingFederateId,
+                                objectInstanceHandle));
     }
     recipient.reflectAttributeValues(
         makeObjectInstanceHandle(objectInstanceHandle),
@@ -5733,6 +5749,14 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                       }
 
                       callbackBegan = true;
+                      {
+                        std::scoped_lock lock(federationManagementMutex());
+                        static_cast<void>(embeddedFederationManagement().registry()
+                                              .recordSuccessfulObjectInstanceReflection(
+                                                  federationName,
+                                                  federateId,
+                                                  message.objectInstanceHandle));
+                      }
 
                       std::optional<RegionHandleSet> optionalSentRegions;
                       if (projection->conveyRegionDesignatorSets &&
