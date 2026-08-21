@@ -424,7 +424,9 @@ $bridgeDirectory = 'C:\path\to\umbra-rti-jni-build'
 .\verify.ps1 `
   -ArtifactDirectory $bridgeDirectory `
   -JavaApiJar C:\path\to\ieee-1516.1-2025-java-api.jar `
-  -ExpectedApiSha256 '<publisher-supplied-sha256>' `
+  -ExpectedApiSha256 '<publisher-supplied-api-sha256>' `
+  -ExpectedBridgeSha256 '<release-bridge-sha256>' `
+  -ExpectedNativeSha256 '<release-native-sha256>' `
   -ManifestPath (Join-Path $bridgeDirectory 'umbra-jni-manifest.json')
 ```
 

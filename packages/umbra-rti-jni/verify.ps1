@@ -5,6 +5,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$JavaApiJar,
     [string]$ExpectedApiSha256,
+    [string]$ExpectedBridgeSha256,
+    [string]$ExpectedNativeSha256,
     [string]$ManifestPath,
     [switch]$SkipSmokeTest
 )
@@ -40,6 +42,16 @@ $apiHash = (Get-FileHash -LiteralPath $apiPath -Algorithm SHA256).Hash.ToUpperIn
 if (-not [string]::IsNullOrWhiteSpace($ExpectedApiSha256) -and
     $apiHash -ne $ExpectedApiSha256.Trim().ToUpperInvariant()) {
     throw "IEEE Java API SHA-256 mismatch: expected $ExpectedApiSha256, actual $apiHash"
+}
+$bridgeHash = (Get-FileHash -LiteralPath $bridgePath -Algorithm SHA256).Hash.ToUpperInvariant()
+if (-not [string]::IsNullOrWhiteSpace($ExpectedBridgeSha256) -and
+    $bridgeHash -ne $ExpectedBridgeSha256.Trim().ToUpperInvariant()) {
+    throw "JNI bridge SHA-256 mismatch: expected $ExpectedBridgeSha256, actual $bridgeHash"
+}
+$nativeHash = (Get-FileHash -LiteralPath $nativePath -Algorithm SHA256).Hash.ToUpperInvariant()
+if (-not [string]::IsNullOrWhiteSpace($ExpectedNativeSha256) -and
+    $nativeHash -ne $ExpectedNativeSha256.Trim().ToUpperInvariant()) {
+    throw "JNI native library SHA-256 mismatch: expected $ExpectedNativeSha256, actual $nativeHash"
 }
 
 function Get-JarEntries([string]$path) {
@@ -130,7 +142,9 @@ $manifest = [ordered]@{
     javaApiJar = $apiPath
     javaApiSha256 = $apiHash
     bridgeJar = (Resolve-Path -LiteralPath $bridgePath).Path
+    bridgeJarSha256 = $bridgeHash
     nativeLibrary = $nativePath
+    nativeLibrarySha256 = $nativeHash
 }
 if (-not [string]::IsNullOrWhiteSpace($ManifestPath)) {
     $manifest | ConvertTo-Json | Set-Content -LiteralPath $ManifestPath -Encoding UTF8
