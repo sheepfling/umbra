@@ -5842,6 +5842,67 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 missing_routes.append(f"{name}/{arity}: no arity route")
         self.assertEqual(missing_routes, [], "; ".join(sorted(missing_routes)))
 
+    def test_jni_encoder_factory_routes_external_standard_signatures(self) -> None:
+        """Audit every external 2025 EncoderFactory creator overload."""
+        import jpype
+
+        # Start the exact configured JVM before asking JPype for the external
+        # class.  This also makes the focused test runnable by itself rather
+        # than relying on another integration vector to initialize JPype.
+        ambassador = self.factory.getRtiAmbassador()
+        try:
+            standard_interface = jpype.JClass(
+                "hla.rti1516_2025.encoding.EncoderFactory"
+            ).class_
+            standard_signatures = {
+                (str(method.getName()), int(method.getParameterCount()))
+                for method in standard_interface.getMethods()
+                if str(method.getName()).startswith("createHLA")
+            }
+            handler = (
+                Path(__file__).parents[2]
+                / "umbra-rti-jni"
+                / "src"
+                / "main"
+                / "java"
+                / "org"
+                / "umbra"
+                / "jni"
+                / "rti1516_2025"
+                / "NativeEncoderFactory.java"
+            ).read_text(encoding="utf-8")
+            handle_names = {
+                name
+                for name in re.findall(r'name\.equals\("(createHLA[A-Za-z0-9_]*)"\)', handler)
+            }
+            missing_routes: list[str] = []
+            for name, arity in sorted(standard_signatures):
+                if name in handle_names:
+                    routed = arity in {1, 2}
+                else:
+                    marker = f'"{name}".equals(method.getName())'
+                    sections = [
+                        handler[position : position + 520]
+                        for position in (
+                            match.start()
+                            for match in re.finditer(re.escape(marker), handler)
+                        )
+                    ]
+                    routed = any(
+                        re.search(rf"values\.length\s*==\s*{arity}(?!\d)", section)
+                        for section in sections
+                    )
+                if not routed:
+                    missing_routes.append(f"{name}/{arity}")
+            self.assertEqual(
+                missing_routes,
+                [],
+                "The JNI EncoderFactory handler lacks routes for: "
+                + ", ".join(missing_routes),
+            )
+        finally:
+            ambassador._implementation.close()
+
     def test_jni_callback_surface_is_marshaled_and_callback_classes_are_released(
         self,
     ) -> None:
