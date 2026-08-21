@@ -54,10 +54,12 @@
 namespace rti1516_2025::umbra_binding_detail {
 namespace {
 
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 umbra::detail::UpdateRateGate& updateRateGate() {
   static umbra::detail::UpdateRateGate gate;
   return gate;
 }
+#endif
 
 void validateCallbackModel(CallbackModel callbackModel) {
   switch (callbackModel) {
@@ -6419,7 +6421,9 @@ void UmbraRtiAmbassador::disconnect() {
     callbacks_->reset();
   }
 
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   stopPeriodicMomScheduler();
+#endif
 
   // Do not hold the ambassador lock while an in-flight callback drains: the
   // recipient may make a re-entrant RTI call before it returns.
@@ -6440,6 +6444,7 @@ bool UmbraRtiAmbassador::evokeCallback(double approximateMinimumTimeInSeconds) {
     throw CallNotAllowedFromWithinCallback(
         L"Evoke Callback cannot be called from within a federate callback.");
   }
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   auto pumpPeriodicMomUpdates = [this] {
     std::optional<std::wstring> federationName;
     {
@@ -6454,11 +6459,14 @@ bool UmbraRtiAmbassador::evokeCallback(double approximateMinimumTimeInSeconds) {
     }
   };
   pumpPeriodicMomUpdates();
+#endif
   auto result = callbacks_->evokeOne(callbackWaitDuration(approximateMinimumTimeInSeconds));
   if (!result) {
     // A deadline may have elapsed while the dispatcher was waiting.  Claim
     // and submit it now, then give this Evoke call one normal callback slot.
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     pumpPeriodicMomUpdates();
+#endif
     if (callbacks_->pendingCount() != 0U) {
       result = callbacks_->evokeOne(std::chrono::milliseconds::zero());
     }
@@ -6474,6 +6482,7 @@ bool UmbraRtiAmbassador::evokeMultipleCallbacks(
     throw CallNotAllowedFromWithinCallback(
         L"Evoke Multiple Callbacks cannot be called from within a federate callback.");
   }
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   auto pumpPeriodicMomUpdates = [this] {
     std::optional<std::wstring> federationName;
     {
@@ -6488,10 +6497,13 @@ bool UmbraRtiAmbassador::evokeMultipleCallbacks(
     }
   };
   pumpPeriodicMomUpdates();
+#endif
   auto const result = callbacks_->evokeMultiple(
       callbackWaitDuration(approximateMinimumTimeInSeconds),
       callbackWaitDuration(approximateMaximumTimeInSeconds));
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   pumpPeriodicMomUpdates();
+#endif
   return result || callbacks_->pendingCount() != 0U;
 }
 
