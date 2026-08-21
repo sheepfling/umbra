@@ -236,6 +236,11 @@ The queued-association vector verifies that a timestamped update accepted under
 source region A is not retargeted when the association is replaced with region B
 before the callback boundary; only the later update carries B and its exact
 standard retraction metadata.
+The regional interaction re-enable vector mirrors the same callback-boundary
+rule through the standard Java API: one queued explicit-source timestamped
+interaction survives `disableTimeConstrained` followed by
+`enableTimeConstrained` exactly once, retaining its source region, order fields,
+and consumed retraction handle.
 The suppressed-timestamp vector verifies that a queued regional recipient
 becoming disjoint before delivery consumes the recipient ledger, so no reflection
 or `requestRetraction` callback is emitted after the publisher retracts it.
