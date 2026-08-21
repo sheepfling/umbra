@@ -8293,6 +8293,21 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
     }
     if (subscribed) {
       recipient.receivedAttributeHandles.insert(attributeHandle);
+      std::string designator = "HLAdefault";
+      if (ordinarySubscription != perClass->second.subscribedAttributes.end()) {
+        auto const rate = perClass->second.subscribedUpdateRateDesignators.find(attributeHandle);
+        if (rate != perClass->second.subscribedUpdateRateDesignators.end()) {
+          designator = rate->second;
+        }
+      }
+      if (auto const rate = updateRateValueForNormalizedDesignator(
+              *federation.definition.catalog, designator)) {
+        recipient.maximumUpdateRatesByAttribute[attributeHandle] = *rate;
+        recipient.maximumUpdateRate =
+            recipient.maximumUpdateRate == 0.0
+                ? *rate
+                : std::min(recipient.maximumUpdateRate, *rate);
+      }
     }
   }
   if (recipient.receivedAttributeHandles.empty()) {

@@ -4,12 +4,14 @@
 #include "internal/embedded_transport.hpp"
 #include "internal/mom_service_report_encoding.hpp"
 #include "internal/service_report_store.hpp"
+#include "internal/update_rate_gate.hpp"
 #include "internal/umbra_rti_ambassador.hpp"
 #include "internal/utf8_string.hpp"
 
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -1017,6 +1019,40 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
 std::unique_ptr<RTIambassador> makeRti() {
   RTIambassadorFactory factory;
   return factory.createRTIambassador();
+}
+
+TEST_CASE(
+    "Private update-rate gate spaces best-effort streams and never drops reliable delivery",
+    "[update-rate-reduction][update-rate-gate][object-management][unit]") {
+  using Gate = umbra::detail::UpdateRateGate;
+  Gate::Clock::time_point now{};
+  Gate gate([&now] { return now; });
+
+  REQUIRE(gate.admit("receiver/attribute", 2.0, false));
+  REQUIRE_FALSE(gate.admit("receiver/attribute", 2.0, false));
+  now += std::chrono::milliseconds(500);
+  REQUIRE(gate.admit("receiver/attribute", 2.0, false));
+  REQUIRE_FALSE(gate.admit("receiver/attribute", 2.0, false));
+
+  // A faster producer (three submissions in one half-second) is reduced to
+  // the slower subscriber's two-per-second allowance.
+  std::size_t delivered = 1;
+  for (int submission = 0; submission < 2; ++submission) {
+    now += std::chrono::milliseconds(100);
+    delivered += gate.admit("producer/subscriber", 2.0, false) ? 1U : 0U;
+  }
+  REQUIRE(delivered == 2);
+  now += std::chrono::milliseconds(400);
+  REQUIRE(gate.admit("producer/subscriber", 2.0, false));
+
+  REQUIRE(gate.admit("reliable", 0.001, true));
+  REQUIRE(gate.admit("reliable", 0.001, true));
+  REQUIRE(gate.admit("default", 0.0, false));
+  REQUIRE(gate.admit("default", 0.0, false));
+  gate.erase("receiver/attribute");
+  REQUIRE(gate.admit("receiver/attribute", 2.0, false));
+  gate.clear();
+  REQUIRE(gate.admit("receiver/attribute", 2.0, false));
 }
 
 std::filesystem::path resourcePath(std::filesystem::path const& relativePath) {

@@ -3882,6 +3882,39 @@ passel eligibility, and timing/drop outcome fields. Keep the immutable clause
 records as source anchors while allowing one relation to generate separate
 best-effort and reliable scenarios.
 
+### RL-100 — Runtime delivery path has no update-rate eligibility state
+
+**Status:** verified Umbra implementation gap; not a Requirements Lab
+extraction defect or conformance evidence.
+
+At the pinned Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the update-rate candidates remain
+the authoritative anchors: `requirement-candidate-content-clauses-06-object-
+management-page-112-l75-22`, `...page-112-l90-27`, `...page-112-l99-30`,
+`...page-112-l105-32`, and `...page-112-l138-43`. In the current Umbra path,
+`EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate` selects recipients
+and `UmbraRtiAmbassador::queueReceiveOrderAttributeUpdate` queues each eligible
+passel immediately. The retained subscription designator is available for
+lookup, but there is no recipient/attribute last-delivery timestamp or
+wall-clock eligibility gate. Consequently, the implementation cannot yet
+prove spacing, best-effort suppression, or reliable no-drop behavior.
+
+**Umbra impact:** this is the implementation boundary for the next slice. The
+private `UpdateRateGate` now supplies the first internal clock/test seam and
+per-stream admission state without changing the official API. It bypasses
+reliable transportation and is independent of logical timestamps; integration
+with recipient delivery and FDD-derived rates is now present for both bounded
+non-timestamped and timestamped attribute callback paths. Timestamped
+best-effort suppression closes the pending retraction state, while reliable
+passels bypass the gate. Admission is now keyed per projected attribute. The
+cross-cutting Lab relation and end-to-end producer/subscriber evidence remain
+pending.
+
+**Possible Lab/tooling refinement:** expose a generated relation joining the
+subscription designator, FDD rate, transportation reliability, producer rate,
+and delivery/drop timestamps so the five fragmented candidates can generate a
+single deterministic scenario family.
+
 ## Recording rules
 
 When Umbra finds a new issue while exporting, checking, or using the Lab, add

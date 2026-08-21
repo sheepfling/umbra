@@ -841,6 +841,10 @@ enum class ReceiveOrderAttributeUpdateStatus {
 struct ReceiveOrderAttributeUpdateRecipient {
   std::uint64_t federateId = 0;
   std::set<std::uint64_t> receivedAttributeHandles;
+  // Maximum selected FDD rate for this callback projection. Zero means the
+  // default/no-reduction designator or an unavailable rate.
+  double maximumUpdateRate = 0.0;
+  std::map<std::uint64_t, double> maximumUpdateRatesByAttribute;
   // The receiver's Convey Region Designator Sets switch is projected at the
   // same callback-time fence as the subscription.  Regional routing still
   // uses the sent regions, but the adapter must omit the optional callback

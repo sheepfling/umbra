@@ -3180,7 +3180,7 @@
       "test_case": "Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
       "tags": ["development-profile", "object-management", "callbacks", "rti.service.update-attribute-values", "federate.callback.reflect-attribute-values"],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "The implementation covers only the non-timestamped, non-region Update Attribute Values overload and no-region Reflect Attribute Values callback, with FOM transport passels limited to HLAreliable and HLAbestEffort. The separate timestamped regional attribute-update entry covers immediate and constrained TSO recipients with committed update-region association and recipient-gated sent-region metadata, while the separate class-level regional request-response entry covers one explicit no-time provider response. Remaining default-region forms, additional regional request edges, update-rate reduction, ownership transfer, custom transportation implementation, FOM sharing-policy enforcement, save/restore, remote transport, package support, and Lab mapping resolution remain open before any validation claim."
+      "next_action": "The implementation covers only the non-timestamped, non-region Update Attribute Values overload and no-region Reflect Attribute Values callback, with FOM transport passels limited to HLAreliable and HLAbestEffort. A private wall-clock UpdateRateGate now applies the retained FDD maximum per projected attribute to both bounded receive-order and timestamped attribute callback paths, closes suppressed TSO retraction state, and bypasses reliable transport; focused unit, timestamped, and adjacent integration tests are green. The separate timestamped regional attribute-update entry covers immediate and constrained TSO recipients with committed update-region association and recipient-gated sent-region metadata, while the separate class-level regional request-response entry covers one explicit no-time provider response. Remaining default-region forms, cross-cutting producer/subscriber relation evidence, additional regional request edges, ownership transfer, custom transportation implementation, FOM sharing-policy enforcement, save/restore, remote transport, package support, and Lab mapping resolution remain open before any validation claim."
     },
     {
       "id": "umbra-cpp-local-delete-object-instance-integration",
@@ -10476,6 +10476,20 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded Connection Lost regional-selector case creates overlapping source and receiver regions, queues a timestamp-6 regional attribute update for a constrained recipient, faults the source with DELETE_OBJECTS, commits a disjoint receiver range before the callback boundary, and proves the regional reflection is suppressed while the independent receive-order automatic removal remains deliverable at the next gate. It does not claim regional interaction DDM, alternate advances, multiple passels, advisory scope transitions, remote transport, package/JUnit/protected-review evidence, or conformance. RL-098 records the missing Lab cross-cutting relation."
+    },
+    {
+      "id": "umbra-cpp-update-rate-reduction-gate-unit",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-112-l75-22",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l90-27",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l99-30",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l105-32",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l138-43"
+      ],
+      "test_case": "Private update-rate gate spaces best-effort streams and never drops reliable delivery",
+      "tags": ["unit", "object-management", "update-rate-gate", "update-rate-reduction"],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This deterministic private seam proves wall-clock spacing, faster-producer/slower-subscriber suppression, reliable bypass, default no-reduction behavior, and state reset. It is not yet a complete producer-rate measurement, remote transport, MOM, JUnit, protected-review, or conformance scenario."
     }
   ]
 }

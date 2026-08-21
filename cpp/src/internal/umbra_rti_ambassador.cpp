@@ -25,6 +25,7 @@
 #include "internal/reference_time_selection.hpp"
 #include "internal/transportation_type_handle.hpp"
 #include "internal/utf8_string.hpp"
+#include "internal/update_rate_gate.hpp"
 
 #include <RTI/FederateAmbassador.h>
 #include <RTI/encoding/BasicDataElements.h>
@@ -51,6 +52,11 @@
 
 namespace rti1516_2025::umbra_binding_detail {
 namespace {
+
+umbra::detail::UpdateRateGate& updateRateGate() {
+  static umbra::detail::UpdateRateGate gate;
+  return gate;
+}
 
 void validateCallbackModel(CallbackModel callbackModel) {
   switch (callbackModel) {
@@ -3327,6 +3333,32 @@ void queueTimestampedReflectAttributeUpdate(
         return;
       }
 
+      auto const encodedGateKey = umbra::detail::utf8FromWide(
+          federationName + L"/" + std::to_wstring(receivingFederateId) + L"/" +
+          std::to_wstring(objectInstanceHandle) + L"/" +
+          [&passel] {
+            std::wstring value;
+            for (auto const handle : passel.sentAttributeHandles) {
+              value += std::to_wstring(handle) + L",";
+            }
+            return value;
+          }());
+      auto const reliableTransportation = passel.transportationName == "HLAreliable";
+      if (encodedGateKey && !updateRateGate().admit(
+              *encodedGateKey,
+              projection->maximumUpdateRate,
+              reliableTransportation)) {
+        if (retractionMessageId) {
+          std::scoped_lock lock(federationManagementMutex());
+          static_cast<void>(embeddedFederationManagement().registry()
+                                .finishTsoRecipientCallbackSuppressed(
+                                    federationName,
+                                    receivingFederateId,
+                                    *retractionMessageId));
+        }
+        continue;
+      }
+
       callbackBegan = true;
 
       auto const transportationName = umbra::detail::wideFromUtf8(
@@ -3539,6 +3571,8 @@ void queueReceiveOrderAttributeUpdate(
     std::vector<AttributeValue> sentAttributes,
     VariableLengthData userSuppliedTag,
     TransportationTypeHandle transportationType,
+    double maximumUpdateRate = 0.0,
+    bool reliableTransportation = false,
     std::optional<std::set<std::uint64_t>> sentRegionHandles = std::nullopt,
     bool defaultRegionUsed = false) {
   submitReceiveOrderCallback(
@@ -3554,6 +3588,8 @@ void queueReceiveOrderAttributeUpdate(
       sentAttributes = std::move(sentAttributes),
       userSuppliedTag = std::move(userSuppliedTag),
       transportationType = std::move(transportationType),
+      maximumUpdateRate,
+      reliableTransportation,
       sentRegionHandles = std::move(sentRegionHandles),
       defaultRegionUsed](FederateAmbassador& recipient) mutable {
     std::optional<umbra::detail::ReceiveOrderAttributeUpdateRecipient> projection;
@@ -3578,6 +3614,37 @@ void queueReceiveOrderAttributeUpdate(
     AttributeHandleValueMap attributeValues = projectAttributeValues(
         sentAttributes,
         projection->receivedAttributeHandles);
+    if (!reliableTransportation) {
+      for (auto iterator = attributeValues.begin(); iterator != attributeValues.end();) {
+        auto const handle = iterator->first;
+        std::uint64_t numeric = 0;
+        for (auto const candidate : sentAttributeHandles) {
+          if (makeAttributeHandle(candidate) == handle) {
+            numeric = candidate;
+            break;
+          }
+        }
+        auto const rate = projection->maximumUpdateRatesByAttribute.find(numeric);
+        auto const key = federationName + L"/" +
+            std::to_wstring(receivingFederateId) + L"/" +
+            std::to_wstring(objectInstanceHandle) + L"/" +
+            std::to_wstring(numeric);
+        auto const encoded = umbra::detail::utf8FromWide(key);
+        bool const admitted = !encoded ||
+            updateRateGate().admit(*encoded, rate == projection->maximumUpdateRatesByAttribute.end()
+                                             ? maximumUpdateRate
+                                             : rate->second,
+                                   false);
+        if (!admitted) {
+          iterator = attributeValues.erase(iterator);
+        } else {
+          ++iterator;
+        }
+      }
+      if (attributeValues.empty()) {
+        return;
+      }
+    }
     std::optional<RegionHandleSet> optionalSentRegions;
     if (projection->conveyRegionDesignatorSets &&
         (sentRegionHandles || defaultRegionUsed)) {
@@ -6486,6 +6553,9 @@ void UmbraRtiAmbassador::destroyFederationExecution(std::wstring const& federati
   auto destroyed = embeddedFederationManagement().registry().destroy(federationName);
   switch (destroyed.status) {
     case umbra::detail::FederationRegistryStatus::applied:
+      // A later execution may reuse federate/object handle values; do not
+      // carry wall-clock admission history across federation lifetimes.
+      updateRateGate().clear();
       return;
     case umbra::detail::FederationRegistryStatus::federation_does_not_exist:
       throw FederationExecutionDoesNotExist(L"The supplied federation execution does not exist.");
@@ -9742,6 +9812,8 @@ void UmbraRtiAmbassador::updateAttributeValues(
     std::uint64_t recipientId = 0;
     std::vector<std::uint64_t> sentAttributeHandles;
     TransportationTypeHandle transportationType;
+    double maximumUpdateRate = 0.0;
+    bool reliableTransportation = false;
     std::optional<std::set<std::uint64_t>> sentRegionHandles;
     bool defaultRegionUsed = false;
   };
@@ -9771,6 +9843,8 @@ void UmbraRtiAmbassador::updateAttributeValues(
           recipient.federateId,
           passel.sentAttributeHandles,
           transportationType,
+          recipient.maximumUpdateRate,
+          passel.transportationName == "HLAreliable",
           passel.sentRegionHandles.empty()
               ? std::nullopt
               : std::optional<std::set<std::uint64_t>>(passel.sentRegionHandles),
@@ -9800,6 +9874,8 @@ void UmbraRtiAmbassador::updateAttributeValues(
         sentAttributes,
         copiedTag,
         delivery.transportationType,
+        delivery.maximumUpdateRate,
+        delivery.reliableTransportation,
         std::move(delivery.sentRegionHandles),
         delivery.defaultRegionUsed);
   }

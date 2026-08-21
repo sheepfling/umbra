@@ -149,6 +149,7 @@ add_library(umbra_rti STATIC
   cpp/src/internal/reference_time_selection.cpp
   cpp/src/internal/runtime_instrumentation.cpp
   cpp/src/internal/runtime_instrumentation_output.cpp
+  cpp/src/internal/update_rate_gate.cpp
   cpp/src/internal/tso_message_queue.cpp
   cpp/src/internal/umbra_rti_ambassador.cpp
   cpp/src/internal/utf8_string.cpp
@@ -829,6 +830,15 @@ if(BUILD_TESTING)
         NAME umbra.ieee1516_2025.update_rate_subscription_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/update-rate-subscription-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.update_rate_reduction_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/update-rate-reduction-requirements-contract.json
+      )
+      set_tests_properties(
+        umbra.ieee1516_2025.update_rate_reduction_requirements_traceability
+        PROPERTIES LABELS "requirements-lab;traceability;update-rate-reduction"
       )
       add_test(
         NAME umbra.ieee1516_2_2025.fom_advisory_switches_requirements_traceability
