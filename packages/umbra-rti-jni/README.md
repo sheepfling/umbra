@@ -20,13 +20,17 @@ second, Java-side RTI implementation:
   standard-shaped Java values; and
 - translates C++ RTI exception names into Java RTI exception classes.
 
-This is not yet a distributable Java RTI: packaging, reproducible dependency
-acquisition, and release verification remain graduation work. It can compile
-against the repository's small API declaration JAR for fixture tests or an
-independently obtained IEEE 1516.1-2025 Java API JAR for consumer validation.
-The latter path has passed the Java smoke test and the C++ → JNI → Java →
-JPype → Python integration suite. Umbra does not track or repackage that API
-JAR. The façade never inherits mock ambassador services: every standard
+The bridge now has a reproducible staging path, but it is not a Maven/Gradle
+publication and Umbra does not claim redistribution rights for the IEEE API.
+`package.ps1` stages the bridge JAR and native library, runs the release
+verifier, and records the API coordinate, source, and SHA-256 in a dependency
+manifest. `-IncludeJavaApiJar` can copy an API JAR supplied by the release
+owner beside the bridge for a directly consumable Python artifact directory;
+without that switch, the manifest records the external API dependency without
+copying it. It can compile against the repository's small API declaration JAR
+for fixture tests or an independently obtained IEEE 1516.1-2025 Java API JAR
+for consumer validation. The latter path has passed the Java smoke test and the
+C++ → JNI → Java → JPype → Python integration suite. The façade never inherits mock ambassador services: every standard
 operation either crosses JNI to C++ or raises `RTIinternalError` as explicitly
 unbound. The compact fixture is retained for Java compilation and smoke
 coverage; JPype/JNI logical-time conformance uses the independently obtained
@@ -435,14 +439,38 @@ top-level API JAR beside `umbra-rti-jni.jar`, that JAR is selected; multiple
 siblings remain explicit-only so dependencies cannot be mistaken for the
 standards API.
 
+For a release-style staging directory, use the packaging helper. The API JAR
+is copied only when `-IncludeJavaApiJar` is explicit, which keeps the standard
+dependency and its redistribution decision visible:
+
+```powershell
+.\package.ps1 `
+  -BuildDirectory $bridgeDirectory `
+  -JavaApiJar C:\path\to\ieee-1516.1-2025-java-api.jar `
+  -OutputDirectory (Join-Path $bridgeDirectory 'release') `
+  -JavaApiCoordinate 'se.pitch.oss.fedpro:hla-4-api' `
+  -JavaApiVersion '2.1.0' `
+  -JavaApiSource 'https://repo1.maven.org/maven2/se/pitch/oss/fedpro/hla-4-api/2.1.0/hla-4-api-2.1.0.jar' `
+  -IncludeJavaApiJar
+```
+
+The resulting directory contains `umbra-rti-jni.jar`, the platform native
+library, `umbra-rti-jni-manifest.json`, and
+`umbra-rti-jni-dependencies.json` (plus the copied API JAR when requested).
+It can be supplied as `artifact_directory` to `JniRtiFactory`; the adapter then
+uses the adjacent API JAR and the standard Java `ServiceLoader` route.
+
 The Python integration test starts a fresh JPype JVM with those first two JARs
 and `-Dumbra.rti.jni.library=<absolute DLL path>`. It is opt-in because it
 builds the embedded C++ development profile:
 
-The external IEEE-JAR lane intentionally leaves `rti_factory_name` unset in
-its conformance configuration. `RtiFactoryFactory.getRtiFactory()` therefore
-discovers `NativeRtiFactory` through the standard Java `ServiceLoader`; the
-Python adapter does not select the C++ bridge by a private factory shortcut.
+The JNI adapter calls the standard `RtiFactoryFactory` API and selects the
+bridge through its standard named-factory overload (`Umbra JNI C++ RTI`). This
+still resolves through Java `ServiceLoader`; the name prevents an unrelated
+provider descriptor in an application class path from winning discovery. The
+generic JPype provider can leave `rti_factory_name` unset when the application
+intentionally wants default `ServiceLoader` selection. The Python JNI adapter
+does not contain a private factory implementation or a second RTI state model.
 Applications that want this route through ordinary Python entry-point
 discovery can install the small companion `umbra-rti-jni-python` package. It
 only supplies artifact paths and delegates to `umbra-rti-jpype`; it does not

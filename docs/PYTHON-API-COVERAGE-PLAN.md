@@ -472,9 +472,21 @@ is created or bundled. The normal Java smoke test then discovers Umbra through
 versioned IEEE Java API artifact outside Umbra until its source, redistribution
 terms, and digest are explicitly recorded. The checked-in fixture remains an
 integration declaration set, not a replacement for that release dependency.
-The external JPype conformance configuration also leaves the factory name
-unset, proving that Python reaches the same C++ provider through the standard
-Java `RtiFactoryFactory.getRtiFactory()` discovery path.
+The JNI conformance configuration calls the standard Java
+`RtiFactoryFactory` named-factory overload with Umbra's published provider
+name, so an unrelated provider descriptor cannot win when an application
+classpath contains several providers. The generic JPype provider still leaves
+the name unset when default `ServiceLoader` selection is desired; both routes
+use the standard Java factory surface rather than a Python-side provider
+shortcut.
+The companion `packages/umbra-rti-jni/package.ps1` stages the bridge JAR and
+native library into a release directory, reruns the verifier, and writes both
+the artifact manifest and an explicit Java API dependency manifest. With
+`-IncludeJavaApiJar`, the supplied standard API JAR is copied beside the bridge
+so `JniRtiFactory(artifact_directory=...)` can discover it without a separate
+path argument; without that switch, the API remains an external dependency.
+This closes artifact-directory onboarding while leaving Maven/Gradle
+publication and redistribution approval to the release owner.
 
 ## Next concrete slice
 
@@ -882,12 +894,14 @@ the peer completes the barrier.
 The immediate/evoked scope vector also proves synchronous versus queued
 `attributesInScope`/`attributesOutOfScope` delivery, stale queued-transition
 suppression, and advisory-switch gating through the standard Java callbacks.
-The next slice is multi-member save/restore callback sequencing and the
-remaining cross-service temporal state interactions, followed by broader
-regional association matrices beyond these multi-member, two-dimensional, and
-recipient-isolation vectors, provider-specific arithmetic edge cases, and
-malformed-input matrices beyond the now-covered logical-time, standard
-handle-factory, and primitive/composite encoder payload boundaries.
+The next slice is the remaining cross-service temporal state interactions,
+followed by broader regional association matrices beyond these multi-member,
+two-dimensional, and recipient-isolation vectors, provider-specific arithmetic
+edge cases, and malformed-input matrices beyond the now-covered logical-time,
+standard handle-factory, and primitive/composite encoder payload boundaries.
+The latest federation-management vectors also cover mixed immediate/evoked
+callback sequencing and C++ save/restore MOM status/request/confirmation/
+initiation/completion reports through the external Java API.
 The C++-only
 extendable-variant binding is now implemented and tested as an explicit native
 factory extension; it does not widen the shared Java-shaped contract.
