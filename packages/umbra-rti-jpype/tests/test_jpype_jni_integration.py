@@ -13119,6 +13119,18 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     time.sleep(0.025)
                 self.fail("timed out waiting for the Java interaction-count MOM value")
 
+            def wait_for_subject_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    for reflection in subject_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail("timed out waiting for the receiver MOM value through Java")
+
             try:
                 subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
                 subject_connected = True
@@ -13128,7 +13140,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     federation_name, str(fom_module), "HLAinteger64Time"
                 )
                 created = True
-                observer.joinFederationExecution(
+                observer_handle = observer.joinFederationExecution(
                     "interaction-count-observer",
                     federation_name,
                     federateName="interaction-count-observer",
@@ -13174,6 +13186,36 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject_object = initial[0]
                 encoder = self.factory.getEncoderFactory()
 
+                subject_mom_class = subject.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                subject_federate_handle_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAfederateHandle"
+                )
+                interactions_received_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAinteractionsReceived"
+                )
+                directed_interactions_received_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAdirectedInteractionsReceived"
+                )
+                subject.subscribeObjectClassAttributes(
+                    subject_mom_class,
+                    AttributeHandleSet(
+                        [
+                            subject_federate_handle_attribute,
+                            interactions_received_attribute,
+                            directed_interactions_received_attribute,
+                        ]
+                    ),
+                    active=True,
+                )
+                observer_mom = wait_for_subject_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        subject_federate_handle_attribute
+                    )
+                    == observer_handle.encodedValue
+                )[0]
+
                 def request_count(attribute: AttributeHandle, expected: int) -> None:
                     before = len(observer_callbacks.reflected_attributes)
                     observer.requestAttributeValueUpdate(
@@ -13192,6 +13234,30 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                         return value.getValue() == expected
 
                     reflection = wait_for_reflection(is_expected)
+                    value = encoder.createHLAinteger32BE()
+                    value.decode(dict(reflection[1])[attribute])
+                    self.assertEqual(value.getValue(), expected)
+
+                def request_subject_count(
+                    attribute: AttributeHandle, expected: int
+                ) -> None:
+                    before = len(subject_callbacks.reflected_attributes)
+                    subject.requestAttributeValueUpdate(
+                        observer_mom, AttributeHandleSet([attribute]), b""
+                    )
+
+                    def is_expected(candidate: tuple[object, ...]) -> bool:
+                        if (
+                            len(subject_callbacks.reflected_attributes) <= before
+                            or candidate[0] != observer_mom
+                            or attribute not in set(candidate[1])
+                        ):
+                            return False
+                        value = encoder.createHLAinteger32BE()
+                        value.decode(dict(candidate[1])[attribute])
+                        return value.getValue() == expected
+
+                    reflection = wait_for_subject_reflection(is_expected)
                     value = encoder.createHLAinteger32BE()
                     value.decode(dict(reflection[1])[attribute])
                     self.assertEqual(value.getValue(), expected)
@@ -13217,6 +13283,14 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject.publishObjectClassAttributes(
                     object_class, AttributeHandleSet([efficiency_attribute])
                 )
+                observer_efficiency_attribute = observer.getAttributeHandle(
+                    observer_object_class, "Efficiency"
+                )
+                observer.subscribeObjectClassAttributes(
+                    observer_object_class,
+                    AttributeHandleSet([observer_efficiency_attribute]),
+                    active=True,
+                )
                 subject.publishObjectClassDirectedInteractions(
                     object_class, InteractionClassHandleSet([interaction])
                 )
@@ -13231,12 +13305,16 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject.sendInteraction(interaction, ParameterHandleValueMap(), b"")
                 request_count(interactions_sent_attribute, 1)
                 request_count(directed_interactions_sent_attribute, 0)
+                request_subject_count(interactions_received_attribute, 1)
+                request_subject_count(directed_interactions_received_attribute, 0)
 
                 subject.sendDirectedInteraction(
                     interaction, target, ParameterHandleValueMap(), b""
                 )
                 request_count(interactions_sent_attribute, 2)
                 request_count(directed_interactions_sent_attribute, 1)
+                request_subject_count(interactions_received_attribute, 2)
+                request_subject_count(directed_interactions_received_attribute, 1)
             finally:
                 for ambassador, joined in (
                     (subject, subject_joined),

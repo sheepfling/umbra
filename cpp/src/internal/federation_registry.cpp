@@ -3443,6 +3443,33 @@ EmbeddedFederationRegistry::recordSuccessfulInteractionSend(
   return FederationRegistryStatus::applied;
 }
 
+FederationRegistryStatus
+EmbeddedFederationRegistry::recordSuccessfulInteractionReceipt(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    bool directed) {
+  auto instrumentationScope = beginInstrumentation(
+      "recordSuccessfulInteractionReceipt");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return FederationRegistryStatus::federation_does_not_exist;
+  }
+  auto member = federation->second.members.find(federateId);
+  if (member == federation->second.members.end()) {
+    return FederationRegistryStatus::federate_not_member;
+  }
+  if (member->second.successfulInteractionsReceivedCount !=
+      std::numeric_limits<std::uint64_t>::max()) {
+    ++member->second.successfulInteractionsReceivedCount;
+  }
+  if (directed && member->second.successfulDirectedInteractionsReceivedCount !=
+                      std::numeric_limits<std::uint64_t>::max()) {
+    ++member->second.successfulDirectedInteractionsReceivedCount;
+  }
+  return FederationRegistryStatus::applied;
+}
+
 FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRestore(
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
@@ -8181,6 +8208,27 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     // Directed sends are a separately reported subset of the total
     // interaction-send count, keyed from the same accepted-service ledger.
     auto const count = member->second.successfulDirectedInteractionsSentCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAinteractionsReceived") {
+    // HLAstandardMIM defines this HLAcount as accepted Receive Interaction
+    // callback invocations at the represented joined federate. The callback
+    // boundary, not sender fan-out, is the source of the total.
+    auto const count = member->second.successfulInteractionsReceivedCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAdirectedInteractionsReceived") {
+    // Directed receives are a separately reported subset of all interaction
+    // callbacks admitted at the receiver boundary.
+    auto const count = member->second.successfulDirectedInteractionsReceivedCount;
     auto const encodedCount = count >
             static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
         ? std::numeric_limits<std::int32_t>::max()

@@ -923,6 +923,10 @@ The interaction-send MOM companion counts accepted ordinary and directed
 `HLAinteractionsSent` at 0/1/2 and the directed subset
 `HLAdirectedInteractionsSent` at 0/0/1 through standard Java
 `HLAinteger32BE` reflection in both callback models.
+The same two-member vector observes the receiver's
+`HLAinteractionsReceived` at 0/1/2 and
+`HLAdirectedInteractionsReceived` at 0/0/1, with the C++ ledger advanced
+immediately before each accepted Java callback.
 
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`

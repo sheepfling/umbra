@@ -2079,6 +2079,18 @@ std::shared_ptr<umbra::detail::FederateTimeState> lookupFederateTimeState(
       federateId);
 }
 
+void recordSuccessfulInteractionReceipt(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    bool directed) {
+  std::scoped_lock lock(federationManagementMutex());
+  static_cast<void>(embeddedFederationManagement().registry()
+                        .recordSuccessfulInteractionReceipt(
+                            federationName,
+                            receivingFederateId,
+                            directed));
+}
+
 // Receive-order messages use the ordinary callback route, but their delivery
 // is additionally gated by the recipient's temporal state.  Deferring the
 // route invocation (rather than the projected callback payload) preserves the
@@ -3041,6 +3053,7 @@ void queueReceiveOrderInteraction(
         }
       }
     }
+    recordSuccessfulInteractionReceipt(federationName, receivingFederateId, false);
     recipient.receiveInteraction(
         makeInteractionClassHandle(projection->receivedInteractionClassHandle),
         parameterValues,
@@ -3369,6 +3382,7 @@ void queueTimestampedReceiveOrderInteraction(
         }
       }
     }
+    recordSuccessfulInteractionReceipt(federationName, receivingFederateId, false);
     recipient.receiveInteraction(
         makeInteractionClassHandle(projection->receivedInteractionClassHandle),
         parameterValues,
@@ -3586,6 +3600,7 @@ void queueReceiveOrderDirectedInteraction(
     ParameterHandleValueMap parameterValues = projectInteractionParameterValues(
         sentParameters,
         projection->receivedParameterHandles);
+    recordSuccessfulInteractionReceipt(federationName, receivingFederateId, true);
     recipient.receiveDirectedInteraction(
         makeInteractionClassHandle(projection->receivedInteractionClassHandle),
         makeObjectInstanceHandle(projection->objectInstanceHandle),
@@ -3677,6 +3692,7 @@ void queueTimestampedReceiveOrderDirectedInteraction(
     if (retractionMessageId) {
       retraction.emplace(makeMessageRetractionHandle(*retractionMessageId));
     }
+    recordSuccessfulInteractionReceipt(federationName, receivingFederateId, true);
     recipient.receiveDirectedInteraction(
         makeInteractionClassHandle(projection->receivedInteractionClassHandle),
         makeObjectInstanceHandle(projection->objectInstanceHandle),

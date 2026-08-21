@@ -173,6 +173,12 @@ struct FederateMembership {
   // directed-interaction MOM counter while still contributing to the total.
   std::uint64_t successfulInteractionsSentCount = 0;
   std::uint64_t successfulDirectedInteractionsSentCount = 0;
+  // HLAinteractionsReceived and HLAdirectedInteractionsReceived count
+  // accepted Receive Interaction callback invocations at this joined
+  // federate. Keep the directed subset separate while retaining it in the
+  // total interaction-receipt count.
+  std::uint64_t successfulInteractionsReceivedCount = 0;
+  std::uint64_t successfulDirectedInteractionsReceivedCount = 0;
 };
 
 // A federation-owned snapshot captured while the registry holds its member
@@ -2246,6 +2252,12 @@ class EmbeddedFederationRegistry final {
   // callback or recipient counts.
   [[nodiscard]] FederationRegistryStatus
   recordSuccessfulInteractionSend(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      bool directed);
+
+  [[nodiscard]] FederationRegistryStatus
+  recordSuccessfulInteractionReceipt(
       std::wstring const& federationName,
       std::uint64_t federateId,
       bool directed);
