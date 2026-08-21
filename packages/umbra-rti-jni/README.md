@@ -833,6 +833,12 @@ members complete restore, `getKnownObjectClassHandle` maps the C++
 `ObjectInstanceNotKnown` result through JNI and JPype, proving the post-save
 object and declarations were rolled back while the Java members remain joined.
 
+The regional-object restore companion saves an overlapping source/subscriber
+association, moves the source region to a disjoint boundary after save, and
+restores through both standard Java ambassadors. The restored C++ range and
+association then deliver a later update again, with the source `RegionHandle`
+preserved at the JPype callback boundary.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and

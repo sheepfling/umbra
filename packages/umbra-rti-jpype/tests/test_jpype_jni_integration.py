@@ -5174,6 +5174,233 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             peer._implementation.close()
             owner._implementation.close()
 
+    def test_cpp_jni_java_jpype_restore_rewinds_regional_object_association(
+        self,
+    ) -> None:
+        """Restore rewinds C++ regional object ranges and association state."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-restore-regional-object-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        receiver = self.factory.getRtiAmbassador()
+        owner_callbacks = _JniCallbacks()
+        receiver_callbacks = _JniCallbacks()
+        owner_connected = receiver_connected = False
+        owner_joined = receiver_joined = created = False
+        source_region: RegionHandle | None = None
+        receiver_region: RegionHandle | None = None
+        object_instance: ObjectInstanceHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                owner.evokeCallback(0.0)
+                receiver.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
+            owner_connected = True
+            receiver.connect(receiver_callbacks, CallbackModel.HLA_EVOKED)
+            receiver_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner.joinFederationExecution(
+                "jni-restore-regional-owner",
+                federation_name,
+                federateName="jni-restore-regional-owner",
+            )
+            owner_joined = True
+            receiver.joinFederationExecution(
+                "jni-restore-regional-receiver",
+                federation_name,
+                federateName="jni-restore-regional-receiver",
+            )
+            receiver_joined = True
+
+            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            receiver_class = receiver.getObjectClassHandle(
+                "HLAobjectRoot.Food.Drink.Soda"
+            )
+            owner_attribute = owner.getAttributeHandle(owner_class, "Flavor")
+            receiver_attribute = receiver.getAttributeHandle(receiver_class, "Flavor")
+            owner.publishObjectClassAttributes(
+                owner_class, AttributeHandleSet([owner_attribute])
+            )
+
+            owner_dimension = owner.getDimensionHandle("SodaFlavor")
+            receiver_dimension = receiver.getDimensionHandle("SodaFlavor")
+            source_region = owner.createRegion(DimensionHandleSet([owner_dimension]))
+            receiver_region = receiver.createRegion(
+                DimensionHandleSet([receiver_dimension])
+            )
+            owner.setRangeBounds(source_region, owner_dimension, RangeBounds(0, 2))
+            receiver.setRangeBounds(
+                receiver_region, receiver_dimension, RangeBounds(1, 3)
+            )
+            owner.commitRegionModifications(RegionHandleSet([source_region]))
+            receiver.commitRegionModifications(RegionHandleSet([receiver_region]))
+
+            owner_pairs = owner.getAttributeSetRegionSetPairListFactory().create(1)
+            owner_pairs.add(
+                AttributeSetRegionSetPair(
+                    AttributeHandleSet([owner_attribute]),
+                    RegionHandleSet([source_region]),
+                )
+            )
+            receiver_pairs = receiver.getAttributeSetRegionSetPairListFactory().create(1)
+            receiver_pairs.add(
+                AttributeSetRegionSetPair(
+                    AttributeHandleSet([receiver_attribute]),
+                    RegionHandleSet([receiver_region]),
+                )
+            )
+            receiver.subscribeObjectClassAttributesWithRegions(
+                receiver_class, receiver_pairs
+            )
+            receiver.setConveyRegionDesignatorSetsSwitch(True)
+            object_instance = owner.registerObjectInstanceWithRegions(
+                owner_class, owner_pairs
+            )
+            for _ in range(30):
+                drain(1)
+                if receiver_callbacks.discovered_objects:
+                    break
+            self.assertEqual(
+                receiver_callbacks.discovered_objects[-1][0], object_instance
+            )
+
+            save_label = f"jni-restore-regional-object-save-{uuid4()}"
+            owner.requestFederationSave(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    owner_callbacks.save_initiations == [save_label]
+                    and receiver_callbacks.save_initiations == [save_label]
+                ):
+                    break
+            self.assertEqual(owner_callbacks.save_initiations, [save_label])
+            self.assertEqual(receiver_callbacks.save_initiations, [save_label])
+            owner.federateSaveBegun()
+            receiver.federateSaveBegun()
+            owner.federateSaveComplete()
+            receiver.federateSaveComplete()
+            for _ in range(30):
+                drain(1)
+                if (
+                    owner_callbacks.saved_count == 1
+                    and receiver_callbacks.saved_count == 1
+                ):
+                    break
+            self.assertEqual(owner_callbacks.saved_count, 1)
+            self.assertEqual(receiver_callbacks.saved_count, 1)
+
+            # Move the source out of the receiver's range after the save. The
+            # saved image must restore both the range and the association.
+            owner.setRangeBounds(source_region, owner_dimension, RangeBounds(3, 4))
+            owner.commitRegionModifications(RegionHandleSet([source_region]))
+            receiver_callbacks.reflected_attributes.clear()
+            receiver_callbacks.regional_reflections.clear()
+            owner.updateAttributeValues(
+                object_instance,
+                AttributeHandleValueMap({owner_attribute: b"post-save-disjoint"}),
+                b"post-save-disjoint-tag",
+            )
+            drain()
+            self.assertEqual(receiver_callbacks.reflected_attributes, [])
+            self.assertEqual(receiver_callbacks.regional_reflections, [])
+
+            owner.requestFederationRestore(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    owner_callbacks.restore_initiations
+                    and receiver_callbacks.restore_initiations
+                ):
+                    break
+            self.assertEqual(owner_callbacks.restore_acceptances, [save_label])
+            self.assertEqual(owner_callbacks.restore_begun, 1)
+            self.assertEqual(receiver_callbacks.restore_begun, 1)
+            owner.federateRestoreComplete()
+            receiver.federateRestoreComplete()
+            for _ in range(30):
+                drain(1)
+                if (
+                    owner_callbacks.restore_completions == 1
+                    and receiver_callbacks.restore_completions == 1
+                ):
+                    break
+            self.assertEqual(owner_callbacks.restore_completions, 1)
+            self.assertEqual(receiver_callbacks.restore_completions, 1)
+            self.assertEqual(
+                owner.getRangeBounds(source_region, owner_dimension), RangeBounds(0, 2)
+            )
+
+            receiver_callbacks.reflected_attributes.clear()
+            receiver_callbacks.regional_reflections.clear()
+            owner.updateAttributeValues(
+                object_instance,
+                AttributeHandleValueMap({owner_attribute: b"post-restore"}),
+                b"post-restore-tag",
+            )
+            for _ in range(30):
+                drain(1)
+                if (
+                    receiver_callbacks.reflected_attributes
+                    or receiver_callbacks.regional_reflections
+                ):
+                    break
+            reflections = (
+                receiver_callbacks.reflected_attributes
+                + receiver_callbacks.regional_reflections
+            )
+            self.assertEqual(len(reflections), 1)
+            self.assertEqual(reflections[0][0], object_instance)
+            self.assertEqual(
+                reflections[0][1],
+                AttributeHandleValueMap({receiver_attribute: b"post-restore"}),
+            )
+            self.assertEqual(reflections[0][2], b"post-restore-tag")
+            self.assertEqual(
+                reflections[0][5], RegionHandleSet([RegionHandle(source_region.encodedValue)])
+            )
+        finally:
+            if owner_joined:
+                try:
+                    owner.resignFederationExecution(
+                        ResignAction.DELETE_OBJECTS_THEN_DIVEST
+                    )
+                except Exception:
+                    pass
+            if receiver_joined:
+                try:
+                    receiver.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if receiver_connected:
+                try:
+                    receiver.disconnect()
+                except Exception:
+                    pass
+            if owner_connected:
+                try:
+                    owner.disconnect()
+                except Exception:
+                    pass
+            receiver._implementation.close()
+            owner._implementation.close()
+
     def test_cpp_jni_java_jpype_restore_reschedules_pending_time_advance(
         self,
     ) -> None:
