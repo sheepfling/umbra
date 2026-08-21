@@ -518,8 +518,8 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route runs 161 integration cases (all 161 passed) with 78
-subtests, including 143 functional vectors, both named and no-argument
+The external route runs 162 integration cases (all 162 passed) with 80
+subtests, including 145 functional vectors, both named and no-argument
 standard `RtiFactoryFactory` discovery paths, plus the artifact-level
 non-shadowing/ServiceLoader gate. It includes the focused
 federation-lifecycle exception vector (including same-member duplicate-join
@@ -766,7 +766,7 @@ variable-array counts, and signed integer primitive decoders preserve
 `DecoderException` at the raw Java boundary as well as through the Python
 adapter.
 The complete JPype test-package discovery against the same external artifact
-executes 210 discovered tests (209 passed and one deliberate skip).
+executes 211 discovered tests (210 passed and one deliberate skip).
 
 The object-name reservation matrix also preserves standard validation and
 state semantics through the external Java API: disconnected and unjoined
@@ -883,6 +883,11 @@ The `HLAGALT`/`HLALITS` vector derives defined federation bounds from the
 regulator's C++ time state, observes the same values through direct and
 periodic MOM reflection, and verifies both attributes return the standard
 empty logical-time encoding after regulation is disabled.
+The companion `HLATSOlength` vector queues a timestamped interaction for a
+constrained federate, observes the standard HLAcount through direct and
+periodic MOM reflection, and verifies the count returns to zero after the
+grant delivers the queued interaction. Both MOM vectors execute through the
+external IEEE Java API, JNI, and JPype under `HLA_EVOKED` and `HLA_IMMEDIATE`.
 
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`

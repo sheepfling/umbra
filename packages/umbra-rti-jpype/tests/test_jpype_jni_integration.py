@@ -11724,6 +11724,261 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_tso_length_tracks_queue(
+        self,
+    ) -> None:
+        """Expose queued timestamped work through the standard MOM Java path."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "parameter-handle-provider-fom.xml"
+        )
+
+        def run_scenario(callback_model: CallbackModel) -> None:
+            federation_name = f"python-jni-tso-length-{uuid4()}"
+            target = self.factory.getRtiAmbassador()
+            publisher = self.factory.getRtiAmbassador()
+            observer = self.factory.getRtiAmbassador()
+            target_callbacks = _JniCallbacks()
+            publisher_callbacks = _JniCallbacks()
+            observer_callbacks = _JniCallbacks()
+            target_connected = publisher_connected = observer_connected = False
+            target_joined = publisher_joined = observer_joined = created = False
+
+            def pump() -> None:
+                if callback_model is CallbackModel.HLA_EVOKED:
+                    observer.evokeCallback(0.0)
+
+            def wait_for_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    for reflection in observer_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail("timed out waiting for the standard Java TSO-length MOM value")
+
+            try:
+                target.connect(target_callbacks, CallbackModel.HLA_EVOKED)
+                target_connected = True
+                publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+                publisher_connected = True
+                observer.connect(observer_callbacks, callback_model)
+                observer_connected = True
+                target.createFederationExecution(
+                    federation_name, str(fom_module), "HLAinteger64Time"
+                )
+                created = True
+                observer.joinFederationExecution(
+                    "tso-length-observer",
+                    federation_name,
+                    federateName="tso-length-observer",
+                )
+                observer_joined = True
+
+                mom_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                federate_handle_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAfederateHandle"
+                )
+                tso_length_attribute = observer.getAttributeHandle(
+                    mom_class, "HLATSOlength"
+                )
+                observer.subscribeObjectClassAttributes(
+                    mom_class,
+                    AttributeHandleSet(
+                        [federate_handle_attribute, tso_length_attribute]
+                    ),
+                    active=True,
+                )
+
+                target_handle = target.joinFederationExecution(
+                    "tso-length-target",
+                    federation_name,
+                    federateName="tso-length-target",
+                )
+                target_joined = True
+                publisher.joinFederationExecution(
+                    "tso-length-publisher",
+                    federation_name,
+                    federateName="tso-length-publisher",
+                )
+                publisher_joined = True
+                initial = wait_for_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        federate_handle_attribute
+                    )
+                    == target_handle.encodedValue
+                )
+                target_object = initial[0]
+                reliable = observer.getTransportationTypeHandle("HLAreliable")
+                encoder = self.factory.getEncoderFactory()
+
+                def assert_rti_reflection(reflection: tuple[object, ...]) -> None:
+                    self.assertEqual(reflection[0], target_object)
+                    self.assertEqual(reflection[3], reliable)
+                    self.assertEqual(reflection[2], b"")
+                    self.assertFalse(any(reflection[4].encodedValue[4:]))
+
+                interaction_class = publisher.getInteractionClassHandle(
+                    "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
+                )
+                publisher.publishInteractionClass(interaction_class)
+                publisher.changeInteractionOrderType(
+                    interaction_class, OrderType.TIMESTAMP
+                )
+                target.subscribeInteractionClass(interaction_class)
+                target.enableTimeConstrained()
+                for _ in range(20):
+                    target.evokeCallback(0.0)
+                    if target_callbacks.time_constrained_enabled:
+                        break
+                self.assertTrue(target_callbacks.time_constrained_enabled)
+                self.assertEqual(target.queryLogicalTime().getTime(), 0)
+                time_factory = publisher.getTimeFactory()
+                publisher.enableTimeRegulation(
+                    time_factory.makeLogicalTimeInterval(1)
+                )
+                for _ in range(20):
+                    publisher.evokeCallback(0.0)
+                    if publisher_callbacks.time_regulation_enabled:
+                        break
+                self.assertTrue(publisher_callbacks.time_regulation_enabled)
+                retraction = publisher.sendInteractionWithTime(
+                    interaction_class,
+                    ParameterHandleValueMap(),
+                    time_factory.makeLogicalTime(2),
+                    b"",
+                )
+                self.assertTrue(retraction.isValid())
+
+                def request_length(expected: int) -> tuple[object, ...]:
+                    before = len(observer_callbacks.reflected_attributes)
+                    observer.requestAttributeValueUpdate(
+                        target_object,
+                        AttributeHandleSet([tso_length_attribute]),
+                        b"",
+                    )
+
+                    def is_expected(candidate: tuple[object, ...]) -> bool:
+                        if (
+                            len(observer_callbacks.reflected_attributes) <= before
+                            or candidate[0] != target_object
+                            or tso_length_attribute not in set(candidate[1])
+                        ):
+                            return False
+                        candidate_count = encoder.createHLAinteger32BE()
+                        candidate_count.decode(
+                            dict(candidate[1])[tso_length_attribute]
+                        )
+                        return candidate_count.getValue() == expected
+
+                    reflection = wait_for_reflection(
+                        is_expected
+                    )
+                    assert_rti_reflection(reflection)
+                    count = encoder.createHLAinteger32BE()
+                    count.decode(dict(reflection[1])[tso_length_attribute])
+                    self.assertEqual(count.getValue(), expected)
+                    return reflection
+
+                request_length(1)
+
+                set_timing = observer.getInteractionClassHandle(
+                    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
+                )
+                federate_parameter = observer.getParameterHandle(
+                    set_timing, "HLAfederate"
+                )
+                period_parameter = observer.getParameterHandle(
+                    set_timing, "HLAreportPeriod"
+                )
+                observer.sendInteraction(
+                    set_timing,
+                    ParameterHandleValueMap(
+                        {
+                            federate_parameter: target_handle.encodedValue,
+                            period_parameter: encoder.createHLAinteger32BE(
+                                1
+                            ).toByteArray(),
+                        }
+                    ),
+                    b"",
+                )
+                before_periodic = len(observer_callbacks.reflected_attributes)
+                periodic = wait_for_reflection(
+                    lambda reflection: len(
+                        observer_callbacks.reflected_attributes
+                    )
+                    > before_periodic
+                    and reflection[0] == target_object
+                    and tso_length_attribute in set(reflection[1])
+                )
+                assert_rti_reflection(periodic)
+                periodic_count = encoder.createHLAinteger32BE()
+                periodic_count.decode(dict(periodic[1])[tso_length_attribute])
+                self.assertEqual(periodic_count.getValue(), 1)
+
+                observer.sendInteraction(
+                    set_timing,
+                    ParameterHandleValueMap(
+                        {
+                            federate_parameter: target_handle.encodedValue,
+                            period_parameter: encoder.createHLAinteger32BE(
+                                0
+                            ).toByteArray(),
+                        }
+                    ),
+                    b"",
+                )
+                target.timeAdvanceRequest(time_factory.makeLogicalTime(2))
+                publisher.timeAdvanceRequest(time_factory.makeLogicalTime(2))
+                for _ in range(20):
+                    publisher.evokeCallback(0.0)
+                    target.evokeCallback(0.0)
+                    if target_callbacks.timestamped_interactions:
+                        break
+                self.assertTrue(target_callbacks.timestamped_interactions)
+                self.assertTrue(target_callbacks.time_advance_grants)
+                request_length(0)
+            finally:
+                for ambassador, joined in (
+                    (target, target_joined),
+                    (publisher, publisher_joined),
+                    (observer, observer_joined),
+                ):
+                    if joined:
+                        try:
+                            ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                        except Exception:
+                            pass
+                if created:
+                    try:
+                        target.destroyFederationExecution(federation_name)
+                    except Exception:
+                        pass
+                for ambassador, connected in (
+                    (observer, observer_connected),
+                    (publisher, publisher_connected),
+                    (target, target_connected),
+                ):
+                    if connected:
+                        try:
+                            ambassador.disconnect()
+                        except Exception:
+                            pass
+                    ambassador._implementation.close()
+
+        for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
+            with self.subTest(callback_model=callback_model):
+                run_scenario(callback_model)
+
     def test_cpp_jni_java_jpype_joined_federate_mom_snapshot_uses_join_fom_modules(
         self,
     ) -> None:

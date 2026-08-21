@@ -7969,6 +7969,36 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
         ? timeSnapshot->lookahead->encode()
         : rti1516_2025::VariableLengthData{};
   }
+  if (*attributeName == "HLAGALT" || *attributeName == "HLALITS") {
+    // HLAGALT and HLALITS are Periodic HLAlogicalTime values in the official
+    // HLAstandardMIM.  Reuse the same federation-owned snapshot and
+    // calculator that back Query GALT/Query LITS instead of deriving a MOM
+    // value from a separate, potentially stale view of the time state.  The
+    // MIM represents an undefined bound with the empty HLAlogicalTime array.
+    auto const execution = makeTimeSnapshot(federation);
+    if (!execution) {
+      return std::nullopt;
+    }
+    auto const bounds = FederationTimeBoundsCalculator{}.calculate(
+        *execution,
+        object.joinedFederateId);
+    auto const& selected = *attributeName == "HLAGALT" ? bounds.galt : bounds.lits;
+    return selected ? selected->encode() : rti1516_2025::VariableLengthData{};
+  }
+  if (*attributeName == "HLATSOlength") {
+    // HLAstandardMIM defines HLATSOlength as HLAcount: the number of TSO
+    // messages queued for the joined federate.  The federation coordinator's
+    // recipient-scoped queue is the authoritative source; in-transit and
+    // already-completed delivery state are intentionally not counted as
+    // queued messages.
+    auto const tso = federation.timeCoordinator.tsoSnapshotFor(
+        object.joinedFederateId);
+    auto const count = tso.queued.size() >
+            static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(tso.queued.size());
+    return rti1516_2025::HLAinteger32BE{count}.encode();
+  }
   if (*attributeName == "HLAtimeConstrained") {
     return rti1516_2025::HLAboolean{timeSnapshot->timeConstrained}.encode();
   }
