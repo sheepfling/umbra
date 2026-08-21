@@ -797,6 +797,13 @@ ownership services before the constrained recipient's grant, and then verifies
 through JPype that the original producer handle, copied value/tag, timestamp,
 `TIMESTAMP` order metadata, and live message-retraction handle are preserved.
 
+The companion If Available order-reset vector sets the old owner's per-instance
+attribute order to `TIMESTAMP`, transfers ownership through the standard
+`attributeOwnershipAcquisitionIfAvailable` path, and verifies the acquiring
+Java member's timestamped update returns an invalid retraction while the
+callback carries `RECEIVE` sent/received order metadata. This keeps the C++
+ownership/order state authoritative through JNI, Java, and JPype.
+
 The companion restore vector saves the same C++ object while federate A owns its
 attribute, transfers ownership to federate B after save completion, and restores
 the image through both standard Java ambassadors. The post-restore ownership

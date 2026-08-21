@@ -9975,6 +9975,212 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             acquirer._implementation.close()
             owner._implementation.close()
 
+    def test_cpp_jni_java_jpype_if_available_transfer_resets_attribute_order(
+        self,
+    ) -> None:
+        """Reset an old owner's instance order override through If Available."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-if-available-order-reset-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        acquirer = self.factory.getRtiAmbassador()
+        observer = self.factory.getRtiAmbassador()
+        owner_callbacks = _JniCallbacks()
+        acquirer_callbacks = _JniCallbacks()
+        observer_callbacks = _JniCallbacks()
+        owner_connected = acquirer_connected = observer_connected = False
+        owner_joined = acquirer_joined = observer_joined = created = False
+        object_instance: ObjectInstanceHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                owner.evokeCallback(0.0)
+                acquirer.evokeCallback(0.0)
+                observer.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
+            owner_connected = True
+            acquirer.connect(acquirer_callbacks, CallbackModel.HLA_EVOKED)
+            acquirer_connected = True
+            observer.connect(observer_callbacks, CallbackModel.HLA_EVOKED)
+            observer_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner.joinFederationExecution(
+                "jni-if-available-order-owner",
+                federation_name,
+                federateName="jni-if-available-order-owner",
+            )
+            owner_joined = True
+            acquirer.joinFederationExecution(
+                "jni-if-available-order-acquirer",
+                federation_name,
+                federateName="jni-if-available-order-acquirer",
+            )
+            acquirer_joined = True
+            observer.joinFederationExecution(
+                "jni-if-available-order-observer",
+                federation_name,
+                federateName="jni-if-available-order-observer",
+            )
+            observer_joined = True
+
+            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            acquirer_class = acquirer.getObjectClassHandle(
+                "HLAobjectRoot.Employee.Server"
+            )
+            observer_class = observer.getObjectClassHandle(
+                "HLAobjectRoot.Employee.Server"
+            )
+            owner_attribute = owner.getAttributeHandle(owner_class, "Efficiency")
+            acquirer_attribute = acquirer.getAttributeHandle(
+                acquirer_class, "Efficiency"
+            )
+            observer_attribute = observer.getAttributeHandle(
+                observer_class, "Efficiency"
+            )
+            owner_attributes = AttributeHandleSet([owner_attribute])
+            acquirer_attributes = AttributeHandleSet([acquirer_attribute])
+            observer_attributes = AttributeHandleSet([observer_attribute])
+            owner.publishObjectClassAttributes(owner_class, owner_attributes)
+            acquirer.publishObjectClassAttributes(acquirer_class, acquirer_attributes)
+            acquirer.subscribeObjectClassAttributes(
+                acquirer_class, acquirer_attributes, active=True
+            )
+            observer.subscribeObjectClassAttributes(
+                observer_class, observer_attributes, active=True
+            )
+            object_instance = owner.registerObjectInstance(owner_class)
+            drain()
+            self.assertEqual(
+                acquirer_callbacks.discovered_objects[-1][0], object_instance
+            )
+            self.assertEqual(
+                observer_callbacks.discovered_objects[-1][0], object_instance
+            )
+
+            # The old owner deliberately changes only this object instance to
+            # TimeStamp.  The standard ownership-transfer boundary must not
+            # carry that private instance override into the acquiring member.
+            owner.changeAttributeOrderType(
+                object_instance, owner_attributes, OrderType.TIMESTAMP
+            )
+            owner.unconditionalAttributeOwnershipDivestiture(
+                object_instance, owner_attributes, b"if-available-order-transfer"
+            )
+            for _ in range(30):
+                acquirer.evokeCallback(0.0)
+                if acquirer_callbacks.ownership_assumptions:
+                    break
+            self.assertEqual(
+                acquirer_callbacks.ownership_assumptions[-1],
+                (object_instance, acquirer_attributes, b"if-available-order-transfer"),
+            )
+            acquirer.attributeOwnershipAcquisitionIfAvailable(
+                object_instance, acquirer_attributes, b"if-available-order-acquire"
+            )
+            for _ in range(30):
+                acquirer.evokeCallback(0.0)
+                if acquirer_callbacks.ownership_acquisitions:
+                    break
+            self.assertEqual(
+                acquirer_callbacks.ownership_acquisitions[-1],
+                (object_instance, acquirer_attributes, b"if-available-order-acquire"),
+            )
+            self.assertFalse(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
+            self.assertTrue(
+                acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
+            )
+
+            # The acquiring federate sends through the timestamped Java
+            # overload.  Because its newly acquired attribute is back on the
+            # FOM Receive-order default, C++ must report RECEIVE for both
+            # order fields and return an invalid MessageRetractionHandle.
+            # This proves the order reset across C++ -> JNI -> Java -> JPype
+            # rather than merely proving ownership booleans.
+            observer_callbacks.reflected_attributes.clear()
+            observer_callbacks.timestamped_reflections.clear()
+            retraction = acquirer.updateAttributeValuesWithTime(
+                object_instance,
+                AttributeHandleValueMap({acquirer_attribute: b"receive-after-transfer"}),
+                acquirer.getTimeFactory().makeLogicalTime(5),
+                b"if-available-order-tag",
+            )
+            self.assertFalse(retraction.isValid())
+            drain()
+            self.assertEqual(observer_callbacks.reflected_attributes, [])
+            self.assertEqual(len(observer_callbacks.timestamped_reflections), 1)
+            reflection = observer_callbacks.timestamped_reflections[-1]
+            self.assertEqual(reflection[0], object_instance)
+            self.assertEqual(
+                reflection[1],
+                AttributeHandleValueMap({observer_attribute: b"receive-after-transfer"}),
+            )
+            self.assertEqual(reflection[2], b"if-available-order-tag")
+            self.assertEqual(
+                reflection[4],
+                acquirer.getFederateHandle("jni-if-available-order-acquirer"),
+            )
+            self.assertEqual(reflection[6].getTime(), 5)
+            self.assertEqual(reflection[7], OrderType.RECEIVE)
+            self.assertEqual(reflection[8], OrderType.RECEIVE)
+            self.assertIsNone(reflection[9])
+        finally:
+            if owner_joined and object_instance is not None:
+                try:
+                    owner.deleteObjectInstance(object_instance)
+                except Exception:
+                    pass
+            if observer_joined:
+                try:
+                    observer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if acquirer_joined:
+                try:
+                    acquirer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if owner_joined:
+                try:
+                    owner.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if observer_connected:
+                try:
+                    observer.disconnect()
+                except Exception:
+                    pass
+            if acquirer_connected:
+                try:
+                    acquirer.disconnect()
+                except Exception:
+                    pass
+            if owner_connected:
+                try:
+                    owner.disconnect()
+                except Exception:
+                    pass
+            observer._implementation.close()
+            acquirer._implementation.close()
+            owner._implementation.close()
+
     def test_cpp_jni_java_jpype_region_validation_exceptions(self) -> None:
         """Preserve C++ region validation errors through the standard Java API."""
         fom_module = (
