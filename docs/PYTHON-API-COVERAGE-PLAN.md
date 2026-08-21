@@ -31,14 +31,14 @@ Umbra's repository fixture remains a fast compatibility harness; it is not
 the authority for Java API compatibility. On 2026-08-21, the JNI façade was
 compiled and smoke-tested against an independently obtained IEEE
 1516.1-2025 Java API JAR, then exercised through C++ → JNI → Java → JPype →
-the public Python API. The focused JNI integration module now runs 176 test
+the public Python API. The focused JNI integration module now runs 177 test
 cases (all passed, including the standard named and no-argument
 `RtiFactoryFactory` discovery checks and the structural/runtime gates). The
 exception-surface check loads every C++ exception whose exact
 standard Java class is present in the external API; the independently supplied
 API remains authoritative for its vocabulary and intentionally omits a few
 legacy advisory exception names. Running Python's complete JPype test-package discovery against the same
-artifact now executes 207 discovered tests (206 passed and one deliberate
+artifact now executes 208 discovered tests (207 passed and one deliberate
 skip). An artifact gate
 additionally verifies that the JNI bridge JAR contains
 no `hla/rti1516_2025` API classes and exposes only its expected

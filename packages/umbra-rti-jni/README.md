@@ -537,6 +537,9 @@ mapping, and direct standard Java two-argument scalar-`String` and `String[]`
 federation-create, unnamed-join, and three-argument standard-MIM-create
 overloads. It also lists two simultaneous federation executions and resolves
 an extension-defined object class from a join-time additional FOM. The
+join-time composed-FDD vector additionally proves that advisory-switch
+defaults contributed by that additional FOM are seeded only for the new Java
+member; the existing C++ member retains its prior switch values. The
 resignation vector additionally routes `DELETE_OBJECTS` through C++ object
 cleanup and verifies the surviving member receives the standard
 `removeObjectInstance` callback with the departing owner handle and empty tag.

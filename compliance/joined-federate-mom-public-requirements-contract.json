@@ -80,7 +80,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives joined-federate periodic values"
       ],
-      "notes": "The official HLAstandardMIM defines HLAsetTiming.HLAreportPeriod as HLAseconds represented by HLAinteger32BE and targets a joined federate through HLAfederateReference. This bounded slice validates the signed wire value, rejects negative periods without state mutation, stores one target-local wall-clock deadline, disables on zero, and claims the MIM-declared Periodic attribute handles through the ordinary active-subscription reflection planner at an Evoke callback boundary. It deliberately does not claim idle-background HLA_IMMEDIATE delivery, the remaining periodic/conditional attributes, public MOM producer mapping, or conformance evidence."
+      "notes": "The official HLAstandardMIM defines HLAsetTiming.HLAreportPeriod as HLAseconds represented by HLAinteger32BE and targets a joined federate through HLAfederateReference. This bounded slice validates the signed wire value, rejects negative periods without state mutation, stores one target-local wall-clock deadline, disables on zero, and claims the MIM-declared Periodic attribute handles through the ordinary active-subscription reflection planner at an Evoke callback boundary. HLA_IMMEDIATE callback-thread delivery is covered by the companion scheduler requirement; remaining periodic/conditional attributes, public MOM producer mapping, and conformance evidence remain open."
     },
     {
       "id": "umbra-joined-federate-mom-hla-set-timing-immediate-scheduler",
