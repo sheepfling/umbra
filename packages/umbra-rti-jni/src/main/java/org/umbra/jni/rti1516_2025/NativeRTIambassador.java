@@ -12,9 +12,9 @@ import hla.rti1516_2025.AttributeSetRegionSetPairList;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.InteractionClassHandle;
-import hla.rti1516_2025.LogicalTime;
-import hla.rti1516_2025.LogicalTimeFactory;
-import hla.rti1516_2025.LogicalTimeInterval;
+import hla.rti1516_2025.time.LogicalTime;
+import hla.rti1516_2025.time.LogicalTimeFactory;
+import hla.rti1516_2025.time.LogicalTimeInterval;
 import hla.rti1516_2025.MessageRetractionHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ParameterHandle;
@@ -871,7 +871,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          return null;
       }
       if ("queryLookahead".equals(name) && values.length == 0) {
-         return selectedLogicalTimeFactory().decodeLogicalTimeInterval(
+         return selectedLogicalTimeFactory().decodeInterval(
             NativeBridge.nativeQueryLookahead(requireNativeHandle()), 0);
       }
       if ("timeAdvanceRequest".equals(name) && values.length == 1) {
@@ -900,7 +900,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          return null;
       }
       if ("queryLogicalTime".equals(name) && values.length == 0) {
-         return selectedLogicalTimeFactory().decodeLogicalTime(
+         return selectedLogicalTimeFactory().decodeTime(
             NativeBridge.nativeQueryLogicalTime(requireNativeHandle()), 0);
       }
       if ("queryGALT".equals(name) && values.length == 0) {
@@ -1474,7 +1474,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          throw new IllegalStateException("The native time-query result is malformed");
       }
       try {
-         LogicalTime time = selectedLogicalTimeFactory().decodeLogicalTime(
+         LogicalTime time = selectedLogicalTimeFactory().decodeTime(
             Arrays.copyOfRange(encodedResult, 1, encodedResult.length), 0);
          return new hla.rti1516_2025.TimeQueryReturn(encodedResult[0] != 0, time);
       } catch (Exception error) {

@@ -1,8 +1,8 @@
 package org.umbra.jni.rti1516_2025;
 
-import hla.rti1516_2025.LogicalTime;
-import hla.rti1516_2025.LogicalTimeFactory;
-import hla.rti1516_2025.LogicalTimeInterval;
+import hla.rti1516_2025.time.LogicalTime;
+import hla.rti1516_2025.time.LogicalTimeFactory;
+import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -65,8 +65,32 @@ public final class NativeLogicalTimeFactories {
       Class<?> creators = floatingPoint ? FloatFactorySurface.class : IntegerFactorySurface.class;
       return (LogicalTimeFactory) Proxy.newProxyInstance(
          LogicalTimeFactory.class.getClassLoader(),
-         new Class<?>[] { LogicalTimeFactory.class, creators },
+         factoryInterfaces(creators),
          new Factory(nativeHandle, floatingPoint));
+   }
+
+   private static Class<?>[] factoryInterfaces(Class<?> creators) {
+      Class<?> root = optionalClass("hla.rti1516_2025.LogicalTimeFactory");
+      if (root == null) {
+         return new Class<?>[] { LogicalTimeFactory.class, creators };
+      }
+      return new Class<?>[] { LogicalTimeFactory.class, root, creators };
+   }
+
+   private static Class<?>[] carrierInterfaces(boolean time, Class<?> surface) {
+      Class<?> standard = time ? LogicalTime.class : LogicalTimeInterval.class;
+      Class<?> root = optionalClass(
+         "hla.rti1516_2025." + (time ? "LogicalTime" : "LogicalTimeInterval"));
+      if (root == null) return new Class<?>[] { standard, surface };
+      return new Class<?>[] { standard, root, surface };
+   }
+
+   private static Class<?> optionalClass(String name) {
+      try {
+         return Class.forName(name);
+      } catch (ClassNotFoundException ignored) {
+         return null;
+      }
    }
 
    private static final class Factory implements InvocationHandler {
@@ -220,10 +244,9 @@ public final class NativeLogicalTimeFactories {
       }
 
       Object proxy() {
-         Class<?> type = time ? LogicalTime.class : LogicalTimeInterval.class;
          Class<?> surface = floatingPoint ? FloatCarrierSurface.class : IntegerCarrierSurface.class;
          return Proxy.newProxyInstance(
-            type.getClassLoader(), new Class<?>[] { type, surface }, this);
+            LogicalTime.class.getClassLoader(), carrierInterfaces(time, surface), this);
       }
 
       @Override public Object invoke(Object proxy, Method method, Object[] arguments) throws Throwable {
