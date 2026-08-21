@@ -52,7 +52,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 
 }  // namespace
 
-TEST_CASE("IEEE 1516.1-2025 connection support types have usable value semantics", "[baseline][support-types]") {
+TEST_CASE("IEEE 1516.1-2025 connection support types have usable value semantics", "[baseline][support-types][unit][foundation]") {
   RtiConfiguration configuration = RtiConfiguration::createConfiguration()
                                      .withConfigurationName(L"embedded")
                                      .withRtiAddress(L"in-process")
@@ -75,7 +75,7 @@ TEST_CASE("IEEE 1516.1-2025 connection support types have usable value semantics
   REQUIRE(std::memcmp(copied.data(), value.data(), value.size()) == 0);
 }
 
-TEST_CASE("RTIambassador Connect exposes all four official C++ overloads", "[integration][connection]") {
+TEST_CASE("RTIambassador Connect exposes all four official C++ overloads", "[integration][connection][federation-management]") {
   TestFederateAmbassador federate;
   HLAnoCredentials credentials;
   RtiConfiguration configuration = RtiConfiguration::createConfiguration()
@@ -111,7 +111,7 @@ TEST_CASE("RTIambassador Connect exposes all four official C++ overloads", "[int
 
 TEST_CASE(
     "Embedded Connect rejects supplied credentials while authorization is disabled",
-    "[integration][connection][authorization][credentials]") {
+    "[integration][connection][authorization][credentials][federation-management]") {
   TestFederateAmbassador federate;
   HLAplainTextPassword password(L"test-password");
   RtiConfiguration configuration = RtiConfiguration::createConfiguration()
@@ -135,7 +135,9 @@ TEST_CASE(
   }
 }
 
-TEST_CASE("Embedded Connect accepts only its filesystem service-report directory setting", "[integration][connection][mom]") {
+TEST_CASE(
+    "Embedded Connect accepts only its filesystem service-report directory setting",
+    "[integration][connection][mom][service-reporting]") {
   TestFederateAmbassador federate;
   auto const directory = temporaryServiceReportDirectory();
   RtiConfiguration configuration = RtiConfiguration::createConfiguration()
@@ -156,7 +158,7 @@ TEST_CASE("Embedded Connect accepts only its filesystem service-report directory
 
 TEST_CASE(
     "Umbra embedded profile configuration exposes a typed service-report directory",
-    "[integration][connection][mom][service-report-store][configuration]") {
+    "[integration][connection][mom][service-report-store][service-reporting][configuration]") {
   auto const directory = temporaryServiceReportDirectory();
   auto configuration = umbra::embedded::makeEmbeddedRtiConfiguration(
       umbra::embedded::ServiceReportConfiguration{directory});
@@ -181,7 +183,9 @@ TEST_CASE(
   std::filesystem::remove_all(directory, ignored);
 }
 
-TEST_CASE("Embedded Connect fails deterministically for an unusable service-report directory", "[integration][connection][mom]") {
+TEST_CASE(
+    "Embedded Connect fails deterministically for an unusable service-report directory",
+    "[integration][connection][mom][service-reporting]") {
   TestFederateAmbassador federate;
   auto const parent = temporaryServiceReportDirectory();
   std::filesystem::create_directories(parent);
@@ -204,7 +208,7 @@ TEST_CASE("Embedded Connect fails deterministically for an unusable service-repo
   std::filesystem::remove_all(parent, ignored);
 }
 
-TEST_CASE("RTIambassador Connect rejects unsupported callback models without connecting", "[integration][connection]") {
+TEST_CASE("RTIambassador Connect rejects unsupported callback models without connecting", "[integration][connection][federation-management]") {
   TestFederateAmbassador federate;
   auto rti = makeRti();
 
@@ -215,12 +219,12 @@ TEST_CASE("RTIambassador Connect rejects unsupported callback models without con
   REQUIRE_NOTHROW(rti->disconnect());
 }
 
-TEST_CASE("RTIambassador Disconnect rejects an absent connection", "[integration][connection]") {
+TEST_CASE("RTIambassador Disconnect rejects an absent connection", "[integration][connection][federation-management]") {
   auto rti = makeRti();
   REQUIRE_THROWS_AS(rti->disconnect(), rti1516_2025::NotConnected);
 }
 
-TEST_CASE("RTIambassador callback controls honor both models with an empty embedded queue", "[integration][callbacks]") {
+TEST_CASE("RTIambassador callback controls honor both models with an empty embedded queue", "[integration][callbacks][federation-management]") {
   TestFederateAmbassador federate;
 
   SECTION("immediate callbacks make Evoke services a no-op") {
@@ -246,7 +250,7 @@ TEST_CASE("RTIambassador callback controls honor both models with an empty embed
 
 TEST_CASE(
     "RTIambassador disconnect terminates an unjoined connection",
-    "[integration][compliance][rti.service.disconnect]") {
+    "[integration][compliance][rti.service.disconnect][federation-management]") {
   TestFederateAmbassador federate;
   auto rti = makeRti();
 

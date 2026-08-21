@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 region specification lifecycle in Umbra's opt-in, non-installable development profile. The profile creates private region templates from composed 1516.2-2025 dimensions, retains pending range updates until a complete commit, validates ranges against FOM dimension upper bounds, exposes the official support lookups, and deletes unused regions owned by the caller. Region realizations, associations, subscriptions, overlap routing, timestamped/retraction behavior, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 region specification lifecycle in Umbra's opt-in, non-installable development profile. The profile creates private region templates from composed 1516.2-2025 dimensions, retains pending range updates until a complete commit, validates ranges against FOM dimension upper bounds, exposes the official support lookups, rejects deletion while a region is still used by a regional subscription, and deletes unused regions owned by the caller. Region realizations, broader association/subscription overlap routing, timestamped/retraction behavior, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
   "requirements": [
     {
       "id": "umbra-region-create-specified-dimensions",
@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::createRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -22,7 +23,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::commitRegionModifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -36,13 +38,14 @@
       ]
     },
     {
-      "id": "umbra-region-delete-unused-owned-region",
+      "id": "umbra-region-delete-owned-region-and-in-use-guard",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48",
       "clause_id": "clause-9.4",
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::deleteRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -82,7 +85,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     }
   ]

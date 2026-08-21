@@ -2,7 +2,9 @@
 
 #include "internal/federation_time_grant_policy.hpp"
 
+#include <cstdint>
 #include <memory>
+#include <utility>
 
 #include <RTI/time/HLAinteger64Time.h>
 
@@ -10,6 +12,10 @@ namespace {
 
 using umbra::detail::FederateTimeSnapshot;
 using umbra::detail::FederateTimeAdvanceMode;
+using umbra::detail::FederationDefinition;
+using umbra::detail::FederationFlushQueueGrantCalculator;
+using umbra::detail::FederationTimeExecutionSnapshot;
+using umbra::detail::FederationTimeFederateSnapshot;
 using umbra::detail::FederationTimeAdvanceGrantPolicy;
 using umbra::detail::FederationTimeAdvanceGrantStatus;
 using umbra::detail::FederationTimeBoundStatus;
@@ -45,6 +51,13 @@ FederationTimeBounds undefinedBounds(bool nonRegulatedGrant) {
   return result;
 }
 
+HLAinteger64Time const& asIntegerTime(
+    std::shared_ptr<rti1516_2025::LogicalTime> const& time) {
+  auto const* value = dynamic_cast<HLAinteger64Time const*>(time.get());
+  REQUIRE(value != nullptr);
+  return *value;
+}
+
 }  // namespace
 
 TEST_CASE(
@@ -64,7 +77,8 @@ TEST_CASE(
 
 TEST_CASE(
     "Available time-advance forms use the inclusive defined-GALT boundary",
-    "[unit][kernel][time-management][galt][time-advance-request-available]") {
+    "[unit][kernel][time-management][galt][time-advance-request-available]"
+    "[next-message-request-available]") {
   FederationTimeAdvanceGrantPolicy policy;
   auto requester = pendingRequester(true, 2, 5);
 
@@ -100,6 +114,33 @@ TEST_CASE(
 
   REQUIRE(policy.decide(requester, definedBounds(3)).mayGrant());
   REQUIRE(policy.decide(requester, undefinedBounds(false)).mayGrant());
+}
+
+TEST_CASE(
+    "Flush Queue grant calculation includes in-transit TSO payloads",
+    "[unit][kernel][time-management][flush-queue-request][tso][in-transit]") {
+  auto requester = pendingRequester(true, 2, 10);
+  requester.advanceMode = FederateTimeAdvanceMode::flush_queue_request;
+
+  FederationTimeExecutionSnapshot execution{
+      FederationDefinition{{}, L"HLAinteger64Time", {}, {}},
+      {},
+  };
+  FederationTimeFederateSnapshot federate;
+  federate.membership = {1, L"requester", L"time-constrained"};
+  federate.time = std::move(requester);
+  federate.inTransitTsoMessages.push_back({
+      41,
+      1,
+      1,
+      std::make_shared<HLAinteger64Time const>(4),
+  });
+  execution.federates.push_back(std::move(federate));
+
+  auto calculation = FederationFlushQueueGrantCalculator{}.calculate(execution, 1);
+  REQUIRE(calculation.calculated());
+  REQUIRE(asIntegerTime(calculation.grantedTime).getTime() == 4);
+  REQUIRE(asIntegerTime(calculation.optimisticTime).getTime() == 4);
 }
 
 TEST_CASE(

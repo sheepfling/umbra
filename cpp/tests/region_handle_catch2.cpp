@@ -24,7 +24,7 @@ using rti1516_2025::umbra_binding_detail::regionHandleValue;
 
 TEST_CASE(
     "The official RegionHandle has stable embedded value semantics",
-    "[unit][kernel][region-handle]") {
+    "[unit][kernel][region-handle][foundation][ddm]") {
   RegionHandle invalid;
   auto const handle = makeRegionHandle(0x0102030405060708ULL);
   RegionHandle copy(handle);
@@ -46,7 +46,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded RegionHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][region-handle]") {
+    "[unit][kernel][region-handle][foundation][ddm]") {
   auto const handle = makeRegionHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,
@@ -68,7 +68,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded RegionHandle rejects malformed encodings and buffers",
-    "[unit][kernel][region-handle]") {
+    "[unit][kernel][region-handle][foundation][ddm]") {
   auto const handle = makeRegionHandle(1);
   std::array<unsigned char, 8> tooSmall{};
   VariableLengthData malformed(tooSmall.data(), tooSmall.size());
@@ -80,7 +80,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The official RangeBounds preserves the lower and upper values",
-    "[unit][kernel][range-bounds]") {
+    "[unit][kernel][range-bounds][foundation][ddm]") {
   RangeBounds defaults;
   REQUIRE(defaults.getLowerBound() == 0UL);
   REQUIRE(defaults.getUpperBound() == 0UL);

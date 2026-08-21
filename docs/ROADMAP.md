@@ -175,8 +175,13 @@ Umbra-owned replacement public API.
 - [x] Resolve each reference-data type's named object class against the
       completed 2025 object hierarchy.
 - [x] Resolve ordinary reference-data attributes through the completed class
-      hierarchy and require an exact representation-type match; the two
-      standard instance identifier names remain a dedicated future rule.
+      hierarchy and require an exact representation-type match. The dedicated
+      IEEE 1516.2 exception for `HLAobjectInstanceName` and
+      `HLAobjectInstanceHandle` is also enforced: it requires the standardized
+      `HLAunicodeString` and `HLAobjectInstanceHandle` representations without
+      inventing an ordinary attribute row. Its exact Lab candidate is selected
+      by the private composition test plan; RL-087 records the earlier mapping
+      omission.
 - [x] Resolve each directed-interaction name against the completed 2025
       interaction hierarchy, without bypassing the FDD schema's cardinality
       limit for the supplied extension example.
@@ -187,8 +192,9 @@ Umbra-owned replacement public API.
       official available-dimension/name/upper-bound lookup services.
 - [x] Exercise the metadata-only 2025 region-template/specification lifecycle
       through official `RegionHandle`/`RangeBounds` values: create, pending
-      range updates, complete commit, delete, owner-scoped support lookups,
-      FOM upper-bound validation, and handle decoding. The bounded interaction
+      range updates, complete commit, owner-scoped support lookups,
+      FOM upper-bound validation, handle decoding, and the §9.4 in-use guard
+      (including passive regional subscriptions). The bounded interaction
       regional declaration/send slice separately consumes committed specs for
       independent regional subscriptions, 2025 overlap filtering, empty-set
       suppression, callback rechecks, and official exception mapping. The
@@ -199,9 +205,18 @@ Umbra-owned replacement public API.
       the per-federate Attribute Scope Advisory path now covers committed
       overlap, update-region association, and subscription transitions for known
       objects through immediate/evoked callbacks with stale-work suppression.
-      Direct time-constrained timestamped default-region callback coverage is
-      now present; a complete timestamped matrix and broader DDM routing
-      remain future slices.
+       Direct time-constrained timestamped default-region callback coverage and
+       default-source object and interaction mixed-fanout/retraction cases are
+       now present. The default-source object-update companion also drives one
+       ordinary timestamped passel through FQR, TARA, and NMRA, preserving
+       callback-before-grant ordering and the supplied-empty region marker;
+      a focused interaction companion also keeps one queued default-source
+      passel across a Time Constrained disable/re-enable transition before
+      its grant. A focused explicit-source regional object-update companion
+      also proves that replacing an update-region association before a queued
+      callback suppresses the stale passel rather than retargeting it, while a
+      later passel uses the replacement region. The remaining
+      timestamped/re-enable matrix and broader DDM routing remain future slices.
 - [x] Implement the bounded IEEE 1516.1-2025 default-region realization for
       dimensional receive-order and direct time-constrained timestamped object
       attributes and interactions. The RTI
@@ -211,10 +226,20 @@ Umbra-owned replacement public API.
       realizations are mutually exclusive. The regression pair covers source
       association replacement/restoration, discovery and reflection/receive
       routing, scope/relevance continuity, and supplied-empty Convey Region
-      Designator Sets metadata. Companion TSO regressions prove that an
-      ordinary source default survives queueing to a constrained regional
-      subscriber and remains supplied as an empty callback set. A complete
-      timestamped matrix, broader relaxed-DDM coverage, save/restore,
+       Designator Sets metadata. Companion TSO regressions prove that an
+       ordinary source default survives queueing to a constrained regional
+       subscriber and remains supplied as an empty callback set; a further
+       object and interaction cases split nonconstrained delivery and
+       constrained pending retraction under that same private source
+       realization. A bounded default-source object-update companion now also
+       covers FQR/TARA/NMRA and producer-TAR frontiers for both object and
+       interaction updates. A bounded interaction re-enable companion now
+       retains one queued default-source passel across a Time Constrained
+       disable/re-enable transition before its grant. The regional object
+       update slice also has a bounded explicit-source association-replacement
+       regression covering stale-passel suppression and later replacement
+       delivery. The remaining
+       timestamped/re-enable matrix, broader relaxed-DDM coverage, save/restore,
       transport, package evidence, and conformance remain separate.
 - [x] Resolve attribute and interaction transportation references against
       the completed 2025 transportation table.
@@ -379,19 +404,25 @@ Umbra-owned replacement public API.
       embedded profile. The bounded path flushes the current in-process TSO
       queue, computes the actual grant from request/GALT/delivered-timestamp
       minima, reports the optimistic logical time, and retains its next-advance
-      floor. Its shared actual-grant calculation also supports strict
+      floor. An HLA_EVOKED companion accepts FQR before two in-process future
+      TSO inputs arrive and proves both callbacks precede FQG; the pure grant
+      calculator also treats an explicit in-transit payload as undelivered.
+      Its shared actual-grant calculation also supports strict
       timestamped-save admission before the private grant-state change and FQG,
       including mixed FQR/TAR constrained-member readiness. It has separate
-      Requirements-Lab source/API contracts and Catch2 coverage; future
-      transport, in-transit coordination, Request Retraction for other TSO
-      message families, and full time-management coordination remain future
+      Requirements-Lab source/API contracts and Catch2 coverage; remote future
+      transport, network in-transit coordination, Request Retraction for other
+      TSO message families, and full time-management coordination remain future
       work.
 - [x] Bind the 2025 `Enable Asynchronous Delivery` and `Disable Asynchronous
       Delivery` services in the embedded profile. Time-constrained federates
       default to time-advance-only receive-order delivery; enabling the switch
       releases deferred receive-order callbacks while idle, and disabling it
-      restores time-advance gating. The paired Requirements-Lab contracts and
-      Catch2 cases cover the public exceptions and callback boundary. TSO
+      restores time-advance gating. A regional receive-order companion applies
+      the same gate to an overlap-qualified `Send Interaction With Regions`
+      callback and preserves its source-region metadata across disable/re-enable.
+      The paired Requirements-Lab contracts and Catch2 cases cover the public
+      exceptions and callback boundary. TSO
       delivery, remote transport, MOM reporting, save/restore persistence of
       deferred callbacks, package evidence, and conformance remain open.
 - [x] Parse the complete 2025 FDD support-switch table and bind the official
@@ -403,9 +434,23 @@ Umbra-owned replacement public API.
       subscription/switch interlock is also covered for ordinary and regional
       subscriptions. This has Requirements-Lab contracts and Catch2 coverage;
       the bounded embedded Connection Lost path exercises directives 1 through
-      5, while `NO_ACTION` forced-resign policy, MOM report emission/file
-      behavior, broader relaxed-DDM behavior, package evidence, and conformance
-      remain open. RL-024 records the
+      5 and delivers `HLAreportFederateLost` to current ordinary or
+      DDM-matching regional subscribers with a regulator's captured granted
+      time; its ordinary and DDM-regional subscriber routes have direct
+      `HLA_IMMEDIATE` coverage. The bounded `NO_ACTION` forced-resign policy
+      now retains a known object, divests the lost member's owned attributes,
+      and offers them to an eligible survivor without an automatic removal
+      callback. The broader page-50 TSO-cutoff matrix beyond the
+      current ordinary-interaction equality/strict-less-than, directed-
+      interaction equality plus a `DELETE_OBJECTS` late-TAR collision,
+      attribute-update equality/multi-recipient/automatic-delete collisions
+      (including late-TAR, callback-boundary suppression, and independently
+      gated survivor cleanup plus asynchronous postgrant release in both
+      callback models), object-
+      deletion equality/strict-less-than/automatic-delete/multi-recipient, and
+      report/cutoff-correlation regressions, generic
+      §11.5 report emission/file behavior, broader relaxed-DDM behavior,
+      package evidence, and conformance remain open. RL-024 records the
       unresolved Lab/XSD automatic-resign default discrepancy.
 - [x] Implement an explicit, bounded Allow Relaxed DDM policy at the shared
       committed-region overlap predicate. With the static federation switch
@@ -425,13 +470,16 @@ Umbra-owned replacement public API.
       at its HLA_EVOKED or constrained TSO grant boundary; when disabled,
       original generation-time ineligibility is retained. Catch2 covers both
       modes and callback-time unsubscribe suppression; attribute cases first
-      establish object discovery to isolate declaration timing. Regional sends,
-      explicit update-region attribute passels, directed interactions, complete
+      establish object discovery to isolate declaration timing. Explicit
+      update-region attribute and regional interaction passels now have bounded
+      timestamped regressions: an enabled federation can deliver after a
+      regional declaration is restored, while both modes suppress a later
+      callback after unsubscription. Directed interactions, complete
       callback-mode/lifecycle/retraction matrices, relaxed DDM, packaging, and
       conformance remain separate in this embedded Catch2 profile; the Python
       native and Java-provider paths now exercise the explicit regional
-      interaction/update callback-boundary cases. RL-018 logs the Requirements Lab metadata
-      mismatch for the source §8.1.8 candidates.
+      interaction/update callback-boundary cases. RL-018 logs the Requirements
+      Lab metadata mismatch for the source §8.1.8 candidates.
 - [x] Apply the recipient's Convey Region Designator Sets switch at the
       callback boundary for the bounded regional reflection and interaction
       paths. Receive-order and timestamped Catch2 cases prove that a disabled
@@ -490,8 +538,8 @@ Umbra-owned replacement public API.
       recipient and suppresses a queued recipient's original callback. Catch2
       covers strict equality rejection, post-delivery callbacks, mixed
       nonconstrained/constrained interaction, directed-interaction, and
-      region-context interaction fanout, normal and regional pending attribute
-      passel suppression, and immediate-only attribute-update,
+       region-context interaction fanout, normal and regional pending passel
+       and callback-boundary attribute suppression, and immediate-only attribute-update,
       directed-interaction, and region-context interaction cases with no
       temporal-queue fanout.
       `compliance/request-retraction-requirements-contract.json` and its API
@@ -508,7 +556,9 @@ Umbra-owned replacement public API.
        recipient-retraction ledger. Catch2 covers two passels, lower-bound
        rejection, retraction-before-grant, exact-bound reflection, callback
        ordering, sender exclusion, timestamp/order fields, and a delivered
-       immediate recipient's `Request Retraction` callback;
+       immediate recipient's `Request Retraction` callback. A Connection Lost
+       counterpart now retains one accepted reliable passel across staggered
+       time-6 deliveries to two constrained recipients;
        `compliance/timestamped-attribute-update-
        requirements-contract.json` traces this bounded slice. Timestamped
        directed/regional forms, alternate advance modes,
@@ -523,7 +573,12 @@ Umbra-owned replacement public API.
       official timestamp/order/retraction fields and no sender callback.
       Catch2 covers lower-bound rejection, retraction-before-grant with
       recipient reconstitution, exact-bound removal, callback ordering,
-      and sender exclusion;
+      sender exclusion, and Connection Lost time-5/time-6 cutoff removals
+      retained through the lost regulator's configured unconditional-divest cleanup;
+      a `DELETE_OBJECTS` regression additionally protects that accepted TSO
+      removal from being replaced by automatic receive-order cleanup; a
+      staggered two-survivor regression keeps the cutoff state live until both
+      timestamped removals have been delivered;
       `compliance/timestamped-object-deletion-requirements-contract.json` and
       its API companion trace this bounded slice. A second mixed-fanout Catch2
       scenario now proves legal post-delivery Request Retraction: the delivered
@@ -535,11 +590,15 @@ Umbra-owned replacement public API.
       Retract is neither reconstituted nor notified, and its former attribute
       remains unowned. A terminal no-recipient case preserves
       `MessageCanNoLongerBeRetracted` while releasing the deletion snapshot and
-      object name for a fresh registration. A focused normal-interaction
-      regression now covers one Disable Time Regulation/re-enable lifetime path
-      at unchanged lookahead. Complete alternate-advance, broader re-enable,
-      active in-flight ownership, other resignation, and save/restore recovery
-      evidence, transport, and conformance remain out of scope.
+       object name for a fresh registration. A focused normal-interaction
+       regression now covers one Disable Time Regulation/re-enable lifetime path
+       at unchanged lookahead. A positive mixed-advance companion now drives one
+       timestamped deletion through FQR, TARA, and NMRA, proving each
+       Remove Object Instance callback precedes its own grant and preserving
+       FQR actual/optimistic time plus the producer TAR completion. Complete
+       alternate-advance coverage beyond this case, broader re-enable, active
+       in-flight ownership, other resignation, and save/restore recovery
+       evidence, transport, and conformance remain out of scope.
 - [x] Add the fourth bounded public timestamped service family: the official
       non-regional `Send Directed Interaction(..., LogicalTime)` overload and
       timestamped `Receive Directed Interaction` callback. The registry retains
@@ -551,10 +610,16 @@ Umbra-owned replacement public API.
       suppression, and post-delivery `Request Retraction` for a
       nonconstrained directed recipient. The paired timestamped-directed-
       interaction Requirements Lab contracts trace this bounded slice. The
-      shared planner honors ownership and universal directed subscriptions,
-      although the timestamped scenarios do not independently distinguish
-      those modes. Directed DDM, alternate advance modes, region-context
-      evidence, transport, and conformance remain out of scope.
+      shared planner honors ownership and universal directed subscriptions.
+      The focused timestamped selector scenario now distinguishes a target
+      owner/default recipient, a known non-owner/default recipient, and a
+      known non-owner/universal recipient, then rechecks a selector change and
+      an unsubscription before later grants. Directed DDM, alternate advance
+      modes beyond the new FQR/TARA/NMRA companion, region-context evidence,
+      transport, and conformance remain out of scope. The companion sends one
+      target-qualified timestamped payload to three universal recipients;
+      each directed callback precedes its own grant, FQR preserves actual and
+      optimistic time, and the producer TAR completes independently.
 - [x] Add the fifth bounded public timestamped service family: the official
       non-regional-plus-region-context `Send Interaction With Regions(...,
       LogicalTime)` overload and timestamped `Receive Interaction` callback.
@@ -565,9 +630,12 @@ Umbra-owned replacement public API.
       ordering, sent-region propagation, pending constrained-recipient
       suppression, and post-delivery `Request Retraction` for a
       nonconstrained overlap-qualified recipient; paired timestamped-regional-
-      interaction Requirements Lab contracts trace this bounded slice. Object
-      region services, relaxed DDM, other fanout patterns, alternate advance
-      modes, save/restore, transport, and conformance remain out of scope.
+      interaction Requirements Lab contracts trace this bounded slice. Separate
+      default-source and explicit-source interaction companions now exercise
+      ordinary TAR/NMR plus TARA and NMRA at inclusive GALT/next-message
+      boundaries; further
+      alternate advances, object-region services, relaxed DDM, other fanout patterns,
+      save/restore, transport, and conformance remain out of scope.
 - [x] Extend the bounded timestamped attribute-update family to committed
       object-region associations. The regional `Update Attribute Values(...,
       LogicalTime)` path preserves each recipient's update-region projection,
@@ -575,23 +643,65 @@ Umbra-owned replacement public API.
       pending retraction, and rechecks the recipient's Convey Region Designator
       Sets switch before exposing optional sent-region callback metadata. The
       paired Requirements-Lab contracts and Catch2 scenario cover lower-bound
-      validation, pending constrained-recipient suppression, Request Retraction
-      for a delivered immediate recipient, exact-bound reflection, and callback
-      ordering. Mixed immediate/TSO fanout is covered by the same
-      scenario: non-time-constrained recipients receive the accepted
-      timestamped callback immediately while constrained recipients remain
-       queued until their grant. Direct timestamped default-region callback coverage now has
-       separate object and interaction regressions; regional request forms,
-       alternate advance modes, transport, package evidence, and conformance
-       remain open.
+       validation, pending constrained-recipient suppression, Request Retraction
+       for a delivered immediate recipient, exact-bound reflection, and callback
+       ordering. Mixed immediate/TSO fanout is covered by the same
+       scenario: non-time-constrained recipients receive the accepted
+       timestamped callback immediately while constrained recipients remain
+       queued until their grant. A focused immediate-recipient companion moves
+       an initially overlap-qualified region to a valid disjoint range before
+       callback dispatch, proving terminal reflection suppression and no
+       synthetic `Request Retraction` after legal `Retract`; its
+       time-constrained counterpart reaches only the matching grant before the
+       sender's strict retraction boundary. Direct timestamped default-region callback coverage now has
+       separate object and interaction regressions; a class-level regional
+       request and explicit no-time response are separately tracked. A focused
+       non-regional companion now exercises TARA at the defined-GALT boundary
+       and NMRA at the next queued-message boundary, preserving
+       reflection-before-grant ordering and source/time/order/retraction/tag
+       metadata. A second non-regional companion covers FQR/Flush Queue by
+       delivering all queued passels before the grant and preserving the
+       actual-grant and optimistic-floor values. A separate HLA_EVOKED
+       interaction companion covers in-process future input submitted after
+      FQR acceptance but before callback dispatch. Regional explicit-source and
+      default-source interaction companions preserve source-region metadata
+      before FQG, including the supplied-empty marker for the private default
+      region. A regional TAR/NMR companion now drives one overlap-qualified TSO
+      payload through ordinary grants and proves each callback precedes its own
+      grant. An explicit-source regional interaction companion now keeps its
+      queued TSO payload and source RegionHandle through a Time Constrained
+      disable/re-enable transition and proves exactly one callback before the
+      post-re-enable grant. The corresponding default-source object-update
+      companion now preserves an ordinary-registration timestamped passel across
+      the same transition and proves one reflection before the post-re-enable
+       grant with a supplied-empty default-region marker. The matching
+       explicit-source regional object-update companion now preserves its source
+       RegionHandle, callback order, timestamp, tag, and conveyed-region metadata
+       across the same transition. A regional timestamped attribute-update companion now drives one
+       overlap-qualified object passel through ordinary TAR/NMR grants and
+       preserves its source-region metadata before each grant. A mixed-member
+       regional interaction companion drives its payload through FQR, TARA, and
+       NMRA recipients and proves each callback precedes its own grant. A
+       matching mixed-member regional object-update companion now does the same
+       for Reflect Attribute Values, preserving source-region metadata at each
+       callback frontier. Its negative retraction companion withdraws an
+       overlap-qualified timestamp-8 passel before all three alternate
+       callbacks, proving FQR/TARA/NMRA and producer-TAR completion without
+       reflection or Request Retraction. Remote future-input/in-transit FQR, regional directed/default-
+       region forms outside these bounded cases, while the default-source
+       TARA/NMRA matrix now includes bounded object- and interaction-update
+       companions but remains in-process only,
+       re-enable, save/restore, transport, package
+       evidence, and conformance remain open.
 - [ ] Extend timestamped public delivery to the remaining 2025 object,
       interaction, ownership, and federation service families only after their
       payload, callback-order, eligibility, and retraction semantics receive
       separate Requirements Lab contracts and real Catch2 scenarios. This
        excludes the now-bounded non-regional timestamped deletion/removal
-       retraction path, but includes its remaining regional/directed,
-       alternate-time, in-flight-ownership, resignation, recovery, and
-       transport cases. The
+       retraction path, but includes its remaining alternate-time cases beyond
+       the focused non-regional deletion and attribute-update TAR/TARA/NMRA/FQR
+       coverage plus the new directed-interaction FQR/TARA/NMRA case,
+       in-flight-ownership, resignation, recovery, and transport cases. The
       timestamped federation-save control overload is tracked by the checked
       item above; it does not make the remaining timestamped delivery families
       complete.
@@ -788,9 +898,25 @@ Umbra-owned replacement public API.
        receive the later assumption offer. A fifth case sets
        `CANCEL_THEN_DELETE_THEN_DIVEST` and proves all three mandated stages:
        stale acquisition cleanup, known delete-privileged object removal, and
-       retained-attribute re-offer. Remote transport, the bounded `NO_ACTION`
-       forced-resign policy, package support, protected review, and conformance
-       remain open.
+       retained-attribute re-offer. A bounded `NO_ACTION` forced-resign case
+       now proves retained-object, ownership-divestiture, and survivor-
+       assumption behavior without automatic removal. A separate final-member
+       transport-loss case now proves the 4.12.4 directive-two override by
+       rejoining and reusing the deleted object's name. Remote transport, the
+       remaining forced-resign matrix is still open, although a focused
+       directive-three case now cancels a pending negotiated transfer and its
+       stale owner callbacks. A three-member report-ordering case now drains
+       each eligible survivor independently and proves `HLAreportFederateLost`
+       precedes that survivor's automatic `Remove Object Instance` callback;
+       it intentionally makes no global ordering claim between callback
+       queues. A selector-mutation companion now changes a queued directed
+       recipient from universal to by-ownership after the source fault,
+       suppresses only the stale directed callback, and releases the separate
+       automatic removal at its next receive-order gate. A regional companion
+       commits the receiver to a disjoint range after a queued timestamped
+       attribute update and source fault, suppressing only the regional
+       reflection while retaining the same independent cleanup boundary.
+       Package support, protected review, and conformance remain open.
 - [x] Drive the distinct Federate Resigned callback from a private embedded
        in-session RTI-control seam. The bounded path removes a clean joined
        member through the ordinary `NO_ACTION` registry transition, retains its
@@ -806,8 +932,16 @@ Umbra-owned replacement public API.
       non-installable development profile. Directive 1 unconditionally divests
       owned attributes and offers current eligible recipients, directive 2
       removes objects for which the resigning federate owns
-      `HLAprivilegeToDeleteObject`, and directive 5 cancels the resigning
-      federate's pending acquisition work before applying delete/divest cleanup.
+      `HLAprivilegeToDeleteObject`, directive 3 now has standalone voluntary
+      cancellation regressions for regular pending acquisition work, a
+      selected negotiated-divestiture confirmation, and an If Available
+      reservation; the latter two suppress their stale owner/requester callback
+      forms, and direct
+      directive 4 now has a mixed voluntary delete-then-divest regression that
+      deletes one privileged object before re-offering a retained attribute;
+      directive 5
+      cancels the resigning federate's pending acquisition work before applying
+      delete/divest cleanup.
       The final-federate rule also forces directive 2 even when the supplied
        action is `NO_ACTION`. The official `FederateOwnsAttributes` and
        `OwnershipAcquisitionPending` preconditions are covered. Bounded
@@ -1027,12 +1161,13 @@ Umbra-owned replacement public API.
       rechecks a queued provider after resignation. A separate bounded response
       case lets the provider invoke non-timestamped `Update Attribute Values`
       from inside `Provide Attribute Value Update` and verifies requester-side
-      `Reflect Attribute Values` tag, producer, and mandatory transport. This
-      is explicit provider code rather than RTI-automatic provision. The
-      sibling object-class form is tracked separately; regional request forms,
-      timestamped/retraction behavior, DDM,
-      update-rate reduction, ownership transfer, FOM sharing policy,
-      save/restore, and remote transport remain unimplemented. This has
+       `Reflect Attribute Values` tag, producer, and mandatory transport. This
+       is explicit provider code rather than RTI-automatic provision. The
+       sibling object-class form is tracked separately; a distinct class-level
+       regional request/response case is also tracked separately. Timestamped/
+       retraction behavior, broader DDM,
+       update-rate reduction, ownership transfer, FOM sharing policy,
+       save/restore, and remote transport remain unimplemented. This has
       source/API traceability only and no catalog or conformance claim.
 - [x] Bind the bounded federation-wide Auto Provide switch in the
       non-installable development profile. The composed FDD retains the
@@ -1058,22 +1193,35 @@ Umbra-owned replacement public API.
       subclass instances without requester discovery, groups work per provider
       and object instance, preserves the tag, suppresses requester-owned
       callbacks, and rechecks queued providers after resignation. It only
-      solicits the callback: additional regional request forms, automatic provision, a
-      resulting value update, timestamped/retraction behavior, DDM,
-      update-rate reduction, ownership transfer, FOM sharing policy,
-      save/restore, and remote transport remain unimplemented. This has
+      solicits the callback in the base owner-solicitation case. A separate
+      class-expansion companion has the provider invoke `Update Attribute
+      Values` from that callback and verifies a timestamped reflection before
+      the constrained requester's matching grant, including tag, producer,
+      order, time, and retraction metadata. Additional regional request forms,
+      automatic provision, alternate advances, broader timestamped/retraction
+      behavior, DDM, update-rate reduction, ownership transfer, FOM sharing
+      policy, save/restore, and remote transport remain unimplemented. This has
       source/API traceability only and no catalog or conformance claim.
 - [x] Exercise the class-level 2025 `Request Attribute Value Update With
       Regions` overload and matching `Provide Attribute Value Update` callback
       in the non-installable development profile. The private registry validates
       committed request-region ownership/context, treats an empty pair as a
-      no-op, filters explicit update associations by overlap, retains
-      default-region eligibility, preserves the tag, and rechecks the request
-      regions at callback entry. Provider responses remain explicit user code;
-      resulting reflection, automatic provision, timestamped/retraction
-      behavior, broader DDM, package/catalog
-      evidence, and conformance remain separate work. This has source/API
-      traceability only.
+       no-op, filters explicit update associations by overlap, retains
+       default-region eligibility, preserves the tag, and rechecks the request
+       regions at callback entry. A companion case has the overlap-qualified
+      provider explicitly respond through no-time `Update Attribute Values` and
+      verifies the response reflection's tag, producer, transport, and source
+      region when the requester enables conveyance. A second focused companion
+      changes the requester subscription to a valid disjoint range before the
+      queued reflection boundary and verifies suppression. Automatic provision,
+      broader DDM, package/catalog evidence, and conformance remain separate
+      work. A third focused companion has the provider invoke timestamped
+      `Update Attribute Values` from the official callback, queues that
+      overlap-qualified response for a constrained requester, and verifies one
+      reflection before the grant with timestamp/order, tag, producer,
+      retraction, and source-region metadata. Alternate advances, automatic
+      provision, and broader timestamped/retraction behavior remain separate
+      work. This has source/API traceability only.
 - [x] Exercise `Query Attribute Ownership` and its 2025 C++ federate-owned /
       unowned result callbacks in the non-installable development profile. The
       private registry validates the requester's known class, groups attributes
@@ -1216,13 +1364,17 @@ Umbra-owned replacement public API.
       publication/subscription pair, excludes the sender, preserves the tag,
       producer, and mandatory FOM-selected transportation, and rechecks
       declaration/lifecycle state at callback entry for both immediate and
-      evoked delivery. The ownership/universal selector is implemented: a
+      evoked delivery. An accepted target deletion before an evoked callback
+      suppresses the stale directed interaction while its removal callback
+      remains deliverable; the TSO counterpart delivers removal at time 6 and
+      suppresses a queued directed callback at time 7 before its grant. The
+      ownership/universal selector is implemented: a
       missing or false selector requires an owned target attribute, true
       accepts every known target, an empty class set preserves modes, and
       re-subscribing a supplied class changes that class's mode.
       Timestamped/retraction behavior beyond the separate bounded slice,
       directed DDM, ordering, FOM sharing-policy enforcement,
-      target-departure cleanup, packaging, Lab mapping resolution, evidence,
+      packaging, Lab mapping resolution, evidence,
       and conformance remain outside this slice.
 - [x] Exercise the 2025 regional `Subscribe Interaction Class With Regions`,
       `Unsubscribe Interaction Class With Regions`, and no-time `Send
@@ -1233,9 +1385,14 @@ Umbra-owned replacement public API.
       sets suppress delivery, and queued callbacks recheck active overlap. Remaining
       object-attribute regional forms, timestamped/retraction, realization, broader
       DDM routing, package/catalog evidence, and conformance remain out of
-      scope. This has source/API traceability only.
-- [ ] Add multi-federate callback ordering, connection-loss error-path,
-      complete timestamped/region update-reflection, local/timestamped
+      scope. The same slice now has a focused production-filesystem service-
+      report lane for the accepted §9.10/§9.11 subscription transitions: each
+      record preserves the type-27 interaction designator and type-43 region
+      set, with the type-6 passive indicator on subscription. This remains
+      development-profile traceability, not a conformance claim.
+- [ ] Expand multi-federate callback ordering beyond the new per-survivor
+      report-ordering slice; complete timestamped/region
+      update-reflection, local/timestamped
       deletion, ownership-disposition, and federation-wide time-management
       scenarios beyond the listing and
       per-federate temporal reports.

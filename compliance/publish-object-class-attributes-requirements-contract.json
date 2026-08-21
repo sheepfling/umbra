@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 Publish Object Class Attributes service in Umbra's opt-in, non-installable development profile. The declaration transition adds the supplied available attributes to the invoking federate's ordinary publication state. Its focused production-filesystem regression adds the successful-void service-report boundary: an undefined object class appends nothing, while an accepted publication appends type-36 ObjectClassHandle and type-1 AttributeHandleSet arguments before any separately queued declaration advisories or ownership-assumption work. The Requirements Lab currently assigns the §5.2 service-level candidate on its coalesced source page to clause-5.2.4; RL-078 records that ownership mismatch while the service/test descriptions retain the direct §5.2 source context. Whole-class publication removal, complete ownership/discovery behavior, advisory delivery matrices, MOM interaction delivery, timestamped behavior, save/restore, DDM, remote transport, catalog evidence, validation, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-publish-object-class-attributes-adds-to-the-invoking-publications",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22",
+      "clause_id": "clause-5.2.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributePublication",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments"
+      ]
+    },
+    {
+      "id": "umbra-publish-object-class-attributes-file-report-follows-the-accepted-declaration-transition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments"
+      ]
+    }
+  ]
+}

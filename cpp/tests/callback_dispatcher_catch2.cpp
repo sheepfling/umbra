@@ -56,7 +56,7 @@ std::uint64_t callsFor(
 
 }  // namespace
 
-TEST_CASE("The immediate callback dispatcher invokes enabled callbacks synchronously", "[unit][kernel][callbacks]") {
+TEST_CASE("The immediate callback dispatcher invokes enabled callbacks synchronously", "[unit][kernel][callbacks][foundation]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::immediate);
   std::vector<int> order;
 
@@ -72,7 +72,7 @@ TEST_CASE("The immediate callback dispatcher invokes enabled callbacks synchrono
   REQUIRE_FALSE(dispatcher.evokeOne(0ms));
 }
 
-TEST_CASE("The evoked callback dispatcher invokes one queued callback at a time", "[unit][kernel][callbacks]") {
+TEST_CASE("The evoked callback dispatcher invokes one queued callback at a time", "[unit][kernel][callbacks][foundation]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
   std::vector<int> order;
 
@@ -87,7 +87,7 @@ TEST_CASE("The evoked callback dispatcher invokes one queued callback at a time"
   REQUIRE(order == std::vector<int>{1, 2});
 }
 
-TEST_CASE("Disabling callbacks preserves pending work until callbacks are enabled", "[unit][kernel][callbacks]") {
+TEST_CASE("Disabling callbacks preserves pending work until callbacks are enabled", "[unit][kernel][callbacks][foundation]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::immediate);
   std::vector<int> order;
 
@@ -101,7 +101,7 @@ TEST_CASE("Disabling callbacks preserves pending work until callbacks are enable
   REQUIRE(dispatcher.pendingCount() == 0);
 }
 
-TEST_CASE("Evoke Multiple Callbacks retains FIFO order through its minimum wait", "[unit][kernel][callbacks]") {
+TEST_CASE("Evoke Multiple Callbacks retains FIFO order through its minimum wait", "[unit][kernel][callbacks][foundation]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
   std::vector<int> order;
 
@@ -114,7 +114,7 @@ TEST_CASE("Evoke Multiple Callbacks retains FIFO order through its minimum wait"
   REQUIRE(dispatcher.pendingCount() == 0);
 }
 
-TEST_CASE("The evoked callback dispatcher reports pending work while disabled", "[unit][kernel][callbacks]") {
+TEST_CASE("The evoked callback dispatcher reports pending work while disabled", "[unit][kernel][callbacks][foundation]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
   dispatcher.setEnabled(false);
   dispatcher.submit([] {});
@@ -127,7 +127,7 @@ TEST_CASE("The evoked callback dispatcher reports pending work while disabled", 
 
 TEST_CASE(
     "A callback session closes stale delivery and drains an external in-flight callback",
-    "[unit][kernel][callbacks][lifecycle]") {
+    "[unit][kernel][callbacks][lifecycle][foundation]") {
   NullFederateAmbassador federate;
   CallbackSession session(federate);
   std::mutex synchronizationMutex;
@@ -176,7 +176,7 @@ TEST_CASE(
 
 TEST_CASE(
     "A callback session can close from its active callback without deadlocking",
-    "[unit][kernel][callbacks][lifecycle]") {
+    "[unit][kernel][callbacks][lifecycle][foundation]") {
   NullFederateAmbassador federate;
   CallbackSession session(federate);
   bool firstInvocationRan = false;
@@ -194,7 +194,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Instrumentation times immediate callback dispatch and FederateAmbassador entry",
-    "[unit][kernel][instrumentation][callbacks]") {
+    "[unit][kernel][instrumentation][callbacks][foundation]") {
   auto instrumentation = std::make_shared<RuntimeInstrumentation>();
   CallbackDispatcher dispatcher(CallbackDispatchModel::immediate, instrumentation);
   NullFederateAmbassador federate;
@@ -227,7 +227,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Instrumentation times evoked callback queue delay separately from callback execution",
-    "[unit][kernel][instrumentation][callbacks]") {
+    "[unit][kernel][instrumentation][callbacks][foundation]") {
   auto instrumentation = std::make_shared<RuntimeInstrumentation>();
   CallbackDispatcher dispatcher(CallbackDispatchModel::evoked, instrumentation);
   NullFederateAmbassador federate;
@@ -274,7 +274,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The RTI ambassador exposes internal call timing without changing its public API",
-    "[unit][kernel][instrumentation][rti]") {
+    "[unit][kernel][instrumentation][rti][foundation]") {
   UmbraRtiAmbassador rti;
   NullFederateAmbassador federate;
 
@@ -302,7 +302,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Transport fault and forced-resignation paths publish internal timing",
-    "[unit][kernel][instrumentation][transport]") {
+    "[unit][kernel][instrumentation][transport][foundation]") {
   auto instrumentation = std::make_shared<RuntimeInstrumentation>();
   int owner = 0;
   bool faultDelivered = false;

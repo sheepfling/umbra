@@ -41,6 +41,12 @@ factory = JavaRtiFactory(
 )
 ~~~
 
+For a normal one-JAR installation, the concise equivalent is
+`JavaRtiFactory.from_jar("vendor-rti.jar", factory_name="Vendor RTI")`.
+This still delegates to the exact standard Java `RtiFactoryFactory` and
+`ServiceLoader` path; dependency JARs and a native-library path can also be
+supplied through the helper.
+
 The equivalent environment configuration is intentionally separate from the
 Java-standard default-provider environment variable:
 
@@ -67,8 +73,14 @@ unknown classpath.
 The public API must not become a mixture of Java objects, pybind11 objects,
 and Python objects. Each standard value family will have one canonical Python
 representation, with Java and C++ adapters converting at their respective
-boundaries. That is why the public `EncoderFactory`, handles, logical-time
-values, and authorization values are not yet exposed as partial successes.
+boundaries. That is why the public shared `EncoderFactory`, handles,
+logical-time values, and authorization values are not exposed as partial
+successes. The Java provider does expose exact handle/logical-time
+`EncoderFactory` creators as provider-scoped extension methods: they require
+the Java-backed ambassador and return Python shells whose encoding and
+validation remain C++-owned. The raw Java escape hatch remains available for
+standard Java surfaces outside the Python façade, such as authorization,
+when the JNI bridge is selected.
 
 During a controlled migration, a Java-specific caller can use:
 
@@ -111,12 +123,12 @@ put arbitrary vendor JARs in this repository.
 
 ## Callback boundary
 
-The adapter turns the implemented Python `FederateAmbassador.connectionLost`
-and `reportFederationExecutions` callbacks into a Java `FederateAmbassador`
-interface proxy. It retains the proxy and its Python callback target for the
-full connection lifetime. As additional standard callback families are added
-to `hla-rti-api`, the Java proxy and the C++ trampoline gain the corresponding
-method in the same change.
+The adapter turns the full Python `FederateAmbassador` callback surface into a
+Java `FederateAmbassador` interface proxy. The 1516.1-2025 surface has 56
+method names and 62 overloads, including scalar and timestamped
+`initiateFederateSave` forms. It retains the proxy and its Python callback
+target for the full connection lifetime; the JNI route audits that each Java
+overload has a C++ trampoline and Python marshaller.
 
 ## Verification status
 
@@ -133,3 +145,12 @@ The fixture is not an IEEE API or RTI implementation: it defines only the
 small Java surface that the current Python contract calls. A vendor integration
 test remains separate because no vendor Java RTI JAR is committed to this
 repository.
+
+For an additional end-to-end confidence lane, `packages/umbra-rti-jni` builds
+one Umbra C++ ambassador into a JNI library, presents its connection and
+federation-reporting slice through a Java `RtiFactory`, and selects that
+factory through this same JPype adapter. Its opt-in test proves C++ → JNI →
+Java → JPype → Python callbacks (including typed timed-save initiation),
+configuration results, callback controls, and typed connection exceptions. It
+is deliberately a test façade, not the default Java provider and not a
+substitute for a vendor-JAR integration test.

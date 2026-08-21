@@ -1,6 +1,7 @@
 package hla.rti1516_2025;
 
 import java.util.Set;
+import hla.rti1516_2025.time.LogicalTime;
 
 /** Test-fixture subset of the standard callback interface. */
 public interface FederateAmbassador {
@@ -10,9 +11,12 @@ public interface FederateAmbassador {
 
    void synchronizationPointRegistrationSucceeded(String synchronizationPointLabel);
 
+   void synchronizationPointRegistrationFailed(
+      String synchronizationPointLabel, SynchronizationPointFailureReason reason);
+
    void announceSynchronizationPoint(String synchronizationPointLabel, byte[] userSuppliedTag);
 
-   void federationSynchronized(String synchronizationPointLabel, Object failedToSyncSet);
+   void federationSynchronized(String synchronizationPointLabel, FederateHandleSet failedToSyncSet);
 
    void startRegistrationForObjectClass(ObjectClassHandle objectClass);
 
@@ -94,7 +98,7 @@ public interface FederateAmbassador {
       byte[] userSuppliedTag,
       TransportationTypeHandle transportationType,
       FederateHandle producingFederate,
-      Object optionalSentRegions);
+      RegionHandleSet optionalSentRegions);
 
    void reflectAttributeValues(
       ObjectInstanceHandle objectInstance,
@@ -102,7 +106,7 @@ public interface FederateAmbassador {
       byte[] userSuppliedTag,
       TransportationTypeHandle transportationType,
       FederateHandle producingFederate,
-      Object optionalSentRegions,
+      RegionHandleSet optionalSentRegions,
       LogicalTime time,
       OrderType sentOrderType,
       OrderType receivedOrderType,
@@ -114,7 +118,7 @@ public interface FederateAmbassador {
       byte[] userSuppliedTag,
       TransportationTypeHandle transportationType,
       FederateHandle producingFederate,
-      Object optionalSentRegions);
+      RegionHandleSet optionalSentRegions);
 
    void receiveInteraction(
       InteractionClassHandle interactionClass,
@@ -122,7 +126,7 @@ public interface FederateAmbassador {
       byte[] userSuppliedTag,
       TransportationTypeHandle transportationType,
       FederateHandle producingFederate,
-      Object optionalSentRegions,
+      RegionHandleSet optionalSentRegions,
       LogicalTime time,
       OrderType sentOrderType,
       OrderType receivedOrderType,
@@ -207,6 +211,8 @@ public interface FederateAmbassador {
    void federationSaveStatusResponse(FederateHandleSaveStatusPair[] response);
 
    void initiateFederateSave(String label);
+
+   void initiateFederateSave(String label, LogicalTime time);
 
    void federationSaved();
 

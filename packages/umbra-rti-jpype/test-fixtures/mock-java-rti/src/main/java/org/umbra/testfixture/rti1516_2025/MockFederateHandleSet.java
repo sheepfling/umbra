@@ -7,4 +7,9 @@ import java.util.HashSet;
 /** Fixture implementation used to exercise Java set conversion through JPype. */
 public final class MockFederateHandleSet extends HashSet<FederateHandle>
    implements FederateHandleSet {
+   @Override public MockFederateHandleSet clone() {
+      MockFederateHandleSet copy = new MockFederateHandleSet();
+      copy.addAll(this);
+      return copy;
+   }
 }

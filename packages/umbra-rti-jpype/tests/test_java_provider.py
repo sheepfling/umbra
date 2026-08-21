@@ -12,6 +12,13 @@ from hla.rti1516_2025 import (
     AttributeSetRegionSetPair,
     AttributeSetRegionSetPairList,
     CallbackModel,
+    DecoderException,
+    DataElementFactory,
+    EncoderException,
+    EncoderFactory,
+    HLAfixedArray,
+    HLAfixedRecord,
+    HLAvariantRecord,
     DimensionHandle,
     DimensionHandleSet,
     FederateAmbassador,
@@ -29,6 +36,8 @@ from hla.rti1516_2025 import (
     HLAinteger64Interval,
     HLAinteger64Time,
     HLAinteger64TimeFactory,
+    HLAopaqueData,
+    HLAvariableArray,
     InteractionClassHandle,
     InteractionClassHandleSet,
     MessageRetractionHandle,
@@ -48,6 +57,7 @@ from hla.rti1516_2025 import (
     RangeBounds,
     RegionHandle,
     RegionHandleSet,
+    RTIambassador,
     ResignAction,
     RestoreStatus,
     SaveFailureReason,
@@ -56,8 +66,17 @@ from hla.rti1516_2025 import (
     TransportationTypeHandle,
 )
 from hla.rti1516_2025.auth import HLAnoCredentials
-from hla.rti1516_2025.exceptions import AlreadyConnected, ConnectionFailed, RTIinternalError
+from hla.rti1516_2025.exceptions import (
+    AlreadyConnected,
+    ConnectionFailed,
+    CouldNotDecode,
+    IllegalTimeArithmetic,
+    InvalidLogicalTime,
+    InvalidLogicalTimeInterval,
+    RTIinternalError,
+)
 from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory
+from umbra._java.rti1516_2025.provider import JavaRTIambassador
 from umbra._java.rti1516_2025._runtime import (
     JavaCallbackBinding,
     _FederateAmbassadorCallback,
@@ -275,14 +294,19 @@ class _FakeJavaTime:
 
     def add(self, addend: object) -> "_FakeJavaTime":
         if not isinstance(addend, _FakeJavaInterval):
-            raise ValueError("logical-time implementation mismatch")
-        return _FakeJavaTime(self.value + addend.value)
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+        result = self.value + addend.value
+        if result > 2**63 - 1:
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+        return _FakeJavaTime(result)
 
     def subtract(self, subtrahend: object) -> "_FakeJavaTime":
         if not isinstance(subtrahend, _FakeJavaInterval):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
         if subtrahend.value > self.value:
-            raise ValueError("logical-time subtraction precedes the initial value")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time subtraction precedes the initial value"
+            )
         return _FakeJavaTime(self.value - subtrahend.value)
 
     def implementationName(self) -> str:
@@ -315,21 +339,26 @@ class _FakeJavaInterval:
 
     def add(self, addend: object) -> "_FakeJavaInterval":
         if not isinstance(addend, _FakeJavaInterval):
-            raise ValueError("logical-time implementation mismatch")
-        return _FakeJavaInterval(self.value + addend.value)
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+        result = self.value + addend.value
+        if result > 2**63 - 1:
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+        return _FakeJavaInterval(result)
 
     def subtract(self, subtrahend: object) -> "_FakeJavaInterval":
         if not isinstance(subtrahend, _FakeJavaInterval):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
         if subtrahend.value > self.value:
-            raise ValueError("logical-time interval subtraction precedes zero")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time interval subtraction precedes zero"
+            )
         return _FakeJavaInterval(self.value - subtrahend.value)
 
     def setToDifference(self, minuend: object, subtrahend: object) -> None:
         if not isinstance(minuend, _FakeJavaTime) or not isinstance(subtrahend, _FakeJavaTime):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
         if subtrahend.value > minuend.value:
-            raise ValueError("logical-time difference would be negative")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time difference would be negative")
         self.value = minuend.value - subtrahend.value
         self.zero = self.value == 0
         self.epsilon = self.value == 1
@@ -399,19 +428,28 @@ class _FakeJavaFloatTime:
 
     def add(self, addend: object) -> "_FakeJavaFloatTime":
         if not isinstance(addend, _FakeJavaFloatInterval):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
         value = self.value
         interval = addend.value
+        if (
+            (value >= float("1.7976931348623157e+308") and interval > 0.0)
+            or interval > float("1.7976931348623157e+308") - value
+        ):
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
         result = value + interval
+        if not math.isfinite(result):
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
         if interval == math.nextafter(0.0, 1.0) and result == value:
             result = math.nextafter(value, float("1.7976931348623157e+308"))
         return _FakeJavaFloatTime(result)
 
     def subtract(self, subtrahend: object) -> "_FakeJavaFloatTime":
         if not isinstance(subtrahend, _FakeJavaFloatInterval):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
         if subtrahend.value > self.value:
-            raise ValueError("logical-time subtraction precedes the initial value")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time subtraction precedes the initial value"
+            )
         result = self.value - subtrahend.value
         if subtrahend.value == math.nextafter(0.0, 1.0) and result == self.value and self.value > 0.0:
             result = math.nextafter(self.value, 0.0)
@@ -447,17 +485,26 @@ class _FakeJavaFloatInterval:
 
     def add(self, addend: object) -> "_FakeJavaFloatInterval":
         if not isinstance(addend, _FakeJavaFloatInterval):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+        if (
+            (self.value >= float("1.7976931348623157e+308") and addend.value > 0.0)
+            or addend.value > float("1.7976931348623157e+308") - self.value
+        ):
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
         result = self.value + addend.value
+        if not math.isfinite(result):
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
         if addend.value == math.nextafter(0.0, 1.0) and result == self.value:
             result = math.nextafter(self.value, float("1.7976931348623157e+308"))
         return _FakeJavaFloatInterval(result)
 
     def subtract(self, subtrahend: object) -> "_FakeJavaFloatInterval":
         if not isinstance(subtrahend, _FakeJavaFloatInterval):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
         if subtrahend.value > self.value:
-            raise ValueError("logical-time interval subtraction precedes zero")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time interval subtraction precedes zero"
+            )
         result = self.value - subtrahend.value
         if subtrahend.value == math.nextafter(0.0, 1.0) and result == self.value and self.value > 0.0:
             result = math.nextafter(self.value, 0.0)
@@ -465,9 +512,9 @@ class _FakeJavaFloatInterval:
 
     def setToDifference(self, minuend: object, subtrahend: object) -> None:
         if not isinstance(minuend, _FakeJavaFloatTime) or not isinstance(subtrahend, _FakeJavaFloatTime):
-            raise ValueError("logical-time implementation mismatch")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
         if subtrahend.value > minuend.value:
-            raise ValueError("logical-time difference would be negative")
+            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time difference would be negative")
         self.value = minuend.value - subtrahend.value
         self.zero = self.value == 0.0
         self.epsilon = self.value == math.nextafter(0.0, 1.0)
@@ -499,9 +546,18 @@ class _FakeJavaFloatTimeFactory:
         return _FakeJavaFloatInterval(math.nextafter(0.0, 1.0), epsilon=True)
 
     def makeLogicalTime(self, value: float) -> _FakeJavaFloatTime:
+        if value < 0.0 or not math.isfinite(value):
+            raise _FakeJavaError(
+                "InvalidLogicalTime", "HLAfloat64Time must be finite and nonnegative"
+            )
         return _FakeJavaFloatTime(value)
 
     def makeLogicalTimeInterval(self, value: float) -> _FakeJavaFloatInterval:
+        if value < 0.0 or not math.isfinite(value):
+            raise _FakeJavaError(
+                "InvalidLogicalTimeInterval",
+                "HLAfloat64Interval must be finite and nonnegative",
+            )
         return _FakeJavaFloatInterval(value)
 
     def decodeLogicalTime(self, encoded: bytes, offset: int) -> _FakeJavaFloatTime:
@@ -626,6 +682,12 @@ class _FakeJavaAmbassador:
             name, modules, mim_module, time_name = arguments
             self.last_fom_modules = tuple(modules)  # type: ignore[arg-type]
             self.last_mim_module = mim_module
+        self.federation_executions[str(name)] = str(time_name)
+
+    def createFederationExecutionWithMIM(self, *arguments: object) -> None:
+        name, modules, mim_module, time_name = arguments
+        self.last_fom_modules = tuple(modules)  # type: ignore[arg-type]
+        self.last_mim_module = mim_module
         self.federation_executions[str(name)] = str(time_name)
 
     def destroyFederationExecution(self, name: str) -> None:
@@ -1012,7 +1074,7 @@ class _FakeJavaAmbassador:
     def getParameterHandleValueMapFactory(self) -> object:
         return self
 
-    def create(self) -> object:
+    def create(self, capacity: int = 0) -> object:
         return set()
 
     def decode(self, buffer: bytes, offset: int) -> bytes:
@@ -1038,24 +1100,45 @@ class _FakeJavaAmbassador:
         )
 
     def subscribeObjectClassAttributes(
-        self, object_class: bytes, attributes: object, active: bool, update_rate: str
+        self, object_class: bytes, attributes: object, update_rate: str = ""
     ) -> None:
         self.last_declaration_call = (
             "subscribe_object",
             object_class,
             frozenset(attributes),
-            active,
+            True,
+            update_rate,
+        )
+
+    def subscribeObjectClassAttributesPassively(
+        self, object_class: bytes, attributes: object, update_rate: str = ""
+    ) -> None:
+        self.last_declaration_call = (
+            "subscribe_object",
+            object_class,
+            frozenset(attributes),
+            False,
             update_rate,
         )
 
     def subscribeObjectClassDirectedInteractions(
-        self, object_class: bytes, interactions: object, universally: bool
+        self, object_class: bytes, interactions: object
     ) -> None:
         self.last_declaration_call = (
             "subscribe_object_directed",
             object_class,
             frozenset(interactions),
-            universally,
+            False,
+        )
+
+    def subscribeObjectClassDirectedInteractionsUniversally(
+        self, object_class: bytes, interactions: object
+    ) -> None:
+        self.last_declaration_call = (
+            "subscribe_object_directed",
+            object_class,
+            frozenset(interactions),
+            True,
         )
 
     def unsubscribeObjectClass(self, object_class: bytes) -> None:
@@ -1072,13 +1155,24 @@ class _FakeJavaAmbassador:
         )
 
     def subscribeObjectClassAttributesWithRegions(
-        self, object_class: bytes, pairs: object, active: bool, update_rate: str
+        self, object_class: bytes, pairs: object, update_rate: str = ""
     ) -> None:
         self.last_declaration_call = (
             "subscribe_object_regions",
             object_class,
             tuple(pairs),
-            active,
+            True,
+            update_rate,
+        )
+
+    def subscribeObjectClassAttributesPassivelyWithRegions(
+        self, object_class: bytes, pairs: object, update_rate: str = ""
+    ) -> None:
+        self.last_declaration_call = (
+            "subscribe_object_regions",
+            object_class,
+            tuple(pairs),
+            False,
             update_rate,
         )
 
@@ -1091,14 +1185,24 @@ class _FakeJavaAmbassador:
     def unpublishInteractionClass(self, interaction_class: bytes) -> None:
         self.last_declaration_call = ("unpublish_interaction", interaction_class)
 
-    def subscribeInteractionClass(self, interaction_class: bytes, active: bool) -> None:
-        self.last_declaration_call = ("subscribe_interaction", interaction_class, active)
+    def subscribeInteractionClass(self, interaction_class: bytes) -> None:
+        self.last_declaration_call = ("subscribe_interaction", interaction_class, True)
+
+    def subscribeInteractionClassPassively(self, interaction_class: bytes) -> None:
+        self.last_declaration_call = ("subscribe_interaction", interaction_class, False)
 
     def subscribeInteractionClassWithRegions(
-        self, interaction_class: bytes, regions: set[bytes], active: bool
+        self, interaction_class: bytes, regions: set[bytes]
     ) -> None:
         self.last_declaration_call = (
-            "subscribe_interaction_regions", interaction_class, frozenset(regions), active
+            "subscribe_interaction_regions", interaction_class, frozenset(regions), True
+        )
+
+    def subscribeInteractionClassPassivelyWithRegions(
+        self, interaction_class: bytes, regions: set[bytes]
+    ) -> None:
+        self.last_declaration_call = (
+            "subscribe_interaction_regions", interaction_class, frozenset(regions), False
         )
 
     def unsubscribeInteractionClass(self, interaction_class: bytes) -> None:
@@ -1351,7 +1455,7 @@ class _FakeJavaDataElement:
         self.value = value
 
     def getOctetBoundary(self) -> int:
-        return 4
+        return 1 if self.kind in {"byte", "octet", "ascii_char"} else 2 if self.kind in {"integer16", "integer16le", "unsigned16", "unsigned16le", "unicode_char", "pair_be", "pair_le"} else 8 if self.kind in {"float64", "float64le", "integer64", "integer64le", "unsigned64", "unsigned64le"} else 4
 
     def getEncodedLength(self) -> int:
         return len(self.toByteArray())
@@ -1359,11 +1463,69 @@ class _FakeJavaDataElement:
     def getValue(self) -> object:
         return self.value
 
+    def size(self) -> int:
+        if self.kind != "opaque":
+            raise AttributeError("size is only defined for opaque data")
+        return len(self.value)
+
+    def get(self, index: int) -> int:
+        if self.kind != "opaque":
+            raise AttributeError("get is only defined for opaque data")
+        return self.value[index]
+
     def setValue(self, value: object) -> "_FakeJavaDataElement":
         self.value = value
         return self
 
     def toByteArray(self) -> bytes:
+        if self.kind in {"byte", "octet"}:
+            return bytes((int(self.value) & 0xFF,))
+        if self.kind == "ascii_char":
+            if int(self.value) > 0x7F:
+                raise ValueError("value is not ASCII")
+            return bytes((int(self.value),))
+        if self.kind == "unicode_char":
+            return struct.pack(">H", int(self.value) & 0xFFFF)
+        if self.kind == "pair_be":
+            return struct.pack(">H", int(self.value) & 0xFFFF)
+        if self.kind == "pair_le":
+            return struct.pack("<H", int(self.value) & 0xFFFF)
+        if self.kind == "opaque":
+            value = bytes(self.value)
+            return struct.pack(">I", len(value)) + value
+        if self.kind == "ascii_string":
+            value = str(self.value)
+            if any(ord(character) > 0x7F for character in value):
+                raise ValueError("value is not ASCII")
+            return struct.pack(">I", len(value)) + value.encode("ascii")
+        if self.kind == "integer16":
+            return struct.pack(">h", int(self.value))
+        if self.kind == "integer16le":
+            return struct.pack("<h", int(self.value))
+        if self.kind == "unsigned16":
+            return struct.pack(">H", int(self.value) & 0xFFFF)
+        if self.kind == "unsigned16le":
+            return struct.pack("<H", int(self.value) & 0xFFFF)
+        if self.kind == "integer32le":
+            return struct.pack("<i", int(self.value))
+        if self.kind == "integer64":
+            return struct.pack(">q", int(self.value))
+        if self.kind == "integer64le":
+            return struct.pack("<q", int(self.value))
+        if self.kind == "float64":
+            return struct.pack(">d", float(self.value))
+        if self.kind == "float64le":
+            return struct.pack("<d", float(self.value))
+        if self.kind == "float32":
+            return struct.pack(">f", float(self.value))
+        if self.kind == "float32le":
+            return struct.pack("<f", float(self.value))
+        if self.kind == "unsigned64":
+            return struct.pack(">Q", int(self.value) & 0xFFFFFFFFFFFFFFFF)
+        if self.kind == "unsigned32le":
+            return struct.pack("<I", int(self.value) & 0xFFFFFFFF)
+        if self.kind == "unsigned64le":
+            return struct.pack("<Q", int(self.value) & 0xFFFFFFFFFFFFFFFF)
         if self.kind == "integer32":
             return struct.pack(">i", int(self.value))
         if self.kind == "unsigned32":
@@ -1374,24 +1536,639 @@ class _FakeJavaDataElement:
         return struct.pack(">I", len(payload) // 2) + payload
 
     def decode(self, bytes_: bytes) -> "_FakeJavaDataElement":
-        if self.kind == "integer32":
+        if self.kind in {"byte", "octet"}:
+            self.value = struct.unpack("b", bytes_)[0]
+        elif self.kind == "ascii_char":
+            self.value = bytes_[0]
+        elif self.kind == "unicode_char":
+            self.value = struct.unpack(">H", bytes_)[0]
+        elif self.kind == "pair_be":
+            self.value = struct.unpack(">h", bytes_)[0]
+        elif self.kind == "pair_le":
+            self.value = struct.unpack("<h", bytes_)[0]
+        elif self.kind == "opaque":
+            if len(bytes_) < 4:
+                raise _FakeJavaError("DecoderException", "truncated HLAopaqueData encoding")
+            length = struct.unpack(">I", bytes_[:4])[0]
+            if len(bytes_) != 4 + length:
+                raise _FakeJavaError("DecoderException", "invalid HLAopaqueData encoding")
+            self.value = bytes(bytes_[4 : 4 + length])
+        elif self.kind == "ascii_string":
+            if len(bytes_) < 4:
+                raise _FakeJavaError("DecoderException", "truncated HLAASCIIstring encoding")
+            length = struct.unpack(">i", bytes_[:4])[0]
+            if length < 0 or len(bytes_) != 4 + length:
+                raise _FakeJavaError("DecoderException", "invalid HLAASCIIstring encoding")
+            try:
+                self.value = bytes_[4 : 4 + length].decode("ascii")
+            except UnicodeError as error:
+                raise _FakeJavaError(
+                    "DecoderException", "invalid HLAASCIIstring encoding"
+                ) from error
+        elif self.kind == "integer16":
+            self.value = struct.unpack(">h", bytes_)[0]
+        elif self.kind == "integer16le":
+            self.value = struct.unpack("<h", bytes_)[0]
+        elif self.kind == "unsigned16":
+            self.value = struct.unpack(">h", bytes_)[0]
+        elif self.kind == "unsigned16le":
+            self.value = struct.unpack("<h", bytes_)[0]
+        elif self.kind == "integer32le":
+            self.value = struct.unpack("<i", bytes_)[0]
+        elif self.kind == "integer64":
+            self.value = struct.unpack(">q", bytes_)[0]
+        elif self.kind == "integer64le":
+            self.value = struct.unpack("<q", bytes_)[0]
+        elif self.kind == "float64":
+            self.value = struct.unpack(">d", bytes_)[0]
+        elif self.kind == "float64le":
+            self.value = struct.unpack("<d", bytes_)[0]
+        elif self.kind == "float32":
+            self.value = struct.unpack(">f", bytes_)[0]
+        elif self.kind == "float32le":
+            self.value = struct.unpack("<f", bytes_)[0]
+        elif self.kind == "unsigned64":
+            self.value = struct.unpack(">q", bytes_)[0]
+        elif self.kind == "unsigned32le":
+            self.value = struct.unpack("<i", bytes_)[0]
+        elif self.kind == "unsigned64le":
+            self.value = struct.unpack("<q", bytes_)[0]
+        elif self.kind == "integer32":
             self.value = struct.unpack(">i", bytes_)[0]
         elif self.kind == "unsigned32":
             self.value = struct.unpack(">i", bytes_)[0]
         elif self.kind == "boolean":
-            self.value = bool(struct.unpack(">I", bytes_)[0])
+            value = struct.unpack(">I", bytes_)[0]
+            if value not in (0, 1):
+                raise _FakeJavaError("DecoderException", "invalid HLAboolean encoding")
+            self.value = bool(value)
         else:
-            payload_length = struct.unpack(">I", bytes_[:4])[0] * 2
-            self.value = bytes_[4 : 4 + payload_length].decode("utf-16-be")
+            if len(bytes_) < 4:
+                raise _FakeJavaError("DecoderException", "truncated HLAunicodeString encoding")
+            element_count = struct.unpack(">i", bytes_[:4])[0]
+            if element_count < 0:
+                raise _FakeJavaError("DecoderException", "invalid HLAunicodeString encoding")
+            payload_length = element_count * 2
+            if len(bytes_) != 4 + payload_length:
+                raise _FakeJavaError("DecoderException", "invalid HLAunicodeString encoding")
+            try:
+                self.value = bytes_[4 : 4 + payload_length].decode("utf-16-be")
+            except UnicodeError as error:
+                raise _FakeJavaError(
+                    "DecoderException", "invalid HLAunicodeString encoding"
+                ) from error
+        return self
+
+def _fake_encoded_length(element, bytes_: bytes, offset: int) -> int:
+    if offset < 0 or offset > len(bytes_):
+        raise _FakeJavaError("DecoderException", "invalid nested DataElement offset")
+    if isinstance(element, _FakeJavaFixedArray):
+        return element._encoded_length_from(bytes_, offset)
+    if isinstance(element, _FakeJavaVariableArray):
+        return element._encoded_length_from(bytes_, offset)
+    if isinstance(element, _FakeJavaFixedRecord):
+        return element._encoded_length_from(bytes_, offset)
+    if isinstance(element, _FakeJavaVariantRecord):
+        return element._encoded_length_from(bytes_, offset)
+    if isinstance(element, _FakeJavaDataElement) and element.kind in {"ascii_string", "opaque", "unicode"}:
+        if len(bytes_) - offset < 4:
+            raise _FakeJavaError("DecoderException", "truncated variable-length DataElement count")
+        count = struct.unpack(">i", bytes_[offset : offset + 4])[0]
+        if count < 0:
+            raise _FakeJavaError("DecoderException", "invalid variable-length DataElement count")
+        return 4 + (count * 2 if element.kind == "unicode" else count)
+    length = len(element.toByteArray())
+    if len(bytes_) - offset < length:
+        raise _FakeJavaError("DecoderException", "truncated fixed-width DataElement")
+    return length
+
+
+def _fake_element_type(element: object):
+    if isinstance(element, _FakeJavaDataElement):
+        return ("scalar", element.kind)
+    return type(element)
+
+
+class _FakeJavaVariableArray:
+    def __init__(self, factory: object) -> None:
+        self.factory = factory
+        self.prototype = factory.createElement(0)  # type: ignore[attr-defined]
+        self.elements: list[_FakeJavaDataElement] = []
+
+    @staticmethod
+    def _padding(length: int, boundary: int) -> int:
+        remainder = length % boundary
+        return 0 if remainder == 0 else boundary - remainder
+
+    @staticmethod
+    def _copy(element):
+        if isinstance(element, _FakeJavaVariableArray):
+            return element.clone()
+        if isinstance(element, _FakeJavaFixedArray):
+            return element.clone()
+        if isinstance(element, _FakeJavaFixedRecord):
+            return element.clone()
+        if isinstance(element, _FakeJavaVariantRecord):
+            return element.clone()
+        value = element.value
+        if isinstance(value, (bytes, bytearray)):
+            value = bytes(value)
+        return _FakeJavaDataElement(element.kind, value)
+
+    def clone(self) -> "_FakeJavaVariableArray":
+        cloned = _FakeJavaVariableArray(self.factory)
+        for element in self.elements:
+            cloned.addElement(element)
+        return cloned
+
+    def getOctetBoundary(self) -> int:
+        return max(4, self.prototype.getOctetBoundary())
+
+    def getEncodedLength(self) -> int:
+        return len(self.toByteArray())
+
+    def size(self) -> int:
+        return len(self.elements)
+
+    def addElement(self, element: _FakeJavaDataElement) -> None:
+        if _fake_element_type(element) != _fake_element_type(self.prototype):
+            raise _FakeJavaError("EncoderException", "variable-array element type mismatch")
+        self.elements.append(self._copy(element))
+
+    def get(self, index: int) -> _FakeJavaDataElement:
+        return self.elements[index]
+
+    def toByteArray(self) -> bytes:
+        encoded = bytearray(struct.pack(">i", len(self.elements)))
+        if not self.elements:
+            return bytes(encoded)
+        encoded.extend(b"\0" * self._padding(4, self.getOctetBoundary()))
+        boundary = self.prototype.getOctetBoundary()
+        for position, element in enumerate(self.elements):
+            payload = element.toByteArray()
+            encoded.extend(payload)
+            if position + 1 != len(self.elements):
+                encoded.extend(b"\0" * self._padding(len(payload), boundary))
+        return bytes(encoded)
+
+    def _encoded_length_from(self, bytes_: bytes, offset: int) -> int:
+        if len(bytes_) - offset < 4:
+            raise _FakeJavaError("DecoderException", "truncated variable-array count")
+        count = struct.unpack(">i", bytes_[offset : offset + 4])[0]
+        if count < 0:
+            raise _FakeJavaError("DecoderException", "negative variable-array count")
+        cursor = offset + 4
+        if count == 0:
+            return 4
+        leading = self._padding(4, self.getOctetBoundary())
+        if len(bytes_) - cursor < leading or any(bytes_[cursor : cursor + leading]):
+            raise _FakeJavaError("DecoderException", "invalid variable-array leading padding")
+        cursor += leading
+        for index in range(count):
+            length = _fake_encoded_length(self.prototype, bytes_, cursor)
+            cursor += length
+            if index + 1 != count:
+                padding = self._padding(length, self.prototype.getOctetBoundary())
+                if len(bytes_) - cursor < padding or any(bytes_[cursor : cursor + padding]):
+                    raise _FakeJavaError("DecoderException", "invalid variable-array padding")
+                cursor += padding
+        return cursor - offset
+
+    def _decode_element(self, bytes_: bytes, offset: int) -> tuple[_FakeJavaDataElement, int]:
+        if not isinstance(self.prototype, _FakeJavaDataElement):
+            element = self._copy(self.prototype)
+            length = _fake_encoded_length(self.prototype, bytes_, offset)
+            if len(bytes_) - offset < length:
+                raise _FakeJavaError("DecoderException", "truncated variable-array element")
+            element.decode(bytes_[offset : offset + length])
+            return element, offset + length
+        kind = self.prototype.kind
+        if kind in {"ascii_string", "opaque", "unicode"}:
+            if len(bytes_) - offset < 4:
+                raise _FakeJavaError("DecoderException", "truncated variable-array element")
+            count = struct.unpack(">I", bytes_[offset : offset + 4])[0]
+            payload_length = count * 2 if kind == "unicode" else count
+            length = 4 + payload_length
+        else:
+            length = len(self.prototype.toByteArray())
+        if len(bytes_) - offset < length:
+            raise _FakeJavaError("DecoderException", "truncated variable-array element")
+        element = self._copy(self.prototype)
+        element.decode(bytes_[offset : offset + length])
+        return element, offset + length
+
+    def decode(self, bytes_: bytes) -> _FakeJavaVariableArray:
+        if len(bytes_) < 4:
+            raise _FakeJavaError("DecoderException", "truncated variable-array count")
+        count = struct.unpack(">i", bytes_[:4])[0]
+        if count < 0:
+            raise _FakeJavaError("DecoderException", "negative variable-array count")
+        offset = 4
+        self.elements = []
+        if count:
+            leading = self._padding(4, self.getOctetBoundary())
+            if len(bytes_) - offset < leading or any(bytes_[offset : offset + leading]):
+                raise _FakeJavaError("DecoderException", "invalid variable-array leading padding")
+            offset += leading
+        boundary = self.prototype.getOctetBoundary()
+        for position in range(count):
+            element, offset = self._decode_element(bytes_, offset)
+            self.elements.append(element)
+            if position + 1 != count:
+                padding = self._padding(len(element.toByteArray()), boundary)
+                if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
+                    raise _FakeJavaError("DecoderException", "invalid variable-array padding")
+                offset += padding
+        if offset != len(bytes_):
+            raise _FakeJavaError("DecoderException", "trailing variable-array data")
+        return self
+
+
+class _FakeJavaFixedArray:
+    def __init__(self, factory: object, size: int) -> None:
+        if size < 0:
+            raise _FakeJavaError("EncoderException", "negative fixed-array size")
+        self.factory = factory
+        self.prototype = factory.createElement(0)  # type: ignore[attr-defined]
+        self.elements = [factory.createElement(index) for index in range(size)]  # type: ignore[attr-defined]
+        if any(_fake_element_type(element) != _fake_element_type(self.prototype) for element in self.elements):
+            raise _FakeJavaError("EncoderException", "fixed-array factory type mismatch")
+
+    @staticmethod
+    def _padding(length: int, boundary: int) -> int:
+        remainder = length % boundary
+        return 0 if remainder == 0 else boundary - remainder
+
+    def getOctetBoundary(self) -> int:
+        return self.prototype.getOctetBoundary()
+
+    def getEncodedLength(self) -> int:
+        return len(self.toByteArray())
+
+    def size(self) -> int:
+        return len(self.elements)
+
+    def clone(self) -> "_FakeJavaFixedArray":
+        cloned = _FakeJavaFixedArray(self.factory, len(self.elements))
+        cloned.decode(self.toByteArray())
+        return cloned
+
+    def get(self, index: int) -> _FakeJavaDataElement:
+        return self.elements[index]
+
+    def _element_length(self, bytes_: bytes, offset: int) -> int:
+        return _fake_encoded_length(self.prototype, bytes_, offset)
+
+    def toByteArray(self) -> bytes:
+        encoded = bytearray()
+        boundary = self.prototype.getOctetBoundary()
+        for index, element in enumerate(self.elements):
+            payload = element.toByteArray()
+            encoded.extend(payload)
+            if index + 1 != len(self.elements):
+                encoded.extend(b"\0" * self._padding(len(payload), boundary))
+        return bytes(encoded)
+
+    def _encoded_length_from(self, bytes_: bytes, offset: int) -> int:
+        cursor = offset
+        boundary = self.prototype.getOctetBoundary()
+        for index, element in enumerate(self.elements):
+            length = _fake_encoded_length(element, bytes_, cursor)
+            cursor += length
+            if index + 1 != len(self.elements):
+                padding = self._padding(length, boundary)
+                if len(bytes_) - cursor < padding or any(bytes_[cursor : cursor + padding]):
+                    raise _FakeJavaError("DecoderException", "invalid fixed-array padding")
+                cursor += padding
+        return cursor - offset
+
+    def decode(self, bytes_: bytes) -> _FakeJavaFixedArray:
+        offset = 0
+        boundary = self.prototype.getOctetBoundary()
+        for index, element in enumerate(self.elements):
+            length = self._element_length(bytes_, offset)
+            if len(bytes_) - offset < length:
+                raise _FakeJavaError("DecoderException", "truncated fixed-array element")
+            element.decode(bytes_[offset : offset + length])
+            offset += length
+            if index + 1 != len(self.elements):
+                padding = self._padding(length, boundary)
+                if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
+                    raise _FakeJavaError("DecoderException", "invalid fixed-array padding")
+                offset += padding
+        if offset != len(bytes_):
+            raise _FakeJavaError("DecoderException", "trailing fixed-array data")
+        return self
+
+
+class _FakeJavaFixedRecord:
+    def __init__(self) -> None:
+        self.elements: list[_FakeJavaDataElement] = []
+
+    @staticmethod
+    def _padding_after(offset: int, length: int, boundary: int) -> int:
+        remainder = (offset + length) % boundary
+        return 0 if remainder == 0 else boundary - remainder
+
+    @staticmethod
+    def _element_length(element: _FakeJavaDataElement, bytes_: bytes, offset: int) -> int:
+        return _fake_encoded_length(element, bytes_, offset)
+
+    def getOctetBoundary(self) -> int:
+        return max((element.getOctetBoundary() for element in self.elements), default=1)
+
+    def getEncodedLength(self) -> int:
+        return len(self.toByteArray())
+
+    def size(self) -> int:
+        return len(self.elements)
+
+    def clone(self) -> "_FakeJavaFixedRecord":
+        cloned = _FakeJavaFixedRecord()
+        for element in self.elements:
+            cloned.appendElement(element)
+        return cloned
+
+    def appendElement(self, element: _FakeJavaDataElement) -> None:
+        self.elements.append(_FakeJavaVariableArray._copy(element))
+
+    def add(self, element: _FakeJavaDataElement) -> None:
+        self.appendElement(element)
+
+    def get(self, index: int) -> _FakeJavaDataElement:
+        return self.elements[index]
+
+    def toByteArray(self) -> bytes:
+        encoded = bytearray()
+        record_offset = 0
+        for index, element in enumerate(self.elements):
+            payload = element.toByteArray()
+            encoded.extend(payload)
+            if index + 1 != len(self.elements):
+                padding = self._padding_after(
+                    record_offset,
+                    len(payload),
+                    self.elements[index + 1].getOctetBoundary(),
+                )
+                encoded.extend(b"\0" * padding)
+                record_offset += len(payload) + padding
+        return bytes(encoded)
+
+    def _encoded_length_from(self, bytes_: bytes, offset: int) -> int:
+        cursor = offset
+        record_offset = 0
+        for index, element in enumerate(self.elements):
+            length = _fake_encoded_length(element, bytes_, cursor)
+            cursor += length
+            if index + 1 != len(self.elements):
+                padding = self._padding_after(
+                    record_offset,
+                    length,
+                    self.elements[index + 1].getOctetBoundary(),
+                )
+                if len(bytes_) - cursor < padding or any(bytes_[cursor : cursor + padding]):
+                    raise _FakeJavaError("DecoderException", "invalid fixed-record padding")
+                cursor += padding
+                record_offset += length + padding
+        return cursor - offset
+
+    def decode(self, bytes_: bytes) -> "_FakeJavaFixedRecord":
+        offset = 0
+        record_offset = 0
+        for index, element in enumerate(self.elements):
+            length = self._element_length(element, bytes_, offset)
+            if len(bytes_) - offset < length:
+                raise _FakeJavaError("DecoderException", "truncated fixed-record element")
+            element.decode(bytes_[offset : offset + length])
+            offset += length
+            if index + 1 != len(self.elements):
+                padding = self._padding_after(
+                    record_offset,
+                    length,
+                    self.elements[index + 1].getOctetBoundary(),
+                )
+                if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
+                    raise _FakeJavaError("DecoderException", "invalid fixed-record padding")
+                offset += padding
+                record_offset += length + padding
+        if offset != len(bytes_):
+            raise _FakeJavaError("DecoderException", "trailing fixed-record data")
+        return self
+
+
+class _FakeJavaVariantRecord:
+    def __init__(self, discriminant_prototype: _FakeJavaDataElement) -> None:
+        self.discriminant_prototype = _FakeJavaVariableArray._copy(discriminant_prototype)
+        self.current_discriminant = _FakeJavaVariableArray._copy(discriminant_prototype)
+        self.variants: list[tuple[_FakeJavaDataElement, _FakeJavaDataElement]] = []
+
+    @staticmethod
+    def _padding(length: int, boundary: int) -> int:
+        remainder = length % boundary
+        return 0 if remainder == 0 else boundary - remainder
+
+    @staticmethod
+    def _element_length(element: _FakeJavaDataElement, bytes_: bytes, offset: int) -> int:
+        return _fake_encoded_length(element, bytes_, offset)
+
+    def _find(self, discriminant: _FakeJavaDataElement):
+        encoded = discriminant.toByteArray()
+        for slot in self.variants:
+            if _fake_element_type(slot[0]) == _fake_element_type(discriminant) and slot[0].toByteArray() == encoded:
+                return slot
+        return None
+
+    def _require_discriminant_type(self, discriminant: _FakeJavaDataElement) -> None:
+        if _fake_element_type(discriminant) != _fake_element_type(self.discriminant_prototype):
+            raise _FakeJavaError("EncoderException", "variant-record discriminant type mismatch")
+
+    def getOctetBoundary(self) -> int:
+        return max(
+            self.discriminant_prototype.getOctetBoundary(),
+            self._maximum_alternative_boundary(),
+        )
+
+    def _maximum_alternative_boundary(self) -> int:
+        return max((slot[1].getOctetBoundary() for slot in self.variants), default=1)
+
+    def getEncodedLength(self) -> int:
+        return len(self.toByteArray())
+
+    def clone(self) -> "_FakeJavaVariantRecord":
+        cloned = _FakeJavaVariantRecord(self.discriminant_prototype)
+        for discriminant, value in self.variants:
+            cloned.setVariant(discriminant, value)
+        cloned.setDiscriminant(self.current_discriminant)
+        return cloned
+
+    def setVariant(self, discriminant: _FakeJavaDataElement, data_element: _FakeJavaDataElement) -> None:
+        self._require_discriminant_type(discriminant)
+        slot = self._find(discriminant)
+        if slot is None:
+            self.variants.append(
+                (_FakeJavaVariableArray._copy(discriminant), _FakeJavaVariableArray._copy(data_element))
+            )
+        else:
+            if _fake_element_type(slot[1]) != _fake_element_type(data_element):
+                raise _FakeJavaError("EncoderException", "variant-record replacement type mismatch")
+            slot[1].decode(data_element.toByteArray())
+        self.current_discriminant = _FakeJavaVariableArray._copy(discriminant)
+
+    def setDiscriminant(self, discriminant: _FakeJavaDataElement) -> None:
+        self._require_discriminant_type(discriminant)
+        self.current_discriminant = _FakeJavaVariableArray._copy(discriminant)
+
+    def getDiscriminant(self) -> _FakeJavaDataElement:
+        return self.current_discriminant
+
+    def getValue(self) -> _FakeJavaDataElement | None:
+        slot = self._find(self.current_discriminant)
+        return None if slot is None else slot[1]
+
+    def toByteArray(self) -> bytes:
+        discriminant = self.current_discriminant.toByteArray()
+        slot = self._find(self.current_discriminant)
+        if slot is None:
+            return discriminant
+        value = slot[1].toByteArray()
+        return (
+            discriminant
+            + b"\0" * self._padding(discriminant.__len__(), self._maximum_alternative_boundary())
+            + value
+        )
+
+    def _encoded_length_from(self, bytes_: bytes, offset: int) -> int:
+        discriminant_length = _fake_encoded_length(self.discriminant_prototype, bytes_, offset)
+        decoded = _FakeJavaVariableArray._copy(self.discriminant_prototype)
+        decoded.decode(bytes_[offset : offset + discriminant_length])
+        slot = self._find(decoded)
+        if slot is None:
+            return discriminant_length
+        cursor = offset + discriminant_length
+        alternative_padding = self._padding(discriminant_length, self._maximum_alternative_boundary())
+        if len(bytes_) - cursor < alternative_padding or any(bytes_[cursor : cursor + alternative_padding]):
+            raise _FakeJavaError("DecoderException", "invalid variant-record padding")
+        cursor += alternative_padding
+        return discriminant_length + alternative_padding + _fake_encoded_length(slot[1], bytes_, cursor)
+
+    def decode(self, bytes_: bytes) -> "_FakeJavaVariantRecord":
+        discriminant_length = self._element_length(self.discriminant_prototype, bytes_, 0)
+        if len(bytes_) - discriminant_length < 0:
+            raise _FakeJavaError("DecoderException", "truncated variant-record discriminant")
+        decoded = _FakeJavaVariableArray._copy(self.discriminant_prototype)
+        decoded.decode(bytes_[:discriminant_length])
+        self.current_discriminant = decoded
+        slot = self._find(decoded)
+        if slot is None:
+            if len(bytes_) != discriminant_length:
+                raise _FakeJavaError("DecoderException", "trailing variant-record data")
+            return self
+        offset = discriminant_length
+        padding = self._padding(discriminant_length, self._maximum_alternative_boundary())
+        if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
+            raise _FakeJavaError("DecoderException", "invalid variant-record padding")
+        offset += padding
+        value_length = self._element_length(slot[1], bytes_, offset)
+        if len(bytes_) - offset < value_length:
+            raise _FakeJavaError("DecoderException", "truncated variant-record value")
+        slot[1].decode(bytes_[offset : offset + value_length])
+        offset += value_length
+        if offset != len(bytes_):
+            raise _FakeJavaError("DecoderException", "trailing variant-record data")
         return self
 
 
 class _FakeJavaEncoderFactory:
+    def createHLAinteger16BE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("integer16", value)
+
+    def createHLAinteger16LE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("integer16le", value)
+
+    def createHLAinteger32LE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("integer32le", value)
+
+    def createHLAinteger64BE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("integer64", value)
+
+    def createHLAinteger64LE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("integer64le", value)
+
+    def createHLAfloat64BE(self, value: float = 0.0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("float64", value)
+
+    def createHLAfloat32BE(self, value: float = 0.0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("float32", value)
+
+    def createHLAfloat64LE(self, value: float = 0.0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("float64le", value)
+
+    def createHLAfloat32LE(self, value: float = 0.0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("float32le", value)
+
+    def createHLAunsignedInteger16BE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("unsigned16", value)
+
+    def createHLAunsignedInteger16LE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("unsigned16le", value)
+
+    def createHLAbyte(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("byte", value)
+
+    def createHLAoctet(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("octet", value)
+
+    def createHLAASCIIchar(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("ascii_char", value)
+
+    def createHLAASCIIstring(self, value: str = "") -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("ascii_string", value)
+
+    def createHLAunicodeChar(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("unicode_char", value)
+
+    def createHLAoctetPairBE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("pair_be", value)
+
+    def createHLAoctetPairLE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("pair_le", value)
+
+    def createHLAopaqueData(self, value: bytes = b"") -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("opaque", bytes(value))
+
+    def createHLAvariableArray(
+        self, factory: object, elements: tuple[_FakeJavaDataElement, ...] = ()
+    ) -> _FakeJavaVariableArray:
+        result = _FakeJavaVariableArray(factory)
+        for element in elements:
+            result.addElement(element)
+        return result
+
+    def createHLAfixedArray(self, factory: object, size: int) -> _FakeJavaFixedArray:
+        return _FakeJavaFixedArray(factory, size)
+
+    def createHLAfixedRecord(self) -> _FakeJavaFixedRecord:
+        return _FakeJavaFixedRecord()
+
+    def createHLAvariantRecord(
+        self, discriminant_prototype: _FakeJavaDataElement
+    ) -> _FakeJavaVariantRecord:
+        return _FakeJavaVariantRecord(discriminant_prototype)
+
+    def createHLAunsignedInteger32LE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("unsigned32le", value)
+
     def createHLAinteger32BE(self, value: int = 0) -> _FakeJavaDataElement:
         return _FakeJavaDataElement("integer32", value)
 
     def createHLAunsignedInteger32BE(self, value: int = 0) -> _FakeJavaDataElement:
         return _FakeJavaDataElement("unsigned32", value)
+
+    def createHLAunsignedInteger64BE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("unsigned64", value)
+
+    def createHLAunsignedInteger64LE(self, value: int = 0) -> _FakeJavaDataElement:
+        return _FakeJavaDataElement("unsigned64le", value)
 
     def createHLAboolean(self, value: bool = False) -> _FakeJavaDataElement:
         return _FakeJavaDataElement("boolean", value)
@@ -1474,7 +2251,7 @@ class _FakeJavaRuntime:
         return frozenset(encoded_values)
 
     def fom_module_url(self, value: str) -> str:
-        return f"java-url:{value}"
+        return value
 
     def fom_module_urls(self, values: tuple[str, ...]) -> tuple[str, ...]:
         return tuple(self.fom_module_url(value) for value in values)
@@ -1540,6 +2317,17 @@ class _FakeJavaRuntime:
     def byte_array(self, value: bytes) -> bytes:
         return value
 
+    def data_element_factory(self, factory: object) -> object:
+        class _Factory:
+            def createElement(self, index: int) -> object:
+                element = factory.createElement(index)  # type: ignore[attr-defined]
+                return element._implementation  # type: ignore[attr-defined]
+
+        return _Factory()
+
+    def data_element_array(self, values: tuple[object, ...]) -> object:
+        return values
+
 
 class _RecordingFederateAmbassador(FederateAmbassador):
     def __init__(self) -> None:
@@ -1598,6 +2386,7 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         self.ownership_owned_by_rti: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
         self.save_status_reports: list[tuple[FederateHandleSaveStatusPair, ...]] = []
         self.save_initiations: list[str] = []
+        self.timestamped_save_initiations: list[tuple[str, LogicalTime]] = []
         self.save_completions = 0
         self.save_failures: list[SaveFailureReason] = []
         self.restore_status_reports: list[tuple[FederateRestoreStatus, ...]] = []
@@ -1740,8 +2529,11 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def federationSaveStatusResponse(self, response) -> None:
         self.save_status_reports.append(response)
 
-    def initiateFederateSave(self, label: str) -> None:
-        self.save_initiations.append(label)
+    def initiateFederateSave(self, label: str, time: object | None = None) -> None:
+        if time is None:
+            self.save_initiations.append(label)
+        else:
+            self.timestamped_save_initiations.append((label, time))
 
     def federationSaved(self) -> None:
         self.save_completions += 1
@@ -1785,6 +2577,14 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         self.request_retractions.append(retraction)
 
 
+class _Integer32ElementFactory(DataElementFactory):
+    def __init__(self, encoder: EncoderFactory) -> None:
+        self.encoder = encoder
+
+    def createElement(self, index: int):
+        return self.encoder.createHLAinteger32BE()
+
+
 class JavaProviderTest(unittest.TestCase):
     def setUp(self) -> None:
         self.runtime = _FakeJavaRuntime()
@@ -1793,6 +2593,14 @@ class JavaProviderTest(unittest.TestCase):
             rti_factory_name="Fake Java RTI",
         )
         self.factory = JavaRtiFactory(self.configuration, runtime=self.runtime)
+
+    def test_java_provider_declares_every_shared_rti_ambassador_method(self) -> None:
+        missing = sorted(
+            name
+            for name in RTIambassador.__abstractmethods__
+            if not hasattr(JavaRTIambassador, name)
+        )
+        self.assertEqual(missing, [])
 
     def test_java_provider_adapts_to_the_shared_python_contract(self) -> None:
         ambassador = self.factory.getRtiAmbassador()
@@ -1898,12 +2706,20 @@ class JavaProviderTest(unittest.TestCase):
                 self.postRestoreHandle = post
                 self.status = _RawEnum(status)
 
+        def encoded_bytes(value: object) -> bytes:
+            if isinstance(value, _FakeJavaTime):
+                encoded = bytearray(value.encodedLength())
+                value.encode(encoded)
+                return bytes(encoded)
+            return bytes(value)
+
         callbacks = _RecordingFederateAmbassador()
-        proxy = _FederateAmbassadorCallback(callbacks, lambda value: bytes(value))
+        proxy = _FederateAmbassadorCallback(callbacks, encoded_bytes)
         proxy.federationSaveStatusResponse(
             (_RawSaveStatus(b"save-federate", "FEDERATE_SAVING"),)
         )
         proxy.initiateFederateSave("save-label")
+        proxy.initiateFederateSave("timed-save-label", _FakeJavaTime(17))
         proxy.federationSaved()
         proxy.federationNotSaved(_RawEnum("SAVE_ABORTED"))
         proxy.federationRestoreStatusResponse(
@@ -1927,6 +2743,9 @@ class JavaProviderTest(unittest.TestCase):
             ],
         )
         self.assertEqual(callbacks.save_initiations, ["save-label"])
+        self.assertEqual(callbacks.timestamped_save_initiations[0][0], "timed-save-label")
+        self.assertIsInstance(callbacks.timestamped_save_initiations[0][1], HLAinteger64Time)
+        self.assertEqual(callbacks.timestamped_save_initiations[0][1].getTime(), 17)
         self.assertEqual(callbacks.save_completions, 1)
         self.assertEqual(callbacks.save_failures, [SaveFailureReason.SAVE_ABORTED])
         self.assertEqual(
@@ -2163,12 +2982,12 @@ class JavaProviderTest(unittest.TestCase):
         )
         self.assertEqual(
             self.runtime.ambassador.last_fom_modules,
-            ("java-url:base.xml", "java-url:extension.xml"),
+            ("base.xml", "extension.xml"),
         )
         ambassador.createFederationExecutionWithMIM(
             "MIM Federation", ["base.xml"], "HLAstandardMIM.xml", "HLAinteger64Time"
         )
-        self.assertEqual(self.runtime.ambassador.last_mim_module, "java-url:HLAstandardMIM.xml")
+        self.assertEqual(self.runtime.ambassador.last_mim_module, "HLAstandardMIM.xml")
 
         unnamed = ambassador.joinFederationExecution(
             "observer", "Module Federation", additionalFomModules=["additional.xml"]
@@ -2239,6 +3058,33 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(advanced.getTime(), 6)
         self.assertEqual(time_factory.subtract(advanced, lookahead).getTime(), 5)
         self.assertEqual(time_factory.difference(advanced, requested_time).getInterval(), 1)
+        malformed_time_values = (
+            b"",
+            b"\0" * 7,
+            b"\0" * 9,
+            struct.pack(">q", -1),
+        )
+        for encoded in malformed_time_values:
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTime(encoded)
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTimeInterval(encoded)
+        foreign_time = HLAfloat64Time(
+            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+        )
+        foreign_interval = HLAfloat64Interval(
+            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+        )
+        with self.assertRaises(InvalidLogicalTime):
+            time_factory.add(foreign_time, lookahead)
+        with self.assertRaises(InvalidLogicalTimeInterval):
+            time_factory.add(requested_time, foreign_interval)
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.add(time_factory.makeFinal(), time_factory.makeEpsilon())
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.subtract(time_factory.makeInitial(), time_factory.makeEpsilon())
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.difference(time_factory.makeInitial(), requested_time)
 
         ambassador.enableTimeRegulation(lookahead)
         ambassador.enableTimeConstrained()
@@ -2299,6 +3145,11 @@ class JavaProviderTest(unittest.TestCase):
         negative_zero = time_factory.makeLogicalTime(-0.0)
         self.assertEqual(negative_zero.getTime(), 0.0)
         self.assertTrue(negative_zero.isInitial())
+        for value in (-1.0, math.inf, math.nan):
+            with self.assertRaises(InvalidLogicalTime):
+                time_factory.makeLogicalTime(value)
+            with self.assertRaises(InvalidLogicalTimeInterval):
+                time_factory.makeLogicalTimeInterval(value)
         self.assertEqual(
             time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 12.5
         )
@@ -2313,6 +3164,32 @@ class JavaProviderTest(unittest.TestCase):
             time_factory.difference(advanced, base).getInterval(),
             math.nextafter(1.0, math.inf) - 1.0,
         )
+        final_time = time_factory.makeFinal()
+        before_final = time_factory.subtract(final_time, epsilon)
+        self.assertEqual(before_final.getTime(), math.nextafter(final_time.getTime(), 0.0))
+        self.assertEqual(time_factory.add(before_final, epsilon).getTime(), final_time.getTime())
+        smallest = time_factory.makeLogicalTime(math.nextafter(0.0, 1.0))
+        self.assertEqual(
+            time_factory.add(smallest, epsilon).getTime(), math.nextafter(smallest.getTime(), math.inf)
+        )
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.add(final_time, epsilon)
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.subtract(time_factory.makeInitial(), epsilon)
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.difference(time_factory.makeInitial(), base)
+        malformed_time_values = (
+            b"",
+            b"\0" * 7,
+            b"\0" * 9,
+            struct.pack(">d", -1.0),
+            struct.pack(">d", math.inf),
+        )
+        for encoded in malformed_time_values:
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTime(encoded)
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTimeInterval(encoded)
         ambassador.enableTimeRegulation(lookahead)
         tiny_time = time_factory.makeLogicalTime(math.nextafter(0.0, 1.0))
         ambassador.timeAdvanceRequest(tiny_time)
@@ -2824,11 +3701,36 @@ class JavaProviderTest(unittest.TestCase):
 
     def test_java_encoder_factory_adapts_the_shared_data_element_contract(self) -> None:
         encoder = self.factory.getEncoderFactory()
+        # The exact Java creator is now available as a provider-scoped
+        # extension; the shared abstract contract remains unchanged.
+        self.assertTrue(hasattr(encoder, "createHLAextendableVariantRecord"))
+        integer16 = encoder.createHLAinteger16BE(-1234)
+        float64 = encoder.createHLAfloat64BE(math.pi)
+        float32 = encoder.createHLAfloat32BE(math.pi)
+        float32le = encoder.createHLAfloat32LE(math.pi)
+        integer32le = encoder.createHLAinteger32LE(-0x1234567)
+        float64le = encoder.createHLAfloat64LE(math.pi)
+        unsigned16 = encoder.createHLAunsignedInteger16BE(0xABCD)
+        unsigned16le = encoder.createHLAunsignedInteger16LE(0xABCD)
+        integer16le = encoder.createHLAinteger16LE(-0x1234)
+        unsigned32le = encoder.createHLAunsignedInteger32LE(0x89ABCDEF)
+        integer64 = encoder.createHLAinteger64BE(-0x123456789AB)
+        integer64le = encoder.createHLAinteger64LE(-0x123456789AB)
+        unsigned64 = encoder.createHLAunsignedInteger64BE(0xFEDCBA9876543210)
+        unsigned64le = encoder.createHLAunsignedInteger64LE(0xFEDCBA9876543210)
         integer = encoder.createHLAinteger32BE(-2)
         unsigned = encoder.createHLAunsignedInteger32BE(0x1234ABCD)
         unsigned_maximum = encoder.createHLAunsignedInteger32BE(0xFFFFFFFF)
         boolean = encoder.createHLAboolean(True)
         unicode = encoder.createHLAunicodeString("A😀")
+        byte = encoder.createHLAbyte(0xA5)
+        octet = encoder.createHLAoctet(0x5A)
+        ascii_char = encoder.createHLAASCIIchar(0x41)
+        ascii_string = encoder.createHLAASCIIstring("A!?")
+        unicode_char = encoder.createHLAunicodeChar(0x03A9)
+        pair_be = encoder.createHLAoctetPairBE(0x1234)
+        pair_le = encoder.createHLAoctetPairLE(0x1234)
+        opaque = encoder.createHLAopaqueData(b"\x00\xA5\xFF")
 
         self.assertEqual(integer.toByteArray(), b"\xff\xff\xff\xfe")
         self.assertEqual(unsigned.toByteArray(), b"\x124\xab\xcd")
@@ -2836,8 +3738,406 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(unsigned_maximum.getValue(), 0xFFFFFFFF)
         self.assertEqual(boolean.toByteArray(), b"\x00\x00\x00\x01")
         self.assertEqual(unicode.toByteArray(), b"\x00\x00\x00\x03\x00A\xd8=\xde\x00")
+        self.assertEqual(byte.toByteArray(), b"\xa5")
+        self.assertEqual(byte.getOctetBoundary(), 1)
+        self.assertIs(byte.decode(b"\xff"), byte)
+        self.assertEqual(byte.getValue(), 0xFF)
+        self.assertEqual(octet.toByteArray(), b"\x5a")
+        self.assertEqual(octet.getOctetBoundary(), 1)
+        self.assertIs(octet.decode(b"\x80"), octet)
+        self.assertEqual(octet.getValue(), 0x80)
+        self.assertEqual(ascii_char.toByteArray(), b"A")
+        self.assertEqual(ascii_char.getOctetBoundary(), 1)
+        self.assertIs(ascii_char.decode(b"Z"), ascii_char)
+        self.assertEqual(ascii_char.getValue(), ord("Z"))
+        self.assertEqual(ascii_string.toByteArray(), b"\x00\x00\x00\x03A!?")
+        self.assertEqual(ascii_string.getOctetBoundary(), 4)
+        self.assertIs(ascii_string.decode(b"\x00\x00\x00\x02OK"), ascii_string)
+        self.assertEqual(ascii_string.getValue(), "OK")
+        self.assertEqual(unicode_char.toByteArray(), b"\x03\xa9")
+        self.assertEqual(unicode_char.getOctetBoundary(), 2)
+        self.assertIs(unicode_char.decode(b"\xd8\x3d"), unicode_char)
+        self.assertEqual(unicode_char.getValue(), 0xD83D)
+        self.assertEqual(pair_be.toByteArray(), b"\x12\x34")
+        self.assertEqual(pair_be.getOctetBoundary(), 2)
+        self.assertIs(pair_be.decode(b"\xab\xcd"), pair_be)
+        self.assertEqual(pair_be.getValue(), 0xABCD)
+        self.assertEqual(pair_le.toByteArray(), b"\x34\x12")
+        self.assertEqual(pair_le.getOctetBoundary(), 2)
+        self.assertIs(pair_le.decode(b"\xab\xcd"), pair_le)
+        self.assertEqual(pair_le.getValue(), 0xCDAB)
+        self.assertIsInstance(opaque, HLAopaqueData)
+        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xA5\xFF")
+        self.assertEqual(opaque.getOctetBoundary(), 4)
+        self.assertEqual(opaque.getEncodedLength(), 7)
+        self.assertEqual(opaque.size(), 3)
+        self.assertEqual([opaque.get(index) for index in range(3)], [0, 0xA5, 0xFF])
+        self.assertEqual(opaque.getValue(), b"\x00\xA5\xFF")
+        self.assertIs(opaque.decode(b"\x00\x00\x00\x02OK"), opaque)
+        self.assertEqual(opaque.getValue(), b"OK")
+        source = bytearray(b"copy")
+        self.assertIsNone(opaque.setValue(source))
+        source[:] = b"xxxx"
+        self.assertEqual(opaque.getValue(), b"copy")
+        with self.assertRaises(IndexError):
+            opaque.get(-1)
+        with self.assertRaises(IndexError):
+            opaque.get(opaque.size())
+        with self.assertRaises(TypeError):
+            opaque.get("0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            encoder.createHLAopaqueData("not-bytes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            opaque.setValue("not-bytes")  # type: ignore[arg-type]
+        with self.assertRaises(DecoderException):
+            opaque.decode(b"\x00\x00\x00\x02A")
+        integer_factory = _Integer32ElementFactory(encoder)
+        variable_array = encoder.createHLAvariableArray(integer_factory)
+        variable_array.addElement(encoder.createHLAinteger32BE(1))
+        variable_array.addElement(encoder.createHLAinteger32BE(-2))
+        decoded_array = encoder.createHLAvariableArray(integer_factory)
+        decoded_array.decode(variable_array.toByteArray())
+        self.assertIsInstance(variable_array, HLAvariableArray)
+        self.assertEqual(variable_array.toByteArray(), b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe")
+        self.assertEqual(variable_array.getOctetBoundary(), 4)
+        self.assertEqual(variable_array.size(), 2)
+        self.assertEqual([element.getValue() for element in variable_array], [1, -2])
+        self.assertEqual([decoded_array.get(index).getValue() for index in range(2)], [1, -2])
+        with self.assertRaises(EncoderException):
+            variable_array.addElement(encoder.createHLAoctet(1))
+        with self.assertRaises(IndexError):
+            variable_array.get(2)
+        with self.assertRaises(DecoderException):
+            encoder.createHLAvariableArray(integer_factory).decode(b"\x80\x00\x00\x00")
+        initial_array = encoder.createHLAvariableArray(
+            integer_factory,
+            encoder.createHLAinteger32BE(3),
+            encoder.createHLAinteger32BE(4),
+        )
+        self.assertEqual([element.getValue() for element in initial_array], [3, 4])
+        fixed_array = encoder.createHLAfixedArray(integer_factory, 2)
+        fixed_array.set(0, encoder.createHLAinteger32BE(1))
+        fixed_array.set(1, encoder.createHLAinteger32BE(-2))
+        decoded_fixed = encoder.createHLAfixedArray(integer_factory, 2)
+        decoded_fixed.decode(fixed_array.toByteArray())
+        self.assertIsInstance(fixed_array, HLAfixedArray)
+        self.assertEqual(fixed_array.toByteArray(), b"\x00\x00\x00\x01\xff\xff\xff\xfe")
+        self.assertEqual(fixed_array.size(), 2)
+        self.assertEqual([element.getValue() for element in fixed_array], [1, -2])
+        self.assertEqual([decoded_fixed.get(index).getValue() for index in range(2)], [1, -2])
+        ascii_factory = type(
+            "_AsciiStringFactory",
+            (DataElementFactory,),
+            {"createElement": lambda self, index: encoder.createHLAASCIIstring()},
+        )()
+        padded_fixed = encoder.createHLAfixedArray(ascii_factory, 2)
+        padded_fixed.set(0, encoder.createHLAASCIIstring("A"))
+        padded_fixed.set(1, encoder.createHLAASCIIstring("B"))
+        padded_bytes = b"\x00\x00\x00\x01A" + b"\0\0\0" + b"\x00\x00\x00\x01B"
+        self.assertEqual(padded_fixed.toByteArray(), padded_bytes)
+        self.assertEqual(padded_fixed.getEncodedLength(), len(padded_bytes))
+        bad_fixed_padding = bytearray(padded_bytes)
+        bad_fixed_padding[5] = 1
+        with self.assertRaises(DecoderException):
+            encoder.createHLAfixedArray(ascii_factory, 2).decode(bad_fixed_padding)
+        with self.assertRaises(EncoderException):
+            fixed_array.set(0, encoder.createHLAoctet(1))
+        with self.assertRaises(IndexError):
+            fixed_array.get(2)
+        with self.assertRaises(ValueError):
+            encoder.createHLAfixedArray(integer_factory, -1)
+        with self.assertRaises(DecoderException):
+            encoder.createHLAfixedArray(integer_factory, 2).decode(
+                b"\x00\x00\x00\x01\xff\xff\xff\xfe\x00"
+            )
+        record = encoder.createHLAfixedRecord()
+        first = encoder.createHLAinteger32BE(0x10203040)
+        middle = encoder.createHLAoctet(0xA5)
+        last = encoder.createHLAinteger32BE(-2)
+        record.appendElement(first)
+        record.appendElement(middle)
+        record.appendElement(last)
+        first.setValue(99)
+        middle.setValue(0x11)
+        last.setValue(7)
+        record_bytes = b"\x10\x20\x30\x40\xA5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(record, HLAfixedRecord)
+        self.assertEqual(record.toByteArray(), record_bytes)
+        self.assertEqual(record.getEncodedLength(), len(record_bytes))
+        self.assertEqual(record.getOctetBoundary(), 4)
+        self.assertEqual(record.size(), 3)
+        self.assertEqual([element.getValue() for element in record], [0x10203040, 0xA5, -2])
+        decoded_record = encoder.createHLAfixedRecord()
+        decoded_record.appendElement(encoder.createHLAinteger32BE())
+        decoded_record.appendElement(encoder.createHLAoctet())
+        decoded_record.appendElement(encoder.createHLAinteger32BE())
+        decoded_record.decode(record_bytes)
+        self.assertEqual(
+            [decoded_record.get(index).getValue() for index in range(3)],
+            [0x10203040, 0xA5, -2],
+        )
+        record.set(1, encoder.createHLAoctet(0x5A))
+        self.assertEqual(
+            record.toByteArray(),
+            b"\x10\x20\x30\x40\x5A" + b"\0\0\0" + b"\xff\xff\xff\xfe",
+        )
+        with self.assertRaises(EncoderException):
+            record.set(1, encoder.createHLAinteger32BE(1))
+        with self.assertRaises(IndexError):
+            record.get(3)
+        bad_record_padding = bytearray(record_bytes)
+        bad_record_padding[5] = 1
+        with self.assertRaises(DecoderException):
+            decoded_record.decode(bad_record_padding)
+        with self.assertRaises(DecoderException):
+            decoded_record.decode(record_bytes + b"\0")
+        nested = encoder.createHLAfixedRecord()
+        nested.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        nested.appendElement(encoder.createHLAoctet(0xA5))
+        outer = encoder.createHLAfixedRecord()
+        outer.appendElement(nested)
+        outer.appendElement(encoder.createHLAinteger32BE(-2))
+        nested.set(0, encoder.createHLAinteger32BE(99))
+        nested_bytes = b"\x01\x02\x03\x04\xA5"
+        outer_bytes = nested_bytes + b"\0\0\0" + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(outer.get(0), HLAfixedRecord)
+        self.assertEqual(outer.toByteArray(), outer_bytes)
+        decoded_outer = encoder.createHLAfixedRecord()
+        decoded_nested = encoder.createHLAfixedRecord()
+        decoded_nested.appendElement(encoder.createHLAinteger32BE())
+        decoded_nested.appendElement(encoder.createHLAoctet())
+        decoded_outer.appendElement(decoded_nested)
+        decoded_outer.appendElement(encoder.createHLAinteger32BE())
+        decoded_outer.decode(outer_bytes)
+        self.assertEqual(decoded_outer.get(0).get(0).getValue(), 0x01020304)
+        self.assertEqual(decoded_outer.get(0).get(1).getValue(), 0xA5)
+        self.assertEqual(decoded_outer.get(1).getValue(), -2)
+        nested_array = encoder.createHLAfixedArray(integer_factory, 2)
+        nested_array.set(0, encoder.createHLAinteger32BE(11))
+        nested_array.set(1, encoder.createHLAinteger32BE(-12))
+        array_outer = encoder.createHLAfixedRecord()
+        array_outer.appendElement(nested_array)
+        array_outer.appendElement(encoder.createHLAinteger32BE(-2))
+        nested_array.set(0, encoder.createHLAinteger32BE(99))
+        array_outer_bytes = b"\x00\x00\x00\x0b\xff\xff\xff\xf4" + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(array_outer.get(0), HLAfixedArray)
+        self.assertEqual(array_outer.toByteArray(), array_outer_bytes)
+        decoded_array_outer = encoder.createHLAfixedRecord()
+        decoded_nested_array = encoder.createHLAfixedArray(integer_factory, 2)
+        decoded_array_outer.appendElement(decoded_nested_array)
+        decoded_array_outer.appendElement(encoder.createHLAinteger32BE())
+        decoded_array_outer.decode(array_outer_bytes)
+        self.assertEqual([decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(decoded_array_outer.get(1).getValue(), -2)
+        nested_variable_factory = type(
+            "_NestedIntegerFactory",
+            (DataElementFactory,),
+            {"createElement": lambda self, index: encoder.createHLAinteger32BE()},
+        )()
+        nested_variable = encoder.createHLAvariableArray(nested_variable_factory)
+        nested_variable.addElement(encoder.createHLAinteger32BE(11))
+        nested_variable.addElement(encoder.createHLAinteger32BE(-12))
+        variable_outer = encoder.createHLAfixedRecord()
+        variable_outer.appendElement(nested_variable)
+        variable_outer.appendElement(encoder.createHLAinteger32BE(-2))
+        nested_variable.addElement(encoder.createHLAinteger32BE(99))
+        nested_variable_bytes = b"\0\0\0\x02\0\0\0\x0b\xff\xff\xff\xf4"
+        variable_outer_bytes = nested_variable_bytes + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(variable_outer.get(0), HLAvariableArray)
+        self.assertEqual(variable_outer.toByteArray(), variable_outer_bytes)
+        decoded_variable_outer = encoder.createHLAfixedRecord()
+        decoded_nested_variable = encoder.createHLAvariableArray(nested_variable_factory)
+        decoded_variable_outer.appendElement(decoded_nested_variable)
+        decoded_variable_outer.appendElement(encoder.createHLAinteger32BE())
+        decoded_variable_outer.decode(variable_outer_bytes)
+        self.assertEqual(decoded_variable_outer.get(0).size(), 2)
+        self.assertEqual([decoded_variable_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(decoded_variable_outer.get(1).getValue(), -2)
+        nested_variant_value = encoder.createHLAfixedRecord()
+        nested_variant_value.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        nested_variant_value.appendElement(encoder.createHLAoctet(0xA5))
+        nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        nested_variant.setVariant(encoder.createHLAoctet(3), nested_variant_value)
+        nested_variant_value.set(0, encoder.createHLAinteger32BE(99))
+        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xA5"
+        self.assertIsInstance(nested_variant.getValue(), HLAfixedRecord)
+        self.assertEqual(nested_variant.toByteArray(), nested_variant_bytes)
+        decoded_nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        decoded_nested_variant_value = encoder.createHLAfixedRecord()
+        decoded_nested_variant_value.appendElement(encoder.createHLAinteger32BE())
+        decoded_nested_variant_value.appendElement(encoder.createHLAoctet())
+        decoded_nested_variant.setVariant(encoder.createHLAoctet(3), decoded_nested_variant_value)
+        decoded_nested_variant.decode(nested_variant_bytes)
+        self.assertEqual(decoded_nested_variant.getValue().get(0).getValue(), 0x01020304)
+        composite_discriminant = encoder.createHLAfixedRecord()
+        composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
+        composite_variant = encoder.createHLAvariantRecord(composite_discriminant)
+        composite_variant.setVariant(composite_discriminant, encoder.createHLAinteger32BE(7))
+        composite_discriminant.set(0, encoder.createHLAinteger32BE(99))
+        composite_variant_bytes = b"\x01\x02\x03\x04\xA5" + b"\0\0\0" + b"\0\0\0\x07"
+        self.assertIsInstance(composite_variant.getDiscriminant(), HLAfixedRecord)
+        self.assertEqual(composite_variant.toByteArray(), composite_variant_bytes)
+        decoded_composite_discriminant = encoder.createHLAfixedRecord()
+        decoded_composite_discriminant.appendElement(encoder.createHLAinteger32BE())
+        decoded_composite_discriminant.appendElement(encoder.createHLAoctet())
+        decoded_composite_variant = encoder.createHLAvariantRecord(decoded_composite_discriminant)
+        mapped_composite_discriminant = encoder.createHLAfixedRecord()
+        mapped_composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        mapped_composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
+        decoded_composite_variant.setVariant(mapped_composite_discriminant, encoder.createHLAinteger32BE())
+        decoded_composite_variant.decode(composite_variant_bytes)
+        self.assertEqual(decoded_composite_variant.getValue().getValue(), 7)
+        variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        discriminant_one = encoder.createHLAoctet(1)
+        discriminant_two = encoder.createHLAoctet(2)
+        integer_value = encoder.createHLAinteger32BE(0x10203040)
+        string_value = encoder.createHLAASCIIstring("A")
+        variant.setVariant(discriminant_one, integer_value)
+        variant.setVariant(discriminant_two, string_value)
+        integer_value.setValue(7)
+        string_value.setValue("B")
+        variant_one_bytes = b"\x01" + b"\0\0\0" + b"\x10\x20\x30\x40"
+        variant_two_bytes = b"\x02" + b"\0\0\0" + b"\x00\x00\x00\x01A"
+        self.assertIsInstance(variant, HLAvariantRecord)
+        self.assertEqual(variant.getOctetBoundary(), 4)
+        self.assertEqual(variant.getEncodedLength(), len(variant_two_bytes))
+        self.assertEqual(variant.toByteArray(), variant_two_bytes)
+        self.assertEqual(variant.getDiscriminant().getValue(), 2)
+        self.assertEqual(variant.getValue().getValue(), "A")  # type: ignore[union-attr]
+        variant.setDiscriminant(discriminant_one)
+        self.assertEqual(variant.toByteArray(), variant_one_bytes)
+        self.assertEqual(variant.getValue().getValue(), 0x10203040)  # type: ignore[union-attr]
+        variant.setDiscriminant(encoder.createHLAoctet(3))
+        self.assertIsNone(variant.getValue())
+        self.assertEqual(variant.toByteArray(), b"\x03")
+        decoded_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        decoded_variant.setVariant(encoder.createHLAoctet(1), encoder.createHLAinteger32BE())
+        decoded_variant.setVariant(encoder.createHLAoctet(2), encoder.createHLAASCIIstring())
+        decoded_variant.decode(variant_two_bytes)
+        self.assertEqual(decoded_variant.getValue().getValue(), "A")  # type: ignore[union-attr]
+        bad_variant_padding = bytearray(variant_two_bytes)
+        bad_variant_padding[1] = 1
+        with self.assertRaises(DecoderException):
+            decoded_variant.decode(bad_variant_padding)
+        with self.assertRaises(DecoderException):
+            decoded_variant.decode(variant_two_bytes + b"\0")
+        with self.assertRaises(EncoderException):
+            variant.setDiscriminant(encoder.createHLAinteger32BE(1))
+        with self.assertRaises(EncoderException):
+            variant.setVariant(discriminant_one, encoder.createHLAoctet(1))
+        octet_factory = type(
+            "_OctetFactory",
+            (DataElementFactory,),
+            {"createElement": lambda self, index: encoder.createHLAoctet()},
+        )()
+        octet_array = encoder.createHLAvariableArray(octet_factory)
+        octet_array.addElement(encoder.createHLAoctet(0x11))
+        octet_array.addElement(encoder.createHLAoctet(0x22))
+        self.assertEqual(octet_array.toByteArray(), b"\x00\x00\x00\x02\x11\x22")
+        self.assertEqual(integer16.toByteArray(), struct.pack(">h", -1234))
+        self.assertEqual(integer16.getOctetBoundary(), 2)
+        self.assertIs(integer16.decode(b"\x7f\xff"), integer16)
+        self.assertEqual(integer16.getValue(), 32767)
+        self.assertEqual(integer32le.toByteArray(), struct.pack("<i", -0x1234567))
+        self.assertEqual(integer32le.getOctetBoundary(), 4)
+        self.assertIs(integer32le.decode(b"\x78\x56\x34\x12"), integer32le)
+        self.assertEqual(integer32le.getValue(), 0x12345678)
+        self.assertEqual(float64.toByteArray(), struct.pack(">d", math.pi))
+        self.assertEqual(float64.getOctetBoundary(), 8)
+        self.assertIs(float64.setValue(-0.5), float64)
+        self.assertEqual(float64.getValue(), -0.5)
+        self.assertEqual(float32.toByteArray(), struct.pack(">f", math.pi))
+        self.assertEqual(float32.getOctetBoundary(), 4)
+        self.assertAlmostEqual(float32.getValue(), math.pi, places=6)
+        self.assertEqual(float32le.toByteArray(), struct.pack("<f", math.pi))
+        self.assertEqual(float32le.getOctetBoundary(), 4)
+        self.assertIs(float32le.setValue(-0.5), float32le)
+        self.assertEqual(float32le.getValue(), -0.5)
+        self.assertEqual(float64le.toByteArray(), struct.pack("<d", math.pi))
+        self.assertEqual(float64le.getOctetBoundary(), 8)
+        self.assertIs(float64le.setValue(-0.5), float64le)
+        self.assertEqual(float64le.getValue(), -0.5)
+        self.assertEqual(unsigned16.toByteArray(), b"\xab\xcd")
+        self.assertEqual(unsigned16.getOctetBoundary(), 2)
+        self.assertEqual(unsigned16.getValue(), 0xABCD)
+        self.assertIs(unsigned16.decode(b"\x80\x01"), unsigned16)
+        self.assertEqual(unsigned16.getValue(), 0x8001)
+        self.assertEqual(unsigned16le.toByteArray(), b"\xcd\xab")
+        self.assertEqual(unsigned16le.getOctetBoundary(), 2)
+        self.assertIs(unsigned16le.decode(b"\x01\x80"), unsigned16le)
+        self.assertEqual(unsigned16le.getValue(), 0x8001)
+        self.assertEqual(integer16le.toByteArray(), struct.pack("<h", -0x1234))
+        self.assertEqual(integer16le.getOctetBoundary(), 2)
+        self.assertIs(integer16le.decode(b"\x34\x12"), integer16le)
+        self.assertEqual(integer16le.getValue(), 0x1234)
+        self.assertEqual(unsigned32le.toByteArray(), struct.pack("<I", 0x89ABCDEF))
+        self.assertEqual(unsigned32le.getValue(), 0x89ABCDEF)
+        self.assertEqual(integer64.toByteArray(), struct.pack(">q", -0x123456789AB))
+        self.assertEqual(integer64.getOctetBoundary(), 8)
+        self.assertIs(integer64.decode(b"\x01\x02\x03\x04\x05\x06\x07\x08"), integer64)
+        self.assertEqual(integer64.getValue(), 0x0102030405060708)
+        self.assertEqual(integer64le.toByteArray(), struct.pack("<q", -0x123456789AB))
+        self.assertEqual(integer64le.getOctetBoundary(), 8)
+        self.assertEqual(unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210))
+        self.assertEqual(unsigned64.getValue(), 0xFEDCBA9876543210)
+        self.assertIs(unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64)
+        self.assertEqual(unsigned64.getValue(), 0xFFFFFFFFFFFFFFFF)
+        self.assertEqual(unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210))
+        self.assertEqual(unsigned64le.getValue(), 0xFEDCBA9876543210)
+        with self.assertRaises(TypeError):
+            encoder.createHLAinteger16BE(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            encoder.createHLAinteger16BE(2**15)
+        with self.assertRaises(TypeError):
+            encoder.createHLAfloat64BE("not-a-number")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            encoder.createHLAinteger32LE(2**31)
+        with self.assertRaises(TypeError):
+            encoder.createHLAfloat64LE("not-a-number")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            encoder.createHLAfloat32BE("not-a-number")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            encoder.createHLAfloat32LE("not-a-number")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            encoder.createHLAunsignedInteger16BE(2**16)
+        with self.assertRaises(ValueError):
+            encoder.createHLAunsignedInteger16LE(2**16)
+        with self.assertRaises(ValueError):
+            encoder.createHLAbyte(256)
+        with self.assertRaises(ValueError):
+            encoder.createHLAoctet(-1)
+        with self.assertRaises(ValueError):
+            encoder.createHLAASCIIchar(0x80)
+        with self.assertRaises(ValueError):
+            encoder.createHLAASCIIstring("café")
+        with self.assertRaises(ValueError):
+            encoder.createHLAunicodeChar(0x10000)
+        with self.assertRaises(ValueError):
+            encoder.createHLAoctetPairBE(2**16)
+        with self.assertRaises(ValueError):
+            encoder.createHLAinteger64BE(2**63)
+        with self.assertRaises(ValueError):
+            encoder.createHLAinteger64LE(-(2**63) - 1)
+        with self.assertRaises(ValueError):
+            encoder.createHLAunsignedInteger64BE(2**64)
+        with self.assertRaises(ValueError):
+            encoder.createHLAinteger16LE(2**15)
+        with self.assertRaises(ValueError):
+            encoder.createHLAunsignedInteger32LE(2**32)
+        with self.assertRaises(ValueError):
+            encoder.createHLAunsignedInteger64LE(2**64)
         self.assertIs(integer.decode(b"\x00\x00\x00\x07"), integer)
         self.assertEqual(integer.getValue(), 7)
+        for element, malformed in (
+            (integer, b"\0" * 5),
+            (float64, b"\0" * 9),
+            (ascii_string, b"\0\0\0\x02A"),
+            (unicode, b"\0\0\0\x02\0A"),
+            (boolean, b"\0\0\0\x02"),
+        ):
+            with self.assertRaises(DecoderException):
+                element.decode(malformed)
         self.assertIs(unicode.setValue("reset"), unicode)
         self.assertEqual(unicode.getValue(), "reset")
 
@@ -2857,3 +4157,25 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(configuration.classpath, ("first.jar", "second.jar"))
         self.assertEqual(configuration.rti_factory_name, "Vendor RTI")
         self.assertEqual(configuration.jvm_path, "java.dll")
+
+    def test_from_jar_is_concise_standard_factory_factory_configuration(self) -> None:
+        factory = JavaRtiFactory.from_jar(
+            "vendor-rti.jar",
+            factory_name="Vendor RTI",
+            dependencies=("vendor-support.jar",),
+            native_library_path="vendor-bin",
+            jvm_options=("-Xmx1g",),
+            runtime=self.runtime,
+        )
+
+        self.assertEqual(
+            factory._configuration.classpath,
+            ("vendor-rti.jar", "vendor-support.jar"),
+        )
+        self.assertEqual(factory._configuration.rti_factory_name, "Vendor RTI")
+        self.assertEqual(factory._configuration.jvm_options[0], "-Xmx1g")
+        self.assertTrue(
+            factory._configuration.jvm_options[1].startswith(
+                "-Djava.library.path="
+            )
+        )

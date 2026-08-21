@@ -41,7 +41,7 @@ bool encodedEquals(
 
 TEST_CASE(
     "HLAplainTextPassword stores the standard HLAunicodeString credential payload",
-    "[baseline][authorization][credentials]") {
+    "[baseline][authorization][credentials][unit][foundation]") {
   HLAplainTextPassword password(L"p\u00E4ss");
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x04,
@@ -69,7 +69,7 @@ TEST_CASE(
 
 TEST_CASE(
     "HLAplainTextPassword rejects malformed HLAunicodeString credential payloads",
-    "[baseline][authorization][credentials]") {
+    "[baseline][authorization][credentials][unit][foundation]") {
   std::array<unsigned char, 3> const tooShort{0x00, 0x00, 0x00};
   std::array<unsigned char, 6> const truncated{0x00, 0x00, 0x00, 0x02, 0x00, 0x70};
   std::array<unsigned char, 7> const trailing{0x00, 0x00, 0x00, 0x01, 0x00, 0x70, 0x5A};
@@ -91,7 +91,7 @@ TEST_CASE(
 
 TEST_CASE(
     "HLAauthorizer factories select and forward the standard reference service",
-    "[baseline][authorization][authorizer-factory]") {
+    "[baseline][authorization][authorizer-factory][unit][foundation]") {
   auto factory = HLAauthorizerFactoryFactory::getAuthorizerFactory(HLAauthorizerName);
   REQUIRE(factory);
   REQUIRE(factory->getName() == HLAauthorizerName);
@@ -115,7 +115,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Configured reference HLAauthorizer recognizes only valid matching plaintext credentials",
-    "[baseline][authorization][authorizer]") {
+    "[baseline][authorization][authorizer][unit][foundation]") {
   umbra::detail::ReferenceAuthorizerConfiguration configuration;
   configuration.globalPlainTextPassword = L"test-password";
   auto authorizer = umbra::detail::makeReferenceAuthorizer(std::move(configuration));

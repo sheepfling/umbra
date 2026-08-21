@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded embedded receive-order directed-interaction path. The registry validates the FOM directed-interaction relationship, stores per-federate class-directed publication/subscription state, routes only to federates that know the target object and have the applicable subscription, excludes the sender, and rechecks declaration/lifecycle state before callback delivery. A missing or false selector records by-ownership delivery, which additionally requires the known target to have at least one attribute owned by the recipient; true records universal delivery for every known target. Supplied classes take the invocation selector and an empty set preserves existing selectors. The Lab's immutable candidate export does not independently catalog the prose that states the two delivery predicates; the generic selector anchor is retained with this source-level qualification (RL-028). This contract intentionally does not promote conformance evidence or claim timestamped/retraction behavior, directed DDM, FOM sharing-policy enforcement, MOM, transport, or conformance.",
+  "notes": "This source/test traceability contract covers only the bounded embedded receive-order directed-interaction path. The registry validates the FOM directed-interaction relationship, stores per-federate class-directed publication/subscription state, routes only to federates that know the target object and have the applicable subscription, excludes the sender, and rechecks declaration/lifecycle state before callback delivery. A focused evoked regression sends while the target is known, accepts global deletion before callback dispatch, then proves that Receive Directed Interaction is suppressed while the queued Remove Object Instance callback remains. A missing or false selector records by-ownership delivery, which additionally requires the known target to have at least one attribute owned by the recipient; true records universal delivery for every known target. Supplied classes take the invocation selector and an empty set preserves existing selectors. The Lab's immutable candidate export does not independently catalog the prose that states the two delivery predicates; the generic selector anchor is retained with this source-level qualification (RL-028). This contract intentionally does not promote conformance evidence or claim timestamped/retraction behavior, directed DDM, FOM sharing-policy enforcement, MOM, transport, or conformance.",
   "requirements": [
     {
       "id": "umbra-directed-fom-class-association",
@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "validDirectedInteractionForObjectClass",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions after the complete module set is merged",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
       ]
     },
@@ -85,7 +85,18 @@
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
+      ]
+    },
+    {
+      "id": "umbra-directed-target-departure-suppresses-queued-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+      "clause_id": "clause-5.1.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
       ]
     },
     {
@@ -105,7 +116,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     },
     {
@@ -146,7 +158,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "planReceiveOrderDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     },
     {
@@ -166,7 +179,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     },
     {
@@ -186,7 +200,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     },
     {
@@ -196,7 +211,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     },
     {
@@ -206,7 +222,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     }
   ]

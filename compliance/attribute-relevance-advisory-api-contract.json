@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins the official IEEE 1516.1-2025 C++ Attribute Relevance Advisory switch accessors and both Turn Updates On overloads plus the Turn Updates Off FederateAmbassador callback used by Umbra's bounded embedded scope-transition path. Explicit retained subscription designators are grouped into the rate-bearing callback; omitted designators use the no-rate overload. Queued callbacks re-resolve the current designator at callback entry, including regional overlap transitions. It verifies exact official signatures, exception sets, adapter symbols, and real Catch2 selectors. Advisories Use Known Class, initial registration/discovery-time advisories, complete regional DDM, update-rate enforcement/reduction, MOM, transport, package evidence, protected review, catalog evidence, and conformance remain outside the slice.",
+  "notes": "This contract pins the official IEEE 1516.1-2025 C++ Attribute Relevance Advisory switch accessors and both Turn Updates On overloads plus the Turn Updates Off FederateAmbassador callback used by Umbra's bounded embedded scope-transition path. Explicit retained subscription designators are grouped into the rate-bearing callback; omitted designators use the no-rate overload. Queued callbacks re-resolve the current designator at callback entry, including regional overlap transitions. It verifies exact official signatures, exception sets, adapter symbols, and real Catch2 selectors. The narrow file-selected successful-void record for Set Attribute Relevance Advisory Switch is traced separately in mom-service-reporting-requirements-contract.json; generic MOM behavior and interaction delivery remain outside this slice. Advisories Use Known Class, initial registration/discovery-time advisories, complete regional DDM, update-rate enforcement/reduction, transport, package evidence, protected review, catalog evidence, and conformance remain outside the slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-get-attribute-relevance-advisory-switch",
@@ -41,7 +41,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAttributeRelevanceAdvisorySwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters"
       ]
     },
     {

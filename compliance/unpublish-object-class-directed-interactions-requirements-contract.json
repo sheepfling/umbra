@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 Unpublish Object Class Directed Interactions service in Umbra's opt-in, non-installable development profile. The official C++ binding exposes the §5.7 service through a whole-class overload and an interaction-class-set overload. The focused production-filesystem regression verifies that undefined object or interaction class inputs append no successful-void report; the interaction-set overload appends ObjectClassHandle type 36 and supplied InteractionClassHandleSet type 28; a supplied empty set remains type 28 with an empty Array<InteractionClassHandle>; and the whole-class overload retains that same optional argument position as type-34 Null. Every record is appended after its accepted registry transition. The Requirements Lab assigns the coalesced §5.7 source candidates to clause-5.7.4; RL-078 records that source-ownership mismatch while this contract retains the direct §5.7 source context. Table 5's rotated InteractionClassHandleSet row has no row-level Requirements Lab candidate (RL-067/RL-076); its exact Array<InteractionClassHandle> form and the static MIM type-28 enumerator are retained in implementation comments and focused source/API traceability. Complete directed delivery matrices, subscriptions, timestamped/retraction behavior, DDM, public MOM delivery, remote transport, packaging, validation, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-unpublish-object-class-directed-interactions-removes-only-the-supplied-directed-publications",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-095-l83-22",
+      "clause_id": "clause-5.7.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments"
+      ]
+    },
+    {
+      "id": "umbra-unpublish-object-class-directed-interactions-removes-the-whole-class-when-the-optional-set-is-absent",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-095-l83-22",
+      "clause_id": "clause-5.7.4",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments"
+      ]
+    },
+    {
+      "id": "umbra-unpublish-object-class-directed-interactions-accepts-an-empty-supplied-set-as-a-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-095-l89-24",
+      "clause_id": "clause-5.7.4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments"
+      ]
+    },
+    {
+      "id": "umbra-unpublish-object-class-directed-interactions-subset-file-report-follows-the-accepted-declaration-transition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments"
+      ]
+    },
+    {
+      "id": "umbra-unpublish-object-class-directed-interactions-uses-the-table-five-interaction-class-set-form",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/mom_service_report_encoding.cpp",
+      "source_symbol": "formatMomInteractionClassHandleSet",
+      "tests": [
+        "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 InteractionClassHandleSet argument form",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments"
+      ]
+    }
+  ]
+}

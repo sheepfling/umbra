@@ -47,6 +47,14 @@ pretending a password policy exists.  The embedded `UmbraRtiAmbassador` does
 not obtain or invoke that authorizer; its disabled-authorization Connect gate
 above remains the production behavior.
 
+The separate JNI bridge exposes a raw Java conformance route through the exact
+2025 `AuthorizerFactoryFactory` ServiceLoader interface. Its
+`NativeAuthorizerFactory` delegates authorization decisions to the same C++
+reference implementation and may receive a test password through the
+`umbra.rti.jni.authorizer.password` JVM property. This does not configure the
+embedded C++ RTI profile, widen the shared Python contract, or claim that the
+secure RID-backed production slice is complete.
+
 `umbra::authorizer` is a static CMake artifact boundary, not a claim that the
 SDK already satisfies the standard's platform-specific dynamic library
 nomenclature, third-party direct-link, or custom-authorizer loading rules.

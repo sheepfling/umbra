@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 Attribute Scope Advisory callbacks and switch accessors to the official C++ API corpus. The implemented slice covers known object instances, committed regional overlap, update-region association, and ordinary or regional subscription transitions, immediate/evoked delivery, callback-time stale suppression, and the per-federate advisory switch; default-region synthesis, timestamped/retraction behavior, save/restore, remote transport, package support, protected review, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 Attribute Scope Advisory callbacks and switch accessors to the official C++ API corpus. The implemented slice covers known object instances, committed regional overlap, update-region association, and ordinary or regional subscription transitions, immediate/evoked delivery, callback-time stale suppression, and the per-federate advisory switch. The narrow file-selected successful-void record for Set Attribute Scope Advisory Switch is traced separately in mom-service-reporting-requirements-contract.json; generic MOM behavior and interaction delivery remain outside this slice. Default-region synthesis, timestamped/retraction behavior, save/restore, remote transport, package support, protected review, catalog evidence, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-attributes-in-scope",
@@ -55,7 +55,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAttributeScopeAdvisorySwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters"
       ]
     },
     {

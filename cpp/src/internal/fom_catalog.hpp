@@ -30,14 +30,37 @@ struct FomAttributeDefinition {
   std::string order;
 };
 
+// A directed-interaction declaration is a named association between an object
+// class and an interaction class.  Its sharing field is OMT model metadata;
+// current per-federate declaration state belongs to the federation registry.
+// Retain it rather than reducing the association to a bare interaction name so
+// Annex C-compatible composition and later FOM-facing behavior can use the
+// actual supplied declaration.
+struct FomDirectedInteractionDefinition {
+  std::string interactionClassName;
+  std::string sharing;
+};
+
 struct FomObjectClassDefinition {
   std::string name;
   std::string parentName;
+  std::string sharing;
+  std::string semantics;
   std::map<std::string, FomAttributeDefinition> declaredAttributes;
-  std::vector<std::string> directedInteractions;
+  std::vector<FomDirectedInteractionDefinition> directedInteractions;
   // Dimensions declared on this class. Available-dimension lookup walks the
   // class hierarchy so inherited dimensions remain visible to subclasses.
   std::vector<std::string> dimensions;
+
+  [[nodiscard]] FomDirectedInteractionDefinition const* directedInteraction(
+      std::string const& interactionClassName) const noexcept {
+    for (auto const& declaration : directedInteractions) {
+      if (declaration.interactionClassName == interactionClassName) {
+        return &declaration;
+      }
+    }
+    return nullptr;
+  }
 };
 
 struct FomInteractionParameterDefinition {
@@ -48,6 +71,8 @@ struct FomInteractionParameterDefinition {
 struct FomInteractionClassDefinition {
   std::string name;
   std::string parentName;
+  std::string sharing;
+  std::string semantics;
   std::map<std::string, FomInteractionParameterDefinition> declaredParameters;
   std::string transportation;
   std::string order;

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only Umbra's bounded non-regional timestamped Delete Object Instance and timestamped Remove Object Instance path in the non-installable 2025 development profile. It exercises lower-bound validation, pending-delete retraction with object reconstitution, exact-bound callback delivery before Time Advance Grant, official timestamp/order/retraction fields, the supplied tag and producing federate, and sender callback exclusion. A separate mixed nonconstrained/time-constrained scenario now proves a legal post-delivery Retract: a delivered recipient receives Request Retraction, still-pending fanout is withdrawn, and an execution-owned invocation snapshot restores the object, name, known-instance state, and committed split attribute ownership before that callback is exposed. A second scenario confirms an owner who resigns after delivered removal is not revived or notified, while its former attribute remains unowned. The bounded tombstone lifecycle now retains a lightweight terminal record for MessageCanNoLongerBeRetracted while it releases heavyweight deletion payload/snapshot and the deleted-instance marker only after no still-joined recipient remains pending. A focused no-recipient case proves the name is then available for a fresh named registration. Accepted producer TAR/TARA/NMR/NMRA/FQR requests, immediate actual-lookahead increases, successful Retract, and producer resignation are wired to that lifecycle; Disable Time Regulation is intentionally conservative because a later enable can establish a new retraction boundary. Complete alternate-advance, re-enable, save/restore recovery, active in-flight ownership, other producer/recipient resignation, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This source/test traceability contract covers only Umbra's bounded non-regional timestamped Delete Object Instance and timestamped Remove Object Instance path in the non-installable 2025 development profile. It exercises lower-bound validation, pending-delete retraction with object reconstitution, exact-bound callback delivery before Time Advance Grant, official timestamp/order/retraction fields, the supplied tag and producing federate, and sender callback exclusion. A cross-service target-departure regression additionally proves that a time-6 removal commits object departure before a separately queued time-7 directed interaction reaches its callback boundary, where the stale directed payload is suppressed. Focused Connection Lost regressions additionally retain time-5 and time-6 removals accepted from the lost regulator through its configured unconditional-divest cleanup until the surviving constrained federate receives Remove Object Instance before its matching time-6 grant; one counterpart keeps the cutoff marker and object state live for a second survivor that requests time 6 only after the first callback, while the DELETE_OBJECTS companion preserves the same timestamped lifecycle rather than replacing it with automatic receive-order removal. A separate mixed nonconstrained/time-constrained scenario now proves a legal post-delivery Retract: a delivered recipient receives Request Retraction, still-pending fanout is withdrawn, and an execution-owned invocation snapshot restores the object, name, known-instance state, and committed split attribute ownership before that callback is exposed. A second scenario confirms an owner who resigns after delivered removal is not revived or notified, while its former attribute remains unowned. The bounded tombstone lifecycle now retains a lightweight terminal record for MessageCanNoLongerBeRetracted while it releases heavyweight deletion payload/snapshot and the deleted-instance marker only after no still-joined recipient remains pending. A focused no-recipient case proves the name is then available for a fresh named registration. Accepted producer TAR/TARA/NMR/NMRA/FQR requests, immediate actual-lookahead increases, successful Retract, and producer resignation are wired to that lifecycle; Disable Time Regulation is intentionally conservative because a later enable can establish a new retraction boundary. Complete alternate-advance, re-enable, save/restore recovery, active in-flight ownership, other producer/recipient resignation, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
   "requirements": [
     {
       "id": "umbra-timestamped-delete-identifies-known-instance",
@@ -13,6 +13,8 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoObjectDeletion",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name"
       ]
     },
@@ -23,7 +25,10 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planTsoObjectInstanceDeletion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time"
       ]
     },
     {
@@ -33,7 +38,20 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-commits-target-departure-before-later-tso-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+      "clause_id": "clause-6.16",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped target departure suppresses directed delivery at the grant boundary"
       ]
     },
     {
@@ -44,6 +62,8 @@
       "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name"
       ]
     },
@@ -54,7 +74,11 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time"
       ]
     },
     {
@@ -64,7 +88,11 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueTimestampedObjectInstanceRemoval",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time"
       ]
     },
     {
@@ -74,7 +102,11 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time"
       ]
     },
     {
@@ -85,6 +117,7 @@
       "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant"
+        ,"cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants"
       ]
     },
     {
@@ -128,6 +161,39 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion only for joined owners"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-connection-loss-retains-cutoff-removal",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::resignLocked",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss preserves a cutoff timestamped deletion across automatic delete cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss drains a cutoff timestamped deletion to each pending survivor"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-connection-loss-automatic-delete-preserves-cutoff-removal",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::resignLocked",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss preserves a cutoff timestamped deletion across automatic delete cleanup"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-delete-connection-loss-drains-each-pending-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::reclaimTsoMessagePayload",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss drains a cutoff timestamped deletion to each pending survivor"
       ]
     }
   ]

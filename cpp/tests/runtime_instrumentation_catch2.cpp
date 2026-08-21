@@ -32,7 +32,7 @@ std::filesystem::path temporaryOutputPath() {
 
 TEST_CASE(
     "Runtime instrumentation snapshots have console JSON and CSV writers",
-    "[unit][kernel][instrumentation][output]") {
+    "[unit][kernel][instrumentation][output][foundation]") {
   auto instrumentation = std::make_shared<RuntimeInstrumentation>();
   {
     auto scope = instrumentation->begin(
@@ -68,7 +68,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Runtime instrumentation CSV sampler records cumulative and interval counters",
-    "[unit][kernel][instrumentation][output]") {
+    "[unit][kernel][instrumentation][output][foundation]") {
   auto instrumentation = std::make_shared<RuntimeInstrumentation>();
   {
     auto scope = instrumentation->begin(

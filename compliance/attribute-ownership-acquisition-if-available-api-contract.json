@@ -27,7 +27,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
       ]
     },
     {
@@ -42,7 +43,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "requester.attributeOwnershipAcquisitionNotification",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
       ]
     },
     {

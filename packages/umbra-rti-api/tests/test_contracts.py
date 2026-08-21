@@ -1,3 +1,5 @@
+from pathlib import Path
+import re
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +11,8 @@ from hla.rti1516_2025 import (
     AttributeHandleValueMap,
     AttributeSetRegionSetPair,
     AttributeSetRegionSetPairList,
+    AttributeRegionAssociation,
+    MutableAttributeSetRegionSetPairList,
     CallbackModel,
     ConfigurationResult,
     DimensionHandle,
@@ -19,6 +23,7 @@ from hla.rti1516_2025 import (
     HLAinteger64Interval,
     HLAinteger64Time,
     InteractionClassHandle,
+    MutableInteractionClassHandleSet,
     MutableAttributeHandleSet,
     MutableAttributeHandleValueMap,
     MutableDimensionHandleSet,
@@ -45,9 +50,34 @@ from hla.rti1516_2025 import (
 from hla.rti1516_2025.auth import Credentials, HLAnoCredentials
 from hla.rti1516_2025.encoding import (
     DataElement,
+    DataElementFactory,
     EncoderFactory,
+    HLAfixedArray,
     HLAboolean,
+    HLAASCIIchar,
+    HLAASCIIstring,
+    HLAbyte,
+    HLAfloat64BE,
+    HLAfloat64LE,
+    HLAfloat32BE,
+    HLAfloat32LE,
+    HLAinteger16BE,
+    HLAinteger16LE,
     HLAinteger32BE,
+    HLAinteger32LE,
+    HLAinteger64BE,
+    HLAinteger64LE,
+    HLAunsignedInteger16BE,
+    HLAunsignedInteger16LE,
+    HLAunsignedInteger32LE,
+    HLAunsignedInteger64BE,
+    HLAunsignedInteger64LE,
+    HLAoctet,
+    HLAoctetPairBE,
+    HLAoctetPairLE,
+    HLAopaqueData,
+    HLAvariableArray,
+    HLAunicodeChar,
     HLAunicodeString,
     HLAunsignedInteger32BE,
 )
@@ -227,6 +257,27 @@ class ContractsTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             attribute_values[ObjectClassHandle(b"wrong")] = b"value"  # type: ignore[index]
 
+    def test_java_shaped_interaction_and_attribute_region_factories_are_portable(self) -> None:
+        interaction = InteractionClassHandle(b"interaction")
+        attribute = AttributeHandle(b"attribute")
+        region = RegionHandle(b"region")
+
+        interactions = MutableInteractionClassHandleSet()
+        interactions.add(interaction)
+        self.assertEqual(tuple(interactions), (interaction,))
+        with self.assertRaises(TypeError):
+            interactions.add(ObjectClassHandle(b"wrong"))  # type: ignore[arg-type]
+
+        association = AttributeRegionAssociation(
+            AttributeHandleSet([attribute]), RegionHandleSet([region])
+        )
+        self.assertEqual(association.attributes, association.ahset)
+        self.assertEqual(association.regions, association.rhset)
+        pairs = MutableAttributeSetRegionSetPairList(2)
+        pairs.add(association)
+        self.assertEqual(len(pairs), 1)
+        self.assertEqual(AttributeSetRegionSetPairList(pairs)[0], association)
+
     def test_parameter_handle_value_maps_copy_bytes_and_enforce_their_key_domain(self) -> None:
         parameter = ParameterHandle(b"parameter")
         source_value = bytearray(b"value")
@@ -239,9 +290,35 @@ class ContractsTest(unittest.TestCase):
 
     def test_encoding_contract_is_provider_owned_and_not_python_constructed(self) -> None:
         self.assertTrue(issubclass(HLAinteger32BE, DataElement))
+        self.assertTrue(issubclass(HLAinteger16BE, DataElement))
+        self.assertTrue(issubclass(HLAfloat64BE, DataElement))
+        self.assertTrue(issubclass(HLAinteger32LE, DataElement))
+        self.assertTrue(issubclass(HLAfloat64LE, DataElement))
+        self.assertTrue(issubclass(HLAfloat32BE, DataElement))
+        self.assertTrue(issubclass(HLAfloat32LE, DataElement))
+        self.assertTrue(issubclass(HLAunsignedInteger16BE, DataElement))
+        self.assertTrue(issubclass(HLAunsignedInteger16LE, DataElement))
+        self.assertTrue(issubclass(HLAinteger64BE, DataElement))
+        self.assertTrue(issubclass(HLAinteger16LE, DataElement))
+        self.assertTrue(issubclass(HLAinteger64LE, DataElement))
+        self.assertTrue(issubclass(HLAunsignedInteger64BE, DataElement))
+        self.assertTrue(issubclass(HLAunsignedInteger32LE, DataElement))
+        self.assertTrue(issubclass(HLAunsignedInteger64LE, DataElement))
         self.assertTrue(issubclass(HLAunsignedInteger32BE, DataElement))
         self.assertTrue(issubclass(HLAboolean, DataElement))
+        self.assertTrue(issubclass(HLAASCIIchar, DataElement))
+        self.assertTrue(issubclass(HLAASCIIstring, DataElement))
+        self.assertTrue(issubclass(HLAunicodeChar, DataElement))
+        self.assertTrue(issubclass(HLAbyte, DataElement))
+        self.assertTrue(issubclass(HLAoctet, DataElement))
+        self.assertTrue(issubclass(HLAoctetPairBE, DataElement))
+        self.assertTrue(issubclass(HLAoctetPairLE, DataElement))
+        self.assertTrue(issubclass(HLAopaqueData, DataElement))
+        self.assertTrue(issubclass(HLAvariableArray, DataElement))
+        self.assertTrue(issubclass(DataElementFactory, object))
+        self.assertTrue(issubclass(HLAfixedArray, DataElement))
         self.assertTrue(issubclass(HLAunicodeString, DataElement))
+        self.assertFalse(hasattr(EncoderFactory, "createHLAextendableVariantRecord"))
         with self.assertRaises(TypeError):
             EncoderFactory()
         with self.assertRaises(TypeError):
@@ -297,7 +374,21 @@ class ContractsTest(unittest.TestCase):
             AttributeSetRegionSetPairList([("not a pair",)])  # type: ignore[list-item]
 
     def test_all_provider_edges_map_official_exception_names_to_specific_types(self) -> None:
-        self.assertEqual(len(exceptions._EXCEPTION_TYPES), 100)
+        exception_header = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.1-2025"
+            / "include"
+            / "RTI"
+            / "Exception.h"
+        )
+        expected_names = set(
+            re.findall(
+                r"RTI_EXCEPTION\(([A-Za-z_][A-Za-z0-9_]*)\)",
+                exception_header.read_text(encoding="utf-8"),
+            )
+        ) - {"A"}
+        self.assertEqual(set(exceptions._EXCEPTION_TYPES), expected_names)
         self.assertIsInstance(exceptionForName("ConnectionFailed", "offline"), ConnectionFailed)
         self.assertIsInstance(
             exceptionForName("FederateInternalError", "callback failed"),

@@ -105,7 +105,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Discover Object Instance before its callback"
       ]
     }
   ]

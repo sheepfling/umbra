@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import math
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 
@@ -14,9 +15,14 @@ from hla.rti1516_2025 import (
     AttributeSetRegionSetPairList,
     CallbackModel,
     DecoderException,
+    EncoderException,
+    DataElementFactory,
     DimensionHandle,
     DimensionHandleSet,
     EncoderFactory,
+    HLAfixedArray,
+    HLAfixedRecord,
+    HLAvariantRecord,
     FederateAmbassador,
     FederationExecutionInformation,
     FederationExecutionInformationSet,
@@ -24,6 +30,15 @@ from hla.rti1516_2025 import (
     FederateHandle,
     FederateHandleSet,
     HLAboolean,
+    HLAASCIIchar,
+    HLAASCIIstring,
+    HLAbyte,
+    HLAfloat32BE,
+    HLAfloat32LE,
+    HLAfloat64BE,
+    HLAfloat64LE,
+    HLAinteger16BE,
+    HLAinteger16LE,
     HLAinteger64Interval,
     HLAinteger64Time,
     HLAinteger64TimeFactory,
@@ -31,6 +46,20 @@ from hla.rti1516_2025 import (
     HLAfloat64Time,
     HLAfloat64TimeFactory,
     HLAinteger32BE,
+    HLAinteger32LE,
+    HLAinteger64BE,
+    HLAinteger64LE,
+    HLAunsignedInteger16BE,
+    HLAunsignedInteger16LE,
+    HLAunsignedInteger32LE,
+    HLAunsignedInteger64BE,
+    HLAunsignedInteger64LE,
+    HLAoctet,
+    HLAoctetPairBE,
+    HLAoctetPairLE,
+    HLAopaqueData,
+    HLAvariableArray,
+    HLAunicodeChar,
     HLAunicodeString,
     HLAunsignedInteger32BE,
     InteractionClassHandle,
@@ -58,13 +87,27 @@ from hla.rti1516_2025 import (
     ServiceGroup,
     TransportationTypeHandle,
 )
-from hla.rti1516_2025.exceptions import AlreadyConnected
+from hla.rti1516_2025.exceptions import (
+    AlreadyConnected,
+    CouldNotDecode,
+    IllegalTimeArithmetic,
+    InvalidLogicalTime,
+    InvalidLogicalTimeInterval,
+)
 from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory
 
 from _mock_java_fixture import build_mock_java_rti, java_toolchain_available
 
 
 JPYPE_AVAILABLE = importlib.util.find_spec("jpype") is not None
+
+
+class _Integer32ElementFactory(DataElementFactory):
+    def __init__(self, encoder: EncoderFactory) -> None:
+        self.encoder = encoder
+
+    def createElement(self, index: int):
+        return self.encoder.createHLAinteger32BE()
 
 
 class _RecordingFederateAmbassador(FederateAmbassador):
@@ -408,7 +451,7 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def federationSaveStatusResponse(self, response: tuple[object, ...]) -> None:
         self.save_status_reports.append(response)
 
-    def initiateFederateSave(self, label: str) -> None:
+    def initiateFederateSave(self, label: str, time: object | None = None) -> None:
         self.save_initiations.append(label)
 
     def federationSaved(self) -> None:
@@ -472,23 +515,398 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(result.message, "connected through the mock Java RTI using HLA_EVOKED")
 
         encoder = self.factory.getEncoderFactory()
+        self.assertFalse(hasattr(encoder, "createHLAextendableVariantRecord"))
+        integer16 = encoder.createHLAinteger16BE(-1234)
+        float64 = encoder.createHLAfloat64BE(math.pi)
+        float32 = encoder.createHLAfloat32BE(math.pi)
+        float32le = encoder.createHLAfloat32LE(math.pi)
+        integer32le = encoder.createHLAinteger32LE(-0x1234567)
+        float64le = encoder.createHLAfloat64LE(math.pi)
+        unsigned16 = encoder.createHLAunsignedInteger16BE(0xABCD)
+        unsigned16le = encoder.createHLAunsignedInteger16LE(0xABCD)
+        integer16le = encoder.createHLAinteger16LE(-0x1234)
+        unsigned32le = encoder.createHLAunsignedInteger32LE(0x89ABCDEF)
+        integer64 = encoder.createHLAinteger64BE(-0x123456789AB)
+        integer64le = encoder.createHLAinteger64LE(-0x123456789AB)
+        unsigned64 = encoder.createHLAunsignedInteger64BE(0xFEDCBA9876543210)
+        unsigned64le = encoder.createHLAunsignedInteger64LE(0xFEDCBA9876543210)
         integer = encoder.createHLAinteger32BE(-2)
         unsigned = encoder.createHLAunsignedInteger32BE(0x1234ABCD)
         unsigned_maximum = encoder.createHLAunsignedInteger32BE(0xFFFFFFFF)
         boolean = encoder.createHLAboolean(True)
         unicode = encoder.createHLAunicodeString("A😀")
+        byte = encoder.createHLAbyte(0xA5)
+        octet = encoder.createHLAoctet(0x5A)
+        ascii_char = encoder.createHLAASCIIchar(0x41)
+        ascii_string = encoder.createHLAASCIIstring("A!?")
+        unicode_char = encoder.createHLAunicodeChar(0x03A9)
+        pair_be = encoder.createHLAoctetPairBE(0x1234)
+        pair_le = encoder.createHLAoctetPairLE(0x1234)
+        opaque = encoder.createHLAopaqueData(b"\x00\xA5\xFF")
         self.assertIsInstance(encoder, EncoderFactory)
         self.assertIsInstance(integer, HLAinteger32BE)
+        self.assertIsInstance(integer16, HLAinteger16BE)
+        self.assertIsInstance(float64, HLAfloat64BE)
+        self.assertIsInstance(float32, HLAfloat32BE)
+        self.assertIsInstance(float32le, HLAfloat32LE)
+        self.assertIsInstance(integer32le, HLAinteger32LE)
+        self.assertIsInstance(float64le, HLAfloat64LE)
+        self.assertIsInstance(unsigned16, HLAunsignedInteger16BE)
+        self.assertIsInstance(unsigned16le, HLAunsignedInteger16LE)
+        self.assertIsInstance(integer16le, HLAinteger16LE)
+        self.assertIsInstance(unsigned32le, HLAunsignedInteger32LE)
+        self.assertIsInstance(integer64, HLAinteger64BE)
+        self.assertIsInstance(integer64le, HLAinteger64LE)
+        self.assertIsInstance(unsigned64, HLAunsignedInteger64BE)
+        self.assertIsInstance(unsigned64le, HLAunsignedInteger64LE)
         self.assertIsInstance(unsigned, HLAunsignedInteger32BE)
         self.assertIsInstance(boolean, HLAboolean)
         self.assertIsInstance(unicode, HLAunicodeString)
+        self.assertIsInstance(byte, HLAbyte)
+        self.assertIsInstance(octet, HLAoctet)
+        self.assertIsInstance(ascii_char, HLAASCIIchar)
+        self.assertIsInstance(ascii_string, HLAASCIIstring)
+        self.assertIsInstance(unicode_char, HLAunicodeChar)
+        self.assertIsInstance(pair_be, HLAoctetPairBE)
+        self.assertIsInstance(pair_le, HLAoctetPairLE)
+        self.assertIsInstance(opaque, HLAopaqueData)
         self.assertEqual(integer.toByteArray(), b"\xff\xff\xff\xfe")
+        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xA5\xFF")
+        self.assertEqual(opaque.getOctetBoundary(), 4)
+        self.assertEqual(opaque.size(), 3)
+        self.assertEqual([opaque.get(index) for index in range(3)], [0, 0xA5, 0xFF])
+        self.assertEqual(opaque.getValue(), b"\x00\xA5\xFF")
+        self.assertIs(opaque.decode(b"\x00\x00\x00\x02OK"), opaque)
+        self.assertEqual(opaque.getValue(), b"OK")
+        with self.assertRaises(DecoderException):
+            opaque.decode(b"\x00\x00\x00\x02A")
+        integer_factory = _Integer32ElementFactory(encoder)
+        variable_array = encoder.createHLAvariableArray(integer_factory)
+        variable_array.addElement(encoder.createHLAinteger32BE(1))
+        variable_array.addElement(encoder.createHLAinteger32BE(-2))
+        decoded_array = encoder.createHLAvariableArray(integer_factory)
+        decoded_array.decode(variable_array.toByteArray())
+        self.assertIsInstance(variable_array, HLAvariableArray)
+        self.assertEqual(variable_array.toByteArray(), b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe")
+        self.assertEqual(variable_array.getOctetBoundary(), 4)
+        self.assertEqual(variable_array.size(), 2)
+        self.assertEqual([element.getValue() for element in variable_array], [1, -2])
+        self.assertEqual([decoded_array.get(index).getValue() for index in range(2)], [1, -2])
+        with self.assertRaises(EncoderException):
+            variable_array.addElement(encoder.createHLAoctet(1))
+        with self.assertRaises(IndexError):
+            variable_array.get(2)
+        with self.assertRaises(DecoderException):
+            encoder.createHLAvariableArray(integer_factory).decode(b"\x80\x00\x00\x00")
+        initial_array = encoder.createHLAvariableArray(
+            integer_factory,
+            encoder.createHLAinteger32BE(3),
+            encoder.createHLAinteger32BE(4),
+        )
+        self.assertEqual([element.getValue() for element in initial_array], [3, 4])
+        fixed_array = encoder.createHLAfixedArray(integer_factory, 2)
+        fixed_array.set(0, encoder.createHLAinteger32BE(1))
+        fixed_array.set(1, encoder.createHLAinteger32BE(-2))
+        decoded_fixed = encoder.createHLAfixedArray(integer_factory, 2)
+        decoded_fixed.decode(fixed_array.toByteArray())
+        self.assertIsInstance(fixed_array, HLAfixedArray)
+        self.assertEqual(fixed_array.toByteArray(), b"\x00\x00\x00\x01\xff\xff\xff\xfe")
+        self.assertEqual(fixed_array.size(), 2)
+        self.assertEqual([element.getValue() for element in fixed_array], [1, -2])
+        self.assertEqual([decoded_fixed.get(index).getValue() for index in range(2)], [1, -2])
+        ascii_factory = type(
+            "_AsciiStringFactory",
+            (DataElementFactory,),
+            {"createElement": lambda self, index: encoder.createHLAASCIIstring()},
+        )()
+        padded_fixed = encoder.createHLAfixedArray(ascii_factory, 2)
+        padded_fixed.set(0, encoder.createHLAASCIIstring("A"))
+        padded_fixed.set(1, encoder.createHLAASCIIstring("B"))
+        padded_bytes = b"\x00\x00\x00\x01A" + b"\0\0\0" + b"\x00\x00\x00\x01B"
+        self.assertEqual(padded_fixed.toByteArray(), padded_bytes)
+        self.assertEqual(padded_fixed.getEncodedLength(), len(padded_bytes))
+        bad_fixed_padding = bytearray(padded_bytes)
+        bad_fixed_padding[5] = 1
+        with self.assertRaises(DecoderException):
+            encoder.createHLAfixedArray(ascii_factory, 2).decode(bad_fixed_padding)
+        with self.assertRaises(EncoderException):
+            fixed_array.set(0, encoder.createHLAoctet(1))
+        with self.assertRaises(IndexError):
+            fixed_array.get(2)
+        with self.assertRaises(ValueError):
+            encoder.createHLAfixedArray(integer_factory, -1)
+        with self.assertRaises(DecoderException):
+            encoder.createHLAfixedArray(integer_factory, 2).decode(
+                b"\x00\x00\x00\x01\xff\xff\xff\xfe\x00"
+            )
+        record = encoder.createHLAfixedRecord()
+        first = encoder.createHLAinteger32BE(0x10203040)
+        middle = encoder.createHLAoctet(0xA5)
+        last = encoder.createHLAinteger32BE(-2)
+        record.appendElement(first)
+        record.appendElement(middle)
+        record.appendElement(last)
+        first.setValue(99)
+        middle.setValue(0x11)
+        last.setValue(7)
+        record_bytes = b"\x10\x20\x30\x40\xA5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(record, HLAfixedRecord)
+        self.assertEqual(record.toByteArray(), record_bytes)
+        self.assertEqual(record.getEncodedLength(), len(record_bytes))
+        self.assertEqual(record.getOctetBoundary(), 4)
+        self.assertEqual(record.size(), 3)
+        self.assertEqual([element.getValue() for element in record], [0x10203040, 0xA5, -2])
+        decoded_record = encoder.createHLAfixedRecord()
+        decoded_record.appendElement(encoder.createHLAinteger32BE())
+        decoded_record.appendElement(encoder.createHLAoctet())
+        decoded_record.appendElement(encoder.createHLAinteger32BE())
+        decoded_record.decode(record_bytes)
+        self.assertEqual(
+            [decoded_record.get(index).getValue() for index in range(3)],
+            [0x10203040, 0xA5, -2],
+        )
+        record.set(1, encoder.createHLAoctet(0x5A))
+        self.assertEqual(
+            record.toByteArray(),
+            b"\x10\x20\x30\x40\x5A" + b"\0\0\0" + b"\xff\xff\xff\xfe",
+        )
+        with self.assertRaises(EncoderException):
+            record.set(1, encoder.createHLAinteger32BE(1))
+        with self.assertRaises(IndexError):
+            record.get(3)
+        bad_record_padding = bytearray(record_bytes)
+        bad_record_padding[5] = 1
+        with self.assertRaises(DecoderException):
+            decoded_record.decode(bad_record_padding)
+        with self.assertRaises(DecoderException):
+            decoded_record.decode(record_bytes + b"\0")
+        nested = encoder.createHLAfixedRecord()
+        nested.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        nested.appendElement(encoder.createHLAoctet(0xA5))
+        outer = encoder.createHLAfixedRecord()
+        outer.appendElement(nested)
+        outer.appendElement(encoder.createHLAinteger32BE(-2))
+        nested.set(0, encoder.createHLAinteger32BE(99))
+        nested_bytes = b"\x01\x02\x03\x04\xA5"
+        outer_bytes = nested_bytes + b"\0\0\0" + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(outer.get(0), HLAfixedRecord)
+        self.assertEqual(outer.toByteArray(), outer_bytes)
+        decoded_outer = encoder.createHLAfixedRecord()
+        decoded_nested = encoder.createHLAfixedRecord()
+        decoded_nested.appendElement(encoder.createHLAinteger32BE())
+        decoded_nested.appendElement(encoder.createHLAoctet())
+        decoded_outer.appendElement(decoded_nested)
+        decoded_outer.appendElement(encoder.createHLAinteger32BE())
+        decoded_outer.decode(outer_bytes)
+        self.assertEqual(decoded_outer.get(0).get(0).getValue(), 0x01020304)
+        self.assertEqual(decoded_outer.get(0).get(1).getValue(), 0xA5)
+        self.assertEqual(decoded_outer.get(1).getValue(), -2)
+        nested_array = encoder.createHLAfixedArray(integer_factory, 2)
+        nested_array.set(0, encoder.createHLAinteger32BE(11))
+        nested_array.set(1, encoder.createHLAinteger32BE(-12))
+        array_outer = encoder.createHLAfixedRecord()
+        array_outer.appendElement(nested_array)
+        array_outer.appendElement(encoder.createHLAinteger32BE(-2))
+        nested_array.set(0, encoder.createHLAinteger32BE(99))
+        array_outer_bytes = b"\x00\x00\x00\x0b\xff\xff\xff\xf4" + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(array_outer.get(0), HLAfixedArray)
+        self.assertEqual(array_outer.toByteArray(), array_outer_bytes)
+        decoded_array_outer = encoder.createHLAfixedRecord()
+        decoded_nested_array = encoder.createHLAfixedArray(integer_factory, 2)
+        decoded_array_outer.appendElement(decoded_nested_array)
+        decoded_array_outer.appendElement(encoder.createHLAinteger32BE())
+        decoded_array_outer.decode(array_outer_bytes)
+        self.assertEqual([decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(decoded_array_outer.get(1).getValue(), -2)
+        nested_variable_factory = type(
+            "_NestedIntegerFactory",
+            (DataElementFactory,),
+            {"createElement": lambda self, index: encoder.createHLAinteger32BE()},
+        )()
+        nested_variable = encoder.createHLAvariableArray(nested_variable_factory)
+        nested_variable.addElement(encoder.createHLAinteger32BE(11))
+        nested_variable.addElement(encoder.createHLAinteger32BE(-12))
+        variable_outer = encoder.createHLAfixedRecord()
+        variable_outer.appendElement(nested_variable)
+        variable_outer.appendElement(encoder.createHLAinteger32BE(-2))
+        nested_variable.addElement(encoder.createHLAinteger32BE(99))
+        nested_variable_bytes = b"\0\0\0\x02\0\0\0\x0b\xff\xff\xff\xf4"
+        variable_outer_bytes = nested_variable_bytes + b"\xff\xff\xff\xfe"
+        self.assertIsInstance(variable_outer.get(0), HLAvariableArray)
+        self.assertEqual(variable_outer.toByteArray(), variable_outer_bytes)
+        decoded_variable_outer = encoder.createHLAfixedRecord()
+        decoded_nested_variable = encoder.createHLAvariableArray(nested_variable_factory)
+        decoded_variable_outer.appendElement(decoded_nested_variable)
+        decoded_variable_outer.appendElement(encoder.createHLAinteger32BE())
+        decoded_variable_outer.decode(variable_outer_bytes)
+        self.assertEqual(decoded_variable_outer.get(0).size(), 2)
+        self.assertEqual([decoded_variable_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(decoded_variable_outer.get(1).getValue(), -2)
+        nested_variant_value = encoder.createHLAfixedRecord()
+        nested_variant_value.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        nested_variant_value.appendElement(encoder.createHLAoctet(0xA5))
+        nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        nested_variant.setVariant(encoder.createHLAoctet(3), nested_variant_value)
+        nested_variant_value.set(0, encoder.createHLAinteger32BE(99))
+        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xA5"
+        self.assertIsInstance(nested_variant.getValue(), HLAfixedRecord)
+        self.assertEqual(nested_variant.toByteArray(), nested_variant_bytes)
+        decoded_nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        decoded_nested_variant_value = encoder.createHLAfixedRecord()
+        decoded_nested_variant_value.appendElement(encoder.createHLAinteger32BE())
+        decoded_nested_variant_value.appendElement(encoder.createHLAoctet())
+        decoded_nested_variant.setVariant(encoder.createHLAoctet(3), decoded_nested_variant_value)
+        decoded_nested_variant.decode(nested_variant_bytes)
+        self.assertEqual(decoded_nested_variant.getValue().get(0).getValue(), 0x01020304)
+        composite_discriminant = encoder.createHLAfixedRecord()
+        composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
+        composite_variant = encoder.createHLAvariantRecord(composite_discriminant)
+        composite_variant.setVariant(composite_discriminant, encoder.createHLAinteger32BE(7))
+        composite_discriminant.set(0, encoder.createHLAinteger32BE(99))
+        composite_variant_bytes = b"\x01\x02\x03\x04\xA5" + b"\0\0\0" + b"\0\0\0\x07"
+        self.assertIsInstance(composite_variant.getDiscriminant(), HLAfixedRecord)
+        self.assertEqual(composite_variant.toByteArray(), composite_variant_bytes)
+        decoded_composite_discriminant = encoder.createHLAfixedRecord()
+        decoded_composite_discriminant.appendElement(encoder.createHLAinteger32BE())
+        decoded_composite_discriminant.appendElement(encoder.createHLAoctet())
+        decoded_composite_variant = encoder.createHLAvariantRecord(decoded_composite_discriminant)
+        mapped_composite_discriminant = encoder.createHLAfixedRecord()
+        mapped_composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        mapped_composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
+        decoded_composite_variant.setVariant(mapped_composite_discriminant, encoder.createHLAinteger32BE())
+        decoded_composite_variant.decode(composite_variant_bytes)
+        self.assertEqual(decoded_composite_variant.getValue().getValue(), 7)
+        variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        discriminant_one = encoder.createHLAoctet(1)
+        discriminant_two = encoder.createHLAoctet(2)
+        integer_value = encoder.createHLAinteger32BE(0x10203040)
+        string_value = encoder.createHLAASCIIstring("A")
+        variant.setVariant(discriminant_one, integer_value)
+        variant.setVariant(discriminant_two, string_value)
+        integer_value.setValue(7)
+        string_value.setValue("B")
+        variant_one_bytes = b"\x01" + b"\0\0\0" + b"\x10\x20\x30\x40"
+        variant_two_bytes = b"\x02" + b"\0\0\0" + b"\x00\x00\x00\x01A"
+        self.assertIsInstance(variant, HLAvariantRecord)
+        self.assertEqual(variant.getOctetBoundary(), 4)
+        self.assertEqual(variant.getEncodedLength(), len(variant_two_bytes))
+        self.assertEqual(variant.toByteArray(), variant_two_bytes)
+        self.assertEqual(variant.getDiscriminant().getValue(), 2)
+        self.assertEqual(variant.getValue().getValue(), "A")  # type: ignore[union-attr]
+        variant.setDiscriminant(discriminant_one)
+        self.assertEqual(variant.toByteArray(), variant_one_bytes)
+        self.assertEqual(variant.getValue().getValue(), 0x10203040)  # type: ignore[union-attr]
+        variant.setDiscriminant(encoder.createHLAoctet(3))
+        self.assertIsNone(variant.getValue())
+        self.assertEqual(variant.toByteArray(), b"\x03")
+        decoded_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        decoded_variant.setVariant(encoder.createHLAoctet(1), encoder.createHLAinteger32BE())
+        decoded_variant.setVariant(encoder.createHLAoctet(2), encoder.createHLAASCIIstring())
+        decoded_variant.decode(variant_two_bytes)
+        self.assertEqual(decoded_variant.getValue().getValue(), "A")  # type: ignore[union-attr]
+        bad_variant_padding = bytearray(variant_two_bytes)
+        bad_variant_padding[1] = 1
+        with self.assertRaises(DecoderException):
+            decoded_variant.decode(bad_variant_padding)
+        with self.assertRaises(DecoderException):
+            decoded_variant.decode(variant_two_bytes + b"\0")
+        with self.assertRaises(EncoderException):
+            variant.setDiscriminant(encoder.createHLAinteger32BE(1))
+        with self.assertRaises(EncoderException):
+            variant.setVariant(discriminant_one, encoder.createHLAoctet(1))
+        self.assertEqual(integer16.toByteArray(), struct.pack(">h", -1234))
+        self.assertEqual(integer16.getOctetBoundary(), 2)
+        self.assertIs(integer16.decode(b"\x7f\xff"), integer16)
+        self.assertEqual(integer16.getValue(), 32767)
+        self.assertEqual(integer32le.toByteArray(), struct.pack("<i", -0x1234567))
+        self.assertEqual(integer32le.getOctetBoundary(), 4)
+        self.assertIs(integer32le.decode(b"\x78\x56\x34\x12"), integer32le)
+        self.assertEqual(integer32le.getValue(), 0x12345678)
+        self.assertEqual(float64.toByteArray(), struct.pack(">d", math.pi))
+        self.assertEqual(float64.getOctetBoundary(), 8)
+        self.assertIs(float64.setValue(-0.5), float64)
+        self.assertEqual(float64.getValue(), -0.5)
+        self.assertEqual(float32.toByteArray(), struct.pack(">f", math.pi))
+        self.assertEqual(float32.getOctetBoundary(), 4)
+        self.assertAlmostEqual(float32.getValue(), math.pi, places=6)
+        self.assertEqual(float32le.toByteArray(), struct.pack("<f", math.pi))
+        self.assertEqual(float32le.getOctetBoundary(), 4)
+        self.assertIs(float32le.setValue(-0.5), float32le)
+        self.assertEqual(float32le.getValue(), -0.5)
+        self.assertEqual(float64le.toByteArray(), struct.pack("<d", math.pi))
+        self.assertEqual(float64le.getOctetBoundary(), 8)
+        self.assertIs(float64le.setValue(-0.5), float64le)
+        self.assertEqual(float64le.getValue(), -0.5)
+        self.assertEqual(unsigned16.toByteArray(), b"\xab\xcd")
+        self.assertEqual(unsigned16.getOctetBoundary(), 2)
+        self.assertEqual(unsigned16.getValue(), 0xABCD)
+        self.assertIs(unsigned16.decode(b"\x80\x01"), unsigned16)
+        self.assertEqual(unsigned16.getValue(), 0x8001)
+        self.assertEqual(unsigned16le.toByteArray(), b"\xcd\xab")
+        self.assertEqual(unsigned16le.getOctetBoundary(), 2)
+        self.assertIs(unsigned16le.decode(b"\x01\x80"), unsigned16le)
+        self.assertEqual(unsigned16le.getValue(), 0x8001)
+        self.assertEqual(integer16le.toByteArray(), struct.pack("<h", -0x1234))
+        self.assertEqual(integer16le.getOctetBoundary(), 2)
+        self.assertIs(integer16le.decode(b"\x34\x12"), integer16le)
+        self.assertEqual(integer16le.getValue(), 0x1234)
+        self.assertEqual(unsigned32le.toByteArray(), struct.pack("<I", 0x89ABCDEF))
+        self.assertEqual(unsigned32le.getValue(), 0x89ABCDEF)
+        self.assertEqual(integer64.toByteArray(), struct.pack(">q", -0x123456789AB))
+        self.assertEqual(integer64.getOctetBoundary(), 8)
+        self.assertIs(integer64.decode(b"\x01\x02\x03\x04\x05\x06\x07\x08"), integer64)
+        self.assertEqual(integer64.getValue(), 0x0102030405060708)
+        self.assertEqual(integer64le.toByteArray(), struct.pack("<q", -0x123456789AB))
+        self.assertEqual(integer64le.getOctetBoundary(), 8)
+        self.assertEqual(unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210))
+        self.assertEqual(unsigned64.getValue(), 0xFEDCBA9876543210)
+        self.assertIs(unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64)
+        self.assertEqual(unsigned64.getValue(), 0xFFFFFFFFFFFFFFFF)
+        self.assertEqual(unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210))
+        self.assertEqual(unsigned64le.getValue(), 0xFEDCBA9876543210)
         self.assertEqual(unsigned.toByteArray(), b"\x124\xab\xcd")
         self.assertEqual(unsigned_maximum.toByteArray(), b"\xff\xff\xff\xff")
         self.assertEqual(unsigned_maximum.getValue(), 0xFFFFFFFF)
         self.assertEqual(boolean.toByteArray(), b"\x00\x00\x00\x01")
         self.assertEqual(unicode.toByteArray(), b"\x00\x00\x00\x03\x00A\xd8=\xde\x00")
+        self.assertEqual(byte.toByteArray(), b"\xa5")
+        self.assertEqual(byte.getOctetBoundary(), 1)
+        self.assertIs(byte.decode(b"\xff"), byte)
+        self.assertEqual(byte.getValue(), 0xFF)
+        self.assertEqual(octet.toByteArray(), b"\x5a")
+        self.assertEqual(octet.getOctetBoundary(), 1)
+        self.assertIs(octet.decode(b"\x80"), octet)
+        self.assertEqual(octet.getValue(), 0x80)
+        self.assertEqual(ascii_char.toByteArray(), b"A")
+        self.assertEqual(ascii_char.getOctetBoundary(), 1)
+        self.assertIs(ascii_char.decode(b"Z"), ascii_char)
+        self.assertEqual(ascii_char.getValue(), ord("Z"))
+        self.assertEqual(ascii_string.toByteArray(), b"\x00\x00\x00\x03A!?")
+        self.assertEqual(ascii_string.getOctetBoundary(), 4)
+        self.assertIs(ascii_string.decode(b"\x00\x00\x00\x02OK"), ascii_string)
+        self.assertEqual(ascii_string.getValue(), "OK")
+        self.assertEqual(unicode_char.toByteArray(), b"\x03\xa9")
+        self.assertEqual(unicode_char.getOctetBoundary(), 2)
+        self.assertIs(unicode_char.decode(b"\xd8\x3d"), unicode_char)
+        self.assertEqual(unicode_char.getValue(), 0xD83D)
+        self.assertEqual(pair_be.toByteArray(), b"\x12\x34")
+        self.assertEqual(pair_be.getOctetBoundary(), 2)
+        self.assertIs(pair_be.decode(b"\xab\xcd"), pair_be)
+        self.assertEqual(pair_be.getValue(), 0xABCD)
+        self.assertEqual(pair_le.toByteArray(), b"\x34\x12")
+        self.assertEqual(pair_le.getOctetBoundary(), 2)
+        self.assertIs(pair_le.decode(b"\xab\xcd"), pair_le)
+        self.assertEqual(pair_le.getValue(), 0xCDAB)
         self.assertEqual(integer.decode(b"\x00\x00\x00\x07").getValue(), 7)
+        for element, malformed in (
+            (integer, b"\0" * 5),
+            (float64, b"\0" * 9),
+            (ascii_string, b"\0\0\0\x02A"),
+            (unicode, b"\0\0\0\x02\0A"),
+        ):
+            with self.assertRaises(DecoderException):
+                element.decode(malformed)
         self.assertEqual(unicode.setValue("reset").getValue(), "reset")
         with self.assertRaises(DecoderException):
             encoder.createHLAboolean().decode(b"\x00\x00\x00\x02")
@@ -622,6 +1040,18 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.synchronizationPointAchieved("real-jvm-sync")
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(callbacks.sync_completions, [("real-jvm-sync", FederateHandleSet())])
+        ambassador.registerFederationSynchronizationPoint("real-jvm-failed-sync", b"failed-tag")
+        self.assertTrue(ambassador.evokeCallback(0.0))
+        self.assertTrue(ambassador.evokeCallback(0.0))
+        ambassador.synchronizationPointAchieved("real-jvm-failed-sync", successfully=False)
+        self.assertTrue(ambassador.evokeCallback(0.0))
+        self.assertIn(
+            (
+                "real-jvm-failed-sync",
+                FederateHandleSet([FederateHandle(b"Umbra Mock Federation:python-module-member")]),
+            ),
+            callbacks.sync_completions,
+        )
         ambassador.registerFederationSynchronizationPoint(
             "real-jvm-explicit-sync",
             b"explicit-tag",
@@ -654,6 +1084,33 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(advanced.getTime(), 6)
         self.assertEqual(time_factory.subtract(advanced, lookahead).getTime(), 5)
         self.assertEqual(time_factory.difference(advanced, requested_time).getInterval(), 1)
+        malformed_time_values = (
+            b"",
+            b"\0" * 7,
+            b"\0" * 9,
+            struct.pack(">q", -1),
+        )
+        for encoded in malformed_time_values:
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTime(encoded)
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTimeInterval(encoded)
+        foreign_time = HLAfloat64Time(
+            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+        )
+        foreign_interval = HLAfloat64Interval(
+            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+        )
+        with self.assertRaises(InvalidLogicalTime):
+            time_factory.add(foreign_time, lookahead)
+        with self.assertRaises(InvalidLogicalTimeInterval):
+            time_factory.add(requested_time, foreign_interval)
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.add(time_factory.makeFinal(), time_factory.makeEpsilon())
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.subtract(time_factory.makeInitial(), time_factory.makeEpsilon())
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.difference(time_factory.makeInitial(), requested_time)
         ambassador.enableTimeRegulation(lookahead)
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual([value.getTime() for value in callbacks.time_regulation], [0])
@@ -725,6 +1182,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(callbacks.name_batch_successes[-1], batch_names)
         ambassador.releaseMultipleObjectInstanceNames(batch_names)
+        ambassador.reserveObjectInstanceName("mock-reserved-then-released")
+        self.assertTrue(ambassador.evokeCallback(0.0))
+        self.assertEqual(callbacks.reserved_names[-1], "mock-reserved-then-released")
+        ambassador.releaseObjectInstanceName("mock-reserved-then-released")
         attributes = AttributeHandleSet([attribute])
         ambassador.subscribeObjectClassAttributes(object_class, attributes, active=False)
         ambassador.publishObjectClassAttributes(object_class, attributes)
@@ -753,7 +1214,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(callbacks.interactions_off, [interaction])
         ambassador.reserveObjectInstanceName("mock-registered-server")
         self.assertTrue(ambassador.evokeCallback(0.0))
-        self.assertEqual(callbacks.reserved_names, ["mock-registered-server"])
+        self.assertEqual(callbacks.reserved_names[-1], "mock-registered-server")
         registered = ambassador.registerObjectInstance(
             object_class, objectInstanceName="mock-registered-server"
         )
@@ -1433,6 +1894,20 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 owner_callbacks.ownership_acquisitions[-1],
                 (object_instance, attributes, b"immediate-acquire"),
             )
+
+            acquirer.attributeOwnershipAcquisition(
+                object_instance, acquirer_attributes, b"deny-me"
+            )
+            self.assertTrue(owner.evokeCallback(0.0))
+            owner.attributeOwnershipReleaseDenied(
+                object_instance, attributes, b"deny-tag"
+            )
+            self.assertTrue(acquirer.evokeCallback(0.0))
+            self.assertEqual(
+                acquirer_callbacks.ownership_unavailable[-1],
+                (object_instance, acquirer_attributes, b"deny-tag"),
+            )
+            self.assertTrue(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
 
             acquirer.attributeOwnershipAcquisition(
                 object_instance, acquirer_attributes, b"cancel-me"
@@ -2181,12 +2656,18 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
             disjoint_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
             overlap_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
+            overlap_region_two = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
             publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 5))
             subscriber.setRangeBounds(disjoint_region, subscriber_dimension, RangeBounds(10, 15))
             subscriber.setRangeBounds(overlap_region, subscriber_dimension, RangeBounds(2, 7))
+            subscriber.setRangeBounds(
+                overlap_region_two, subscriber_dimension, RangeBounds(2, 7)
+            )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             subscriber.commitRegionModifications(
-                RegionHandleSet([disjoint_region, overlap_region])
+                RegionHandleSet([disjoint_region, overlap_region, overlap_region_two])
             )
 
             subscriber.subscribeInteractionClassWithRegions(
@@ -2216,8 +2697,32 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 subscriber_callbacks.interactions[0][1][publisher_parameter], b"inside"
             )
 
+            subscriber.subscribeInteractionClassWithRegions(
+                subscriber_interaction, RegionHandleSet([overlap_region_two])
+            )
+            publisher.sendInteractionWithRegions(
+                publisher_interaction,
+                ParameterHandleValueMap({publisher_parameter: b"inside-second"}),
+                RegionHandleSet([publisher_region]),
+                b"inside-second-tag",
+            )
+            self.assertTrue(subscriber.evokeCallback(0.0))
+            self.assertEqual(len(subscriber_callbacks.interactions), 2)
+
             subscriber.unsubscribeInteractionClassWithRegions(
                 subscriber_interaction, RegionHandleSet([overlap_region])
+            )
+            publisher.sendInteractionWithRegions(
+                publisher_interaction,
+                ParameterHandleValueMap({publisher_parameter: b"inside-still"}),
+                RegionHandleSet([publisher_region]),
+                b"inside-still-tag",
+            )
+            self.assertTrue(subscriber.evokeCallback(0.0))
+            self.assertEqual(len(subscriber_callbacks.interactions), 3)
+
+            subscriber.unsubscribeInteractionClassWithRegions(
+                subscriber_interaction, RegionHandleSet([overlap_region_two])
             )
             publisher.sendInteractionWithRegions(
                 publisher_interaction,
@@ -2226,7 +2731,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 b"outside-again-tag",
             )
             subscriber.evokeCallback(0.0)
-            self.assertEqual(len(subscriber_callbacks.interactions), 1)
+            self.assertEqual(len(subscriber_callbacks.interactions), 3)
         finally:
             if subscriber_joined:
                 subscriber.resignFederationExecution(ResignAction.NO_ACTION)
@@ -2621,6 +3126,160 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
+    def test_real_jvm_timestamped_regional_association_rechecks_at_callback_boundary(self) -> None:
+        """The Java adapter preserves delayed TSO association re-projection.
+
+        This mirrors the native binding's association-change vector: the
+        recipient is eligible when the timestamped update is accepted, loses
+        overlap before its grant, and therefore must not receive a stale
+        reflection.  A later re-association makes the next timed update
+        eligible again.
+        """
+
+        federation_name = "Python timed regional association federation"
+        publisher = self.factory.getRtiAmbassador()
+        subscriber = self.factory.getRtiAmbassador()
+        publisher_callbacks = _RecordingFederateAmbassador()
+        subscriber_callbacks = _RecordingFederateAmbassador()
+        created = publisher_joined = subscriber_joined = False
+
+        def pump() -> None:
+            for _ in range(6):
+                publisher.evokeCallback(0.0)
+                subscriber.evokeCallback(0.0)
+
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            subscriber.connect(subscriber_callbacks, CallbackModel.HLA_EVOKED)
+            publisher.createFederationExecution(
+                federation_name,
+                "fixture-does-not-parse-fom.xml",
+                "HLAinteger64Time",
+            )
+            created = True
+            publisher.joinFederationExecution("timed-association-publisher", federation_name)
+            publisher_joined = True
+            subscriber.joinFederationExecution("timed-association-subscriber", federation_name)
+            subscriber_joined = True
+
+            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
+            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
+            publisher_attributes = AttributeHandleSet([publisher_attribute])
+            subscriber_attributes = AttributeHandleSet([subscriber_attribute])
+            publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
+            publisher.changeDefaultAttributeOrderType(
+                publisher_class, publisher_attributes, OrderType.TIMESTAMP
+            )
+
+            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
+            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
+            publisher_overlap_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            publisher_disjoint_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            subscriber_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
+            publisher.setRangeBounds(
+                publisher_overlap_region, publisher_dimension, RangeBounds(0, 2)
+            )
+            publisher.setRangeBounds(
+                publisher_disjoint_region, publisher_dimension, RangeBounds(20, 30)
+            )
+            subscriber.setRangeBounds(
+                subscriber_region, subscriber_dimension, RangeBounds(1, 3)
+            )
+            publisher.commitRegionModifications(
+                RegionHandleSet([publisher_overlap_region, publisher_disjoint_region])
+            )
+            subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
+
+            subscriber_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        subscriber_attributes, RegionHandleSet([subscriber_region])
+                    )
+                ]
+            )
+            source_both_regions = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        publisher_attributes,
+                        RegionHandleSet([publisher_overlap_region, publisher_disjoint_region]),
+                    )
+                ]
+            )
+            source_overlap_region = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        publisher_attributes, RegionHandleSet([publisher_overlap_region])
+                    )
+                ]
+            )
+            subscriber.subscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pairs
+            )
+            object_instance = publisher.registerObjectInstanceWithRegions(
+                publisher_class, source_both_regions
+            )
+            pump()
+            self.assertEqual(len(subscriber_callbacks.discoveries), 1)
+            publisher.unwrap_java_object().enableDelayedSubscriptionEvaluation()
+            self.assertTrue(subscriber.getDelaySubscriptionEvaluationSwitch())
+
+            time_factory = publisher.getTimeFactory()
+            subscriber.enableTimeConstrained()
+            publisher.enableTimeRegulation(time_factory.makeLogicalTimeInterval(1))
+            pump()
+
+            first_time = time_factory.makeLogicalTime(5)
+            first_retraction = publisher.updateAttributeValuesWithTime(
+                object_instance,
+                AttributeHandleValueMap({publisher_attribute: b"stale-overlap"}),
+                first_time,
+                b"stale-overlap-tag",
+            )
+            self.assertTrue(first_retraction.isValid())
+            publisher.unassociateRegionsForUpdates(object_instance, source_overlap_region)
+            publisher.timeAdvanceRequest(first_time)
+            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(5))
+            pump()
+            self.assertEqual(subscriber_callbacks.timed_reflections, [])
+
+            publisher.associateRegionsForUpdates(object_instance, source_overlap_region)
+            second_time = time_factory.makeLogicalTime(7)
+            second_retraction = publisher.updateAttributeValuesWithTime(
+                object_instance,
+                AttributeHandleValueMap({publisher_attribute: b"restored-overlap"}),
+                second_time,
+                b"restored-overlap-tag",
+            )
+            self.assertTrue(second_retraction.isValid())
+            publisher.timeAdvanceRequest(second_time)
+            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(7))
+            pump()
+            self.assertEqual(len(subscriber_callbacks.timed_reflections), 1)
+            reflection = subscriber_callbacks.timed_reflections[0]
+            self.assertEqual(reflection[0], object_instance)
+            self.assertEqual(reflection[1][subscriber_attribute], b"restored-overlap")
+            self.assertEqual(reflection[2], b"restored-overlap-tag")
+            self.assertEqual(reflection[6].getTime(), 7)
+            self.assertEqual(reflection[7], OrderType.TIMESTAMP)
+            self.assertEqual(reflection[8], OrderType.TIMESTAMP)
+        finally:
+            if subscriber_joined:
+                subscriber.resignFederationExecution(ResignAction.NO_ACTION)
+            if publisher_joined:
+                publisher.resignFederationExecution(ResignAction.NO_ACTION)
+            if created:
+                publisher.destroyFederationExecution(federation_name)
+            subscriber.disconnect()
+            publisher.disconnect()
+
     def test_real_jvm_passive_regional_subscriptions_activate_before_delivery(self) -> None:
         publisher = self.factory.getRtiAmbassador()
         passive = self.factory.getRtiAmbassador()
@@ -2956,6 +3615,303 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
+    def test_real_jvm_regional_object_association_isolates_recipients(self) -> None:
+        publisher = self.factory.getRtiAmbassador()
+        overlap = self.factory.getRtiAmbassador()
+        disjoint = self.factory.getRtiAmbassador()
+        publisher_callbacks = _RecordingFederateAmbassador()
+        overlap_callbacks = _RecordingFederateAmbassador()
+        disjoint_callbacks = _RecordingFederateAmbassador()
+        federation_name = "Python regional association recipient isolation federation"
+        created = publisher_joined = overlap_joined = disjoint_joined = False
+
+        def pump() -> None:
+            for _ in range(4):
+                publisher.evokeCallback(0.0)
+                overlap.evokeCallback(0.0)
+                disjoint.evokeCallback(0.0)
+
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            overlap.connect(overlap_callbacks, CallbackModel.HLA_EVOKED)
+            disjoint.connect(disjoint_callbacks, CallbackModel.HLA_EVOKED)
+            publisher.createFederationExecution(
+                federation_name,
+                "fixture-does-not-parse-fom.xml",
+                "HLAinteger64Time",
+            )
+            created = True
+            publisher.joinFederationExecution("recipient-isolation-publisher", federation_name)
+            publisher_joined = True
+            overlap.joinFederationExecution("recipient-isolation-overlap", federation_name)
+            overlap_joined = True
+            disjoint.joinFederationExecution("recipient-isolation-disjoint", federation_name)
+            disjoint_joined = True
+
+            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            overlap_class = overlap.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            disjoint_class = disjoint.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
+            overlap_attribute = overlap.getAttributeHandle(overlap_class, "Flavor")
+            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, "Flavor")
+            publisher.publishObjectClassAttributes(
+                publisher_class, AttributeHandleSet([publisher_attribute])
+            )
+
+            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
+            overlap_dimension = overlap.getDimensionHandle("SodaFlavor")
+            disjoint_dimension = disjoint.getDimensionHandle("SodaFlavor")
+            publisher_overlap_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            publisher_disjoint_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            disjoint_overlap_region = disjoint.createRegion(
+                DimensionHandleSet([disjoint_dimension])
+            )
+            overlap_region = overlap.createRegion(DimensionHandleSet([overlap_dimension]))
+            disjoint_region = disjoint.createRegion(DimensionHandleSet([disjoint_dimension]))
+            publisher.setRangeBounds(
+                publisher_overlap_region, publisher_dimension, RangeBounds(0, 10)
+            )
+            publisher.setRangeBounds(
+                publisher_disjoint_region, publisher_dimension, RangeBounds(20, 30)
+            )
+            overlap.setRangeBounds(overlap_region, overlap_dimension, RangeBounds(0, 10))
+            disjoint.setRangeBounds(
+                disjoint_overlap_region, disjoint_dimension, RangeBounds(0, 10)
+            )
+            disjoint.setRangeBounds(disjoint_region, disjoint_dimension, RangeBounds(20, 30))
+            publisher.commitRegionModifications(
+                RegionHandleSet([publisher_overlap_region, publisher_disjoint_region])
+            )
+            overlap.commitRegionModifications(RegionHandleSet([overlap_region]))
+            disjoint.commitRegionModifications(
+                RegionHandleSet([disjoint_overlap_region, disjoint_region])
+            )
+
+            overlap_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([overlap_attribute]),
+                        RegionHandleSet([overlap_region]),
+                    )
+                ]
+            )
+            disjoint_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([disjoint_attribute]),
+                        RegionHandleSet([disjoint_region]),
+                    )
+                ]
+            )
+            disjoint_overlap_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([disjoint_attribute]),
+                        RegionHandleSet([disjoint_overlap_region]),
+                    )
+                ]
+            )
+            overlap.subscribeObjectClassAttributesWithRegions(overlap_class, overlap_pairs)
+            disjoint.setAttributeScopeAdvisorySwitch(True)
+            disjoint.subscribeObjectClassAttributesWithRegions(
+                disjoint_class, disjoint_overlap_pairs
+            )
+            source_overlap = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([publisher_overlap_region]),
+                    )
+                ]
+            )
+            source_disjoint = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([publisher_disjoint_region]),
+                    )
+                ]
+            )
+            object_instance = publisher.registerObjectInstanceWithRegions(
+                publisher_class, source_overlap
+            )
+            pump()
+            self.assertEqual(len(overlap_callbacks.discoveries), 1)
+            self.assertEqual(len(disjoint_callbacks.discoveries), 1)
+
+            disjoint.unsubscribeObjectClassAttributesWithRegions(
+                disjoint_class, disjoint_overlap_pairs
+            )
+            pump()
+            self.assertEqual(overlap_callbacks.scope_exits, [])
+            self.assertEqual(len(disjoint_callbacks.scope_exits), 1)
+
+            disjoint.subscribeObjectClassAttributesWithRegions(disjoint_class, disjoint_pairs)
+            pump()
+            self.assertEqual(len(disjoint_callbacks.scope_entries), 0)
+
+            publisher.associateRegionsForUpdates(object_instance, source_disjoint)
+            pump()
+            self.assertEqual(overlap_callbacks.scope_entries, [])
+            self.assertEqual(len(disjoint_callbacks.scope_entries), 1)
+
+            publisher.updateAttributeValues(
+                object_instance,
+                AttributeHandleValueMap({publisher_attribute: b"both-recipients"}),
+                b"both-recipients-tag",
+            )
+            pump()
+            self.assertEqual(len(overlap_callbacks.reflections), 1)
+            self.assertEqual(len(disjoint_callbacks.reflections), 1)
+            self.assertEqual(
+                overlap_callbacks.reflections[-1][1][overlap_attribute], b"both-recipients"
+            )
+            self.assertEqual(
+                disjoint_callbacks.reflections[-1][1][disjoint_attribute], b"both-recipients"
+            )
+
+            publisher.unassociateRegionsForUpdates(object_instance, source_disjoint)
+            pump()
+            publisher.updateAttributeValues(
+                object_instance,
+                AttributeHandleValueMap({publisher_attribute: b"overlap-only"}),
+                b"overlap-only-tag",
+            )
+            pump()
+            self.assertEqual(len(overlap_callbacks.reflections), 2)
+            self.assertEqual(len(disjoint_callbacks.reflections), 1)
+            self.assertEqual(
+                overlap_callbacks.reflections[-1][1][overlap_attribute], b"overlap-only"
+            )
+            self.assertEqual(len(disjoint_callbacks.scope_exits), 2)
+        finally:
+            if disjoint_joined:
+                disjoint.resignFederationExecution(ResignAction.NO_ACTION)
+            if overlap_joined:
+                overlap.resignFederationExecution(ResignAction.NO_ACTION)
+            if publisher_joined:
+                publisher.resignFederationExecution(ResignAction.NO_ACTION)
+            if created:
+                publisher.destroyFederationExecution(federation_name)
+            disjoint.disconnect()
+            overlap.disconnect()
+            publisher.disconnect()
+
+    def test_real_jvm_regional_value_request_routes_by_overlap(self) -> None:
+        publisher = self.factory.getRtiAmbassador()
+        overlap = self.factory.getRtiAmbassador()
+        disjoint = self.factory.getRtiAmbassador()
+        publisher_callbacks = _RecordingFederateAmbassador()
+        overlap_callbacks = _RecordingFederateAmbassador()
+        disjoint_callbacks = _RecordingFederateAmbassador()
+        federation_name = "Python regional value request federation"
+        created = publisher_joined = overlap_joined = disjoint_joined = False
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            overlap.connect(overlap_callbacks, CallbackModel.HLA_EVOKED)
+            disjoint.connect(disjoint_callbacks, CallbackModel.HLA_EVOKED)
+            publisher.createFederationExecution(
+                federation_name,
+                "fixture-does-not-parse-fom.xml",
+                "HLAinteger64Time",
+            )
+            created = True
+            publisher.joinFederationExecution("value-request-publisher", federation_name)
+            publisher_joined = True
+            overlap.joinFederationExecution("value-request-overlap", federation_name)
+            overlap_joined = True
+            disjoint.joinFederationExecution("value-request-disjoint", federation_name)
+            disjoint_joined = True
+
+            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            overlap_class = overlap.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            disjoint_class = disjoint.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
+            overlap_attribute = overlap.getAttributeHandle(overlap_class, "Flavor")
+            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, "Flavor")
+            publisher.publishObjectClassAttributes(
+                publisher_class, AttributeHandleSet([publisher_attribute])
+            )
+            # The publish operation queues the standard start-registration
+            # advisory in HLA_EVOKED mode; drain it before asserting the
+            # value-request callback below.
+            self.assertTrue(publisher.evokeCallback(0.0))
+            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
+            overlap_dimension = overlap.getDimensionHandle("SodaFlavor")
+            disjoint_dimension = disjoint.getDimensionHandle("SodaFlavor")
+            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
+            overlap_region = overlap.createRegion(DimensionHandleSet([overlap_dimension]))
+            disjoint_region = disjoint.createRegion(DimensionHandleSet([disjoint_dimension]))
+            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
+            overlap.setRangeBounds(overlap_region, overlap_dimension, RangeBounds(5, 15))
+            disjoint.setRangeBounds(disjoint_region, disjoint_dimension, RangeBounds(20, 30))
+            publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
+            overlap.commitRegionModifications(RegionHandleSet([overlap_region]))
+            disjoint.commitRegionModifications(RegionHandleSet([disjoint_region]))
+
+            overlap_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([overlap_attribute]),
+                        RegionHandleSet([overlap_region]),
+                    )
+                ]
+            )
+            overlap.subscribeObjectClassAttributesWithRegions(overlap_class, overlap_pairs)
+            source_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([publisher_region]),
+                    )
+                ]
+            )
+            object_instance = publisher.registerObjectInstanceWithRegions(
+                publisher_class, source_pairs
+            )
+            self.assertTrue(overlap.evokeCallback(0.0))
+            self.assertEqual(overlap_callbacks.discoveries[-1][0], object_instance)
+
+            overlap.requestAttributeValueUpdateWithRegions(
+                overlap_class, overlap_pairs, b"overlap-request"
+            )
+            self.assertTrue(publisher.evokeCallback(0.0))
+            self.assertEqual(
+                publisher_callbacks.attribute_value_requests[-1],
+                (object_instance, AttributeHandleSet([publisher_attribute]), b"overlap-request"),
+            )
+
+            disjoint_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([disjoint_attribute]),
+                        RegionHandleSet([disjoint_region]),
+                    )
+                ]
+            )
+            disjoint.requestAttributeValueUpdateWithRegions(
+                disjoint_class, disjoint_pairs, b"disjoint-request"
+            )
+            self.assertFalse(publisher.evokeCallback(0.0))
+            self.assertEqual(len(publisher_callbacks.attribute_value_requests), 1)
+            self.assertEqual(disjoint_callbacks.attribute_value_requests, [])
+        finally:
+            if disjoint_joined:
+                disjoint.resignFederationExecution(ResignAction.NO_ACTION)
+            if overlap_joined:
+                overlap.resignFederationExecution(ResignAction.NO_ACTION)
+            if publisher_joined:
+                publisher.resignFederationExecution(ResignAction.NO_ACTION)
+            if created:
+                publisher.destroyFederationExecution(federation_name)
+            disjoint.disconnect()
+            overlap.disconnect()
+            publisher.disconnect()
+
     def test_real_jvm_regional_subscription_reprojects_existing_object(self) -> None:
         publisher = self.factory.getRtiAmbassador()
         subscriber = self.factory.getRtiAmbassador()
@@ -2989,12 +3945,18 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
             disjoint_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
             overlap_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
+            overlap_region_two = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
             publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
             subscriber.setRangeBounds(disjoint_region, subscriber_dimension, RangeBounds(20, 30))
             subscriber.setRangeBounds(overlap_region, subscriber_dimension, RangeBounds(5, 15))
+            subscriber.setRangeBounds(
+                overlap_region_two, subscriber_dimension, RangeBounds(5, 15)
+            )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             subscriber.commitRegionModifications(
-                RegionHandleSet([disjoint_region, overlap_region])
+                RegionHandleSet([disjoint_region, overlap_region, overlap_region_two])
             )
 
             subscriber.subscribeObjectClassAttributesWithRegions(
@@ -3036,16 +3998,51 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertTrue(subscriber.evokeCallback(0.0))
             self.assertEqual(subscriber_callbacks.discoveries[-1][0], object_instance)
 
-            all_regions = AttributeSetRegionSetPairList(
+            subscriber.subscribeObjectClassAttributesWithRegions(
+                subscriber_class,
+                AttributeSetRegionSetPairList(
+                    [
+                        AttributeSetRegionSetPair(
+                            AttributeHandleSet([subscriber_attribute]),
+                            RegionHandleSet([overlap_region_two]),
+                        )
+                    ]
+                ),
+            )
+            self.assertFalse(subscriber.evokeCallback(0.0))
+            self.assertEqual(len(subscriber_callbacks.discoveries), 1)
+
+            first_region = AttributeSetRegionSetPairList(
                 [
                     AttributeSetRegionSetPair(
                         AttributeHandleSet([subscriber_attribute]),
-                        RegionHandleSet([disjoint_region, overlap_region]),
+                        RegionHandleSet([overlap_region]),
                     )
                 ]
             )
             subscriber.setAttributeScopeAdvisorySwitch(True)
-            subscriber.unsubscribeObjectClassAttributesWithRegions(subscriber_class, all_regions)
+            subscriber.unsubscribeObjectClassAttributesWithRegions(subscriber_class, first_region)
+            self.assertFalse(subscriber.evokeCallback(0.0))
+            self.assertEqual(subscriber_callbacks.scope_exits, [])
+            publisher.updateAttributeValues(
+                object_instance,
+                AttributeHandleValueMap({publisher_attribute: b"second-region"}),
+            )
+            self.assertTrue(subscriber.evokeCallback(0.0))
+            self.assertEqual(
+                subscriber_callbacks.reflections[-1][1][subscriber_attribute], b"second-region"
+            )
+            remaining_regions = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([subscriber_attribute]),
+                        RegionHandleSet([disjoint_region, overlap_region_two]),
+                    )
+                ]
+            )
+            subscriber.unsubscribeObjectClassAttributesWithRegions(
+                subscriber_class, remaining_regions
+            )
             self.assertTrue(subscriber.evokeCallback(0.0))
             self.assertEqual(subscriber_callbacks.scope_exits[-1][0], object_instance)
             subscriber.subscribeObjectClassAttributesWithRegions(
@@ -3242,6 +4239,11 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         negative_zero = time_factory.makeLogicalTime(-0.0)
         self.assertEqual(negative_zero.getTime(), 0.0)
         self.assertTrue(negative_zero.isInitial())
+        for value in (-1.0, math.inf, math.nan):
+            with self.assertRaises(InvalidLogicalTime):
+                time_factory.makeLogicalTime(value)
+            with self.assertRaises(InvalidLogicalTimeInterval):
+                time_factory.makeLogicalTimeInterval(value)
         self.assertEqual(
             time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 12.5
         )
@@ -3256,6 +4258,32 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             time_factory.difference(advanced, base).getInterval(),
             math.nextafter(1.0, math.inf) - 1.0,
         )
+        final_time = time_factory.makeFinal()
+        before_final = time_factory.subtract(final_time, epsilon)
+        self.assertEqual(before_final.getTime(), math.nextafter(final_time.getTime(), 0.0))
+        self.assertEqual(time_factory.add(before_final, epsilon).getTime(), final_time.getTime())
+        smallest = time_factory.makeLogicalTime(math.nextafter(0.0, 1.0))
+        self.assertEqual(
+            time_factory.add(smallest, epsilon).getTime(), math.nextafter(smallest.getTime(), math.inf)
+        )
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.add(final_time, epsilon)
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.subtract(time_factory.makeInitial(), epsilon)
+        with self.assertRaises(IllegalTimeArithmetic):
+            time_factory.difference(time_factory.makeInitial(), base)
+        malformed_time_values = (
+            b"",
+            b"\0" * 7,
+            b"\0" * 9,
+            struct.pack(">d", -1.0),
+            struct.pack(">d", math.inf),
+        )
+        for encoded in malformed_time_values:
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTime(encoded)
+            with self.assertRaises(CouldNotDecode):
+                time_factory.decodeLogicalTimeInterval(encoded)
 
         ambassador.enableTimeRegulation(lookahead)
         self.assertTrue(ambassador.evokeCallback(0.0))

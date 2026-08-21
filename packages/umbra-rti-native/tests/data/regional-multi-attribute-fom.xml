@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>RegionalThing</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>UmbraRegionalDimension</dimension>
+                </dimensions>
+                <attribute>
+                    <name>Flavor</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>First independently associated attribute.</semantics>
+                </attribute>
+                <attribute>
+                    <name>Organic</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Second independently associated attribute.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <dimensions>
+        <dimension>
+            <name>UmbraRegionalDimension</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>NA</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Fixture normalization.</normalization>
+            <outputDataSemantics>Fixture normalized coordinate.</outputDataSemantics>
+            <value>[0..100)</value>
+        </dimension>
+    </dimensions>
+</objectModel>

@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 region-template and range-state services to the exact official C++ RTIambassador declarations exported by the Requirements Lab. It verifies signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The implementation is limited to private metadata/state for region specifications: create, pending range updates, complete commit, owner-scoped support lookups, delete, and handle decode. It does not claim region realizations, associations, overlap filtering, DDM routing, timestamped/retraction behavior, save/restore, remote transport, package support, catalog evidence, or conformance.",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 region-template and range-state services to the exact official C++ RTIambassador declarations exported by the Requirements Lab. It verifies signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The implementation is limited to private metadata/state for region specifications: create, pending range updates, complete commit, owner-scoped support lookups, deletion rejection while a region is still used by a passive regional subscription, successful unused-region deletion, and handle decode. It does not claim region realizations, broader associations, overlap filtering, DDM routing, timestamped/retraction behavior, save/restore, remote transport, package support, catalog evidence, or conformance.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-create-region",
@@ -15,7 +15,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::createRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -28,7 +29,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::commitRegionModifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -41,7 +43,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -80,7 +83,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {

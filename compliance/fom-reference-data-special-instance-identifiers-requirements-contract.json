@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the bounded IEEE 1516.2-2025 special reference-data rule for HLAobjectInstanceName and HLAobjectInstanceHandle. The completed-model preflight requires the standardized representation HLAunicodeString or HLAobjectInstanceHandle respectively and does not require an ordinary attribute row for those two referenced-attribute names. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-reference-data-special-instance-identifiers",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5",
+      "clause_id": "clause-4.14.9",
+      "source": "cpp/src/internal/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeAttributeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+      ]
+    }
+  ]
+}

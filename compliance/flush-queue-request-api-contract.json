@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 Flush Queue Request/Grant implementation to the exact C++ RTIambassador and FederateAmbassador declarations exported by the Requirements Lab. It verifies the official signatures, declared exception set, adapter symbols, and real Catch2 selectors. The same dispatcher now supports the separately traced timestamped-save seam: it drains current TSO payloads, directly initiates an eligible constrained save before FQG, and applies the private grant state immediately before Flush Queue Grant. A six-member scenario combines this strict-FQR path with TAR, NMR, TARA, and NMRA. It is not catalog evidence, protected-review evidence, package support, or a conformance claim.",
+  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 Flush Queue Request/Grant implementation to the exact C++ RTIambassador and FederateAmbassador declarations exported by the Requirements Lab. It verifies the official signatures, declared exception set, adapter symbols, and real Catch2 selectors. A timestamped non-regional attribute-update companion now exercises the same public request/grant surfaces with object passels, actual-grant, and optimistic-floor assertions. Regional explicit-source and default-source interaction companions exercise the same request/grant path with overlap-qualified timestamped receive callbacks and preserved sent-region metadata before FQG, including the supplied-empty marker for the private default source. A default-source timestamped attribute-update companion exercises one ordinary/default-region passel through FQR, TARA, and NMRA with callback-before-grant ordering and the supplied-empty marker. A mixed-member regional companion exercises the same callback path for one FQR, one TARA, and one NMRA recipient sharing a source-region overlap. A separate HLA_EVOKED future-input interaction companion submits two TSO payloads after FQR acceptance but before callback dispatch and proves both receive callbacks precede FQG; these are in-process callback-frontier cases, not remote transport evidence. The source-backed report-file regression records the accepted supplied logical-time boundary before the later distinct actual/optimistic Flush Queue Grant. The same dispatcher now supports the separately traced timestamped-save seam: it drains current TSO payloads, directly initiates an eligible constrained save before FQG, and applies the private grant state immediately before Flush Queue Grant. A six-member scenario combines this strict-FQR path with TAR, NMR, TARA, and NMRA; paired process-local HLA_EVOKED/HLA_IMMEDIATE restore cases recreate the still-pending FQR and emit its fresh FQG only after Federation Restored. It is not catalog evidence, protected-review evidence, package support, or a conformance claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-flush-queue-request",
@@ -16,11 +16,25 @@
       "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request flushes queued TSO and reports optimistic time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request admits TSO input queued after submission",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Flush Queue Request boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending Flush Queue Request",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded immediate federation restore reschedules a saved pending Flush Queue Request",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants"
       ]
     },
     {
@@ -34,10 +48,23 @@
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request flushes queued TSO and reports optimistic time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request admits TSO input queued after submission",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending Flush Queue Request",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded immediate federation restore reschedules a saved pending Flush Queue Request",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants"
       ]
     }
   ]

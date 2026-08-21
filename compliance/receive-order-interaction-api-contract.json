@@ -26,7 +26,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
       ]
     },
     {
@@ -43,7 +44,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
       ]
     }
   ]

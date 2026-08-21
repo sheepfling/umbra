@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
       ]
     },
     {
@@ -22,7 +23,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
       ]
     },
     {
@@ -42,7 +44,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeValueUpdateProvide",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
       ]
     },
     {

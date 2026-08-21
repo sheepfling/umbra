@@ -22,7 +22,7 @@ using rti1516_2025::umbra_binding_detail::makeInteractionClassHandle;
 
 TEST_CASE(
     "The official InteractionClassHandle has stable embedded value semantics",
-    "[unit][kernel][interaction-class-handle]") {
+    "[unit][kernel][interaction-class-handle][foundation][interaction-management]") {
   InteractionClassHandle invalid;
   auto const handle = makeInteractionClassHandle(0x0102030405060708ULL);
   InteractionClassHandle copy(handle);
@@ -44,7 +44,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded InteractionClassHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][interaction-class-handle]") {
+    "[unit][kernel][interaction-class-handle][foundation][interaction-management]") {
   auto const handle = makeInteractionClassHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,
@@ -66,7 +66,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded InteractionClassHandle rejects malformed encodings and buffers",
-    "[unit][kernel][interaction-class-handle]") {
+    "[unit][kernel][interaction-class-handle][foundation][interaction-management]") {
   auto const handle = makeInteractionClassHandle(1);
   std::array<unsigned char, 8> tooSmall{};
   VariableLengthData malformed(tooSmall.data(), tooSmall.size());

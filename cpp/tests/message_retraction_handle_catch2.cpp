@@ -18,7 +18,7 @@ using rti1516_2025::umbra_binding_detail::messageRetractionHandleValue;
 
 TEST_CASE(
     "MessageRetractionHandle uses the standard HLAvariableArray handle encoding",
-    "[unit][handles][message-retraction]") {
+    "[unit][handles][message-retraction][foundation][time-management][retract]") {
   MessageRetractionHandle const invalid;
   REQUIRE_FALSE(invalid.isValid());
   REQUIRE_FALSE(messageRetractionHandleValue(invalid));
@@ -42,7 +42,7 @@ TEST_CASE(
 
 TEST_CASE(
     "MessageRetractionHandle rejects malformed HLAvariableArray encodings",
-    "[unit][handles][message-retraction]") {
+    "[unit][handles][message-retraction][foundation][time-management]") {
   std::array<unsigned char, 8> const bareIdentity{
       0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
   std::array<unsigned char, 12> const wrongElementCount{

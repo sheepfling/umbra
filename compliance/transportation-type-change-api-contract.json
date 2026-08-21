@@ -26,7 +26,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeTransportationTypeChange",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments"
       ]
     },
     {
@@ -48,7 +49,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeDefaultAttributeTransportationType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments"
       ]
     },
     {
@@ -69,7 +71,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeTransportationType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments"
       ]
     },
     {
@@ -82,7 +85,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueConfirmAttributeTransportationTypeChange",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments"
       ]
     },
     {
@@ -95,7 +99,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReportAttributeTransportationType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments"
       ]
     },
     {
@@ -118,7 +123,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestInteractionTransportationTypeChange",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments"
       ]
     },
     {
@@ -138,7 +144,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryInteractionTransportationType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments"
       ]
     },
     {
@@ -164,7 +171,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReportInteractionTransportationType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments"
       ]
     }
   ]

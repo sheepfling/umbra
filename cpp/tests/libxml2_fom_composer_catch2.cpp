@@ -201,7 +201,7 @@ TEST_CASE("The FDD materializer accepts the supplied MIM and base FOM", "[unit][
 
 TEST_CASE(
     "The FDD catalog preserves MIM attribute policy for a future RTI-owned MOM object",
-    "[unit][fom][composition][mom]") {
+    "[unit][fom][composition][mom][service-reporting]") {
   auto result = composer().compose({
       validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim,
                 L"urn:umbra:test:mim"),
@@ -394,7 +394,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The registry plans 2025 MOM reports with an RTI-owned normalized endpoint",
-    "[unit][fom][composition][mom][ddm]") {
+    "[unit][fom][composition][mom][ddm][service-reporting]") {
   umbra::detail::EmbeddedFederationRegistry registry;
   auto definition = composedRestaurantDefinition();
   REQUIRE(registry.create(L"mom-report-route", std::move(definition)).status ==
@@ -1165,7 +1165,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The federation registry plans 2025 interaction promotion and parameter projection",
-    "[unit][kernel][federation-registry][interaction-routing]") {
+    "[unit][kernel][federation-registry][interaction-routing][interaction-management]") {
   umbra::detail::EmbeddedFederationRegistry registry;
   std::wstring const federationName = L"interaction-routing-exercise";
   REQUIRE(
@@ -2050,8 +2050,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "The FOM composition preflight resolves directed interactions after the complete module set is merged",
-    "[unit][fom][composition][reference-resolution]") {
+    "The FOM composition preflight resolves directed interactions and retains sharing metadata",
+    "[unit][fom][composition][reference-resolution][directed-interaction-sharing]") {
   auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
   auto mim = validated(
       resourcePath("mim/HLAstandardMIM-2025.xml"),
@@ -2078,17 +2078,57 @@ TEST_CASE(
   REQUIRE(resolved.fdd);
   auto const* objectClass = resolved.catalog->objectClass("HLAobjectRoot.UmbraDirectedFixtureObject");
   REQUIRE(objectClass != nullptr);
+  REQUIRE(objectClass->sharing == "PublishSubscribe");
+  REQUIRE(objectClass->directedInteractions.size() == 1);
+  auto const& directedInteraction = objectClass->directedInteractions.front();
   REQUIRE(
-      objectClass->directedInteractions ==
-      std::vector<std::string>{"HLAinteractionRoot.UmbraDirectedFixtureInteraction"});
+      directedInteraction.interactionClassName ==
+      "HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+  REQUIRE(directedInteraction.sharing == "PublishSubscribe");
   REQUIRE(
-      resolved.catalog->interactionClass("HLAinteractionRoot.UmbraDirectedFixtureInteraction") !=
-      nullptr);
+      objectClass->directedInteraction("HLAinteractionRoot.UmbraDirectedFixtureInteraction") ==
+      &directedInteraction);
+  auto const* interactionClass =
+      resolved.catalog->interactionClass("HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+  REQUIRE(interactionClass != nullptr);
+  REQUIRE(interactionClass->sharing == "PublishSubscribe");
+  REQUIRE(interactionClass->semantics == "Fixture interaction for directed-reference resolution.");
 
   auto missing = materializer.compose({mim, unresolved});
   REQUIRE(missing.status == FomCompositionStatus::inconsistent_modules);
   REQUIRE(missing.diagnostics.find("HLAinteractionRoot.UmbraMissingDirectedFixtureInteraction") != std::string::npos);
   REQUIRE(missing.diagnostics.find("not declared") != std::string::npos);
+}
+
+TEST_CASE(
+    "The FDD materializer surfaces the multiple-directed-class schema conflict",
+    "[unit][fom][composition][reference-resolution][schema-conflict]"
+    "[directed-interaction-multiple-subscription-kinds]") {
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto objectConsumer = validated(
+      testData / "directed-interaction-selector-matrix-object-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:directed-selector-matrix-object");
+  auto interactionProvider = validated(
+      testData / "directed-interaction-selector-matrix-interaction-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:directed-selector-matrix-interactions");
+
+  auto materializer = composer();
+  auto result = materializer.compose({mim, objectConsumer, interactionProvider});
+  CAPTURE(result.diagnostics);
+  // The two source modules are independently validated by the official DIF
+  // schema above. The composed FDD cannot be emitted because the supplied
+  // FDD schema caps directedInteraction at one occurrence, although the DIF
+  // schema permits an unbounded list and §5.12 defines per-class selector
+  // modes. Keep the conflict visible rather than dropping one declaration.
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("directedInteraction") != std::string::npos);
+  REQUIRE(result.diagnostics.find("not expected") != std::string::npos);
 }
 
 TEST_CASE(

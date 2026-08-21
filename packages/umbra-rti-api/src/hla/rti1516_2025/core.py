@@ -260,6 +260,10 @@ class RegionHandleFactory(HandleFactory):
     """Factory for provider-owned :class:`RegionHandle` values."""
 
 
+class MessageRetractionHandleFactory(HandleFactory):
+    """Factory for provider-owned timestamped message-retraction handles."""
+
+
 _HandleT = TypeVar("_HandleT", bound=EncodedHandle)
 
 
@@ -399,6 +403,14 @@ class RegionHandleSetFactory(ABC):
         """Create an empty mutable region-handle set."""
 
 
+class InteractionClassHandleSetFactory(ABC):
+    """Provider-owned factory for mutable interaction-class handle sets."""
+
+    @abstractmethod
+    def create(self) -> MutableInteractionClassHandleSet:
+        """Create an empty mutable interaction-class handle set."""
+
+
 class AttributeHandleValueMapFactory(ABC):
     """Provider-owned factory for mutable attribute-value maps."""
 
@@ -427,6 +439,12 @@ class InteractionClassHandleSet(frozenset[InteractionClassHandle]):
     """Immutable Python snapshot/input form of an interaction-class set."""
 
 
+class MutableInteractionClassHandleSet(_MutableHandleSet[InteractionClassHandle]):
+    """Mutable Java-shaped builder returned by the standard interaction-set factory."""
+
+    _handle_type = InteractionClassHandle
+
+
 class ObjectInstanceNameSet(frozenset[str]):
     """Immutable Python input form of a standard object-instance name set."""
 
@@ -445,18 +463,86 @@ class AttributeSetRegionSetPair:
             raise TypeError("regions must be RegionHandleSet")
 
 
+@dataclass(frozen=True, slots=True)
+class AttributeRegionAssociation:
+    """Exact IEEE Java ``AttributeRegionAssociation`` value shape.
+
+    The Java standard names the fields ``ahset`` and ``rhset``.  The
+    ``attributes``/``regions`` properties keep this value interoperable with
+    Umbra's existing Python pair vocabulary.
+    """
+
+    ahset: AttributeHandleSet
+    rhset: RegionHandleSet
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.ahset, AttributeHandleSet):
+            raise TypeError("ahset must be AttributeHandleSet")
+        if not isinstance(self.rhset, RegionHandleSet):
+            raise TypeError("rhset must be RegionHandleSet")
+
+    @property
+    def attributes(self) -> AttributeHandleSet:
+        return self.ahset
+
+    @property
+    def regions(self) -> RegionHandleSet:
+        return self.rhset
+
+
 class AttributeSetRegionSetPairList(tuple[AttributeSetRegionSetPair, ...]):
     """Immutable Java-shaped list of attribute-set/region-set associations."""
 
     def __new__(
         cls,
-        values: Iterable[AttributeSetRegionSetPair] = (),
+        values: Iterable[AttributeSetRegionSetPair | AttributeRegionAssociation] = (),
     ) -> "AttributeSetRegionSetPairList":
         copied = tuple(values)
         for value in copied:
-            if not isinstance(value, AttributeSetRegionSetPair):
-                raise TypeError("pair list values must be AttributeSetRegionSetPair")
+            if not isinstance(value, (AttributeSetRegionSetPair, AttributeRegionAssociation)):
+                raise TypeError(
+                    "pair list values must be AttributeSetRegionSetPair or AttributeRegionAssociation"
+                )
         return tuple.__new__(cls, copied)
+
+
+class MutableAttributeSetRegionSetPairList(
+    list[AttributeSetRegionSetPair | AttributeRegionAssociation]
+):
+    """Mutable list returned by ``AttributeSetRegionSetPairListFactory``.
+
+    The Java factory's integer argument is a capacity hint, not an initial
+    element count, so it is intentionally ignored after validation.
+    """
+
+    def __init__(
+        self,
+        capacity: int | Iterable[AttributeSetRegionSetPair | AttributeRegionAssociation] = 0,
+        values: Iterable[AttributeSetRegionSetPair | AttributeRegionAssociation] = (),
+    ) -> None:
+        if not isinstance(capacity, int):
+            values = capacity
+            capacity = 0
+        if capacity < 0:
+            raise ValueError("capacity must be non-negative")
+        super().__init__()
+        for value in values:
+            self.add(value)
+
+    def add(self, value: AttributeSetRegionSetPair | AttributeRegionAssociation) -> None:
+        if not isinstance(value, (AttributeSetRegionSetPair, AttributeRegionAssociation)):
+            raise TypeError(
+                "pair list values must be AttributeSetRegionSetPair or AttributeRegionAssociation"
+            )
+        self.append(value)
+
+
+class AttributeSetRegionSetPairListFactory(ABC):
+    """Provider-owned factory for Java-shaped attribute/region pair lists."""
+
+    @abstractmethod
+    def create(self, capacity: int = 0) -> MutableAttributeSetRegionSetPairList:
+        """Create an empty list with the supplied Java capacity hint."""
 
 
 # Keep the C++ typedef vocabulary available for code that maps directly to
@@ -854,8 +940,8 @@ class FederateAmbassador(ABC):
     ) -> None:
         """Report immutable ordered federation save-status entries."""
 
-    def initiateFederateSave(self, label: str) -> None:
-        """Instruct this federate to begin a scalar federation save."""
+    def initiateFederateSave(self, label: str, time: LogicalTime | None = None) -> None:
+        """Instruct this federate to begin a scalar or timestamped federation save."""
 
     def federationSaved(self) -> None:
         """Report successful completion of the current federation save."""
@@ -1125,6 +1211,10 @@ class FederateAmbassador(ABC):
 
 class RTIambassador(ABC):
     """The currently implemented connected/unjoined subset of the standard API."""
+
+    @abstractmethod
+    def getHLAversion(self) -> str:
+        """Return the standard HLA API version reported by the provider."""
 
     @abstractmethod
     def connect(
@@ -1397,6 +1487,15 @@ class RTIambassador(ABC):
         """Subscribe actively or passively to an object-class attribute set."""
 
     @abstractmethod
+    def subscribeObjectClassAttributesPassively(
+        self,
+        objectClass: ObjectClassHandle,
+        attributes: AttributeHandleSet,
+        updateRateDesignator: str = "",
+    ) -> None:
+        """Exact Java standard passive object-attribute subscription overload."""
+
+    @abstractmethod
     def unsubscribeObjectClass(self, objectClass: ObjectClassHandle) -> None:
         """Remove all subscriptions for a FOM object class."""
 
@@ -1416,6 +1515,16 @@ class RTIambassador(ABC):
         updateRateDesignator: str = "",
     ) -> None:
         """Subscribe to object attributes using attribute-to-region associations."""
+
+    @abstractmethod
+    def subscribeObjectClassAttributesPassivelyWithRegions(
+        self,
+        objectClass: ObjectClassHandle,
+        attributesAndRegions: AttributeSetRegionSetPairList
+        | MutableAttributeSetRegionSetPairList,
+        updateRateDesignator: str = "",
+    ) -> None:
+        """Exact Java standard passive regional object-attribute overload."""
 
     @abstractmethod
     def unsubscribeObjectClassAttributesWithRegions(
@@ -1452,6 +1561,14 @@ class RTIambassador(ABC):
         """Subscribe to directed interactions for an object class."""
 
     @abstractmethod
+    def subscribeObjectClassDirectedInteractionsUniversally(
+        self,
+        objectClass: ObjectClassHandle,
+        interactionClasses: InteractionClassHandleSet | MutableInteractionClassHandleSet,
+    ) -> None:
+        """Exact Java standard universal directed-interaction subscription overload."""
+
+    @abstractmethod
     def unsubscribeObjectClassDirectedInteractions(
         self,
         objectClass: ObjectClassHandle,
@@ -1472,6 +1589,12 @@ class RTIambassador(ABC):
         self, interactionClass: InteractionClassHandle, *, active: bool = True
     ) -> None:
         """Subscribe actively or passively to a FOM interaction class."""
+
+    @abstractmethod
+    def subscribeInteractionClassPassively(
+        self, interactionClass: InteractionClassHandle
+    ) -> None:
+        """Exact Java standard passive interaction subscription overload."""
 
     @abstractmethod
     def unsubscribeInteractionClass(self, interactionClass: InteractionClassHandle) -> None:
@@ -1711,6 +1834,12 @@ class RTIambassador(ABC):
         """Subscribe to an interaction class using DDM regions."""
 
     @abstractmethod
+    def subscribeInteractionClassPassivelyWithRegions(
+        self, interactionClass: InteractionClassHandle, regions: RegionHandleSet
+    ) -> None:
+        """Exact Java standard passive regional interaction subscription overload."""
+
+    @abstractmethod
     def unsubscribeInteractionClassWithRegions(
         self, interactionClass: InteractionClassHandle, regions: RegionHandleSet
     ) -> None:
@@ -1766,6 +1895,10 @@ class RTIambassador(ABC):
         """Return the provider-owned interaction-class-handle decoder factory."""
 
     @abstractmethod
+    def getInteractionClassHandleSetFactory(self) -> InteractionClassHandleSetFactory:
+        """Return the provider-owned mutable interaction-class-set factory."""
+
+    @abstractmethod
     def getParameterHandleFactory(self) -> ParameterHandleFactory:
         """Return the provider-owned parameter-handle decoder factory."""
 
@@ -1780,6 +1913,10 @@ class RTIambassador(ABC):
     @abstractmethod
     def getRegionHandleFactory(self) -> RegionHandleFactory:
         """Return the provider-owned region-handle decoder factory."""
+
+    @abstractmethod
+    def getMessageRetractionHandleFactory(self) -> MessageRetractionHandleFactory:
+        """Return the provider-owned message-retraction decoder factory."""
 
     @abstractmethod
     def getDimensionHandleSetFactory(self) -> DimensionHandleSetFactory:
@@ -1800,6 +1937,10 @@ class RTIambassador(ABC):
     @abstractmethod
     def getParameterHandleValueMapFactory(self) -> ParameterHandleValueMapFactory:
         """Return the provider-owned mutable parameter-map factory."""
+
+    @abstractmethod
+    def getAttributeSetRegionSetPairListFactory(self) -> AttributeSetRegionSetPairListFactory:
+        """Return the provider-owned Java-shaped attribute/region pair-list factory."""
 
     @abstractmethod
     def createRegion(self, dimensions: DimensionHandleSet) -> RegionHandle:
@@ -1894,6 +2035,10 @@ class RTIambassador(ABC):
     @abstractmethod
     def getSendServiceReportsToFileSwitch(self) -> bool:
         """Return whether service reports are sent to a file."""
+
+    @abstractmethod
+    def setSendServiceReportsToFileSwitch(self, switchValue: bool) -> None:
+        """Enable or disable service reports being sent to a file."""
 
     @abstractmethod
     def getAutoProvideSwitch(self) -> bool:

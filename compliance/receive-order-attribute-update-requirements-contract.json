@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
       ]
     },
     {
@@ -62,7 +63,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
       ]
     },
     {
@@ -82,7 +84,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
       ]
     },
     {

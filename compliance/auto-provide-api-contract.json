@@ -23,7 +23,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disabled Auto Provide leaves discovery without a provider callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
       ]
     },
     {

@@ -66,7 +66,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
       ]
     },
     {
@@ -97,7 +98,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
       ]
     },
     {

@@ -23,7 +23,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::isAttributeOwnedByFederate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Is Attribute Owned By Federate reads 2025 ownership state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Is Attribute Owned By Federate reads 2025 ownership state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup"
       ]
     }
   ]

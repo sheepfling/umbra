@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded Unsubscribe Object Class Attributes implementation to both official IEEE 1516.1-2025 C++ RTIambassador declarations exported by the Requirements Lab for §5.9. It verifies each signature, declared exception set, adapter symbol, and real Catch2 selectors. The focused filesystem-report case verifies that an invalid attribute-set invocation appends nothing, an accepted attribute-set invocation emits ObjectClassHandle type 36 and AttributeHandleSet type 1, and the accepted whole-class overload retains the second supplied-argument slot as Null type 34. Advisory and scope/relevance delivery matrices, public MOM delivery, timestamped behavior, save/restore, DDM, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-unsubscribe-object-class-service-report",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeobjectclass.180bf2ad54bc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClass( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments"
+      ]
+    },
+    {
+      "id": "umbra-embedded-unsubscribe-object-class-attributes-service-report",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributes.dcc5d2b291dd",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes) = 0",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments"
+      ]
+    }
+  ]
+}

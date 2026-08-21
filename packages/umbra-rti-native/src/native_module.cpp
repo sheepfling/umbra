@@ -4,6 +4,12 @@
 #include <RTI/RtiConfiguration.h>
 #include <RTI/auth/HLAnoCredentials.h>
 #include <RTI/encoding/BasicDataElements.h>
+#include <RTI/encoding/HLAopaqueData.h>
+#include <RTI/encoding/HLAvariableArray.h>
+#include <RTI/encoding/HLAfixedArray.h>
+#include <RTI/encoding/HLAfixedRecord.h>
+#include <RTI/encoding/HLAvariantRecord.h>
+#include <RTI/encoding/HLAextendableVariantRecord.h>
 #include <RTI/time/HLAfloat64Interval.h>
 #include <RTI/time/HLAfloat64Time.h>
 #include <RTI/time/HLAfloat64TimeFactory.h>
@@ -1172,6 +1178,18 @@ class PythonFederateAmbassador final : public rti::NullFederateAmbassador {
     }
   }
 
+  void initiateFederateSave(
+      std::wstring const& label,
+      rti::LogicalTime const& time) override {
+    py::gil_scoped_acquire acquire;
+    try {
+      callback_target_.attr("initiateFederateSave")(utf8(label), python_logical_time(time));
+    } catch (py::error_already_set const&) {
+      throw rti::FederateInternalError(
+          L"Python timestamped initiateFederateSave callback failed");
+    }
+  }
+
   void federationSaved() override {
     py::gil_scoped_acquire acquire;
     try {
@@ -2134,6 +2152,10 @@ class NativeAmbassador {
     ambassador_->retract(rti::umbra_binding_detail::decodeMessageRetractionHandle(
         variable_length_data(retraction)));
   }
+  py::bytes decode_message_retraction_handle(py::bytes const& encoded_value) const {
+    return encoded(ambassador_->decodeMessageRetractionHandle(
+        variable_length_data(encoded_value)));
+  }
   py::bytes create_region(py::iterable const& dimensions) {
     return encoded(ambassador_->createRegion(dimension_handles_from(dimensions)));
   }
@@ -2223,6 +2245,12 @@ class NativeAmbassador {
   }
   bool get_send_service_reports_to_file_switch() const {
     return ambassador_->getSendServiceReportsToFileSwitch();
+  }
+  void set_send_service_reports_to_file_switch(bool enabled) {
+    ambassador_->setSendServiceReportsToFileSwitch(enabled);
+  }
+  std::string hla_version() const {
+    return "IEEE 1516.1-2025";
   }
   bool get_auto_provide_switch() const {
     return ambassador_->getAutoProvideSwitch();
@@ -2568,7 +2596,13 @@ class NativeAmbassador {
   std::unique_ptr<PythonFederateAmbassador> federate_ambassador_;
 };
 
-class NativeHLAinteger32BE {
+class NativeElementBridge {
+ public:
+  virtual ~NativeElementBridge() = default;
+  virtual std::unique_ptr<rti::DataElement> clone_data_element() const = 0;
+};
+
+class NativeHLAinteger32BE : public NativeElementBridge {
  public:
   NativeHLAinteger32BE() = default;
   explicit NativeHLAinteger32BE(std::int32_t value) : element_(value) {}
@@ -2579,12 +2613,166 @@ class NativeHLAinteger32BE {
   void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
   std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
   unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
 
  private:
   rti::HLAinteger32BE element_;
 };
 
-class NativeHLAunsignedInteger32BE {
+class NativeHLAinteger16BE : public NativeElementBridge {
+ public:
+  NativeHLAinteger16BE() = default;
+  explicit NativeHLAinteger16BE(std::int16_t value) : element_(value) {}
+
+  std::int16_t get_value() const { return element_.get(); }
+  void set_value(std::int16_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAinteger16BE element_;
+};
+
+class NativeHLAinteger16LE : public NativeElementBridge {
+ public:
+  NativeHLAinteger16LE() = default;
+  explicit NativeHLAinteger16LE(std::int16_t value) : element_(value) {}
+
+  std::int16_t get_value() const { return element_.get(); }
+  void set_value(std::int16_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAinteger16LE element_;
+};
+
+class NativeHLAinteger32LE : public NativeElementBridge {
+ public:
+  NativeHLAinteger32LE() = default;
+  explicit NativeHLAinteger32LE(std::int32_t value) : element_(value) {}
+
+  std::int32_t get_value() const { return element_.get(); }
+  void set_value(std::int32_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAinteger32LE element_;
+};
+
+class NativeHLAinteger64BE : public NativeElementBridge {
+ public:
+  NativeHLAinteger64BE() = default;
+  explicit NativeHLAinteger64BE(std::int64_t value) : element_(value) {}
+
+  std::int64_t get_value() const { return element_.get(); }
+  void set_value(std::int64_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAinteger64BE element_;
+};
+
+class NativeHLAinteger64LE : public NativeElementBridge {
+ public:
+  NativeHLAinteger64LE() = default;
+  explicit NativeHLAinteger64LE(std::int64_t value) : element_(value) {}
+
+  std::int64_t get_value() const { return element_.get(); }
+  void set_value(std::int64_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAinteger64LE element_;
+};
+
+class NativeHLAfloat64BE : public NativeElementBridge {
+ public:
+  NativeHLAfloat64BE() = default;
+  explicit NativeHLAfloat64BE(double value) : element_(value) {}
+
+  double get_value() const { return element_.get(); }
+  void set_value(double value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAfloat64BE element_;
+};
+
+class NativeHLAfloat32BE : public NativeElementBridge {
+ public:
+  NativeHLAfloat32BE() = default;
+  explicit NativeHLAfloat32BE(float value) : element_(value) {}
+
+  float get_value() const { return element_.get(); }
+  void set_value(float value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAfloat32BE element_;
+};
+
+class NativeHLAfloat64LE : public NativeElementBridge {
+ public:
+  NativeHLAfloat64LE() = default;
+  explicit NativeHLAfloat64LE(double value) : element_(value) {}
+
+  double get_value() const { return element_.get(); }
+  void set_value(double value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAfloat64LE element_;
+};
+
+class NativeHLAfloat32LE : public NativeElementBridge {
+ public:
+  NativeHLAfloat32LE() = default;
+  explicit NativeHLAfloat32LE(float value) : element_(value) {}
+
+  float get_value() const { return element_.get(); }
+  void set_value(float value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAfloat32LE element_;
+};
+
+class NativeHLAunsignedInteger32BE : public NativeElementBridge {
  public:
   NativeHLAunsignedInteger32BE() = default;
   explicit NativeHLAunsignedInteger32BE(std::uint32_t value) : element_(value) {}
@@ -2595,12 +2783,274 @@ class NativeHLAunsignedInteger32BE {
   void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
   std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
   unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
 
  private:
   rti::HLAunsignedInteger32BE element_;
 };
 
-class NativeHLAboolean {
+class NativeHLAunsignedInteger16BE : public NativeElementBridge {
+ public:
+  NativeHLAunsignedInteger16BE() = default;
+  explicit NativeHLAunsignedInteger16BE(std::uint16_t value) : element_(value) {}
+
+  std::uint16_t get_value() const { return element_.get(); }
+  void set_value(std::uint16_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAunsignedInteger16BE element_;
+};
+
+class NativeHLAunsignedInteger16LE : public NativeElementBridge {
+ public:
+  NativeHLAunsignedInteger16LE() = default;
+  explicit NativeHLAunsignedInteger16LE(std::uint16_t value) : element_(value) {}
+
+  std::uint16_t get_value() const { return element_.get(); }
+  void set_value(std::uint16_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAunsignedInteger16LE element_;
+};
+
+class NativeHLAunsignedInteger32LE : public NativeElementBridge {
+ public:
+  NativeHLAunsignedInteger32LE() = default;
+  explicit NativeHLAunsignedInteger32LE(std::uint32_t value) : element_(value) {}
+
+  std::uint32_t get_value() const { return element_.get(); }
+  void set_value(std::uint32_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAunsignedInteger32LE element_;
+};
+
+class NativeHLAunsignedInteger64BE : public NativeElementBridge {
+ public:
+  NativeHLAunsignedInteger64BE() = default;
+  explicit NativeHLAunsignedInteger64BE(std::uint64_t value) : element_(value) {}
+
+  std::uint64_t get_value() const { return element_.get(); }
+  void set_value(std::uint64_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAunsignedInteger64BE element_;
+};
+
+class NativeHLAunsignedInteger64LE : public NativeElementBridge {
+ public:
+  NativeHLAunsignedInteger64LE() = default;
+  explicit NativeHLAunsignedInteger64LE(std::uint64_t value) : element_(value) {}
+
+  std::uint64_t get_value() const { return element_.get(); }
+  void set_value(std::uint64_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAunsignedInteger64LE element_;
+};
+
+class NativeHLAbyte : public NativeElementBridge {
+ public:
+  NativeHLAbyte() = default;
+  explicit NativeHLAbyte(std::uint8_t value) : element_(value) {}
+
+  std::uint8_t get_value() const { return element_.get(); }
+  void set_value(std::uint8_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAbyte element_;
+};
+
+class NativeHLAoctet : public NativeElementBridge {
+ public:
+  NativeHLAoctet() = default;
+  explicit NativeHLAoctet(std::uint8_t value) : element_(value) {}
+
+  std::uint8_t get_value() const { return element_.get(); }
+  void set_value(std::uint8_t value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAoctet element_;
+};
+
+class NativeHLAASCIIchar : public NativeElementBridge {
+ public:
+  NativeHLAASCIIchar() = default;
+  explicit NativeHLAASCIIchar(std::uint8_t value) : element_(static_cast<char>(value)) {}
+
+  std::uint8_t get_value() const {
+    return static_cast<std::uint8_t>(static_cast<unsigned char>(element_.get()));
+  }
+  void set_value(std::uint8_t value) { element_.set(static_cast<char>(value)); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAASCIIchar element_;
+};
+
+class NativeHLAASCIIstring : public NativeElementBridge {
+ public:
+  NativeHLAASCIIstring() = default;
+  explicit NativeHLAASCIIstring(std::string const& value) : element_(value) {}
+
+  std::string get_value() const { return element_.get(); }
+  void set_value(std::string const& value) { element_.set(value); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAASCIIstring element_;
+};
+
+class NativeHLAunicodeChar : public NativeElementBridge {
+ public:
+  NativeHLAunicodeChar() = default;
+  explicit NativeHLAunicodeChar(std::uint16_t value)
+      : element_(static_cast<wchar_t>(value)) {}
+
+  std::uint16_t get_value() const {
+    return static_cast<std::uint16_t>(element_.get());
+  }
+  void set_value(std::uint16_t value) { element_.set(static_cast<wchar_t>(value)); }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAunicodeChar element_;
+};
+
+class NativeHLAoctetPairBE : public NativeElementBridge {
+ public:
+  NativeHLAoctetPairBE() = default;
+  explicit NativeHLAoctetPairBE(std::uint16_t value)
+      : element_(rti::OctetPair{
+            static_cast<rti::Octet>((value >> 8U) & 0xffU),
+            static_cast<rti::Octet>(value & 0xffU)}) {}
+
+  std::uint16_t get_value() const {
+    auto const pair = element_.get();
+    return static_cast<std::uint16_t>(
+        (static_cast<std::uint16_t>(static_cast<std::uint8_t>(pair.first)) << 8U) |
+        static_cast<std::uint8_t>(pair.second));
+  }
+  void set_value(std::uint16_t value) {
+    element_.set(rti::OctetPair{
+        static_cast<rti::Octet>((value >> 8U) & 0xffU),
+        static_cast<rti::Octet>(value & 0xffU)});
+  }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAoctetPairBE element_;
+};
+
+class NativeHLAoctetPairLE : public NativeElementBridge {
+ public:
+  NativeHLAoctetPairLE() = default;
+  explicit NativeHLAoctetPairLE(std::uint16_t value)
+      : element_(rti::OctetPair{
+            static_cast<rti::Octet>((value >> 8U) & 0xffU),
+            static_cast<rti::Octet>(value & 0xffU)}) {}
+
+  std::uint16_t get_value() const {
+    auto const pair = element_.get();
+    return static_cast<std::uint16_t>(
+        (static_cast<std::uint16_t>(static_cast<std::uint8_t>(pair.first)) << 8U) |
+        static_cast<std::uint8_t>(pair.second));
+  }
+  void set_value(std::uint16_t value) {
+    element_.set(rti::OctetPair{
+        static_cast<rti::Octet>((value >> 8U) & 0xffU),
+        static_cast<rti::Octet>(value & 0xffU)});
+  }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+
+ private:
+  rti::HLAoctetPairLE element_;
+};
+
+class NativeHLAopaqueData : public NativeElementBridge {
+ public:
+  NativeHLAopaqueData() = default;
+  explicit NativeHLAopaqueData(py::bytes const& value) { set_value(value); }
+
+  py::bytes get_value() const {
+    auto const* data = element_.get();
+    auto const length = element_.dataLength();
+    return py::bytes(
+        data == nullptr ? "" : reinterpret_cast<char const*>(data), length);
+  }
+  void set_value(py::bytes const& value) {
+    std::string copied = value;
+    element_.set(
+        copied.empty() ? nullptr : reinterpret_cast<rti::Octet const*>(copied.data()),
+        copied.size());
+  }
+  py::bytes to_byte_array() const { return element_bytes(element_); }
+  void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
+  std::size_t data_length() const { return element_.dataLength(); }
+
+ private:
+  rti::HLAopaqueData element_;
+};
+
+class NativeHLAboolean : public NativeElementBridge {
  public:
   NativeHLAboolean() = default;
   explicit NativeHLAboolean(bool value) : element_(value) {}
@@ -2611,12 +3061,13 @@ class NativeHLAboolean {
   void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
   std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
   unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
 
  private:
   rti::HLAboolean element_;
 };
 
-class NativeHLAunicodeString {
+class NativeHLAunicodeString : public NativeElementBridge {
  public:
   NativeHLAunicodeString() = default;
   explicit NativeHLAunicodeString(std::string const& value) : element_(wide(value)) {}
@@ -2627,10 +3078,264 @@ class NativeHLAunicodeString {
   void decode(py::bytes const& value) { element_.decode(variable_length_data(value)); }
   std::size_t get_encoded_length() const { return element_.getEncodedLength(); }
   unsigned int get_octet_boundary() const { return element_.getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override { return element_.clone(); }
 
  private:
   rti::HLAunicodeString element_;
 };
+
+std::unique_ptr<rti::DataElement> native_prototype(py::object const& prototype);
+
+class NativeHLAvariableArray : public NativeElementBridge {
+ public:
+  explicit NativeHLAvariableArray(py::object const& prototype)
+      : prototype_(native_prototype(prototype)),
+        element_(std::make_unique<rti::HLAvariableArray>(*prototype_)) {}
+
+  std::size_t size() const { return element_->size(); }
+
+  void add_element(py::bytes const& encoded) {
+    auto value = prototype_->clone();
+    value->decode(variable_length_data(encoded));
+    element_->addElement(*value);
+  }
+
+  void set_element(std::size_t index, py::bytes const& encoded) {
+    auto value = prototype_->clone();
+    value->decode(variable_length_data(encoded));
+    element_->set(index, *value);
+  }
+
+  py::bytes get_element_bytes(std::size_t index) const {
+    return element_bytes(element_->get(index));
+  }
+
+  py::bytes to_byte_array() const { return element_bytes(*element_); }
+  void decode(py::bytes const& value) { element_->decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_->getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_->getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override {
+    return element_->clone();
+  }
+
+ private:
+  std::unique_ptr<rti::DataElement> prototype_;
+  std::unique_ptr<rti::HLAvariableArray> element_;
+};
+
+class NativeHLAfixedArray : public NativeElementBridge {
+ public:
+  NativeHLAfixedArray(py::object const& prototype, std::size_t length)
+      : prototype_(native_prototype(prototype)),
+        element_(std::make_unique<rti::HLAfixedArray>(*prototype_, length)) {}
+
+  std::size_t size() const { return element_->size(); }
+
+  void set_element(std::size_t index, py::bytes const& encoded) {
+    auto value = prototype_->clone();
+    value->decode(variable_length_data(encoded));
+    element_->set(index, *value);
+  }
+
+  py::bytes get_element_bytes(std::size_t index) const {
+    return element_bytes(element_->get(index));
+  }
+
+  py::bytes to_byte_array() const { return element_bytes(*element_); }
+  void decode(py::bytes const& value) { element_->decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_->getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_->getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override {
+    return element_->clone();
+  }
+
+ private:
+  std::unique_ptr<rti::DataElement> prototype_;
+  std::unique_ptr<rti::HLAfixedArray> element_;
+};
+
+class NativeHLAfixedRecord : public NativeElementBridge {
+ public:
+  NativeHLAfixedRecord() : element_(std::make_unique<rti::HLAfixedRecord>()) {}
+
+  std::size_t size() const { return element_->size(); }
+
+  void append_element(py::object const& prototype, py::bytes const& encoded) {
+    auto value = native_prototype(prototype);
+    value->decode(variable_length_data(encoded));
+    element_->appendElement(*value);
+  }
+
+  void set_element(
+      std::size_t index,
+      py::object const& prototype,
+      py::bytes const& encoded) {
+    auto value = native_prototype(prototype);
+    value->decode(variable_length_data(encoded));
+    element_->set(index, *value);
+  }
+
+  py::bytes get_element_bytes(std::size_t index) const {
+    return element_bytes(element_->get(index));
+  }
+
+  py::bytes to_byte_array() const { return element_bytes(*element_); }
+  void decode(py::bytes const& value) { element_->decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_->getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_->getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override {
+    return element_->clone();
+  }
+
+ private:
+  std::unique_ptr<rti::HLAfixedRecord> element_;
+};
+
+class NativeHLAvariantRecord : public NativeElementBridge {
+ public:
+  explicit NativeHLAvariantRecord(py::object const& discriminant_prototype)
+      : discriminant_prototype_(native_prototype(discriminant_prototype)),
+        element_(std::make_unique<rti::HLAvariantRecord>(*discriminant_prototype_)) {}
+
+  void add_variant(
+      py::object const& discriminant_prototype,
+      py::bytes const& discriminant_encoded,
+      py::object const& value_prototype,
+      py::bytes const& value_encoded) {
+    auto discriminant = native_prototype(discriminant_prototype);
+    discriminant->decode(variable_length_data(discriminant_encoded));
+    auto value = native_prototype(value_prototype);
+    value->decode(variable_length_data(value_encoded));
+    element_->addVariant(*discriminant, *value);
+  }
+
+  void set_variant(
+      py::object const& discriminant_prototype,
+      py::bytes const& discriminant_encoded,
+      py::object const& value_prototype,
+      py::bytes const& value_encoded) {
+    auto discriminant = native_prototype(discriminant_prototype);
+    discriminant->decode(variable_length_data(discriminant_encoded));
+    auto value = native_prototype(value_prototype);
+    value->decode(variable_length_data(value_encoded));
+    element_->setVariant(*discriminant, *value);
+  }
+
+  void set_discriminant(
+      py::object const& discriminant_prototype,
+      py::bytes const& discriminant_encoded) {
+    auto discriminant = native_prototype(discriminant_prototype);
+    discriminant->decode(variable_length_data(discriminant_encoded));
+    element_->setDiscriminant(*discriminant);
+  }
+
+  py::bytes get_discriminant_bytes() const { return element_bytes(element_->getDiscriminant()); }
+  py::bytes get_variant_bytes() const { return element_bytes(element_->getVariant()); }
+  py::bytes to_byte_array() const { return element_bytes(*element_); }
+  void decode(py::bytes const& value) { element_->decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_->getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_->getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override {
+    return element_->clone();
+  }
+
+ private:
+  std::unique_ptr<rti::DataElement> discriminant_prototype_;
+  std::unique_ptr<rti::HLAvariantRecord> element_;
+};
+
+class NativeHLAextendableVariantRecord : public NativeElementBridge {
+ public:
+  explicit NativeHLAextendableVariantRecord(py::object const& discriminant_prototype)
+      : discriminant_prototype_(native_prototype(discriminant_prototype)),
+        element_(std::make_unique<rti::HLAextendableVariantRecord>(*discriminant_prototype_)) {}
+
+  void add_variant(
+      py::object const& discriminant_prototype,
+      py::bytes const& discriminant_encoded,
+      py::object const& value_prototype,
+      py::bytes const& value_encoded) {
+    auto discriminant = native_prototype(discriminant_prototype);
+    discriminant->decode(variable_length_data(discriminant_encoded));
+    auto value = native_prototype(value_prototype);
+    value->decode(variable_length_data(value_encoded));
+    element_->addVariant(*discriminant, *value);
+  }
+
+  void set_variant(
+      py::object const& discriminant_prototype,
+      py::bytes const& discriminant_encoded,
+      py::object const& value_prototype,
+      py::bytes const& value_encoded) {
+    auto discriminant = native_prototype(discriminant_prototype);
+    discriminant->decode(variable_length_data(discriminant_encoded));
+    auto value = native_prototype(value_prototype);
+    value->decode(variable_length_data(value_encoded));
+    element_->setVariant(*discriminant, *value);
+  }
+
+  void set_discriminant(
+      py::object const& discriminant_prototype,
+      py::bytes const& discriminant_encoded) {
+    auto discriminant = native_prototype(discriminant_prototype);
+    discriminant->decode(variable_length_data(discriminant_encoded));
+    element_->setDiscriminant(*discriminant);
+  }
+
+  py::bytes get_discriminant_bytes() const { return element_bytes(element_->getDiscriminant()); }
+  py::bytes get_variant_bytes() const { return element_bytes(element_->getVariant()); }
+  py::bytes to_byte_array() const { return element_bytes(*element_); }
+  void decode(py::bytes const& value) { element_->decode(variable_length_data(value)); }
+  std::size_t get_encoded_length() const { return element_->getEncodedLength(); }
+  unsigned int get_octet_boundary() const { return element_->getOctetBoundary(); }
+  std::unique_ptr<rti::DataElement> clone_data_element() const override {
+    return element_->clone();
+  }
+
+ private:
+  std::unique_ptr<rti::DataElement> discriminant_prototype_;
+  std::unique_ptr<rti::HLAextendableVariantRecord> element_;
+};
+
+std::unique_ptr<rti::DataElement> native_prototype(py::object const& prototype) {
+#define UMBRA_NATIVE_PROTOTYPE(Type) \
+  if (py::isinstance<Type>(prototype)) { \
+    return py::cast<Type&>(prototype).clone_data_element(); \
+  }
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAinteger32BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAinteger16BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAinteger16LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAinteger32LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAinteger64BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAinteger64LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAfloat64BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAfloat32BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAfloat64LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAfloat32LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunsignedInteger32BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunsignedInteger16BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunsignedInteger16LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunsignedInteger32LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunsignedInteger64BE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunsignedInteger64LE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAbyte)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAoctet)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAASCIIchar)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAASCIIstring)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunicodeChar)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAoctetPairBE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAoctetPairLE)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAopaqueData)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAboolean)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAunicodeString)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAvariableArray)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAfixedArray)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAfixedRecord)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAvariantRecord)
+  UMBRA_NATIVE_PROTOTYPE(NativeHLAextendableVariantRecord)
+#undef UMBRA_NATIVE_PROTOTYPE
+  throw py::type_error("prototype must be a native DataElement");
+}
 
 }  // namespace
 
@@ -2667,6 +3372,96 @@ PYBIND11_MODULE(_native, module) {
       .def("get_encoded_length", &NativeHLAinteger32BE::get_encoded_length)
       .def("get_octet_boundary", &NativeHLAinteger32BE::get_octet_boundary);
 
+  py::class_<NativeHLAinteger16BE>(module, "NativeHLAinteger16BE")
+      .def(py::init<>())
+      .def(py::init<std::int16_t>())
+      .def("get_value", &NativeHLAinteger16BE::get_value)
+      .def("set_value", &NativeHLAinteger16BE::set_value)
+      .def("to_byte_array", &NativeHLAinteger16BE::to_byte_array)
+      .def("decode", &NativeHLAinteger16BE::decode)
+      .def("get_encoded_length", &NativeHLAinteger16BE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAinteger16BE::get_octet_boundary);
+
+  py::class_<NativeHLAinteger16LE>(module, "NativeHLAinteger16LE")
+      .def(py::init<>())
+      .def(py::init<std::int16_t>())
+      .def("get_value", &NativeHLAinteger16LE::get_value)
+      .def("set_value", &NativeHLAinteger16LE::set_value)
+      .def("to_byte_array", &NativeHLAinteger16LE::to_byte_array)
+      .def("decode", &NativeHLAinteger16LE::decode)
+      .def("get_encoded_length", &NativeHLAinteger16LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAinteger16LE::get_octet_boundary);
+
+  py::class_<NativeHLAinteger32LE>(module, "NativeHLAinteger32LE")
+      .def(py::init<>())
+      .def(py::init<std::int32_t>())
+      .def("get_value", &NativeHLAinteger32LE::get_value)
+      .def("set_value", &NativeHLAinteger32LE::set_value)
+      .def("to_byte_array", &NativeHLAinteger32LE::to_byte_array)
+      .def("decode", &NativeHLAinteger32LE::decode)
+      .def("get_encoded_length", &NativeHLAinteger32LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAinteger32LE::get_octet_boundary);
+
+  py::class_<NativeHLAinteger64BE>(module, "NativeHLAinteger64BE")
+      .def(py::init<>())
+      .def(py::init<std::int64_t>())
+      .def("get_value", &NativeHLAinteger64BE::get_value)
+      .def("set_value", &NativeHLAinteger64BE::set_value)
+      .def("to_byte_array", &NativeHLAinteger64BE::to_byte_array)
+      .def("decode", &NativeHLAinteger64BE::decode)
+      .def("get_encoded_length", &NativeHLAinteger64BE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAinteger64BE::get_octet_boundary);
+
+  py::class_<NativeHLAinteger64LE>(module, "NativeHLAinteger64LE")
+      .def(py::init<>())
+      .def(py::init<std::int64_t>())
+      .def("get_value", &NativeHLAinteger64LE::get_value)
+      .def("set_value", &NativeHLAinteger64LE::set_value)
+      .def("to_byte_array", &NativeHLAinteger64LE::to_byte_array)
+      .def("decode", &NativeHLAinteger64LE::decode)
+      .def("get_encoded_length", &NativeHLAinteger64LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAinteger64LE::get_octet_boundary);
+
+  py::class_<NativeHLAfloat64BE>(module, "NativeHLAfloat64BE")
+      .def(py::init<>())
+      .def(py::init<double>())
+      .def("get_value", &NativeHLAfloat64BE::get_value)
+      .def("set_value", &NativeHLAfloat64BE::set_value)
+      .def("to_byte_array", &NativeHLAfloat64BE::to_byte_array)
+      .def("decode", &NativeHLAfloat64BE::decode)
+      .def("get_encoded_length", &NativeHLAfloat64BE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAfloat64BE::get_octet_boundary);
+
+  py::class_<NativeHLAfloat32BE>(module, "NativeHLAfloat32BE")
+      .def(py::init<>())
+      .def(py::init<float>())
+      .def("get_value", &NativeHLAfloat32BE::get_value)
+      .def("set_value", &NativeHLAfloat32BE::set_value)
+      .def("to_byte_array", &NativeHLAfloat32BE::to_byte_array)
+      .def("decode", &NativeHLAfloat32BE::decode)
+      .def("get_encoded_length", &NativeHLAfloat32BE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAfloat32BE::get_octet_boundary);
+
+  py::class_<NativeHLAfloat64LE>(module, "NativeHLAfloat64LE")
+      .def(py::init<>())
+      .def(py::init<double>())
+      .def("get_value", &NativeHLAfloat64LE::get_value)
+      .def("set_value", &NativeHLAfloat64LE::set_value)
+      .def("to_byte_array", &NativeHLAfloat64LE::to_byte_array)
+      .def("decode", &NativeHLAfloat64LE::decode)
+      .def("get_encoded_length", &NativeHLAfloat64LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAfloat64LE::get_octet_boundary);
+
+  py::class_<NativeHLAfloat32LE>(module, "NativeHLAfloat32LE")
+      .def(py::init<>())
+      .def(py::init<float>())
+      .def("get_value", &NativeHLAfloat32LE::get_value)
+      .def("set_value", &NativeHLAfloat32LE::set_value)
+      .def("to_byte_array", &NativeHLAfloat32LE::to_byte_array)
+      .def("decode", &NativeHLAfloat32LE::decode)
+      .def("get_encoded_length", &NativeHLAfloat32LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAfloat32LE::get_octet_boundary);
+
   py::class_<NativeHLAunsignedInteger32BE>(module, "NativeHLAunsignedInteger32BE")
       .def(py::init<>())
       .def(py::init<std::uint32_t>())
@@ -2676,6 +3471,193 @@ PYBIND11_MODULE(_native, module) {
       .def("decode", &NativeHLAunsignedInteger32BE::decode)
       .def("get_encoded_length", &NativeHLAunsignedInteger32BE::get_encoded_length)
       .def("get_octet_boundary", &NativeHLAunsignedInteger32BE::get_octet_boundary);
+
+  py::class_<NativeHLAunsignedInteger16BE>(module, "NativeHLAunsignedInteger16BE")
+      .def(py::init<>())
+      .def(py::init<std::uint16_t>())
+      .def("get_value", &NativeHLAunsignedInteger16BE::get_value)
+      .def("set_value", &NativeHLAunsignedInteger16BE::set_value)
+      .def("to_byte_array", &NativeHLAunsignedInteger16BE::to_byte_array)
+      .def("decode", &NativeHLAunsignedInteger16BE::decode)
+      .def("get_encoded_length", &NativeHLAunsignedInteger16BE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAunsignedInteger16BE::get_octet_boundary);
+
+  py::class_<NativeHLAunsignedInteger16LE>(module, "NativeHLAunsignedInteger16LE")
+      .def(py::init<>())
+      .def(py::init<std::uint16_t>())
+      .def("get_value", &NativeHLAunsignedInteger16LE::get_value)
+      .def("set_value", &NativeHLAunsignedInteger16LE::set_value)
+      .def("to_byte_array", &NativeHLAunsignedInteger16LE::to_byte_array)
+      .def("decode", &NativeHLAunsignedInteger16LE::decode)
+      .def("get_encoded_length", &NativeHLAunsignedInteger16LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAunsignedInteger16LE::get_octet_boundary);
+
+  py::class_<NativeHLAunsignedInteger32LE>(module, "NativeHLAunsignedInteger32LE")
+      .def(py::init<>())
+      .def(py::init<std::uint32_t>())
+      .def("get_value", &NativeHLAunsignedInteger32LE::get_value)
+      .def("set_value", &NativeHLAunsignedInteger32LE::set_value)
+      .def("to_byte_array", &NativeHLAunsignedInteger32LE::to_byte_array)
+      .def("decode", &NativeHLAunsignedInteger32LE::decode)
+      .def("get_encoded_length", &NativeHLAunsignedInteger32LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAunsignedInteger32LE::get_octet_boundary);
+
+  py::class_<NativeHLAunsignedInteger64BE>(module, "NativeHLAunsignedInteger64BE")
+      .def(py::init<>())
+      .def(py::init<std::uint64_t>())
+      .def("get_value", &NativeHLAunsignedInteger64BE::get_value)
+      .def("set_value", &NativeHLAunsignedInteger64BE::set_value)
+      .def("to_byte_array", &NativeHLAunsignedInteger64BE::to_byte_array)
+      .def("decode", &NativeHLAunsignedInteger64BE::decode)
+      .def("get_encoded_length", &NativeHLAunsignedInteger64BE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAunsignedInteger64BE::get_octet_boundary);
+
+  py::class_<NativeHLAunsignedInteger64LE>(module, "NativeHLAunsignedInteger64LE")
+      .def(py::init<>())
+      .def(py::init<std::uint64_t>())
+      .def("get_value", &NativeHLAunsignedInteger64LE::get_value)
+      .def("set_value", &NativeHLAunsignedInteger64LE::set_value)
+      .def("to_byte_array", &NativeHLAunsignedInteger64LE::to_byte_array)
+      .def("decode", &NativeHLAunsignedInteger64LE::decode)
+      .def("get_encoded_length", &NativeHLAunsignedInteger64LE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAunsignedInteger64LE::get_octet_boundary);
+
+  py::class_<NativeHLAbyte>(module, "NativeHLAbyte")
+      .def(py::init<>())
+      .def(py::init<std::uint8_t>())
+      .def("get_value", &NativeHLAbyte::get_value)
+      .def("set_value", &NativeHLAbyte::set_value)
+      .def("to_byte_array", &NativeHLAbyte::to_byte_array)
+      .def("decode", &NativeHLAbyte::decode)
+      .def("get_encoded_length", &NativeHLAbyte::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAbyte::get_octet_boundary);
+
+  py::class_<NativeHLAoctet>(module, "NativeHLAoctet")
+      .def(py::init<>())
+      .def(py::init<std::uint8_t>())
+      .def("get_value", &NativeHLAoctet::get_value)
+      .def("set_value", &NativeHLAoctet::set_value)
+      .def("to_byte_array", &NativeHLAoctet::to_byte_array)
+      .def("decode", &NativeHLAoctet::decode)
+      .def("get_encoded_length", &NativeHLAoctet::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAoctet::get_octet_boundary);
+
+  py::class_<NativeHLAASCIIchar>(module, "NativeHLAASCIIchar")
+      .def(py::init<>())
+      .def(py::init<std::uint8_t>())
+      .def("get_value", &NativeHLAASCIIchar::get_value)
+      .def("set_value", &NativeHLAASCIIchar::set_value)
+      .def("to_byte_array", &NativeHLAASCIIchar::to_byte_array)
+      .def("decode", &NativeHLAASCIIchar::decode)
+      .def("get_encoded_length", &NativeHLAASCIIchar::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAASCIIchar::get_octet_boundary);
+
+  py::class_<NativeHLAASCIIstring>(module, "NativeHLAASCIIstring")
+      .def(py::init<>())
+      .def(py::init<std::string const&>())
+      .def("get_value", &NativeHLAASCIIstring::get_value)
+      .def("set_value", &NativeHLAASCIIstring::set_value)
+      .def("to_byte_array", &NativeHLAASCIIstring::to_byte_array)
+      .def("decode", &NativeHLAASCIIstring::decode)
+      .def("get_encoded_length", &NativeHLAASCIIstring::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAASCIIstring::get_octet_boundary);
+
+  py::class_<NativeHLAunicodeChar>(module, "NativeHLAunicodeChar")
+      .def(py::init<>())
+      .def(py::init<std::uint16_t>())
+      .def("get_value", &NativeHLAunicodeChar::get_value)
+      .def("set_value", &NativeHLAunicodeChar::set_value)
+      .def("to_byte_array", &NativeHLAunicodeChar::to_byte_array)
+      .def("decode", &NativeHLAunicodeChar::decode)
+      .def("get_encoded_length", &NativeHLAunicodeChar::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAunicodeChar::get_octet_boundary);
+
+  py::class_<NativeHLAoctetPairBE>(module, "NativeHLAoctetPairBE")
+      .def(py::init<>())
+      .def(py::init<std::uint16_t>())
+      .def("get_value", &NativeHLAoctetPairBE::get_value)
+      .def("set_value", &NativeHLAoctetPairBE::set_value)
+      .def("to_byte_array", &NativeHLAoctetPairBE::to_byte_array)
+      .def("decode", &NativeHLAoctetPairBE::decode)
+      .def("get_encoded_length", &NativeHLAoctetPairBE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAoctetPairBE::get_octet_boundary);
+
+  py::class_<NativeHLAoctetPairLE>(module, "NativeHLAoctetPairLE")
+      .def(py::init<>())
+      .def(py::init<std::uint16_t>())
+      .def("get_value", &NativeHLAoctetPairLE::get_value)
+      .def("set_value", &NativeHLAoctetPairLE::set_value)
+      .def("to_byte_array", &NativeHLAoctetPairLE::to_byte_array)
+      .def("decode", &NativeHLAoctetPairLE::decode)
+      .def("get_encoded_length", &NativeHLAoctetPairLE::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAoctetPairLE::get_octet_boundary);
+
+  py::class_<NativeHLAopaqueData>(module, "NativeHLAopaqueData")
+      .def(py::init<>())
+      .def(py::init<py::bytes const&>())
+      .def("get_value", &NativeHLAopaqueData::get_value)
+      .def("set_value", &NativeHLAopaqueData::set_value)
+      .def("to_byte_array", &NativeHLAopaqueData::to_byte_array)
+      .def("decode", &NativeHLAopaqueData::decode)
+      .def("get_encoded_length", &NativeHLAopaqueData::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAopaqueData::get_octet_boundary)
+      .def("data_length", &NativeHLAopaqueData::data_length);
+
+  py::class_<NativeHLAvariableArray>(module, "NativeHLAvariableArray")
+      .def(py::init<py::object const&>())
+      .def("size", &NativeHLAvariableArray::size)
+      .def("add_element", &NativeHLAvariableArray::add_element)
+      .def("set_element", &NativeHLAvariableArray::set_element)
+      .def("get_element_bytes", &NativeHLAvariableArray::get_element_bytes)
+      .def("to_byte_array", &NativeHLAvariableArray::to_byte_array)
+      .def("decode", &NativeHLAvariableArray::decode)
+      .def("get_encoded_length", &NativeHLAvariableArray::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAvariableArray::get_octet_boundary);
+
+  py::class_<NativeHLAfixedArray>(module, "NativeHLAfixedArray")
+      .def(py::init<py::object const&, std::size_t>())
+      .def("size", &NativeHLAfixedArray::size)
+      .def("set_element", &NativeHLAfixedArray::set_element)
+      .def("get_element_bytes", &NativeHLAfixedArray::get_element_bytes)
+      .def("to_byte_array", &NativeHLAfixedArray::to_byte_array)
+      .def("decode", &NativeHLAfixedArray::decode)
+      .def("get_encoded_length", &NativeHLAfixedArray::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAfixedArray::get_octet_boundary);
+
+  py::class_<NativeHLAfixedRecord>(module, "NativeHLAfixedRecord")
+      .def(py::init<>())
+      .def("size", &NativeHLAfixedRecord::size)
+      .def("append_element", &NativeHLAfixedRecord::append_element)
+      .def("set_element", &NativeHLAfixedRecord::set_element)
+      .def("get_element_bytes", &NativeHLAfixedRecord::get_element_bytes)
+      .def("to_byte_array", &NativeHLAfixedRecord::to_byte_array)
+      .def("decode", &NativeHLAfixedRecord::decode)
+      .def("get_encoded_length", &NativeHLAfixedRecord::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAfixedRecord::get_octet_boundary);
+
+  py::class_<NativeHLAvariantRecord>(module, "NativeHLAvariantRecord")
+      .def(py::init<py::object const&>())
+      .def("add_variant", &NativeHLAvariantRecord::add_variant)
+      .def("set_variant", &NativeHLAvariantRecord::set_variant)
+      .def("set_discriminant", &NativeHLAvariantRecord::set_discriminant)
+      .def("get_discriminant_bytes", &NativeHLAvariantRecord::get_discriminant_bytes)
+      .def("get_variant_bytes", &NativeHLAvariantRecord::get_variant_bytes)
+      .def("to_byte_array", &NativeHLAvariantRecord::to_byte_array)
+      .def("decode", &NativeHLAvariantRecord::decode)
+      .def("get_encoded_length", &NativeHLAvariantRecord::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAvariantRecord::get_octet_boundary);
+
+  py::class_<NativeHLAextendableVariantRecord>(module, "NativeHLAextendableVariantRecord")
+      .def(py::init<py::object const&>())
+      .def("add_variant", &NativeHLAextendableVariantRecord::add_variant)
+      .def("set_variant", &NativeHLAextendableVariantRecord::set_variant)
+      .def("set_discriminant", &NativeHLAextendableVariantRecord::set_discriminant)
+      .def("get_discriminant_bytes", &NativeHLAextendableVariantRecord::get_discriminant_bytes)
+      .def("get_variant_bytes", &NativeHLAextendableVariantRecord::get_variant_bytes)
+      .def("to_byte_array", &NativeHLAextendableVariantRecord::to_byte_array)
+      .def("decode", &NativeHLAextendableVariantRecord::decode)
+      .def("get_encoded_length", &NativeHLAextendableVariantRecord::get_encoded_length)
+      .def("get_octet_boundary", &NativeHLAextendableVariantRecord::get_octet_boundary);
 
   py::class_<NativeHLAboolean>(module, "NativeHLAboolean")
       .def(py::init<>())
@@ -2796,6 +3778,9 @@ PYBIND11_MODULE(_native, module) {
       .def("send_interaction_with_regions", &NativeAmbassador::send_interaction_with_regions)
       .def("send_interaction_with_regions_with_time", &NativeAmbassador::send_interaction_with_regions_with_time)
       .def("retract", &NativeAmbassador::retract)
+      .def(
+          "decode_message_retraction_handle",
+          &NativeAmbassador::decode_message_retraction_handle)
       .def("create_region", &NativeAmbassador::create_region)
       .def("commit_region_modifications", &NativeAmbassador::commit_region_modifications)
       .def("delete_region", &NativeAmbassador::delete_region)
@@ -2819,6 +3804,10 @@ PYBIND11_MODULE(_native, module) {
       .def("get_exception_reporting_switch", &NativeAmbassador::get_exception_reporting_switch)
       .def("set_exception_reporting_switch", &NativeAmbassador::set_exception_reporting_switch)
       .def("get_send_service_reports_to_file_switch", &NativeAmbassador::get_send_service_reports_to_file_switch)
+      .def(
+          "set_send_service_reports_to_file_switch",
+          &NativeAmbassador::set_send_service_reports_to_file_switch)
+      .def("hla_version", &NativeAmbassador::hla_version)
       .def("get_auto_provide_switch", &NativeAmbassador::get_auto_provide_switch)
       .def("get_delay_subscription_evaluation_switch", &NativeAmbassador::get_delay_subscription_evaluation_switch)
       .def("get_advisories_use_known_class_switch", &NativeAmbassador::get_advisories_use_known_class_switch)

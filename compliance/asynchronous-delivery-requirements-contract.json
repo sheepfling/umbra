@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 asynchronous-delivery slice to the Requirements Lab's clauses 8.15.3 and 8.16.5. In the embedded in-process profile, a time-constrained federate defaults to synchronous receive-order delivery, may enable receive-order callbacks while idle, and returns to time-advance-only receive-order delivery when disabled. Time-stamped delivery, remote transport, MOM reporting, save/restore persistence of deferred callbacks, package evidence, protected review, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 asynchronous-delivery slice to the Requirements Lab's clauses 8.15.3 and 8.16.5. In the embedded in-process profile, a time-constrained federate defaults to synchronous receive-order delivery, may enable receive-order callbacks while idle, and returns to time-advance-only receive-order delivery when disabled. The integration scenario exercises both HLA_EVOKED and HLA_IMMEDIATE: Enable Asynchronous Delivery and entering Time Advancing release deferred callbacks through the next Evoke call or directly during the service call, respectively. A regional receive-order companion proves the same gate around an overlap-qualified Send Interaction With Regions callback and preserves the source RegionHandle set across disable/re-enable. A separate Connection Lost integration uses the enabled state to receive the source-mandated receive-order HLAreportFederateLost while pairing its encoded cutoff with a timestamped application delivery; paired bounded DELETE_OBJECTS collisions prove post-grant receive-order cleanup becomes eligible in the same TAR after the cutoff reflection under both callback models. Neither widens this into generic MOM or timestamped-delivery behavior. A separate selected-filesystem case records each successful no-argument service with an empty supplied-argument list and Table 5's explicit [null] return form. Time-stamped delivery generally, remote transport, generic MOM reporting, save/restore persistence of deferred callbacks, package evidence, protected review, and conformance remain outside this slice.",
   "requirements": [
     {
       "id": "umbra-embedded-enable-asynchronous-delivery-gates-ro",
@@ -13,7 +13,12 @@
       "source_symbol": "FederateTimeState::receiveOrderDeliveryAllowed",
       "tests": [
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state gates deferred receive-order callbacks with asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
       ]
     },
     {
@@ -24,7 +29,9 @@
       "source_symbol": "FederateTimeState::disableAsynchronousDelivery",
       "tests": [
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state gates deferred receive-order callbacks with asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services"
       ]
     }
   ]

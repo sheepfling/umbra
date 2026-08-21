@@ -22,7 +22,7 @@ using rti1516_2025::umbra_binding_detail::makeDimensionHandle;
 
 TEST_CASE(
     "The official DimensionHandle has stable embedded value semantics",
-    "[unit][kernel][dimension-handle]") {
+    "[unit][kernel][dimension-handle][foundation][ddm]") {
   DimensionHandle invalid;
   auto const handle = makeDimensionHandle(0x0102030405060708ULL);
   DimensionHandle copy(handle);
@@ -44,7 +44,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded DimensionHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][dimension-handle]") {
+    "[unit][kernel][dimension-handle][foundation][ddm]") {
   auto const handle = makeDimensionHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,
@@ -66,7 +66,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded DimensionHandle rejects malformed encodings and buffers",
-    "[unit][kernel][dimension-handle]") {
+    "[unit][kernel][dimension-handle][foundation][ddm]") {
   auto const handle = makeDimensionHandle(1);
   std::array<unsigned char, 8> tooSmall{};
   VariableLengthData malformed(tooSmall.data(), tooSmall.size());

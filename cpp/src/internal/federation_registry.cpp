@@ -13,6 +13,7 @@
 #include <limits>
 #include <random>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -27,6 +28,8 @@ constexpr char kReportServiceInvocationInteractionClassName[] =
     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation";
 constexpr char kReportFederateLostInteractionClassName[] =
     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost";
+constexpr char kReportExceptionInteractionClassName[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException";
 
 constexpr char kJoinedFederateMomObjectClassName[] =
     "HLAobjectRoot.HLAmanager.HLAfederate";
@@ -77,6 +80,8 @@ constexpr char kFederateLostFederateParameterName[] = "HLAfederate";
 constexpr char kFederateLostFederateNameParameterName[] = "HLAfederateName";
 constexpr char kFederateLostTimestampParameterName[] = "HLAtimeStamp";
 constexpr char kFederateLostFaultDescriptionParameterName[] = "HLAfaultDescription";
+constexpr char kExceptionReportServiceParameterName[] = "HLAservice";
+constexpr char kExceptionReportExceptionParameterName[] = "HLAexception";
 
 // This value is never placed in Federation::regions.  It exists only in a
 // short-lived RegionSpecificationSnapshot override while evaluating the
@@ -85,6 +90,8 @@ constexpr std::uint64_t kMomServiceReportEndpointRegionHandle =
     std::numeric_limits<std::uint64_t>::max();
 constexpr std::uint64_t kMomFederateLostEndpointRegionHandle =
     std::numeric_limits<std::uint64_t>::max() - 1U;
+constexpr std::uint64_t kMomExceptionReportEndpointRegionHandle =
+    std::numeric_limits<std::uint64_t>::max() - 2U;
 
 constexpr std::uint64_t kFederateNormalizationKind = 0xEB41A82B7D1E63F5ULL;
 constexpr std::uint64_t kObjectClassNormalizationKind = 0x49B17E0D9346AC27ULL;
@@ -376,6 +383,7 @@ FederationJoinResult EmbeddedFederationRegistry::join(
       nullptr,
       federateType,
       std::move(requestedFederateName),
+      {},
       {});
 }
 
@@ -384,7 +392,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithTimeState(
     std::shared_ptr<FederateTimeState> timeState,
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
-    InteractionCallbackRoute interactionCallbackRoute) {
+    InteractionCallbackRoute interactionCallbackRoute,
+    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory) {
   auto instrumentationScope = beginInstrumentation("joinWithTimeState");
   return joinImpl(
       federationName,
@@ -392,7 +401,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithTimeState(
       std::move(timeState),
       federateType,
       std::move(requestedFederateName),
-      std::move(interactionCallbackRoute));
+      std::move(interactionCallbackRoute),
+      std::move(timeAdvanceGrantDispatchFactory));
 }
 
 FederationJoinResult EmbeddedFederationRegistry::joinWithDefinition(
@@ -407,6 +417,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinition(
       nullptr,
       federateType,
       std::move(requestedFederateName),
+      {},
       {});
 }
 
@@ -416,7 +427,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinitionAndTimeState(
     std::shared_ptr<FederateTimeState> timeState,
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
-    InteractionCallbackRoute interactionCallbackRoute) {
+    InteractionCallbackRoute interactionCallbackRoute,
+    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory) {
   auto instrumentationScope = beginInstrumentation("joinWithDefinitionAndTimeState");
   return joinImpl(
       federationName,
@@ -424,7 +436,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinitionAndTimeState(
       std::move(timeState),
       federateType,
       std::move(requestedFederateName),
-      std::move(interactionCallbackRoute));
+      std::move(interactionCallbackRoute),
+      std::move(timeAdvanceGrantDispatchFactory));
 }
 
 FederationJoinResult EmbeddedFederationRegistry::joinImpl(
@@ -433,7 +446,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     std::shared_ptr<FederateTimeState> timeState,
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
-    InteractionCallbackRoute interactionCallbackRoute) {
+    InteractionCallbackRoute interactionCallbackRoute,
+    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory) {
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -513,6 +527,9 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
   }
 
   bool const registersTimeState = static_cast<bool>(timeState);
+  if (timeAdvanceGrantDispatchFactory && !registersTimeState) {
+    return {FederationRegistryStatus::invalid_request, std::nullopt};
+  }
 
   if (nextFederateId_ == 0) {
     return {FederationRegistryStatus::invalid_request, std::nullopt};
@@ -613,12 +630,46 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     }
   }
 
+  bool timeAdvanceGrantDispatchFactoryRegistered = false;
+  if (timeAdvanceGrantDispatchFactory) {
+    try {
+      auto [factoryPosition, insertedFactory] =
+          federation->second.timeAdvanceGrantDispatchFactories.emplace(
+              membership.id,
+              std::move(timeAdvanceGrantDispatchFactory));
+      static_cast<void>(factoryPosition);
+      if (!insertedFactory) {
+        if (routeRegistered) {
+          federation->second.interactionCallbackRoutes.erase(membership.id);
+        }
+        if (registersTimeState) {
+          static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
+        }
+        federation->second.memberIdsByName.erase(namePosition);
+        return {FederationRegistryStatus::invalid_request, std::nullopt};
+      }
+      timeAdvanceGrantDispatchFactoryRegistered = true;
+    } catch (...) {
+      if (routeRegistered) {
+        federation->second.interactionCallbackRoutes.erase(membership.id);
+      }
+      if (registersTimeState) {
+        static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
+      }
+      federation->second.memberIdsByName.erase(namePosition);
+      throw;
+    }
+  }
+
   try {
     auto [memberPosition, insertedMember] = federation->second.members.emplace(
         membership.id,
         membership);
     static_cast<void>(memberPosition);
     if (!insertedMember) {
+      if (timeAdvanceGrantDispatchFactoryRegistered) {
+        federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
+      }
       if (routeRegistered) {
         federation->second.interactionCallbackRoutes.erase(membership.id);
       }
@@ -629,6 +680,9 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
   } catch (...) {
+    if (timeAdvanceGrantDispatchFactoryRegistered) {
+      federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
+    }
     if (routeRegistered) {
       federation->second.interactionCallbackRoutes.erase(membership.id);
     }
@@ -650,6 +704,9 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     static_cast<void>(identityPosition);
     if (!insertedIdentity) {
       federation->second.members.erase(membership.id);
+      if (timeAdvanceGrantDispatchFactoryRegistered) {
+        federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
+      }
       if (routeRegistered) {
         federation->second.interactionCallbackRoutes.erase(membership.id);
       }
@@ -661,6 +718,9 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     }
   } catch (...) {
     federation->second.members.erase(membership.id);
+    if (timeAdvanceGrantDispatchFactoryRegistered) {
+      federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
+    }
     if (routeRegistered) {
       federation->second.interactionCallbackRoutes.erase(membership.id);
     }
@@ -952,11 +1012,15 @@ EmbeddedFederationRegistry::registerSynchronizationPoint(
   plan.announcements.reserve(synchronizationSet.size());
   for (std::uint64_t federateId : synchronizationSet) {
     auto const route = federation->second.interactionCallbackRoutes.find(federateId);
+    auto const reportRoute = federation->second.serviceReportRoutes.find(federateId);
     plan.announcements.push_back({
         federateId,
         label,
         point.userSuppliedTag,
         route->second,
+        reportRoute == federation->second.serviceReportRoutes.end()
+            ? FederateServiceReportRoute{}
+            : reportRoute->second,
     });
   }
 
@@ -1004,11 +1068,16 @@ EmbeddedFederationRegistry::announcePendingSynchronizationPoints(
     if (!point.announcedFederates.insert(newlyJoinedFederateId).second) {
       continue;
     }
+    auto const reportRoute = federation->second.serviceReportRoutes.find(
+        newlyJoinedFederateId);
     plan.announcements.push_back({
         newlyJoinedFederateId,
         label,
         point.userSuppliedTag,
         route->second,
+        reportRoute == federation->second.serviceReportRoutes.end()
+            ? FederateServiceReportRoute{}
+            : reportRoute->second,
     });
   }
   return plan;
@@ -1059,6 +1128,7 @@ SynchronizationPointAchievedPlan EmbeddedFederationRegistry::achieveSynchronizat
   for (std::uint64_t federateId : point->second.synchronizationSet) {
     auto const member = federation->second.members.find(federateId);
     auto const route = federation->second.interactionCallbackRoutes.find(federateId);
+    auto const reportRoute = federation->second.serviceReportRoutes.find(federateId);
     if (member == federation->second.members.end() ||
         route == federation->second.interactionCallbackRoutes.end() || !route->second) {
       continue;
@@ -1067,6 +1137,9 @@ SynchronizationPointAchievedPlan EmbeddedFederationRegistry::achieveSynchronizat
         label,
         failedToSyncFederates,
         route->second,
+        reportRoute == federation->second.serviceReportRoutes.end()
+            ? FederateServiceReportRoute{}
+            : reportRoute->second,
     });
   }
   federation->second.synchronizationPoints.erase(point);
@@ -1079,7 +1152,52 @@ FederationRegistryResult EmbeddedFederationRegistry::resign(
     rti1516_2025::ResignAction resignAction) {
   auto instrumentationScope = beginInstrumentation("resign");
   std::scoped_lock lock(mutex_);
-  return resignLocked(federationName, federateId, resignAction, false);
+  return resignLocked(
+      federationName,
+      federateId,
+      resignAction,
+      false,
+      std::nullopt);
+}
+
+FederationRegistryResult
+EmbeddedFederationRegistry::resignWithFinalServiceReportReservation(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    rti1516_2025::ResignAction resignAction,
+    std::uint16_t serviceGroup) {
+  auto instrumentationScope = beginInstrumentation(
+      "resignWithFinalServiceReportReservation");
+  std::scoped_lock lock(mutex_);
+  return resignLocked(
+      federationName,
+      federateId,
+      resignAction,
+      false,
+      serviceGroup);
+}
+
+FederationRegistryStatus EmbeddedFederationRegistry::setServiceReportRoute(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    FederateServiceReportRoute serviceReportRoute) {
+  auto instrumentationScope = beginInstrumentation("setServiceReportRoute");
+  if (!serviceReportRoute) {
+    return FederationRegistryStatus::invalid_request;
+  }
+
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return FederationRegistryStatus::federation_does_not_exist;
+  }
+  if (!federation->second.members.contains(federateId)) {
+    return FederationRegistryStatus::federate_not_member;
+  }
+  federation->second.serviceReportRoutes.insert_or_assign(
+      federateId,
+      std::move(serviceReportRoute));
+  return FederationRegistryStatus::applied;
 }
 
 FederationRegistryResult EmbeddedFederationRegistry::connectionLost(
@@ -1099,14 +1217,40 @@ FederationRegistryResult EmbeddedFederationRegistry::connectionLost(
       federationName,
       federateId,
       member->second.automaticResignAction,
-      true);
+      true,
+      std::nullopt);
+}
+
+FederationRegistryResult
+EmbeddedFederationRegistry::connectionLostWithFinalServiceReportReservation(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    std::uint16_t serviceGroup) {
+  auto instrumentationScope = beginInstrumentation(
+      "connectionLostWithFinalServiceReportReservation");
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return {FederationRegistryStatus::federation_does_not_exist};
+  }
+  auto const member = federation->second.members.find(federateId);
+  if (member == federation->second.members.end()) {
+    return {FederationRegistryStatus::federate_not_member};
+  }
+  return resignLocked(
+      federationName,
+      federateId,
+      member->second.automaticResignAction,
+      true,
+      serviceGroup);
 }
 
 FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
     std::wstring const& federationName,
     std::uint64_t federateId,
     rti1516_2025::ResignAction resignAction,
-    bool forcedConnectionLoss) {
+    bool forcedConnectionLoss,
+    std::optional<std::uint16_t> finalServiceReportGroup) {
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
     return {FederationRegistryStatus::federation_does_not_exist};
@@ -1116,6 +1260,51 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   if (member == federation->second.members.end()) {
     return {FederationRegistryStatus::federate_not_member};
   }
+
+  // Capture the time-regulating member's last granted position before the
+  // forced resignation unregisters its temporal state. IEEE 1516.1-2025 4.4
+  // requires delivery of its TSO messages at or before this point; messages
+  // later than it intentionally receive no delivery guarantee.
+  std::shared_ptr<rti1516_2025::LogicalTime const> connectionLossCutoff;
+  if (forcedConnectionLoss) {
+    for (auto const& candidate : federation->second.timeCoordinator.snapshot()) {
+      if (candidate.federateId != federateId ||
+          !candidate.time.timeRegulating ||
+          !candidate.time.currentTime ||
+          candidate.time.currentTime->implementationName() !=
+              federation->second.definition.logicalTimeImplementationName) {
+        continue;
+      }
+      connectionLossCutoff = candidate.time.currentTime;
+      break;
+    }
+  }
+
+  auto const retainPendingTimestampedDeletionForConnectionLoss =
+      [&](Federation::ObjectInstance const& objectInstance) {
+        if (!forcedConnectionLoss || !connectionLossCutoff ||
+            !objectInstance.pendingTimestampedDeletionMessageId.has_value()) {
+          return false;
+        }
+        auto const deletion = federation->second.tsoObjectDeletionMessages.find(
+            *objectInstance.pendingTimestampedDeletionMessageId);
+        if (deletion == federation->second.tsoObjectDeletionMessages.end() ||
+            deletion->second.producingFederateId != federateId ||
+            !deletion->second.timestamp) {
+          return false;
+        }
+        try {
+          // Clause 4.4's at-or-before-loss obligation applies to every TSO
+          // message family. The accepted deletion and its object state must
+          // survive every automatic-resign cleanup pass until the common
+          // retraction-ledger pass marks its surviving recipients.
+          return *deletion->second.timestamp <= *connectionLossCutoff;
+        } catch (rti1516_2025::Exception const&) {
+          // Do not manufacture the mandatory-delivery exception when a
+          // private timestamp comparison is malformed.
+          return false;
+        }
+      };
 
   FederationRegistryResult result;
   bool deleteObjects = false;
@@ -1262,7 +1451,8 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
         privilegeOwner != objectInstance.attributeOwnersByHandle.end() &&
         privilegeOwner->second == federateId;
     deletePrivilegeByObject.emplace(objectInstanceHandle, hasDeletePrivilege);
-    if (hasDeletePrivilege && deleteObjects) {
+    if (hasDeletePrivilege && deleteObjects &&
+        !retainPendingTimestampedDeletionForConnectionLoss(objectInstance)) {
       objectsToDelete.insert(objectInstanceHandle);
     }
     for (auto const& [attributeHandle, owner] : objectInstance.attributeOwnersByHandle) {
@@ -1444,6 +1634,9 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
           return {FederationRegistryStatus::invalid_request};
         }
         instance.pendingRemovalFederates.insert(receivingFederateId);
+        if (forcedConnectionLoss) {
+          instance.connectionLossAutomaticRemovalFederates.insert(receivingFederateId);
+        }
         result.resignObjectRemovals.push_back({
             receivingFederateId,
             objectInstanceHandle,
@@ -1623,9 +1816,11 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
 
   static_cast<void>(federation->second.timeCoordinator.unregisterFederate(federateId));
   federation->second.pendingTimeAdvanceGrants.erase(federateId);
+  federation->second.timeAdvanceGrantDispatchFactories.erase(federateId);
   federation->second.interactionDeclarations.erase(federateId);
   federation->second.objectClassAttributeDeclarations.erase(federateId);
   federation->second.interactionCallbackRoutes.erase(federateId);
+  federation->second.serviceReportRoutes.erase(federateId);
   for (auto relevance = federation->second.objectClassRegistrationRelevance.begin();
        relevance != federation->second.objectClassRegistrationRelevance.end();) {
     if (relevance->first == federateId) {
@@ -1663,9 +1858,14 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
     objectInstance->second.knownObjectClassHandlesByFederate.erase(federateId);
     objectInstance->second.pendingDiscoveryFederates.erase(federateId);
     objectInstance->second.pendingRemovalFederates.erase(federateId);
+    objectInstance->second.connectionLossAutomaticRemovalFederates.erase(federateId);
+    objectInstance->second.deferredConnectionLossTsoRemovalFederates.erase(federateId);
     objectInstance->second.pendingTimestampedRemovalFederates.erase(federateId);
+    bool const retainPendingDeletionForConnectionLoss =
+        retainPendingTimestampedDeletionForConnectionLoss(objectInstance->second);
     if (objectInstance->second.producingFederateId == federateId &&
-        objectInstance->second.pendingTimestampedDeletionMessageId.has_value()) {
+        objectInstance->second.pendingTimestampedDeletionMessageId.has_value() &&
+        !retainPendingDeletionForConnectionLoss) {
       auto const deletionMessageId =
           *objectInstance->second.pendingTimestampedDeletionMessageId;
       federation->second.tsoObjectDeletionMessages.erase(
@@ -1803,6 +2003,8 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
       for (std::uint64_t synchronizationFederateId : point->second.synchronizationSet) {
         auto const route = federation->second.interactionCallbackRoutes.find(
             synchronizationFederateId);
+        auto const reportRoute = federation->second.serviceReportRoutes.find(
+            synchronizationFederateId);
         if (route == federation->second.interactionCallbackRoutes.end() || !route->second) {
           continue;
         }
@@ -1810,6 +2012,9 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
             point->first,
             failedToSyncFederates,
             route->second,
+            reportRoute == federation->second.serviceReportRoutes.end()
+                ? FederateServiceReportRoute{}
+                : reportRoute->second,
         });
       }
       point = federation->second.synchronizationPoints.erase(point);
@@ -1822,9 +2027,41 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   // Keep any existing record as a lightweight tombstone in case an already
   // queued Request Retraction callback still needs its recipient state, but
   // release its timestamp once no remaining recipient needs typed payload.
+  auto timestampForTsoPayload = [&federation](std::uint64_t messageId) {
+    if (auto const interaction = federation->second.tsoInteractionMessages.find(messageId);
+        interaction != federation->second.tsoInteractionMessages.end()) {
+      return interaction->second.timestamp;
+    }
+    if (auto const update = federation->second.tsoAttributeUpdateMessages.find(messageId);
+        update != federation->second.tsoAttributeUpdateMessages.end()) {
+      return update->second.timestamp;
+    }
+    if (auto const deletion = federation->second.tsoObjectDeletionMessages.find(messageId);
+        deletion != federation->second.tsoObjectDeletionMessages.end()) {
+      return deletion->second.timestamp;
+    }
+    if (auto const directed = federation->second.tsoDirectedInteractionMessages.find(messageId);
+        directed != federation->second.tsoDirectedInteractionMessages.end()) {
+      return directed->second.timestamp;
+    }
+    return std::shared_ptr<rti1516_2025::LogicalTime const>{};
+  };
   for (auto& [messageId, record] : federation->second.tsoRequestRetractionRecords) {
-    static_cast<void>(messageId);
     if (record.producingFederateId == federateId) {
+      auto const messageTimestamp = record.timestamp
+          ? record.timestamp
+          : timestampForTsoPayload(messageId);
+      if (connectionLossCutoff && messageTimestamp) {
+        try {
+          record.deliveryRequiredAfterConnectionLoss =
+              *messageTimestamp <= *connectionLossCutoff;
+        } catch (rti1516_2025::Exception const&) {
+          // A malformed private time value must not prevent an authoritative
+          // connection-loss cleanup. Without a valid comparison, retain no
+          // manufactured mandatory-delivery marker.
+          record.deliveryRequiredAfterConnectionLoss = false;
+        }
+      }
       record.terminal = true;
       record.timestamp.reset();
     }
@@ -1840,6 +2077,22 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
       momObject = federation->second.rtiOwnedJoinedFederateMomObjects.erase(momObject);
     } else {
       ++momObject;
+    }
+  }
+  if (finalServiceReportGroup.has_value()) {
+    // Every normal rejection path has already returned above.  Reserve only
+    // the file route: interaction delivery remains separately source-gated,
+    // exactly as it does in the ordinary post-service helper.  This has to
+    // happen before the membership is erased so the final serial cannot be
+    // lost or reused by a later joined-federate lifetime.
+    auto const reportPlan = momServiceReportRoutingPlanFor(
+        federation->second,
+        federateId,
+        *finalServiceReportGroup);
+    if (reportPlan.disposition == MomServiceReportDisposition::report_to_file) {
+      result.finalServiceReportFileSerialNumber =
+          member->second.nextMomServiceReportSerialNumber;
+      ++member->second.nextMomServiceReportSerialNumber;
     }
   }
   federation->second.memberIdsByName.erase(member->second.name);
@@ -1876,12 +2129,17 @@ void EmbeddedFederationRegistry::appendSaveCompletionNotifications(
     if (route == federation.interactionCallbackRoutes.end() || !route->second) {
       continue;
     }
+    auto const reportRoute = federation.serviceReportRoutes.find(federateId);
     FederationSaveNotification notification;
     notification.kind = FederationSaveNotificationKind::completed;
     notification.label = operation.label;
     notification.successful = successful;
     notification.failureReason = failureReason;
     notification.callbackRoute = route->second;
+    notification.serviceReportRoute =
+        reportRoute == federation.serviceReportRoutes.end()
+        ? FederateServiceReportRoute{}
+        : reportRoute->second;
     notifications.push_back(std::move(notification));
   }
 }
@@ -1928,7 +2186,74 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   // Callback routes are live connection endpoints, not serialized federation
   // state. Keep the routes registered by the current ambassadors while
   // replacing every other mutable federation component with the saved view.
-  auto callbackRoutes = std::move(target.interactionCallbackRoutes);
+  auto const& timeAdvanceGrantDispatchFactories =
+      target.timeAdvanceGrantDispatchFactories;
+
+  // A report serial is a per-joined-federate audit sequence, not federated
+  // application state.  Section 11.5.1 requires it to start at zero and
+  // increment for every service-report invocation through the joined
+  // federate's lifetime.  Preserve the live counters across a save/restore
+  // image so restored state cannot reuse a serial already durably written to
+  // that federate's report file.
+  std::map<std::uint64_t, std::uint32_t> liveMomServiceReportSerialNumbers;
+  for (auto const& [federateId, member] : target.members) {
+    liveMomServiceReportSerialNumbers.emplace(
+        federateId,
+        member.nextMomServiceReportSerialNumber);
+  }
+
+  // A saved time state can remain Time Advancing after all federates have
+  // completed the save. The opaque callback closure cannot be serialized, so
+  // recreate it from the current ambassador's live factory before mutating
+  // the federation. A nonzero identity makes any pre-restore closure a
+  // harmless stale dispatch even when the saved generation is reused.
+  std::map<std::uint64_t, Federation::PendingTimeAdvanceGrant>
+      reconstitutedTimeAdvanceGrants;
+  auto nextTimeAdvanceGrantDispatchIdentity = target.nextTimeAdvanceGrantDispatchIdentity;
+  for (auto const& savedTimeState : snapshot.timeCoordinator.snapshot()) {
+    if (!savedTimeState.time.timeAdvancePending) {
+      continue;
+    }
+    if (savedTimeState.federateId == 0 ||
+        savedTimeState.time.pendingTimeAdvanceGeneration == 0 ||
+        savedTimeState.time.advanceMode == FederateTimeAdvanceMode::none) {
+      throw std::logic_error(
+          "A saved pending time advance has incomplete private state.");
+    }
+    auto const factory = timeAdvanceGrantDispatchFactories.find(savedTimeState.federateId);
+    if (factory == timeAdvanceGrantDispatchFactories.end() || !factory->second) {
+      throw std::logic_error(
+          "A saved pending time advance has no live callback dispatcher.");
+    }
+    if (nextTimeAdvanceGrantDispatchIdentity == 0 ||
+        nextTimeAdvanceGrantDispatchIdentity == std::numeric_limits<std::uint64_t>::max()) {
+      throw std::overflow_error(
+          "The embedded federation exhausted restored time-advance dispatch identities.");
+    }
+    auto const dispatchIdentity = nextTimeAdvanceGrantDispatchIdentity++;
+    auto dispatch = factory->second(
+        savedTimeState.federateId,
+        savedTimeState.time.pendingTimeAdvanceGeneration,
+        dispatchIdentity);
+    if (!dispatch) {
+      throw std::logic_error(
+          "The embedded federation could not recreate a saved time-advance callback.");
+    }
+    auto const [position, inserted] = reconstitutedTimeAdvanceGrants.emplace(
+        savedTimeState.federateId,
+        Federation::PendingTimeAdvanceGrant{
+            savedTimeState.time.pendingTimeAdvanceGeneration,
+            dispatchIdentity,
+            std::move(dispatch),
+            false,
+        });
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved federation contains duplicate pending time advances.");
+    }
+  }
+
   // Keep designators issued after the save in addition to those known to the
   // snapshot. A valid federate designator is not invalidated merely because
   // its federate subsequently resigned, and this index never authorizes
@@ -1950,6 +2275,16 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.parameterHandles = snapshot.parameterHandles;
   target.dimensionHandles = snapshot.dimensionHandles;
   target.members = snapshot.members;
+  for (auto& [federateId, member] : target.members) {
+    auto const liveSerial = liveMomServiceReportSerialNumbers.find(federateId);
+    if (liveSerial == liveMomServiceReportSerialNumbers.end()) {
+      throw std::logic_error(
+          "A restored federation member has no live service-report serial state.");
+    }
+    member.nextMomServiceReportSerialNumber = std::max(
+        member.nextMomServiceReportSerialNumber,
+        liveSerial->second);
+  }
   target.memberIdsByName = snapshot.memberIdsByName;
   target.federateNamesById = std::move(federateNamesById);
   target.interactionDeclarations = snapshot.interactionDeclarations;
@@ -1965,9 +2300,10 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.tsoObjectDeletionReconstitutionRecords =
       snapshot.tsoObjectDeletionReconstitutionRecords;
   target.tsoDirectedInteractionMessages = snapshot.tsoDirectedInteractionMessages;
-  // A queued grant callback belongs to the pre-restore execution. Replanning
-  // it is safer than invoking a copied std::function against stale state.
-  target.pendingTimeAdvanceGrants.clear();
+  // A queued grant callback belongs to the pre-restore execution. Replace
+  // that work with the fresh live-route dispatches prepared above instead of
+  // copying a stale std::function from the saved federation image.
+  target.pendingTimeAdvanceGrants = std::move(reconstitutedTimeAdvanceGrants);
   target.regions = snapshot.regions;
   target.rtiOwnedJoinedFederateMomObjects = snapshot.rtiOwnedJoinedFederateMomObjects;
   target.objectInstances = snapshot.objectInstances;
@@ -1989,7 +2325,7 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.nextConfirmDivestitureNotificationId = snapshot.nextConfirmDivestitureNotificationId;
   target.nextAttributeTransportationTypeChangeRequestId =
       snapshot.nextAttributeTransportationTypeChangeRequestId;
-  target.interactionCallbackRoutes = std::move(callbackRoutes);
+  target.nextTimeAdvanceGrantDispatchIdentity = nextTimeAdvanceGrantDispatchIdentity;
   target.saveOperation.reset();
   target.pendingImmediateSave = snapshot.pendingImmediateSave;
   target.pendingTimedSave = snapshot.pendingTimedSave;
@@ -1999,7 +2335,8 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
 bool EmbeddedFederationRegistry::startFederationSave(
     Federation& federation,
     std::wstring label,
-    FederationSaveControlResult& result) {
+    FederationSaveControlResult& result,
+    std::shared_ptr<rti1516_2025::LogicalTime const> timestamp) {
   // Validate every callback route before changing the shared save state.  A
   // timed request may become ready at a callback boundary; this keeps that
   // transition atomic if a member disconnected in the meantime.
@@ -2014,6 +2351,7 @@ bool EmbeddedFederationRegistry::startFederationSave(
 
   Federation::SaveOperation operation;
   operation.label = std::move(label);
+  operation.scheduledSaveTime = std::move(timestamp);
   for (auto const& [federateId, member] : federation.members) {
     static_cast<void>(member);
     operation.statuses.emplace(federateId, rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE);
@@ -2028,10 +2366,16 @@ bool EmbeddedFederationRegistry::startFederationSave(
   for (auto const& [federateId, status] : federation.saveOperation->statuses) {
     static_cast<void>(status);
     auto const route = federation.interactionCallbackRoutes.find(federateId);
+    auto const reportRoute = federation.serviceReportRoutes.find(federateId);
     FederationSaveNotification notification;
     notification.kind = FederationSaveNotificationKind::initiate;
     notification.label = federation.saveOperation->label;
+    notification.timestamp = federation.saveOperation->scheduledSaveTime;
     notification.callbackRoute = route->second;
+    notification.serviceReportRoute =
+        reportRoute == federation.serviceReportRoutes.end()
+        ? FederateServiceReportRoute{}
+        : reportRoute->second;
     result.notifications.push_back(std::move(notification));
   }
   result.status = FederationSaveControlStatus::applied;
@@ -2228,11 +2572,16 @@ EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary(
       result.status = FederationSaveControlStatus::callback_route_missing;
       return result;
     }
+    auto const reportRoute = federation->second.serviceReportRoutes.find(memberId);
     status = rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE;
     FederationSaveNotification notification;
     notification.kind = FederationSaveNotificationKind::initiate;
     notification.label = operation.label;
     notification.callbackRoute = route->second;
+    notification.serviceReportRoute =
+        reportRoute == federation->second.serviceReportRoutes.end()
+        ? FederateServiceReportRoute{}
+        : reportRoute->second;
     result.notifications.push_back(std::move(notification));
   }
   return result;
@@ -2340,10 +2689,12 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
     }
   }
   if (ready) {
+    auto timestamp = pending->timestamp;
     static_cast<void>(startFederationSave(
         federation->second,
         std::move(pending->label),
-        result));
+        result,
+        std::move(timestamp)));
   }
   return result;
 }
@@ -2574,6 +2925,7 @@ EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary(
   currentStatus->second = rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE;
   operation.pendingTimeConstrainedInitiations.erase(federateId);
   result.currentFederateLabel = operation.label;
+  result.currentFederateTimestamp = operation.scheduledSaveTime;
 
   if (!operation.pendingTimeConstrainedInitiations.empty()) {
     return result;
@@ -2589,11 +2941,17 @@ EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary(
       result.status = FederationSaveControlStatus::callback_route_missing;
       return result;
     }
+    auto const reportRoute = federation->second.serviceReportRoutes.find(memberId);
     status = rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE;
     FederationSaveNotification notification;
     notification.kind = FederationSaveNotificationKind::initiate;
     notification.label = operation.label;
+    notification.timestamp = operation.scheduledSaveTime;
     notification.callbackRoute = route->second;
+    notification.serviceReportRoute =
+        reportRoute == federation->second.serviceReportRoutes.end()
+        ? FederateServiceReportRoute{}
+        : reportRoute->second;
     result.notifications.push_back(std::move(notification));
   }
   return result;
@@ -2670,7 +3028,12 @@ FederationSaveControlResult EmbeddedFederationRegistry::reevaluateTimedFederatio
   }
   if (ready) {
     auto label = pending.label;
-    static_cast<void>(startFederationSave(federation->second, std::move(label), result));
+    auto timestamp = pending.timestamp;
+    static_cast<void>(startFederationSave(
+        federation->second,
+        std::move(label),
+        result,
+        std::move(timestamp)));
   }
   return result;
 }
@@ -2760,6 +3123,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::federateSaveComplete(
       snapshot.pendingTimedSave.reset();
       snapshot.restoreOperation.reset();
       snapshot.pendingTimeAdvanceGrants.clear();
+      snapshot.timeAdvanceGrantDispatchFactories.clear();
       saveSnapshots_[federationName][snapshotLabel] = std::move(snapshot);
       snapshotStored = true;
     } catch (...) {
@@ -2884,6 +3248,11 @@ FederationSaveControlResult EmbeddedFederationRegistry::queryFederationSaveStatu
   FederationSaveNotification notification;
   notification.kind = FederationSaveNotificationKind::status;
   notification.callbackRoute = route->second;
+  auto const reportRoute = federation->second.serviceReportRoutes.find(federateId);
+  notification.serviceReportRoute =
+      reportRoute == federation->second.serviceReportRoutes.end()
+      ? FederateServiceReportRoute{}
+      : reportRoute->second;
   if (federation->second.saveOperation.has_value()) {
     for (auto const& [participantId, status] : federation->second.saveOperation->statuses) {
       notification.statuses.emplace_back(participantId, status);
@@ -2955,6 +3324,12 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     result.status = FederationRestoreControlStatus::callback_route_missing;
     return result;
   }
+  auto const requesterReportRoute = federation->second.serviceReportRoutes.find(
+      requestingFederateId);
+  auto const selectedRequesterReportRoute =
+      requesterReportRoute == federation->second.serviceReportRoutes.end()
+      ? FederateServiceReportRoute{}
+      : requesterReportRoute->second;
 
   if (savedFederations == saveSnapshots_.end()) {
     result.status = FederationRestoreControlStatus::snapshot_not_found;
@@ -2962,6 +3337,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     notification.kind = FederationRestoreNotificationKind::request_failed;
     notification.label = label;
     notification.callbackRoute = requesterRoute->second;
+    notification.serviceReportRoute = selectedRequesterReportRoute;
     result.notifications.push_back(std::move(notification));
     return result;
   }
@@ -2972,6 +3348,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     notification.kind = FederationRestoreNotificationKind::request_failed;
     notification.label = label;
     notification.callbackRoute = requesterRoute->second;
+    notification.serviceReportRoute = selectedRequesterReportRoute;
     result.notifications.push_back(std::move(notification));
     return result;
   }
@@ -2995,6 +3372,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     notification.kind = FederationRestoreNotificationKind::request_failed;
     notification.label = label;
     notification.callbackRoute = requesterRoute->second;
+    notification.serviceReportRoute = selectedRequesterReportRoute;
     result.notifications.push_back(std::move(notification));
     return result;
   }
@@ -3020,6 +3398,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
   succeeded.kind = FederationRestoreNotificationKind::request_succeeded;
   succeeded.label = label;
   succeeded.callbackRoute = requesterRoute->second;
+  succeeded.serviceReportRoute = selectedRequesterReportRoute;
   result.notifications.push_back(std::move(succeeded));
 
   // The embedded backend begins the restore immediately after accepting the
@@ -3027,10 +3406,15 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
   // request success, federation-begun, then one initiate callback per member.
   for (auto const& [federateId, member] : federation->second.members) {
     auto const route = federation->second.interactionCallbackRoutes.find(federateId);
+    auto const reportRoute = federation->second.serviceReportRoutes.find(federateId);
     FederationRestoreNotification begun;
     begun.kind = FederationRestoreNotificationKind::begin;
     begun.label = label;
     begun.callbackRoute = route->second;
+    begun.serviceReportRoute =
+        reportRoute == federation->second.serviceReportRoutes.end()
+        ? FederateServiceReportRoute{}
+        : reportRoute->second;
     result.notifications.push_back(std::move(begun));
 
     FederationRestoreNotification initiate;
@@ -3040,6 +3424,10 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     initiate.preRestoreFederateId = federateId;
     initiate.postRestoreFederateId = federateId;
     initiate.callbackRoute = route->second;
+    initiate.serviceReportRoute =
+        reportRoute == federation->second.serviceReportRoutes.end()
+        ? FederateServiceReportRoute{}
+        : reportRoute->second;
     result.notifications.push_back(std::move(initiate));
   }
   return result;
@@ -3145,6 +3533,11 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
     notification.callbackRoute = route->second;
     result.notifications.push_back(std::move(notification));
   }
+  // Queue the reconstructed grant only after every successful restore
+  // notification has been prepared. The adapter submits those callbacks first,
+  // preserving a clear restored-before-grant boundary in both callback models.
+  result.timeAdvanceGrantDispatches =
+      scheduleEligibleTimeAdvanceGrants(federation->second);
   return result;
 }
 
@@ -3249,6 +3642,11 @@ FederationRestoreControlResult EmbeddedFederationRegistry::queryFederationRestor
   FederationRestoreNotification notification;
   notification.kind = FederationRestoreNotificationKind::status;
   notification.callbackRoute = route->second;
+  auto const reportRoute = federation->second.serviceReportRoutes.find(federateId);
+  notification.serviceReportRoute =
+      reportRoute == federation->second.serviceReportRoutes.end()
+      ? FederateServiceReportRoute{}
+      : reportRoute->second;
   if (federation->second.restoreOperation.has_value()) {
     for (auto const& [participantId, status] : federation->second.restoreOperation->statuses) {
       notification.statuses.push_back({participantId, participantId, status});
@@ -3851,6 +4249,64 @@ EmbeddedFederationRegistry::attributeRelevanceAdvisoryUpdateRateDesignatorFor(
 FederationTimeGrantDispatchResult EmbeddedFederationRegistry::requestTimeAdvanceGrant(
     std::wstring const& federationName,
     std::uint64_t federateId,
+    std::uint64_t generation) {
+  auto instrumentationScope = beginInstrumentation("requestTimeAdvanceGrant");
+  if (federateId == 0 || generation == 0) {
+    return {FederationTimeGrantStatus::inconsistent_temporal_state, {}};
+  }
+
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return {FederationTimeGrantStatus::federation_does_not_exist, {}};
+  }
+  if (!federation->second.members.contains(federateId)) {
+    return {FederationTimeGrantStatus::federate_not_member, {}};
+  }
+  if (federation->second.pendingTimeAdvanceGrants.contains(federateId)) {
+    return {FederationTimeGrantStatus::stale_generation, {}};
+  }
+
+  auto const factory =
+      federation->second.timeAdvanceGrantDispatchFactories.find(federateId);
+  if (factory == federation->second.timeAdvanceGrantDispatchFactories.end() ||
+      !factory->second ||
+      federation->second.nextTimeAdvanceGrantDispatchIdentity == 0 ||
+      federation->second.nextTimeAdvanceGrantDispatchIdentity ==
+          std::numeric_limits<std::uint64_t>::max()) {
+    return {FederationTimeGrantStatus::inconsistent_temporal_state, {}};
+  }
+
+  auto const dispatchIdentity = federation->second.nextTimeAdvanceGrantDispatchIdentity++;
+  FederationTimeGrantDispatch dispatch;
+  try {
+    dispatch = factory->second(federateId, generation, dispatchIdentity);
+  } catch (...) {
+    return {FederationTimeGrantStatus::inconsistent_temporal_state, {}};
+  }
+  if (!dispatch) {
+    return {FederationTimeGrantStatus::inconsistent_temporal_state, {}};
+  }
+
+  auto [pending, inserted] = federation->second.pendingTimeAdvanceGrants.emplace(
+      federateId,
+      Federation::PendingTimeAdvanceGrant{
+          generation,
+          dispatchIdentity,
+          std::move(dispatch),
+          false,
+      });
+  static_cast<void>(pending);
+  if (!inserted) {
+    return {FederationTimeGrantStatus::stale_generation, {}};
+  }
+
+  return {FederationTimeGrantStatus::applied, scheduleEligibleTimeAdvanceGrants(federation->second)};
+}
+
+FederationTimeGrantDispatchResult EmbeddedFederationRegistry::requestTimeAdvanceGrant(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
     std::uint64_t generation,
     FederationTimeGrantDispatch dispatch) {
   auto instrumentationScope = beginInstrumentation("requestTimeAdvanceGrant");
@@ -3872,7 +4328,7 @@ FederationTimeGrantDispatchResult EmbeddedFederationRegistry::requestTimeAdvance
 
   auto [pending, inserted] = federation->second.pendingTimeAdvanceGrants.emplace(
       federateId,
-      Federation::PendingTimeAdvanceGrant{generation, std::move(dispatch), false});
+      Federation::PendingTimeAdvanceGrant{generation, 0, std::move(dispatch), false});
   static_cast<void>(pending);
   if (!inserted) {
     return {FederationTimeGrantStatus::stale_generation, {}};
@@ -3895,7 +4351,8 @@ FederationTimeGrantDispatchResult EmbeddedFederationRegistry::reevaluateTimeAdva
 FederationTimeGrantStatus EmbeddedFederationRegistry::beginTimeAdvanceGrant(
     std::wstring const& federationName,
     std::uint64_t federateId,
-    std::uint64_t generation) {
+    std::uint64_t generation,
+    std::uint64_t dispatchIdentity) {
   auto instrumentationScope = beginInstrumentation("beginTimeAdvanceGrant");
   if (federateId == 0 || generation == 0) {
     return FederationTimeGrantStatus::inconsistent_temporal_state;
@@ -3913,7 +4370,8 @@ FederationTimeGrantStatus EmbeddedFederationRegistry::beginTimeAdvanceGrant(
   if (pending == federation->second.pendingTimeAdvanceGrants.end()) {
     return FederationTimeGrantStatus::time_advance_not_pending;
   }
-  if (pending->second.generation != generation) {
+  if (pending->second.generation != generation ||
+      pending->second.dispatchIdentity != dispatchIdentity) {
     return FederationTimeGrantStatus::stale_generation;
   }
   if (!pending->second.dispatchQueued) {
@@ -3939,7 +4397,12 @@ FederationTimeGrantStatus EmbeddedFederationRegistry::beginTimeAdvanceGrant(
   FederationTimeBounds const bounds = FederationTimeBoundsCalculator{}.calculate(*snapshot, federateId);
   FederationTimeAdvanceGrantDecision const decision =
       FederationTimeAdvanceGrantPolicy{}.decide(requester->time, bounds);
-  if (!decision.mayGrant()) {
+  bool const grantEligible = decision.mayGrant() || connectionLossTsoDeliveryMayGrant(
+      federation->second,
+      federateId,
+      requester->time,
+      bounds);
+  if (!grantEligible) {
     pending->second.dispatchQueued = false;
     switch (decision.status) {
       case FederationTimeAdvanceGrantStatus::wait_for_galt:
@@ -4431,10 +4894,15 @@ EmbeddedFederationRegistry::enqueueTsoObjectDeletion(
         !callbackRoute->second) {
       continue;
     }
+    auto const reportRoute = federation->second.serviceReportRoutes.find(
+        receivingFederateId);
     recipients.push_back({
         receivingFederateId,
         objectInstanceHandle,
         callbackRoute->second,
+        reportRoute == federation->second.serviceReportRoutes.end()
+            ? FederateServiceReportRoute{}
+            : reportRoute->second,
     });
   }
 
@@ -5050,10 +5518,42 @@ bool EmbeddedFederationRegistry::beginTsoAttributeUpdateCallback(
   }
   auto recipient = record->second.recipientStates.find(receivingFederateId);
   if (recipient == record->second.recipientStates.end() ||
-      recipient->second == Federation::TsoRecipientDeliveryState::retracted) {
+      (recipient->second != Federation::TsoRecipientDeliveryState::pending &&
+       recipient->second != Federation::TsoRecipientDeliveryState::delivered)) {
     return false;
   }
   recipient->second = Federation::TsoRecipientDeliveryState::delivered;
+  reclaimTsoMessagePayload(federation->second, messageId);
+  return true;
+}
+
+bool EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::uint64_t messageId) {
+  auto instrumentationScope = beginInstrumentation("finishTsoRecipientCallbackSuppressed");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() || receivingFederateId == 0 ||
+      !federation->second.members.contains(receivingFederateId)) {
+    return false;
+  }
+  auto record = federation->second.tsoRequestRetractionRecords.find(messageId);
+  if (record == federation->second.tsoRequestRetractionRecords.end()) {
+    return false;
+  }
+  auto recipient = record->second.recipientStates.find(receivingFederateId);
+  if (recipient == record->second.recipientStates.end() ||
+      recipient->second != Federation::TsoRecipientDeliveryState::pending) {
+    return false;
+  }
+
+  // The temporal boundary was consumed, but the current declaration did not
+  // qualify for a user callback. Preserve this as its own terminal state so a
+  // later Retract cannot issue Request Retraction for a callback that never
+  // began, while releasing any lifecycle guard that only protects pending
+  // object-dependent delivery.
+  recipient->second = Federation::TsoRecipientDeliveryState::suppressed;
   reclaimTsoMessagePayload(federation->second, messageId);
   return true;
 }
@@ -5312,6 +5812,55 @@ FederationTsoDeliveryRegistryResult EmbeddedFederationRegistry::completeTsoDeliv
           {federation->second.timeCoordinator.completeTsoDelivery(message), {}}};
 }
 
+std::vector<ObjectInstanceRemovalRecipient>
+EmbeddedFederationRegistry::releaseConnectionLossDeferredObjectInstanceRemovals(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId) {
+  auto instrumentationScope = beginInstrumentation(
+      "releaseConnectionLossDeferredObjectInstanceRemovals");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() || receivingFederateId == 0 ||
+      !federation->second.members.contains(receivingFederateId)) {
+    return {};
+  }
+
+  std::vector<ObjectInstanceRemovalRecipient> result;
+  for (auto& [objectInstanceHandle, instance] : federation->second.objectInstances) {
+    if (!instance.pendingRemovalFederates.contains(receivingFederateId) ||
+        !instance.deferredConnectionLossTsoRemovalFederates.contains(
+            receivingFederateId) ||
+        hasPendingConnectionLossTsoObjectDelivery(
+            federation->second,
+            objectInstanceHandle,
+            receivingFederateId)) {
+      continue;
+    }
+    auto const route = federation->second.interactionCallbackRoutes.find(receivingFederateId);
+    if (route == federation->second.interactionCallbackRoutes.end() || !route->second) {
+      // The original forced-resign validation established a route. Retain the
+      // reservation if a later private lifecycle transition has made that
+      // route unavailable; recipient resignation clears it explicitly.
+      continue;
+    }
+    auto const reportRoute = federation->second.serviceReportRoutes.find(receivingFederateId);
+
+    // Claim the release exactly once. The original callback returned without
+    // delivery at the protected boundary; this fresh route is submitted only
+    // after the grant callback has completed.
+    instance.deferredConnectionLossTsoRemovalFederates.erase(receivingFederateId);
+    result.push_back({
+        receivingFederateId,
+        objectInstanceHandle,
+        route->second,
+        reportRoute == federation->second.serviceReportRoutes.end()
+            ? FederateServiceReportRoute{}
+            : reportRoute->second,
+    });
+  }
+  return result;
+}
+
 std::optional<FederationTimeExecutionSnapshot> EmbeddedFederationRegistry::makeTimeSnapshot(
     Federation const& federation) {
   FederationTimeExecutionSnapshot result{federation.definition, {}};
@@ -5362,7 +5911,13 @@ std::vector<FederationTimeGrantDispatch> EmbeddedFederationRegistry::scheduleEli
       continue;
     }
     FederationTimeBounds const bounds = boundsCalculator.calculate(*snapshot, federateId);
-    if (!grantPolicy.decide(requester->time, bounds).mayGrant()) {
+    bool const grantEligible = grantPolicy.decide(requester->time, bounds).mayGrant() ||
+        connectionLossTsoDeliveryMayGrant(
+            federation,
+            federateId,
+            requester->time,
+            bounds);
+    if (!grantEligible) {
       continue;
     }
 
@@ -7461,6 +8016,46 @@ bool EmbeddedFederationRegistry::canPurgeDeletedObjectInstance(
          objectInstance.pendingTimestampedRemovalFederates.empty();
 }
 
+bool EmbeddedFederationRegistry::hasPendingConnectionLossTsoObjectDelivery(
+    Federation const& federation,
+    std::uint64_t objectInstanceHandle,
+    std::uint64_t receivingFederateId) noexcept {
+  if (objectInstanceHandle == 0 || receivingFederateId == 0) {
+    return false;
+  }
+
+  auto const recipientStillNeedsMarkedDelivery =
+      [&federation, receivingFederateId](std::uint64_t messageId) {
+        auto const record = federation.tsoRequestRetractionRecords.find(messageId);
+        if (record == federation.tsoRequestRetractionRecords.end() ||
+            !record->second.deliveryRequiredAfterConnectionLoss) {
+          return false;
+        }
+        auto const recipient = record->second.recipientStates.find(receivingFederateId);
+        return recipient != record->second.recipientStates.end() &&
+            recipient->second == Federation::TsoRecipientDeliveryState::pending;
+      };
+
+  // A timestamped update needs the recipient's known object so its delayed
+  // Reflect Attribute Values projection remains valid. A directed interaction
+  // has the same dependency on the target object. Ordinary interactions have
+  // no object-instance lifetime dependency, while timestamped deletion has
+  // its own explicit reconstitution/pending-removal machinery.
+  for (auto const& [messageId, message] : federation.tsoAttributeUpdateMessages) {
+    if (message.objectInstanceHandle == objectInstanceHandle &&
+        recipientStillNeedsMarkedDelivery(messageId)) {
+      return true;
+    }
+  }
+  for (auto const& [messageId, message] : federation.tsoDirectedInteractionMessages) {
+    if (message.objectInstanceHandle == objectInstanceHandle &&
+        recipientStillNeedsMarkedDelivery(messageId)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool EmbeddedFederationRegistry::hasPendingTsoRecipient(
     Federation const& federation,
     Federation::TsoRequestRetractionRecord const& record) noexcept {
@@ -7473,6 +8068,69 @@ bool EmbeddedFederationRegistry::hasPendingTsoRecipient(
       });
 }
 
+std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
+EmbeddedFederationRegistry::earliestConnectionLossTsoDeliveryBoundary(
+    Federation const& federation,
+    std::uint64_t recipientFederateId) {
+  std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>> earliest;
+  auto const queued = federation.timeCoordinator.tsoSnapshotFor(recipientFederateId).queued;
+  for (auto const& message : queued) {
+    if (!message.timestamp) {
+      continue;
+    }
+    auto const record = federation.tsoRequestRetractionRecords.find(message.messageId);
+    if (record == federation.tsoRequestRetractionRecords.end() ||
+        !record->second.deliveryRequiredAfterConnectionLoss) {
+      continue;
+    }
+    if (!earliest) {
+      earliest = message.timestamp;
+      continue;
+    }
+    try {
+      if (*message.timestamp < **earliest) {
+        earliest = message.timestamp;
+      }
+    } catch (rti1516_2025::Exception const&) {
+      // A malformed private timestamp cannot safely create a mandatory
+      // connection-loss delivery boundary. Leave the already valid earliest
+      // entry unchanged and let normal validation classify later work.
+    }
+  }
+  return earliest;
+}
+
+bool EmbeddedFederationRegistry::connectionLossTsoDeliveryMayGrant(
+    Federation const& federation,
+    std::uint64_t recipientFederateId,
+    FederateTimeSnapshot const& requester,
+    FederationTimeBounds const& bounds) {
+  if (bounds.status != FederationTimeBoundStatus::undefined ||
+      !requester.requestedTime) {
+    return false;
+  }
+
+  // Once the failed regulator has been removed, ordinary GALT is undefined.
+  // A marked queued message is the narrow 4.4 exception: its recipient may
+  // cross its already requested TSO boundary so the source-mandated
+  // at-or-before-loss delivery can occur. This does not change generic
+  // no-regulated-grant behavior, nor does it force a message after the
+  // captured loss cutoff to be delivered.
+  auto const deliveryBoundary = earliestConnectionLossTsoDeliveryBoundary(
+      federation,
+      recipientFederateId);
+  if (!deliveryBoundary ||
+      requester.requestedTime->implementationName() !=
+          (*deliveryBoundary)->implementationName()) {
+    return false;
+  }
+  try {
+    return *requester.requestedTime >= **deliveryBoundary;
+  } catch (rti1516_2025::Exception const&) {
+    return false;
+  }
+}
+
 void EmbeddedFederationRegistry::reclaimTsoMessagePayload(
     Federation& federation,
     std::uint64_t messageId) {
@@ -7481,6 +8139,11 @@ void EmbeddedFederationRegistry::reclaimTsoMessagePayload(
       hasPendingTsoRecipient(federation, record->second)) {
     return;
   }
+
+  // All still-joined recipients have crossed (or abandoned) the original
+  // message boundary, so the connection-loss-only grant exception has no
+  // remaining delivery work to protect.
+  record->second.deliveryRequiredAfterConnectionLoss = false;
 
   // Normal interaction/update/directed payloads are needed only until every
   // still-joined recipient has crossed its original callback boundary.  A
@@ -7700,6 +8363,11 @@ EmbeddedFederationRegistry::candidateAttributeValueUpdateProvideRecipient(
     return std::nullopt;
   }
   recipient.callbackRoute = callbackRoute->second;
+  auto const reportRoute = federation.serviceReportRoutes.find(providingFederateId);
+  recipient.serviceReportRoute =
+      reportRoute == federation.serviceReportRoutes.end()
+      ? FederateServiceReportRoute{}
+      : reportRoute->second;
   return recipient;
 }
 
@@ -7825,6 +8493,11 @@ EmbeddedFederationRegistry::candidateAttributeValueUpdateClassProvideRecipient(
     return std::nullopt;
   }
   recipient.callbackRoute = callbackRoute->second;
+  auto const reportRoute = federation.serviceReportRoutes.find(providingFederateId);
+  recipient.serviceReportRoute =
+      reportRoute == federation.serviceReportRoutes.end()
+      ? FederateServiceReportRoute{}
+      : reportRoute->second;
   return recipient;
 }
 
@@ -8044,10 +8717,7 @@ bool EmbeddedFederationRegistry::validDirectedInteractionForObjectClass(
     if (objectClass == nullptr) {
       return false;
     }
-    if (std::find(
-            objectClass->directedInteractions.begin(),
-            objectClass->directedInteractions.end(),
-            *interactionClassName) != objectClass->directedInteractions.end()) {
+    if (objectClass->directedInteraction(*interactionClassName) != nullptr) {
       return true;
     }
     currentClassName = objectClass->parentName;
@@ -8153,31 +8823,44 @@ EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient(
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle,
     std::uint64_t sentInteractionClassHandle,
-    std::vector<std::uint64_t> const& sentParameterHandles) {
+    std::vector<std::uint64_t> const& sentParameterHandles,
+    bool allowMissingProducingFederate) {
+  bool const producingFederateIsJoined = federation.members.contains(producingFederateId);
+  bool const retainLostProducerAcceptance =
+      allowMissingProducingFederate && !producingFederateIsJoined;
   if (producingFederateId == receivingFederateId ||
       !federation.members.contains(receivingFederateId) ||
-      !federation.members.contains(producingFederateId) ||
+      (!producingFederateIsJoined && !retainLostProducerAcceptance) ||
       !federation.definition.catalog || !federation.objectClassHandles ||
       !federation.interactionClassHandles || !federation.parameterHandles) {
     return std::nullopt;
   }
 
   auto const instance = federation.objectInstances.find(objectInstanceHandle);
-  if (instance == federation.objectInstances.end() || instance->second.deleteAccepted ||
+  // The normal receive-order predicate suppresses a directed interaction
+  // whose target has been deleted. For the narrow connection-loss exception,
+  // however, a marked at-or-before-cutoff timestamped interaction must retain
+  // its accepted target through its recipient's TSO boundary. The caller can
+  // set allowMissingProducingFederate only after it has revalidated that exact
+  // marked message/recipient pair, so this does not relax ordinary deletion
+  // or source-membership semantics.
+  if (instance == federation.objectInstances.end() ||
+      (!retainLostProducerAcceptance && instance->second.deleteAccepted) ||
       !instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId) ||
-      !instance->second.knownObjectClassHandlesByFederate.contains(producingFederateId)) {
+      (!retainLostProducerAcceptance &&
+       !instance->second.knownObjectClassHandlesByFederate.contains(producingFederateId))) {
     return std::nullopt;
   }
   if (!validDirectedInteractionForObjectClass(
           federation,
           instance->second.registeredObjectClassHandle,
           sentInteractionClassHandle) ||
-      !directedInteractionDeclarationApplies(
+      (!retainLostProducerAcceptance && !directedInteractionDeclarationApplies(
           federation,
           producingFederateId,
           instance->second.registeredObjectClassHandle,
           sentInteractionClassHandle,
-          true)) {
+          true))) {
     return std::nullopt;
   }
   auto const subscriptionIsUniversal = directedInteractionSubscriptionIsUniversal(
@@ -8878,7 +9561,16 @@ std::vector<DeclarationAdvisory> EmbeddedFederationRegistry::planDeclarationAdvi
     if (route == execution.interactionCallbackRoutes.end() || !route->second) {
       return;
     }
-    advisories.push_back({kind, receivingFederateId, classHandle, route->second});
+    auto const reportRoute = execution.serviceReportRoutes.find(receivingFederateId);
+    advisories.push_back({
+        kind,
+        receivingFederateId,
+        classHandle,
+        route->second,
+        reportRoute == execution.serviceReportRoutes.end()
+            ? FederateServiceReportRoute{}
+            : reportRoute->second,
+    });
   };
 
   for (auto const& relevance : currentObjectRelevance) {
@@ -10267,10 +10959,14 @@ ObjectInstanceDeletionPlan EmbeddedFederationRegistry::deleteObjectInstance(
         !callbackRoute->second) {
       continue;
     }
+    auto const reportRoute = federation->second.serviceReportRoutes.find(receivingFederateId);
     result.recipients.push_back({
         receivingFederateId,
         instance->second.handle,
         callbackRoute->second,
+        reportRoute == federation->second.serviceReportRoutes.end()
+            ? FederateServiceReportRoute{}
+            : reportRoute->second,
     });
   }
 
@@ -10431,6 +11127,7 @@ EmbeddedFederationRegistry::planObjectInstanceDiscoveriesForInstance(
           !callbackRoute->second) {
         continue;
       }
+      auto const reportRoute = federation->second.serviceReportRoutes.find(receivingFederateId);
 
       auto const [pending, insertedPending] =
           instance->second.pendingDiscoveryFederates.insert(receivingFederateId);
@@ -10446,6 +11143,9 @@ EmbeddedFederationRegistry::planObjectInstanceDiscoveriesForInstance(
             instance->second.name,
             instance->second.producingFederateId,
             callbackRoute->second,
+            reportRoute == federation->second.serviceReportRoutes.end()
+                ? FederateServiceReportRoute{}
+                : reportRoute->second,
         });
       } catch (...) {
         instance->second.pendingDiscoveryFederates.erase(receivingFederateId);
@@ -10476,6 +11176,7 @@ EmbeddedFederationRegistry::planObjectInstanceDiscoveriesForFederate(
       !callbackRoute->second) {
     return {};
   }
+  auto const reportRoute = federation->second.serviceReportRoutes.find(receivingFederateId);
 
   std::vector<ObjectInstanceDiscoveryRecipient> result;
   result.reserve(federation->second.objectInstances.size());
@@ -10509,6 +11210,9 @@ EmbeddedFederationRegistry::planObjectInstanceDiscoveriesForFederate(
             objectInstance.name,
             objectInstance.producingFederateId,
             callbackRoute->second,
+            reportRoute == federation->second.serviceReportRoutes.end()
+                ? FederateServiceReportRoute{}
+                : reportRoute->second,
         });
       } catch (...) {
         objectInstance.pendingDiscoveryFederates.erase(receivingFederateId);
@@ -10596,8 +11300,30 @@ EmbeddedFederationRegistry::beginObjectInstanceRemoval(
   if (instance == federation->second.objectInstances.end() || !instance->second.deleteAccepted) {
     return std::nullopt;
   }
+  if (!instance->second.pendingRemovalFederates.contains(receivingFederateId)) {
+    return std::nullopt;
+  }
+
+  // A forced connection-loss resign may have queued an ordinary automatic
+  // removal before this recipient later opens its TSO boundary. Do not let
+  // that receive-order work erase the object's known state while a marked
+  // at-or-before-cutoff update or directed interaction still requires it.
+  // Keep the original removal reservation; the matching TSO completion will
+  // replan this callback after its Time Advance Grant.
+  if (instance->second.connectionLossAutomaticRemovalFederates.contains(
+          receivingFederateId) &&
+      hasPendingConnectionLossTsoObjectDelivery(
+          federation->second,
+          objectInstanceHandle,
+          receivingFederateId)) {
+    instance->second.deferredConnectionLossTsoRemovalFederates.insert(
+        receivingFederateId);
+    return std::nullopt;
+  }
 
   instance->second.pendingRemovalFederates.erase(receivingFederateId);
+  instance->second.connectionLossAutomaticRemovalFederates.erase(receivingFederateId);
+  instance->second.deferredConnectionLossTsoRemovalFederates.erase(receivingFederateId);
   auto const known = instance->second.knownObjectClassHandlesByFederate.find(receivingFederateId);
   if (!federation->second.members.contains(receivingFederateId) ||
       known == instance->second.knownObjectClassHandlesByFederate.end()) {
@@ -10634,6 +11360,8 @@ void EmbeddedFederationRegistry::cancelObjectInstanceRemoval(
     return;
   }
   instance->second.pendingRemovalFederates.erase(receivingFederateId);
+  instance->second.connectionLossAutomaticRemovalFederates.erase(receivingFederateId);
+  instance->second.deferredConnectionLossTsoRemovalFederates.erase(receivingFederateId);
   if (canPurgeDeletedObjectInstance(instance->second)) {
     federation->second.objectInstanceHandlesByName.erase(instance->second.name);
     federation->second.objectInstances.erase(instance);
@@ -14143,6 +14871,7 @@ MomServiceReportRoutingPlan EmbeddedFederationRegistry::momServiceReportRoutingP
   MomServiceReportRoutingPlan result;
   result.disposition = MomServiceReportDisposition::interaction;
   result.interactionClassHandle = *reportClassHandle;
+  result.reportParameterHandles = reportParameterHandles;
   result.endpointRegionHandle = kMomServiceReportEndpointRegionHandle;
   result.endpointRegion = endpointRegion;
   for (auto const& [federateId, membership] : federation.members) {
@@ -14406,6 +15135,146 @@ EmbeddedFederationRegistry::federateLostReportRecipientFor(
       routing->federateNameParameterHandle,
       routing->timestampParameterHandle,
       routing->faultDescriptionParameterHandle,
+  };
+  std::map<std::uint64_t, RegionSpecificationSnapshot> const endpointOverride{
+      {routing->endpointRegionHandle, routing->endpointRegion},
+  };
+  std::set<std::uint64_t> const endpointRegionHandles{
+      routing->endpointRegionHandle,
+  };
+  return candidateReceiveOrderInteractionRecipient(
+      federation->second,
+      InteractionProducer::rti(),
+      receivingFederateId,
+      routing->interactionClassHandle,
+      sentParameterHandles,
+      &endpointRegionHandles,
+      &endpointOverride);
+}
+
+std::optional<ExceptionReportRouting>
+EmbeddedFederationRegistry::exceptionReportRoutingFor(
+    Federation const& federation,
+    std::uint64_t reportedFederateId) {
+  if (reportedFederateId == 0U || !federation.definition.catalog ||
+      !federation.interactionClassHandles || !federation.parameterHandles ||
+      !federation.dimensionHandles) {
+    return std::nullopt;
+  }
+
+  auto const reportClassHandle = federation.interactionClassHandles->handleFor(
+      kReportExceptionInteractionClassName);
+  auto const federateDimensionHandle = federation.dimensionHandles->handleFor(
+      kHlaFederateDimensionName);
+  auto const serviceParameterHandle = federation.parameterHandles->handleFor(
+      federation.definition.catalog.get(),
+      kReportExceptionInteractionClassName,
+      kExceptionReportServiceParameterName);
+  auto const exceptionParameterHandle = federation.parameterHandles->handleFor(
+      federation.definition.catalog.get(),
+      kReportExceptionInteractionClassName,
+      kExceptionReportExceptionParameterName);
+  if (!reportClassHandle || !federateDimensionHandle ||
+      !serviceParameterHandle || !exceptionParameterHandle) {
+    return std::nullopt;
+  }
+
+  auto const normalizedFederate = normalizedHandleValue(
+      federation.normalizationSeed,
+      reportedFederateId,
+      kFederateNormalizationKind);
+  ExceptionReportRouting result;
+  result.interactionClassHandle = *reportClassHandle;
+  result.serviceParameterHandle = *serviceParameterHandle;
+  result.exceptionParameterHandle = *exceptionParameterHandle;
+  result.endpointRegionHandle = kMomExceptionReportEndpointRegionHandle;
+  result.endpointRegion = {
+      {*federateDimensionHandle},
+      {{*federateDimensionHandle, {normalizedFederate, normalizedFederate + 1U}}},
+      true,
+  };
+  return result;
+}
+
+ExceptionReportPlan EmbeddedFederationRegistry::planExceptionReport(
+    std::wstring const& federationName,
+    std::uint64_t reportedFederateId) const {
+  auto instrumentationScope = beginInstrumentation("planExceptionReport");
+  std::scoped_lock lock(mutex_);
+  ExceptionReportPlan result;
+  result.reportedFederateId = reportedFederateId;
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    result.status = ExceptionReportStatus::federation_does_not_exist;
+    return result;
+  }
+  auto const reportedMember = federation->second.members.find(reportedFederateId);
+  if (reportedMember == federation->second.members.end()) {
+    result.status = ExceptionReportStatus::reported_federate_not_member;
+    return result;
+  }
+  if (!reportedMember->second.exceptionReportingSwitch) {
+    return result;
+  }
+  auto routing = exceptionReportRoutingFor(federation->second, reportedFederateId);
+  if (!routing) {
+    result.status = ExceptionReportStatus::inconsistent_catalog;
+    return result;
+  }
+
+  result.status = ExceptionReportStatus::applied;
+  result.routing = std::move(*routing);
+  std::vector<std::uint64_t> const sentParameterHandles{
+      result.routing.serviceParameterHandle,
+      result.routing.exceptionParameterHandle,
+  };
+  std::map<std::uint64_t, RegionSpecificationSnapshot> const endpointOverride{
+      {result.routing.endpointRegionHandle, result.routing.endpointRegion},
+  };
+  std::set<std::uint64_t> const endpointRegionHandles{
+      result.routing.endpointRegionHandle,
+  };
+  for (auto const& [federateId, membership] : federation->second.members) {
+    static_cast<void>(membership);
+    auto recipient = candidateReceiveOrderInteractionRecipient(
+        federation->second,
+        InteractionProducer::rti(),
+        federateId,
+        result.routing.interactionClassHandle,
+        sentParameterHandles,
+        &endpointRegionHandles,
+        &endpointOverride);
+    if (recipient) {
+      result.recipients.push_back(std::move(*recipient));
+    }
+  }
+  return result;
+}
+
+std::optional<ReceiveOrderInteractionRecipient>
+EmbeddedFederationRegistry::exceptionReportRecipientFor(
+    std::wstring const& federationName,
+    std::uint64_t reportedFederateId,
+    std::uint64_t receivingFederateId) const {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      !federation->second.members.contains(reportedFederateId) ||
+      !federation->second.members.contains(receivingFederateId)) {
+    return std::nullopt;
+  }
+  auto const reportedMember = federation->second.members.find(reportedFederateId);
+  if (reportedMember == federation->second.members.end() ||
+      !reportedMember->second.exceptionReportingSwitch) {
+    return std::nullopt;
+  }
+  auto routing = exceptionReportRoutingFor(federation->second, reportedFederateId);
+  if (!routing) {
+    return std::nullopt;
+  }
+  std::vector<std::uint64_t> const sentParameterHandles{
+      routing->serviceParameterHandle,
+      routing->exceptionParameterHandle,
   };
   std::map<std::uint64_t, RegionSpecificationSnapshot> const endpointOverride{
       {routing->endpointRegionHandle, routing->endpointRegion},
@@ -15068,6 +15937,56 @@ EmbeddedFederationRegistry::receiveOrderDirectedInteractionRecipientFor(
       objectInstanceHandle,
       sentInteractionClassHandle,
       sentParameterHandles);
+}
+
+std::optional<ReceiveOrderDirectedInteractionRecipient>
+EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor(
+    std::wstring const& federationName,
+    std::uint64_t producingFederateId,
+    std::uint64_t receivingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::uint64_t sentInteractionClassHandle,
+    std::vector<std::uint64_t> const& sentParameterHandles,
+    std::uint64_t messageId) const {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return std::nullopt;
+  }
+
+  bool retainLostProducerAcceptance = false;
+  if (!federation->second.members.contains(producingFederateId)) {
+    auto const message = federation->second.tsoDirectedInteractionMessages.find(messageId);
+    auto const retraction = federation->second.tsoRequestRetractionRecords.find(messageId);
+    if (message == federation->second.tsoDirectedInteractionMessages.end() ||
+        retraction == federation->second.tsoRequestRetractionRecords.end() ||
+        message->second.producingFederateId != producingFederateId ||
+        message->second.objectInstanceHandle != objectInstanceHandle ||
+        message->second.sentInteractionClassHandle != sentInteractionClassHandle) {
+      return std::nullopt;
+    }
+    auto const recipient = std::find_if(
+        message->second.recipients.begin(),
+        message->second.recipients.end(),
+        [receivingFederateId](TsoDirectedInteractionRecipient const& candidate) {
+          return candidate.receivingFederateId == receivingFederateId;
+        });
+    auto const recipientState = retraction->second.recipientStates.find(receivingFederateId);
+    retainLostProducerAcceptance =
+        recipient != message->second.recipients.end() &&
+        recipientState != retraction->second.recipientStates.end() &&
+        recipientState->second == Federation::TsoRecipientDeliveryState::pending &&
+        retraction->second.deliveryRequiredAfterConnectionLoss;
+  }
+
+  return candidateReceiveOrderDirectedInteractionRecipient(
+      federation->second,
+      producingFederateId,
+      receivingFederateId,
+      objectInstanceHandle,
+      sentInteractionClassHandle,
+      sentParameterHandles,
+      retainLostProducerAcceptance);
 }
 
 }  // namespace umbra::detail

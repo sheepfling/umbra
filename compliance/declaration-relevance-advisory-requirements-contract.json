@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This bounded contract covers ordinary (non-regional) declaration-management relevance transitions in Umbra's non-installable development profile. The registry compares effective published object-class attributes and active subscriptions across the ordinary class hierarchy, plus published interaction classes and active interaction subscriptions, and the adapter queues the four official advisory callbacks after releasing runtime locks. Passive subscriptions do not establish relevance. The per-federate Object Class Relevance Advisory Switch and Interaction Relevance Advisory Switch gate callback emission. Regional declaration services, regional DDM, MOM, update-rate enforcement, transport, package evidence, protected review, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This bounded contract covers ordinary (non-regional) declaration-management relevance transitions in Umbra's non-installable development profile. The registry compares effective published object-class attributes and active subscriptions across the ordinary class hierarchy, plus published interaction classes and active interaction subscriptions, retains the receiving federate's selected service-report route, and the adapter appends the RTI-initiated advisory report before queuing each of the four official callbacks after releasing runtime locks. Passive subscriptions do not establish relevance. The per-federate Object Class Relevance Advisory Switch and Interaction Relevance Advisory Switch gate callback emission. Regional declaration services, regional DDM, generic MOM interaction delivery, update-rate enforcement, transport, package evidence, protected review, catalog evidence, and conformance remain outside this slice.",
   "requirements": [
     {
       "id": "umbra-declaration-advisory-passive-object-subscription",
@@ -52,7 +52,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
     {
@@ -73,6 +74,18 @@
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+      ]
+    },
+    {
+      "id": "umbra-stop-registration-advisory-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-104-l95-25",
+      "clause_id": "clause-5.15.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "notes": "The Lab exports one §5.15 candidate for the switch gate and callback-invocation boundary; it is retained here for both traceability roles rather than inventing a source row.",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
     {
@@ -102,7 +115,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
     {
@@ -132,7 +146,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     }
   ]

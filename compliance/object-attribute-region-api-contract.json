@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 C++ object-attribute regional services to the exact official RTIambassador declarations exported by the Requirements Lab. The development profile implements no-name regional object registration, additive region association/unassociation, per-(object-class, attribute, region) active/passive subscription state, active-overlap-filtered no-time Update Attribute Values routing, and the official optional RegionHandleSet reflection marker. Passive regional triples remain declared and keep their region lifecycle fence but cannot arrange discovery, scope, or reflection; re-subscribing a triple changes its mode. The direct-source Relaxed DDM policy is separately proven through exact-boundary registration, discovery, and reflection routing; broader relaxation matrices remain open. Named regional registration, Request Attribute Value Update With Regions, advisory scope transitions, default-region synthesis, timestamped/retraction behavior, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 C++ object-attribute regional services to the exact official RTIambassador declarations exported by the Requirements Lab. The development profile implements no-name regional object registration, additive region association/unassociation, per-(object-class, attribute, region) active/passive subscription state, active-overlap-filtered no-time Update Attribute Values routing, and the official optional RegionHandleSet reflection marker. Passive regional triples remain declared and keep their region lifecycle fence but cannot arrange discovery, scope, or reflection; re-subscribing a triple changes its mode. The direct-source Relaxed DDM policy is separately proven through exact-boundary registration, discovery, and reflection routing; broader relaxation matrices remain open. A bounded explicit-source timestamped object-update composition also exercises the declared regional services across a Time Constrained disable/re-enable transition while preserving the source RegionHandle and callback metadata; broader timestamped/retraction behavior remains outside this API contract. Named regional registration, Request Attribute Value Update With Regions, advisory scope transitions, default-region synthesis, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-register-object-instance-with-regions-unnamed",
@@ -30,7 +30,10 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-class subscription arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -54,7 +57,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-attribute association arguments"
       ]
     },
     {
@@ -79,7 +83,9 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-attribute association arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable"
       ]
     },
     {
@@ -105,7 +111,9 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -129,7 +137,10 @@
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-class subscription arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     }
   ]

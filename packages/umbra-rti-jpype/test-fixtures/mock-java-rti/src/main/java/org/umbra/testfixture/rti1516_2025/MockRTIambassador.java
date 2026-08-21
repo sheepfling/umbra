@@ -26,6 +26,8 @@ import hla.rti1516_2025.FederationExecutionMemberInformationSet;
 import hla.rti1516_2025.FederateRestoreStatus;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.InteractionClassHandleFactory;
+import hla.rti1516_2025.InteractionClassHandleSet;
+import hla.rti1516_2025.InteractionClassHandleSetFactory;
 import hla.rti1516_2025.LogicalTime;
 import hla.rti1516_2025.LogicalTimeFactory;
 import hla.rti1516_2025.LogicalTimeInterval;
@@ -34,6 +36,7 @@ import hla.rti1516_2025.HLAfloat64Time;
 import hla.rti1516_2025.HLAfloat64Interval;
 import hla.rti1516_2025.HLAinteger64Interval;
 import hla.rti1516_2025.MessageRetractionHandle;
+import hla.rti1516_2025.MessageRetractionHandleFactory;
 import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.HLAinteger64Time;
 import hla.rti1516_2025.HLAinteger64TimeFactory;
@@ -72,13 +75,21 @@ import java.util.List;
 import java.util.Queue;
 import java.util.HashSet;
 import java.util.Set;
-import java.net.URL;
 
 /**
  * Stateful fixture ambassador. It exposes ``queueConnectionLost`` solely so a
  * test can cause a callback through the normal public evoke operation.
  */
-public final class MockRTIambassador implements RTIambassador {
+/**
+ * Shared Java-shaped support base for test RTI facades.
+ *
+ * <p>The mock factory returns this class directly.  The experimental JNI
+ * integration fixture subclasses it only to reuse the deliberately small
+ * standard-shaped support-value and encoder surface; its native-backed
+ * lifecycle services are overridden rather than routed through this mock
+ * state machine.</p>
+ */
+public class MockRTIambassador implements RTIambassador {
    private static final Map<String, MockFederationState> SHARED_FEDERATIONS =
       new LinkedHashMap<>();
 
@@ -266,6 +277,7 @@ public final class MockRTIambassador implements RTIambassador {
    private ResignAction automaticResignDirective = ResignAction.NO_ACTION;
    private boolean serviceReporting;
    private boolean exceptionReporting;
+   private boolean sendServiceReportsToFile;
 
    public MockRTIambassador() {
       federationExecutions.put("Umbra Mock Federation", "HLAinteger64Time");
@@ -491,7 +503,7 @@ public final class MockRTIambassador implements RTIambassador {
 
    @Override
    public void createFederationExecution(
-      String federationName, URL[] fomModules, String logicalTimeImplementationName)
+      String federationName, String[] fomModules, String logicalTimeImplementationName)
       throws NotConnected
    {
       requireConnected();
@@ -502,10 +514,10 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    @Override
-   public void createFederationExecution(
+   public void createFederationExecutionWithMIM(
       String federationName,
-      URL[] fomModules,
-      URL mimModule,
+      String[] fomModules,
+      String mimModule,
       String logicalTimeImplementationName) throws NotConnected
    {
       requireConnected();
@@ -559,7 +571,7 @@ public final class MockRTIambassador implements RTIambassador {
 
    @Override
    public MockFederateHandle joinFederationExecution(
-      String federateType, String federationExecutionName, URL[] additionalFomModules)
+      String federateType, String federationExecutionName, String[] additionalFomModules)
       throws NotConnected {
       return joinFederationExecution(federateType, federationExecutionName);
    }
@@ -569,7 +581,7 @@ public final class MockRTIambassador implements RTIambassador {
       String federateName,
       String federateType,
       String federationExecutionName,
-      URL[] additionalFomModules) throws NotConnected {
+      String[] additionalFomModules) throws NotConnected {
       return joinFederationExecution(federateName, federateType, federationExecutionName);
    }
 
@@ -600,8 +612,13 @@ public final class MockRTIambassador implements RTIambassador {
    @Override
    public void synchronizationPointAchieved(String label, boolean successfully) throws NotConnected {
       requireJoined();
+      MockFederateHandleSet failedToSync = new MockFederateHandleSet();
+      if (!successfully) {
+         failedToSync.add(new MockFederateHandle(
+            federationState.federationName + ":" + federateName));
+      }
       deliverCallback(() -> federateAmbassador.federationSynchronized(
-         label, java.util.Collections.emptySet()));
+         label, failedToSync));
    }
 
    @Override
@@ -700,8 +717,16 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    private void beginFederationSave(String label) {
+      beginFederationSave(label, null);
+   }
+
+   private void beginFederationSave(String label, LogicalTime time) {
       saveInProgress = true;
-      deliverCallback(() -> federateAmbassador.initiateFederateSave(label));
+      if (time == null) {
+         deliverCallback(() -> federateAmbassador.initiateFederateSave(label));
+      } else {
+         deliverCallback(() -> federateAmbassador.initiateFederateSave(label, time));
+      }
    }
 
    private void beginSharedFederationSave() {
@@ -1136,14 +1161,14 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    @Override
-   public int normalizeServiceGroup(ServiceGroup serviceGroup) throws NotConnected {
+   public long normalizeServiceGroup(ServiceGroup serviceGroup) throws NotConnected {
       requireJoined();
       if (serviceGroup == null) throw new IllegalArgumentException("service group is null");
       return serviceGroup.ordinal();
    }
 
    @Override
-   public int normalizeFederateHandle(FederateHandle federate) throws NotConnected {
+   public long normalizeFederateHandle(FederateHandle federate) throws NotConnected {
       requireJoined();
       if (!(federate instanceof MockFederateHandle)) {
          throw new IllegalArgumentException("fixture requires a decoded federate handle");
@@ -1155,14 +1180,14 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    @Override
-   public int normalizeObjectClassHandle(ObjectClassHandle objectClass) throws NotConnected {
+   public long normalizeObjectClassHandle(ObjectClassHandle objectClass) throws NotConnected {
       requireJoined();
       handlePayload(objectClass, "object");
       return 2;
    }
 
    @Override
-   public int normalizeInteractionClassHandle(InteractionClassHandle interactionClass)
+   public long normalizeInteractionClassHandle(InteractionClassHandle interactionClass)
       throws NotConnected {
       requireJoined();
       handlePayload(interactionClass, "interaction");
@@ -1170,7 +1195,7 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    @Override
-   public int normalizeObjectInstanceHandle(ObjectInstanceHandle objectInstance)
+   public long normalizeObjectInstanceHandle(ObjectInstanceHandle objectInstance)
       throws NotConnected {
       requireJoined();
       handlePayload(objectInstance, "object-instance");
@@ -1254,7 +1279,7 @@ public final class MockRTIambassador implements RTIambassador {
                if (values.isEmpty()) {
                   return;
                }
-               Object currentOptionalRegions = objectUpdateRegionDesignator(
+               RegionHandleSet currentOptionalRegions = objectUpdateRegionDesignator(
                   member, record, values);
                member.federateAmbassador.reflectAttributeValues(
                   record.handle,
@@ -1400,7 +1425,7 @@ public final class MockRTIambassador implements RTIambassador {
          OrderType receivedOrder = member.timeConstrained
             ? OrderType.TIMESTAMP
             : OrderType.RECEIVE;
-         Object optionalRegions = member.conveyRegionDesignatorSets
+         RegionHandleSet optionalRegions = member.conveyRegionDesignatorSets
             ? copyRegionSet(copiedRegions)
             : null;
          member.routeTimedDelivery(
@@ -1585,6 +1610,12 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    @Override
+   public InteractionClassHandleSetFactory getInteractionClassHandleSetFactory() throws NotConnected {
+      requireConnected();
+      return new MockInteractionClassHandleSetFactory();
+   }
+
+   @Override
    public ParameterHandleFactory getParameterHandleFactory() throws NotConnected {
       requireConnected();
       return supportHandleFactory;
@@ -1604,6 +1635,13 @@ public final class MockRTIambassador implements RTIambassador {
 
    @Override
    public RegionHandleFactory getRegionHandleFactory() throws NotConnected {
+      requireConnected();
+      return supportHandleFactory;
+   }
+
+   @Override
+   public MessageRetractionHandleFactory getMessageRetractionHandleFactory()
+      throws NotConnected {
       requireConnected();
       return supportHandleFactory;
    }
@@ -1671,7 +1709,7 @@ public final class MockRTIambassador implements RTIambassador {
 
    @Override
    public void publishObjectClassDirectedInteractions(
-      ObjectClassHandle objectClass, Set<InteractionClassHandle> interactionClasses)
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
       throws NotConnected {
       requireJoined();
       String objectClassName = handlePayload(objectClass, "object");
@@ -1692,7 +1730,7 @@ public final class MockRTIambassador implements RTIambassador {
 
    @Override
    public void unpublishObjectClassDirectedInteractions(
-      ObjectClassHandle objectClass, Set<InteractionClassHandle> interactionClasses)
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
       throws NotConnected {
       requireJoined();
       String objectClassName = handlePayload(objectClass, "object");
@@ -1702,7 +1740,6 @@ public final class MockRTIambassador implements RTIambassador {
       }
    }
 
-   @Override
    public void subscribeObjectClassAttributes(
       ObjectClassHandle objectClass,
       AttributeHandleSet attributes,
@@ -1720,6 +1757,32 @@ public final class MockRTIambassador implements RTIambassador {
          }
          subscribedObjectRegions.putIfAbsent(key, new HashSet<>());
       }
+   }
+
+   @Override
+   public void subscribeObjectClassAttributes(
+      ObjectClassHandle objectClass, AttributeHandleSet attributes) throws NotConnected {
+      subscribeObjectClassAttributes(objectClass, attributes, true, "");
+   }
+
+   @Override
+   public void subscribeObjectClassAttributes(
+      ObjectClassHandle objectClass, AttributeHandleSet attributes, String updateRateDesignator)
+      throws NotConnected {
+      subscribeObjectClassAttributes(objectClass, attributes, true, updateRateDesignator);
+   }
+
+   @Override
+   public void subscribeObjectClassAttributesPassively(
+      ObjectClassHandle objectClass, AttributeHandleSet attributes) throws NotConnected {
+      subscribeObjectClassAttributes(objectClass, attributes, false, "");
+   }
+
+   @Override
+   public void subscribeObjectClassAttributesPassively(
+      ObjectClassHandle objectClass, AttributeHandleSet attributes, String updateRateDesignator)
+      throws NotConnected {
+      subscribeObjectClassAttributes(objectClass, attributes, false, updateRateDesignator);
    }
 
    @Override
@@ -1745,7 +1808,6 @@ public final class MockRTIambassador implements RTIambassador {
       }
    }
 
-   @Override
    public void subscribeObjectClassDirectedInteractions(
       ObjectClassHandle objectClass,
       Set<InteractionClassHandle> interactionClasses,
@@ -1759,6 +1821,20 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    @Override
+   public void subscribeObjectClassDirectedInteractions(
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
+      throws NotConnected {
+      subscribeObjectClassDirectedInteractions(objectClass, interactionClasses, false);
+   }
+
+   @Override
+   public void subscribeObjectClassDirectedInteractionsUniversally(
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
+      throws NotConnected {
+      subscribeObjectClassDirectedInteractions(objectClass, interactionClasses, true);
+   }
+
+   @Override
    public void unsubscribeObjectClassDirectedInteractions(ObjectClassHandle objectClass)
       throws NotConnected {
       requireJoined();
@@ -1769,7 +1845,7 @@ public final class MockRTIambassador implements RTIambassador {
 
    @Override
    public void unsubscribeObjectClassDirectedInteractions(
-      ObjectClassHandle objectClass, Set<InteractionClassHandle> interactionClasses)
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
       throws NotConnected {
       requireJoined();
       String objectClassName = handlePayload(objectClass, "object");
@@ -1779,7 +1855,6 @@ public final class MockRTIambassador implements RTIambassador {
       }
    }
 
-   @Override
    public void subscribeObjectClassAttributesWithRegions(
       ObjectClassHandle objectClass,
       AttributeSetRegionSetPairList attributesAndRegions,
@@ -1875,7 +1950,6 @@ public final class MockRTIambassador implements RTIambassador {
       deliverCallback(() -> federateAmbassador.turnInteractionsOff(interactionClass));
    }
 
-   @Override
    public void subscribeInteractionClass(InteractionClassHandle interactionClass, boolean active)
       throws NotConnected {
       requireJoined();
@@ -1890,6 +1964,17 @@ public final class MockRTIambassador implements RTIambassador {
    }
 
    @Override
+   public void subscribeInteractionClass(InteractionClassHandle interactionClass)
+      throws NotConnected {
+      subscribeInteractionClass(interactionClass, true);
+   }
+
+   @Override
+   public void subscribeInteractionClassPassively(InteractionClassHandle interactionClass)
+      throws NotConnected {
+      subscribeInteractionClass(interactionClass, false);
+   }
+
    public void subscribeInteractionClassWithRegions(
       InteractionClassHandle interactionClass, RegionHandleSet regions, boolean active)
       throws NotConnected {
@@ -1916,6 +2001,50 @@ public final class MockRTIambassador implements RTIambassador {
       for (RegionHandle region : regions) {
          existing.add((MockSupportHandle) region);
       }
+   }
+
+   @Override
+   public void subscribeInteractionClassWithRegions(
+      InteractionClassHandle interactionClass, RegionHandleSet regions) throws NotConnected {
+      subscribeInteractionClassWithRegions(interactionClass, regions, true);
+   }
+
+   @Override
+   public void subscribeInteractionClassPassivelyWithRegions(
+      InteractionClassHandle interactionClass, RegionHandleSet regions) throws NotConnected {
+      subscribeInteractionClassWithRegions(interactionClass, regions, false);
+   }
+
+   @Override
+   public void subscribeObjectClassAttributesWithRegions(
+      ObjectClassHandle objectClass, AttributeSetRegionSetPairList attributesAndRegions)
+      throws NotConnected {
+      subscribeObjectClassAttributesWithRegions(objectClass, attributesAndRegions, true, "");
+   }
+
+   @Override
+   public void subscribeObjectClassAttributesWithRegions(
+      ObjectClassHandle objectClass,
+      AttributeSetRegionSetPairList attributesAndRegions,
+      String updateRateDesignator) throws NotConnected {
+      subscribeObjectClassAttributesWithRegions(
+         objectClass, attributesAndRegions, true, updateRateDesignator);
+   }
+
+   @Override
+   public void subscribeObjectClassAttributesPassivelyWithRegions(
+      ObjectClassHandle objectClass, AttributeSetRegionSetPairList attributesAndRegions)
+      throws NotConnected {
+      subscribeObjectClassAttributesWithRegions(objectClass, attributesAndRegions, false, "");
+   }
+
+   @Override
+   public void subscribeObjectClassAttributesPassivelyWithRegions(
+      ObjectClassHandle objectClass,
+      AttributeSetRegionSetPairList attributesAndRegions,
+      String updateRateDesignator) throws NotConnected {
+      subscribeObjectClassAttributesWithRegions(
+         objectClass, attributesAndRegions, false, updateRateDesignator);
    }
 
    @Override
@@ -2064,7 +2193,7 @@ public final class MockRTIambassador implements RTIambassador {
          ? null
          : federationState.objectInstances.get(objectInstanceName);
       if (record != null) {
-         mergeAttributeRegions(record.attributeRegionsByName, attributesAndRegions, false);
+         updateAssociatedRegionsForMembers(record, attributesAndRegions, false);
       }
    }
 
@@ -2079,8 +2208,43 @@ public final class MockRTIambassador implements RTIambassador {
          ? null
          : federationState.objectInstances.get(objectInstanceName);
       if (record != null) {
-         mergeAttributeRegions(record.attributeRegionsByName, attributesAndRegions, true);
+         updateAssociatedRegionsForMembers(record, attributesAndRegions, true);
       }
+   }
+
+   private void updateAssociatedRegionsForMembers(
+      MockObjectRecord record,
+      AttributeSetRegionSetPairList attributesAndRegions,
+      boolean remove) {
+      Set<String> affectedKeys = affectedObjectAttributeKeys(
+         record.objectClassName, attributesAndRegions);
+      Map<MockRTIambassador, Map<String, Map<String, Boolean>>> scopeBeforeByMember =
+         new LinkedHashMap<>();
+      if (federationState != null) {
+         for (MockRTIambassador member : federationState.members) {
+            scopeBeforeByMember.put(member, member.captureScopeStates(affectedKeys));
+         }
+      }
+      mergeAttributeRegions(record.attributeRegionsByName, attributesAndRegions, remove);
+      for (Map.Entry<MockRTIambassador, Map<String, Map<String, Boolean>>> entry
+         : scopeBeforeByMember.entrySet()) {
+         entry.getKey().queueScopeChanges(entry.getValue());
+      }
+   }
+
+   private Set<String> affectedObjectAttributeKeys(
+      String objectClassName,
+      AttributeSetRegionSetPairList attributesAndRegions) {
+      Set<String> affectedKeys = new HashSet<>();
+      for (AttributeSetRegionSetPair pair : attributesAndRegions) {
+         for (AttributeHandle attribute : pair.getAttributes()) {
+            affectedKeys.add(
+               objectAttributeKey(
+                  objectClassName,
+                  handlePayload(attribute, "attribute")));
+         }
+      }
+      return affectedKeys;
    }
 
    private ObjectInstanceHandle completeObjectInstanceRegistration(
@@ -2219,7 +2383,7 @@ public final class MockRTIambassador implements RTIambassador {
                   if (values.isEmpty()) {
                      return;
                   }
-                  Object currentOptionalRegions = objectUpdateRegionDesignator(
+                  RegionHandleSet currentOptionalRegions = objectUpdateRegionDesignator(
                      member, record, values);
                   member.federateAmbassador.reflectAttributeValues(
                      record.handle,
@@ -2288,8 +2452,38 @@ public final class MockRTIambassador implements RTIambassador {
       AttributeSetRegionSetPairList attributesAndRegions,
       byte[] userSuppliedTag) throws NotConnected {
       requireJoined();
-      handlePayload(objectClass, "object");
+      String objectClassName = handlePayload(objectClass, "object");
       validateAttributeRegionPairs(attributesAndRegions);
+      if (federationState == null) {
+         return;
+      }
+      Map<String, Set<MockSupportHandle>> requestedRegions =
+         regionMapFromPairs(attributesAndRegions);
+      for (MockObjectRecord record : federationState.objectInstances.values()) {
+         if (!record.objectClassName.equals(objectClassName)) {
+            continue;
+         }
+         MockAttributeHandleSet requestedAttributes = new MockAttributeHandleSet();
+         for (Map.Entry<String, Set<MockSupportHandle>> entry : requestedRegions.entrySet()) {
+            Set<MockSupportHandle> sourceRegions = record.attributeRegionsByName.get(
+               entry.getKey());
+            if (regionsOverlap(
+               record.owner,
+               sourceRegions == null ? new HashSet<>() : sourceRegions,
+               this,
+               entry.getValue())) {
+               requestedAttributes.add(supportHandle("attribute", entry.getKey()));
+            }
+         }
+         if (requestedAttributes.isEmpty()) {
+            continue;
+         }
+         MockRTIambassador owner = record.owner;
+         MockSupportHandle instance = record.handle;
+         byte[] copiedTag = userSuppliedTag.clone();
+         owner.deliverCallback(() -> owner.federateAmbassador.provideAttributeValueUpdate(
+            instance, requestedAttributes, copiedTag));
+      }
    }
 
    @Override
@@ -2610,8 +2804,25 @@ public final class MockRTIambassador implements RTIambassador {
       AttributeHandleSet attributes,
       byte[] userSuppliedTag) throws NotConnected {
       requireJoined();
-      handlePayload(objectInstance, "object-instance");
+      String objectInstanceName = handlePayload(objectInstance, "object-instance");
       validateAttributeSet(attributes);
+      if (federationState == null || federationState.members.size() <= 1) {
+         return;
+      }
+      for (AttributeHandle attribute : attributes) {
+         MockOwnershipRecord ownership = ownershipRecord(objectInstanceName, attribute);
+         if (ownership.owner != this || ownership.pendingAcquirer == null) {
+            throw new IllegalArgumentException("no pending ownership acquisition");
+         }
+         MockRTIambassador acquirer = ownership.pendingAcquirer;
+         MockAttributeHandleSet copiedAttributes = singletonAttributeSet(attribute);
+         byte[] copiedTag = userSuppliedTag.clone();
+         ownership.pendingAcquirer = null;
+         ownership.pendingAcquisitionTag = null;
+         ownership.divestitureOffered = false;
+         acquirer.deliverCallback(() -> acquirer.federateAmbassador.attributeOwnershipUnavailable(
+            objectInstance, copiedAttributes, copiedTag));
+      }
    }
 
    @Override
@@ -2816,7 +3027,7 @@ public final class MockRTIambassador implements RTIambassador {
                   || !regionsOverlap(this, sourceRegions, member, subscribedRegions))) {
                continue;
             }
-            Object optionalRegions = member.conveyRegionDesignatorSets
+            RegionHandleSet optionalRegions = member.conveyRegionDesignatorSets
                ? copyRegionSet(copiedRegions)
                : null;
             member.deliverCallback(() -> {
@@ -2837,7 +3048,7 @@ public final class MockRTIambassador implements RTIambassador {
          }
          return;
       }
-      Object optionalRegions = conveyRegionDesignatorSets ? copiedRegions : null;
+      RegionHandleSet optionalRegions = conveyRegionDesignatorSets ? copiedRegions : null;
       deliverCallback(() -> federateAmbassador.receiveInteraction(
          interactionClass,
          copiedValues,
@@ -3022,7 +3233,18 @@ public final class MockRTIambassador implements RTIambassador {
    @Override
    public boolean getSendServiceReportsToFileSwitch() throws NotConnected {
       requireJoined();
-      return false;
+      return sendServiceReportsToFile;
+   }
+
+   @Override
+   public void setSendServiceReportsToFileSwitch(boolean enabled) throws NotConnected {
+      requireJoined();
+      sendServiceReportsToFile = enabled;
+   }
+
+   @Override
+   public String getHLAversion() {
+      return "IEEE 1516.1-2025";
    }
 
    @Override
@@ -3193,6 +3415,7 @@ public final class MockRTIambassador implements RTIambassador {
       if (pendingSaveTime != null
          && logicalTimeValue(currentLogicalTime) >= logicalTimeValue(pendingSaveTime)) {
          String label = pendingSaveLabel;
+         LogicalTime saveTime = pendingSaveTime;
          pendingSaveLabel = null;
          pendingSaveTime = null;
          if (pendingTimestampedInteractionTime != null
@@ -3218,7 +3441,7 @@ public final class MockRTIambassador implements RTIambassador {
                OrderType.TIMESTAMP,
                supportHandle("retraction", "tso-save-boundary")));
          }
-         beginFederationSave(label);
+         beginFederationSave(label, saveTime);
       }
       LogicalTime grantTime = currentLogicalTime;
       deliverCallback(() -> federateAmbassador.timeAdvanceGrant(grantTime));
@@ -3655,7 +3878,7 @@ public final class MockRTIambassador implements RTIambassador {
     * An empty optional set means the update used the RTI-provided default
     * region; null remains the ordinary non-regional callback form.
     */
-   private static Object objectUpdateRegionDesignator(
+   private static RegionHandleSet objectUpdateRegionDesignator(
       MockRTIambassador member,
       MockObjectRecord record,
       AttributeHandleValueMap values) {

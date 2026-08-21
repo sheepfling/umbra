@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers Umbra's bounded IEEE 1516.1-2025 Subscribe Object Class Directed Interactions service in its opt-in, non-installable development profile. The focused production-filesystem regression rejects undefined object and interaction class designators without appending a successful-void report. It then verifies an accepted default C++ invocation emits ObjectClassHandle type 36, InteractionClassHandleSet type 28, and the standards-facing Optional universal subscription indicator as type-6 Boolean false (by ownership). An accepted explicitly universal empty-set invocation retains the supplied type-28 empty Array<InteractionClassHandle> and records Boolean true. The C++ binding carries its optional indicator as a defaulted Boolean, so the adapter records the effective selector rather than attempting to invent a presence distinction the public virtual call cannot retain; this is the same binding-level treatment already used for §5.10's defaulted Boolean selector. The service report is appended only after the registry accepts the declaration. The Requirements Lab retains the §5.12 body candidates on page 101, but assigns the page-102 continuation to §5.13; RL-080 records that cross-page ownership defect. Table 5's rotated InteractionClassHandleSet row has no row-level Requirements Lab candidate (RL-067/RL-076), and the lowercase Boolean text follows §11.5.1 rather than Table 5's uppercase example (RL-079). Complete directed subscription/delivery matrices, MOM interaction delivery, timestamped behavior, DDM, remote transport, packaging, validation, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-subscribe-object-class-directed-interactions-applies-the-effective-universal-selector",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+      "clause_id": "clause-5.12",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::subscribeObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-object-class-directed-interactions-keeps-a-supplied-empty-set-as-a-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l128-37",
+      "clause_id": "clause-5.12",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::subscribeObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-object-class-directed-interactions-file-report-follows-the-accepted-declaration-transition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-object-class-directed-interactions-uses-the-table-five-interaction-class-set-form",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/mom_service_report_encoding.cpp",
+      "source_symbol": "formatMomInteractionClassHandleSet",
+      "tests": [
+        "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 InteractionClassHandleSet argument form",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import hla.rti1516_2025.FederationExecutionMemberInformationSet;
 import hla.rti1516_2025.HLAfloat64Interval;
 import hla.rti1516_2025.HLAfloat64Time;
 import hla.rti1516_2025.HLAfloat64TimeFactory;
+import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RestoreFailureReason;
 import hla.rti1516_2025.RtiFactory;
@@ -71,7 +72,7 @@ public final class MockSmokeTest {
       hla.rti1516_2025.ParameterHandle parameter =
          ambassador.getParameterHandle(interaction, "fixture-parameter");
       hla.rti1516_2025.ParameterHandleValueMap values =
-         ambassador.getParameterHandleValueMapFactory().create();
+         ambassador.getParameterHandleValueMapFactory().create(0);
       values.put(parameter, new byte[] { 4 });
       HLAfloat64Time tsoSaveTime = floatFactory.makeLogicalTime(2.0);
       mockAmbassador.enableTsoSaveBoundaryProbe();
@@ -119,8 +120,8 @@ public final class MockSmokeTest {
 
       @Override
       public void flushQueueGrant(
-         hla.rti1516_2025.LogicalTime time,
-         hla.rti1516_2025.LogicalTime optimisticTime) {
+         LogicalTime time,
+         LogicalTime optimisticTime) {
       }
 
       @Override
@@ -132,12 +133,20 @@ public final class MockSmokeTest {
       }
 
       @Override
+      public void synchronizationPointRegistrationFailed(
+         String synchronizationPointLabel,
+         hla.rti1516_2025.SynchronizationPointFailureReason reason) {
+      }
+
+      @Override
       public void announceSynchronizationPoint(
          String synchronizationPointLabel, byte[] userSuppliedTag) {
       }
 
       @Override
-      public void federationSynchronized(String synchronizationPointLabel, Object failedToSyncSet) {
+      public void federationSynchronized(
+         String synchronizationPointLabel,
+         hla.rti1516_2025.FederateHandleSet failedToSyncSet) {
       }
 
       @Override
@@ -261,7 +270,7 @@ public final class MockSmokeTest {
          hla.rti1516_2025.ObjectInstanceHandle objectInstance,
          byte[] userSuppliedTag,
          hla.rti1516_2025.FederateHandle producingFederate,
-         hla.rti1516_2025.LogicalTime time,
+         LogicalTime time,
          hla.rti1516_2025.OrderType sentOrderType,
          hla.rti1516_2025.OrderType receivedOrderType,
          hla.rti1516_2025.MessageRetractionHandle optionalRetraction) {
@@ -274,7 +283,7 @@ public final class MockSmokeTest {
          byte[] userSuppliedTag,
          hla.rti1516_2025.TransportationTypeHandle transportationType,
          hla.rti1516_2025.FederateHandle producingFederate,
-         Object optionalSentRegions) {
+         hla.rti1516_2025.RegionHandleSet optionalSentRegions) {
       }
 
       @Override
@@ -284,8 +293,8 @@ public final class MockSmokeTest {
          byte[] userSuppliedTag,
          hla.rti1516_2025.TransportationTypeHandle transportationType,
          hla.rti1516_2025.FederateHandle producingFederate,
-         Object optionalSentRegions,
-         hla.rti1516_2025.LogicalTime time,
+         hla.rti1516_2025.RegionHandleSet optionalSentRegions,
+         LogicalTime time,
          hla.rti1516_2025.OrderType sentOrderType,
          hla.rti1516_2025.OrderType receivedOrderType,
          hla.rti1516_2025.MessageRetractionHandle optionalRetraction) {
@@ -298,7 +307,7 @@ public final class MockSmokeTest {
          byte[] userSuppliedTag,
          hla.rti1516_2025.TransportationTypeHandle transportationType,
          hla.rti1516_2025.FederateHandle producingFederate,
-         Object optionalSentRegions) {
+         hla.rti1516_2025.RegionHandleSet optionalSentRegions) {
       }
 
       @Override
@@ -308,8 +317,8 @@ public final class MockSmokeTest {
          byte[] userSuppliedTag,
          hla.rti1516_2025.TransportationTypeHandle transportationType,
          hla.rti1516_2025.FederateHandle producingFederate,
-         Object optionalSentRegions,
-         hla.rti1516_2025.LogicalTime time,
+         hla.rti1516_2025.RegionHandleSet optionalSentRegions,
+         LogicalTime time,
          hla.rti1516_2025.OrderType sentOrderType,
          hla.rti1516_2025.OrderType receivedOrderType,
          hla.rti1516_2025.MessageRetractionHandle optionalRetraction) {
@@ -334,7 +343,7 @@ public final class MockSmokeTest {
          byte[] userSuppliedTag,
          hla.rti1516_2025.TransportationTypeHandle transportationType,
          hla.rti1516_2025.FederateHandle producingFederate,
-         hla.rti1516_2025.LogicalTime time,
+         LogicalTime time,
          hla.rti1516_2025.OrderType sentOrderType,
          hla.rti1516_2025.OrderType receivedOrderType,
          hla.rti1516_2025.MessageRetractionHandle optionalRetraction) {
@@ -401,15 +410,15 @@ public final class MockSmokeTest {
       }
 
       @Override
-      public void timeRegulationEnabled(hla.rti1516_2025.LogicalTime time) {
+      public void timeRegulationEnabled(LogicalTime time) {
       }
 
       @Override
-      public void timeConstrainedEnabled(hla.rti1516_2025.LogicalTime time) {
+      public void timeConstrainedEnabled(LogicalTime time) {
       }
 
       @Override
-      public void timeAdvanceGrant(hla.rti1516_2025.LogicalTime time) {
+      public void timeAdvanceGrant(LogicalTime time) {
          grants++;
       }
 
@@ -438,6 +447,11 @@ public final class MockSmokeTest {
 
       @Override
       public void initiateFederateSave(String label) {
+         saveLabel = label;
+      }
+
+      @Override
+      public void initiateFederateSave(String label, LogicalTime time) {
          saveLabel = label;
       }
 

@@ -25,7 +25,9 @@ umbra::detail::JoinedFederateReportDescriptor descriptor() {
 
 }  // namespace
 
-TEST_CASE("Filesystem service-report stores allocate stable unique files and initial records", "[mom][service-report-store]") {
+TEST_CASE(
+    "Filesystem service-report stores allocate stable unique files and initial records",
+    "[mom][service-report-store][service-reporting][unit]") {
   auto const directory = temporaryDirectory();
   umbra::detail::FilesystemServiceReportStore store(directory);
   auto first = store.createForJoinedFederate(descriptor());
@@ -44,7 +46,9 @@ TEST_CASE("Filesystem service-report stores allocate stable unique files and ini
   std::filesystem::remove_all(directory, ignored);
 }
 
-TEST_CASE("Filesystem service-report stores preserve Unicode log text as UTF-8", "[mom][service-report-store]") {
+TEST_CASE(
+    "Filesystem service-report stores preserve Unicode log text as UTF-8",
+    "[mom][service-report-store][service-reporting][unit]") {
   auto const directory = temporaryDirectory();
   auto record = descriptor();
   record.initialRecord = L"{\"text\":\"\u00E9\"}";
@@ -59,7 +63,7 @@ TEST_CASE("Filesystem service-report stores preserve Unicode log text as UTF-8",
 
 TEST_CASE(
     "Filesystem service-report writers do not recreate a missing joined-federate file",
-    "[mom][service-report-store]") {
+    "[mom][service-report-store][service-reporting][unit]") {
   auto const directory = temporaryDirectory();
   umbra::detail::FilesystemServiceReportStore store(directory);
   auto writer = store.createForJoinedFederate(descriptor());
@@ -76,7 +80,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Filesystem service-report stores reserve unique files under concurrent join pressure",
-    "[mom][service-report-store][concurrency]") {
+    "[mom][service-report-store][service-reporting][concurrency][unit]") {
   auto const directory = temporaryDirectory();
   umbra::detail::FilesystemServiceReportStore store(directory);
   constexpr std::size_t writerCount = 24;
@@ -110,7 +114,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Filesystem service-report writers preserve whole records under concurrent appends",
-    "[mom][service-report-store][concurrency]") {
+    "[mom][service-report-store][service-reporting][concurrency][unit]") {
   auto const directory = temporaryDirectory();
   umbra::detail::FilesystemServiceReportStore store(directory);
   auto writer = store.createForJoinedFederate(descriptor());
@@ -152,7 +156,9 @@ TEST_CASE(
   std::filesystem::remove_all(directory, ignored);
 }
 
-TEST_CASE("Memory service-report stores are explicit test seams only", "[mom][service-report-store]") {
+TEST_CASE(
+    "Memory service-report stores are explicit test seams only",
+    "[mom][service-report-store][service-reporting][unit]") {
   umbra::detail::MemoryServiceReportStore store;
   auto writer = store.createForJoinedFederate(descriptor());
   writer->append(L"{\"record\":2}");
@@ -162,7 +168,7 @@ TEST_CASE("Memory service-report stores are explicit test seams only", "[mom][se
 
 TEST_CASE(
     "Service-report stores expose internal creation and append timing",
-    "[mom][service-report-store][instrumentation]") {
+    "[mom][service-report-store][service-reporting][instrumentation][unit]") {
   auto const directory = temporaryDirectory();
   auto instrumentation = std::make_shared<umbra::detail::RuntimeInstrumentation>();
   umbra::detail::FilesystemServiceReportStore store(directory, instrumentation);

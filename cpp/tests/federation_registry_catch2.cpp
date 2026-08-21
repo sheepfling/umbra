@@ -39,7 +39,7 @@ FederationDefinition validDefinition() {
 
 }  // namespace
 
-TEST_CASE("The embedded federation registry preserves a prevalidated definition", "[unit][kernel][federation-registry]") {
+TEST_CASE("The embedded federation registry preserves a prevalidated definition", "[unit][kernel][federation-registry][foundation][federation-management]") {
   EmbeddedFederationRegistry registry;
 
   REQUIRE(registry.create(L"exercise", validDefinition()).status == FederationRegistryStatus::applied);
@@ -55,7 +55,7 @@ TEST_CASE("The embedded federation registry preserves a prevalidated definition"
 
 TEST_CASE(
     "The embedded federation registry exposes internal operation timing",
-    "[unit][kernel][federation-registry][instrumentation]") {
+    "[unit][kernel][federation-registry][instrumentation][foundation][federation-management]") {
   auto instrumentation = std::make_shared<umbra::detail::RuntimeInstrumentation>();
   EmbeddedFederationRegistry registry(instrumentation);
 
@@ -75,7 +75,7 @@ TEST_CASE(
   REQUIRE(found->totalDurationNanoseconds > 0);
 }
 
-TEST_CASE("The embedded federation registry rejects missing definitions without imposing name policy", "[unit][kernel][federation-registry]") {
+TEST_CASE("The embedded federation registry rejects missing definitions without imposing name policy", "[unit][kernel][federation-registry][foundation][federation-management]") {
   EmbeddedFederationRegistry registry;
   FederationDefinition noModules;
   FederationDefinition repeatedDesignators{
@@ -103,7 +103,7 @@ TEST_CASE("The embedded federation registry rejects missing definitions without 
   REQUIRE(explicitEmptyName.membership->type.empty());
 }
 
-TEST_CASE("The embedded federation registry maintains active membership and destroy invariants", "[unit][kernel][federation-registry]") {
+TEST_CASE("The embedded federation registry maintains active membership and destroy invariants", "[unit][kernel][federation-registry][foundation][federation-management]") {
   EmbeddedFederationRegistry registry;
   REQUIRE(registry.create(L"exercise", validDefinition()).status == FederationRegistryStatus::applied);
 
@@ -146,7 +146,7 @@ TEST_CASE("The embedded federation registry maintains active membership and dest
   REQUIRE_FALSE(registry.contains(L"exercise"));
 }
 
-TEST_CASE("The embedded federation registry makes generated names unique despite user lookalikes", "[unit][kernel][federation-registry]") {
+TEST_CASE("The embedded federation registry makes generated names unique despite user lookalikes", "[unit][kernel][federation-registry][foundation][federation-management]") {
   EmbeddedFederationRegistry registry;
   REQUIRE(registry.create(L"exercise", validDefinition()).status == FederationRegistryStatus::applied);
 
@@ -159,7 +159,7 @@ TEST_CASE("The embedded federation registry makes generated names unique despite
   REQUIRE(generated.membership->id == 2);
 }
 
-TEST_CASE("The embedded federation registry commits an additional-module definition with membership", "[unit][kernel][federation-registry]") {
+TEST_CASE("The embedded federation registry commits an additional-module definition with membership", "[unit][kernel][federation-registry][foundation][federation-management]") {
   EmbeddedFederationRegistry registry;
   auto original = validDefinition();
   auto replacement = validDefinition();
@@ -195,7 +195,7 @@ TEST_CASE("The embedded federation registry commits an additional-module definit
   REQUIRE(duplicate.status == FederationRegistryStatus::federate_name_already_in_use);
 }
 
-TEST_CASE("The embedded federation registry reports missing federation and membership distinctly", "[unit][kernel][federation-registry]") {
+TEST_CASE("The embedded federation registry reports missing federation and membership distinctly", "[unit][kernel][federation-registry][foundation][federation-management]") {
   EmbeddedFederationRegistry registry;
 
   REQUIRE(

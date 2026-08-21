@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 Subscribe Object Class Attributes service in Umbra's opt-in, non-installable development profile. Its focused production-filesystem regression adds the successful-void service-report boundary: an undefined object class appends nothing, while an accepted passive subscription with the real Restaurant FOM High rate appends ObjectClassHandle type 36, AttributeHandleSet type 1, Boolean type 6 Optional passive subscription indicator, and String type 53 Optional update rate designator. A later default-rate subscription emits the same required arguments, a false passive indicator, and a type-34 Null optional update-rate slot. The public C++ active selector is inverted for the standards-facing passive indicator. The Lab exports the update-rate continuation candidates under §5.9 even though their §5.8 source precedes that next-service heading; RL-080 records this cross-page ownership mismatch. Complete discovery/scope/relevance/advisory matrices, generic return/failure representations, MOM interaction delivery, timestamped behavior, save/restore, DDM, remote transport, catalog evidence, validation, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-subscribe-object-class-attributes-adds-the-requested-subscription",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29",
+      "clause_id": "clause-5.8",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeSubscriptionWithScopeChanges",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-object-class-attributes-maps-the-passive-indicator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+      "clause_id": "clause-5.8",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-object-class-attributes-records-an-explicit-update-rate",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-097-l20-4",
+      "clause_id": "clause-5.9",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded update-rate lookup exposes FDD values and the default attribute boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-object-class-attributes-records-an-omitted-update-rate-as-null",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-097-l23-5",
+      "clause_id": "clause-5.9",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-object-class-attributes-file-report-follows-the-accepted-subscription-transition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
+      ]
+    }
+  ]
+}

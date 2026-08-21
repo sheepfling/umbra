@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 regional interaction declaration and no-time Send Interaction With Regions slice in Umbra's opt-in, non-installable development profile. It validates owner-created committed region specifications, available-dimension context, independent regional subscription state, per-(interaction-class, region) active/passive state, strict 2025 region-set overlap, callback-entry rechecks, and the empty-region no-op rules. The dedicated Allow Relaxed DDM regression adds a direct-source, implementation-specific exact-boundary expansion while preserving strict overlap; RL-030 records the lack of an immutable Lab candidate for §9.1.4/§9.1.8 policy prose. Passive pairs remain subscribed and retain their region-use fence, but cannot arrange delivery; a later subscription of the same pair changes its mode. The passive-subscription definition supplies the delivery predicate, while the Lab's immutable candidate records cover the service's active/passive pair-state language. Object-instance regional registration/association, object-class attribute regional subscriptions, Request Attribute Value Update With Regions, timestamped/retraction behavior, realization/association state, broader relaxed-DDM matrices, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 regional interaction declaration and no-time Send Interaction With Regions slice in Umbra's opt-in, non-installable development profile. It validates owner-created committed region specifications, available-dimension context, independent regional subscription state, per-(interaction-class, region) active/passive state, strict 2025 region-set overlap, callback-entry rechecks, and the empty-region no-op rules. The focused service-report case now also proves the accepted §9.10 and §9.11 transitions append recipient-local successful-void records with type-27 InteractionClassHandle, type-43 RegionHandleSet, and the type-6 passive-indicator Boolean before the next interaction operation; the report path is switch-gated and remains file-only. The dedicated Allow Relaxed DDM regression adds a direct-source, implementation-specific exact-boundary expansion while preserving strict overlap; RL-030 records the lack of an immutable Lab candidate for §9.1.4/§9.1.8 policy prose. Passive pairs remain subscribed and retain their region-use fence, but cannot arrange delivery; a later subscription of the same pair changes its mode. The passive-subscription definition supplies the delivery predicate, while the Lab's immutable candidate records cover the service's active/passive pair-state language. Object-instance regional registration/association, object-class attribute regional subscriptions, Request Attribute Value Update With Regions, timestamped/retraction behavior, realization/association state, broader relaxed-DDM matrices, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
   "requirements": [
     {
       "id": "umbra-interaction-region-overlap-controls-delivery",
@@ -13,6 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges"
       ]
     },
@@ -24,6 +25,7 @@
       "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery"
       ]
     },
@@ -104,7 +106,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions"
       ]
     },
     {
@@ -123,6 +126,26 @@
       "clause_id": "clause-9.12.5",
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscribe-file-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-unsubscribe-file-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
       ]

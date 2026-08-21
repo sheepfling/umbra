@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "umbra-rti-jni-python"
+version = "0.1.0"
+description = "JPype adapter for Umbra's C++-backed IEEE 1516.1-2025 JNI provider"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Umbra contributors" }]
+dependencies = [
+  "hla-rti-api==0.1.0",
+  "umbra-rti-jpype==0.1.0",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.optional-dependencies]
+jpype = ["umbra-rti-jpype[jpype]==0.1.0"]
+
+[project.entry-points."hla.rti1516_2025.factories"]
+umbra-jni = "umbra._java.jni_rti1516_2025:JniRtiFactory"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/umbra"]

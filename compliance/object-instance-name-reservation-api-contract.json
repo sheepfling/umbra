@@ -15,7 +15,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::reserveObjectInstanceName",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two"
       ]
     },
     {
@@ -41,7 +42,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::reserveMultipleObjectInstanceNames",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records multiple object-instance name reservation arguments"
       ]
     },
     {
@@ -54,7 +56,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::releaseMultipleObjectInstanceNames",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records multiple object-instance name reservation arguments"
       ]
     },
     {
@@ -67,7 +70,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceNameReservation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two"
       ]
     },
     {

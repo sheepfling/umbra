@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract covers the bounded recipient-side Convey Region Designator Sets behavior in the embedded development profile. Regional overlap routing remains independent from callback metadata: the receiver's switch is re-evaluated at callback entry, disabled delivery omits the optional Set of Sent Region Designators argument, and enabled delivery carries the sent update-region realization for the receive-order and timestamped interaction/reflection paths exercised by Catch2. Default-region realization, conveyed-region ownership/use, directed interactions, remote transport, save/restore, package evidence, and conformance remain outside this slice.",
+  "notes": "This contract covers the bounded recipient-side Convey Region Designator Sets behavior in the embedded development profile. Regional overlap routing remains independent from callback metadata: the receiver's switch is re-evaluated at callback entry, disabled delivery omits the optional Set of Sent Region Designators argument, and enabled delivery carries the sent update-region realization for the receive-order and timestamped interaction/reflection paths exercised by Catch2. The explicit-source timestamped re-enable companion confirms that this metadata remains attached to the queued callback across a Time Constrained disable/re-enable cycle. Default-region realization, conveyed-region ownership/use, directed interactions, remote transport, save/restore, package evidence, and conformance remain outside this slice.",
   "requirements": [
     {
       "id": "umbra-convey-switch-controls-optional-callback-argument",
@@ -13,7 +13,9 @@
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -24,8 +26,11 @@
       "source_symbol": "queueReceiveOrderInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response"
       ]
     },
     {
@@ -35,7 +40,9 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a 2025 provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response"
       ]
     },
     {
@@ -46,7 +53,9 @@
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -58,7 +67,9 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response"
       ]
     },
     {
@@ -69,7 +80,9 @@
       "source_symbol": "UmbraRtiAmbassador::setConveyRegionDesignatorSetsSwitch",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a 2025 provider response"
       ]
     }
   ]

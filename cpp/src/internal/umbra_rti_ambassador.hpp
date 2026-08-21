@@ -9,6 +9,7 @@
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "internal/embedded_transport.hpp"
 #include "internal/federation_registry.hpp"
+#include "internal/mom_service_report_encoding.hpp"
 #endif
 #include "internal/federate_lifecycle.hpp"
 #include "internal/federate_time_state.hpp"
@@ -37,14 +38,23 @@ struct ServiceReportConnectionSnapshot final {
 };
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-// One instance exists only during one joined-federate lifetime.  Retaining
-// both the path and writer here prevents a switch toggle from allocating a
+// The joined-federate report writer is shared only with private recipient
+// report routes.  A weak route cannot keep a resigned or disconnected
+// federate's file writable, while the mutex keeps direct and RTI-initiated
+// records serialized into that one lifetime file.
+struct JoinedServiceReportEndpoint final {
+  mutable std::mutex mutex;
+  std::unique_ptr<umbra::detail::ServiceReportWriter> writer;
+};
+
+// One instance exists only during one joined-federate lifetime. Retaining
+// both the path and endpoint here prevents a switch toggle from allocating a
 // replacement report file later in that lifetime.
 struct JoinedServiceReportState final {
   std::uint64_t federateId = 0;
   std::uint64_t joinIdentifier = 0;
   std::filesystem::path location;
-  std::unique_ptr<umbra::detail::ServiceReportWriter> writer;
+  std::shared_ptr<JoinedServiceReportEndpoint> endpoint;
 };
 #endif
 
@@ -699,6 +709,12 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       std::wstring const& federationName,
       std::vector<std::wstring> const& additionalFomModules);
 
+  void registerFederationSynchronizationPointImpl(
+      std::wstring const& synchronizationPointLabel,
+      VariableLengthData const& userSuppliedTag,
+      FederateHandleSet const& synchronizationSet,
+      bool synchronizationSetWasSupplied);
+
   void requestAvailableTimeAdvance(
       LogicalTime const& time,
       umbra::detail::FederateTimeAdvanceMode mode,
@@ -707,6 +723,45 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 
   void requireFederationServiceOperationAvailable(
       std::wstring const& operation) const;
+
+  // Called only after a service wrapper has completed successfully.  The
+  // optional interaction path is currently enabled for the direct untimed
+  // Send Interaction wrapper, whose caller has released its planning locks;
+  // the remaining successful-void wrappers retain the file/suppressed path
+  // until their callback scheduling is lifted out of their service locks.
+  void appendSuccessfulVoidServiceReportToFileIfSelected(
+      std::wstring const& service,
+      umbra::detail::MomServiceType serviceType,
+      std::vector<umbra::detail::MomServiceArgument> const& suppliedArguments,
+      bool emitInteraction = false) const;
+
+  // Emit one standard MIM interaction when the subject has selected the
+  // interaction sink.  This is deliberately independent of the file writer:
+  // timestamped services can reserve/encode their returned argument after
+  // C++ has admitted the TSO message but before any callback route is queued.
+  [[nodiscard]] bool emitSelectedMomServiceReportInteraction(
+      std::wstring const& service,
+      umbra::detail::MomServiceType serviceType,
+      std::vector<umbra::detail::MomServiceArgument> const& suppliedArguments,
+      umbra::detail::MomServiceArgument const& returnedArgument,
+      bool success = true,
+      std::wstring const& exception = L"") const;
+
+  // Emit the source-backed HLAreportException interaction while preserving
+  // the original service exception at the public API boundary. This helper
+  // is deliberately best-effort: a reporting route must never replace the
+  // C++ exception that the invoking federate is required to receive.
+  void emitExceptionReport(
+      std::wstring const& service,
+      rti1516_2025::Exception const& exception) const noexcept;
+
+  // Resign Federation Execution needs a serial that was atomically reserved
+  // before its registry transaction erased the joined member.  Keep the
+  // writer-only half separate so the ordinary helper remains membership-based.
+  void appendReservedSuccessfulVoidServiceReportToFile(
+      std::uint32_t serialNumber,
+      std::wstring const& service,
+      std::vector<umbra::detail::MomServiceArgument> const& suppliedArguments) const;
 
   void handleEmbeddedTransportFailure(std::wstring faultDescription);
   [[nodiscard]] bool handleEmbeddedFederateResignation(

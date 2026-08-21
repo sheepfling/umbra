@@ -13,7 +13,9 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisition",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -24,7 +26,9 @@
       "source_symbol": "EmbeddedFederationRegistry::planPendingAttributeOwnershipAcquisitionWork",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -55,7 +59,8 @@
       "source_symbol": "queueAttributeOwnershipAcquisitionWorkItem",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -66,7 +71,8 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
       ]
     },
     {
@@ -76,7 +82,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -86,7 +93,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -96,7 +104,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
       ]
     },
     {

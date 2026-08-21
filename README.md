@@ -7,7 +7,10 @@ interaction-class, inherited-attribute, inherited-parameter, dimension/upper-bou
 the mandatory Receive/TimeStamp order-type lookup,
 interaction declaration, bounded directed-interaction delivery, object-class attribute declaration, limited object-instance registration/discovery/deletion, limited receive-order and bounded timestamped interaction, attribute-update/reflection, object-deletion, directed-interaction, and region-context delivery, limited object-instance and object-class request/provide attribute-value delivery, federation-listing, and temporal-control slices, with an opt-in
 federation-management development profile—not a complete RTI. Python
-and Java, if added later, will be adapters around the native C++ implementation.
+and Java are adapters around the native C++ implementation. Python can use
+the direct pybind11 provider or the exact Java 1516.1-2025 surface through
+JPype; Umbra's JNI route keeps the C++ implementation as the sole RTI
+semantics owner.
 
 The official factory, `rtiName`, and `rtiVersion` link from `umbra::rti`.
 That target also provides the two mandated reference logical-time types and
@@ -298,6 +301,14 @@ cmake -S . -B .build-fom-services -G "Visual Studio 17 2022" -A x64 `
 cmake --build .build-fom-services --config Debug -- /m:1
 ctest --test-dir .build-fom-services -C Debug --output-on-failure
 ```
+
+For focused development feedback, use the named CTest lane targets after that
+configuration—for example,
+`cmake --build .build-fom-services --config Debug --target
+umbra_test_federation_management`. `umbra_test_rapid` runs foundational and
+Catch2 unit tests; `umbra_test_all` remains the full regression gate. See the
+[requirements and testing guide](docs/REQUIREMENTS-AND-TESTING.md#development-test-lanes)
+for all lanes and exact service-level selection.
 
 The unmodified official IEEE 1516.1-2025 C++ headers are vendored under
 [`third_party/ieee1516.1-2025`](third_party/ieee1516.1-2025) and are compiled

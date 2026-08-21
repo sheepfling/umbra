@@ -47,6 +47,12 @@ committed. A joined federate can call `getTimeFactory` to receive a new,
 caller-owned instance of that immutable federation selection. The default
 packaged profile still keeps Create/Join and `getTimeFactory` on the fallback.
 
+The Python `LogicalTimeFactory.add`, `subtract`, and `difference` operations
+remain provider-owned: the native binding delegates to the C++ logical-time
+operators and the Java adapter invokes the selected Java time/interval objects.
+Each returns a new immutable Python snapshot, so Python does not reimplement or
+silently change vendor arithmetic semantics.
+
 Each joined federate in the development profile has a private state object
 holding only official `LogicalTime` and `LogicalTimeInterval` instances. It
 starts at the selected factory's initial time. Time Advance Request remains

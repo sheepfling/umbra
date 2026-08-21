@@ -63,7 +63,25 @@ def _java_time_value(value: object) -> object:
     if exact is not None:
         return exact()
     legacy = getattr(value, "getTime", None)
-    return legacy() if legacy is not None else None
+    if legacy is not None:
+        return legacy()
+    standard = getattr(value, "getValue", None)
+    return standard() if standard is not None else None
+
+
+def _java_time_implementation_name(value: object, numeric: object) -> str:
+    """Identify one of the standard time carriers without vendor extensions.
+
+    The compact test fixture retains the older ``implementationName`` helper,
+    but IEEE 1516.1-2025's ``LogicalTime`` interface deliberately does not.
+    Its two standard time implementations expose distinct primitive ``getValue``
+    return types, which JPype presents as ``int`` and ``float`` respectively.
+    """
+
+    legacy = getattr(value, "implementationName", None)
+    if callable(legacy):
+        return str(legacy())
+    return "HLAfloat64Time" if isinstance(numeric, float) else "HLAinteger64Time"
 
 
 @dataclass(frozen=True, slots=True)
@@ -128,10 +146,10 @@ class JavaRuntime(Protocol):
         """Build a Java ``FederateHandleSet`` through its standard factory."""
 
     def fom_module_url(self, value: str) -> object:
-        """Convert a Python path/URL into the Java ``java.net.URL`` type."""
+        """Convert a Python FOM designator into its standard Java string form."""
 
     def fom_module_urls(self, values: tuple[str, ...]) -> object:
-        """Convert Python FOM paths/URLs into a Java ``URL[]``."""
+        """Convert Python FOM designators into the standard Java ``String[]``."""
 
     def attribute_handle_value_map(
         self,
@@ -183,6 +201,12 @@ class JavaRuntime(Protocol):
 
     def byte_array(self, value: bytes) -> object:
         """Create a Java byte array without exposing JPype publicly."""
+
+    def data_element_factory(self, factory: object) -> object:
+        """Create a Java ``DataElementFactory`` proxy for a Python factory."""
+
+    def data_element_array(self, values: tuple[object, ...]) -> object:
+        """Create a Java ``DataElement[]`` for encoder varargs."""
 
 
 class _FederateAmbassadorCallback:
@@ -610,8 +634,8 @@ class _FederateAmbassadorCallback:
         self._ownership_set_callback("attributeIsOwnedByRTI", object_instance, attributes)
 
     def _logical_time(self, value: object) -> LogicalTime:
-        implementation = str(value.implementationName())
         numeric = _java_time_value(value)
+        implementation = _java_time_implementation_name(value, numeric)
         value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
         return value_type(
             self._federate_handle_bytes(value),
@@ -718,8 +742,11 @@ class _FederateAmbassadorCallback:
             )
         self._target.federationSaveStatusResponse(tuple(records))
 
-    def initiateFederateSave(self, label: object) -> None:
-        self._target.initiateFederateSave(str(label))
+    def initiateFederateSave(self, label: object, time: object | None = None) -> None:
+        if time is None:
+            self._target.initiateFederateSave(str(label))
+        else:
+            self._target.initiateFederateSave(str(label), self._logical_time(time))
 
     def federationSaved(self) -> None:
         self._target.federationSaved()
@@ -818,8 +845,24 @@ class JPypeJavaRuntime:
         return jpype.JClass("hla.rti1516_2025.auth.Credentials")(credentials.getType(), byte_array)
 
     def exception_name(self, error: BaseException) -> str | None:
+        """Return the Java error name, unwrapping proxy checked exceptions."""
+
+        def simple_name(value: object) -> str:
+            # JPype normally exposes getSimpleName(), but some external API
+            # JAR/proxy combinations return the binary or fully-qualified
+            # name.  The adapter's exception registry is keyed by the Java
+            # simple name, so normalize both forms at this boundary.
+            return str(value).rsplit(".", 1)[-1].rsplit("$", 1)[-1]
+
         try:
-            return str(error.getClass().getSimpleName())  # type: ignore[attr-defined]
+            name = simple_name(error.getClass().getSimpleName())  # type: ignore[attr-defined]
+            if name != "UndeclaredThrowableException":
+                return name
+        except (AttributeError, TypeError):
+            pass
+        try:
+            cause = error.getUndeclaredThrowable()  # type: ignore[attr-defined]
+            return simple_name(cause.getClass().getSimpleName())
         except (AttributeError, TypeError):
             return None
 
@@ -849,12 +892,18 @@ class JPypeJavaRuntime:
         return getattr(ambassador, "getTimeFactory")()
 
     def decode_logical_time(self, ambassador: object, encoded_value: bytes) -> object:
-        return self.logical_time_factory(ambassador).decodeLogicalTime(self.byte_array(encoded_value), 0)
+        factory = self.logical_time_factory(ambassador)
+        decoder = getattr(factory, "decodeTime", None)
+        if decoder is None:
+            decoder = getattr(factory, "decodeLogicalTime")
+        return decoder(self.byte_array(encoded_value), 0)
 
     def decode_logical_interval(self, ambassador: object, encoded_value: bytes) -> object:
-        return self.logical_time_factory(ambassador).decodeLogicalTimeInterval(
-            self.byte_array(encoded_value), 0
-        )
+        factory = self.logical_time_factory(ambassador)
+        decoder = getattr(factory, "decodeInterval", None)
+        if decoder is None:
+            decoder = getattr(factory, "decodeLogicalTimeInterval")
+        return decoder(self.byte_array(encoded_value), 0)
 
     def dimension_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
         handle_set = getattr(ambassador, "getDimensionHandleSetFactory")().create()
@@ -882,7 +931,7 @@ class JPypeJavaRuntime:
         return handle_set
 
     def interaction_class_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
-        handle_set = self._require_started_jvm().JClass("java.util.HashSet")()
+        handle_set = getattr(ambassador, "getInteractionClassHandleSetFactory")().create()
         for encoded_value in encoded_values:
             handle_set.add(
                 self.decode_handle(ambassador, "getInteractionClassHandleFactory", encoded_value)
@@ -902,16 +951,11 @@ class JPypeJavaRuntime:
         return handle_set
 
     def fom_module_url(self, value: str) -> object:
-        jpype = self._require_started_jvm()
-        text = str(value)
-        if "://" not in text and not text.startswith("file:"):
-            text = Path(text).resolve().as_uri()
-        return jpype.JClass("java.net.URL")(text)
+        return str(value)
 
     def fom_module_urls(self, values: tuple[str, ...]) -> object:
         jpype = self._require_started_jvm()
-        url_type = jpype.JClass("java.net.URL")
-        result = jpype.JArray(url_type)(len(values))
+        result = jpype.JArray(jpype.JString)(len(values))
         for index, value in enumerate(values):
             result[index] = self.fom_module_url(value)
         return result
@@ -921,7 +965,7 @@ class JPypeJavaRuntime:
         ambassador: object,
         encoded_values: tuple[tuple[bytes, bytes], ...],
     ) -> object:
-        value_map = getattr(ambassador, "getAttributeHandleValueMapFactory")().create()
+        value_map = getattr(ambassador, "getAttributeHandleValueMapFactory")().create(0)
         for encoded_handle, value in encoded_values:
             value_map.put(
                 self.decode_handle(ambassador, "getAttributeHandleFactory", encoded_handle),
@@ -934,7 +978,7 @@ class JPypeJavaRuntime:
         ambassador: object,
         encoded_values: tuple[tuple[bytes, bytes], ...],
     ) -> object:
-        value_map = getattr(ambassador, "getParameterHandleValueMapFactory")().create()
+        value_map = getattr(ambassador, "getParameterHandleValueMapFactory")().create(0)
         for encoded_handle, value in encoded_values:
             value_map.put(
                 self.decode_handle(ambassador, "getParameterHandleFactory", encoded_handle),
@@ -948,8 +992,17 @@ class JPypeJavaRuntime:
         encoded_values: tuple[tuple[tuple[bytes, ...], tuple[bytes, ...]], ...],
     ) -> object:
         jpype = self._require_started_jvm()
-        pair_list = jpype.JClass("hla.rti1516_2025.AttributeSetRegionSetPairList")()
-        pair_type = jpype.JClass("hla.rti1516_2025.AttributeSetRegionSetPair")
+        pair_list_factory = getattr(
+            ambassador, "getAttributeSetRegionSetPairListFactory", None
+        )
+        if pair_list_factory is None:
+            # The compact fixture predates the IEEE factory and exposes a
+            # concrete legacy list instead.
+            pair_list = jpype.JClass("hla.rti1516_2025.AttributeSetRegionSetPairList")()
+            pair_type = jpype.JClass("hla.rti1516_2025.AttributeSetRegionSetPair")
+        else:
+            pair_list = pair_list_factory().create(len(encoded_values))
+            pair_type = jpype.JClass("hla.rti1516_2025.AttributeRegionAssociation")
         for encoded_attributes, encoded_regions in encoded_values:
             pair_list.add(
                 pair_type(
@@ -974,6 +1027,22 @@ class JPypeJavaRuntime:
     def byte_array(self, value: bytes) -> object:
         jpype = self._require_started_jvm()
         return jpype.JArray(jpype.JByte)(value)
+
+    def data_element_factory(self, factory: object) -> object:
+        jpype = self._require_started_jvm()
+        interface = jpype.JClass("hla.rti1516_2025.encoding.DataElementFactory")
+
+        class _DataElementFactoryProxy:
+            def createElement(self, index: int) -> object:
+                element = factory.createElement(int(index))  # type: ignore[attr-defined]
+                return getattr(element, "_implementation")
+
+        return jpype.JProxy(interface, inst=_DataElementFactoryProxy())
+
+    def data_element_array(self, values: tuple[object, ...]) -> object:
+        jpype = self._require_started_jvm()
+        element_type = jpype.JClass("hla.rti1516_2025.encoding.DataElement")
+        return jpype.JArray(element_type)(list(values))
 
     def _ensure_jvm(self, configuration: JavaProviderConfiguration) -> Any:
         global _STARTED_JVM_CONFIGURATION

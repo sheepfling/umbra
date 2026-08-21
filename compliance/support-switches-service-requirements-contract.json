@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-support-switch-service-state-not-conformance-evidence",
-  "notes": "This contract records the bounded embedded support-switch service state. Per-federate setters remain independent, static federation-wide getters retain creation-time values, and automatic-resign enum validation uses the official 2025 values. Recipient-gated sent-region callback behavior is traced separately in convey-region-designator-callback-requirements-contract.json. The private embedded Connection Lost path now executes configured DELETE_OBJECTS, UNCONDITIONALLY_DIVEST_ATTRIBUTES, DELETE_OBJECTS_THEN_DIVEST, CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, and CANCEL_THEN_DELETE_THEN_DIVEST directives through ordinary forced-resignation cleanup. The exact MOM report-service interaction is mutually excluded from enabled Service Reporting for both ordinary and regional subscriptions. The joined-federate HLAsetSwitches leaf accepts a non-empty subset of its nine predefined values, promotes compatible extension subclasses, and ignores extension parameters; its report-service interlock is surfaced through the bounded public Send Interaction error path rather than a normal MOM failure report. This is not emitted service reports, report-file output, generic MOM handling, or conformance evidence. The bounded NO_ACTION forced-resign policy, real transport faults, emitted service reports, and relaxed DDM/delayed subscription behavior remain open.",
+  "notes": "This contract records the bounded embedded support-switch service state. Per-federate setters remain independent, static federation-wide getters retain creation-time values, and automatic-resign enum validation uses the official 2025 values. Recipient-gated sent-region callback behavior is traced separately in convey-region-designator-callback-requirements-contract.json. The private embedded Connection Lost path now executes configured DELETE_OBJECTS, UNCONDITIONALLY_DIVEST_ATTRIBUTES, DELETE_OBJECTS_THEN_DIVEST, CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, and CANCEL_THEN_DELETE_THEN_DIVEST directives through ordinary forced-resignation cleanup, with a bounded NO_ACTION policy that retains the object, divests owned attributes, offers them to an eligible survivor, and emits no automatic removal. The exact MOM report-service interaction is mutually excluded from enabled Service Reporting for both ordinary and regional subscriptions. The joined-federate HLAsetSwitches leaf accepts a non-empty subset of its nine predefined values, promotes compatible extension subclasses, and ignores extension parameters; its report-service interlock is surfaced through the bounded public Send Interaction error path rather than a normal MOM failure report. Successful-void file-record appends from seven support services—six Boolean setters (the four relevance/scope advisory setters, Set Convey Region Designator Sets Switch, and Set Exception Reporting Switch) plus Set Automatic Resign Directive—are traced separately in mom-service-reporting-requirements-contract.json. The automatic-resign record uses Table 5's ResignAction argument type 44 and DELETE_OBJECTS C++ spelling; generic emitted service reports, interaction delivery, report-file MOM publication, and conformance evidence remain open. Real transport faults and relaxed DDM/delayed subscription behavior remain separate work.",
   "requirements": [
     {
       "id": "umbra-convey-region-designator-switch-state",
@@ -24,12 +24,41 @@
       "source_symbol": "UmbraRtiAmbassador::getAutomaticResignDirective",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends a Table 5 void record for Set Automatic Resign Directive"
+      ]
+    },
+    {
+      "id": "umbra-set-automatic-resign-directive",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-275-l119-36",
+      "clause_id": "clause-10.45.3",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setAutomaticResignDirective",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends a Table 5 void record for Set Automatic Resign Directive"
       ]
     },
     {
@@ -72,7 +101,9 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::delaySubscriptionEvaluationSwitchFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility"
       ]
     },
     {

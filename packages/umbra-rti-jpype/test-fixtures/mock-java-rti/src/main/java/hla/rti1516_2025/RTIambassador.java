@@ -1,10 +1,11 @@
 package hla.rti1516_2025;
 
-import java.net.URL;
 import java.util.Set;
 
 import hla.rti1516_2025.exceptions.AlreadyConnected;
+import hla.rti1516_2025.exceptions.FederateNotExecutionMember;
 import hla.rti1516_2025.exceptions.NotConnected;
+import hla.rti1516_2025.exceptions.ObjectInstanceNotKnown;
 import hla.rti1516_2025.auth.Credentials;
 
 /** Test-fixture subset of the standard ambassador interface. */
@@ -51,14 +52,14 @@ public interface RTIambassador {
       String federateName, String federateType, String federationExecutionName) throws NotConnected;
 
    FederateHandle joinFederationExecution(
-      String federateType, String federationExecutionName, URL[] additionalFomModules)
+      String federateType, String federationExecutionName, String[] additionalFomModules)
       throws NotConnected;
 
    FederateHandle joinFederationExecution(
       String federateName,
       String federateType,
       String federationExecutionName,
-      URL[] additionalFomModules) throws NotConnected;
+      String[] additionalFomModules) throws NotConnected;
 
    void resignFederationExecution(ResignAction resignAction) throws NotConnected;
 
@@ -124,7 +125,8 @@ public interface RTIambassador {
 
    String getDimensionName(DimensionHandle dimension) throws NotConnected;
 
-   FederateHandle getFederateHandle(String federateName) throws NotConnected;
+   FederateHandle getFederateHandle(String federateName)
+      throws FederateNotExecutionMember, NotConnected;
 
    String getFederateName(FederateHandle federate) throws NotConnected;
 
@@ -148,16 +150,17 @@ public interface RTIambassador {
 
    long getDimensionUpperBound(DimensionHandle dimension) throws NotConnected;
 
-   int normalizeServiceGroup(ServiceGroup serviceGroup) throws NotConnected;
+   long normalizeServiceGroup(ServiceGroup serviceGroup) throws NotConnected;
 
-   int normalizeFederateHandle(FederateHandle federate) throws NotConnected;
+   long normalizeFederateHandle(FederateHandle federate) throws NotConnected;
 
-   int normalizeObjectClassHandle(ObjectClassHandle objectClass) throws NotConnected;
+   long normalizeObjectClassHandle(ObjectClassHandle objectClass) throws NotConnected;
 
-   int normalizeInteractionClassHandle(InteractionClassHandle interactionClass)
+   long normalizeInteractionClassHandle(InteractionClassHandle interactionClass)
       throws NotConnected;
 
-   int normalizeObjectInstanceHandle(ObjectInstanceHandle objectInstance) throws NotConnected;
+   long normalizeObjectInstanceHandle(ObjectInstanceHandle objectInstance)
+      throws FederateNotExecutionMember, NotConnected;
 
    MessageRetractionHandle deleteObjectInstanceWithTime(
       ObjectInstanceHandle objectInstance, byte[] userSuppliedTag, LogicalTime time)
@@ -196,6 +199,8 @@ public interface RTIambassador {
 
    InteractionClassHandleFactory getInteractionClassHandleFactory() throws NotConnected;
 
+   InteractionClassHandleSetFactory getInteractionClassHandleSetFactory() throws NotConnected;
+
    ParameterHandleFactory getParameterHandleFactory() throws NotConnected;
 
    TransportationTypeHandleFactory getTransportationTypeHandleFactory() throws NotConnected;
@@ -203,6 +208,8 @@ public interface RTIambassador {
    DimensionHandleFactory getDimensionHandleFactory() throws NotConnected;
 
    RegionHandleFactory getRegionHandleFactory() throws NotConnected;
+
+   MessageRetractionHandleFactory getMessageRetractionHandleFactory() throws NotConnected;
 
    DimensionHandleSetFactory getDimensionHandleSetFactory() throws NotConnected;
 
@@ -223,20 +230,32 @@ public interface RTIambassador {
       throws NotConnected;
 
    void publishObjectClassDirectedInteractions(
-      ObjectClassHandle objectClass, Set<InteractionClassHandle> interactionClasses)
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
       throws NotConnected;
 
    void unpublishObjectClassDirectedInteractions(ObjectClassHandle objectClass)
       throws NotConnected;
 
    void unpublishObjectClassDirectedInteractions(
-      ObjectClassHandle objectClass, Set<InteractionClassHandle> interactionClasses)
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
       throws NotConnected;
 
    void subscribeObjectClassAttributes(
       ObjectClassHandle objectClass,
+      AttributeHandleSet attributes) throws NotConnected;
+
+   void subscribeObjectClassAttributes(
+      ObjectClassHandle objectClass,
       AttributeHandleSet attributes,
-      boolean active,
+      String updateRateDesignator) throws NotConnected;
+
+   void subscribeObjectClassAttributesPassively(
+      ObjectClassHandle objectClass,
+      AttributeHandleSet attributes) throws NotConnected;
+
+   void subscribeObjectClassAttributesPassively(
+      ObjectClassHandle objectClass,
+      AttributeHandleSet attributes,
       String updateRateDesignator) throws NotConnected;
 
    void unsubscribeObjectClass(ObjectClassHandle objectClass) throws NotConnected;
@@ -246,20 +265,35 @@ public interface RTIambassador {
 
    void subscribeObjectClassDirectedInteractions(
       ObjectClassHandle objectClass,
-      Set<InteractionClassHandle> interactionClasses,
-      boolean universally) throws NotConnected;
+      InteractionClassHandleSet interactionClasses) throws NotConnected;
+
+   void subscribeObjectClassDirectedInteractionsUniversally(
+      ObjectClassHandle objectClass,
+      InteractionClassHandleSet interactionClasses) throws NotConnected;
 
    void unsubscribeObjectClassDirectedInteractions(ObjectClassHandle objectClass)
       throws NotConnected;
 
    void unsubscribeObjectClassDirectedInteractions(
-      ObjectClassHandle objectClass, Set<InteractionClassHandle> interactionClasses)
+      ObjectClassHandle objectClass, InteractionClassHandleSet interactionClasses)
       throws NotConnected;
 
    void subscribeObjectClassAttributesWithRegions(
       ObjectClassHandle objectClass,
+      AttributeSetRegionSetPairList attributesAndRegions) throws NotConnected;
+
+   void subscribeObjectClassAttributesWithRegions(
+      ObjectClassHandle objectClass,
       AttributeSetRegionSetPairList attributesAndRegions,
-      boolean active,
+      String updateRateDesignator) throws NotConnected;
+
+   void subscribeObjectClassAttributesPassivelyWithRegions(
+      ObjectClassHandle objectClass,
+      AttributeSetRegionSetPairList attributesAndRegions) throws NotConnected;
+
+   void subscribeObjectClassAttributesPassivelyWithRegions(
+      ObjectClassHandle objectClass,
+      AttributeSetRegionSetPairList attributesAndRegions,
       String updateRateDesignator) throws NotConnected;
 
    void unsubscribeObjectClassAttributesWithRegions(
@@ -270,11 +304,18 @@ public interface RTIambassador {
 
    void unpublishInteractionClass(InteractionClassHandle interactionClass) throws NotConnected;
 
-   void subscribeInteractionClass(InteractionClassHandle interactionClass, boolean active)
+   void subscribeInteractionClass(InteractionClassHandle interactionClass)
+      throws NotConnected;
+
+   void subscribeInteractionClassPassively(InteractionClassHandle interactionClass)
       throws NotConnected;
 
    void subscribeInteractionClassWithRegions(
-      InteractionClassHandle interactionClass, RegionHandleSet regions, boolean active)
+      InteractionClassHandle interactionClass, RegionHandleSet regions)
+      throws NotConnected;
+
+   void subscribeInteractionClassPassivelyWithRegions(
+      InteractionClassHandle interactionClass, RegionHandleSet regions)
       throws NotConnected;
 
    void unsubscribeInteractionClass(InteractionClassHandle interactionClass) throws NotConnected;
@@ -312,9 +353,11 @@ public interface RTIambassador {
       ObjectInstanceHandle objectInstance,
       AttributeSetRegionSetPairList attributesAndRegions) throws NotConnected;
 
-   ObjectInstanceHandle getObjectInstanceHandle(String objectInstanceName) throws NotConnected;
+   ObjectInstanceHandle getObjectInstanceHandle(String objectInstanceName)
+      throws ObjectInstanceNotKnown, FederateNotExecutionMember, NotConnected;
 
-   String getObjectInstanceName(ObjectInstanceHandle objectInstance) throws NotConnected;
+   String getObjectInstanceName(ObjectInstanceHandle objectInstance)
+      throws ObjectInstanceNotKnown, FederateNotExecutionMember, NotConnected;
 
    ObjectInstanceHandleFactory getObjectInstanceHandleFactory() throws NotConnected;
 
@@ -499,6 +542,10 @@ public interface RTIambassador {
 
    boolean getSendServiceReportsToFileSwitch() throws NotConnected;
 
+   void setSendServiceReportsToFileSwitch(boolean enabled) throws NotConnected;
+
+   String getHLAversion();
+
    boolean getAutoProvideSwitch() throws NotConnected;
 
    boolean getDelaySubscriptionEvaluationSwitch() throws NotConnected;
@@ -550,13 +597,13 @@ public interface RTIambassador {
 
    void createFederationExecution(
       String federationName,
-      URL[] fomModules,
+      String[] fomModules,
       String logicalTimeImplementationName) throws NotConnected;
 
-   void createFederationExecution(
+   void createFederationExecutionWithMIM(
       String federationName,
-      URL[] fomModules,
-      URL mimModule,
+      String[] fomModules,
+      String mimModule,
       String logicalTimeImplementationName) throws NotConnected;
 
    void destroyFederationExecution(String federationName) throws NotConnected;

@@ -23,7 +23,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeOwnership",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments"
       ]
     },
     {

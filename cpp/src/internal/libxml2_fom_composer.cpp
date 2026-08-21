@@ -3092,7 +3092,15 @@ class FomCatalogBuilder final {
       return;
     }
     std::string const name = parentName.empty() ? shortName : parentName + "." + shortName;
-    FomObjectClassDefinition definition{name, parentName, {}, {}, {}};
+    FomObjectClassDefinition definition;
+    definition.name = name;
+    definition.parentName = parentName;
+    // Preserve these fields exactly as supplied. DIF permits partial rows and
+    // the completed-model merge handles compatible completion; this catalog
+    // must not invent a default or reinterpret the FOM's capability metadata
+    // as current per-federate declaration state.
+    definition.sharing = scalarChildValue(node, "sharing");
+    definition.semantics = scalarChildValue(node, "semantics");
     for (auto const& [key, child] : node.children) {
       (void)key;
       if (child.localName == "dimensions") {
@@ -3123,7 +3131,11 @@ class FomCatalogBuilder final {
       } else if (child.localName == "directedInteraction") {
         std::string const interactionName = identityValue(child, "name=");
         if (!interactionName.empty()) {
-          definition.directedInteractions.push_back(interactionName);
+          definition.directedInteractions.push_back(
+              FomDirectedInteractionDefinition{
+                  interactionName,
+                  scalarChildValue(child, "sharing"),
+              });
         }
       }
     }
@@ -3146,14 +3158,13 @@ class FomCatalogBuilder final {
       return;
     }
     std::string const name = parentName.empty() ? shortName : parentName + "." + shortName;
-    FomInteractionClassDefinition definition{
-        name,
-        parentName,
-        {},
-        scalarChildValue(node, "transportation"),
-        scalarChildValue(node, "order"),
-        {},
-    };
+    FomInteractionClassDefinition definition;
+    definition.name = name;
+    definition.parentName = parentName;
+    definition.sharing = scalarChildValue(node, "sharing");
+    definition.semantics = scalarChildValue(node, "semantics");
+    definition.transportation = scalarChildValue(node, "transportation");
+    definition.order = scalarChildValue(node, "order");
     for (auto const& [key, child] : node.children) {
       (void)key;
       if (child.localName == "dimensions") {

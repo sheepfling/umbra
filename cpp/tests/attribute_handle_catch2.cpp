@@ -20,7 +20,7 @@ using rti1516_2025::umbra_binding_detail::makeAttributeHandle;
 
 }  // namespace
 
-TEST_CASE("The official AttributeHandle has stable embedded value semantics", "[unit][kernel][attribute-handle]") {
+TEST_CASE("The official AttributeHandle has stable embedded value semantics", "[unit][kernel][attribute-handle][foundation]") {
   AttributeHandle invalid;
   auto const handle = makeAttributeHandle(0x0102030405060708ULL);
   AttributeHandle copy(handle);
@@ -42,7 +42,7 @@ TEST_CASE("The official AttributeHandle has stable embedded value semantics", "[
 
 TEST_CASE(
     "The embedded AttributeHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][attribute-handle]") {
+    "[unit][kernel][attribute-handle][foundation]") {
   auto const handle = makeAttributeHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,
@@ -64,7 +64,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded AttributeHandle rejects malformed encodings and buffers",
-    "[unit][kernel][attribute-handle]") {
+    "[unit][kernel][attribute-handle][foundation]") {
   auto const handle = makeAttributeHandle(1);
   std::array<unsigned char, 8> tooSmall{};
   VariableLengthData malformed(tooSmall.data(), tooSmall.size());

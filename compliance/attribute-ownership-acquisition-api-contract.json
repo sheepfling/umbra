@@ -27,7 +27,10 @@
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisition",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments"
       ]
     },
     {
@@ -43,7 +46,9 @@
       "source_symbol": "owner.requestAttributeOwnershipRelease",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -66,7 +71,8 @@
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipReleaseDenied",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
       ]
     },
     {
@@ -89,7 +95,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::cancelAttributeOwnershipAcquisition",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -104,7 +111,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "requester.confirmAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
       ]
     },
     {
@@ -135,7 +143,8 @@
       "source_symbol": "queueAttributeOwnershipUnavailableRecipients",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
       ]
     }
   ]

@@ -135,6 +135,7 @@ FederateTimeSnapshot FederateTimeState::snapshot() const {
       timeConstrained_,
       asynchronousDeliveryEnabled_,
       pendingTime_ != nullptr,
+      pendingGeneration_,
       advanceMode_,
       pendingTimeRegulationGeneration_ != 0,
       pendingTimeConstrainedGeneration_ != 0,

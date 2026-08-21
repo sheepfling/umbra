@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 timestamped Send Interaction With Regions and timestamped Receive Interaction surfaces to the official C++ declarations exported by the Requirements Lab. The Catch2 scenarios cover committed region overlap, a disjoint-region no-fanout designator, lower-bound validation, constrained-recipient queueing before the grant, sent-region callback propagation, timestamp/order/retraction fields, pending-fanout suppression, and a legal Request Retraction callback for an already-delivered nonconstrained overlap-qualified recipient. The shared recipient planner ignores passive regional pairs and routes only active overlap-qualified pairs; the current timestamped cases do not independently exercise a passive pair. Object-region services, relaxed DDM, alternate advance modes, save/restore, remote transport, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 timestamped Send Interaction With Regions and timestamped Receive Interaction surfaces to the official C++ declarations exported by the Requirements Lab. The Catch2 scenarios cover committed region overlap, a disjoint-region no-fanout designator, lower-bound validation, constrained-recipient queueing before the grant, sent-region callback propagation, timestamp/order/retraction fields, pending-fanout suppression, and a legal Request Retraction callback for an already-delivered nonconstrained overlap-qualified recipient. A dedicated Flush Queue companion exercises the same public send/receive surfaces and proves the conveyed source-region set is preserved before FQG. Separate explicit-source companions exercise ordinary TAR/NMR and the inclusive TARA/NMRA boundaries and preserve the source RegionHandle before each grant. A further explicit-source companion proves the same public surfaces retain that source RegionHandle and deliver exactly once after a Time Constrained disable/re-enable cycle. A mixed-member companion delivers the same regional TSO payload under FQR, TARA, and NMRA requests and checks each callback frontier independently. A committed region move also suppresses a previously overlap-qualified queued callback without manufacturing Request Retraction. The shared recipient planner ignores passive regional pairs and routes only active overlap-qualified pairs; the current timestamped cases do not independently exercise a passive pair. Object-region services, relaxed DDM, further alternate advance forms, save/restore, remote transport, catalog evidence, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-send-interaction-with-regions-timestamped",
@@ -29,8 +29,14 @@
       "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -44,7 +50,12 @@
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     }
   ]

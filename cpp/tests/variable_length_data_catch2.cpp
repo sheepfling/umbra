@@ -26,7 +26,7 @@ bool contains(VariableLengthData const& value, void const* expected, std::size_t
 
 }  // namespace
 
-TEST_CASE("VariableLengthData copies caller-owned data and preserves value copies", "[baseline][support][variable-length-data]") {
+TEST_CASE("VariableLengthData copies caller-owned data and preserves value copies", "[baseline][support][variable-length-data][unit][foundation]") {
   std::array<Octet, 4> source{'H', 'L', 'A', '!'};
   std::array<Octet, 4> const expected{'H', 'L', 'A', '!'};
 
@@ -47,7 +47,7 @@ TEST_CASE("VariableLengthData copies caller-owned data and preserves value copie
   REQUIRE(contains(assigned, expected.data(), expected.size()));
 }
 
-TEST_CASE("VariableLengthData copies borrowed storage before the caller mutates it", "[baseline][support][variable-length-data]") {
+TEST_CASE("VariableLengthData copies borrowed storage before the caller mutates it", "[baseline][support][variable-length-data][unit][foundation]") {
   std::array<Octet, 3> borrowedSource{'o', 'l', 'd'};
   std::array<Octet, 3> const expected{'o', 'l', 'd'};
   VariableLengthData alias;
@@ -66,7 +66,7 @@ TEST_CASE("VariableLengthData copies borrowed storage before the caller mutates 
   REQUIRE(contains(assigned, expected.data(), expected.size()));
 }
 
-TEST_CASE("VariableLengthData releases adopted storage once when it is replaced", "[baseline][support][variable-length-data]") {
+TEST_CASE("VariableLengthData releases adopted storage once when it is replaced", "[baseline][support][variable-length-data][unit][foundation]") {
   adoptedDataDeleteCount = 0;
   auto* adopted = new Octet[3]{'R', 'T', 'I'};
   std::array<Octet, 3> const expected{'R', 'T', 'I'};

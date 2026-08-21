@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 Local Delete Object Instance service in Umbra's opt-in, non-installable development profile. The transition removes the invoking federate's known-instance state, leaves the federation-wide object and other federates' knowledge intact, and permits a later eligible rediscovery. It rejects a federate that owns instance attributes or has a pending ownership acquisition. It does not claim timestamped/local-delete interactions, save/restore, resign-action disposition, DDM, remote transport, catalog evidence, validation, or conformance. The contract uses immutable candidate IDs exported by the Requirements Lab.",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 Local Delete Object Instance service in Umbra's opt-in, non-installable development profile. The transition removes the invoking federate's known-instance state, leaves the federation-wide object and other federates' knowledge intact, and permits a later eligible rediscovery. It rejects a federate that owns instance attributes or has a pending ownership acquisition. Its focused production-filesystem regression also records the accepted one-argument service only after that local-forget transition; rejected calls append nothing. It does not claim timestamped/local-delete interactions, save/restore, resign-action disposition, DDM, remote transport, catalog evidence, validation, or conformance. The contract uses immutable candidate IDs exported by the Requirements Lab.",
   "requirements": [
     {
       "id": "umbra-local-delete-forgets-invoking-federate-instance",
@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::localDeleteObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
       ]
     },
     {
@@ -22,7 +23,18 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::localDeleteObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
+      ]
+    },
+    {
+      "id": "umbra-local-delete-service-report-follows-the-accepted-local-forget-transition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
+      "clause_id": "clause-6.18.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::localDeleteObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
       ]
     }
   ]

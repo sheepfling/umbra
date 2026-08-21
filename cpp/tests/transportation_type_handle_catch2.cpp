@@ -25,7 +25,7 @@ using rti1516_2025::umbra_binding_detail::transportationTypeHandleValue;
 
 TEST_CASE(
     "The official TransportationTypeHandle has stable embedded value semantics",
-    "[unit][kernel][transportation-type-handle]") {
+    "[unit][kernel][transportation-type-handle][foundation]") {
   TransportationTypeHandle invalid;
   auto const handle = makeTransportationTypeHandle(0x0102030405060708ULL);
   TransportationTypeHandle copy(handle);
@@ -47,7 +47,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded TransportationTypeHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][transportation-type-handle]") {
+    "[unit][kernel][transportation-type-handle][foundation]") {
   auto const handle = makeTransportationTypeHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,
@@ -69,7 +69,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded TransportationTypeHandle rejects malformed encodings and buffers",
-    "[unit][kernel][transportation-type-handle]") {
+    "[unit][kernel][transportation-type-handle][foundation]") {
   auto const handle = makeTransportationTypeHandle(1);
   std::array<unsigned char, 8> tooSmall{};
   VariableLengthData malformed(tooSmall.data(), tooSmall.size());
@@ -81,7 +81,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded profile recognizes exactly the two mandatory transportation names",
-    "[unit][kernel][transportation-type-handle]") {
+    "[unit][kernel][transportation-type-handle][foundation]") {
   auto const reliable = standardTransportationTypeValue(L"HLAreliable");
   auto const bestEffort = standardTransportationTypeValue(L"HLAbestEffort");
 

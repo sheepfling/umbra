@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins the bounded embedded untimed federation-save control plane to the exact IEEE 1516.1-2025 C++ RTIambassador and FederateAmbassador declarations exported by the Requirements Lab. It covers initiation, per-federate save acknowledgements, completion/failure, abort, and status response only. The new three-member temporal case is limited to an untimed request and stable ordinary time-advance boundaries: each constrained recipient receives Initiate Federate Save directly before its Time Advance Grant, while the non-time-constrained recipient is queued only after all constrained recipients reach that boundary. The paired timed-save contract separately proves the analogous bounded TAR/TARA/NMR/NMRA and strict-actual-FQR behavior; neither contract establishes untimed Flush Queue Request admission, restored pending advances, role/membership churn, or a complete save/restore implementation. The paired restore-control tests save a live TSO retraction record, a terminal tombstone, a logical-time/actual-lookahead window, and one deferred lookahead-decrease target, but do not turn this control-plane contract into a complete save/restore claim. Durable snapshot serialization, complete restore semantics, save interlocks across every service, protected review, package support, and conformance remain open.",
+  "notes": "This contract pins the bounded embedded federation-save control plane to the exact IEEE 1516.1-2025 C++ RTIambassador and FederateAmbassador declarations exported by the Requirements Lab. It covers initiation, per-federate save acknowledgements, completion/failure, abort, and status response only. The Request Federation Save report lane additionally pins both official C++ overload declarations and their accepted Table 5 argument forms, without expanding its save-admission claim. The new three-member temporal case is limited to an untimed request and stable ordinary time-advance boundaries: each constrained recipient receives Initiate Federate Save directly before its Time Advance Grant, while the non-time-constrained recipient is queued only after all constrained recipients reach that boundary. The paired timed-save contract separately proves the analogous bounded TAR/TARA/NMR/NMRA and strict-actual-FQR behavior. Paired restore-control regressions save a single-federate Non-Regulated-Grant TAR and a pending FQR under HLA_EVOKED and HLA_IMMEDIATE, and a six-scenario single-federate matrix saves TARA/NMR/NMRA under both callback models; each restore returns the saved Time Advancing state as a fresh callback-gated grant after Federation Restored. It does not establish untimed Flush Queue Request admission, multi-member advance or FQR restoration, queued/in-transit TSO, role/membership churn, durable snapshots, or complete save/restore semantics. The paired restore-control tests also save a live TSO retraction record, a terminal tombstone, a logical-time/actual-lookahead window, and one deferred lookahead-decrease target, but do not turn this control-plane contract into a complete save/restore claim. Durable snapshot serialization, complete restore semantics, save interlocks across every service, protected review, package support, and conformance remain open.",
   "api_surfaces": [
     {
       "id": "umbra-request-federation-save",
@@ -20,7 +20,23 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Federation Save timestamp overloads"
+      ]
+    },
+    {
+      "id": "umbra-request-federation-save-with-timestamp",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.requestfederationsave.00166fe13269",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void requestFederationSave( std::wstring const & label, LogicalTime const & time) = 0",
+      "exception_types": ["LogicalTimeAlreadyPassed", "InvalidLogicalTime", "FederateUnableToUseTime", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestFederationSave",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Federation Save timestamp overloads"
       ]
     },
     {
@@ -34,11 +50,13 @@
       "source_symbol": "UmbraRtiAmbassador::federateSaveBegun",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Federate Save Begun invocation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
       ]
     },
     {
@@ -52,11 +70,13 @@
       "source_symbol": "UmbraRtiAmbassador::federateSaveComplete",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Federate Save Complete success-indicator forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
       ]
     },
     {
@@ -69,7 +89,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateSaveNotComplete",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Federate Save Complete success-indicator forms"
       ]
     },
     {
@@ -82,7 +103,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::abortFederationSave",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Abort Federation Save invocation"
       ]
     },
     {
@@ -95,7 +117,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryFederationSaveStatus",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Query Federation Save Status before its response"
       ]
     },
     {
@@ -112,7 +135,22 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
+      ]
+    },
+    {
+      "id": "umbra-initiate-federate-save-queued-recipient-service-report",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void initiateFederateSave( std::wstring const & label) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationSaveNotifications",
+      "notes": "This second implementation owner covers only the ordinary queued recipient path and its service-report ordering. The direct time-constrained pre-grant callback remains owned by makeTimeAdvanceGrantDispatch and is deliberately outside this focused filesystem lane.",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Initiate Federate Save at recipient files"
       ]
     },
     {
@@ -130,7 +168,9 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Saved at recipient files"
       ]
     },
     {
@@ -144,7 +184,8 @@
       "source_symbol": "submitFederationSaveNotifications",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation resignation fails an outstanding save for remaining participants"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation resignation fails an outstanding save for remaining participants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Saved at recipient files"
       ]
     },
     {
@@ -157,7 +198,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSaveNotifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Query Federation Save Status before its response"
       ]
     }
   ]

@@ -42,8 +42,34 @@ using FederateCallbackInvocation =
     std::function<void(rti1516_2025::FederateAmbassador&)>;
 using FederateCallbackRoute = std::function<void(FederateCallbackInvocation)>;
 
+// A private recipient route reserves the recipient's serial and appends the
+// supplied fully encoded record before its corresponding callback is exposed.
+// A service that requires a callback-time eligibility recheck may retain this
+// route with queued work until that delivery boundary. Keeping the encoder
+// opaque avoids coupling this federation kernel to the MOM file-text encoder
+// while preserving one route for every later RTI-initiated report slice.
+using FederateServiceReportRecordEncoder = std::function<std::wstring(std::uint32_t)>;
+using FederateServiceReportRoute = std::function<void(
+    std::uint16_t serviceGroup,
+    FederateServiceReportRecordEncoder encodeRecord)>;
+
+// A registry-owned pending time advance carries only a private wake-up action.
+// The action must enqueue work on the owning ambassador's callback dispatcher;
+// it must never invoke a FederateAmbassador while the registry is locked.
+using FederationTimeGrantDispatch = std::function<void()>;
+
+// This factory is a live ambassador endpoint, not saved federation state.  It
+// recreates a callback-gated grant dispatch when restoring a snapshot that was
+// taken while a federate was still Time Advancing.  dispatchIdentity fences a
+// reconstituted dispatch from callback work queued before a later restore.
+using FederationTimeGrantDispatchFactory = std::function<FederationTimeGrantDispatch(
+    std::uint64_t federateId,
+    std::uint64_t generation,
+    std::uint64_t dispatchIdentity)>;
+
 class FomCatalog;
 class MaterializedFdd;
+struct FederationTimeBounds;
 
 struct FederationDefinition {
   std::vector<PrevalidatedFomModule> fomModules;
@@ -188,10 +214,18 @@ enum class FederationSaveNotificationKind {
 struct FederationSaveNotification {
   FederationSaveNotificationKind kind = FederationSaveNotificationKind::initiate;
   std::wstring label;
+  // Set only for a timestamped Request Federation Save.  The callback must
+  // retain the requested save time, not the later grant boundary that admits
+  // a constrained federate into the operation.
+  std::shared_ptr<rti1516_2025::LogicalTime const> timestamp;
   bool successful = false;
   rti1516_2025::SaveFailureReason failureReason = rti1516_2025::SAVE_ABORTED;
   std::vector<std::pair<std::uint64_t, rti1516_2025::SaveStatus>> statuses;
   FederateCallbackRoute callbackRoute;
+  // Each recipient owns an independent report-file selection and serial
+  // sequence.  The registry carries the route with queued initiation work so
+  // the adapter can append before it exposes the corresponding callback.
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 struct FederationSaveControlResult {
@@ -207,6 +241,7 @@ struct FederationSaveControlResult {
 struct FederationSaveAdmission {
   FederationSaveControlStatus status = FederationSaveControlStatus::applied;
   std::optional<std::wstring> currentFederateLabel;
+  std::shared_ptr<rti1516_2025::LogicalTime const> currentFederateTimestamp;
   std::vector<FederationSaveNotification> notifications;
 };
 
@@ -254,12 +289,19 @@ struct FederationRestoreNotification {
   };
   std::vector<StatusRecord> statuses;
   FederateCallbackRoute callbackRoute;
+  // A restore notification is RTI-initiated at one or more recipients.  Keep
+  // that recipient's selected report-file route with the queued work so the
+  // adapter can append its Table 5 record before exposing the callback.
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 struct FederationRestoreControlResult {
   FederationRestoreControlStatus status =
       FederationRestoreControlStatus::applied;
   std::vector<FederationRestoreNotification> notifications;
+  // Successful restore can reconstitute a saved Time Advance Grant only after
+  // the federation-restored callbacks have been submitted to their routes.
+  std::vector<FederationTimeGrantDispatch> timeAdvanceGrantDispatches;
 };
 
 struct AttributeOwnershipAcquisitionWorkItem;
@@ -283,6 +325,12 @@ struct FederationResignOwnershipAssumption {
 
 struct FederationRegistryResult {
   FederationRegistryStatus status = FederationRegistryStatus::applied;
+  // A successful federate-initiated resignation can be the final reportable
+  // service of a joined-federate lifetime.  The member must be removed before
+  // the ambassador can complete its lifecycle transition, so reserve this
+  // file serial atomically while the membership still exists.  A value is
+  // present only when the §11.5 route selected the report-file destination.
+  std::optional<std::uint32_t> finalServiceReportFileSerialNumber;
   // Resigning a federate can remove the last outstanding member of one or
   // more synchronization sets.  The registry records the resulting
   // Federation Synchronized callbacks here so the adapter can submit them
@@ -334,12 +382,14 @@ struct SynchronizationPointAnnouncement {
   std::wstring label;
   std::vector<unsigned char> userSuppliedTag;
   FederateCallbackRoute callbackRoute;
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 struct FederationSynchronizedNotification {
   std::wstring label;
   std::set<std::uint64_t> failedToSyncFederateIds;
   FederateCallbackRoute callbackRoute;
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 enum class SynchronizationPointRegistrationStatus {
@@ -514,6 +564,10 @@ struct DeclarationAdvisory {
   std::uint64_t receivingFederateId = 0;
   std::uint64_t classHandle = 0;
   FederateCallbackRoute callbackRoute;
+  // An RTI-initiated declaration advisory is a service at this receiving
+  // federate. Carry that federate's selected-file route with the callback
+  // work so the adapter can record it before the callback is exposed.
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 // Regional interaction declarations have a narrower validation vocabulary
@@ -650,6 +704,9 @@ struct ObjectInstanceDiscoveryRecipient {
   std::wstring objectInstanceName;
   std::uint64_t producingFederateId = 0;
   ObjectInstanceCallbackRoute callbackRoute;
+  // §6.9 must not report a discovery that a callback-time recheck cancels, so
+  // retain the recipient-local route until actual callback delivery.
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 // Private result for the bounded 2025 Attribute Scope Advisory path. A
@@ -737,6 +794,10 @@ struct ObjectInstanceRemovalRecipient {
   std::uint64_t receivingFederateId = 0;
   std::uint64_t objectInstanceHandle = 0;
   ObjectInstanceCallbackRoute callbackRoute;
+  // §6.17 has a callback-time removal boundary. Retain the receiving
+  // federate's report route with the queued work so a cancelled removal does
+  // not consume a report-file serial or leave a stale record.
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 struct ObjectInstanceDeletionPlan {
@@ -825,6 +886,10 @@ struct AttributeValueUpdateProvideRecipient {
   std::uint64_t providingFederateId = 0;
   std::set<std::uint64_t> requestedAttributeHandles;
   ObjectInstanceCallbackRoute callbackRoute;
+  // §6.22 is RTI-initiated at the providing federate. Keep that federate's
+  // selected report-file route with queued work until its callback-time
+  // eligibility recheck succeeds, so cancelled provides consume no serial.
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 struct AttributeValueUpdateRequestPlan {
@@ -1311,6 +1376,11 @@ struct MomServiceReportRoutingPlan {
   // producer-designator rule for RTI-created MOM traffic is sourced.
   InteractionProducer producer = InteractionProducer::rti();
   std::uint64_t interactionClassHandle = 0;
+  // The seven parameter handles are resolved from the composed MIM once and
+  // carried with the private routing plan so the adapter can construct the
+  // standard HLAreportServiceInvocation payload without duplicating catalog
+  // lookups or inventing a Java-side MOM model.
+  std::vector<std::uint64_t> reportParameterHandles;
   std::uint64_t endpointRegionHandle = 0;
   RegionSpecificationSnapshot endpointRegion;
   std::vector<ReceiveOrderInteractionRecipient> recipients;
@@ -1357,6 +1427,34 @@ struct FederateLostReportPlan {
   // regulating federate this is the profile's last granted logical time.
   std::shared_ptr<rti1516_2025::LogicalTime const> lastKnownTime;
   FederateLostReportRouting routing;
+  std::vector<ReceiveOrderInteractionRecipient> recipients;
+};
+
+// §11.5.1's HLAreportException is an RTI-originated receive-order MOM
+// interaction selected by the reported member's Exception Reporting Switch.
+// Keep its source and private HLAfederate endpoint separate from the public
+// callback producer handle; the adapter chooses the standard default-invalid
+// FederateHandle representation at the callback boundary.
+enum class ExceptionReportStatus {
+  suppressed,
+  applied,
+  federation_does_not_exist,
+  reported_federate_not_member,
+  inconsistent_catalog,
+};
+
+struct ExceptionReportRouting {
+  std::uint64_t interactionClassHandle = 0;
+  std::uint64_t serviceParameterHandle = 0;
+  std::uint64_t exceptionParameterHandle = 0;
+  std::uint64_t endpointRegionHandle = 0;
+  RegionSpecificationSnapshot endpointRegion;
+};
+
+struct ExceptionReportPlan {
+  ExceptionReportStatus status = ExceptionReportStatus::suppressed;
+  std::uint64_t reportedFederateId = 0;
+  ExceptionReportRouting routing;
   std::vector<ReceiveOrderInteractionRecipient> recipients;
 };
 
@@ -1562,6 +1660,10 @@ struct TsoObjectDeletionRecipient {
   std::uint64_t receivingFederateId = 0;
   std::uint64_t objectInstanceHandle = 0;
   ObjectInstanceCallbackRoute callbackRoute;
+  // The timestamped §6.17 callback may be delivered at an immediate or TSO
+  // boundary. Preserve its recipient-local report route with the immutable
+  // message payload so either boundary can append before user code.
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 struct TsoObjectDeletionMessage {
@@ -1661,11 +1763,6 @@ struct ReceiveOrderDirectedInteractionPlan {
   rti1516_2025::OrderType preferredOrderType = rti1516_2025::RECEIVE;
   std::vector<ReceiveOrderDirectedInteractionRecipient> recipients;
 };
-
-// A registry-owned pending TAR carries only a private wake-up action. The
-// action must enqueue work on the owning ambassador's callback dispatcher; it
-// must never invoke a FederateAmbassador while the registry is locked.
-using FederationTimeGrantDispatch = std::function<void()>;
 
 enum class FederationTimeGrantStatus {
   applied,
@@ -1801,7 +1898,8 @@ class EmbeddedFederationRegistry final {
       std::shared_ptr<FederateTimeState> timeState,
       std::wstring const& federateType,
       std::optional<std::wstring> requestedFederateName = std::nullopt,
-      InteractionCallbackRoute interactionCallbackRoute = {});
+      InteractionCallbackRoute interactionCallbackRoute = {},
+      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory = {});
 
   // Commits a freshly prevalidated replacement definition and a membership as
   // one state transition. This is used only after an external coordinator has
@@ -1818,12 +1916,32 @@ class EmbeddedFederationRegistry final {
       std::shared_ptr<FederateTimeState> timeState,
       std::wstring const& federateType,
       std::optional<std::wstring> requestedFederateName = std::nullopt,
-      InteractionCallbackRoute interactionCallbackRoute = {});
+      InteractionCallbackRoute interactionCallbackRoute = {},
+      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory = {});
 
   FederationRegistryResult resign(
       std::wstring const& federationName,
       std::uint64_t federateId,
       rti1516_2025::ResignAction resignAction = rti1516_2025::NO_ACTION);
+
+  // This is the one explicit lifecycle exception to the ordinary
+  // post-service report reservation path: Resign Federation Execution erases
+  // the joined member before the ambassador can append its report.  The
+  // known MIM service-group value is supplied by the adapter, and the returned
+  // serial is present only for a selected report-to-file route.
+  FederationRegistryResult resignWithFinalServiceReportReservation(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      rti1516_2025::ResignAction resignAction,
+      std::uint16_t serviceGroup);
+
+  // A joined ambassador attaches this private endpoint only after its
+  // immutable report file has been created. The registry preserves it as a
+  // live callback-side resource and removes it with the joined membership.
+  [[nodiscard]] FederationRegistryStatus setServiceReportRoute(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      FederateServiceReportRoute serviceReportRoute);
 
   // Establishes the registry-owned, as-yet-unpublished MIM object after the
   // real report-file writer has chosen its immutable location. This is kept
@@ -1847,6 +1965,15 @@ class EmbeddedFederationRegistry final {
   FederationRegistryResult connectionLost(
       std::wstring const& federationName,
       std::uint64_t federateId);
+
+  // Connection Lost is an RTI-invoked service. Like resignation, it erases
+  // the member before the adapter can otherwise append the selected-file
+  // service report. Reserve its final serial only for a report-to-file route,
+  // after the forced-resignation processing has accepted the loss.
+  FederationRegistryResult connectionLostWithFinalServiceReportReservation(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      std::uint16_t serviceGroup);
 
   [[nodiscard]] FederationSaveControlResult requestFederationSave(
       std::wstring const& federationName,
@@ -2119,10 +2246,18 @@ class EmbeddedFederationRegistry final {
       std::uint64_t objectInstanceHandle,
       std::uint64_t attributeHandle) const;
 
-  // Register a callback delivery for an already-accepted private TAR. The
-  // result contains every newly eligible federate's action, not just the
-  // requester, because a regulator's advance request can increase another
-  // federate's GALT before the regulator receives its own grant.
+  // Register a callback delivery for an already-accepted private advance using
+  // the joined federate's live dispatch factory. Each production callback is
+  // given a monotonically unique identity, so callback work queued before a
+  // restore cannot be mistaken for a later request that reuses a saved time
+  // generation.
+  [[nodiscard]] FederationTimeGrantDispatchResult requestTimeAdvanceGrant(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      std::uint64_t generation);
+
+  // Low-level injected-dispatch seam used by registry-focused tests. Normal
+  // embedded runtime calls must use the factory-backed overload above.
   [[nodiscard]] FederationTimeGrantDispatchResult requestTimeAdvanceGrant(
       std::wstring const& federationName,
       std::uint64_t federateId,
@@ -2140,7 +2275,8 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] FederationTimeGrantStatus beginTimeAdvanceGrant(
       std::wstring const& federationName,
       std::uint64_t federateId,
-      std::uint64_t generation);
+      std::uint64_t generation,
+      std::uint64_t dispatchIdentity = 0);
 
   // Private temporal-coordinator hooks used by the bounded public timestamped
   // interaction, attribute-update, and object-deletion/removal slices. They
@@ -2316,6 +2452,26 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] FederationTsoDeliveryRegistryResult completeTsoDelivery(
       std::wstring const& federationName,
       TsoQueuedMessage const& message);
+
+  // Completes a timestamped recipient boundary when its current declaration
+  // suppresses every user callback. This is distinct from delivery and
+  // retraction: no Request Retraction callback may be induced for a
+  // suppressed recipient, but the original pending state must not retain
+  // object-dependent connection-loss cleanup forever.
+  [[nodiscard]] bool finishTsoRecipientCallbackSuppressed(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t messageId);
+
+  // Replans only forced connection-loss automatic-resign removals whose
+  // queued callback reached the protected TSO boundary first. The returned
+  // receive-order callbacks are submitted after the matching grant callback,
+  // preserving both the required timestamped delivery and the ordinary
+  // asynchronous-delivery gate.
+  [[nodiscard]] std::vector<ObjectInstanceRemovalRecipient>
+  releaseConnectionLossDeferredObjectInstanceRemovals(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId);
 
   [[nodiscard]] std::vector<FederationExecutionSummary> federationExecutions() const;
   [[nodiscard]] std::optional<std::vector<FederateMembership>> membersFor(
@@ -2670,7 +2826,11 @@ class EmbeddedFederationRegistry final {
 
   // Rechecks and commits a pending no-time removal immediately before user
   // callback delivery. Unlike discovery, it does not re-evaluate declarations:
-  // a recipient already known to the deleted instance must be informed.
+  // a recipient already known to the deleted instance must be informed. A
+  // forced connection-loss cleanup retains its reservation instead when a
+  // marked timestamped object-dependent payload still needs that recipient's
+  // known-instance state; releaseConnectionLossDeferredObjectInstanceRemovals
+  // replans it after the protected TSO boundary completes.
   [[nodiscard]] std::optional<RemovedObjectInstanceSnapshot> beginObjectInstanceRemoval(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
@@ -3108,6 +3268,20 @@ class EmbeddedFederationRegistry final {
       std::uint64_t reportedFederateId,
       std::uint64_t receivingFederateId) const;
 
+  // Captures one HLAreportException route while the failing federate remains
+  // joined. The callback-time recipient query repeats the same switch,
+  // catalog, and subscription checks after the service exception has crossed
+  // the public call boundary.
+  [[nodiscard]] ExceptionReportPlan planExceptionReport(
+      std::wstring const& federationName,
+      std::uint64_t reportedFederateId) const;
+
+  [[nodiscard]] std::optional<ReceiveOrderInteractionRecipient>
+  exceptionReportRecipientFor(
+      std::wstring const& federationName,
+      std::uint64_t reportedFederateId,
+      std::uint64_t receivingFederateId) const;
+
   [[nodiscard]] AttributeTransportationTypeChangePlan
   planAttributeTransportationTypeChange(
       std::wstring const& federationName,
@@ -3222,6 +3396,22 @@ class EmbeddedFederationRegistry final {
       std::uint64_t sentInteractionClassHandle,
       std::vector<std::uint64_t> const& sentParameterHandles) const;
 
+  // Re-evaluates a queued timestamped directed interaction at its callback
+  // boundary.  A source that has just been removed by Connection Lost is
+  // normally no longer a valid live directed-interaction producer, but 4.4
+  // preserves delivery for a marked at-or-before-cutoff payload.  The narrow
+  // exception retains the source acceptance snapshot while still enforcing
+  // the target's and recipient's current delivery predicates.
+  [[nodiscard]] std::optional<ReceiveOrderDirectedInteractionRecipient>
+  timestampedDirectedInteractionRecipientFor(
+      std::wstring const& federationName,
+      std::uint64_t producingFederateId,
+      std::uint64_t receivingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t sentInteractionClassHandle,
+      std::vector<std::uint64_t> const& sentParameterHandles,
+      std::uint64_t messageId) const;
+
  private:
   [[nodiscard]] RuntimeInstrumentation::Scope beginInstrumentation(
       std::string_view operation) const;
@@ -3234,6 +3424,9 @@ class EmbeddedFederationRegistry final {
   struct Federation {
     struct PendingTimeAdvanceGrant {
       std::uint64_t generation = 0;
+      // Ordinary requests use zero. A restored request receives a nonzero
+      // identity so a stale pre-restore callback cannot consume it.
+      std::uint64_t dispatchIdentity = 0;
       FederationTimeGrantDispatch dispatch;
       bool dispatchQueued = false;
     };
@@ -3241,6 +3434,11 @@ class EmbeddedFederationRegistry final {
     enum class TsoRecipientDeliveryState {
       pending,
       delivered,
+      // The queue crossed the recipient's callback boundary, but a current
+      // declaration/lifetime check suppressed user-code invocation. This is
+      // terminal for payload retention and distinct from a user-visible
+      // delivery, so a later Retract cannot request retraction from it.
+      suppressed,
       retracted,
     };
 
@@ -3260,6 +3458,12 @@ class EmbeddedFederationRegistry final {
       // recipient states survive for public exception/callback classification,
       // while its timestamp and every reclaimable payload may be released.
       bool terminal = false;
+      // IEEE 1516.1-2025 connection-loss handling marks a message that was
+      // sent at or before a lost time regulator's last-known time. The marker
+      // is consumed only to release existing queued TSO delivery after that
+      // regulator has been removed; it does not alter ordinary resign or
+      // no-regulated-grant policy.
+      bool deliveryRequiredAfterConnectionLoss = false;
     };
 
     struct FederateInteractionDeclarations {
@@ -3446,6 +3650,13 @@ class EmbeddedFederationRegistry final {
       std::set<std::uint64_t> pendingDiscoveryFederates;
       bool deleteAccepted = false;
       std::set<std::uint64_t> pendingRemovalFederates;
+      // These sets classify only no-time Remove Object Instance work created
+      // by a forced connection-loss automatic-resign action. The first records
+      // its source; the second records a callback that reached its delivery
+      // boundary while an at-or-before-cutoff object-dependent TSO payload
+      // still required the recipient's known-instance state.
+      std::set<std::uint64_t> connectionLossAutomaticRemovalFederates;
+      std::set<std::uint64_t> deferredConnectionLossTsoRemovalFederates;
       std::optional<std::uint64_t> pendingTimestampedDeletionMessageId;
       std::set<std::uint64_t> pendingTimestampedRemovalFederates;
     };
@@ -3499,6 +3710,15 @@ class EmbeddedFederationRegistry final {
     std::optional<RestoreOperation> restoreOperation;
     std::map<std::uint64_t, ObjectClassAttributeDeclarations> objectClassAttributeDeclarations;
     std::map<std::uint64_t, InteractionCallbackRoute> interactionCallbackRoutes;
+    std::map<std::uint64_t, FederateServiceReportRoute> serviceReportRoutes;
+    // Like callback routes, grant factories are live binding endpoints and
+    // are preserved from the current ambassadors when state is restored.
+    std::map<std::uint64_t, FederationTimeGrantDispatchFactory>
+        timeAdvanceGrantDispatchFactories;
+    // This monotonically increases for every production grant dispatch and
+    // never rolls back with a snapshot, invalidating pre-restore callback
+    // work even when the saved time-generation value is later reused.
+    std::uint64_t nextTimeAdvanceGrantDispatchIdentity = 1;
     std::set<std::pair<std::uint64_t, std::uint64_t>>
         objectClassRegistrationRelevance;
     std::set<std::pair<std::uint64_t, std::uint64_t>> interactionRelevance;
@@ -3567,6 +3787,10 @@ class EmbeddedFederationRegistry final {
   federateLostReportRoutingFor(
       Federation const& federation,
       std::uint64_t reportedFederateId);
+  [[nodiscard]] static std::optional<ExceptionReportRouting>
+  exceptionReportRoutingFor(
+      Federation const& federation,
+      std::uint64_t reportedFederateId);
   [[nodiscard]] static bool validDirectedInteractionForObjectClass(
       Federation const& federation,
       std::uint64_t objectClassHandle,
@@ -3590,7 +3814,8 @@ class EmbeddedFederationRegistry final {
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle,
       std::uint64_t sentInteractionClassHandle,
-      std::vector<std::uint64_t> const& sentParameterHandles);
+      std::vector<std::uint64_t> const& sentParameterHandles,
+      bool allowMissingProducingFederate = false);
   [[nodiscard]] static std::optional<ReceiveOrderAttributeUpdateRecipient>
   candidateReceiveOrderAttributeUpdateRecipient(
       Federation const& federation,
@@ -3643,7 +3868,8 @@ class EmbeddedFederationRegistry final {
       std::shared_ptr<FederateTimeState> timeState,
       std::wstring const& federateType,
       std::optional<std::wstring> requestedFederateName,
-      InteractionCallbackRoute interactionCallbackRoute);
+      InteractionCallbackRoute interactionCallbackRoute,
+      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory);
 
   [[nodiscard]] static std::optional<FederationTimeExecutionSnapshot> makeTimeSnapshot(
       Federation const& federation);
@@ -3784,10 +4010,23 @@ class EmbeddedFederationRegistry final {
       std::uint64_t federateId);
   [[nodiscard]] static bool canPurgeDeletedObjectInstance(
       Federation::ObjectInstance const& objectInstance) noexcept;
+  [[nodiscard]] static bool hasPendingConnectionLossTsoObjectDelivery(
+      Federation const& federation,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t receivingFederateId) noexcept;
 
   [[nodiscard]] static bool hasPendingTsoRecipient(
       Federation const& federation,
       Federation::TsoRequestRetractionRecord const& record) noexcept;
+  [[nodiscard]] static std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
+  earliestConnectionLossTsoDeliveryBoundary(
+      Federation const& federation,
+      std::uint64_t recipientFederateId);
+  [[nodiscard]] static bool connectionLossTsoDeliveryMayGrant(
+      Federation const& federation,
+      std::uint64_t recipientFederateId,
+      FederateTimeSnapshot const& requester,
+      FederationTimeBounds const& bounds);
   static void reclaimTsoMessagePayload(
       Federation& federation,
       std::uint64_t messageId);
@@ -3802,7 +4041,8 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] static bool startFederationSave(
       Federation& federation,
       std::wstring label,
-      FederationSaveControlResult& result);
+      FederationSaveControlResult& result,
+      std::shared_ptr<rti1516_2025::LogicalTime const> timestamp = nullptr);
 
   static void appendSaveCompletionNotifications(
       Federation& federation,
@@ -3826,7 +4066,8 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t federateId,
       rti1516_2025::ResignAction resignAction,
-      bool forcedConnectionLoss);
+      bool forcedConnectionLoss,
+      std::optional<std::uint16_t> finalServiceReportGroup);
 
   mutable std::mutex mutex_;
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;

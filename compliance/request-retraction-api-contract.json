@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's deliberately bounded IEEE 1516.1-2025 Request Retraction vertical slice to the exact official C++ declarations exported by the Requirements Lab. The implementation records per-recipient delivery state for normal non-regional timestamped Send Interaction, Send Interaction With Regions, Update Attribute Values (including the bounded regional path), Send Directed Interaction, and non-regional timestamped Delete Object Instance. It uses the Clause 8.22.3 strict timestamp-versus-current/requested-time-plus-actual-lookahead condition, suppresses still-queued fanout, and invokes the official callback for a recipient whose original timestamped message was already delivered. A lightweight terminal record preserves the official MessageCanNoLongerBeRetracted outcome while retaining typed payload until the final pending joined recipient has crossed its callback boundary; terminal deletion state is then reclaimable. The deletion path additionally restores an execution-owned invocation snapshot—object/name/known state and committed ownership—before a legal Request Retraction callback; it does not revive or notify a departed delivered recipient. One normal-interaction case proves a live designator remains temporarily unauthorized during Disable Time Regulation and is legally retractable after callback-gated re-enable at unchanged lookahead. A second normal-interaction case restores a pre-save live record after post-save Retract terminalization, then proves the restored designator still drives the delivered recipient's Request Retraction callback. A third saves a terminal tombstone and proves it remains MessageCanNoLongerBeRetracted after restore rather than aliasing a discarded post-save handle. Complete alternate-advance, broader Disable Time Regulation/re-enable, complete save/restore recovery, active in-flight ownership, other producer/recipient resignation, transport, packaging, catalog/JUnit/protected-review evidence, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's deliberately bounded IEEE 1516.1-2025 Request Retraction vertical slice to the exact official C++ declarations exported by the Requirements Lab. The implementation records per-recipient delivery state for normal non-regional timestamped Send Interaction, Send Interaction With Regions, Update Attribute Values (including bounded explicit-regional and default-source regional-subscription paths), Send Directed Interaction, and non-regional timestamped Delete Object Instance. It uses the Clause 8.22.3 strict timestamp-versus-current/requested-time-plus-actual-lookahead condition, suppresses still-queued fanout, and invokes the official callback only for a recipient whose original timestamped message was actually delivered; a late unsubscribe that suppresses its callback does not manufacture Request Retraction. Default-source object and interaction mixed-fanout regressions preserve the supplied-empty region callback metadata for delivered nonconstrained recipients, request retraction there, and suppress constrained recipients' pending passels. A source-backed filesystem regression additionally records an accepted Retract with Table 5's type-33 `MessageRetractionDesignator` before the separately callback-gated Request Retraction consequence. A lightweight terminal record preserves the official MessageCanNoLongerBeRetracted outcome while retaining typed payload until the final pending joined recipient has crossed its callback boundary; terminal deletion state is then reclaimable. The deletion path additionally restores an execution-owned invocation snapshot—object/name/known state and committed ownership—before a legal Request Retraction callback; it does not revive or notify a departed delivered recipient. One normal-interaction case proves a live designator remains temporarily unauthorized during Disable Time Regulation and is legally retractable after callback-gated re-enable at unchanged lookahead. A second normal-interaction case restores a pre-save live record after post-save Retract terminalization, then proves the restored designator still drives the delivered recipient's Request Retraction callback. A third saves a terminal tombstone and proves it remains MessageCanNoLongerBeRetracted after restore rather than aliasing a discarded post-save handle. Complete alternate-advance, broader Disable Time Regulation/re-enable, complete save/restore recovery, active in-flight ownership, other producer/recipient resignation, transport, packaging, catalog/JUnit/protected-review evidence, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-retract",
@@ -25,6 +25,11 @@
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
@@ -38,10 +43,15 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion without recipient fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion only for joined owners",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants"
       ]
     },
     {
@@ -63,6 +73,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion"
       ]
     },
@@ -87,9 +99,13 @@
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants"
       ]
     },
     {
@@ -105,7 +121,8 @@
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -170,7 +187,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
       ]
     },
     {

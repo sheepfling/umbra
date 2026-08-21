@@ -8,6 +8,7 @@ import hla.rti1516_2025.ObjectInstanceHandleFactory;
 import hla.rti1516_2025.ParameterHandleFactory;
 import hla.rti1516_2025.RegionHandleFactory;
 import hla.rti1516_2025.TransportationTypeHandleFactory;
+import hla.rti1516_2025.MessageRetractionHandleFactory;
 
 /** One typed fixture decoder used through each standard factory accessor. */
 public final class MockSupportHandleFactory implements
@@ -18,10 +19,21 @@ public final class MockSupportHandleFactory implements
    ParameterHandleFactory,
    TransportationTypeHandleFactory,
    DimensionHandleFactory,
-   RegionHandleFactory
+   RegionHandleFactory,
+   MessageRetractionHandleFactory
 {
    @Override
    public MockSupportHandle decode(byte[] buffer, int offset) {
       return new MockSupportHandle(buffer, offset);
+   }
+
+   @Override
+   public MockSupportHandle getHLAdefaultReliable() {
+      return new MockSupportHandle("transportation:HLAreliable");
+   }
+
+   @Override
+   public MockSupportHandle getHLAdefaultBestEffort() {
+      return new MockSupportHandle("transportation:HLAbestEffort");
    }
 }

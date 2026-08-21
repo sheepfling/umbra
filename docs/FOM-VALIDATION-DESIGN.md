@@ -290,20 +290,30 @@ deferred: its 2025 source record requires `NA`, while the supplied Restaurant
 FOM uses other schema-permitted capability values. Umbra does not add a rule
 that rejects that supplied official example without a reviewed interpretation.
 
-One reference-data rule is now checked independently: a
+Reference-data validation has three bounded parts. First, a
 `referenceDataType`'s `referenceClass` must name an object class in the final
 composed hierarchy. This too runs after all modules merge, so a later module
 can supply the class. For an ordinary `referencedAttribute`, the preflight then
 resolves it on that class or an ancestor and requires its data type to match the
 reference's `representation`. The two standard instance identifier names,
-`HLAobjectInstanceName` and `HLAobjectInstanceHandle`, are intentionally held
-out of this attribute/type predicate: IEEE 1516.2 gives them special instance
-semantics, and their implicit type treatment needs a separate reviewed rule.
+`HLAobjectInstanceName` and `HLAobjectInstanceHandle`, are handled by the
+explicit IEEE 1516.2 exception: they do not require an ordinary attribute row,
+but their representations must be `HLAunicodeString` and
+`HLAobjectInstanceHandle` respectively. This bounded rule is traced by
+`compliance/fom-reference-data-special-instance-identifiers-requirements-contract.json`;
+other special reference-data semantics remain outside this preflight.
 
 The preflight also resolves every `directedInteraction` name against the final
 interaction-class hierarchy, after all modules have merged. It therefore
 accepts a directed interaction whose class is supplied by a later module and
-rejects a genuinely missing interaction class before FDD materialization.
+rejects a genuinely missing interaction class before FDD materialization. The
+composed catalog retains the exact supplied object-class, interaction-class,
+and class-directed-interaction `sharing` fields (plus class semantics) rather
+than reducing the relationship to a bare name. These OMT P/S values express
+modelled capability and Annex C merge identity; Umbra does not invent an
+omitted default or reinterpret them as mutable per-federate declaration state.
+The latter remains the responsibility of the 1516.1 declaration-management
+services.
 
 Available dimensions on object and interaction classes are likewise resolved
 against the final top-level dimension table, following the 2025 OMT schema's
@@ -442,8 +452,8 @@ Remaining required tests are:
 
 1. unreadable-source diagnostics and a strict-OMT positive complete-model
    vector once the materializer can represent one without private shortcuts;
-2. remaining Annex C merge, data-representation, special reference-data
-   instance-identifier handling, other table-specific resolution, and
+2. remaining Annex C merge, data-representation, other special reference-data
+   semantics, other table-specific resolution, and
    switch-default rules;
 3. callback/event behavior, object and ownership effects, and federation-wide
    time-management coordination beyond the initial per-federate advance state; and

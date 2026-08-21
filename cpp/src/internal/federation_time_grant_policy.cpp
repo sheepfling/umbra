@@ -143,15 +143,28 @@ FederationFlushQueueGrantCalculation FederationFlushQueueGrantCalculator::calcul
   }
 
   try {
-    std::shared_ptr<rti1516_2025::LogicalTime const> earliestQueued;
-    for (auto const& message : requester->queuedTsoMessages) {
-      if (!message.timestamp ||
-          message.timestamp->implementationName() != time.implementationName) {
-        return result;
+    // The grant follows every payload that is still undelivered at the
+    // callback boundary.  Most requests observe messages in the pending
+    // queue; a transport/coordinator hand-off can already have moved a
+    // payload into the explicit in-transit set.  Treat both sets as one
+    // delivery frontier so the actual and optimistic values cannot advance
+    // beyond a callback that must still complete.
+    std::shared_ptr<rti1516_2025::LogicalTime const> earliestUndelivered;
+    auto considerUndelivered = [&](std::vector<TsoQueuedMessage> const& messages) {
+      for (auto const& message : messages) {
+        if (!message.timestamp ||
+            message.timestamp->implementationName() != time.implementationName) {
+          return false;
+        }
+        if (!earliestUndelivered || *message.timestamp < *earliestUndelivered) {
+          earliestUndelivered = message.timestamp;
+        }
       }
-      if (!earliestQueued || *message.timestamp < *earliestQueued) {
-        earliestQueued = message.timestamp;
-      }
+      return true;
+    };
+    if (!considerUndelivered(requester->queuedTsoMessages) ||
+        !considerUndelivered(requester->inTransitTsoMessages)) {
+      return result;
     }
 
     auto granted = cloneLogicalTime(*factory, *time.requestedTime);
@@ -160,8 +173,8 @@ FederationFlushQueueGrantCalculation FederationFlushQueueGrantCalculator::calcul
       result.status = FederationFlushQueueGrantStatus::factory_unavailable;
       return result;
     }
-    if (earliestQueued && *earliestQueued < *optimistic) {
-      optimistic = cloneLogicalTime(*factory, *earliestQueued);
+    if (earliestUndelivered && *earliestUndelivered < *optimistic) {
+      optimistic = cloneLogicalTime(*factory, *earliestUndelivered);
       if (!optimistic) {
         result.status = FederationFlushQueueGrantStatus::factory_unavailable;
         return result;
@@ -174,8 +187,8 @@ FederationFlushQueueGrantCalculation FederationFlushQueueGrantCalculator::calcul
         return result;
       }
     }
-    if (earliestQueued && *earliestQueued < *granted) {
-      granted = cloneLogicalTime(*factory, *earliestQueued);
+    if (earliestUndelivered && *earliestUndelivered < *granted) {
+      granted = cloneLogicalTime(*factory, *earliestUndelivered);
       if (!granted) {
         result.status = FederationFlushQueueGrantStatus::factory_unavailable;
         return result;

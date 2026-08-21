@@ -4,7 +4,7 @@
 
 #include <string>
 
-TEST_CASE("The private FOM name boundary round-trips valid Unicode scalars", "[unit][kernel][utf8]") {
+TEST_CASE("The private FOM name boundary round-trips valid Unicode scalars", "[unit][kernel][utf8][fom]") {
   std::wstring const wide = L"Caf\u00e9 \U0001f642";
   std::string const utf8 = "Caf\xC3\xA9 \xF0\x9F\x99\x82";
 
@@ -12,7 +12,7 @@ TEST_CASE("The private FOM name boundary round-trips valid Unicode scalars", "[u
   REQUIRE(umbra::detail::wideFromUtf8(utf8) == wide);
 }
 
-TEST_CASE("Diagnostic strings are quoted and escaped", "[unit][kernel][utf8][diagnostics]") {
+TEST_CASE("Diagnostic strings are quoted and escaped", "[unit][kernel][utf8][diagnostics][fom]") {
   REQUIRE(
       umbra::detail::quoteDiagnosticString("name with spaces\"\\\n\t") ==
       "\"name with spaces\\\"\\\\\\n\\t\"");
@@ -22,7 +22,7 @@ TEST_CASE("Diagnostic strings are quoted and escaped", "[unit][kernel][utf8][dia
   REQUIRE(umbra::detail::quoteDiagnosticString("\x01") == "\"\\x01\"");
 }
 
-TEST_CASE("The private FOM name boundary rejects malformed Unicode", "[unit][kernel][utf8]") {
+TEST_CASE("The private FOM name boundary rejects malformed Unicode", "[unit][kernel][utf8][fom]") {
   std::wstring malformedWide;
   if constexpr (sizeof(wchar_t) == 2) {
     malformedWide.push_back(static_cast<wchar_t>(0xD800));

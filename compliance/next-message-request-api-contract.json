@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 Next Message Request implementation to the exact C++ RTIambassador declaration exported by the Requirements Lab. It verifies the official signature, declared exception set, adapter symbol, and real Catch2 selectors, including the bounded timestamped-save admission boundary. It is not catalog evidence, protected-review evidence, package support, or a conformance claim.",
+  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 Next Message Request implementation to the exact C++ RTIambassador declaration exported by the Requirements Lab. It verifies the official signature, declared exception set, adapter symbol, and real Catch2 selectors, including a filesystem report that preserves the supplied request boundary when a queued message produces an earlier grant, the bounded timestamped-save admission boundary, a saved-pending NMR restore under both callback models, and regional interaction and object-attribute TSO callback frontiers before the ordinary grant. It is not catalog evidence, protected-review evidence, package support, or a conformance claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-next-message-request",
@@ -16,7 +16,11 @@
       "source_symbol": "UmbraRtiAmbassador::nextMessageRequest",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Next Message Request grants at the next queued TSO timestamp",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules saved pending TARA, NMR, and NMRA requests",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants"
       ]
     }
   ]

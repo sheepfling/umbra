@@ -112,7 +112,9 @@ another supplied credential is rejected with `Unauthorized` rather than being
 silently treated as authenticated. `HLAplainTextPassword` has its standard
 credential-value encoding, and a reference authorizer/factory exists behind an
 internal test configuration seam; secure RID configuration and a live runtime
-`HLAauthorizer` remain separate work. A valid Disconnect moves an unjoined
+`HLAauthorizer` remain separate work. The JNI bridge has a raw Java
+ServiceLoader conformance adapter that delegates to that C++ reference
+authorizer, but it does not change the embedded profile. A valid Disconnect moves an unjoined
 federate back to not_connected; the obvious invalid states map to NotConnected
 and FederateIsExecutionMember.
 
@@ -120,8 +122,9 @@ CallbackDispatcher is a private FIFO queue with explicit immediate and evoked
 models. In immediate mode enabled tasks are delivered synchronously; in evoked
 mode the Evoke services deliver one or more tasks according to their wait
 arguments. Disable preserves pending tasks and Enable releases them. The
-development profile now uses it for real federation-listing,
-synchronization-point registration/announcement/completion,
+development profile now uses it for real federation-listing and
+synchronization-point registration/announcement/completion (including a
+focused direct-delivery regression for `HLA_IMMEDIATE`),
 object-discovery,
 object-removal, and receive-order interaction, attribute-update, and
 attribute-value-request events, plus object-instance name reservation result
@@ -407,7 +410,8 @@ receive-order interaction, reflection, directed-interaction, and object-removal
 callbacks while an idle constrained federate is not time-advancing, and releases
 them when asynchronous delivery is enabled or the federate enters Time
 Advancing. Disabling the switch restores the normal time-advance gate. The
-deferred callback closures belong to the live embedded session rather than a
+bounded integration regression exercises those two release points under both
+`HLA_EVOKED` and `HLA_IMMEDIATE`. The deferred callback closures belong to the live embedded session rather than a
 durable save/restore payload, and timestamped messages remain time-advance
 gated while the federate is idle.
 A parallel support-switch projection retains the remaining 2025 FDD entries.
@@ -424,15 +428,66 @@ while enabled recipients receive the sent update-region realization. This now
 also drives bounded ordinary interaction and known-object attribute-update
 filtering for the federation-wide Delay Subscription Evaluation switch: when
 enabled, a joined non-source recipient with no current subscription is retained
-as a callback/TSO candidate and reprojected at its actual delivery boundary;
-when disabled, that original ineligibility is not retained. Both paths use
+as a callback/TSO candidate and reprojected at its actual delivery boundary.
+The bounded ordinary receive-order and timestamped regressions exercise that
+path under both `HLA_EVOKED` and `HLA_IMMEDIATE`: the former temporarily
+suspends direct dispatch to establish a concrete callback boundary, while the
+latter uses direct Time Advance Grant delivery. When disabled, that original
+ineligibility is not retained. Both paths use
 current subscriptions before calling user code. Explicit regional interactions
 and Update Attribute Values passels associated with explicit update regions
 deliberately retain planning-time DDM selection until their complete matrices
 are specified. The exact `HLAreportServiceInvocation` subscription and Service
 Reporting-switch mutual exclusion is enforced for ordinary and regional
-declarations; it does not generate or persist service reports. The bounded
-joined-federate `HLAsetSwitches` adapter resolves a compatible extension
+declarations. The interlock itself does not generate service reports. Separate
+file-selected wrappers persist the explicit Table 5 successful-void `[null]`
+record for seven successful-void support services: six Boolean setters (the
+four relevance/scope advisory setters, `Set Convey Region Designator Sets
+Switch`, and `Set Exception Reporting Switch`) plus `Set Automatic Resign
+Directive`; generic report generation and delivery remain deferred. The
+five no-argument Time Management wrappers—`Disable Time Regulation`,
+`Enable/Disable Asynchronous Delivery`, and `Enable/Disable Time
+Constrained`—append empty supplied-argument lists using the same explicit
+successful-void return form. `Enable Time Regulation` appends its one
+`Lookahead` argument using Table 5's `LogicalTimeInterval` type 32 and
+quoted `interval.toString()` form. `Modify Lookahead` appends its one
+`Requested lookahead` with the same type/form when accepted, including a lower
+request whose actual value remains deferred. Both enable records preserve the
+later callback-gated state completion. `Time Advance Request`, `Time Advance
+Request Available`, `Next Message Request`, `Next Message Request Available`,
+and `Flush Queue Request` each append one `Logical time` using Table 5's
+`LogicalTime` type 31 and quoted `time.toString()` form when accepted. The
+first four reports precede their Time Advance Grant callbacks; the Flush Queue
+report precedes its distinct actual/optimistic Flush Queue Grant. The two Next
+Message Request forms and Flush Queue Request preserve the supplied request
+when queued TSO input yields an earlier grant target. `Retract` appends its
+one `MessageRetractionDesignator` using Table 5's type-33
+`MessageRetractionHandle<decimal-identity>` representation before the separate,
+callback-gated Request Retraction consequence. `Change Attribute Order Type`
+appends type-37 `Object instance designator`, type-1 `Set of attribute
+designators` as a quoted-handle array, and type-38 `Order type` using quoted
+`RECEIVE` or `TIMESTAMP` after a successful owned-attribute invocation. `Change
+Default Attribute Order Type` appends type-36 `Object class designator` as a
+quoted `ObjectClassHandle::toString()` value, type-1 `Set of attribute
+designators` as the same quoted-handle array, and type-38 `Order type` using
+quoted `RECEIVE` or `TIMESTAMP` after a successful class-default invocation.
+`Change Default Attribute Transportation Type` appends the same type-36 object
+class and type-1 attribute-set representations with type-59 `Transportation
+type` as quoted `TransportationTypeHandle::toString()` text after an accepted
+prospective class-default invocation. `Change Interaction Order Type`
+appends `Interaction class designator` as type 27 with the quoted exact
+`InteractionClassHandle::toString()` value and `Order type` as type 38 with
+quoted `RECEIVE` or `TIMESTAMP` after the class is published. `Request
+  Interaction Transportation Type Change` appends type-27 `Interaction class
+  designator` and type-59 `Transportation type` as quoted exact handle
+  `toString()` values when the request is accepted; the separately queued
+  confirmation remains the transport-preference boundary. `Request Attribute
+  Transportation Type Change` appends type-37 `Object instance designator`,
+  type-1 `Set of attribute designators` as a quoted-handle array, and type-59
+  `Transportation type`, using the same exact quoted handle `toString()` forms
+  when accepted; its separately queued confirmation remains the
+  transport-preference boundary. The
+bounded joined-federate `HLAsetSwitches` adapter resolves a compatible extension
 subclass to its predefined parent, ignores extension-only parameter values,
 and sends one locked per-member update through the registry for any supplied
 standard subset. A report-service conflict rejects that update without partial
@@ -444,14 +499,16 @@ object-instance handles; equal valid designators therefore retain equal point
 coordinates without exposing the private sequential handle directories. The
 seed is restored with a saved execution. `HLAserviceGroup` instead uses the
 official enum coordinate because its standard MIM dimension is bounded to
-seven. This is a prerequisite for, not an implementation of, RTI-originated
-MOM report regions. This does not
-yet drive a real connection-loss resign, MOM service-report interaction
-emission or `HLAreportServiceFile` publication; it does create a local
-initial-record report file with immutable joined-federate lifetime and retain
-an unpublished RTI-owned joined-federate MOM snapshot with a common object
-identity, full effective-attribute metadata, an immutable `HLAfederate` point,
-and the real report-file value. Default-region and conveyed-region reuse, and
+seven. This is a prerequisite for generic RTI-originated MOM report regions.
+The bounded embedded transport-fault path now uses the `HLAfederate` point to
+deliver `HLAreportFederateLost` to ordinary or DDM-matching regional
+subscribers before automatic-resign consequence callbacks, but it does not
+emit generic §11.5 service-report interactions or publish
+`HLAreportServiceFile`. It does create a local initial-record report file with
+immutable joined-federate lifetime and retain an unpublished RTI-owned
+joined-federate MOM snapshot with a common object identity, full effective-
+attribute metadata, an immutable `HLAfederate` point, and the real report-file
+value. Default-region and conveyed-region reuse, and
 directed regional callbacks, remain bounded profile gaps. Explicit regional
 interaction and object-update delivery now re-evaluates subscription overlap
 at the callback boundary when the static delayed-subscription policy is
@@ -874,10 +931,14 @@ the exact 2025 class-level `Request Attribute Value Update With Regions` form
 and its standard `Provide Attribute Value Update` callback. The integration case
 checks committed region ownership/context, empty-pair no-op behavior,
 overlap-consistent solicitation, default-region eligibility, copied tags, and
-callback-entry rechecks. Provider responses remain explicit user code; the
-contracts exclude automatic provision, resulting reflection, timestamped/
-retraction behavior, broader DDM, catalog evidence,
-and conformance.
+callback-entry rechecks. Its focused companion has the overlap-qualified
+provider explicitly invoke non-timestamped `Update Attribute Values` and checks
+the requester's response tag, producer, transportation, and optional sent-region
+argument. A second focused companion changes the requester subscription to a
+valid disjoint range before the queued reflection boundary and verifies
+suppression. Provider responses remain explicit user code; the contracts exclude
+automatic provision, timestamped/retraction behavior, broader DDM, catalog
+evidence, and conformance.
 
 `compliance/attribute-ownership-query-requirements-contract.json` and
 `compliance/attribute-ownership-query-api-contract.json` trace the exact 2025
@@ -1009,9 +1070,10 @@ fields, pending constrained-recipient suppression, and `Request Retraction`
 for the delivered non-time-constrained recipient. The same case also proves
 mixed immediate/TSO fanout: the non-time-constrained recipient receives its
 timestamped callback immediately while the constrained recipient remains
-queued until its grant. Timestamped default-region coverage, regional request forms,
-alternate advance modes, transport, package/catalog evidence, and conformance
-remain outside the contract.
+queued until its grant. Timestamped default-region coverage and a class-level
+regional request with one explicit no-time response are separately covered;
+additional regional request edges, alternate advance modes, transport,
+package/catalog evidence, and conformance remain outside the contract.
 
 `compliance/timestamped-object-deletion-requirements-contract.json` and
 `compliance/timestamped-object-deletion-api-contract.json` trace the third
@@ -1044,10 +1106,12 @@ state; the Catch2 scenarios verify lower-bound validation, retraction-before-
 grant, exact-bound callback ordering, timestamp/order/retraction propagation,
 pending constrained-recipient suppression, and post-delivery `Request
 Retraction` for a nonconstrained directed recipient. The shared recipient
-planner honors the ownership/universal subscription selector, though the
-timestamped scenarios do not independently distinguish both modes. Directed
-DDM, alternate advance modes, region-context evidence, transport,
-package/catalog evidence, and conformance remain outside the contract.
+  planner honors the ownership/universal subscription selector. A focused
+  timestamped selector scenario now distinguishes both modes for known target
+  recipients and rechecks a selector change plus an unsubscription before
+  later grants. Directed DDM, alternate advance modes, region-context
+  evidence, transport, package/catalog evidence, and conformance remain
+  outside the contract.
 
 `compliance/timestamped-regional-interaction-requirements-contract.json` and
 `compliance/timestamped-regional-interaction-api-contract.json` trace the fifth
@@ -1084,7 +1148,10 @@ because the Lab exports no higher-level implementation mapping for this slice.
 `compliance/synchronization-point-requirements-contract.json` and
 `compliance/synchronization-point-api-contract.json` trace the bounded
 registration, announcement, achievement, late-join, and Federation Synchronized
-callbacks. They remain development-profile source/API traceability only; FOM/SOM
+callbacks under both callback models: the direct regression fixes the immediate
+registration, announcement, and completion boundaries, while the evoked case
+retains the late-join and duplicate-registration paths. They remain
+development-profile source/API traceability only; FOM/SOM
 synchronization-table enforcement, distributed transport, save/restore
 interaction, protected review, and conformance are separate work.
 

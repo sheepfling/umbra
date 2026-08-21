@@ -52,7 +52,9 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeDefaultAttributeOrderType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
       ]
     },
     {
@@ -62,7 +64,9 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeDefaultAttributeOrderType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
       ]
     },
     {
@@ -72,7 +76,9 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
       ]
     },
     {
@@ -92,7 +98,8 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeInteractionOrderType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Interaction Order Type arguments"
       ]
     }
   ]

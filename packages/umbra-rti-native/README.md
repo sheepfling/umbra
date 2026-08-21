@@ -1,9 +1,10 @@
 # umbra-rti-native
 
-The pybind11 provider for the Umbra C++ RTI. It is currently a source-checkout
-build: its CMake project adds Umbra's repository root and links the exact
-native target under development. This avoids claiming that the evolving C++
-SDK has a standalone binary-wheel ABI yet.
+The pybind11 provider for the Umbra C++ RTI. Its CMake project adds Umbra's
+repository root and links the exact native target under development. A
+platform wheel can be built for CI and installed-package entry-point tests,
+but the evolving C++ SDK does not yet promise a standalone redistributable
+binary-wheel ABI.
 
 It enables Umbra's source-tree-only embedded federation-management development
 profile. The implemented Python slice includes factory creation,

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 Unpublish Interaction Class service in Umbra's opt-in, non-installable development profile. The declaration transition makes the selected interaction class no longer publishable by the invoking federate. Its focused production-filesystem regression adds the successful-void service-report boundary: an invalid class appends nothing, while the accepted post-publication transition appends its type-27 InteractionClassHandle argument before any separately queued declaration advisories. Timestamped interaction behavior, advisory delivery matrices, MOM interaction delivery, save/restore, DDM, remote transport, catalog evidence, validation, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-unpublish-interaction-class-disables-the-invoking-publication",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+      "clause_id": "clause-5.5.2",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassPublication",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments"
+      ]
+    },
+    {
+      "id": "umbra-unpublish-interaction-class-file-report-follows-the-accepted-declaration-transition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unpublishInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments"
+      ]
+    }
+  ]
+}

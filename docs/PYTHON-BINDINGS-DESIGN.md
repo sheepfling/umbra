@@ -3,7 +3,8 @@
 ## Decision
 
 Umbra can support Python without creating a second RTI implementation. The
-initial implementation is intentionally split into two Python distributions:
+public contract and provider transports are intentionally split into small
+Python distributions:
 
 ~~~text
 hla-rti-api                   (pure Python; standard-shaped contracts)
@@ -17,7 +18,31 @@ umbra-rti-native              umbra-rti-jpype
         v                              v
 umbra::rti                    hla.rti1516_2025
 (official C++ binding)        (official Java binding)
+
+umbra-rti-jni-python
+(optional named adapter for Umbra's JNI bridge)
+        |
+        | API JAR + bridge JAR + native library
+        v
+umbra-rti-jpype -> Java ServiceLoader -> umbra::rti
 ~~~
+
+Umbra's Java-provider route crosses both native boundaries while retaining
+C++ as the only RTI semantics:
+
+~~~text
+umbra::rti  ->  JNI  ->  standard-shaped Java RTI façade  ->  JPype  ->  Python
+~~~
+
+`packages/umbra-rti-jni` owns Umbra's staged Java façade. It is not a third
+RTI implementation: pybind is the direct Umbra Python provider, and JPype
+selects either this Umbra Java façade or an independent vendor JAR. The
+optional `packages/umbra-rti-jni-python` package is only a named configuration
+adapter for that façade; it supplies no service methods or Java shadow state.
+The façade must never reimplement RTI semantics in Java or inherit them from a
+mock. It exposes a C++-bound service or an explicit
+`RTIinternalError` until that service is bound and tested. The ordinary JPype
+path must continue to accept arbitrary vendor Java RTI JARs independently.
 
 The distributions live in `packages/` so additional Python packages use the
 same layout without turning the C++ root project into an unstructured Python
@@ -38,8 +63,9 @@ hla.rti1516_2025.time
 `hla-rti-api` owns every public `hla.*` package. Provider distributions own
 only an Umbra-specific implementation namespace (currently
 `umbra._native.rti1516_2025` for pybind11 and
-`umbra._java.rti1516_2025` for JPype) and register an `RtiFactory` through
-Python entry points. This mirrors the 2025 Java
+`umbra._java.rti1516_2025` for JPype, with
+`umbra._java.jni_rti1516_2025` as the JNI adapter) and register an `RtiFactory`
+through Python entry points. This mirrors the 2025 Java
 `RtiFactoryFactory`/`ServiceLoader` discovery model without exposing native or
 Java objects as public API.
 
@@ -47,6 +73,13 @@ The `java` entry-point alias selects the JPype transport before it has to start
 a JVM. It is intentionally distinct from `JavaRtiFactory.rtiName()`, which
 returns the selected vendor Java factory's real standard name. This avoids
 loading every Java RTI during unrelated Python provider lookup.
+
+Both provider routes are held to the same Python parity gate. The native lane
+calls the C++ implementation through pybind11; the Java lane calls the exact
+2025 Java interfaces through JPype and, in the external-API lane, verifies
+assignability to `hla.rti1516_2025.RTIambassador` from the independently
+obtained IEEE API JAR. The gate is a bridge check, not a second Java RTI
+implementation.
 
 ## First capability slice
 
@@ -149,6 +182,8 @@ provider implementations.
 
 The optional Java adapter's configuration, lifecycle, and raw-object migration
 boundary are described in [Python Java adapter](PYTHON-JAVA-ADAPTER.md).
+The staged native-backed Umbra Java façade is described in
+[`packages/umbra-rti-jni`](../packages/umbra-rti-jni/README.md).
 The binding-first encoding mapping and its native implementation gate are in
 [Python encoding binding design](PYTHON-ENCODING-BINDING-DESIGN.md).
 
@@ -172,6 +207,15 @@ Run the native test with both source trees on `PYTHONPATH` and the installed
 wheel available. The first test asserts only the native foundation and must
 not be widened into a claim that Create/Join or other development-only C++
 services are Python-ready.
+
+The JNI lane is opt-in because it builds the C++ embedded development profile
+and starts a separate JVM process:
+
+~~~powershell
+$env:UMBRA_ENABLE_JNI_INTEGRATION_TESTS = '1'
+$env:UMBRA_JNI_REQUIRE_RUNTIME_SERVICE_COVERAGE = '1'
+python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
+~~~
 
 The reusable provider conformance suite and its mapping to the C++ connection
 tests are in [Python conformance testing](PYTHON-CONFORMANCE-TESTING.md).

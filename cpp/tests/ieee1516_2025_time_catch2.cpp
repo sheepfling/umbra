@@ -70,7 +70,7 @@ class ReferenceTimeAmbassador final
 
 TEST_CASE(
     "HLAinteger64Time implements the IEEE reference values, arithmetic, and HLAinteger64BE encoding",
-    "[baseline][time]") {
+    "[baseline][time][unit][foundation][time-management]") {
   HLAinteger64Time time(41);
   HLAinteger64Interval epsilon;
   epsilon.setEpsilon();
@@ -110,7 +110,7 @@ TEST_CASE(
   REQUIRE_THROWS_AS(HLAinteger64Time(-1), InvalidLogicalTime);
 }
 
-TEST_CASE("HLAinteger64Time reports malformed encodings and factory-decodes valid values", "[baseline][time]") {
+TEST_CASE("HLAinteger64Time reports malformed encodings and factory-decodes valid values", "[baseline][time][unit][foundation][time-management]") {
   HLAinteger64Time value;
   std::array<unsigned char, 7> const tooShort{};
   std::array<unsigned char, 8> const negative{0x80, 0, 0, 0, 0, 0, 0, 0};
@@ -131,7 +131,7 @@ TEST_CASE("HLAinteger64Time reports malformed encodings and factory-decodes vali
 
 TEST_CASE(
     "HLAfloat64Time uses finite IEEE boundaries and epsilon advances by a representable step",
-    "[baseline][time]") {
+    "[baseline][time][unit][foundation][time-management]") {
   constexpr double finalValue = std::numeric_limits<double>::max();
   constexpr double epsilonValue = std::numeric_limits<double>::denorm_min();
 
@@ -167,7 +167,7 @@ TEST_CASE(
   REQUIRE_THROWS_AS(HLAfloat64Time(std::numeric_limits<double>::infinity()), InvalidLogicalTime);
 }
 
-TEST_CASE("HLAfloat64Time rejects nonfinite encodings and factory-decodes HLAfloat64BE", "[baseline][time]") {
+TEST_CASE("HLAfloat64Time rejects nonfinite encodings and factory-decodes HLAfloat64BE", "[baseline][time][unit][foundation][time-management]") {
   HLAfloat64Time value;
   std::array<unsigned char, 8> const positiveInfinity{0x7F, 0xF0, 0, 0, 0, 0, 0, 0};
 
@@ -182,7 +182,7 @@ TEST_CASE("HLAfloat64Time rejects nonfinite encodings and factory-decodes HLAflo
   REQUIRE(factory.getName() == L"HLAfloat64Time");
 }
 
-TEST_CASE("IEEE reference factory selection returns both mandated names and defaults to HLAfloat64Time", "[baseline][time]") {
+TEST_CASE("IEEE reference factory selection returns both mandated names and defaults to HLAfloat64Time", "[baseline][time][unit][foundation][time-management]") {
   auto defaultFactory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(L"");
   REQUIRE(defaultFactory);
   REQUIRE(defaultFactory->getName() == L"HLAfloat64Time");
@@ -208,7 +208,7 @@ TEST_CASE("IEEE reference factory selection returns both mandated names and defa
 
 TEST_CASE(
     "HLAlogicalTime delegates opaque bytes to the selected reference factory",
-    "[baseline][time][logical-time-encoding]") {
+    "[baseline][time][logical-time-encoding][unit][foundation][time-management]") {
   ReferenceTimeAmbassador floatAmbassador(L"HLAfloat64Time");
   ReferenceTimeAmbassador integerAmbassador(L"HLAinteger64Time");
   HLAlogicalTime value(&floatAmbassador);
@@ -262,7 +262,7 @@ TEST_CASE(
 
 TEST_CASE(
     "HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory",
-    "[baseline][time][logical-time-encoding]") {
+    "[baseline][time][logical-time-encoding][unit][foundation][time-management]") {
   ReferenceTimeAmbassador integerAmbassador(L"HLAinteger64Time");
   ReferenceTimeAmbassador floatAmbassador(L"HLAfloat64Time");
   HLAlogicalTimeInterval value(&integerAmbassador);

@@ -17,9 +17,47 @@ from .core import (
     FederationExecutionMemberInformationSet,
     RtiFactory,
     RtiConfiguration,
+    RTIambassador,
 )
 from .auth import HLAnoCredentials
 from .exceptions import AlreadyConnected, NotConnected, UnsupportedCallbackModel
+from .encoding import EncoderFactory
+
+
+class ProviderBindingParityConformanceMixin:
+    """Run the same public Python calls against any provider factory.
+
+    This deliberately knows nothing about pybind11, JNI, JPype, or Java
+    objects. Applying it to the native and Java-provider test classes proves
+    that both transports implement the same Python contract and that basic
+    encoding remains provider-owned at each boundary.
+    """
+
+    @abstractmethod
+    def make_factory(self) -> RtiFactory:
+        """Return the provider factory under test."""
+
+    def test_provider_factory_and_encoder_use_shared_python_types(self) -> None:
+        factory = self.make_factory()
+        self.assertIsInstance(factory, RtiFactory)
+        self.assertIsInstance(factory.rtiName(), str)
+        self.assertTrue(factory.rtiName())
+        self.assertIsInstance(factory.rtiVersion(), str)
+        self.assertTrue(factory.rtiVersion())
+
+        encoder_factory = factory.getEncoderFactory()
+        self.assertIsInstance(encoder_factory, EncoderFactory)
+        value = encoder_factory.createHLAinteger32BE(-7)
+        self.assertEqual(value.getValue(), -7)
+        self.assertEqual(value.toByteArray(), b"\xff\xff\xff\xf9")
+
+    def test_provider_ambassador_uses_shared_connection_contract(self) -> None:
+        ambassador = self.make_factory().getRtiAmbassador()
+        self.assertIsInstance(ambassador, RTIambassador)
+        result = ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED)
+        self.assertIsInstance(result, ConfigurationResult)
+        self.assertFalse(ambassador.evokeCallback(0.0))
+        ambassador.disconnect()
 
 
 class ConnectionFoundationConformanceMixin:

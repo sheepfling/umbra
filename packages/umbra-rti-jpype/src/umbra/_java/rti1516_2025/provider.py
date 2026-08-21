@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import math
+from pathlib import Path
 from typing import Any, Callable, TypeVar
 
 from hla.rti1516_2025 import (
@@ -14,6 +16,9 @@ from hla.rti1516_2025 import (
     AttributeHandleValueMap,
     AttributeHandleValueMapFactory,
     AttributeSetRegionSetPairList,
+    AttributeRegionAssociation,
+    AttributeSetRegionSetPairListFactory,
+    MutableAttributeSetRegionSetPairList,
     CallbackModel,
     ConfigurationResult,
     DimensionHandle,
@@ -29,6 +34,7 @@ from hla.rti1516_2025 import (
     InteractionClassHandle,
     InteractionClassHandleFactory,
     InteractionClassHandleSet,
+    InteractionClassHandleSetFactory,
     HLAfloat64Interval,
     HLAfloat64Time,
     HLAfloat64TimeFactory,
@@ -39,6 +45,7 @@ from hla.rti1516_2025 import (
     LogicalTimeFactory,
     LogicalTimeInterval,
     MessageRetractionHandle,
+    MessageRetractionHandleFactory,
     ObjectClassHandle,
     ObjectClassHandleFactory,
     ObjectInstanceHandle,
@@ -68,10 +75,19 @@ from hla.rti1516_2025 import (
     MutableFederateHandleSet,
     MutableParameterHandleValueMap,
     MutableRegionHandleSet,
+    MutableInteractionClassHandleSet,
 )
 from hla.rti1516_2025.core import _require_callback_model, _resolve_connect_arguments
 from hla.rti1516_2025.encoding import EncoderFactory
-from hla.rti1516_2025.exceptions import RTIexception, RTIinternalError, exceptionForName
+from hla.rti1516_2025.exceptions import (
+    CouldNotDecode,
+    InvalidLogicalTime,
+    InvalidLogicalTimeInterval,
+    IllegalTimeArithmetic,
+    RTIexception,
+    RTIinternalError,
+    exceptionForName,
+)
 
 from ._runtime import JPypeJavaRuntime, JavaCallbackBinding, JavaRuntime
 from .config import JavaProviderConfiguration
@@ -80,12 +96,34 @@ from .encoding import JavaEncoderFactory
 _Result = TypeVar("_Result")
 
 
+def _simple_java_exception_name(name: str) -> str:
+    """Normalize simple, qualified, and nested Java exception names."""
+
+    return name.rsplit(".", 1)[-1].rsplit("$", 1)[-1]
+
+
+class _UnsupportedJavaArithmetic(Exception):
+    """Internal marker for a legacy Java fixture's unimplemented distance."""
+
+
 def _java_time_value(value: object) -> object:
     exact = getattr(value, "getTimeValue", None)
     if exact is not None:
         return exact()
     legacy = getattr(value, "getTime", None)
-    return legacy() if legacy is not None else None
+    if legacy is not None:
+        return legacy()
+    standard = getattr(value, "getValue", None)
+    return standard() if standard is not None else None
+
+
+def _java_time_implementation_name(value: object, numeric: object) -> str:
+    """Identify standard time carriers without requiring vendor extensions."""
+
+    legacy = getattr(value, "implementationName", None)
+    if callable(legacy):
+        return str(legacy())
+    return "HLAfloat64Time" if isinstance(numeric, float) else "HLAinteger64Time"
 
 
 def _java_interval_value(value: object) -> object:
@@ -93,7 +131,10 @@ def _java_interval_value(value: object) -> object:
     if exact is not None:
         return exact()
     legacy = getattr(value, "getInterval", None)
-    return legacy() if legacy is not None else None
+    if legacy is not None:
+        return legacy()
+    standard = getattr(value, "getValue", None)
+    return standard() if standard is not None else None
 _Handle = TypeVar("_Handle")
 
 
@@ -139,8 +180,8 @@ def _attribute_handle_bytes(attributes: object) -> tuple[bytes, ...]:
 
 
 def _interaction_class_handle_bytes(interactions: object) -> tuple[bytes, ...]:
-    if not isinstance(interactions, InteractionClassHandleSet):
-        raise TypeError("interactionClasses must be InteractionClassHandleSet")
+    if not isinstance(interactions, (InteractionClassHandleSet, MutableInteractionClassHandleSet)):
+        raise TypeError("interactionClasses must be InteractionClassHandleSet or its factory builder")
     return tuple(
         _encoded_handle(interaction, InteractionClassHandle) for interaction in interactions
     )
@@ -170,8 +211,10 @@ def _attribute_value_pairs(values: object) -> tuple[tuple[bytes, bytes], ...]:
 def _attribute_region_pairs(
     values: object,
 ) -> tuple[tuple[tuple[bytes, ...], tuple[bytes, ...]], ...]:
-    if not isinstance(values, AttributeSetRegionSetPairList):
-        raise TypeError("attributesAndRegions must be AttributeSetRegionSetPairList")
+    if not isinstance(values, (AttributeSetRegionSetPairList, MutableAttributeSetRegionSetPairList)):
+        raise TypeError(
+            "attributesAndRegions must be AttributeSetRegionSetPairList or its factory builder"
+        )
     return tuple(
         (
             _attribute_handle_bytes(pair.attributes),
@@ -208,12 +251,36 @@ class _JavaTimeFactoryBase:
         self._runtime = runtime
         self._java_factory = java_factory
 
+    def _factory_call(self, function: Callable[..., _Result], *args: object) -> _Result:
+        """Translate checked Java time-factory failures at the Python edge.
+
+        The standard Java factory methods are called directly rather than
+        through ``RTIambassador._call``.  JPype therefore exposes exceptions
+        such as ``InvalidLogicalTime`` as Java proxy classes unless this edge
+        performs the same name-based translation as the ambassador path.
+        """
+        try:
+            return function(*args)
+        except RTIexception:
+            raise
+        except Exception as error:
+            name = self._runtime.exception_name(error)
+            if name is None:
+                raise RTIinternalError(f"Java logical-time factory call failed: {error}") from error
+            raise exceptionForName(_simple_java_exception_name(name), str(error)) from error
+
     def implementationName(self) -> str:
-        return str(self._java_factory.getName())
+        return str(self._factory_call(self._java_factory.getName))
 
     def _time(self, value: object) -> LogicalTime:
         implementation = self.implementationName()
         numeric = _java_time_value(value)
+        try:
+            invalid = numeric is None or float(numeric) < 0.0 or not math.isfinite(float(numeric))
+        except (TypeError, ValueError, OverflowError):
+            invalid = True
+        if invalid:
+            raise InvalidLogicalTime("Java provider returned an invalid logical-time value")
         value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
         return value_type(
             self._runtime.handle_bytes(value),
@@ -227,6 +294,14 @@ class _JavaTimeFactoryBase:
     def _interval(self, value: object) -> LogicalTimeInterval:
         implementation = self.implementationName()
         numeric = _java_interval_value(value)
+        try:
+            invalid = numeric is None or float(numeric) < 0.0 or not math.isfinite(float(numeric))
+        except (TypeError, ValueError, OverflowError):
+            invalid = True
+        if invalid:
+            raise InvalidLogicalTimeInterval(
+                "Java provider returned an invalid logical-time interval value"
+            )
         value_type = (
             HLAinteger64Interval if implementation == "HLAinteger64Time" else HLAfloat64Interval
         )
@@ -240,73 +315,173 @@ class _JavaTimeFactoryBase:
         )
 
     def makeInitial(self) -> LogicalTime:
-        return self._time(self._java_factory.makeInitial())
+        return self._time(self._factory_call(self._java_factory.makeInitial))
 
     def makeFinal(self) -> LogicalTime:
-        return self._time(self._java_factory.makeFinal())
+        return self._time(self._factory_call(self._java_factory.makeFinal))
 
     def makeZero(self) -> LogicalTimeInterval:
-        return self._interval(self._java_factory.makeZero())
+        return self._interval(self._factory_call(self._java_factory.makeZero))
 
     def makeEpsilon(self) -> LogicalTimeInterval:
-        return self._interval(self._java_factory.makeEpsilon())
+        return self._interval(self._factory_call(self._java_factory.makeEpsilon))
 
     def decodeLogicalTime(self, encodedValue: bytes) -> LogicalTime:
-        return self._time(self._runtime.decode_logical_time(self._ambassador, bytes(encodedValue)))
+        encoded = bytes(encodedValue)
+        if len(encoded) != 8:
+            raise CouldNotDecode("Logical-time encoding must contain exactly eight bytes")
+        try:
+            return self._time(
+                self._runtime.decode_logical_time(self._ambassador, encoded)
+            )
+        except (InvalidLogicalTime, CouldNotDecode) as error:
+            if isinstance(error, CouldNotDecode):
+                raise
+            raise CouldNotDecode(f"Could not decode logical time: {error}") from error
+        except RTIexception:
+            raise
+        except Exception as error:
+            raise CouldNotDecode(f"Could not decode logical time: {error}") from error
 
     def decodeLogicalTimeInterval(self, encodedValue: bytes) -> LogicalTimeInterval:
-        return self._interval(
-            self._runtime.decode_logical_interval(self._ambassador, bytes(encodedValue))
-        )
+        encoded = bytes(encodedValue)
+        if len(encoded) != 8:
+            raise CouldNotDecode("Logical-time interval encoding must contain exactly eight bytes")
+        try:
+            return self._interval(
+                self._runtime.decode_logical_interval(self._ambassador, encoded)
+            )
+        except (InvalidLogicalTimeInterval, CouldNotDecode) as error:
+            if isinstance(error, CouldNotDecode):
+                raise
+            raise CouldNotDecode(f"Could not decode logical-time interval: {error}") from error
+        except RTIexception:
+            raise
+        except Exception as error:
+            raise CouldNotDecode(f"Could not decode logical-time interval: {error}") from error
+
+    def _require_time(self, value: LogicalTime, name: str) -> None:
+        if value.implementationName() != self.implementationName():
+            raise InvalidLogicalTime(
+                f"{name} uses {value.implementationName()}, expected {self.implementationName()}"
+            )
+
+    def _require_interval(self, value: LogicalTimeInterval, name: str) -> None:
+        if value.implementationName() != self.implementationName():
+            raise InvalidLogicalTimeInterval(
+                f"{name} uses {value.implementationName()}, expected {self.implementationName()}"
+            )
+
+    def _arithmetic_call(
+        self,
+        function: Callable[..., _Result],
+        *args: object,
+        allow_unsupported: bool = False,
+    ) -> _Result:
+        try:
+            return function(*args)
+        except RTIexception:
+            raise
+        except Exception as error:
+            name = self._runtime.exception_name(error)
+            if name is None:
+                raise RTIinternalError(f"Java logical-time arithmetic failed: {error}") from error
+            name = _simple_java_exception_name(name)
+            if allow_unsupported and name == "UnsupportedOperationException":
+                raise _UnsupportedJavaArithmetic(str(error)) from error
+            if name in {"ArithmeticException", "IllegalArgumentException"}:
+                raise IllegalTimeArithmetic(str(error)) from error
+            raise exceptionForName(name, str(error)) from error
 
     def add(self, time: LogicalTime, addend: LogicalTimeInterval) -> LogicalTime:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         if not isinstance(addend, LogicalTimeInterval):
             raise TypeError("addend must be LogicalTimeInterval")
+        self._require_time(time, "time")
+        self._require_interval(addend, "addend")
         java_time = self._runtime.decode_logical_time(self._ambassador, time.toByteArray())
         java_addend = self._runtime.decode_logical_interval(self._ambassador, addend.toByteArray())
-        return self._time(java_time.add(java_addend))
+        return self._time(self._arithmetic_call(java_time.add, java_addend))
 
     def subtract(self, time: LogicalTime, subtrahend: LogicalTimeInterval) -> LogicalTime:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
         if not isinstance(subtrahend, LogicalTimeInterval):
             raise TypeError("subtrahend must be LogicalTimeInterval")
+        self._require_time(time, "time")
+        self._require_interval(subtrahend, "subtrahend")
         java_time = self._runtime.decode_logical_time(self._ambassador, time.toByteArray())
         java_subtrahend = self._runtime.decode_logical_interval(
             self._ambassador, subtrahend.toByteArray()
         )
-        return self._time(java_time.subtract(java_subtrahend))
+        return self._time(self._arithmetic_call(java_time.subtract, java_subtrahend))
 
     def difference(self, minuend: LogicalTime, subtrahend: LogicalTime) -> LogicalTimeInterval:
         if not isinstance(minuend, LogicalTime):
             raise TypeError("minuend must be LogicalTime")
         if not isinstance(subtrahend, LogicalTime):
             raise TypeError("subtrahend must be LogicalTime")
+        self._require_time(minuend, "minuend")
+        self._require_time(subtrahend, "subtrahend")
         java_minuend = self._runtime.decode_logical_time(self._ambassador, minuend.toByteArray())
         java_subtrahend = self._runtime.decode_logical_time(
             self._ambassador, subtrahend.toByteArray()
         )
-        java_difference = self._java_factory.makeZero()
-        java_difference.setToDifference(java_minuend, java_subtrahend)
+        # IEEE 1516.1-2025 Java time carriers expose ``distance`` on
+        # LogicalTime.  Older compact fixtures expose the C++-shaped
+        # ``LogicalTimeInterval.setToDifference`` mutator as a compatibility
+        # operation and may declare distance while deliberately leaving it
+        # unsupported. Prefer the exact standard operation whenever it is
+        # implemented, falling back only for that explicit legacy shape.
+        distance = getattr(java_minuend, "distance", None)
+        if distance is not None:
+            java_difference = self._factory_call(self._java_factory.makeZero)
+            set_to_difference = getattr(java_difference, "setToDifference", None)
+            try:
+                return self._interval(
+                    self._arithmetic_call(
+                        distance,
+                        java_subtrahend,
+                        allow_unsupported=set_to_difference is not None,
+                    )
+                )
+            except _UnsupportedJavaArithmetic:
+                if set_to_difference is None:
+                    raise
+            self._arithmetic_call(set_to_difference, java_minuend, java_subtrahend)
+            return self._interval(java_difference)
+        java_difference = self._factory_call(self._java_factory.makeZero)
+        self._arithmetic_call(java_difference.setToDifference, java_minuend, java_subtrahend)
         return self._interval(java_difference)
 
 
 class _JavaInteger64TimeFactory(_JavaTimeFactoryBase, HLAinteger64TimeFactory):
     def makeLogicalTime(self, value: int) -> HLAinteger64Time:
-        return self._time(self._java_factory.makeLogicalTime(int(value)))  # type: ignore[return-value]
+        method = getattr(self._java_factory, "makeTime", None)
+        if method is None:
+            method = self._java_factory.makeLogicalTime
+        return self._time(self._factory_call(method, int(value)))  # type: ignore[return-value]
 
     def makeLogicalTimeInterval(self, value: int) -> HLAinteger64Interval:
-        return self._interval(self._java_factory.makeLogicalTimeInterval(int(value)))  # type: ignore[return-value]
+        method = getattr(self._java_factory, "makeInterval", None)
+        if method is None:
+            method = self._java_factory.makeLogicalTimeInterval
+        return self._interval(self._factory_call(method, int(value)))  # type: ignore[return-value]
 
 
 class _JavaFloat64TimeFactory(_JavaTimeFactoryBase, HLAfloat64TimeFactory):
     def makeLogicalTime(self, value: float) -> HLAfloat64Time:
-        return self._time(self._java_factory.makeLogicalTime(float(value)))  # type: ignore[return-value]
+        method = getattr(self._java_factory, "makeTime", None)
+        if method is None:
+            method = self._java_factory.makeLogicalTime
+        return self._time(self._factory_call(method, float(value)))  # type: ignore[return-value]
 
     def makeLogicalTimeInterval(self, value: float) -> HLAfloat64Interval:
-        return self._interval(self._java_factory.makeLogicalTimeInterval(float(value)))  # type: ignore[return-value]
+        method = getattr(self._java_factory, "makeInterval", None)
+        if method is None:
+            method = self._java_factory.makeLogicalTimeInterval
+        return self._interval(self._factory_call(method, float(value)))  # type: ignore[return-value]
 
 
 class _JavaHandleFactory(HandleFactory):
@@ -370,6 +545,12 @@ class _JavaRegionHandleFactory(_JavaHandleFactory, RegionHandleFactory):
     pass
 
 
+class _JavaMessageRetractionHandleFactory(
+    _JavaHandleFactory, MessageRetractionHandleFactory
+):
+    pass
+
+
 class _JavaSetFactory:
     """Common Java set-factory adapter returning Python mutable builders."""
 
@@ -394,7 +575,7 @@ class _JavaMapFactory:
 
     def create(self) -> Any:
         factory = self._owner._call(getattr(self._owner._implementation, self._method_name))
-        self._owner._call(getattr(factory, "create"))
+        self._owner._call(getattr(factory, "create"), 0)
         return self._builder_type()
 
 
@@ -414,6 +595,29 @@ class _JavaRegionHandleSetFactory(_JavaSetFactory, RegionHandleSetFactory):
     pass
 
 
+class _JavaInteractionClassHandleSetFactory(_JavaSetFactory, InteractionClassHandleSetFactory):
+    pass
+
+
+class _JavaAttributeSetRegionSetPairListFactory(AttributeSetRegionSetPairListFactory):
+    """Adapter for the 2025 Java pair-list factory.
+
+    The compact in-repository fixture predates this factory.  In that lane we
+    retain a provider-neutral Python builder; official 2025 Java providers
+    still receive the exact ``create(int)`` invocation.
+    """
+
+    def __init__(self, owner: "JavaRTIambassador") -> None:
+        self._owner = owner
+
+    def create(self, capacity: int = 0) -> MutableAttributeSetRegionSetPairList:
+        factory_method = getattr(self._owner._implementation, "getAttributeSetRegionSetPairListFactory", None)
+        if factory_method is not None:
+            factory = self._owner._call(factory_method)
+            self._owner._call(getattr(factory, "create"), int(capacity))
+        return MutableAttributeSetRegionSetPairList(int(capacity))
+
+
 class _JavaAttributeHandleValueMapFactory(_JavaMapFactory, AttributeHandleValueMapFactory):
     pass
 
@@ -430,6 +634,9 @@ class JavaRTIambassador(RTIambassador):
         self._runtime = runtime
         self._callback_binding: JavaCallbackBinding | None = None
         self._message_retractions: dict[bytes, object] = {}
+
+    def getHLAversion(self) -> str:
+        return str(self._call(getattr(self._implementation, "getHLAversion")))
 
     def connect(
         self,
@@ -619,14 +826,19 @@ class JavaRTIambassador(RTIambassador):
             _attribute_handle_bytes(attributes),
         )
 
-    def _interaction_class_set(self, interactions: InteractionClassHandleSet) -> object:
+    def _interaction_class_set(
+        self, interactions: InteractionClassHandleSet | MutableInteractionClassHandleSet
+    ) -> object:
         return self._call(
             self._runtime.interaction_class_set,
             self._implementation,
             _interaction_class_handle_bytes(interactions),
         )
 
-    def _attribute_region_pair_list(self, values: AttributeSetRegionSetPairList) -> object:
+    def _attribute_region_pair_list(
+        self,
+        values: AttributeSetRegionSetPairList | MutableAttributeSetRegionSetPairList,
+    ) -> object:
         return self._call(
             self._runtime.attribute_set_region_set_pair_list,
             self._implementation,
@@ -703,15 +915,33 @@ class JavaRTIambassador(RTIambassador):
         active: bool = True,
         updateRateDesignator: str = "",
     ) -> None:
-        self._call(
-            getattr(self._implementation, "subscribeObjectClassAttributes"),
+        arguments: list[object] = [
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
             ),
             self._attribute_handle_set(attributes),
-            bool(active),
-            str(updateRateDesignator),
+        ]
+        if updateRateDesignator:
+            arguments.append(str(updateRateDesignator))
+        method = (
+            "subscribeObjectClassAttributes"
+            if active
+            else "subscribeObjectClassAttributesPassively"
+        )
+        self._call(getattr(self._implementation, method), *arguments)
+
+    def subscribeObjectClassAttributesPassively(
+        self,
+        objectClass: ObjectClassHandle,
+        attributes: AttributeHandleSet,
+        updateRateDesignator: str = "",
+    ) -> None:
+        self._call(
+            getattr(self._implementation, "subscribeObjectClassAttributesPassively"),
+            self._decode_handle("getObjectClassHandleFactory", _encoded_handle(objectClass, ObjectClassHandle)),
+            self._attribute_handle_set(attributes),
+            *([str(updateRateDesignator)] if updateRateDesignator else []),
         )
 
     def subscribeObjectClassDirectedInteractions(
@@ -721,14 +951,29 @@ class JavaRTIambassador(RTIambassador):
         *,
         universally: bool = False,
     ) -> None:
+        method = (
+            "subscribeObjectClassDirectedInteractionsUniversally"
+            if universally
+            else "subscribeObjectClassDirectedInteractions"
+        )
         self._call(
-            getattr(self._implementation, "subscribeObjectClassDirectedInteractions"),
+            getattr(self._implementation, method),
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
             ),
             self._interaction_class_set(interactionClasses),
-            bool(universally),
+        )
+
+    def subscribeObjectClassDirectedInteractionsUniversally(
+        self,
+        objectClass: ObjectClassHandle,
+        interactionClasses: InteractionClassHandleSet | MutableInteractionClassHandleSet,
+    ) -> None:
+        self._call(
+            getattr(self._implementation, "subscribeObjectClassDirectedInteractionsUniversally"),
+            self._decode_handle("getObjectClassHandleFactory", _encoded_handle(objectClass, ObjectClassHandle)),
+            self._interaction_class_set(interactionClasses),
         )
 
     def unsubscribeObjectClass(self, objectClass: ObjectClassHandle) -> None:
@@ -775,15 +1020,33 @@ class JavaRTIambassador(RTIambassador):
         active: bool = True,
         updateRateDesignator: str = "",
     ) -> None:
-        self._call(
-            getattr(self._implementation, "subscribeObjectClassAttributesWithRegions"),
+        arguments: list[object] = [
             self._decode_handle(
                 "getObjectClassHandleFactory",
                 _encoded_handle(objectClass, ObjectClassHandle),
             ),
             self._attribute_region_pair_list(attributesAndRegions),
-            bool(active),
-            str(updateRateDesignator),
+        ]
+        if updateRateDesignator:
+            arguments.append(str(updateRateDesignator))
+        method = (
+            "subscribeObjectClassAttributesWithRegions"
+            if active
+            else "subscribeObjectClassAttributesPassivelyWithRegions"
+        )
+        self._call(getattr(self._implementation, method), *arguments)
+
+    def subscribeObjectClassAttributesPassivelyWithRegions(
+        self,
+        objectClass: ObjectClassHandle,
+        attributesAndRegions: AttributeSetRegionSetPairList | MutableAttributeSetRegionSetPairList,
+        updateRateDesignator: str = "",
+    ) -> None:
+        self._call(
+            getattr(self._implementation, "subscribeObjectClassAttributesPassivelyWithRegions"),
+            self._decode_handle("getObjectClassHandleFactory", _encoded_handle(objectClass, ObjectClassHandle)),
+            self._attribute_region_pair_list(attributesAndRegions),
+            *([str(updateRateDesignator)] if updateRateDesignator else []),
         )
 
     def unsubscribeObjectClassAttributesWithRegions(
@@ -821,13 +1084,21 @@ class JavaRTIambassador(RTIambassador):
     def subscribeInteractionClass(
         self, interactionClass: InteractionClassHandle, *, active: bool = True
     ) -> None:
+        method = "subscribeInteractionClass" if active else "subscribeInteractionClassPassively"
         self._call(
-            getattr(self._implementation, "subscribeInteractionClass"),
+            getattr(self._implementation, method),
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
             ),
-            bool(active),
+        )
+
+    def subscribeInteractionClassPassively(
+        self, interactionClass: InteractionClassHandle
+    ) -> None:
+        self._call(
+            getattr(self._implementation, "subscribeInteractionClassPassively"),
+            self._decode_handle("getInteractionClassHandleFactory", _encoded_handle(interactionClass, InteractionClassHandle)),
         )
 
     def unsubscribeInteractionClass(self, interactionClass: InteractionClassHandle) -> None:
@@ -989,8 +1260,11 @@ class JavaRTIambassador(RTIambassador):
     ) -> MessageRetractionHandle:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
+        implementation = getattr(self._implementation, "deleteObjectInstanceWithTime", None)
+        if implementation is None:
+            implementation = getattr(self._implementation, "deleteObjectInstance")
         raw_handle = self._call(
-            getattr(self._implementation, "deleteObjectInstanceWithTime"),
+            implementation,
             self._decode_handle(
                 "getObjectInstanceHandleFactory", _encoded_handle(objectInstance, ObjectInstanceHandle)
             ),
@@ -1028,8 +1302,11 @@ class JavaRTIambassador(RTIambassador):
     ) -> MessageRetractionHandle:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
+        implementation = getattr(self._implementation, "updateAttributeValuesWithTime", None)
+        if implementation is None:
+            implementation = getattr(self._implementation, "updateAttributeValues")
         raw_handle = self._call(
-            getattr(self._implementation, "updateAttributeValuesWithTime"),
+            implementation,
             self._decode_handle(
                 "getObjectInstanceHandleFactory", _encoded_handle(objectInstance, ObjectInstanceHandle)
             ),
@@ -1428,8 +1705,11 @@ class JavaRTIambassador(RTIambassador):
     ) -> MessageRetractionHandle:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
+        implementation = getattr(self._implementation, "sendInteractionWithTime", None)
+        if implementation is None:
+            implementation = getattr(self._implementation, "sendInteraction")
         raw_handle = self._call(
-            getattr(self._implementation, "sendInteractionWithTime"),
+            implementation,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1506,8 +1786,13 @@ class JavaRTIambassador(RTIambassador):
         *,
         active: bool = True,
     ) -> None:
+        method = (
+            "subscribeInteractionClassWithRegions"
+            if active
+            else "subscribeInteractionClassPassivelyWithRegions"
+        )
         self._call(
-            getattr(self._implementation, "subscribeInteractionClassWithRegions"),
+            getattr(self._implementation, method),
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1517,7 +1802,19 @@ class JavaRTIambassador(RTIambassador):
                 self._implementation,
                 _region_handle_bytes(regions),
             ),
-            bool(active),
+        )
+
+    def subscribeInteractionClassPassivelyWithRegions(
+        self, interactionClass: InteractionClassHandle, regions: RegionHandleSet
+    ) -> None:
+        self._call(
+            getattr(self._implementation, "subscribeInteractionClassPassivelyWithRegions"),
+            self._decode_handle("getInteractionClassHandleFactory", _encoded_handle(interactionClass, InteractionClassHandle)),
+            self._call(
+                self._runtime.region_handle_set,
+                self._implementation,
+                _region_handle_bytes(regions),
+            ),
         )
 
     def unsubscribeInteractionClassWithRegions(
@@ -1572,8 +1869,11 @@ class JavaRTIambassador(RTIambassador):
     ) -> MessageRetractionHandle:
         if not isinstance(time, LogicalTime):
             raise TypeError("time must be LogicalTime")
+        implementation = getattr(self._implementation, "sendInteractionWithRegionsWithTime", None)
+        if implementation is None:
+            implementation = getattr(self._implementation, "sendInteractionWithRegions")
         raw_handle = self._call(
-            getattr(self._implementation, "sendInteractionWithRegionsWithTime"),
+            implementation,
             self._decode_handle(
                 "getInteractionClassHandleFactory",
                 _encoded_handle(interactionClass, InteractionClassHandle),
@@ -1597,7 +1897,14 @@ class JavaRTIambassador(RTIambassador):
         encoded = _encoded_handle(retraction, MessageRetractionHandle)
         raw_handle = self._message_retractions.get(encoded)
         if raw_handle is None:
-            raise RTIinternalError("MessageRetractionHandle was not returned by this Java ambassador")
+            # The standard API accepts any provider-decoded handle here.  Do
+            # not turn an unknown-but-well-formed value into a Python-side
+            # RTIinternalError: the C++ RTI owns the handle ledger and must
+            # report InvalidMessageRetractionHandle (or its other standard
+            # failure) through the Java exception boundary.
+            raw_handle = self._decode_handle(
+                "getMessageRetractionHandleFactory", encoded
+            )
         self._call(
             getattr(self._implementation, "retract"),
             raw_handle,
@@ -1626,6 +1933,13 @@ class JavaRTIambassador(RTIambassador):
             self, "getInteractionClassHandleFactory", InteractionClassHandle
         )
 
+    def getInteractionClassHandleSetFactory(self) -> InteractionClassHandleSetFactory:
+        return _JavaInteractionClassHandleSetFactory(
+            self,
+            "getInteractionClassHandleSetFactory",
+            MutableInteractionClassHandleSet,
+        )
+
     def getParameterHandleFactory(self) -> ParameterHandleFactory:
         self._call(getattr(self._implementation, "getParameterHandleFactory"))
         return _JavaParameterHandleFactory(self, "getParameterHandleFactory", ParameterHandle)
@@ -1643,6 +1957,14 @@ class JavaRTIambassador(RTIambassador):
     def getRegionHandleFactory(self) -> RegionHandleFactory:
         self._call(getattr(self._implementation, "getRegionHandleFactory"))
         return _JavaRegionHandleFactory(self, "getRegionHandleFactory", RegionHandle)
+
+    def getMessageRetractionHandleFactory(self) -> MessageRetractionHandleFactory:
+        self._call(getattr(self._implementation, "getMessageRetractionHandleFactory"))
+        return _JavaMessageRetractionHandleFactory(
+            self,
+            "getMessageRetractionHandleFactory",
+            MessageRetractionHandle,
+        )
 
     def getObjectInstanceHandleFactory(self) -> ObjectInstanceHandleFactory:
         self._call(getattr(self._implementation, "getObjectInstanceHandleFactory"))
@@ -1674,6 +1996,9 @@ class JavaRTIambassador(RTIambassador):
         return _JavaParameterHandleValueMapFactory(
             self, "getParameterHandleValueMapFactory", MutableParameterHandleValueMap
         )
+
+    def getAttributeSetRegionSetPairListFactory(self) -> AttributeSetRegionSetPairListFactory:
+        return _JavaAttributeSetRegionSetPairListFactory(self)
 
     def createRegion(self, dimensions: DimensionHandleSet) -> RegionHandle:
         raw_handle = self._call(
@@ -1717,7 +2042,12 @@ class JavaRTIambassador(RTIambassador):
             self._decode_handle("getRegionHandleFactory", _encoded_handle(region, RegionHandle)),
             self._decode_handle("getDimensionHandleFactory", _encoded_handle(dimension, DimensionHandle)),
         )
-        return RangeBounds(int(raw_bounds.getLowerBound()), int(raw_bounds.getUpperBound()))
+        lower = getattr(raw_bounds, "lower", None)
+        upper = getattr(raw_bounds, "upper", None)
+        if lower is None or upper is None:
+            lower = raw_bounds.getLowerBound()
+            upper = raw_bounds.getUpperBound()
+        return RangeBounds(int(lower), int(upper))
 
     def setRangeBounds(
         self,
@@ -1844,6 +2174,12 @@ class JavaRTIambassador(RTIambassador):
             self._call(getattr(self._implementation, "getSendServiceReportsToFileSwitch"))
         )
 
+    def setSendServiceReportsToFileSwitch(self, switchValue: bool) -> None:
+        self._call(
+            getattr(self._implementation, "setSendServiceReportsToFileSwitch"),
+            bool(switchValue),
+        )
+
     def getAutoProvideSwitch(self) -> bool:
         return bool(self._call(getattr(self._implementation, "getAutoProvideSwitch")))
 
@@ -1913,11 +2249,11 @@ class JavaRTIambassador(RTIambassador):
 
     def queryLookahead(self) -> LogicalTimeInterval:
         raw = self._call(getattr(self._implementation, "queryLookahead"))
-        implementation = str(raw.implementationName())
+        numeric = _java_interval_value(raw)
+        implementation = _java_time_implementation_name(raw, numeric)
         interval_type = (
             HLAinteger64Interval if implementation == "HLAinteger64Time" else HLAfloat64Interval
         )
-        numeric = _java_interval_value(raw)
         return interval_type(
             self._runtime.handle_bytes(raw),
             implementation,
@@ -1989,8 +2325,8 @@ class JavaRTIambassador(RTIambassador):
 
     def queryLogicalTime(self) -> LogicalTime:
         raw = self._call(getattr(self._implementation, "queryLogicalTime"))
-        implementation = str(raw.implementationName())
         numeric = _java_time_value(raw)
+        implementation = _java_time_implementation_name(raw, numeric)
         value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
         return value_type(
             self._runtime.handle_bytes(raw),
@@ -2007,8 +2343,8 @@ class JavaRTIambassador(RTIambassador):
         if not valid:
             return TimeQueryResult(False, None)
         value = raw.time
-        implementation = str(value.implementationName())
         numeric = _java_time_value(value)
+        implementation = _java_time_implementation_name(value, numeric)
         value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
         return TimeQueryResult(
             True,
@@ -2039,6 +2375,12 @@ class JavaRTIambassador(RTIambassador):
         )
 
     def _remember_retraction(self, raw_handle: object) -> MessageRetractionHandle:
+        valid = getattr(raw_handle, "retractionHandleIsValid", True)
+        if not bool(valid):
+            raise RTIinternalError("Java RTI did not issue a valid message-retraction handle")
+        raw_handle = getattr(raw_handle, "handle", raw_handle)
+        if raw_handle is None:
+            raise RTIinternalError("Java RTI returned no message-retraction handle")
         encoded = self._runtime.handle_bytes(raw_handle)
         self._message_retractions[encoded] = raw_handle
         return MessageRetractionHandle(encoded)
@@ -2363,7 +2705,7 @@ class JavaRTIambassador(RTIambassador):
         logicalTimeImplementationName: str = "",
     ) -> None:
         self._call(
-            getattr(self._implementation, "createFederationExecution"),
+            getattr(self._implementation, "createFederationExecutionWithMIM"),
             federationName,
             self._runtime.fom_module_urls(tuple(str(module) for module in fomModules)),
             self._runtime.fom_module_url(str(mimModule)),
@@ -2392,11 +2734,48 @@ class JavaRTIambassador(RTIambassador):
             name = self._runtime.exception_name(error)
             if name is None:
                 raise RTIinternalError(f"Java RTI call failed: {error}") from error
+            name = _simple_java_exception_name(name)
             raise exceptionForName(name, str(error)) from error
 
 
 class JavaRtiFactory(RtiFactory):
     """A discovered provider that delegates to a selected Java RTI factory."""
+
+    @classmethod
+    def from_jar(
+        cls,
+        jar: str | Path,
+        *,
+        factory_name: str | None = None,
+        dependencies: tuple[str | Path, ...] = (),
+        jvm_path: str | None = None,
+        jvm_options: tuple[str, ...] = (),
+        native_library_path: str | Path | None = None,
+        convert_strings: bool = False,
+        runtime: JavaRuntime | None = None,
+    ) -> "JavaRtiFactory":
+        """Load one standard Java RTI through ``RtiFactoryFactory``.
+
+        This is the concise onboarding form for a vendor JAR. It only builds
+        the process-level JPype configuration; discovery still occurs through
+        the exact standard Java ``RtiFactoryFactory`` and ``ServiceLoader``.
+        """
+
+        options = tuple(jvm_options)
+        if native_library_path is not None and not any(
+            option.startswith("-Djava.library.path=") for option in options
+        ):
+            options += (f"-Djava.library.path={Path(native_library_path).resolve()}",)
+        return cls(
+            JavaProviderConfiguration(
+                classpath=(str(jar),) + tuple(str(path) for path in dependencies),
+                rti_factory_name=factory_name,
+                jvm_path=jvm_path,
+                jvm_options=options,
+                convert_strings=convert_strings,
+            ),
+            runtime=runtime,
+        )
 
     def __init__(
         self,
@@ -2446,4 +2825,5 @@ class JavaRtiFactory(RtiFactory):
             name = self._runtime.exception_name(error)
             if name is None:
                 raise RTIinternalError(f"Java RTI call failed: {error}") from error
+            name = _simple_java_exception_name(name)
             raise exceptionForName(name, str(error)) from error

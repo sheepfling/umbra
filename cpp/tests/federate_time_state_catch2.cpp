@@ -97,7 +97,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Federate time state retains the initial value until its matching grant",
-    "[unit][kernel][time-management]") {
+    "[unit][kernel][time-management][time-advance-request]") {
   auto state = integerTimeState();
   REQUIRE(state->implementationName() == L"HLAinteger64Time");
   REQUIRE(asIntegerTime(state->currentTime()).isInitial());
@@ -148,7 +148,8 @@ TEST_CASE(
 
 TEST_CASE(
     "Federate time state records Available time-advance request forms",
-    "[unit][kernel][time-management][time-advance-request-available]") {
+    "[unit][kernel][time-management][time-advance-request-available]"
+    "[next-message-request-available]") {
   auto state = integerTimeState();
 
   auto available = state->requestAdvanceAvailable(
@@ -234,7 +235,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Federate time state keeps time-role enables callback-gated and blocks advances",
-    "[unit][kernel][time-management]") {
+    "[unit][kernel][time-management][time-role]") {
   auto state = integerTimeState();
 
   REQUIRE(

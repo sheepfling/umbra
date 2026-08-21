@@ -342,6 +342,11 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-data-representation-requirements-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2_2025.reference_data_special_instance_identifiers_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/fom-reference-data-special-instance-identifiers-requirements-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2_2025.attribute_parameter_data_type_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/attribute-parameter-data-type-requirements-contract.json
@@ -496,6 +501,16 @@ if(BUILD_TESTING)
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/connection-lost-api-contract.json
       )
       add_test(
+        NAME umbra.ieee1516_2025.federate_lost_report_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federate-lost-report-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.federate_lost_report_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federate-lost-report-api-contract.json
+      )
+      add_test(
         NAME umbra.ieee1516_2025.federate_resigned_requirements_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/federate-resigned-requirements-contract.json
@@ -544,6 +559,126 @@ if(BUILD_TESTING)
         NAME umbra.ieee1516_2025.interaction_declaration_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/interaction-declaration-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.publish_object_class_attributes_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/publish-object-class-attributes-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.publish_object_class_attributes_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/publish-object-class-attributes-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.publish_object_class_directed_interactions_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/publish-object-class-directed-interactions-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.publish_object_class_directed_interactions_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/publish-object-class-directed-interactions-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unpublish_object_class_directed_interactions_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unpublish-object-class-directed-interactions-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unpublish_object_class_directed_interactions_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unpublish-object-class-directed-interactions-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.subscribe_object_class_directed_interactions_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/subscribe-object-class-directed-interactions-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.subscribe_object_class_directed_interactions_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/subscribe-object-class-directed-interactions-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unsubscribe_object_class_directed_interactions_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unsubscribe-object-class-directed-interactions-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unsubscribe_object_class_directed_interactions_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unsubscribe-object-class-directed-interactions-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unpublish_object_class_attributes_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unpublish-object-class-attributes-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unpublish_object_class_attributes_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unpublish-object-class-attributes-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.subscribe_object_class_attributes_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/subscribe-object-class-attributes-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.subscribe_object_class_attributes_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/subscribe-object-class-attributes-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unsubscribe_object_class_attributes_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unsubscribe-object-class-attributes-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unsubscribe_object_class_attributes_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unsubscribe-object-class-attributes-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.subscribe_interaction_class_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/subscribe-interaction-class-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.subscribe_interaction_class_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/subscribe-interaction-class-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unsubscribe_interaction_class_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unsubscribe-interaction-class-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unsubscribe_interaction_class_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unsubscribe-interaction-class-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.publish_interaction_class_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/publish-interaction-class-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.publish_interaction_class_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/publish-interaction-class-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unpublish_interaction_class_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unpublish-interaction-class-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.unpublish_interaction_class_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/unpublish-interaction-class-api-contract.json
       )
       add_test(
         NAME umbra.ieee1516_2025.transportation_type_api_traceability
@@ -1201,6 +1336,11 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-interaction-requirements-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2025.timestamped_interaction_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-interaction-api-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2025.request_retraction_requirements_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/request-retraction-requirements-contract.json
@@ -1214,6 +1354,11 @@ if(BUILD_TESTING)
       NAME umbra.ieee1516_2025.timestamped_attribute_update_requirements_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-attribute-update-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_attribute_update_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/timestamped-attribute-update-api-contract.json
     )
     add_test(
       NAME umbra.ieee1516_2025.timestamped_regional_attribute_update_requirements_traceability
@@ -1269,6 +1414,689 @@ if(BUILD_TESTING)
   else()
     message(STATUS "Python interpreter not found; run the header and binding checks manually")
   endif()
+
+  # Requirements-Lab contracts are individual CTest tests, so give them the
+  # same domain vocabulary as the Catch2 suite.  These labels are test-routing
+  # metadata only: a selected lane is fast development feedback, not a
+  # conformance-evidence promotion.
+  function(umbra_label_registered_ctest_tests)
+    cmake_parse_arguments(UMBRA_TEST_LABEL "" "MATCH" "LABELS" ${ARGN})
+    if(NOT UMBRA_TEST_LABEL_MATCH OR NOT UMBRA_TEST_LABEL_LABELS)
+      message(FATAL_ERROR
+        "umbra_label_registered_ctest_tests requires MATCH and LABELS arguments"
+      )
+    endif()
+
+    get_property(_umbra_registered_ctest_tests DIRECTORY PROPERTY TESTS)
+    foreach(_umbra_registered_ctest_test IN LISTS _umbra_registered_ctest_tests)
+      if(_umbra_registered_ctest_test MATCHES "${UMBRA_TEST_LABEL_MATCH}")
+        set_property(
+          TEST "${_umbra_registered_ctest_test}"
+          APPEND
+          PROPERTY LABELS ${UMBRA_TEST_LABEL_LABELS}
+        )
+      endif()
+    endforeach()
+  endfunction()
+
+  umbra_label_registered_ctest_tests(
+    MATCH "_traceability$"
+    LABELS requirements-lab traceability
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "_api_traceability$"
+    LABELS api-contract
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^(umbra\\.ieee1516_2025\\.(headers|binding_shell|integrity|exception_binding|binding_inventory|binding_shell_generation)|umbra\\.kernel\\.federate_lifecycle)$"
+    LABELS foundation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(^umbra\\.ieee1516_2_2025\\.|fom_|external_.*fom)"
+    LABELS fom
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(federation_management|federation_execution|federation_listing|federate_(lookup|lost_report|resigned|advisory)|connection(_lost|_callback)?|resign_action|automatic_resign|mom_service_reporting)"
+    LABELS federation-management
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(time|lookahead|galt|lits|message_request|asynchronous|timestamped|tso)"
+    LABELS time-management
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_advance_(requirements|api)_traceability$"
+    LABELS time-advance-request
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_advance_request_available_(requirements|api)_traceability$"
+    LABELS time-advance-request-available
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "next_message_request_(requirements|api)_traceability$"
+    LABELS next-message-request
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "next_message_request_available_(requirements|api)_traceability$"
+    LABELS next-message-request-available
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "flush_queue_request_(requirements|api)_traceability$"
+    LABELS flush-queue-request
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "default_region_requirements_traceability$"
+    LABELS timestamped-default-region-attribute-update
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_attribute_update_(requirements|api)_traceability$"
+    LABELS timestamped-default-region-attribute-update
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_attribute_update_(requirements|api)_traceability$"
+    LABELS timestamped-regional-attribute-update
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "default_region_requirements_traceability$"
+    LABELS timestamped-default-region-attribute-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_attribute_update_(requirements|api)_traceability$"
+    LABELS timestamped-default-region-attribute-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_role_(requirements|api)_traceability$"
+    LABELS timestamped-default-region-attribute-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_attribute_region_(requirements|api)_traceability$"
+    LABELS timestamped-regional-attribute-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_attribute_update_(requirements|api)_traceability$"
+    LABELS timestamped-regional-attribute-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_role_(requirements|api)_traceability$"
+    LABELS timestamped-regional-attribute-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "attribute_value_update_with_regions_(requirements|api)_traceability$"
+    LABELS timestamped-regional-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_attribute_update_(requirements|api)_traceability$"
+    LABELS timestamped-regional-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_role_(requirements|api)_traceability$"
+    LABELS timestamped-regional-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_advance_(requirements|api)_traceability$"
+    LABELS timestamped-regional-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "order_type_control_(requirements|api)_traceability$"
+    LABELS timestamped-regional-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "convey_region_designator_callback_requirements_traceability$"
+    LABELS timestamped-regional-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_api_traceability$"
+    LABELS timestamped-regional-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_class_attribute_value_update_request_(requirements|api)_traceability$"
+    LABELS object-class-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_attribute_update_(requirements|api)_traceability$"
+    LABELS object-class-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_role_(requirements|api)_traceability$"
+    LABELS object-class-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_advance_(requirements|api)_traceability$"
+    LABELS object-class-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "order_type_control_(requirements|api)_traceability$"
+    LABELS object-class-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_interaction_(requirements|api)_traceability$"
+    LABELS timestamped-regional-interaction-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_role_(requirements|api)_traceability$"
+    LABELS timestamped-regional-interaction-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "convey_region_designator_callback_requirements_traceability$"
+    LABELS timestamped-regional-interaction-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "default_region_requirements_traceability$"
+    LABELS timestamped-default-region-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_interaction_(requirements|api)_traceability$"
+    LABELS timestamped-default-region-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_role_(requirements|api)_traceability$"
+    LABELS timestamped-default-region-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(flush_queue_request|time_advance_request_available|next_message_request_available|time_advance)_(requirements|api)_traceability$"
+    LABELS timestamped-default-region-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "request_retraction_(requirements|api)_traceability$"
+    LABELS retract
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "order_type_control_(requirements|api)_traceability$"
+    LABELS change-attribute-order-type
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "order_type_control_(requirements|api)_traceability$"
+    LABELS change-default-attribute-order-type
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "order_type_control_(requirements|api)_traceability$"
+    LABELS change-interaction-order-type
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.transportation_type_change_(requirements|api)_traceability$"
+    LABELS request-attribute-transportation-type-change
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.transportation_type_change_(requirements|api)_traceability$"
+    LABELS change-default-attribute-transportation-type
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.transportation_type_change_(requirements|api)_traceability$"
+    LABELS query-attribute-transportation-type
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.(transportation_type_change_(requirements|api)|interaction_transportation_type_change_requirements)_traceability$"
+    LABELS request-interaction-transportation-type-change
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.(transportation_type_change_api|interaction_transportation_type_change_requirements)_traceability$"
+    LABELS query-interaction-transportation-type
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.attribute_ownership_query_(requirements|api)_traceability$"
+    LABELS query-attribute-ownership
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.unconditional_attribute_ownership_divestiture_(requirements|api)_traceability$"
+    LABELS unconditional-attribute-ownership-divestiture
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.local_delete_object_instance_(requirements|api)_traceability$"
+    LABELS local-delete-object-instance
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.publish_object_class_attributes_(requirements|api)_traceability$"
+    LABELS publish-object-class-attributes
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.publish_object_class_directed_interactions_(requirements|api)_traceability$"
+    LABELS publish-object-class-directed-interactions
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.unpublish_object_class_directed_interactions_(requirements|api)_traceability$"
+    LABELS unpublish-object-class-directed-interactions
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.subscribe_object_class_directed_interactions_(requirements|api)_traceability$"
+    LABELS subscribe-object-class-directed-interactions
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.unsubscribe_object_class_directed_interactions_(requirements|api)_traceability$"
+    LABELS unsubscribe-object-class-directed-interactions
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.timestamped_directed_interaction_(requirements|api)_traceability$"
+    LABELS timestamped-directed-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.unpublish_object_class_attributes_(requirements|api)_traceability$"
+    LABELS unpublish-object-class-attributes
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.subscribe_object_class_attributes_(requirements|api)_traceability$"
+    LABELS subscribe-object-class-attributes
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.unsubscribe_object_class_attributes_(requirements|api)_traceability$"
+    LABELS unsubscribe-object-class-attributes
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.subscribe_interaction_class_(requirements|api)_traceability$"
+    LABELS subscribe-interaction-class
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.unsubscribe_interaction_class_(requirements|api)_traceability$"
+    LABELS unsubscribe-interaction-class
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.publish_interaction_class_(requirements|api)_traceability$"
+    LABELS publish-interaction-class
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.unpublish_interaction_class_(requirements|api)_traceability$"
+    LABELS unpublish-interaction-class
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "declaration_relevance_advisory_(requirements|api)_traceability$"
+    LABELS declaration-relevance-advisory-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS declaration-relevance-advisory-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_instance_registration_(requirements|api)_traceability$"
+    LABELS discover-object-instance-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS discover-object-instance-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_instance_deletion_(requirements|api)_traceability$"
+    LABELS remove-object-instance-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS remove-object-instance-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_instance_name_reservation_(requirements|api)_traceability$"
+    LABELS object-instance-name-reservation-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS object-instance-name-reservation-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_attribute_region_(requirements|api)_traceability$"
+    LABELS regional-object-attribute-association-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS regional-object-attribute-association-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_attribute_region_(requirements|api)_traceability$"
+    LABELS regional-object-attribute-subscription-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS regional-object-attribute-subscription-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "interaction_region_(requirements|api)_traceability$"
+    LABELS regional-interaction-subscription-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS regional-interaction-subscription-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_object_deletion_(requirements|api)_traceability$"
+    LABELS timestamped-remove-object-instance-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS timestamped-remove-object-instance-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.attribute_value_update_request_(requirements|api)_traceability$"
+    LABELS provide-attribute-value-update-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS provide-attribute-value-update-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.auto_provide_(requirements|api)_traceability$"
+    LABELS auto-provide-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS auto-provide-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.object_class_attribute_value_update_request_(requirements|api)_traceability$"
+    LABELS provide-attribute-value-update-class-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS provide-attribute-value-update-class-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.attribute_value_update_with_regions_(requirements|api)_traceability$"
+    LABELS provide-attribute-value-update-regional-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS provide-attribute-value-update-regional-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.attribute_value_update_with_regions_(requirements|api)_traceability$"
+    LABELS regional-attribute-value-update-request-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS regional-attribute-value-update-request-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "region_lifecycle_(requirements|api)_traceability$"
+    LABELS commit-region-modifications-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS commit-region-modifications-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "region_lifecycle_(requirements|api)_traceability$"
+    LABELS delete-region-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS delete-region-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "region_lifecycle_(requirements|api)_traceability$"
+    LABELS set-range-bounds-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS set-range-bounds-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(time_role|modify_lookahead)"
+    LABELS time-role
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "modify_lookahead"
+    LABELS modify-lookahead
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "asynchronous_delivery"
+    LABELS asynchronous-delivery
+  )
+  # The regional asynchronous-delivery companion selects both the switch
+  # contracts and the regional interaction contracts. Keep those traceability
+  # checks in the focused lane as well as the broader regional service lane.
+  umbra_label_registered_ctest_tests(
+    MATCH "interaction_region_(requirements|api)_traceability$"
+    LABELS asynchronous-delivery
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "convey_region_designator_callback_requirements_traceability$"
+    LABELS asynchronous-delivery
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_api_traceability$"
+    LABELS asynchronous-delivery
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "synchronization_point_(requirements|api)_traceability$"
+    LABELS
+      register-federation-synchronization-point
+      synchronization-point-achieved
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "synchronization_point_(requirements|api)_traceability$"
+    LABELS confirm-synchronization-point-registration-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "synchronization_point_(requirements|api)_traceability$"
+    LABELS announce-synchronization-point-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "synchronization_point_(requirements|api)_traceability$"
+    LABELS federation-synchronized-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "save_control_(requirements|api)_traceability$"
+    LABELS initiate-federate-save-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS initiate-federate-save-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "save_control_(requirements|api)_traceability$"
+    LABELS federation-saved-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS federation-saved-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "save_control_(requirements|api)_traceability$"
+    LABELS federation-save-status-response-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS federation-save-status-response-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "restore_control_(requirements|api)_traceability$"
+    LABELS confirm-federation-restoration-request-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS confirm-federation-restoration-request-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "restore_control_(requirements|api)_traceability$"
+    LABELS federation-restore-begun-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS federation-restore-begun-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "restore_control_(requirements|api)_traceability$"
+    LABELS initiate-federate-restore-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS initiate-federate-restore-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "restore_control_(requirements|api)_traceability$"
+    LABELS federation-restore-status-response-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS federation-restore-status-response-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(ddm|dimension|region|convey_region|range_bounds)"
+    LABELS ddm
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(mom|service_report|federate_lost_report)"
+    LABELS mom
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(mom_service_reporting|service_report|report_service)"
+    LABELS service-reporting
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(mom_service_reporting|service_report_file)"
+    LABELS service-report-file
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(support_switches_(table_requirements|service_requirements|api)|declaration_relevance_advisory_api|attribute_relevance_advisory_api|object_attribute_scope_api)_traceability$"
+    LABELS support-switches
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "delay_subscription_evaluation_requirements_traceability$"
+    LABELS delay-subscription-evaluation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_api_traceability$"
+    LABELS delay-subscription-evaluation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(object_(class|instance)|attribute_(value_update|scope)|whole_object|local_delete)"
+    LABELS object-management
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(ownership|resign_action)"
+    LABELS ownership-management
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(declaration|publish|subscribe|advisory|relevance)"
+    LABELS declaration-management
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(interaction|parameter)"
+    LABELS interaction-management
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "(save|restore)"
+    LABELS save-restore
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "save_control_(requirements|api)_traceability$"
+    LABELS federate-save-begun federate-save-complete abort-federation-save
+           query-federation-save-status request-federation-save
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "restore_control_(requirements|api)_traceability$"
+    LABELS
+      request-federation-restore
+      confirm-federation-restoration-request-service-report
+      federation-restore-begun-service-report
+      initiate-federate-restore-service-report
+      federate-restore-complete
+      abort-federation-restore
+      query-federation-restore-status
+      federation-restore-status-response-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "resign_action_(requirements|api)_traceability$"
+    LABELS resign-federation-execution
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "federate_resigned_(requirements|api)_traceability$"
+    LABELS federate-resigned-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-automatic-resign
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-final-federate
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-error-path
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-negotiated-cancellation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_(service_requirements|api)_traceability$"
+    LABELS connection-lost-automatic-resign
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_(service_requirements|api)_traceability$"
+    LABELS connection-lost-final-federate
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_(service_requirements|api)_traceability$"
+    LABELS connection-lost-negotiated-cancellation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "resign_action_(requirements|api)_traceability$"
+    LABELS connection-lost-final-federate
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_instance_name_reservation_(requirements|api)_traceability$"
+    LABELS connection-lost-final-federate
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "attribute_ownership_acquisition_(requirements|api)_traceability$"
+    LABELS connection-lost-negotiated-cancellation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "negotiated_attribute_ownership_divestiture_(requirements|api)_traceability$"
+    LABELS connection-lost-negotiated-cancellation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-report-ordering
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "federate_lost_report_(requirements|api)_traceability$"
+    LABELS connection-lost-report-ordering
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "resign_action_requirements_traceability$"
+    LABELS connection-lost-report-ordering
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_(service_requirements|api)_traceability$"
+    LABELS connection-lost-report-ordering
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-directed-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_directed_interaction_(requirements|api)_traceability$"
+    LABELS connection-lost-directed-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_(service_requirements|api)_traceability$"
+    LABELS connection-lost-directed-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "attribute_ownership_check_(requirements|api)_traceability$"
+    LABELS connection-lost-directed-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "connection_lost_(requirements|api)_traceability$"
+    LABELS connection-lost-regional-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_attribute_update_(requirements|api)_traceability$"
+    LABELS connection-lost-regional-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "object_attribute_region_(requirements|api)_traceability$"
+    LABELS connection-lost-regional-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "region_lifecycle_(requirements|api)_traceability$"
+    LABELS connection-lost-regional-selector-mutation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "support_switches_(service_requirements|api)_traceability$"
+    LABELS connection-lost-regional-selector-mutation
+  )
 
   find_package(Catch2 3 CONFIG QUIET)
   if(NOT Catch2_FOUND AND UMBRA_FETCH_CATCH2)
@@ -1369,10 +2197,477 @@ if(BUILD_TESTING)
         UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
       )
     endif()
-    add_test(
-      NAME umbra.ieee1516_2025.catch2
-      COMMAND umbra_ieee1516_2025_catch2
+    # Register every Catch2 case independently, and expose its existing tags
+    # as CTest labels.  This makes the tag taxonomy usable through both
+    # `ctest -L` and the named development targets below without duplicating a
+    # second, hand-maintained list of C++ tests.
+    include(Catch)
+    catch_discover_tests(umbra_ieee1516_2025_catch2
+      TEST_PREFIX "umbra.ieee1516_2025.catch2."
+      ADD_TAGS_AS_LABELS
+      # Keep CTest invocation read-only with respect to the discovery manifest.
+      # PRE_TEST discovery lets concurrent focused lanes race while they both
+      # try to generate the same include file. POST_BUILD generates it once
+      # when the Catch2 executable changes, before any lane runs.
+      DISCOVERY_MODE POST_BUILD
     )
+
+    # Catch2 tags are the source of truth for focused CTest lanes.  Make the
+    # taxonomy executable so a new test cannot silently escape both its
+    # execution-scope lane and all domain lanes.
+    add_test(
+      NAME umbra.ieee1516_2025.catch2_tag_taxonomy
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_catch2_test_tags.py
+        --catch2 $<TARGET_FILE:umbra_ieee1516_2025_catch2>
+    )
+    set_tests_properties(umbra.ieee1516_2025.catch2_tag_taxonomy
+      PROPERTIES LABELS foundation
+    )
+
+    # Multi-config generators need CTest's explicit configuration flag. Do not
+    # pass an empty `-C` for a single-config build that intentionally omits
+    # CMAKE_BUILD_TYPE.
+    if(CMAKE_CONFIGURATION_TYPES)
+      set(_umbra_ctest_configuration_arguments -C "$<CONFIG>")
+    elseif(CMAKE_BUILD_TYPE)
+      set(_umbra_ctest_configuration_arguments -C "${CMAKE_BUILD_TYPE}")
+    else()
+      set(_umbra_ctest_configuration_arguments)
+    endif()
+
+    function(umbra_add_ctest_lane TARGET_NAME LABEL_REGEX)
+      add_custom_target(${TARGET_NAME}
+        COMMAND ${CMAKE_CTEST_COMMAND}
+          --test-dir "${CMAKE_BINARY_DIR}"
+          ${_umbra_ctest_configuration_arguments}
+          --output-on-failure
+          -L "${LABEL_REGEX}"
+        DEPENDS umbra_ieee1516_2025_catch2
+        COMMENT "Running Umbra ${TARGET_NAME} development test lane"
+        USES_TERMINAL
+        VERBATIM
+      )
+    endfunction()
+
+    # A named service lane is intended to be a complete edit/build/test slice:
+    # real C++ behavior plus its Requirements-Lab and API-contract checks. Keep
+    # that promise executable as new services are added.
+    function(umbra_add_ctest_service_lane TARGET_NAME LABEL)
+      umbra_add_ctest_lane(${TARGET_NAME} "^${LABEL}$")
+      set_property(
+        GLOBAL
+        APPEND
+        PROPERTY UMBRA_CTEST_SERVICE_LANE_LABELS
+        "${LABEL}"
+      )
+    endfunction()
+
+    # The rapid lane has no Requirements-Lab contract checks; it is intended
+    # for a tight edit/build/test loop.  Domain lanes combine tagged Catch2
+    # cases with the matching source/API traceability checks above.
+    umbra_add_ctest_lane(umbra_test_rapid "^(foundation|unit)$")
+    umbra_add_ctest_lane(umbra_test_foundation "^foundation$")
+    umbra_add_ctest_lane(umbra_test_federation_management "^federation-management$")
+    umbra_add_ctest_lane(umbra_test_time_management "^time-management$")
+    umbra_add_ctest_lane(
+      umbra_test_directed_target_departure
+      "^directed-target-departure$"
+    )
+    # A fault-cutoff lane keeps the page-50 inclusive TSO regression local to
+    # its cross-service Connection Lost/time-management edit loop.
+    umbra_add_ctest_lane(
+      umbra_test_connection_lost_tso_cutoff
+      "^connection-lost-tso-cutoff$"
+    )
+    # A narrow composition/catalog lane protects the OMT P/S capability
+    # fields without conflating them with run-time declaration state.
+    umbra_add_ctest_lane(
+      umbra_test_fom_directed_interaction_sharing
+      "^directed-interaction-sharing$"
+    )
+    umbra_add_ctest_service_lane(umbra_test_time_advance_request time-advance-request)
+    umbra_add_ctest_service_lane(
+      umbra_test_time_advance_request_available
+      time-advance-request-available
+    )
+    umbra_add_ctest_service_lane(umbra_test_next_message_request next-message-request)
+    umbra_add_ctest_service_lane(
+      umbra_test_next_message_request_available
+      next-message-request-available
+    )
+    umbra_add_ctest_service_lane(umbra_test_flush_queue_request flush-queue-request)
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_default_region_attribute_update
+      timestamped-default-region-attribute-update
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_regional_attribute_update
+      timestamped-regional-attribute-update
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_default_region_attribute_reenable
+      timestamped-default-region-attribute-reenable
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_regional_attribute_reenable
+      timestamped-regional-attribute-reenable
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_regional_request_provider_response
+      timestamped-regional-request-provider-response
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_object_class_request_provider_response
+      object-class-request-provider-response
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_regional_interaction_reenable
+      timestamped-regional-interaction-reenable
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_delay_subscription_evaluation
+      delay-subscription-evaluation
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_default_region_interaction
+      timestamped-default-region-interaction
+    )
+    umbra_add_ctest_service_lane(umbra_test_retract retract)
+    umbra_add_ctest_service_lane(umbra_test_federate_save_begun federate-save-begun)
+    umbra_add_ctest_service_lane(umbra_test_federate_save_complete federate-save-complete)
+    umbra_add_ctest_service_lane(umbra_test_abort_federation_save abort-federation-save)
+    umbra_add_ctest_service_lane(
+      umbra_test_query_federation_save_status
+      query-federation-save-status
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_federation_save_status_response_service_report
+      federation-save-status-response-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_request_federation_save
+      request-federation-save
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_initiate_federate_save_service_report
+      initiate-federate-save-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_federation_saved_service_report
+      federation-saved-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_request_federation_restore
+      request-federation-restore
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_confirm_federation_restoration_request_service_report
+      confirm-federation-restoration-request-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_federation_restore_begun_service_report
+      federation-restore-begun-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_initiate_federate_restore_service_report
+      initiate-federate-restore-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_federate_restore_complete
+      federate-restore-complete
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_abort_federation_restore
+      abort-federation-restore
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_query_federation_restore_status
+      query-federation-restore-status
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_federation_restore_status_response_service_report
+      federation-restore-status-response-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_resign_federation_execution
+      resign-federation-execution
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_federate_resigned_service_report
+      federate-resigned-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_service_report
+      connection-lost-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_automatic_resign
+      connection-lost-automatic-resign
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_final_federate
+      connection-lost-final-federate
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_error_path
+      connection-lost-error-path
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_negotiated_cancellation
+      connection-lost-negotiated-cancellation
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_report_ordering
+      connection-lost-report-ordering
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_directed_selector_mutation
+      connection-lost-directed-selector-mutation
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_connection_lost_regional_selector_mutation
+      connection-lost-regional-selector-mutation
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_register_federation_synchronization_point
+      register-federation-synchronization-point
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_confirm_synchronization_point_registration_service_report
+      confirm-synchronization-point-registration-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_announce_synchronization_point_service_report
+      announce-synchronization-point-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_federation_synchronized_service_report
+      federation-synchronized-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_synchronization_point_achieved
+      synchronization-point-achieved
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_directed_interaction
+      timestamped-directed-interaction
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_change_interaction_order_type
+      change-interaction-order-type
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_change_attribute_order_type
+      change-attribute-order-type
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_change_default_attribute_order_type
+      change-default-attribute-order-type
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_change_default_attribute_transportation_type
+      change-default-attribute-transportation-type
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_query_attribute_transportation_type
+      query-attribute-transportation-type
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_query_interaction_transportation_type
+      query-interaction-transportation-type
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_query_attribute_ownership
+      query-attribute-ownership
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_unconditional_attribute_ownership_divestiture
+      unconditional-attribute-ownership-divestiture
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_local_delete_object_instance
+      local-delete-object-instance
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_publish_object_class_attributes
+      publish-object-class-attributes
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_publish_object_class_directed_interactions
+      publish-object-class-directed-interactions
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_unpublish_object_class_directed_interactions
+      unpublish-object-class-directed-interactions
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_subscribe_object_class_directed_interactions
+      subscribe-object-class-directed-interactions
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_unsubscribe_object_class_directed_interactions
+      unsubscribe-object-class-directed-interactions
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_unpublish_object_class_attributes
+      unpublish-object-class-attributes
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_subscribe_object_class_attributes
+      subscribe-object-class-attributes
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_unsubscribe_object_class_attributes
+      unsubscribe-object-class-attributes
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_subscribe_interaction_class
+      subscribe-interaction-class
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_unsubscribe_interaction_class
+      unsubscribe-interaction-class
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_publish_interaction_class
+      publish-interaction-class
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_unpublish_interaction_class
+      unpublish-interaction-class
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_declaration_relevance_advisory_service_report
+      declaration-relevance-advisory-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_discover_object_instance_service_report
+      discover-object-instance-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_remove_object_instance_service_report
+      remove-object-instance-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_object_instance_name_reservation_service_report
+      object-instance-name-reservation-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_regional_object_attribute_association_service_report
+      regional-object-attribute-association-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_regional_object_attribute_subscription_service_report
+      regional-object-attribute-subscription-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_regional_interaction_subscription_service_report
+      regional-interaction-subscription-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_remove_object_instance_service_report
+      timestamped-remove-object-instance-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_provide_attribute_value_update_service_report
+      provide-attribute-value-update-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_auto_provide_service_report
+      auto-provide-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_provide_attribute_value_update_class_service_report
+      provide-attribute-value-update-class-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_provide_attribute_value_update_regional_service_report
+      provide-attribute-value-update-regional-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_regional_attribute_value_update_request_service_report
+      regional-attribute-value-update-request-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_commit_region_modifications_service_report
+      commit-region-modifications-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_delete_region_service_report
+      delete-region-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_set_range_bounds_service_report
+      set-range-bounds-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_request_interaction_transportation_type_change
+      request-interaction-transportation-type-change
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_request_attribute_transportation_type_change
+      request-attribute-transportation-type-change
+    )
+    umbra_add_ctest_lane(umbra_test_time_role "^time-role$")
+    umbra_add_ctest_lane(umbra_test_modify_lookahead "^modify-lookahead$")
+    umbra_add_ctest_lane(umbra_test_asynchronous_delivery "^asynchronous-delivery$")
+    umbra_add_ctest_lane(umbra_test_ddm "^ddm$")
+    umbra_add_ctest_lane(umbra_test_mom "^mom$")
+    umbra_add_ctest_lane(umbra_test_service_reporting "^service-reporting$")
+    umbra_add_ctest_lane(umbra_test_service_report_file "^service-report-file$")
+    umbra_add_ctest_lane(umbra_test_support_switches "^support-switches$")
+    umbra_add_ctest_lane(umbra_test_fom "^fom$")
+    umbra_add_ctest_lane(umbra_test_object_management "^object-management$")
+    umbra_add_ctest_lane(umbra_test_ownership_management "^ownership-management$")
+    umbra_add_ctest_lane(umbra_test_declaration_management "^declaration-management$")
+    umbra_add_ctest_lane(umbra_test_interaction_management "^interaction-management$")
+    umbra_add_ctest_lane(umbra_test_save_restore "^save-restore$")
+    # A cross-cutting callback-model lane keeps direct-dispatch regressions
+    # fast without forcing a whole domain lane.
+    umbra_add_ctest_lane(umbra_test_callback_immediate "^callback-immediate$")
+
+    get_property(
+      _umbra_ctest_service_lane_labels
+      GLOBAL
+      PROPERTY UMBRA_CTEST_SERVICE_LANE_LABELS
+    )
+    set(_umbra_ctest_service_lane_arguments)
+    foreach(_umbra_ctest_service_lane_label IN LISTS _umbra_ctest_service_lane_labels)
+      list(APPEND _umbra_ctest_service_lane_arguments
+        --lane "${_umbra_ctest_service_lane_label}"
+      )
+    endforeach()
+    if(CMAKE_CONFIGURATION_TYPES)
+      set(_umbra_ctest_service_lane_configuration_arguments --config "$<CONFIG>")
+    elseif(CMAKE_BUILD_TYPE)
+      set(_umbra_ctest_service_lane_configuration_arguments --config "${CMAKE_BUILD_TYPE}")
+    else()
+      set(_umbra_ctest_service_lane_configuration_arguments)
+    endif()
+    add_test(
+      NAME umbra.ieee1516_2025.focused_service_lane_catalog
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_ctest_service_lanes.py
+        --ctest ${CMAKE_CTEST_COMMAND}
+        --test-dir ${CMAKE_BINARY_DIR}
+        ${_umbra_ctest_service_lane_configuration_arguments}
+        ${_umbra_ctest_service_lane_arguments}
+    )
+    set_tests_properties(umbra.ieee1516_2025.focused_service_lane_catalog
+      PROPERTIES LABELS foundation
+    )
+    add_custom_target(umbra_test_all
+      COMMAND ${CMAKE_CTEST_COMMAND}
+        --test-dir "${CMAKE_BINARY_DIR}"
+        ${_umbra_ctest_configuration_arguments}
+        --output-on-failure
+      DEPENDS umbra_ieee1516_2025_catch2
+      COMMENT "Running the complete Umbra CTest regression suite"
+      USES_TERMINAL
+      VERBATIM
+    )
+
     add_custom_target(umbra_catch2_junit
       COMMAND ${CMAKE_COMMAND} -E make_directory "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}"
       COMMAND $<TARGET_FILE:umbra_ieee1516_2025_catch2>

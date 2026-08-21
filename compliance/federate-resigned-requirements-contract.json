@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-embedded-control-traceability-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded embedded Federate Resigned path to the Requirements Lab's explicit 4.13 requirement. A private, test-only RTI-side membership-control seam removes a joined federate through the ordinary NO_ACTION registry path only when that path's ownership/acquisition preconditions already hold, preserves the RTI connection, resets joined state, and queues the exact official callback. The paired Catch2 scenario also proves that a federate-initiated Resign Federation Execution does not emit this callback and that Connection Lost remains distinct. This is source/test traceability only: it is not a public administration API, remote transport/session-timeout behavior, full forced-resignation disposition policy, protected-review evidence, package support, or conformance evidence.",
+  "notes": "This contract pins Umbra's bounded embedded Federate Resigned path to the Requirements Lab's explicit 4.13 requirement. A private, test-only RTI-side membership-control seam removes a joined federate through the ordinary NO_ACTION registry path only when that path's ownership/acquisition preconditions already hold, preserves the RTI connection, resets joined state, and queues the exact official callback. When the selected §11.5 route is a report file, that same irreversible transaction reserves the final serial before member removal and emits the source-supplied reason text before the callback is queued. The paired Catch2 scenarios also prove that a federate-initiated Resign Federation Execution does not emit this callback and that Connection Lost remains distinct. This is source/test traceability only: it is not a public administration API, remote transport/session-timeout behavior, full forced-resignation disposition policy, protected-review evidence, package support, or conformance evidence.",
   "requirements": [
     {
       "id": "umbra-federate-resigned-keeps-connection-after-involuntary-membership-removal",
@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::handleEmbeddedMembershipLoss",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI control forces the official federate-resigned transition"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI control forces the official federate-resigned transition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federate Resigned before its callback"
       ]
     }
   ]

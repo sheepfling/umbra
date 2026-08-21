@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped regional interaction slice: owner-created committed regions, active-region overlap planning, constrained and nonconstrained overlap-qualified recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, sent-region callback propagation, lower-bound validation, pending-fanout suppression, and a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient. The shared predicate includes the separately documented exact-boundary Allow Relaxed DDM policy, but these timestamped cases exercise only strict-overlap and do not independently validate that policy. A direct disjoint-region regression additionally proves that a qualifying timestamped Send Interaction With Regions returns a valid designator even when no subscription overlaps; the ledger supports legal Retract and later terminal classification without retaining typed interaction payload. Passive regional pairs are excluded by the shared planner, but this timestamped contract does not independently test their mode transition. It does not claim object-region services, broader relaxed-DDM matrices, alternate advance modes, save/restore, transport, catalog evidence, or conformance.",
+  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped regional interaction slice: owner-created committed regions, active-region overlap planning, constrained and nonconstrained overlap-qualified recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, sent-region callback propagation, lower-bound validation, pending-fanout suppression, and a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient. A dedicated Flush Queue companion now uses the same committed overlap path, delivers the timestamped interaction before FQG, and verifies the conveyed source-region set plus actual/optimistic grant values. Separate explicit-source companions exercise ordinary TAR/NMR and the inclusive TARA/NMRA boundaries and preserve the source RegionHandle before each grant. A further explicit-source companion keeps the same queued regional TSO and source RegionHandle through a Time Constrained disable/re-enable cycle, proving one callback before the post-re-enable grant without replacement or duplication. A committed recipient-region move can make an initially overlap-qualified queued callback disjoint before delivery; it terminally suppresses that recipient without fabricating Receive Interaction or Request Retraction. The shared predicate includes the separately documented exact-boundary Allow Relaxed DDM policy, but these timestamped cases exercise only strict-overlap and do not independently validate that policy. A direct disjoint-region regression additionally proves that a qualifying timestamped Send Interaction With Regions returns a valid designator even when no subscription overlaps; the ledger supports legal Retract and later terminal classification without retaining typed interaction payload. Passive regional pairs are excluded by the shared planner, but this timestamped contract does not independently test their mode transition. It does not claim object-region services, broader relaxed-DDM matrices, further alternate advance forms, save/restore, remote transport, catalog evidence, or conformance.",
   "requirements": [
     {
       "id": "umbra-timestamped-regional-interaction-overlap",
@@ -12,7 +12,13 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -22,7 +28,12 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -33,6 +44,8 @@
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients"
       ]
     },
@@ -53,7 +66,12 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "validateTsoTimestamp",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -63,7 +81,12 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -73,7 +96,10 @@
       "source": "cpp/src/internal/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ]
     },
     {
@@ -84,6 +110,7 @@
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients"
       ]
@@ -115,7 +142,18 @@
       "source": "cpp/src/internal/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-disjoint-callback-closes-recipient-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l9-1",
+      "clause_id": "clause-9.12.5",
+      "source": "cpp/src/internal/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
       ]
     }
   ]

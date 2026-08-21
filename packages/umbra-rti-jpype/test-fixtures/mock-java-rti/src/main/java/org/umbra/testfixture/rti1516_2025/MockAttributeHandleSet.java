@@ -9,4 +9,10 @@ public final class MockAttributeHandleSet extends LinkedHashSet<AttributeHandle>
    implements AttributeHandleSet
 {
    private static final long serialVersionUID = 1L;
+
+   @Override public MockAttributeHandleSet clone() {
+      MockAttributeHandleSet copy = new MockAttributeHandleSet();
+      copy.addAll(this);
+      return copy;
+   }
 }

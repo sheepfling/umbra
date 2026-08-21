@@ -18,7 +18,7 @@ std::shared_ptr<rti1516_2025::LogicalTime const> integerTime(std::int64_t value)
 
 TEST_CASE(
     "Private 2025 TSO queue orders equal timestamps and isolates recipients",
-    "[tso][time]") {
+    "[tso][time][unit][time-management]") {
   umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
   auto const first = queue.allocateMessageId();
   auto const second = queue.allocateMessageId();
@@ -61,7 +61,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Private 2025 TSO queue retracts pending fanout before delivery",
-    "[tso][time][retraction]") {
+    "[tso][time][retraction][unit][time-management]") {
   umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
   auto const messageId = queue.allocateMessageId();
 
@@ -83,7 +83,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Private 2025 TSO queue rejects invalid time inputs and fences delivered messages",
-    "[tso][time][retraction]") {
+    "[tso][time][retraction][unit][time-management]") {
   umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
   auto const deliveredId = queue.allocateMessageId();
   auto const initialId = queue.allocateMessageId();
@@ -134,7 +134,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Private 2025 TSO queue withdraws pending fanout after another recipient delivery",
-    "[tso][time][retraction]") {
+    "[tso][time][retraction][unit][time-management]") {
   umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
   auto const messageId = queue.allocateMessageId();
 
@@ -161,7 +161,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Private 2025 TSO queue keeps an exclusive boundary separate from an inclusive grant",
-    "[tso][time]") {
+    "[tso][time][unit][time-management]") {
   umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
   auto const beforeId = queue.allocateMessageId();
   auto const atId = queue.allocateMessageId();

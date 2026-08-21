@@ -202,7 +202,7 @@
       "source": "cpp/src/internal/libxml2_fom_composer.cpp",
       "source_symbol": "validateDirectedInteractionReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions after the complete module set is merged"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
       ]
     },
     {
@@ -213,7 +213,7 @@
       "source_symbol": "mergeNode",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer refuses the supplied extension when the official FDD schema cannot represent its directed-interaction merge",
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions after the complete module set is merged"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
       ]
     },
     {

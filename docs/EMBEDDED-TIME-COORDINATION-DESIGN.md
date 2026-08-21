@@ -433,11 +433,12 @@ Its Requirements Lab contracts are
 `compliance/timestamped-directed-interaction-api-contract.json`.
 
 The shared directed-recipient planner honors both selector modes: absent or
-false is by ownership, while true is universal. The timestamped cases currently
-exercise the universal route but do not independently distinguish the two
-modes. This slice deliberately excludes directed DDM, remaining alternate
-advance modes, region-context evidence, transport, complete save/restore
-semantics, package/catalog evidence, and conformance.
+false is by ownership, while true is universal. The focused timestamped
+selector regression distinguishes target-owner/default, known-non-owner/default,
+and known-non-owner/universal delivery, then rechecks a selector change and an
+unsubscription before later grants. This slice deliberately excludes directed
+DDM, remaining alternate advance modes, region-context evidence, transport,
+complete save/restore semantics, package/catalog evidence, and conformance.
 
 ## Fifth bounded public timestamped regional-interaction slice
 

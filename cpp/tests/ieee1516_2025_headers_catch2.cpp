@@ -4,14 +4,14 @@
 
 #include <RTI/RTI1516.h>
 
-TEST_CASE("IEEE 1516.1-2025 headers expose the expected API version", "[baseline][headers]") {
+TEST_CASE("IEEE 1516.1-2025 headers expose the expected API version", "[baseline][headers][unit][foundation]") {
   REQUIRE(HLA_API_MAJOR_VERSION == 2);
   REQUIRE(HLA_API_MINOR_VERSION == 0);
 }
 
 TEST_CASE(
     "Selected 2025 exception values retain their official identities",
-    "[baseline][support-types]") {
+    "[baseline][support-types][unit][foundation]") {
   rti1516_2025::NameNotFound missing(L"missing federate");
   rti1516_2025::InvalidFederateHandle invalid(L"invalid federate handle");
   rti1516_2025::FederateHandleNotKnown unknown(L"unknown federate handle");
@@ -74,7 +74,7 @@ TEST_CASE(
   REQUIRE(invalidTransportationType.what() == L"invalid transportation handle");
 }
 
-TEST_CASE("The binding shell routes profile-gated federation listing explicitly", "[baseline][binding-shell]") {
+TEST_CASE("The binding shell routes profile-gated federation listing explicitly", "[baseline][binding-shell][unit][foundation]") {
   rti1516_2025::RTIambassadorFactory factory;
   std::unique_ptr<rti1516_2025::RTIambassador> rti = factory.createRTIambassador();
 
@@ -88,7 +88,7 @@ TEST_CASE("The binding shell routes profile-gated federation listing explicitly"
 #endif
 }
 
-TEST_CASE("The binding shell profile-gates FOM and transportation lookup services explicitly", "[baseline][binding-shell]") {
+TEST_CASE("The binding shell profile-gates FOM and transportation lookup services explicitly", "[baseline][binding-shell][unit][foundation]") {
   rti1516_2025::RTIambassadorFactory factory;
   std::unique_ptr<rti1516_2025::RTIambassador> rti = factory.createRTIambassador();
   rti1516_2025::ObjectClassHandle objectClass;
@@ -188,7 +188,7 @@ TEST_CASE("The binding shell profile-gates FOM and transportation lookup service
 
 TEST_CASE(
     "The binding shell profile-gates the initial 2025 object-instance service set explicitly",
-    "[baseline][binding-shell][object-management]") {
+    "[baseline][binding-shell][object-management][unit][foundation]") {
   rti1516_2025::RTIambassadorFactory factory;
   std::unique_ptr<rti1516_2025::RTIambassador> rti = factory.createRTIambassador();
   rti1516_2025::ObjectClassHandle objectClass;

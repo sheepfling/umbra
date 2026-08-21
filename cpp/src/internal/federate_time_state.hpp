@@ -101,6 +101,10 @@ struct FederateTimeSnapshot {
   bool timeConstrained = false;
   bool asynchronousDeliveryEnabled = false;
   bool timeAdvancePending = false;
+  // Internal callback-generation identity for a pending advance. It is never
+  // public HLA state, but the restore scheduler needs it to recreate the
+  // matching callback-gated grant without accepting stale work.
+  std::uint64_t pendingTimeAdvanceGeneration = 0;
   FederateTimeAdvanceMode advanceMode = FederateTimeAdvanceMode::none;
   bool timeRegulationPending = false;
   bool timeConstrainedPending = false;

@@ -10,7 +10,7 @@ not a claim that the Lab, IEEE source, or Umbra is non-conformant.
 - Lab repository: `../Document-Recreation`
 - Reviewed revision: `4f012fb1c21367cfde67aab8498ae00e2a64c615`
 - Umbra lock: `compliance/requirements-lab.lock.json`
-- Last reviewed: 2026-08-16
+- Last reviewed: 2026-08-21
 
 Umbra consumes only the Lab's exported portable JSON bundle. The generated
 bundle under `.compliance/` is intentionally ignored, so each observation
@@ -594,6 +594,15 @@ strict Clause 8.22.3 time-plus-actual-lookahead paragraphs are absent as
 standalone candidate records. The implementation verifies that condition from
 the authoritative reconstructed 2025 source rather than inferring it from the
 fragments. No conformance claim is based on this export.
+
+**2026-08-21 follow-up:** while composing the alternate FQR/TARA/NMRA regional
+object-update retraction case, an initial timestamp equal to the producer's
+requested time plus actual lookahead was correctly rejected as no longer
+retractable. The Lab did not cause the behavior or expose a new extraction
+failure; the scenario needed to compose the strict inequality from the
+fragmented §8.22.3 anchors and now records that setup explicitly. This is a
+repeatable consumer workflow rough edge, not a Requirements Lab defect or a
+conformance finding.
 
 **Possible Lab refinement:** export the complete normalized normative sentence
 for each candidate (or provide a stable source-span payload alongside the
@@ -1310,8 +1319,110 @@ declare `ReturnArgument` or provide a general file-record return mapping.
 wire rule. Umbra deliberately has no generic `ServiceReportRecord` formatter:
 the existing Table 5 primitive and initial-record formatters must not be
 combined with the interaction `HLAargument` rendering to create a guessed
-file record. It will not enable generated report-record appends until a
-source-backed, per-service return mapping is established.
+file record. Twenty-four bounded exceptions are now implemented: successful-void
+records for seven Support Services (six Boolean setters—the four relevance/
+scope advisory setters, `Set Convey Region Designator Sets Switch`, and `Set
+Exception Reporting Switch`—plus `Set Automatic Resign Directive`) and the
+five no-argument Time Management services `Disable Time Regulation`,
+`Enable/Disable Asynchronous Delivery`, and `Enable/Disable Time
+Constrained`, plus the one-argument `Enable Time Regulation`, `Modify
+Lookahead`, `Time Advance Request`, `Time Advance Request Available`, `Next
+Message Request`, `Next Message Request Available`, `Flush Queue Request`, and
+`Retract`, use Table 5's
+explicitly depicted `[null]` return form. The automatic-resign case
+additionally uses the table's explicit `ResignAction` argument type 44 and
+C++ enum spelling; the no-argument services use the explicitly required empty
+supplied-argument list, while Enable Time Regulation uses its standard
+`Lookahead` name with `LogicalTimeInterval` argument type 32 and the
+table's quoted `interval.toString()` form. Modify Lookahead uses its
+`Requested lookahead` name with the same type/form and records an accepted
+lower request before the actual value changes. Time Advance Request, Time
+Advance Request Available, Next Message Request, Next Message Request
+Available, and Flush Queue Request use the `Logical time` name with
+`LogicalTime` argument type 31 and the table's quoted `time.toString()` form
+while their accepted requests still await their later grant. The two Next
+Message Request reports and Flush Queue Request preserve their supplied
+boundaries even when queued TSO input produces earlier grants; Flush Queue
+Grant separately carries actual and optimistic times. The
+`Retract` record uses the table's type-33 `MessageRetractionDesignator` text
+form `MessageRetractionHandle<decimal-identity>` before its separately
+callback-gated Request Retraction consequence. `Change Attribute Order Type`
+adds type-37 `Object instance designator` text from quoted
+`ObjectInstanceHandle::toString()`, type-1 `Set of attribute designators` as a
+bracketed array of quoted `AttributeHandle::toString()` values, and type-38
+`Order type` text from quoted `RECEIVE`/`TIMESTAMP` after a successful
+owned-attribute invocation. `Change Default Attribute Order Type` adds type-36
+`Object class designator` text from quoted `ObjectClassHandle::toString()`,
+with the same type-1 attribute-set array and type-38 quoted
+`RECEIVE`/`TIMESTAMP` form after a successful class-default invocation. `Change
+Default Attribute Transportation Type` uses that same type-36/type-1 form with
+type-59 `Transportation type` text from quoted
+`TransportationTypeHandle::toString()` after an accepted prospective
+class-default invocation. `Change Interaction Order Type`
+adds type-27 `Interaction class designator` text from quoted
+`InteractionClassHandle::toString()` and type-38 `Order type` text from quoted
+`RECEIVE`/`TIMESTAMP` after a successful published-class invocation. The
+`Request Interaction Transportation Type Change` record adds that same type-27
+interaction-class text and type-59 `Transportation type` text from quoted
+`TransportationTypeHandle::toString()` at accepted request time, before its
+separately queued confirmation changes the preference. `Request Attribute
+Transportation Type Change` adds type-37 `Object instance designator` text from
+quoted `ObjectInstanceHandle::toString()`, type-1 `Set of attribute designators`
+as a bracketed array of quoted `AttributeHandle::toString()` values, and type-59
+`Transportation type` text from quoted `TransportationTypeHandle::toString()` at
+accepted request time, before its separately queued confirmation changes the
+preference. The
+time-regulation and time-constrained enable records do not collapse
+their distinct callback completions into successful requests. That does not
+establish a general return mapping and does not enable composite-return,
+non-void, or failed-service file records.
+
+**Additional Lab observation (2026-08-19):** Table 5's extracted type-33 row
+does explicitly depict `MessageRetractionDesignator` as
+`MessageRetractionHandle<2345>` on page 302, while its type-1
+`AttributeHandleSet` row uses Table 4's bracketed array grammar with quoted
+`AttributeHandle` values, its type-27 `InteractionClassHandle` row calls for
+quoted `handle.toString()` text, its type-36 `ObjectClassHandle` row and type-37
+`ObjectInstanceHandle` row call for the same quoted form on page 299, its
+type-38 `OrderType` row depicts quoted `RECEIVE`/`TIMESTAMP` values on pages
+298--299, and its type-59
+`TransportationTypeHandle` row on page 304 calls for quoted `handle.toString()`
+text. Those content elements currently have no generated row-level
+requirement-candidate identifiers. Umbra therefore anchors the bounded
+`Retract`, `Change Attribute Order Type`, `Change Default Attribute Order Type`,
+`Change Default Attribute Transportation Type`, `Change Interaction Order Type`,
+`Request Interaction Transportation Type Change`, and `Request Attribute
+Transportation Type Change` invocations to
+available service candidates and records the Table 5 representations only as
+private source-level traceability; they are not Lab validation records or
+conformance claims.
+
+**Additional Lab observation (2026-08-20):** the same rotated Table 5
+continuation is the only pinned source location that exposes the `StringSet`
+row: page 302's raw source (`content-block-content-15161-page-302.tex:101-117`)
+defines its encoding as `Array<String>` and illustrates two quoted names. The
+unmodified 2025 MIM independently assigns `StringSet` argument type 54, but
+the Requirements Lab's structured Table 5 export has no row-level record for
+this continuation. The source/API contracts therefore preserve both the raw
+coordinates and the MIM value; they do not treat an absent structured row as
+evidence that the multiple-name services lack a reportable supplied argument.
+The composite callback value—names paired with reservation-success
+indicators—remains deferred because neither the raw Table 5 log example nor a
+stable row candidate supplies a file-record mapping for it.
+The same row-level export gap affects the regional DDM pair shape: page 295's
+raw Table 5 source (`content-block-content-15161-page-295.tex:84-147`) calls
+the value `AttributeRegionAssociationList` and encodes it as
+`Array<AttributeRegionAssociation>`, while the unmodified MIM exposes the
+corresponding argument type as `AttributeSetRegionSetPairList` (type 4).
+Umbra retains both names as an explicit Table 5/MIM alias rather than treating
+the spelling difference as a new local type.
+
+**Possible Lab refinement:** emit stable row- or cell-level requirement
+candidates for Table 5 examples, including page/source coordinates and the
+argument type/name/value triple. That would let type-specific file-report
+formatters be traced directly instead of borrowing a neighboring service
+candidate while preserving the existing RL-042 boundary around generic return
+arguments.
 
 **Published-correction check:** on 2026-08-19, the official active-standard
 page for IEEE 1516.1-2025 listed only the downloads bundle under Additional
@@ -1353,6 +1464,26 @@ name a `FederateHandle` or a callback-specific exception to §6.9's producing
 joined-federate rule. RTI origin must therefore not be converted into an
 invented sentinel or a selected joined-federate identity.
 
+A follow-on source/API pass establishes the same boundary for generic
+RTI-originated MOM **interactions**, not only RTI-created MOM objects. The
+pinned §6.13 candidate
+`requirement-candidate-content-clauses-06-object-management-page-125-l127-38`
+requires the `producing joined federate` argument of *Receive Interaction* to
+contain the designator for the sending joined federate. In contrast, the §11.5
+candidate
+`requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2`
+requires `HLAreportServiceInvocation` to be generated by the RTI, including
+when the RTI invokes a service at a particular joined federate. The official
+C++ callback surfaces
+`api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1` and
+`api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731` each require
+a non-optional `FederateHandle` `producingFederate` parameter. Annex C only
+says that handles are normally generated by the RTI and that a default
+constructor exists for convenience; it does not designate that invalid handle
+as an RTI producer. No exported candidate, C++ mapping, MIM declaration, or
+official header maps the report subject to the callback producer field or
+authorizes an invalid handle for RTI origin.
+
 A direct source pass over §11.1, §11.2, and §11.4 confirms rather than
 resolves the tension: §11.1 says that MOM access/interchange uses predefined
 HLA objects and interactions in the same way as participating federates;
@@ -1362,24 +1493,31 @@ private federate points. None supplies an exception or an RTI-to-joined-
 federate mapping for the §6.9 callback argument. This must not be inferred
 from the represented federate's `HLAfederateHandle`.
 
-**Umbra impact:** Umbra will not copy the sibling prototype's unjoined
-`FederateHandle(0)` sentinel into its public callback path. A private,
-registry-owned joined-federate MOM snapshot may reserve a common object
-identity, retain complete MIM metadata, an immutable point, and encoded
-initial values, but it is deliberately outside public object discovery and
-reflection. The complete public RTI-owned MOM-object lifecycle,
-requested-value work, and callback behavior remain pending a source-backed
-producer-designator rule. The private service-report routing plan now models
-its origin explicitly as RTI-owned rather than using a numeric sentinel in the
-ordinary federate-sender eligibility helper; that model still cannot be
-passed to the public `Receive Interaction` callback queue.
+**Umbra impact:** Umbra will not copy an unjoined `FederateHandle(0)` numeric
+sentinel into its public callback path. A private, registry-owned
+joined-federate MOM snapshot may reserve a common object identity, retain
+complete MIM metadata, an immutable point, and encoded initial values, but it
+is deliberately outside public object discovery and reflection. The complete
+public RTI-owned MOM-object lifecycle and requested-value work remain pending
+a source-backed producer-designator rule. Generic RTI-created MOM traffic
+and generic RTI-originated service-report interactions still are not routed
+through a public callback. The bounded fault-only
+`HLAreportFederateLost` route makes one explicit local adapter choice: its
+normal non-timestamped `Receive Interaction` callback receives a
+default-invalid `FederateHandle{}` to represent no joined-federate producer.
+It is not a numeric sentinel, not the lost federate's handle, not a
+standard-defined mapping, and not conformance evidence. RL-065 retains that
+interaction-specific boundary; the private service-report routing plan itself
+continues to model its origin as RTI-owned.
 
 **Possible Lab refinement:** add a cross-clause MOM implementation note or
 relationship that records the applicable producer-designator rule (including
-any explicit RTI exception) for RTI-registered object instances. The packet
-should preserve the two ordinary requirements and identify whether a further
-source controls their interaction, rather than letting consumers invent a
-handle sentinel or silently substitute the represented federate's designator.
+any explicit RTI exception) for both RTI-registered object instances and
+RTI-originated MOM interactions. The packet should preserve the ordinary
+producer requirements, identify whether a further source controls their
+interaction, and distinguish the represented/report-subject federate from a
+callback producer rather than letting consumers invent a handle sentinel or
+silently substitute either identity.
 
 ### RL-044 — Constructed-encoding candidates lose their precise subclause provenance
 
@@ -2131,6 +2269,1618 @@ colon. Preserve list children, continuation spans, and source links in the
 definition record; distinguish a complete definition, an intentionally
 external definition, and an extraction failure. Requirement consumers should
 be able to query which obligations depend on an incomplete definition.
+
+### RL-065 — HLAreportFederateLost has no C++ producer-designator crosswalk
+
+**Status:** verified API/source crosswalk gap; bounded local adapter choice;
+possible Lab refinement, not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the page-50 candidates
+`requirement-candidate-content-clauses-04-federation-management-page-050-l18-5`
+and `requirement-candidate-content-clauses-04-federation-management-page-050-l21-6`
+require delivery of `HLAreportFederateLost` to subscribed surviving federates
+and a last known time position for a lost time-regulating federate. The MIM
+identifies that interaction as RTI-originated. The exact normal C++ callback,
+`api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1`, nevertheless
+requires a `FederateHandle const & producingFederate`. Neither the candidates,
+the MIM, nor the exported callback surface provides a mapping from RTI origin
+to that field. In particular, it does not authorize a numeric zero or the
+lost federate's handle. The related full TSO statement is split across
+page-50 candidates l24-7 and l27-8, so this observation does not promote that
+unimplemented delivery condition.
+
+**Umbra impact:** the bounded embedded loss route uses a default-invalid
+`FederateHandle{}` only in the normal `HLAreportFederateLost` callback to
+represent the absence of a joined-federate producer. The integration test
+asserts that exact local behavior. It is deliberately not an inferred
+standards value, does not make generic RTI-created MOM traffic public, and
+does not establish conformance.
+
+**Possible Lab refinement:** add an explicit source relation or
+implementation-defined mapping between MOM RTI origin and the C++ callback's
+`producingFederate` field. The record should distinguish a source requirement
+from a binding-local choice, preserve the exact interaction and callback
+surfaces, and say whether an invalid handle is permitted, required, or merely
+implementation defined.
+
+### RL-066 — Self-selecting service-report switches lack a report-order relation
+
+**Status:** verified Requirements Lab semantic-model gap; local defer; possible
+Lab refinement, not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the direct candidates
+`requirement-candidate-content-clauses-10-support-services-page-277-l28-6`
+and
+`requirement-candidate-content-clauses-10-support-services-page-280-l29-6`
+say that `Set Service Reporting Switch` and `Set Send Service Reports To File
+Switch` set their respective values. The service-report candidate
+`requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2`
+requires a report whenever a service is invoked and the Service Reporting
+Switch is enabled; the destination candidate
+`requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5`
+selects subscribers or the file from the Send Service Reports To File Switch.
+The exported candidates, their links, and the API mappings do not encode
+whether those report predicates observe the pre-invocation state, the service
+postcondition state, or a separately defined report-generation event for an
+invocation that changes either predicate itself.
+
+**Umbra impact:** the twenty-nine successful-void wrappers currently admitted to the
+filesystem path do not change either reporting predicate. Umbra deliberately
+does not infer a record for `Set Service Reporting Switch` or `Set Send Service
+Reports To File Switch`: doing so would choose whether disable/enable produces
+a record and, for the latter, which sink receives it. This is a deferred
+standards-facing behavior, not evidence that those invocations are
+unreportable.
+
+**Possible Lab refinement:** emit a semantic transition or explicit ordering
+relation that connects the invocation, successful state transition, report
+eligibility, and sink selection for self-selecting services. A generated test
+matrix should enumerate the four old/new-value combinations for both setters,
+identify the expected serial effect, and distinguish a normative result from
+an implementation-defined policy if the source leaves that choice open.
+
+### RL-067 — Table 5 wire-format rows have no row-level requirement candidates
+
+**Status:** verified table-granularity export gap; possible Lab refinement, not
+a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the extracted Table 5 material is
+represented by page-sized paragraph elements whose `record_ids` are empty.
+This affects, among others, the page-302 `MessageRetractionDesignator` row
+(`MessageRetractionHandle<2345>`), the type-0 `AttributeHandle` and type-1
+`AttributeHandleSet` array rows on page 295, the type-15 `FederateHandle` row
+on page 296, the type-27 `InteractionClassHandle` and type-38 `OrderType` rows
+on pages 298--299, the type-36 `ObjectClassHandle` and type-37
+`ObjectInstanceHandle` rows on page 299, the page-304 type-59
+`TransportationTypeHandle` row, and the primitive and enumeration
+representations used by the new service-report formatters. The service-record
+examples on pages 301--302 have the same
+page-level shape; the individual argument name/type/value triples are not
+immutable candidate records.
+
+**Umbra impact:** the new `Retract`, `Change Attribute Order Type`, `Change
+Default Attribute Order Type`, `Change Default Attribute Transportation Type`,
+`Query Attribute Transportation Type`, `Query Attribute Ownership`,
+`Query Interaction Transportation Type`,
+`Change Interaction Order Type`,
+`Request Interaction Transportation Type Change`, and `Request Attribute
+Transportation Type Change` file-record cases,
+along
+with the LogicalTime, LogicalTimeInterval, ResignAction, and no-argument forms,
+can be anchored to nearby service candidates and retain direct Table 5 source
+coordinates. They cannot claim a Lab validation record for the exact
+wire-format cell they exercise. A passing `requirements_lab.py check` therefore
+validates the referenced neighboring IDs and bundle revision, not the
+type-specific Table 5 row.
+
+**Possible Lab refinement:** emit stable row- or cell-level records for Table 5
+with page/source coordinates and a structured `(argument type, argument name,
+argument value)` relationship. Keep the page-level example for context, but
+make each type-specific formatter traceable without borrowing a service or
+generic Table 5 candidate. This promotes the observation already noted under
+RL-042 into a reusable export requirement for all Table 5 rows, not only type
+33.
+
+### RL-068 — Save/restore persistence and saved-message delivery are unlinked fragments
+
+**Status:** verified cross-cutting source/model gap; possible Lab refinement,
+not a standards defect or conformance finding.
+
+The pinned export contains three relevant Clause 4 candidates:
+
+- `requirement-candidate-content-clauses-04-federation-management-page-044-l36-11`
+  says saved information shall be persistent and stored on disk or another
+  persistent medium;
+- `requirement-candidate-content-clauses-04-federation-management-page-044-l54-17`
+  says undelivered messages are lost during restore and that related saved
+  messages are delivered after restore; and
+- `requirement-candidate-content-clauses-04-federation-management-page-044-l78-25`
+  ties federate type to the ability to restore state saved by another federate
+  of that type.
+
+Each is marked `coverage_kind: cross-cutting` with an empty `transition_ids`
+array. The reconstructed page text supplies the important continuations: the
+persistent state survives destruction of the federation execution, TSO
+messages resume at the federate's appropriate logical-time position, receive-
+order messages resume as soon as possible, and the saved-message cutoff is
+different from post-restore delivery. Those are distinct obligations, not one
+generic “restore completed” event.
+
+**Umbra impact:** the new restore contract deliberately uses a process-local
+snapshot and tests pending TAR/TARA/NMR/NMRA/FQR work, live and terminal TSO
+retraction state, and stale-work fencing. Those cases are mapped to the
+generic Federation Restored candidate rather than to a Lab obligation for
+persistent storage, message loss at the restore boundary, or TSO/receive-order
+redelivery. This is correctly reported as development-profile traceability,
+but it means the implementation had to derive a save/restore queue model and
+its edge cases from source prose and testing.
+
+**Possible Lab refinement:** retain the immutable candidates but add stable
+continuation/compound relations and explicit save/restore state variables for
+persistent image lifetime, pre-restore message loss, post-restore TSO/RO
+delivery, and federate-type compatibility. Generate a scenario matrix that
+distinguishes those obligations and links each to the relevant state-machine
+transition and callback boundary.
+
+### RL-069 — Synchronization-point edge cases are prose packets without transition mappings
+
+**Status:** verified state-machine/requirement crosswalk gap; possible Lab
+refinement, not a standards defect or conformance finding.
+
+The new synchronization-point slice uses the candidates
+`requirement-candidate-content-clauses-04-federation-management-page-060-l139-34`,
+`...page-061-l11-1`, `...page-061-l158-40`,
+`...page-062-l140-35`, `...page-063-l12-1`,
+`...page-063-l117-26`, and
+`...page-064-l132-35`. They contain substantial source prose, but the pinned
+records are clause-scoped packets with empty `transition_ids`. The generated
+state-machine artifacts do not give the requirements consumer a direct
+transition-level relationship for the synchronization-set lifecycle.
+
+That lifecycle contains several independently testable rules hidden inside
+the packets: multiple labels may be pending; a designated member that resigns
+before registration confirmation causes failure; late joiners can be added to
+the synchronization set; resigning members are removed before completion; the
+original tag is propagated; an omitted achievement-success indicator means
+success; no further announcement is made after the set has achieved; and the
+point and set disappear after Federation Synchronized. These are not merely
+different assertions of “a synchronization point exists.”
+
+**Umbra impact:** the new Catch2 cases exercise ordinary and
+`HLA_IMMEDIATE` callback paths, subset registration, tag propagation,
+late-join announcement, resignation/removal, failed achievement, and final
+completion. The contracts can select the immutable source IDs, but the Lab
+does not generate the positive/negative/late-join/resignation matrix or show
+which transition carries each obligation. The tests therefore had to rebuild
+the synchronization-set state model locally.
+
+**Possible Lab refinement:** decompose the prose packets into linked
+registration, confirmation, announcement, set-membership, achievement, and
+completion obligations. Add shared synchronization-set variables and explicit
+late-join/resignation transitions, then generate callback-order and
+callback-model scenarios from that model while preserving the source packet
+IDs.
+
+### RL-070 — Connection-loss TSO cutoff behavior is split from the lost-federate report
+
+**Status:** verified cross-cutting export gap; possible Lab refinement, not a
+standards defect or conformance finding.
+
+The pinned Lab export provides separate candidates for the connection-loss
+report and its time-dependent consequence:
+
+- `requirement-candidate-content-clauses-04-federation-management-page-050-l18-5`
+  requires subscribed federates to receive `HLAreportFederateLost`;
+- `requirement-candidate-content-clauses-04-federation-management-page-050-l21-6` requires the report to contain the lost regulating
+  federate's last known time position;
+- `requirement-candidate-content-clauses-04-federation-management-page-050-l24-7` says that the last-known position is determined so that
+  the lost federate's TSO messages can be delivered; and
+- `requirement-candidate-content-clauses-04-federation-management-page-050-l27-8` requires messages timestamped less than or equal to that
+  position to be delivered.
+
+These records have no `transition_ids` and no relation tying the captured
+last-known time to the report, the inclusive TSO cutoff, the subsequent
+automatic resignation, or the surviving federates' callback sequence. The
+source is therefore decomposed into individually plausible statements without
+an executable “capture time -> drain through cutoff -> report/cleanup” object.
+
+**Umbra impact:** the `HLAreportFederateLost` contract deliberately proves the
+ordinary and regional report path, its last-known-time parameter, and both
+callback models. A separate 2026-08-20 equal-to-cutoff integration regression
+now manually composes `l24-7` and `l27-8`: a time-regulating publisher is
+granted time 6, faults before a constrained subscriber evokes, and its queued
+timestamp-6 interaction is delivered before that subscriber's matching grant
+whether the subscriber's TAR was pending at the fault or submitted after it.
+The same bounded suite also queues a timestamp-5 interaction before that
+time-6 boundary and delivers it before the survivor's grant to 6, exercising
+the strict-less-than side of the source's inclusive wording.
+One companion queues a timestamp-6 directed interaction to a target retained
+through the lost publisher's automatic unconditional-divest cleanup. It proves
+that the source's forced resignation does not suppress this already accepted,
+cutoff-marked payload, while the recipient selector and target-lifetime checks
+remain live at the callback boundary.
+Another companion queues a reliable timestamp-6 attribute-update passel from a
+publisher whose source object is retained through the same cleanup. It proves
+the reflection's values, source, timestamp/order, and retraction designator
+arrive before the surviving constrained federate's matching grant.
+A paired two-survivor attribute-update case delivers the same accepted passel
+to one recipient at time 6 and to the other after it requests time 6 later;
+it proves the recipient-specific passel store and cutoff marker survive the
+first reflection.
+A further `DELETE_OBJECTS` collision uses a delete-privileged Restaurant FOM
+object. It proves the accepted timestamp-6 reflection reaches the constrained
+survivor before its matching grant, while the separately generated
+receive-order automatic removal remains deferred by the disabled asynchronous-
+delivery gate and is released by the survivor's next TAR. The two lifecycles
+must not be collapsed into a replacement timestamped removal or an early
+suppression of the reflection.
+An asynchronous-delivery companion opens the same late TAR with that gate
+enabled. It proves the accepted reflection precedes its matching grant and
+the now-eligible receive-order automatic removal follows in that same advance;
+the compound relation must preserve `reflect < grant < remove` without
+inventing a replacement timestamped removal. An `HLA_IMMEDIATE` counterpart
+exercises the same requeue while callbacks are dispatched synchronously and
+preserves that ordering rather than allowing a re-entrant removal to overtake
+the grant.
+Two further late-TAR companions exposed the consequence that the Lab does not
+model: the forced-resign cleanup can already be queued before a survivor opens
+the cutoff boundary. One preserves an attribute reflection and the other a
+directed interaction whose target would otherwise be removed by
+`DELETE_OBJECTS`; each reaches its timestamp-6 callback before the later
+grant, then releases the receive-order removal only through a subsequent gate.
+A mixed two-survivor attribute case proves that this defer/release state is
+per recipient: releasing one survivor's automatic cleanup cannot drain the
+other survivor's still-protected object. These are not separate Lab defects;
+they are concrete regressions caused by the compound lifecycle that RL-070
+already identifies as absent from the export.
+Callback-boundary unsubscribe companions expose the same missing state
+transition from the opposite direction: queued cutoff attribute and directed
+payloads are properly suppressed by their current declarations, but they have
+still crossed their temporal boundary. Their recipient ledgers must therefore
+become terminally suppressed, not remain pending or pretend that user code
+received a callback; this lets the reserved `DELETE_OBJECTS` removal resume at
+the next receive-order gate without inducing Request Retraction for a callback
+that never ran.
+Two companions queue timestamp-5 and timestamp-6 object deletions from that
+regulator. They prove the common cutoff marker prevents automatic
+unconditional-divest cleanup from discarding either accepted removal before the
+surviving constrained federate receives its `Remove Object Instance` callback
+and matching time-6 grant.
+A third companion uses `DELETE_OBJECTS`: it proves that automatic cleanup does
+not replace the accepted timestamped removal with a receive-order callback or
+discard the queued deletion/retraction state before that same boundary.
+A fourth companion keeps two constrained recipients. One drains at time 6,
+then the other requests time 6 after that callback; it proves the object state
+and cutoff marker remain until every pending recipient has crossed its own
+boundary.
+One 2026-08-20 composite case additionally enables asynchronous delivery for a
+time-constrained survivor and proves the `HLAreportFederateLost` `HLAtimeStamp`
+is that same time-6 boundary while the queued application interaction reaches
+the matching grant. It deliberately makes no callback-order assertion between
+the receive-order report and the timestamped interaction.
+The runtime marks only at-or-before-cutoff payloads while forcing the
+resignation; it intentionally makes no assertion about a later timestamp,
+which the source permits to be delivered or not. The Lab's missing compound
+relation still matters: the implemented scenarios are Umbra-owned
+traceability, not generated Lab scenarios or conformance evidence.
+Multi-recipient ordinary/direct interaction, alternate-advance, later-
+timestamp, multi-passel/regional attribute-update, the remaining
+automatic-resign-action collision matrix, and selector-mutation-under-loss
+cases remain a testing backlog.
+
+**Possible Lab refinement:** emit one cross-cutting connection-loss scenario
+that links report construction, last-known-time capture, the inclusive TSO
+delivery boundary, automatic-resign cleanup, and callback ordering. Generate
+equal-to, less-than, and greater-than timestamp cases, plus report-before- or
+after-cleanup ordering, including a `DELETE_OBJECTS`/timestamped-attribute
+collision with pending and late-TAR receive-order defer/release transitions, a
+postgrant asynchronous-delivery release transition in both callback models, a
+directed target under the same collision, and independently staggered
+survivors, plus a callback-boundary declaration change that consumes a queued
+payload without invoking user code, while preserving the existing candidate
+IDs.
+
+### RL-071 — Time-advance request arguments and effective grants lack a compound relation
+
+**Status:** verified cross-service modeling gap; possible Lab refinement, not a
+standards defect or conformance finding.
+
+The time-management export gives separate clause-scoped candidates for the
+request and the later completion/delivery behavior. Examples include:
+
+- TAR request `requirement-candidate-content-clauses-08-time-management-page-194-l21-3` and TAR completion `requirement-candidate-content-clauses-08-time-management-page-194-l69-19`;
+- TARA request `requirement-candidate-content-clauses-08-time-management-page-195-l110-31` and its pre-grant message delivery
+  `requirement-candidate-content-clauses-08-time-management-page-195-l164-49`;
+- NMR request `requirement-candidate-content-clauses-08-time-management-page-197-l20-3` and its pre-grant message delivery
+  `requirement-candidate-content-clauses-08-time-management-page-197-l50-13`; and
+- FQR selection/minimum/optimistic-time records
+  `requirement-candidate-content-clauses-08-time-management-page-200-l131-38`,
+  `requirement-candidate-content-clauses-08-time-management-page-200-l140-41`, and
+  `requirement-candidate-content-clauses-08-time-management-page-200-l164-49`, followed by the FQG completion record
+  `requirement-candidate-content-clauses-08-time-management-page-201-l40-12`.
+
+The records have empty `transition_ids` and do not identify a single request
+instance's supplied boundary, selected target, actual grant, optimistic time,
+delivered message cohort, and completion callback. That leaves an important
+surface distinction to each consumer: a report may preserve the caller's
+supplied boundary even when queued TSO input selects an earlier effective grant,
+while FQR also exposes an optimistic time distinct from the actual grant.
+
+**Umbra impact:** the new service-report tests had to specify locally that an
+accepted request is reported before its grant and that the report retains the
+supplied time. The tests also had to specify the inclusive/exclusive boundary
+differences among TAR/NMR, TARA/NMRA, and FQR. These are useful source/test
+decisions, but the Lab checker only validates the referenced IDs; it does not
+validate the relation between the request record and the later grant result.
+
+**2026-08-21 follow-up:** the positive timestamped Delete Object Instance
+alternate-advance case had to repeat one exact Catch2 selector across the
+deletion, TAR, FQR, TARA, and NMRA contracts. That fan-out is the correct local
+traceability result for a compound callback-before-grant scenario, but the Lab
+does not emit the compound scenario or an ownership graph for those related
+candidate IDs. The consumer must assemble the relationship and keep each lane
+selection synchronized; this is a workflow rough edge, not a new normative
+finding.
+
+The same export shape recurred when the directed-interaction companion added
+FQR, TARA, and NMRA to a target-qualified TSO case. The directed send/receive
+records, alternate-advance records, grant callbacks, and terminal Retract
+classification are individually valid, but the Lab does not synthesize their
+single recipient-frontier scenario. Umbra therefore repeats the exact selector
+intentionally across the directed, time-management, and Request Retraction
+contracts and keeps the compound relationship in the Catch2 plan's
+`next_action` text. This confirms the earlier observation rather than adding a
+new Lab defect.
+
+**Possible Lab refinement:** model a typed time-advance request instance with
+`supplied_time`, `selected_time`, `actual_grant`, `optimistic_time`, delivery
+cohort, callback order, and mode-specific boundary polarity. Link the request,
+report, message-delivery, and grant candidates and generate equality, earlier,
+later, empty-queue, and future-input scenarios.
+
+### RL-072 — “Outstanding save” replacement has no lifecycle boundary
+
+**Status:** verified state-machine export gap; possible Lab refinement, not a
+standards defect or conformance finding.
+
+The Lab does export the useful candidate
+`requirement-candidate-content-clauses-04-federation-management-page-066-l22-5`:
+“At most, one requested save shall be outstanding. A new save request shall
+replace any outstanding save.” However, the candidate has an empty
+`transition_ids` array and no relation to the save-request, save-admission,
+`Initiate Federate Save`, or save-in-progress states.
+
+The new timed-save test had to choose and document a boundary: a second request
+replaces the first while neither request has reached the `Initiate Federate Save`
+boundary, and only the final label is later announced. The Lab surface does
+not make clear which state ends “outstanding”—request admission, initiation,
+the callback, `Federate Save Begun`, or completion—or what a replacement means
+for an already queued initiation callback.
+
+**Umbra impact:** the save contract can prove one replacement scenario, but it
+cannot claim Lab-derived coverage for replacement after admission, replacement
+during save-in-progress, or stale callback suppression. Those behaviors are
+currently local state-machine choices.
+
+**Possible Lab refinement:** connect the one-outstanding candidate to explicit
+save lifecycle states and define replacement/cancellation effects at each
+boundary. Generate traces for replacement before initiation, after initiation,
+during save-in-progress, and after completion/failure, including the expected
+callback label and stale-work behavior.
+
+### RL-073 — Prospective order changes lack an acceptance/confirmation relation
+
+**Status:** verified cross-artifact export gap; possible Lab refinement, not a
+standards defect or conformance finding.
+
+The order-management candidates are split across initialization, change, and
+future-use fragments:
+
+- attribute initialization/change: `requirement-candidate-content-clauses-08-time-management-page-212-l42-7` and
+  `requirement-candidate-content-clauses-08-time-management-page-212-l48-9`;
+- ownership-transfer reset: `requirement-candidate-content-clauses-08-time-management-page-213-l76-20`, `requirement-candidate-content-clauses-08-time-management-page-213-l79-21`, and
+  `requirement-candidate-content-clauses-08-time-management-page-213-l94-26`; and
+- interaction initialization/change: `requirement-candidate-content-clauses-08-time-management-page-214-l81-20` and
+  `requirement-candidate-content-clauses-08-time-management-page-214-l87-22`.
+
+The candidates have no transition mapping connecting service acceptance to the
+confirmation callback or defining what “future” means for an update/send that
+is submitted before, during, or after that callback. The export also does not
+compose the class-default snapshot, per-instance override, ownership-transfer,
+and publisher-scoped interaction order into one lifecycle.
+
+**Umbra impact:** the new tests had to establish local rules: a class-default
+change affects later registrations only; an instance change remains pending
+until confirmation; an update submitted before confirmation uses the captured
+old order; and a later interaction send uses the new order. Those are precisely
+the boundary cases a future consumer would otherwise have to rediscover.
+
+**Possible Lab refinement:** emit a prospective-change relation with
+`requested`, `accepted`, `confirmed`, and `effective-for-new-operation` states.
+Link it to the affected object/interaction scope and generate pre-confirmation,
+confirmation-boundary, post-confirmation, ownership-transfer, and already
+queued-message scenarios.
+
+### RL-074 — Cross-page services do not link their continuation content to the opening candidates
+
+**Status:** verified source-navigation and export-discoverability gap; possible
+Lab refinement, not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, §6.27, *Change Default Attribute
+Transportation Type*, starts in
+`content-block-content-15161-page-141.tex:122-157`. Its four exported
+candidates are all attached to the opening page:
+
+- `requirement-candidate-content-clauses-06-object-management-page-141-l125-32`;
+- `...page-141-l131-34`;
+- `...page-141-l137-36`; and
+- `...page-141-l143-38`.
+
+The following source-content page,
+`content-block-content-15161-page-142.tex:5-165`, contains the service's
+supplied arguments, returned arguments, preconditions, postcondition, and
+exceptions. Yet `content-15161-page-142` exposes only
+`requirement-candidate-content-clauses-06-object-management-page-142-l173-48`,
+which belongs to the next service, §6.28. Neither content block nor the four
+§6.27 candidates carries an explicit continuation, service-span, or
+page-neighbour relation. A page-local candidate lookup therefore makes the
+continued §6.27 material appear to have no requirements, even though its
+opening-page candidates exist.
+
+The immediately following §6.28, *Query Attribute Transportation Type*,
+shows the same pattern. Its opening candidate is
+`requirement-candidate-content-clauses-06-object-management-page-142-l173-48`,
+while `content-block-content-15161-page-143.tex:5-154` contains the continued
+supplied arguments, preconditions, and exceptions. `content-15161-page-143`
+instead exposes only the two §6.29 candidates
+`...page-143-l156-42` and `...page-143-l162-44`. This corroborates that the
+problem is the absence of cross-page service relations, rather than a
+one-service extraction omission.
+
+**Umbra impact:** while implementing the `Change Default Attribute
+Transportation Type` report-file slice, Umbra initially treated page 142's
+absence of §6.27 candidate IDs as a possible export omission. A manual source
+pass found the four page-141 IDs and avoided creating a false Lab defect or
+inventing an ID. The resulting requirement contract uses those immutable IDs,
+but still retains direct source coordinates for the page-142 argument and
+exception semantics. This is a workflow discoverability cost, not evidence
+that the existing candidates are invalid.
+
+**Possible Lab refinement:** expose a stable service-span relationship from a
+service heading to every source-content block and candidate that belongs to
+that service, including continuations across page boundaries. At minimum, add
+`continues_from`/`continues_to` or a `service_id` to content blocks and emit a
+checker warning when a source page begins service components but contains no
+candidates for that service. Preserve all current immutable candidate IDs and
+page-local source coordinates.
+
+### RL-075 — Opening §11.5 candidates are attributed to §11.5.1 before that subclause begins
+
+**Status:** verified clause-ownership mismatch; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the reconstructed source
+`content-block-content-15161-page-292.tex` labels §11.5, *Service reporting*,
+at lines 9--10 and places its report-generation, sink-selection, switch-source,
+and subscription-interlock prose at lines 13--82. The §11.5.1, *Argument
+encoding*, heading does not begin until lines 84--85. The semantic hierarchy
+nevertheless gives all of the opening candidates
+`requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2`,
+`...-l18-5`, `...-l21-6`, `...-l24-7`, `...-l30-9`, and `...-l57-18` the
+`owner_id` `clause-11.5.1`. In particular, the Requirements Lab checker reports
+the file-sink candidate `...page-292-l18-5` as clause `11.5.1`, despite its
+source span preceding that subclause.
+
+**Umbra impact:** source contracts retain the Lab's exported `clause-11.5.1`
+value where the checker requires it, while the design and test records retain
+the direct §11.5 page-292 source coordinates. The Query Attribute Ownership
+file-report record uses that local reconciliation rather than claiming the
+Lab's clause assignment is the normative section boundary.
+
+**Possible Lab refinement:** assign candidates to the active semantic heading
+at their source location, or emit an explicit `source_clause_id` separate from
+the checker's ownership hierarchy. Existing candidate IDs and cross-references
+can remain stable; the report should flag candidates whose source line range
+precedes the heading of their assigned subclause.
+
+### RL-076 — Rotated Table 5 continuation pages lose their data cells in the table export
+
+**Status:** verified structured-table extraction gap; possible Lab refinement,
+not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, Table 5 starts with 67 exported
+cells on page 295, but each continuation artifact from pages 296 through 304
+contains only the four header cells (`(continued)`, `Type`, `Encoding`, and
+`Example`). For example,
+`output/semantic/table-record-table-5-p303-data.tex` declares only
+`table-5-p303.c0001` through `c0004`, although the raw rotated source
+`content-block-content-15161-page-303.tex:77-87` visibly contains the
+`UserSuppliedTag` example. Page 304 exhibits the same split: its raw source
+contains the `UserSuppliedTag` and `VariableLengthData` rows at lines 179--195,
+while `table-record-table-5-p304-data.tex` has only the four headers.
+
+This is narrower and more severe than the row-level-candidate limitation in
+RL-067: a consumer of the Lab's structured table export cannot discover those
+continuation values at all. It must fall back to layout-oriented rotated text,
+where column and row association has to be reconstructed locally.
+
+**Umbra impact:** the first binary user-tag report slice had to source its
+argument form from raw page coordinates rather than a Table 5 row/cell record.
+That keeps the formatter explicitly traceable, but it prevents the checker
+from validating the precise `UserSuppliedTag` type/value relationship or from
+detecting a regression in the continuation-page extraction.
+
+**Possible Lab refinement:** preserve the current page and raw-source outputs,
+then add an orientation-aware table pass that emits every continuation row and
+cell with stable IDs, column identity, page coordinates, and parent
+`table-family-table-5`. A build check should compare the number of detected
+non-header cells against the raw rotated text and flag a continuation page
+whose structured export contains headers only.
+
+### RL-077 — The Lab cannot represent a cross-document Table 5/MIM type-code conflict
+
+**Status:** verified cross-resource consistency gap; possible Lab refinement.
+The underlying source disagreement needs an IEEE/SISO errata decision, not a
+local conformance conclusion.
+
+The reconstructed IEEE 1516.1-2025 Table 5 example at
+`content-block-content-15161-page-303.tex:80-87` depicts
+`"HLAargumentType": 63` for `"HLAargumentName": "UserSuppliedTag"`; the
+Table 5 row on page 304 identifies that value as `Binary Data`. In contrast,
+the unmodified official IEEE 1516.2-2025 standard MIM vendored by Umbra names
+`UserSuppliedTag` value `60` in its `HLAargumentType` enumeration at
+`third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml:3455-3456`,
+and its final enumerator is `MessageRetractionReturn` value `62` at
+lines 3463--3464. The Table 5 report example is therefore not directly
+decodable against that MIM enumeration.
+
+The Requirements Lab exports the IEEE 1516.1 text and its candidate IDs, but
+has no first-class link to the companion IEEE 1516.2 MIM resource, no source
+authority/edition metadata at the field level, and no way to record a detected
+cross-document numeric contradiction. RL-076 also means the Table 5
+continuation row is absent from the structured table output, making this
+conflict harder to discover automatically.
+
+**Umbra impact:** Umbra will not silently describe Table 5's literal `63` as a
+static-MIM value. The file-report formatter will keep the Table 5 literal
+separate from any future encoded MOM-interaction path, and its test/contract
+will name the source conflict and remain explicitly non-conformance evidence
+until an authoritative correction is available.
+
+**Possible Lab refinement:** allow a requirement/table cell to declare
+cross-document dependencies (for example, a particular MIM enumerator), the
+authoritative artifact revision, and a machine-readable `conflicts_with`
+record. The checker should then surface incompatible numeric values as a
+review-required source conflict rather than letting consumers silently choose a
+local interpretation.
+
+### RL-078 — Coalesced service pages can assign a service-level requirement to a trailing subclause
+
+**Status:** verified clause-ownership mismatch; possible Lab refinement, not a
+standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the source text for §5.4,
+*Publish Interaction Class service*, appears at page 93 lines 17--19 in
+`content-block-content-15161-page-093.tex`; its candidate is
+`requirement-candidate-content-clauses-05-declaration-management-page-093-l17-1`.
+The §5.5 *Unpublish Interaction Class service* text follows at lines 140--145,
+with candidate
+`requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35`.
+The following headings at lines 147 and 149 introduce §5.5.1, *Supplied
+arguments*, and §5.5.2, *Returned arguments*, respectively. Both service-level
+candidates are nevertheless owned by `clause-5.5.2` in `hierarchy.json`, rather
+than their active parents `clause-5.4` and `clause-5.5`. The focused
+Requirements Lab checker reproduces the result as `expected 'clause-5.4', Lab
+has 'clause-5.5.2'` and `expected 'clause-5.5', Lab has 'clause-5.5.2'`.
+
+The same boundary effect occurs on page 90 for §5.2, *Publish Object Class
+Attributes service*. Its service-body source at lines 79--81 of
+`content-block-content-15161-page-090.tex` yields
+`requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22`,
+but `hierarchy.json` owns it as `clause-5.2.4` rather than active parent
+`clause-5.2`. The checker reproduces that form as `expected 'clause-5.2', Lab
+has 'clause-5.2.4'`.
+
+Page 91 exhibits the same behavior for §5.3, *Unpublish Object Class
+Attributes service*. Its service-body candidates
+`requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35`
+and
+`requirement-candidate-content-clauses-05-declaration-management-page-091-l127-37`
+are owned by `clause-5.3.3` rather than active parent `clause-5.3` in
+`hierarchy.json`. The checker therefore reproduces the form `expected
+'clause-5.3', Lab has 'clause-5.3.3'`.
+
+The same revision's page-100 source gives §5.11, *Unsubscribe Interaction
+Class service*, at lines 129--139 of
+`content-block-content-15161-page-100.tex`. Its service-level candidate is
+`requirement-candidate-content-clauses-05-declaration-management-page-100-l129-35`,
+but `hierarchy.json` owns it as `clause-5.11.3` rather than active parent
+`clause-5.11`. The checker reproduces that independent form as `expected
+'clause-5.11', Lab has 'clause-5.11.3'`.
+
+Page 99 exhibits the same behavior for §5.10, *Subscribe Interaction Class
+service*. The service text at lines 75--77 of
+`content-block-content-15161-page-099.tex` produces
+`requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20`,
+but `hierarchy.json` owns it as `clause-5.10.2` rather than active parent
+`clause-5.10`. The checker reproduces that third independent form as `expected
+'clause-5.10', Lab has 'clause-5.10.2'`.
+
+The same boundary effect also occurs for §4.22, *Federate Save Complete
+service*. The first two lines of its service description on page 68 yield
+`requirement-candidate-content-clauses-04-federation-management-page-068-l115-29`
+and `...page-068-l118-30`. The source block places them after the §4.22 heading
+and before §4.22.1, *Supplied arguments*, yet both exported candidates declare
+`clause_id` `clause-4.22.3`, the page's trailing *Preconditions* subclause.
+Their stale display titles point to `content/clauses/annexes-page-439.tex`;
+that separate source-title provenance issue remains covered by RL-002. The
+direct page-068 source coordinates and the rendered IEEE page make the §4.22
+service association reproducible despite the structural owner.
+
+The same boundary effect occurs for §4.23, *Federation Saved* service. Its
+service-description candidates on page 69—
+`requirement-candidate-content-clauses-04-federation-management-page-069-l64-15`,
+`...page-069-l67-16`, `...page-069-l70-17`,
+`...page-069-l76-19`, and `...page-069-l133-38`—all declare `clause_id`
+`clause-4.23.2`. Their source coordinates span lines 64--135, after the
+§4.23 heading and before §4.23.1, *Supplied arguments*, so the actual
+service association is §4.23 rather than its trailing *Returned arguments*
+subclause. The rendered IEEE 1516.1-2025 text independently confirms both
+the success/failure result semantics and the recipient rule. This is the same
+within-page ownership defect, not a second normative finding.
+
+The same boundary effect occurs for §4.26, *Federation Save Status Response*
+service. Its page-72 service-description candidates
+`requirement-candidate-content-clauses-04-federation-management-page-072-l17-1`,
+`...page-072-l20-2`, `...page-072-l23-3`, and `...page-072-l26-4` all declare
+`clause_id` `clause-4.27.2`. The direct source spans lines 17--28, after the
+§4.26 heading and before §4.26.1, *Supplied arguments*, and say that the RTI
+shall invoke the response at the querying joined federate with its list of
+joined federates and save statuses. The actual service association is §4.26,
+not the following §4.27 Request Federation Restore service's *Returned
+arguments* subclause. This is another reproducible instance of the same
+coalesced-page ownership defect, not a distinct standards finding.
+
+The same boundary effect occurs for §4.29, *Federation Restore Begun service*.
+Its page-74 service-description candidates
+`requirement-candidate-content-clauses-04-federation-management-page-074-l112-28`,
+`...page-074-l115-29`, and `...page-074-l124-32` all declare `clause_id`
+`clause-4.29.3`. Their direct source spans lines 112--126, after the §4.29
+heading and before §4.29.1, *Supplied arguments*, and include the explicit
+requirement that the RTI invoke the service at every joined federate including
+the requester. The actual service association is §4.29 rather than its
+trailing *Preconditions* subclause. This is another reproducible instance of
+the same coalesced-page ownership defect, not a distinct standards finding.
+
+The same boundary effect occurs for §4.30, *Initiate Federate Restore
+service*. Its page-75 service-description candidates
+`requirement-candidate-content-clauses-04-federation-management-page-075-l44-7`
+and `...page-075-l47-8` both declare `clause_id` `clause-4.30.6`. Their direct
+source spans lines 44--49 after the §4.30 heading and before §4.30.1,
+*Supplied arguments*; the text instructs the joined federate to return to its
+saved state and to select it using the federation, save label, designator, and
+name. The actual service association is §4.30 rather than its trailing
+*Reference state charts* subclause. Their stale display titles point to
+`content/clauses/annexes-page-439.tex`, the separate provenance defect
+recorded under RL-002. This is the same coalesced-page ownership defect, not a
+distinct standards finding.
+
+The same boundary effect occurs for §4.27, *Request Federation Restore
+service*. The direct service-description candidates
+`requirement-candidate-content-clauses-04-federation-management-page-072-l131-32`,
+`...page-072-l134-33`, and `...page-072-l137-34` contain the §4.27 request
+semantics, but each exports `clause_id` `clause-4.27.2`, the trailing
+*Returned arguments* subclause rather than the active §4.27 service. Their
+display titles again retain the stale `content/clauses/annexes-page-439.tex`
+provenance covered by RL-002. The official rendered page 57 and the candidate
+source coordinates make the intended service association reproducible.
+
+The same boundary effect occurs for §4.31, *Federate Restore Complete
+service*. Its direct service-description candidate
+`requirement-candidate-content-clauses-04-federation-management-page-076-l15-1`
+begins immediately after the §4.31 heading and says that the service notifies
+the RTI that a joined federate completed its restore attempt. The exported
+candidate instead declares `clause_id` `clause-4.32`, the following
+*Federation Restored* callback service. Its display title again retains the
+stale `content/clauses/annexes-page-439.tex` provenance covered by RL-002. The
+direct page-076 source coordinate and official rendered page 61 make the
+intended §4.31 association reproducible.
+
+The same boundary effect occurs for §4.33, *Abort Federation Restore service*.
+Its direct callback/result candidates
+`requirement-candidate-content-clauses-04-federation-management-page-078-l20-4`
+and `...page-078-l29-7` state that the RTI shall abort the current restore and
+describe the abort result, but both export `clause_id` `clause-4.34`, the
+following *Query Federation Restore Status* service. Their display titles again
+retain the stale `content/clauses/annexes-page-439.tex` provenance covered by
+RL-002. The source spans on page 78 and official rendered page 62 make the
+intended §4.33 association reproducible.
+
+The same boundary effect occurs for §6.22, *Provide Attribute Value Update
+service*. In `content-block-content-15161-page-137.tex`, the §6.22 heading is
+at line 25 and §6.23, *Turn Updates On For Object Instance service*, does not
+begin until line 148. Nevertheless,
+`requirement-candidate-content-clauses-06-object-management-page-137-l40-8`
+for the propagated user tag (source lines 40--42) and
+`...page-137-l43-9` for the at-most-one-provider-callback rule (source lines
+43--45) both export `clause_id` `clause-6.23`. The direct source belongs to
+§6.22, not to the later Turn Updates On service. This is another reproducible
+instance of the same coalesced-page ownership defect, not a distinct standards
+finding.
+
+The same boundary rule is visible at the start of §6.2, *Reserve Object
+Instance Name service*. The direct source at
+`content-block-content-15161-page-113.tex` lines 9--26 places the service
+heading and its supplied-name prose before §6.2.1, while
+`requirement-candidate-content-clauses-06-object-management-page-113-l21-3`
+and `...page-113-l24-4` both export `clause_id` `clause-6.3`, the following
+*Object Instance Name Reserved* service. The source coordinates and the
+official page make the §6.2 association unambiguous; the Lab's structural
+owner is nevertheless the checker-visible §6.3 value. The adjacent §6.4
+release candidates retain their correct `clause-6.4.3` owner, so this is a
+useful asymmetric example of the same page-boundary behavior.
+
+This looks like an extraction-unit boundary effect: the page's semantic
+paragraph records §5.2, §5.3, §5.4, §5.5, §5.10, or §5.11 and the later headings
+together, so ownership is resolved from the final nested heading instead of
+the source span's active heading. Pages 90, 91, 99, and 100 exhibit the same
+rule with §5.2/§5.2.4, §5.3/§5.3.3, §5.10/§5.10.2, and §5.11/§5.11.3,
+respectively. It is analogous to RL-075, but occurs within a short service
+section rather than before a subclause begins.
+
+**Umbra impact:** the Publish Object Class Attributes, Unpublish Object Class
+Attributes, Publish Interaction Class, Unpublish Interaction Class, Subscribe
+Interaction Class, and Unsubscribe Interaction Class requirements contracts
+use the exported `clause-5.2.4`, `clause-5.3.3`, `clause-5.5.2`,
+`clause-5.10.2`, or `clause-5.11.3` values so the checker remains an honest
+regression guard. Their source IDs, service names, implementation notes, and
+test names continue to identify the direct §5.2, §5.3, §5.4, §5.5, §5.10, and
+§5.11 service requirements; no claim is made that any wording is actually a
+returned-arguments or preconditions requirement. The Federate Save Complete
+slice likewise retains its immutable §4.22 source IDs while recording the
+direct service semantics; it does not treat the exported `clause-4.22.3`
+ownership as evidence that a service-description statement belongs solely to
+the preconditions subsection. The Request Federation Restore reporting slice
+likewise preserves its immutable §4.27 candidate IDs while treating their
+exported `clause-4.27.2` owner as a checker-stable structural artifact, not as
+evidence that the service description belongs to returned arguments. The
+Federate Restore Complete reporting slice likewise retains its immutable §4.31
+source candidate while using the Lab's `clause-4.32` value only as the
+checker-stable structural owner; it does not reclassify the federate-to-RTI
+completion service as the subsequent federation-to-federate callback. The
+Abort Federation Restore reporting slice likewise retains its immutable §4.33
+source candidates while using the Lab's `clause-4.34` value only as a
+checker-stable structural owner; it does not reclassify the abort request and
+its restore-result semantics as the subsequent status-query service. The
+Federation Saved reporting slice likewise retains its immutable §4.23
+candidate IDs and their checker-required `clause-4.23.2` owner while treating
+the source as the §4.23 result callback; it does not reclassify success,
+failure-reason, or recipient semantics as returned arguments.
+The Federation Save Status Response reporting slice likewise retains its
+immutable §4.26 candidate IDs and checker-required `clause-4.27.2` owner while
+treating the source as the §4.26 RTI-to-querying-federate callback; it does not
+reclassify the response's participant/status list as §4.27 returned arguments.
+The Federation Restore Begun reporting slice likewise retains its immutable
+§4.29 candidate IDs and their checker-required `clause-4.29.3` owner while
+treating the source as the §4.29 all-joined-federate callback; it does not
+reclassify the service's recipient rule as a preconditions requirement.
+The Initiate Federate Restore reporting slice likewise retains its immutable
+§4.30 candidate IDs and uses the Lab's `clause-4.30.6` value only as a
+checker-stable structural owner; it does not reclassify the restore instruction
+or its supplied state-selection values as a reference-state-chart requirement.
+The Provide Attribute Value Update reporting slice likewise retains its
+immutable §6.22 candidate IDs and uses the Lab's `clause-6.23` value only as a
+checker-stable structural owner; it does not classify the provider callback's
+tag propagation or at-most-one rule as a Turn Updates On requirement.
+
+**Possible Lab refinement:** derive candidate ownership from the heading active
+at the candidate's start coordinate, not the final heading in a coalesced
+paragraph. When a paragraph spans headings, emit child source spans or retain
+an explicit `source_clause_id` alongside any structural owner so consumers can
+distinguish the extraction hierarchy from the normative section boundary.
+
+### RL-079 — Table 5's Boolean example capitalization differs from §11.5.1
+
+**Status:** verified source-text inconsistency; possible Lab refinement, not a
+local conformance conclusion.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the §11.5.1 argument-encoding
+definition in `content-block-content-15161-page-292.tex:153-157` specifies a
+Boolean as the character sequence `true` or `false` (without quotes). The
+structured Table 5 export preserves the Boolean row at
+`table-record-table-5-p295-data.tex` cells `c0062` through `c0064`, and the
+raw rotated source at `content-block-content-15161-page-295.tex:205-213`
+shows its example value as `True` with an uppercase initial letter.
+
+The Lab faithfully exposes both artifacts, but does not express that the
+Table 5 example and the formal §11.5.1 value definition disagree. A consumer
+that treats the example as the lexical rule can silently generate a different
+file-report value than one that follows the definition.
+
+**Umbra impact:** `formatMomBoolean` uses the explicit §11.5.1 lowercase
+`true`/`false` values. The Subscribe Interaction Class report slice uses that
+formatter and records the discrepancy instead of copying the table example as
+a locally chosen convention.
+
+**Possible Lab refinement:** permit a table example to reference a governing
+type-definition record, then check literal examples against that definition
+when it is lexical. If the example is intentionally illustrative rather than
+normative, expose an explicit `example_only` qualifier so consumers can avoid
+mistaking it for the encoding rule.
+
+### RL-080 — A cross-page service continuation can be assigned to the next service
+
+**Status:** verified clause-ownership and service-association mismatch;
+possible Lab refinement, not a standards defect or conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the rendered source block for
+page 97 begins as a continuation of §5.8, *Subscribe Object Class Attributes
+service*. Its first text states the active/passive consequence at
+`content-block-content-15161-page-097.tex:15-21`, followed by the maximum
+update-rate rule at lines 24--30. The page then presents §5.8.1 through §5.8.6
+at lines 32--660; the next service, §5.9, does not begin until lines 663--664.
+
+Nevertheless, the three exported maximum-update-rate candidates
+`requirement-candidate-content-clauses-05-declaration-management-page-097-l20-4`,
+`...page-097-l23-5`, and `...page-097-l26-6` all declare `clause_id`
+`clause-5.9` in `semantic/requirements.json`. `hierarchy.json` consequently
+places them in §5.9's `record_ids`, even though their statements say that the
+attributes are "subscribed" and their source precedes the §5.9 heading. The
+same content element's generated record list contains those three candidates
+beside the genuinely §5.9 candidate at page-097 line 191, so a consumer cannot
+recover the correct service association from the element-level list alone.
+
+This is more severe than RL-074's discoverability gap: the continuation has
+been extracted into immutable candidates, but the candidates are affirmatively
+owned by the following service. It is also distinct from RL-078's within-page
+coalescing effect because this error crosses the page boundary and changes the
+service to which a behavior appears to belong.
+
+The same defect reproduces in the adjacent directed-interaction services. Page
+102 begins with the final delivery and inheritance rules of §5.12, *Subscribe
+Object Class Directed Interactions service*, before §5.12.1 begins. Its two
+immutable candidates
+`requirement-candidate-content-clauses-05-declaration-management-page-102-l10-1`
+and `...page-102-l19-4` retain source coordinates
+`content/clauses/05-declaration-management-page-102.tex:10-12` and `:19-21`,
+but both declare `clause_id` `clause-5.13`. The §5.13 heading does not occur
+until page-102 line 163. Page 103 then begins with §5.13.1 through §5.13.4;
+its postcondition candidate
+`requirement-candidate-content-clauses-05-declaration-management-page-103-l108-29`
+states that a joined federate shall receive no subsequent *Receive Directed
+Interaction* invocations for unsubscribed pairs, yet declares `clause_id`
+`clause-5.14.3`. The §5.14 heading begins only after that source at page-103
+line 132. These independent cases confirm that a continuation can be attached
+to the next service/subclause even where the candidate's own source range and
+statement identify the preceding service. The candidate display titles' stale
+`annexes-page-439.tex` paths are the separate provenance problem already
+recorded in RL-002; the structured `source.path` coordinates above are the
+reproducible evidence for this issue.
+
+**Umbra impact:** the Subscribe Object Class Attributes service-report slice
+will preserve the three immutable candidate IDs only as source pointers and
+will explicitly record their exported §5.9 ownership mismatch. Its update-rate
+argument semantics are anchored to the direct §5.8 continuation coordinates and
+the exact official C++ declaration; they are not treated as evidence about the
+Unsubscribe Object Class Attributes service. This keeps the upcoming focused
+test lane honest while retaining a checker-visible regression anchor.
+
+**Possible Lab refinement:** retain a stable active `service_id` across page
+breaks and assign every candidate from its source start coordinate to that
+service, independently of the later heading in the same extraction element.
+When a continuation and a new service share one page-level element, emit child
+source spans (or a separate `source_service_id`) and flag any candidate whose
+assigned service begins after its source range. Preserve current immutable
+candidate IDs and expose the corrected association as explicit reconciliation
+metadata.
+
+### RL-081 — The supplied FDD XSD cannot represent DIF-permitted multiple directed interactions
+
+**Status:** verified cross-artifact cardinality conflict; possible Lab
+reconciliation refinement, not a local conformance conclusion.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, §5.12's extracted source at
+`content-block-content-15161-page-101.tex:110-121` says that a joined
+federate may subscribe to two directed interaction classes associated with the
+same object class using different selector modes. The official IEEE 1516.2
+artifacts vendored for Umbra disagree about whether the corresponding model can
+be represented: `IEEE1516-DIF-2025.xsd:1912` declares
+`directedInteraction` with `maxOccurs="unbounded"`, while
+`IEEE1516-FDD-2025.xsd:1930` omits `maxOccurs`, so its XSD cardinality is one.
+
+The fixtures
+`cpp/tests/data/directed-interaction-selector-matrix-object-fom.xml` and
+`...-interaction-fom.xml` independently validate as DIF modules and declare
+the two classes described by §5.12. Umbra's composed-FDD materializer then
+deterministically rejects their result against the supplied FDD XSD with
+`directedInteraction: This element is not expected`. The regression
+`The FDD materializer surfaces the multiple-directed-class schema conflict`
+retains both facts: raw DIF acceptance and composed-FDD rejection. This is not
+a Requirements Lab extraction failure—RL-006 already records that the Lab is
+not a source for IEEE 1516.2 schemas—but it is a cross-document reconciliation
+need analogous to RL-077's FOM/FDD dependency issue.
+
+**Umbra impact:** Umbra retains the valid DIF fixtures and expected-rejection
+guard, but does not silently select one declaration, emit an unvalidated FDD,
+or claim runtime coverage for the §5.12 two-class selector case. The full
+per-directed-class delivery matrix remains blocked pending an authoritative
+reconciliation or corrected FDD schema interpretation.
+
+**Possible Lab refinement:** supplement source requirement exports with a
+cross-document dependency/cardinality reconciliation record when a requirement
+depends on a separately published schema artifact. The record should identify
+the active publication/version, relevant XSD particles, and any detected
+contradiction without reclassifying it as a normative conclusion. This would
+let consumers distinguish an unimplemented behavior from one that cannot be
+faithfully exercised using the supplied companion artifacts.
+
+### RL-082 — Initiate Federate Save candidates are attached to the following service
+
+**Status:** verified clause-ownership mismatch; possible extraction refinement,
+not a standards defect or local conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the page-67 source candidates for
+the *Initiate Federate Save* callback—especially
+`requirement-candidate-content-clauses-04-federation-management-page-067-l37-8`
+and `...-l40-9`—declare `clause_id` `clause-4.21.1`. Their structured source
+coordinates are instead
+`content/clauses/04-federation-management-page-067.tex:37-42`, where the
+active service is §4.20. The rendered IEEE 1516.1-2025 text labels that service
+`4.20 Initiate Federate Save † service`, gives its supplied arguments in
+§4.20.1, and begins §4.21 (*Federate Save Begun*) only afterwards. The exported
+candidate titles' `annexes-page-439.tex` provenance is the separately tracked
+RL-002 display problem.
+
+**Umbra impact:** the queued recipient service-report lane retains the stable
+candidate IDs as immutable source pointers, but records the local service
+association as §4.20 / `InitiateFederateSave`. It does not treat the Lab's
+`clause-4.21.1` field as evidence that the callback belongs to `Federate Save
+Begun`; the existing direct time-constrained admission coverage remains mapped
+through the same source evidence and its explicitly stated boundary.
+
+**Possible Lab refinement:** apply the active-service owner at each candidate's
+source start coordinate, rather than inheriting the following service's first
+subclause. Retain the immutable IDs and expose a corrected `service_id` or
+reconciled clause association, consistent with the cross-page ownership
+correction proposed in RL-080.
+
+### RL-083 — Table 5’s restore-status-set row conflicts with the official MIM and is not machine-readable
+
+**Status:** verified cross-artifact/source-text discrepancy and structured-table
+export gap; possible Lab refinement. The underlying Table 5 terminology and
+example require an IEEE/SISO correction or reconciliation decision, not a
+local conformance conclusion.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the raw rotated Table 5 source at
+`content-block-content-15161-page-297.tex:107-112` labels the collection
+`FederateHandleRestoreStatusSet` and its encoding
+`Array<FederateHandleRestoreStatus>`. The preceding singular row at lines
+77--105 instead correctly labels `FederateRestoreStatus` and its
+`preRestoreHandle`, `postRestoreHandle`, and `status` fields. The collection
+example at lines 113--139 has three malformed leading braces in its second
+object, so it cannot be adopted as a mechanically parseable canonical value.
+The continuation table export
+`table-record-table-5-p297-data.tex` contains only its four headers, as
+already characterized by RL-076, and therefore exposes no row or cell record
+that a contract can cite.
+
+The unmodified official 2025 standard MIM at
+`third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml:3291-3296`
+names `FederateRestoreStatus` as argument type 19 and
+`FederateRestoreStatusSet` as argument type 20. The official C++ binding calls
+the matching collection `FederateRestoreStatusVector`. Thus the Table 5
+collection spelling and element spelling do not agree with the companion MIM
+or the public binding, even before the malformed illustration is considered.
+
+**Umbra impact:** the §4.35 private file-report formatter uses the MIM’s
+type-20 `FederateRestoreStatusSet` identity and the official C++ vector, while
+retaining the singular Table 5 record’s explicitly depicted field names. It
+does not copy the incorrect collection spelling or malformed second example,
+does not infer an encoded public MOM interaction, and records this as
+source-level traceability rather than conformance evidence.
+
+**Possible Lab refinement:** preserve the raw Table 5 source, but emit an
+orientation-aware row record for it and allow that record to declare a
+companion-MIM dependency plus a `conflicts_with` relation. A consistency check
+should flag a Table 5 type/element name that differs from the official MIM and
+flag malformed JSON-like examples separately from intended record structure.
+
+### RL-084 — Focused-lane selectors can overmatch neighboring contracts
+
+**Status:** verified Umbra test-integration hazard; not a Requirements Lab
+extraction defect or a standards/conformance finding.
+
+While adding focused service-report lanes, a CMake `MATCH` expression that was
+not anchored at the end of the registered test/contract name selected a
+neighboring requirement family sharing the same prefix. The resulting CTest
+lane still appeared healthy, but its labels silently widened the slice and
+made a local service test appear to carry evidence from an adjacent service.
+This is particularly easy to miss because the Requirements Lab and API
+contracts themselves remain individually valid; the error occurs in the
+consumer-side mapping from those contracts to CTest labels.
+
+**Umbra impact:** each focused lane now uses an exact, end-anchored selector
+where a shared traceability test must be mapped intentionally, and
+`focused_service_lane_catalog` is run after every mapping change. The catalog
+requires a Catch2 test, Requirements Lab membership, and API-contract
+membership for each lane, while also making accidental widening visible in
+review. The adjacent Commit Region Modifications, Delete Region, and Set Range
+Bounds lanes, plus the regional interaction subscription service-report lane,
+all pass that catalog check.
+
+**Possible tooling refinement:** make lane declarations consume exact
+registered contract/test identifiers (or require an explicit `allow_prefix`
+flag) instead of accepting unconstrained regular expressions. Emit the final
+selected test and contract IDs in the catalog report so a widened mapping is
+machine-detectable before a lane is promoted.
+
+### RL-085 — Service candidates do not carry FOM switch-fixture defaults
+
+**Status:** verified consumer-side fixture/traceability gap; possible Lab
+refinement, not a Requirements Lab extraction defect or a conformance finding.
+
+The Requirements Lab's service and API records identify the switch setters and
+their declared Boolean arguments, but the exported contract/test mapping does
+not carry the defaults supplied by the FOM fixture used to exercise those
+services. Umbra's focused regional-interaction service-report case uses
+`cpp/tests/data/switch-support-enabled-fom.xml`; that valid 2025 DIF module
+sets `conveyRegionDesignatorSets`, `serviceReporting`, and
+`sendServiceReportsToFile` to `isEnabled="true"`. A test that assumed the
+binding defaults without explicitly resetting those switches therefore started
+with a different state than the intended disabled-report setup. The Lab
+records remain correct—the rough edge is that the test seed's switch metadata
+is invisible at the traceability boundary.
+
+**Umbra impact:** every focused service lane now declares its switch baseline
+in the test body, resets report and callback switches before taking a file
+baseline, and asserts the resulting getter values. This keeps the service
+report serial assertions independent of a fixture's advisory defaults and
+prevents a FOM-provided `true` value from being mistaken for a public API
+default. The fixture remains useful for testing enabled-switch composition; no
+standard default is inferred from it.
+
+**Possible Lab refinement:** allow a test seed to publish its required FOM/SOM
+module set and effective switch/default values as structured preconditions.
+The lane catalog should display those preconditions beside the selected
+service/API records and flag a test that relies on an unrecorded fixture
+state. This would make configuration-sensitive regressions visible without
+turning a consumer fixture into a normative requirement.
+
+### RL-086 — ResignAction directives are exported as one aggregate candidate
+
+**Status:** verified semantic/crosswalk granularity gap; possible Lab
+refinement, not a standards defect or a conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the federation-management export
+represents `RTIambassador::resignFederationExecution` as one aggregate C++ API
+surface, `api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e`,
+and the relevant requirement candidates describe the service and its directive
+values separately. The broad §4.12 service candidate
+`requirement-candidate-content-clauses-04-federation-management-page-058-l112-33`
+states that the action argument directs the RTI to perform zero or more
+actions. The nearby directive candidates
+`requirement-candidate-content-clauses-04-federation-management-page-058-l125-35`
+(directive 1),
+`requirement-candidate-content-clauses-04-federation-management-page-058-l147-40`
+(directives 1/4/5 assumption search), and
+`requirement-candidate-content-clauses-04-federation-management-page-059-l8-1`
+(final-federate directive 2) have
+empty `transition_ids` and `coverage_kind: cross-cutting`; none supplies a
+stable directive-specific semantic facet. The candidate records therefore
+cannot distinguish a test of directive 3 cancellation from a test of the
+mixed directive 4 delete-then-divest ordering, even though both exercise the
+same aggregate API entry point and materially different state transitions.
+
+**Umbra impact:** the resignation contracts retain the immutable aggregate
+service/API IDs and list each focused directive regression explicitly. The
+standalone voluntary directive 3 cancellation test and the mixed voluntary
+directive 4 test are not promoted to directive-specific Lab conformance
+claims; their local Catch2 evidence is deliberately labelled as development-
+profile coverage until the remaining action variants, packaging evidence, and
+protected review are complete.
+
+**Possible Lab refinement:** retain the aggregate candidate and source spans,
+but export a stable `ResignAction` value matrix (or child semantic facets)
+covering each directive's preconditions, ordering, and postconditions. A
+crosswalk should be able to select the aggregate API plus one directive facet
+without duplicating source candidates. This would preserve overload/API
+identity while making focused transition coverage and gaps machine-readable.
+
+### RL-087 — The special instance-identifier rule was implemented before its exact Lab candidate was selected
+
+**Status:** verified consumer-side traceability mapping gap; possible Lab
+refinement, not a Requirements Lab extraction defect or a standards/conformance
+finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the exact IEEE 1516.2-2025
+reference-data candidate
+`requirement-candidate-sections-semantic-clause-4c-page-079-l57-5` states that
+`HLAobjectInstanceName` identifies an instance by name and
+`HLAobjectInstanceHandle` identifies it by handle. Umbra already enforced the
+standardized `HLAunicodeString` / `HLAobjectInstanceHandle` representations and
+had a Catch2 regression, but the test-plan entry selected only the neighboring
+generic representation candidates from §6.2.15–§6.2.17. The exact §4.14.9
+candidate was therefore absent from the machine-readable trace even though the
+implementation and test were present. The design and roadmap also described
+the exception as future work, which made the implementation state look less
+complete than the evidence showed.
+
+**Umbra impact:** a dedicated private contract now selects the exact candidate,
+and the composition test-plan entry includes it. The validation design and
+roadmap now describe the rule as implemented while keeping the evidence at
+private-preflight scope; no public FOM conformance claim is inferred.
+
+**Possible Lab refinement:** allow a traceability checker to flag a test whose
+description explicitly names a normative exception but whose selected
+candidate set contains only neighboring generic records. A source-span-aware
+semantic-group check could suggest the exact candidate without changing the
+immutable extraction records.
+
+### RL-088 — Cross-service callback ordering is a derived obligation rather than an exported relationship
+
+**Status:** verified export-shape limitation; possible Lab refinement, not a
+Requirements Lab extraction defect or a conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the regional interaction candidates
+and the ordinary Time Advance Request / Next Message Request candidates are
+exported as separate requirement and API records. The bundle does not expose a
+relationship stating that an overlap-qualified timestamped `Receive Interaction`
+or `Reflect Attribute Values` callback must precede the receiving federate's
+ordinary TAR or NMR grant. The regional TAR/NMR regressions therefore had to
+hand-compose the interaction DDM records `...page-236-l152-45` and
+`...page-239-l150-43`, and the object-management records
+`...page-120-l83-22`, `...page-121-l36-10`, `...page-122-l85-25`, and
+`...page-122-l103-31`, with the time-management records
+`...page-184-l91-26`, `...page-185-l17-5`, `...page-194-l21-3`,
+`...page-194-l69-19`, `...page-197-l20-3`, and `...page-197-l50-13`.
+
+**Umbra impact:** the paired contracts and Catch2 plan now make that derived
+composition explicit, and the tests prove the callback-before-grant ordering
+at the inclusive timestamp frontier for both payload families. The linkage
+remains Umbra's scenario derivation, not a Lab-provided composite behavior or
+conformance claim.
+
+**Possible Lab refinement:** add an optional, clearly non-normative composite
+scenario layer that can link actors, queued work, callback events, grant
+frontiers, and ordering constraints across multiple source requirements and
+API surfaces. Preserve the existing immutable records and keep the composite
+relationship distinct from normative clause ownership and API mappings.
+
+### RL-089 — New focused lanes need an explicit traceability-label bridge
+
+**Status:** verified consumer-side focused-lane integration gap; possible Lab
+and tooling refinement, not a Requirements Lab extraction defect or a
+standards/conformance finding.
+
+While adding the default-source timestamped attribute-update companion, the
+Catch2 test carried the exact
+`timestamped-default-region-attribute-update` tag and the three selected
+contracts all passed their direct `requirements_lab.py check` tests. The CTest
+catalog nevertheless had no Requirements-Lab or API-contract checks under that
+new lane label: the existing traceability registrations exposed only the
+generic `requirements-lab`, `api-contract`, `ddm`, and `time-management` labels.
+`tools/verify_ctest_service_lanes.py --lane
+timestamped-default-region-attribute-update` therefore reported a missing
+Requirements-Lab check and API-contract check even though the contracts were
+valid. The gap was in the consumer's CMake label bridge, not in the pinned Lab
+records.
+
+**Umbra impact:** the lane now adds anchored CMake labels for the default-region
+requirements check and the timestamped regional attribute-update requirement
+and API checks, and registers a dedicated service lane. Its audit reports one
+Catch2 behavior case, three Requirements-Lab checks, and one API-contract check;
+the exact behavior plus all traceability checks run together without including
+neighboring timestamped families.
+
+The same consumer-side edge was rechecked when the focused
+`timestamped-regional-attribute-update` lane was added for the explicit-source
+association-replacement regression. The pinned regional requirements and API
+contracts were valid without Lab changes; the CMake bridge now labels both
+checks explicitly, and the lane audit reports four Catch2 cases, two
+Requirements-Lab checks, and one API-contract check. This is a repository
+catalog/labeling concern, not a new Lab extraction defect.
+
+The delayed-subscription extension exposed the same routing concern rather
+than a new source defect: its regional requirements contract and the existing
+support-switch API contract both passed directly, while the new focused lane
+needed explicit labels for the delayed-subscription requirements and API
+checks. The regional interaction companion uses the same bridge; the resulting
+audit reports six Catch2 cases, two Requirements-Lab checks, and one
+API-contract check. The pinned Lab export still has the RL-018 stale
+title/clause metadata; no additional immutable candidate was needed.
+
+The asynchronous regional-interaction companion exposed the composite-lane
+variant of the same concern. Its behavior selects both the asynchronous-
+delivery contracts and the regional-interaction contracts; without an explicit
+CMake bridge, the asynchronous lane would have run the behavior while omitting
+the regional traceability checks. The bridge now labels the exact
+`interaction_region_(requirements|api)_traceability` tests for that lane while
+leaving the standalone regional service lane intact. The audit reports seven
+Catch2 cases, six Requirements-Lab checks, and three API-contract checks for
+the asynchronous lane; the immutable Lab records remain unchanged.
+
+The explicit-source timestamped regional-interaction re-enable companion
+rechecked the same edge with a new composite lane. Its behavior selects the
+timestamped regional-interaction, temporal-role, and Convey Region Designator
+Sets contracts; anchored CMake labels now keep those checks in the lane instead
+of relying on the generic `time-management` or `ddm` labels. The focused audit
+reports one Catch2 case, five Requirements-Lab checks, and two API-contract
+checks, all passing. This is the same consumer-side routing limitation rather
+than a new Lab extraction defect; the pinned bundle and immutable source
+records remain unchanged.
+
+The default-source timestamped object-update re-enable companion exposed the
+same routing edge for the default-region, timestamped-attribute, and temporal-
+role contracts. Anchored CMake labels now place those checks in their dedicated
+lane; its audit reports one Catch2 case, five Requirements-Lab checks, and two
+API-contract checks, all passing. Again, this is a consumer-side catalog/label
+bridge limitation, not a new Requirements-Lab extraction defect.
+
+The explicit-source regional timestamped object-update re-enable companion
+rechecked the same edge with the object-region, timestamped-attribute, and
+temporal-role contracts. Its anchored CMake bridge also keeps the regional
+requirements/API checks in the focused lane; the audit reports one Catch2 case,
+six Requirements-Lab checks, and three API-contract checks, all passing. The
+source RegionHandle and callback-order assertions are Umbra's bounded scenario
+composition; the pinned Lab records remain unchanged, so this is not a new Lab
+extraction defect.
+
+The class-level timestamped regional Request/Provide response companion
+rechecked the same edge across the regional request, timestamped regional
+attribute, time-role, time-advance, order-type, Convey Region Designator Sets,
+and support-switch contracts. The behavior selects the official provider
+callback, queues its timestamped response for a constrained requester, and
+checks reflection-before-grant plus source-region/retraction metadata. Its
+anchored CMake bridge keeps the composite contract checks in the focused lane;
+the audit reports one Catch2 case, twelve Requirements-Lab-labelled checks,
+and six API-contract checks, all passing. The twelve traceability checks are
+the six requirements contracts plus their six API companions; the pinned Lab
+records remain unchanged:
+this is the same consumer-side label-routing limitation, not a new Lab
+extraction defect. The scenario intentionally does not claim automatic
+provision, alternate advances, or full timestamped/retraction semantics.
+The first CTest audit also caught a local cataloging mistake: the new behavior
+case carried its regional timestamped tag but not the focused lane tag, so the
+traceability checks were present while the lane had no Catch2 behavior member.
+Adding the explicit behavior tag and rerunning the tag verifier closed that
+consumer-side gap; it did not require a Lab change.
+
+**Possible Lab/tooling refinement:** let the Catch2 test-plan entry declare its
+focused lane and selected contract IDs, then generate the CTest traceability
+labels from that metadata. A catalog check should flag a behavior tag with no
+matching contract checks before a lane is advertised, while retaining an
+explicit override for composite cross-service lanes.
+
+### RL-090 — Direct timestamped interaction API surfaces need a family contract
+
+**Status:** verified consumer-side traceability coverage gap; possible Lab and
+artifact-generation refinement, not a standards or conformance finding.
+
+The pinned Lab API export already supplied the official direct timestamped
+`Send Interaction` and `Receive Interaction` surface IDs
+(`api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa` and
+`api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731`), and the
+Catch2 plan selected them for several timestamped scenarios. Umbra nevertheless
+had only the requirements contract for the direct timestamped interaction
+family; its API contract covered the separate `Send Interaction With Regions`
+overload. That left a real default-region interaction lane without a direct
+family API check even though the official declarations were available.
+
+**Umbra impact:** added
+`compliance/timestamped-interaction-api-contract.json`, registered its
+Requirements-Lab CTest check, and included it in the dedicated
+`timestamped-default-region-interaction` lane. The lane now reports one real
+Catch2 behavior case, eleven Requirements-Lab checks, and five API-contract
+checks.
+
+**Possible Lab/tooling refinement:** when a test-plan entry selects an API
+surface family that has no neighboring contract, generate or flag the missing
+family contract instead of allowing a requirements-only slice to appear
+complete.
+
+### RL-091 — Catch2 plan identifiers need an explicit uniqueness check
+
+**Status:** verified consumer-side catalog hygiene issue; corrected locally,
+not a Requirements Lab extraction or standards finding.
+
+The final catalog audit found two unrelated encoding entries using the same
+`umbra-cpp-hla-variable-array-encoding-unit` plan identifier: one combined the
+HLAunicodeString/MIM fixed-record case, while the other described the generic
+HLAvariableArray implementation. The existing CTest catalog check did not
+reject the collision, so the ambiguity was visible only when the plan was
+parsed and its IDs were counted directly.
+
+**Umbra impact:** renamed the former entry to
+`umbra-cpp-hla-unicode-string-mim-array-encoding-unit`; the plan now has 335
+unique test identifiers and all catalog checks remain green.
+
+**Possible Lab/tooling refinement:** validate plan identifier uniqueness as a
+first-class catalog check and report the colliding entries with their test
+case/source metadata.
+
+### RL-092 — Composite class-response lanes need explicit cross-contract routing
+
+**Status:** verified consumer-side focused-lane integration gap; possible Lab
+and tooling refinement, not a Requirements Lab extraction defect or a
+standards/conformance finding.
+
+The object-class Request Attribute Value Update response companion combines the
+class-designator request and Provide callback with the **timestamped**
+Update/Reflect and Retract surfaces plus the temporal-role, time-advance, and
+order-control boundaries. The first wiring pass exposed a consumer-side
+traceability hazard: the test was timestamped, but its plan and response
+contract initially pointed at the non-timestamped Update/Reflect IDs. The Lab
+correctly accepted both contracts because each reference was individually
+valid; only the scenario/API semantic review caught the family mismatch. The
+focused lane now uses a dedicated timestamped attribute-update API contract,
+while the non-timestamped response contract remains limited to its original
+object-instance scenario. Each individual contract passes its direct
+`requirements_lab.py check`, but no single generic domain label represents that
+composite behavior. The focused lane therefore requires anchored CMake labels
+for the object-class request, timestamped attribute-update, time-role,
+time-advance, and order-type contracts, in addition to the explicit Catch2
+behavior tag.
+
+**Umbra impact:** the new `object-class-request-provider-response` lane keeps
+the class-expansion behavior and all ten traceability checks together. Its
+focused audit reports one Catch2 case, ten Requirements-Lab-labelled checks,
+and five API-contract checks, all passing. The lane intentionally remains a
+development-profile traceability slice and does not claim automatic provision,
+alternate advances, broader DDM, transport, or conformance. The pinned Lab
+records and immutable API IDs remain unchanged.
+
+**Possible Lab/tooling refinement:** allow a Catch2 plan entry to declare a
+composite lane and selected contract IDs, then generate the CTest label bridge
+and reject a lane whose behavior tag or selected contract family is missing.
+
+### RL-093 — Forced-loss `NO_ACTION` behavior needs an explicit bounded policy
+
+**Status:** verified consumer-side semantic boundary; not a Requirements Lab
+extraction defect or a standards/conformance finding.
+
+The Lab exposes the Connection Lost, automatic-resign directive, and support
+service records independently, but it does not provide one executable
+scenario that resolves how a disconnected federate's owned attributes behave
+when its configured action is `NO_ACTION`. The embedded runtime therefore
+records a bounded development-profile policy in its contracts: forced loss
+retains the known object, divests the departed member's owned attributes,
+offers those attributes to an eligible survivor, and does not emit an
+automatic Remove Object Instance callback. The new Catch2 case sets and reads
+the official directive before the fault and verifies each of those effects.
+
+**Umbra impact:** the policy is now pinned to the Connection Lost and support
+switch requirement/API contracts and has its own `connection-lost-automatic-resign`
+CTest lane. The case remains source/test traceability for the embedded
+development profile; it does not claim that the Lab's individual records by
+themselves establish the complete forced-resignation disposition matrix,
+remote transport behavior, protected review, or conformance.
+
+**Possible Lab/tooling refinement:** provide a cross-cutting Connection Lost
+scenario record (or an explicit policy-extension field) that links the
+directive value to ownership, object-lifetime, and callback outcomes while
+preserving the distinction between extracted standard requirements and
+implementation-selected development-profile policy.
+
+### RL-094 — Final-federate forced loss is not linked to the Connection Lost path
+
+**Status:** verified cross-cutting traceability gap; possible Lab refinement,
+not a Requirements Lab extraction defect or a standards/conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the final-member rule is exported
+as `requirement-candidate-content-clauses-04-federation-management-page-059-l8-1`
+(`clause-4.12.4`, `coverage_kind: cross-cutting`, with no transition IDs),
+while Connection Lost and the automatic-resign continuation are separate
+records: `req-federate-connection-lost`, `req-connection-lost-service-behavior`,
+and `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`.
+None of those immutable records says how the final-federate directive-2 rule
+composes with a transport fault when the disconnected member is the last
+joined federate. The ordinary voluntary final-federate test therefore cannot
+serve as evidence for the forced-loss path, and selecting all four records
+individually would still leave the scenario relationship implicit.
+
+**Umbra impact:** the new embedded case sets the official automatic directive
+to `NO_ACTION`, faults the sole member, verifies the Connection Lost callback,
+then rejoins and reserves the deleted object's name. Its dedicated
+`connection-lost-final-federate` lane keeps this matrix cell independently
+runnable. The case remains development-profile source/test traceability; it
+does not claim that the separate Lab records establish the complete forced-
+resignation matrix, remote transport, protected review, or conformance.
+
+**Possible Lab/tooling refinement:** add a cross-cutting scenario relation (or
+policy-extension facet) that can bind a final-membership precondition to the
+Connection Lost transition and the mandated directive-2 object-lifetime
+outcome, without changing the immutable clause/API records or presenting the
+consumer's scenario as a new normative requirement.
+
+### RL-095 — Forced loss does not compose negotiated ownership cancellation
+
+**Status:** verified cross-cutting traceability gap; possible Lab refinement,
+not a Requirements Lab extraction defect or a standards/conformance finding.
+
+At the same pinned revision, the Lab exports the Connection Lost and automatic-
+resign records independently from the regular acquisition and negotiated
+divestiture records. The relevant immutable candidates are
+`req-federate-connection-lost`, `req-connection-lost-service-behavior`,
+`requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`,
+`requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40`,
+`...page-161-l143-42`, `...page-156-l8-1`, `...page-156-l20-5`,
+`...page-155-l173-48`, and `...page-169-l24-3`. They do not provide a
+scenario relation for a requester that has already caused a regular owner
+release and selected negotiated-divestiture confirmation work when that same
+requester is disconnected under `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`.
+Checking the records one at a time would not establish that both queued owner
+callbacks become stale before ownership is changed.
+
+**Umbra impact:** the new embedded case starts that two-stage ownership
+transition, faults the requester, and verifies that neither
+`Request Attribute Ownership Release` nor `Request Divestiture Confirmation`
+is delivered after forced cleanup. The dedicated
+`connection-lost-negotiated-cancellation` lane keeps this forced-resign matrix
+cell independent of the regular acquisition and final-member lanes. It remains
+development-profile source/test traceability, not a complete ownership
+arbitration, remote transport, protected-review, or conformance claim.
+
+**Possible Lab/tooling refinement:** add a cross-cutting scenario/policy facet
+that binds an automatic-resign directive to pending regular and negotiated
+ownership state, stale callback suppression, and the surviving owner, while
+keeping the individual clause/API records immutable and normative ownership
+separate from the consumer's selected forced-loss policy.
+
+### RL-096 — Federate Lost fan-out and per-recipient callback order are not modeled together
+
+**Status:** verified cross-cutting traceability gap; possible Lab refinement,
+not a Requirements Lab extraction defect or a standards/conformance finding.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the report candidates
+`requirement-candidate-content-clauses-04-federation-management-page-050-l18-5`
+and `...page-050-l21-6` require `HLAreportFederateLost` delivery and the lost
+time-regulating federate's last-known time, while
+`req-federate-connection-lost`, `req-connection-lost-service-behavior`, and
+`requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`
+describe the Connection Lost transition and its automatic-resign continuation.
+The immutable records do not express a recipient set or a per-recipient queue
+relationship that says the RTI-originated report is submitted before each
+survivor's automatic `Remove Object Instance` consequence. They also do not
+define a global ordering between independent survivor callback queues; those
+queues are separate execution contexts and should not be collapsed into one
+cross-federate sequence.
+
+**Umbra impact:** the new embedded case uses one lost time-regulating publisher
+and two subscribed survivors. It selects `DELETE_OBJECTS`, faults the
+publisher, and drains each survivor one callback at a time. Both survivors see
+one `HLAreportFederateLost` interaction before their own automatic removal,
+with identical fault payloads and the local default-invalid RTI producer
+representation. The test deliberately makes no assertion about which survivor
+callback runs first globally. This is development-profile source/test
+traceability, not a complete MOM fan-out, remote transport, protected-review,
+or conformance claim.
+
+**Possible Lab/tooling refinement:** add a cross-cutting fan-out relation with
+an explicit recipient set and a per-recipient callback queue/order edge. Keep
+global cross-federate ordering unspecified unless a source clause defines it;
+generate the same report-before-cleanup scenario for one and multiple eligible
+survivors while preserving the immutable clause/API records.
+
+### RL-097 — Directed selector mutation after Connection Lost is not a Lab relation
+
+**Status:** verified cross-cutting traceability gap; possible Lab refinement,
+not a Requirements Lab extraction defect, standards finding, or conformance
+evidence.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, the directed-subscription selector
+and its callback-time re-evaluation are exported independently through
+`requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29`
+and `...page-101-l116-33`. The Connection Lost cutoff and automatic-resign
+continuation are separate records, including
+`requirement-candidate-content-clauses-04-federation-management-page-050-l27-8`
+and `...page-050-l36-11`. Those immutable records do not express the compound
+case in which a timestamped directed interaction is already queued for a
+universal recipient, the source then faults, and the recipient changes to the
+by-ownership selector before its callback boundary. Selecting the records one
+at a time does not establish whether the stale directed callback is suppressed
+without stranding the separately reserved automatic object removal.
+
+**Umbra impact:** the new focused case starts with a universal constrained
+recipient, faults the target-owning publisher under `DELETE_OBJECTS`, changes
+the recipient to by-ownership, and proves that the directed callback is
+suppressed while the target remains known through the time-6 grant. A later
+receive-order gate delivers the independent automatic removal. This remains
+embedded development-profile source/test traceability; it does not claim
+directed DDM, multiple-class selector cardinality, remote transport, package
+or protected-review evidence, or conformance.
+
+**Possible Lab/tooling refinement:** add a cross-cutting selector/lifecycle
+relation that binds the Connection Lost cutoff to the directed recipient's
+current selector and the independent automatic-cleanup reservation. The
+relation should distinguish selector suppression from target departure and
+leave the immutable clause/API records unchanged.
+
+### RL-098 — Regional selector mutation after Connection Lost is not a Lab relation
+
+**Status:** verified cross-cutting traceability gap; possible Lab refinement,
+not a Requirements Lab extraction defect, standards finding, or conformance
+evidence.
+
+At pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`, regional overlap and callback-time
+re-evaluation are exported through records such as
+`requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43`,
+`...page-233-l48-13`, and `...page-235-l100-28`; region mutation is exported
+separately through `...page-217-l92-30` and `...page-226-l162-43`. Connection
+Lost cutoff and automatic cleanup remain separate records,
+`requirement-candidate-content-clauses-04-federation-management-page-050-l27-8`
+and `...page-050-l36-11`. Those immutable records do not express the compound
+case in which a timestamped regional attribute update is queued for an
+overlapping constrained recipient, the source then faults, and the recipient
+commits a disjoint region before its callback boundary. Selecting the records
+one at a time does not establish whether the stale regional reflection is
+suppressed without stranding the separately reserved automatic object removal.
+
+**Umbra impact:** the new focused case creates source and receiver regions with
+strict overlap, queues a timestamp-6 attribute update, faults the publisher
+under `DELETE_OBJECTS`, commits the receiver to `[3, 4]`, and proves that no
+regional reflection is delivered at the time-6 grant. A later receive-order
+gate delivers the independent automatic removal. This remains embedded
+development-profile source/test traceability; it does not claim regional
+interaction DDM, alternate advances, advisory scope transitions, remote
+transport, package or protected-review evidence, or conformance.
+
+**Possible Lab/tooling refinement:** add a cross-cutting selector/lifecycle
+relation that binds a Connection Lost cutoff to the recipient's current region
+projection and the independent automatic-cleanup reservation. The relation
+should distinguish regional overlap suppression from object departure and
+leave the immutable clause/API records unchanged.
+
+### RL-099 — Update-rate reduction is exported as fragments without a delivery relation
+
+**Status:** verified cross-cutting traceability gap; possible Lab refinement,
+not a Requirements Lab extraction defect, standards finding, or conformance
+evidence.
+
+The pinned Requirements Lab revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615` exports the update-rate behavior in
+separate immutable candidates: the maximum-rate eligibility rule
+(`requirement-candidate-content-clauses-06-object-management-page-112-l75-22`),
+the best-effort excess-message rule
+(`...page-112-l90-27` and `...page-112-l93-28`), the wall-clock spacing rule
+(`...page-112-l99-30`), the reliable no-drop rule
+(`...page-112-l105-32`), and the producer/subscriber rate-difference rule
+(`...page-112-l138-43`). None of those records binds a subscription's retained
+designator and FDD rate to the effective producer rate, transportation type,
+recipient eligibility, and callback spacing as one testable delivery relation.
+The existing update-rate contract therefore correctly stops at metadata and
+lookup behavior; it cannot by itself express a throttling scenario.
+
+**Umbra impact:** the next runtime slice must use a dedicated contract and
+real Catch2 scenario that distinguishes best-effort dropping from reliable
+retention and observes wall-clock delivery spacing. The sibling verification
+scenario is useful as a non-normative test shape, but it is not imported as
+evidence or treated as a substitute for the official C++ requirements. No
+update-rate reduction or conformance claim is made yet.
+
+**Possible Lab/tooling refinement:** emit a cross-cutting update-rate delivery
+relation with explicit producer rate, subscribed maximum, transportation type,
+passel eligibility, and timing/drop outcome fields. Keep the immutable clause
+records as source anchors while allowing one relation to generate separate
+best-effort and reliable scenarios.
 
 ## Recording rules
 
