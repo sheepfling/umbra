@@ -598,8 +598,21 @@ public interface RTIambassador {
 
    void createFederationExecution(
       String federationName,
+      String fomModule) throws NotConnected;
+
+   void createFederationExecution(
+      String federationName,
+      String[] fomModules) throws NotConnected;
+
+   void createFederationExecution(
+      String federationName,
       String[] fomModules,
       String logicalTimeImplementationName) throws NotConnected;
+
+   void createFederationExecutionWithMIM(
+      String federationName,
+      String[] fomModules,
+      String mimModule) throws NotConnected;
 
    void createFederationExecutionWithMIM(
       String federationName,

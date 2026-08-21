@@ -233,6 +233,14 @@ public final class MockEncoderFactory implements EncoderFactory {
    }
 
    @Override
+   public HLAfixedArray createHLAfixedArray(DataElement... elements) {
+      if (elements == null || elements.length == 0) {
+         throw new IllegalArgumentException("HLAfixedArray requires at least one element");
+      }
+      return new FixedArrayElement(index -> elements[0], elements.length);
+   }
+
+   @Override
    public HLAfixedRecord createHLAfixedRecord() { return new FixedRecordElement(); }
 
    @Override
@@ -251,6 +259,122 @@ public final class MockEncoderFactory implements EncoderFactory {
 
    @Override
    public HLAunicodeString createHLAunicodeString(String value) { return new UnicodeStringElement(value); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAfederateHandle createHLAfederateHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAfederateHandle createHLAfederateHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.FederateHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAobjectClassHandle createHLAobjectClassHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAobjectClassHandle createHLAobjectClassHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.ObjectClassHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAinteractionClassHandle createHLAinteractionClassHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAinteractionClassHandle createHLAinteractionClassHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.InteractionClassHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAobjectInstanceHandle createHLAobjectInstanceHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAobjectInstanceHandle createHLAobjectInstanceHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.ObjectInstanceHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAattributeHandle createHLAattributeHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAattributeHandle createHLAattributeHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.AttributeHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAparameterHandle createHLAparameterHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAparameterHandle createHLAparameterHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.ParameterHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAdimensionHandle createHLAdimensionHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAdimensionHandle createHLAdimensionHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.DimensionHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAregionHandle createHLAregionHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAregionHandle createHLAregionHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.RegionHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAtransportationTypeHandle createHLAtransportationTypeHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAtransportationTypeHandle createHLAtransportationTypeHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.TransportationTypeHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAmessageRetractionHandle createHLAmessageRetractionHandle(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAmessageRetractionHandle createHLAmessageRetractionHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.MessageRetractionHandle value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAlogicalTime createHLAlogicalTime(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAlogicalTime createHLAlogicalTime(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.LogicalTime value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAlogicalTimeInterval createHLAlogicalTimeInterval(
+      hla.rti1516_2025.RTIambassador ambassador) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAlogicalTimeInterval createHLAlogicalTimeInterval(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.LogicalTimeInterval value) { return unsupported(); }
+
+   @Override
+   public hla.rti1516_2025.encoding.HLAextendableVariantRecord createHLAextendableVariantRecord(
+      DataElement discriminantPrototype) { return unsupported(); }
+
+   private static <T> T unsupported() {
+      throw new UnsupportedOperationException("Mock encoder does not implement this carrier");
+   }
 
    private static void requireLength(byte[] bytes, int expected) {
       if (bytes.length != expected) {

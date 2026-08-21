@@ -503,6 +503,20 @@ public class MockRTIambassador implements RTIambassador {
    }
 
    @Override
+   public void createFederationExecution(String federationName, String fomModule)
+      throws NotConnected
+   {
+      createFederationExecution(federationName, fomModule, "HLAinteger64Time");
+   }
+
+   @Override
+   public void createFederationExecution(String federationName, String[] fomModules)
+      throws NotConnected
+   {
+      createFederationExecution(federationName, fomModules, "HLAinteger64Time");
+   }
+
+   @Override
    public void createFederationExecution(
       String federationName, String[] fomModules, String logicalTimeImplementationName)
       throws NotConnected
@@ -512,6 +526,16 @@ public class MockRTIambassador implements RTIambassador {
       SHARED_FEDERATIONS.put(
          federationName,
          new MockFederationState(federationName, logicalTimeImplementationName));
+   }
+
+   @Override
+   public void createFederationExecutionWithMIM(
+      String federationName,
+      String[] fomModules,
+      String mimModule) throws NotConnected
+   {
+      createFederationExecutionWithMIM(
+         federationName, fomModules, mimModule, "HLAinteger64Time");
    }
 
    @Override

@@ -102,6 +102,8 @@ public interface EncoderFactory {
 
    HLAfixedArray createHLAfixedArray(DataElementFactory factory, int size);
 
+   HLAfixedArray createHLAfixedArray(DataElement... elements);
+
    HLAfixedRecord createHLAfixedRecord();
 
    HLAvariantRecord createHLAvariantRecord(DataElement discriminantPrototype);
@@ -113,4 +115,84 @@ public interface EncoderFactory {
    HLAunicodeString createHLAunicodeString();
 
    HLAunicodeString createHLAunicodeString(String value);
+
+   HLAfederateHandle createHLAfederateHandle(hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAfederateHandle createHLAfederateHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.FederateHandle value);
+
+   HLAobjectClassHandle createHLAobjectClassHandle(hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAobjectClassHandle createHLAobjectClassHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.ObjectClassHandle value);
+
+   HLAinteractionClassHandle createHLAinteractionClassHandle(
+      hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAinteractionClassHandle createHLAinteractionClassHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.InteractionClassHandle value);
+
+   HLAobjectInstanceHandle createHLAobjectInstanceHandle(
+      hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAobjectInstanceHandle createHLAobjectInstanceHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.ObjectInstanceHandle value);
+
+   HLAattributeHandle createHLAattributeHandle(hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAattributeHandle createHLAattributeHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.AttributeHandle value);
+
+   HLAparameterHandle createHLAparameterHandle(hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAparameterHandle createHLAparameterHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.ParameterHandle value);
+
+   HLAdimensionHandle createHLAdimensionHandle(hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAdimensionHandle createHLAdimensionHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.DimensionHandle value);
+
+   HLAregionHandle createHLAregionHandle(hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAregionHandle createHLAregionHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.RegionHandle value);
+
+   HLAtransportationTypeHandle createHLAtransportationTypeHandle(
+      hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAtransportationTypeHandle createHLAtransportationTypeHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.TransportationTypeHandle value);
+
+   HLAmessageRetractionHandle createHLAmessageRetractionHandle(
+      hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAmessageRetractionHandle createHLAmessageRetractionHandle(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.MessageRetractionHandle value);
+
+   HLAlogicalTime createHLAlogicalTime(hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAlogicalTime createHLAlogicalTime(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.LogicalTime value);
+
+   HLAlogicalTimeInterval createHLAlogicalTimeInterval(
+      hla.rti1516_2025.RTIambassador ambassador);
+
+   HLAlogicalTimeInterval createHLAlogicalTimeInterval(
+      hla.rti1516_2025.RTIambassador ambassador,
+      hla.rti1516_2025.LogicalTimeInterval value);
+
+   HLAextendableVariantRecord createHLAextendableVariantRecord(
+      DataElement discriminantPrototype);
 }
