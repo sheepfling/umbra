@@ -105,7 +105,7 @@ final class NativeBridge {
 
    static native String nativeGetFederateName(long handle, byte[] encodedFederateHandle);
 
-   static native int nativeNormalizeFederateHandle(long handle, byte[] encodedFederateHandle);
+   static native long nativeNormalizeFederateHandle(long handle, byte[] encodedFederateHandle);
 
    static native byte[] nativeDecodeObjectClassHandle(byte[] encodedValue);
 
@@ -116,7 +116,7 @@ final class NativeBridge {
    static native byte[] nativeGetKnownObjectClassHandle(
       long handle, byte[] encodedObjectInstanceHandle);
 
-   static native int nativeNormalizeObjectClassHandle(long handle, byte[] encodedObjectClassHandle);
+   static native long nativeNormalizeObjectClassHandle(long handle, byte[] encodedObjectClassHandle);
 
    static native byte[] nativeDecodeAttributeHandle(byte[] encodedValue);
 
@@ -249,7 +249,7 @@ final class NativeBridge {
    static native String nativeGetObjectInstanceName(
       long handle, byte[] encodedObjectInstanceHandle);
 
-   static native int nativeNormalizeObjectInstanceHandle(
+   static native long nativeNormalizeObjectInstanceHandle(
       long handle, byte[] encodedObjectInstanceHandle);
 
    static native void nativeUpdateAttributeValues(
@@ -397,7 +397,7 @@ final class NativeBridge {
 
    static native boolean nativeGetNonRegulatedGrantSwitch(long handle);
 
-   static native int nativeNormalizeServiceGroup(long handle, String serviceGroupName);
+   static native long nativeNormalizeServiceGroup(long handle, String serviceGroupName);
 
    static native String nativeGetOrderType(long handle, String orderTypeName);
 
@@ -526,7 +526,7 @@ final class NativeBridge {
    static native String nativeGetInteractionClassName(
       long handle, byte[] encodedInteractionClassHandle);
 
-   static native int nativeNormalizeInteractionClassHandle(
+   static native long nativeNormalizeInteractionClassHandle(
       long handle, byte[] encodedInteractionClassHandle);
 
    static native byte[] nativeDecodeParameterHandle(byte[] encodedValue);

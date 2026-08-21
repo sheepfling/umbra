@@ -6212,12 +6212,12 @@ jstring nativeGetFederateName(
   return nullptr;
 }
 
-jint nativeNormalizeFederateHandle(
+jlong nativeNormalizeFederateHandle(
     JNIEnv* environment, jclass, jlong handle, jbyteArray encodedFederateHandle) {
   auto* state = stateFor(environment, handle);
   if (state == nullptr) return 0;
   try {
-    return static_cast<jint>(state->normalizeFederateHandle(
+    return static_cast<jlong>(state->normalizeFederateHandle(
         variableLengthData(environment, encodedFederateHandle)));
   } catch (rti::Exception const& exception) {
     throwJavaRtiException(environment, exception);
@@ -6285,12 +6285,12 @@ jbyteArray nativeGetKnownObjectClassHandle(
   return nullptr;
 }
 
-jint nativeNormalizeObjectClassHandle(
+jlong nativeNormalizeObjectClassHandle(
     JNIEnv* environment, jclass, jlong handle, jbyteArray encodedObjectClassHandle) {
   auto* state = stateFor(environment, handle);
   if (state == nullptr) return 0;
   try {
-    return static_cast<jint>(state->normalizeObjectClassHandle(
+    return static_cast<jlong>(state->normalizeObjectClassHandle(
         variableLengthData(environment, encodedObjectClassHandle)));
   } catch (rti::Exception const& exception) {
     throwJavaRtiException(environment, exception);
@@ -6990,7 +6990,7 @@ jstring nativeGetObjectInstanceName(
   return nullptr;
 }
 
-jint nativeNormalizeObjectInstanceHandle(
+jlong nativeNormalizeObjectInstanceHandle(
     JNIEnv* environment,
     jclass,
     jlong handle,
@@ -6998,7 +6998,7 @@ jint nativeNormalizeObjectInstanceHandle(
   auto* state = stateFor(environment, handle);
   if (state == nullptr) return 0;
   try {
-    return static_cast<jint>(state->normalizeObjectInstanceHandle(
+    return static_cast<jlong>(state->normalizeObjectInstanceHandle(
         variableLengthData(environment, encodedObjectInstanceHandle)));
   } catch (rti::Exception const& exception) {
     throwJavaRtiException(environment, exception);
@@ -7780,12 +7780,12 @@ jboolean nativeGetNonRegulatedGrantSwitch(JNIEnv* environment, jclass, jlong han
   return JNI_FALSE;
 }
 
-jint nativeNormalizeServiceGroup(
+jlong nativeNormalizeServiceGroup(
     JNIEnv* environment, jclass, jlong handle, jstring serviceGroupName) {
   auto* state = stateFor(environment, handle);
   if (state == nullptr) return 0;
   try {
-    return static_cast<jint>(state->normalizeServiceGroup(
+    return static_cast<jlong>(state->normalizeServiceGroup(
         serviceGroup(wideString(environment, serviceGroupName))));
   } catch (rti::Exception const& exception) {
     throwJavaRtiException(environment, exception);
@@ -8510,12 +8510,12 @@ jstring nativeGetInteractionClassName(
   return nullptr;
 }
 
-jint nativeNormalizeInteractionClassHandle(
+jlong nativeNormalizeInteractionClassHandle(
     JNIEnv* environment, jclass, jlong handle, jbyteArray encodedInteractionClassHandle) {
   auto* state = stateFor(environment, handle);
   if (state == nullptr) return 0;
   try {
-    return static_cast<jint>(state->normalizeInteractionClassHandle(
+    return static_cast<jlong>(state->normalizeInteractionClassHandle(
         variableLengthData(environment, encodedInteractionClassHandle)));
   } catch (rti::Exception const& exception) {
     throwJavaRtiException(environment, exception);
@@ -10412,12 +10412,12 @@ JNINativeMethod const nativeMethods[] = {
     {const_cast<char*>("nativeResignFederationExecution"), const_cast<char*>("(JLjava/lang/String;)V"), reinterpret_cast<void*>(nativeResignFederationExecution)},
     {const_cast<char*>("nativeGetFederateHandle"), const_cast<char*>("(JLjava/lang/String;)[B"), reinterpret_cast<void*>(nativeGetFederateHandle)},
     {const_cast<char*>("nativeGetFederateName"), const_cast<char*>("(J[B)Ljava/lang/String;"), reinterpret_cast<void*>(nativeGetFederateName)},
-    {const_cast<char*>("nativeNormalizeFederateHandle"), const_cast<char*>("(J[B)I"), reinterpret_cast<void*>(nativeNormalizeFederateHandle)},
+    {const_cast<char*>("nativeNormalizeFederateHandle"), const_cast<char*>("(J[B)J"), reinterpret_cast<void*>(nativeNormalizeFederateHandle)},
     {const_cast<char*>("nativeDecodeObjectClassHandle"), const_cast<char*>("([B)[B"), reinterpret_cast<void*>(nativeDecodeObjectClassHandle)},
     {const_cast<char*>("nativeGetObjectClassHandle"), const_cast<char*>("(JLjava/lang/String;)[B"), reinterpret_cast<void*>(nativeGetObjectClassHandle)},
     {const_cast<char*>("nativeGetObjectClassName"), const_cast<char*>("(J[B)Ljava/lang/String;"), reinterpret_cast<void*>(nativeGetObjectClassName)},
     {const_cast<char*>("nativeGetKnownObjectClassHandle"), const_cast<char*>("(J[B)[B"), reinterpret_cast<void*>(nativeGetKnownObjectClassHandle)},
-    {const_cast<char*>("nativeNormalizeObjectClassHandle"), const_cast<char*>("(J[B)I"), reinterpret_cast<void*>(nativeNormalizeObjectClassHandle)},
+    {const_cast<char*>("nativeNormalizeObjectClassHandle"), const_cast<char*>("(J[B)J"), reinterpret_cast<void*>(nativeNormalizeObjectClassHandle)},
     {const_cast<char*>("nativeDecodeAttributeHandle"), const_cast<char*>("([B)[B"), reinterpret_cast<void*>(nativeDecodeAttributeHandle)},
     {const_cast<char*>("nativeGetAttributeHandle"), const_cast<char*>("(J[BLjava/lang/String;)[B"), reinterpret_cast<void*>(nativeGetAttributeHandle)},
     {const_cast<char*>("nativeGetAttributeName"), const_cast<char*>("(J[B[B)Ljava/lang/String;"), reinterpret_cast<void*>(nativeGetAttributeName)},
@@ -10459,7 +10459,7 @@ JNINativeMethod const nativeMethods[] = {
     {const_cast<char*>("nativeUnassociateRegionsForUpdates"), const_cast<char*>("(J[BLhla/rti1516_2025/AttributeSetRegionSetPairList;)V"), reinterpret_cast<void*>(nativeUnassociateRegionsForUpdates)},
     {const_cast<char*>("nativeGetObjectInstanceHandle"), const_cast<char*>("(JLjava/lang/String;)[B"), reinterpret_cast<void*>(nativeGetObjectInstanceHandle)},
     {const_cast<char*>("nativeGetObjectInstanceName"), const_cast<char*>("(J[B)Ljava/lang/String;"), reinterpret_cast<void*>(nativeGetObjectInstanceName)},
-    {const_cast<char*>("nativeNormalizeObjectInstanceHandle"), const_cast<char*>("(J[B)I"), reinterpret_cast<void*>(nativeNormalizeObjectInstanceHandle)},
+    {const_cast<char*>("nativeNormalizeObjectInstanceHandle"), const_cast<char*>("(J[B)J"), reinterpret_cast<void*>(nativeNormalizeObjectInstanceHandle)},
     {const_cast<char*>("nativeUpdateAttributeValues"), const_cast<char*>("(J[BLhla/rti1516_2025/AttributeHandleValueMap;[B)V"), reinterpret_cast<void*>(nativeUpdateAttributeValues)},
     {const_cast<char*>("nativeUpdateAttributeValuesWithTime"), const_cast<char*>("(J[BLhla/rti1516_2025/AttributeHandleValueMap;[B[B)[B"), reinterpret_cast<void*>(nativeUpdateAttributeValuesWithTime)},
     {const_cast<char*>("nativeDeleteObjectInstance"), const_cast<char*>("(J[B[B)V"), reinterpret_cast<void*>(nativeDeleteObjectInstance)},
@@ -10505,7 +10505,7 @@ JNINativeMethod const nativeMethods[] = {
     {const_cast<char*>("nativeGetAdvisoriesUseKnownClassSwitch"), const_cast<char*>("(J)Z"), reinterpret_cast<void*>(nativeGetAdvisoriesUseKnownClassSwitch)},
     {const_cast<char*>("nativeGetAllowRelaxedDDMSwitch"), const_cast<char*>("(J)Z"), reinterpret_cast<void*>(nativeGetAllowRelaxedDDMSwitch)},
     {const_cast<char*>("nativeGetNonRegulatedGrantSwitch"), const_cast<char*>("(J)Z"), reinterpret_cast<void*>(nativeGetNonRegulatedGrantSwitch)},
-    {const_cast<char*>("nativeNormalizeServiceGroup"), const_cast<char*>("(JLjava/lang/String;)I"), reinterpret_cast<void*>(nativeNormalizeServiceGroup)},
+    {const_cast<char*>("nativeNormalizeServiceGroup"), const_cast<char*>("(JLjava/lang/String;)J"), reinterpret_cast<void*>(nativeNormalizeServiceGroup)},
     {const_cast<char*>("nativeGetConveyRegionDesignatorSetsSwitch"), const_cast<char*>("(J)Z"), reinterpret_cast<void*>(nativeGetConveyRegionDesignatorSetsSwitch)},
     {const_cast<char*>("nativeSetConveyRegionDesignatorSetsSwitch"), const_cast<char*>("(JZ)V"), reinterpret_cast<void*>(nativeSetConveyRegionDesignatorSetsSwitch)},
     {const_cast<char*>("nativeGetOrderType"), const_cast<char*>("(JLjava/lang/String;)Ljava/lang/String;"), reinterpret_cast<void*>(nativeGetOrderType)},
@@ -10551,7 +10551,7 @@ JNINativeMethod const nativeMethods[] = {
     {const_cast<char*>("nativeDecodeInteractionClassHandle"), const_cast<char*>("([B)[B"), reinterpret_cast<void*>(nativeDecodeInteractionClassHandle)},
     {const_cast<char*>("nativeGetInteractionClassHandle"), const_cast<char*>("(JLjava/lang/String;)[B"), reinterpret_cast<void*>(nativeGetInteractionClassHandle)},
     {const_cast<char*>("nativeGetInteractionClassName"), const_cast<char*>("(J[B)Ljava/lang/String;"), reinterpret_cast<void*>(nativeGetInteractionClassName)},
-    {const_cast<char*>("nativeNormalizeInteractionClassHandle"), const_cast<char*>("(J[B)I"), reinterpret_cast<void*>(nativeNormalizeInteractionClassHandle)},
+    {const_cast<char*>("nativeNormalizeInteractionClassHandle"), const_cast<char*>("(J[B)J"), reinterpret_cast<void*>(nativeNormalizeInteractionClassHandle)},
     {const_cast<char*>("nativeDecodeParameterHandle"), const_cast<char*>("([B)[B"), reinterpret_cast<void*>(nativeDecodeParameterHandle)},
     {const_cast<char*>("nativeGetParameterHandle"), const_cast<char*>("(J[BLjava/lang/String;)[B"), reinterpret_cast<void*>(nativeGetParameterHandle)},
     {const_cast<char*>("nativeGetParameterName"), const_cast<char*>("(J[B[B)Ljava/lang/String;"), reinterpret_cast<void*>(nativeGetParameterName)},

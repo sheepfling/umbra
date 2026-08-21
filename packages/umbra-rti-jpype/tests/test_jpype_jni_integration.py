@@ -10496,6 +10496,264 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             observer._implementation.close()
             subject._implementation.close()
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_regional_discovery_uses_immutable_point(
+        self,
+    ) -> None:
+        """Preserve the immutable HLAfederate point through regional MOM subscriptions."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        federation_name = f"python-jni-regional-mom-{uuid4()}"
+        subject = self.factory.getRtiAmbassador()
+        matching = self.factory.getRtiAmbassador()
+        disjoint = self.factory.getRtiAmbassador()
+        subject_callbacks = _JniCallbacks()
+        matching_callbacks = _JniCallbacks()
+        disjoint_callbacks = _JniCallbacks()
+        created = subject_joined = matching_joined = disjoint_joined = False
+        matching_region = None
+        disjoint_region = None
+        mom_class = None
+        matching_pairs = None
+        disjoint_pairs = None
+
+        def drain(rounds: int = 20) -> None:
+            for _ in range(rounds):
+                subject.evokeCallback(0.0)
+                matching.evokeCallback(0.0)
+                disjoint.evokeCallback(0.0)
+
+        def pair_list(
+            ambassador: RTIambassador,
+            attribute: AttributeHandle,
+            region: RegionHandle,
+        ) -> AttributeSetRegionSetPairList:
+            pairs = ambassador.getAttributeSetRegionSetPairListFactory().create(1)
+            pairs.add(
+                AttributeSetRegionSetPair(
+                    AttributeHandleSet([attribute]), RegionHandleSet([region])
+                )
+            )
+            return pairs
+
+        try:
+            subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+            matching.connect(matching_callbacks, CallbackModel.HLA_EVOKED)
+            disjoint.connect(disjoint_callbacks, CallbackModel.HLA_EVOKED)
+            subject.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            subject_handle = subject.joinFederationExecution(
+                "subject",
+                federation_name,
+                federateName="regional-mom-subject",
+            )
+            subject_joined = True
+            matching.joinFederationExecution("regional-mom-matching", federation_name)
+            matching_joined = True
+            disjoint.joinFederationExecution("regional-mom-disjoint", federation_name)
+            disjoint_joined = True
+
+            mom_class = matching.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederate"
+            )
+            federate_name_attribute = matching.getAttributeHandle(
+                mom_class, "HLAfederateName"
+            )
+            federate_dimension = matching.getDimensionHandle("HLAfederate")
+            reliable = matching.getTransportationTypeHandle("HLAreliable")
+            normalized_subject = matching.normalizeFederateHandle(subject_handle)
+            self.assertIsInstance(normalized_subject, int)
+            self.assertLess(normalized_subject, (1 << 64) - 1)
+            disjoint_point = 1 if normalized_subject == 0 else normalized_subject - 1
+
+            matching_region = matching.createRegion(
+                DimensionHandleSet([federate_dimension])
+            )
+            disjoint_region = disjoint.createRegion(
+                DimensionHandleSet([disjoint.getDimensionHandle("HLAfederate")])
+            )
+            matching.setRangeBounds(
+                matching_region,
+                federate_dimension,
+                RangeBounds(disjoint_point, disjoint_point + 1),
+            )
+            disjoint.setRangeBounds(
+                disjoint_region,
+                disjoint.getDimensionHandle("HLAfederate"),
+                RangeBounds(disjoint_point, disjoint_point + 1),
+            )
+            matching.commitRegionModifications(RegionHandleSet([matching_region]))
+            disjoint.commitRegionModifications(RegionHandleSet([disjoint_region]))
+
+            matching_pairs = pair_list(
+                matching, federate_name_attribute, matching_region
+            )
+            disjoint_pairs = pair_list(
+                disjoint,
+                disjoint.getAttributeHandle(
+                    disjoint.getObjectClassHandle(
+                        "HLAobjectRoot.HLAmanager.HLAfederate"
+                    ),
+                    "HLAfederateName",
+                ),
+                disjoint_region,
+            )
+            matching.subscribeObjectClassAttributesWithRegions(
+                mom_class, matching_pairs, active=True
+            )
+            disjoint.subscribeObjectClassAttributesWithRegions(
+                disjoint.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                ),
+                disjoint_pairs,
+                active=True,
+            )
+            drain()
+            self.assertEqual(matching_callbacks.discovered_objects, [])
+            self.assertEqual(disjoint_callbacks.discovered_objects, [])
+
+            # A committed range mutation must re-evaluate the existing MOM
+            # subscription against the immutable HLAfederate point.
+            matching.setRangeBounds(
+                matching_region,
+                federate_dimension,
+                RangeBounds(normalized_subject, normalized_subject + 1),
+            )
+            matching.commitRegionModifications(RegionHandleSet([matching_region]))
+            drain()
+            discovered = next(
+                (
+                    report
+                    for report in matching_callbacks.discovered_objects
+                    if report[1] == mom_class
+                ),
+                None,
+            )
+            self.assertIsNotNone(discovered)
+            assert discovered is not None
+            self.assertFalse(any(discovered[3].encodedValue[4:]))
+            self.assertEqual(disjoint_callbacks.discovered_objects, [])
+
+            expected_name = (
+                self.factory.getEncoderFactory()
+                .createHLAunicodeString("regional-mom-subject")
+                .toByteArray()
+            )
+            reflected = next(
+                (
+                    report
+                    for report in matching_callbacks.reflected_attributes
+                    if report[0] == discovered[0]
+                    and report[1].get(federate_name_attribute) == expected_name
+                ),
+                None,
+            )
+            self.assertIsNotNone(
+                reflected,
+                f"reflected={matching_callbacks.reflected_attributes!r}; "
+                f"regional={matching_callbacks.regional_reflections!r}",
+            )
+            assert reflected is not None
+            self.assertEqual(reflected[1], {federate_name_attribute: expected_name})
+            self.assertEqual(reflected[3], reliable)
+            self.assertFalse(any(reflected[4].encodedValue[4:]))
+            self.assertEqual(reflected[2], b"")
+
+            reflection_count = len(matching_callbacks.reflected_attributes)
+            matching.requestAttributeValueUpdate(
+                discovered[0], AttributeHandleSet([federate_name_attribute]), b""
+            )
+            drain()
+            self.assertEqual(
+                len(matching_callbacks.reflected_attributes), reflection_count + 1
+            )
+            requested = matching_callbacks.reflected_attributes[-1]
+            self.assertEqual(requested[0], discovered[0])
+            self.assertEqual(requested[1], {federate_name_attribute: expected_name})
+            self.assertEqual(requested[3], reliable)
+            self.assertFalse(any(requested[4].encodedValue[4:]))
+
+            subject.resignFederationExecution(ResignAction.NO_ACTION)
+            subject_joined = False
+            drain()
+            removed = next(
+                (
+                    report
+                    for report in matching_callbacks.removed_objects
+                    if report[0] == discovered[0]
+                ),
+                None,
+            )
+            self.assertIsNotNone(removed)
+            assert removed is not None
+            self.assertFalse(any(removed[2].encodedValue[4:]))
+            self.assertEqual(
+                [
+                    report
+                    for report in disjoint_callbacks.removed_objects
+                    if report[0] == discovered[0]
+                ],
+                [],
+            )
+        finally:
+            if matching_region is not None and mom_class is not None and matching_pairs is not None:
+                try:
+                    matching.unsubscribeObjectClassAttributesWithRegions(
+                        mom_class, matching_pairs
+                    )
+                except Exception:
+                    pass
+                try:
+                    matching.deleteRegion(matching_region)
+                except Exception:
+                    pass
+            if disjoint_region is not None and disjoint_pairs is not None:
+                try:
+                    disjoint.unsubscribeObjectClassAttributesWithRegions(
+                        disjoint.getObjectClassHandle(
+                            "HLAobjectRoot.HLAmanager.HLAfederate"
+                        ),
+                        disjoint_pairs,
+                    )
+                except Exception:
+                    pass
+                try:
+                    disjoint.deleteRegion(disjoint_region)
+                except Exception:
+                    pass
+            if disjoint_joined:
+                try:
+                    disjoint.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if matching_joined:
+                try:
+                    matching.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if subject_joined:
+                try:
+                    subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    subject.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            for ambassador in (disjoint, matching, subject):
+                try:
+                    ambassador.disconnect()
+                except Exception:
+                    pass
+                ambassador._implementation.close()
+
     def test_cpp_jni_java_jpype_timestamped_attribute_update_rate_reduction(
         self,
     ) -> None:

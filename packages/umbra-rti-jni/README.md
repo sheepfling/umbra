@@ -111,14 +111,16 @@ integration test drives all three terminal paths through C++ → JNI → Java �
 JPype rather than substituting Java fixture behavior.
 Federate support services now also bind C++ `getFederateHandle`,
 `getFederateName`, and `normalizeFederateHandle`; their Java signature uses
-the standard `int` normalization coordinate, verified by the same Python
-integration path. The typed-handle substrate now extends to object classes and
+the standard `long` normalization coordinate, verified by the same Python
+integration path. The JNI registrations preserve that 64-bit Java return type
+for every standard normalization service instead of truncating the C++
+`unsigned long` coordinate to `int`. The typed-handle substrate now extends to object classes and
 attributes: each has a distinct Java handle and decoder factory, and the
 integration test proves C++ object-class lookup/name/normalization plus an
 object-class → attribute lookup/name round trip. Attribute-handle normalization
 is deliberately absent because IEEE 1516.1 does not define that operation.
 Interaction classes follow the same domain-safe implementation: C++ lookup,
-name lookup, `int` normalization, and factory decode return a distinct Java
+name lookup, `long` normalization, and factory decode return a distinct Java
 `InteractionClassHandle`, with all conversions verified from Python.
 Its dependent interaction-parameter support services are likewise native:
 C++ `getParameterHandle`/`getParameterName` cross a distinct Java
@@ -852,6 +854,14 @@ The joined-federate MOM state companion subscribes to the RTI-owned
 `HLAfederateState` object, decodes its standard Java `HLAinteger32BE` values,
 and proves save/complete and restore/complete state reflections (3/1 and 5/1)
 through the C++ → JNI → Java → JPype callback route.
+
+The regional joined-federate MOM companion subscribes to `HLAfederateName`
+through the exact Java `AttributeSetRegionSetPairList` overload. It starts with
+a disjoint range, then mutates the committed range onto the C++-owned immutable
+`HLAfederate` point and proves discovery, reflection, requested reflection,
+and removal for the matching observer while the disjoint observer remains
+unaware. The RTI-originated callbacks retain the invalid producer handle and
+empty tag expected for an RTI-owned MOM object.
 
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed

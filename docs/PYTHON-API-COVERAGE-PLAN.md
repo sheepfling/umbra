@@ -31,15 +31,15 @@ Umbra's repository fixture remains a fast compatibility harness; it is not
 the authority for Java API compatibility. On 2026-08-21, the JNI façade was
 compiled and smoke-tested against an independently obtained IEEE
 1516.1-2025 Java API JAR, then exercised through C++ → JNI → Java → JPype →
-the public Python API. The resulting integration suite now collects 159 test
-cases (all 159 passed, including 141 functional
-vectors, the standard named and no-argument `RtiFactoryFactory` discovery
-checks, and the structural/runtime gates). The exception-surface check loads every C++ exception whose exact
+the public Python API. The focused JNI integration module now runs 174 test
+cases (all passed, including the standard named and no-argument
+`RtiFactoryFactory` discovery checks and the structural/runtime gates). The
+exception-surface check loads every C++ exception whose exact
 standard Java class is present in the external API; the independently supplied
 API remains authoritative for its vocabulary and intentionally omits a few
 legacy advisory exception names. Running Python's complete JPype test-package discovery against the same
-artifact also executes 202 discovered tests (180 passed, 22 deliberate skips,
-and 78 subtests). An artifact gate
+artifact now executes 205 discovered tests (204 passed and one deliberate
+skip). An artifact gate
 additionally verifies that the JNI bridge JAR contains
 no `hla/rti1516_2025` API classes and exposes only its expected
 `NativeRtiFactory` and `NativeAuthorizerFactory` ServiceLoader entries, leaving
@@ -156,7 +156,14 @@ delivered through JPype.
 The joined-federate MOM state companion additionally subscribes to the
 RTI-owned `HLAfederateState` object, decodes the standard Java
 `HLAinteger32BE` state values, and proves the C++ save/restore callbacks
-reflect states 3/1 and 5/1 to the observer through JPype.
+reflect states 3/1 and 5/1 to the observer through JPype. The regional
+joined-federate MOM companion uses the exact Java
+`AttributeSetRegionSetPairList` subscription for `HLAfederateName`, first
+keeping a disjoint range and then mutating the committed range onto the
+C++-owned immutable `HLAfederate` point. It proves matching discovery,
+reflection, requested reflection, and removal while the disjoint observer
+remains unaware, with the RTI-originated invalid producer handle and empty tag
+preserved at the Python callback boundary.
 The timestamped regional request/response companion also answers a
 `provideAttributeValueUpdate` callback with the standard Java timed update
 overload, preserving constrained delivery, `TIMESTAMP` metadata, source
@@ -532,7 +539,7 @@ handle fields are constructed as standard Java values and reach immutable
 Python records/enums. The opt-in C++ → JNI → Java → JPype integration test
 proves success, federate-reported failure, abort, and a missing-save rejection.
 It additionally proves C++ federate name ↔ handle lookup and the standard
-`int` normalization coordinate, alongside C++ object-class lookup/name/
+`long` normalization coordinate, alongside C++ object-class lookup/name/
 normalization and object-class → attribute lookup/name calls. Object-class and
 attribute values use distinct Java encoded-handle classes and factories, so
 Python values re-enter C++ through their correct standard handle domain;
