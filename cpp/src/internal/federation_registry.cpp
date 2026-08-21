@@ -8022,6 +8022,28 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
   }
+  if (*attributeName == "HLAROlength") {
+    // HLAstandardMIM defines HLAROlength as the number of receive-order
+    // messages waiting for the represented federate. The live callback route
+    // counts application receive-order tasks still on the selected callback
+    // dispatcher; a constrained federate can also hold eligible work in its
+    // temporal receive-order gate before the dispatcher sees it.
+    std::size_t count = 0U;
+    auto const callbackRoute = federation.interactionCallbackRoutes.find(
+        object.joinedFederateId);
+    if (callbackRoute != federation.interactionCallbackRoutes.end() &&
+        callbackRoute->second.pendingReceiveOrderCount) {
+      count = callbackRoute->second.pendingReceiveOrderCount();
+    }
+    if (timeState) {
+      count += timeState->deferredAsynchronousReceiveCount();
+    }
+    auto const encodedCount = count >
+            static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
   if (!timeSnapshot) {
     return std::nullopt;
   }

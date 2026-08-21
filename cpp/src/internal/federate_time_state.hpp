@@ -240,6 +240,7 @@ class FederateTimeState final {
   void deferAsynchronousReceive(DeferredCallback callback);
   [[nodiscard]] std::vector<DeferredCallback>
   takeEligibleAsynchronousReceiveCallbacks();
+  [[nodiscard]] std::size_t deferredAsynchronousReceiveCount() const;
 
   void deactivate() noexcept;
 

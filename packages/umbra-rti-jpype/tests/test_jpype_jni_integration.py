@@ -12201,6 +12201,243 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_ro_length_tracks_queued_messages(
+        self,
+    ) -> None:
+        """Expose the receive-order queue length from the native callback ledger."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "parameter-handle-provider-fom.xml"
+        )
+
+        def run_scenario(callback_model: CallbackModel) -> None:
+            federation_name = f"python-jni-ro-length-{uuid4()}"
+            producer = self.factory.getRtiAmbassador()
+            target = self.factory.getRtiAmbassador()
+            observer = self.factory.getRtiAmbassador()
+            producer_callbacks = _JniCallbacks()
+            target_callbacks = _JniCallbacks()
+            observer_callbacks = _JniCallbacks()
+            producer_connected = target_connected = observer_connected = False
+            producer_joined = target_joined = observer_joined = created = False
+
+            def pump_observer() -> None:
+                if callback_model is CallbackModel.HLA_EVOKED:
+                    observer.evokeCallback(0.0)
+
+            def wait_for_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump_observer()
+                    for reflection in observer_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail(
+                    "timed out waiting for the standard Java HLAROlength MOM value"
+                )
+
+            try:
+                producer.connect(producer_callbacks, CallbackModel.HLA_EVOKED)
+                producer_connected = True
+                target.connect(target_callbacks, CallbackModel.HLA_EVOKED)
+                target_connected = True
+                observer.connect(observer_callbacks, callback_model)
+                observer_connected = True
+                producer.createFederationExecution(
+                    federation_name, str(fom_module), "HLAinteger64Time"
+                )
+                created = True
+                observer.joinFederationExecution(
+                    "ro-length-observer",
+                    federation_name,
+                    federateName="ro-length-observer",
+                )
+                observer_joined = True
+
+                mom_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                federate_handle_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAfederateHandle"
+                )
+                ro_length_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAROlength"
+                )
+                observer.subscribeObjectClassAttributes(
+                    mom_class,
+                    AttributeHandleSet(
+                        [federate_handle_attribute, ro_length_attribute]
+                    ),
+                    active=True,
+                )
+
+                target_handle = target.joinFederationExecution(
+                    "ro-length-target",
+                    federation_name,
+                    federateName="ro-length-target",
+                )
+                target_joined = True
+                producer.joinFederationExecution(
+                    "ro-length-producer",
+                    federation_name,
+                    federateName="ro-length-producer",
+                )
+                producer_joined = True
+                initial = wait_for_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        federate_handle_attribute
+                    )
+                    == target_handle.encodedValue
+                )
+                target_object = initial[0]
+                reliable = observer.getTransportationTypeHandle("HLAreliable")
+                encoder = self.factory.getEncoderFactory()
+
+                def assert_rti_reflection(reflection: tuple[object, ...]) -> None:
+                    self.assertEqual(reflection[0], target_object)
+                    self.assertEqual(reflection[3], reliable)
+                    self.assertEqual(reflection[2], b"")
+                    self.assertFalse(any(reflection[4].encodedValue[4:]))
+
+                def request_count(expected: int) -> tuple[object, ...]:
+                    before = len(observer_callbacks.reflected_attributes)
+                    observer.requestAttributeValueUpdate(
+                        target_object,
+                        AttributeHandleSet([ro_length_attribute]),
+                        b"",
+                    )
+
+                    def is_expected(candidate: tuple[object, ...]) -> bool:
+                        if (
+                            len(observer_callbacks.reflected_attributes) <= before
+                            or candidate[0] != target_object
+                            or ro_length_attribute not in set(candidate[1])
+                        ):
+                            return False
+                        candidate_count = encoder.createHLAinteger32BE()
+                        candidate_count.decode(dict(candidate[1])[ro_length_attribute])
+                        return candidate_count.getValue() == expected
+
+                    reflection = wait_for_reflection(is_expected)
+                    assert_rti_reflection(reflection)
+                    count = encoder.createHLAinteger32BE()
+                    count.decode(dict(reflection[1])[ro_length_attribute])
+                    self.assertEqual(count.getValue(), expected)
+                    return reflection
+
+                interaction_name = (
+                    "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
+                )
+                producer_interaction = producer.getInteractionClassHandle(interaction_name)
+                target_interaction = target.getInteractionClassHandle(interaction_name)
+                producer_parameter = producer.getParameterHandle(
+                    producer_interaction, "Identifier"
+                )
+                target.subscribeInteractionClass(target_interaction)
+                producer.publishInteractionClass(producer_interaction)
+
+                request_count(0)
+                producer.sendInteraction(
+                    producer_interaction,
+                    ParameterHandleValueMap({producer_parameter: b"queued-ro"}),
+                    b"queued-ro-tag",
+                )
+                self.assertEqual(target_callbacks.received_interactions, [])
+                request_count(1)
+
+                set_timing = observer.getInteractionClassHandle(
+                    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
+                )
+                federate_parameter = observer.getParameterHandle(
+                    set_timing, "HLAfederate"
+                )
+                period_parameter = observer.getParameterHandle(
+                    set_timing, "HLAreportPeriod"
+                )
+                observer.sendInteraction(
+                    set_timing,
+                    ParameterHandleValueMap(
+                        {
+                            federate_parameter: target_handle.encodedValue,
+                            period_parameter: encoder.createHLAinteger32BE(
+                                1
+                            ).toByteArray(),
+                        }
+                    ),
+                    b"",
+                )
+                before_periodic = len(observer_callbacks.reflected_attributes)
+
+                def periodic_is_one(reflection: tuple[object, ...]) -> bool:
+                    if (
+                        len(observer_callbacks.reflected_attributes) <= before_periodic
+                        or reflection[0] != target_object
+                        or ro_length_attribute not in set(reflection[1])
+                    ):
+                        return False
+                    periodic_value = encoder.createHLAinteger32BE()
+                    periodic_value.decode(dict(reflection[1])[ro_length_attribute])
+                    return periodic_value.getValue() == 1
+
+                periodic = wait_for_reflection(periodic_is_one)
+                assert_rti_reflection(periodic)
+
+                target.evokeCallback(0.0)
+                self.assertEqual(len(target_callbacks.received_interactions), 1)
+                self.assertEqual(
+                    target_callbacks.received_interactions[0][2], b"queued-ro-tag"
+                )
+                observer.sendInteraction(
+                    set_timing,
+                    ParameterHandleValueMap(
+                        {
+                            federate_parameter: target_handle.encodedValue,
+                            period_parameter: encoder.createHLAinteger32BE(
+                                0
+                            ).toByteArray(),
+                        }
+                    ),
+                    b"",
+                )
+                request_count(0)
+            finally:
+                for ambassador, joined in (
+                    (target, target_joined),
+                    (producer, producer_joined),
+                    (observer, observer_joined),
+                ):
+                    if joined:
+                        try:
+                            ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                        except Exception:
+                            pass
+                if created:
+                    try:
+                        producer.destroyFederationExecution(federation_name)
+                    except Exception:
+                        pass
+                for ambassador, connected in (
+                    (observer, observer_connected),
+                    (target, target_connected),
+                    (producer, producer_connected),
+                ):
+                    if connected:
+                        try:
+                            ambassador.disconnect()
+                        except Exception:
+                            pass
+                    ambassador._implementation.close()
+
+        for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
+            with self.subTest(callback_model=callback_model):
+                run_scenario(callback_model)
+
     def test_cpp_jni_java_jpype_joined_federate_mom_updates_sent_counts_services(
         self,
     ) -> None:

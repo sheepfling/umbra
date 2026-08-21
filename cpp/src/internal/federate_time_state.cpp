@@ -558,6 +558,11 @@ FederateTimeState::takeEligibleAsynchronousReceiveCallbacks() {
   return result;
 }
 
+std::size_t FederateTimeState::deferredAsynchronousReceiveCount() const {
+  std::scoped_lock lock(mutex_);
+  return deferredAsynchronousReceives_.size();
+}
+
 void FederateTimeState::deactivate() noexcept {
   std::scoped_lock lock(mutex_);
   active_ = false;

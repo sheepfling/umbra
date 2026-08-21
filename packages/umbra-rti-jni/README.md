@@ -518,8 +518,8 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route runs 164 integration cases (all 164 passed) with 84
-subtests, including 149 functional vectors, both named and no-argument
+The external route runs 165 integration cases (all 165 passed) with 86
+subtests, including 151 functional vectors, both named and no-argument
 standard `RtiFactoryFactory` discovery paths, plus the artifact-level
 non-shadowing/ServiceLoader gate. It includes the focused
 federation-lifecycle exception vector (including same-member duplicate-join
@@ -895,6 +895,9 @@ The `HLAupdatesSent` vector counts accepted untimed and timestamped
 `updateAttributeValues` service invocations at the C++ admission boundary,
 then observes the same `HLAinteger32BE` count through direct and periodic MOM
 reflection under both callback models.
+The `HLAROlength` vector queues a receive-order interaction on an evoked
+federate, reads the native queue ledger through direct and periodic MOM
+reflection, then drains the callback and verifies the count returns to zero.
 
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`

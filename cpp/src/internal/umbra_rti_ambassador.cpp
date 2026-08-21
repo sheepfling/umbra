@@ -1986,15 +1986,35 @@ umbra::detail::FederateCallbackRoute makeFederateCallbackRoute(
     std::shared_ptr<CallbackSession> const& callbackSession) {
   std::weak_ptr<umbra::detail::CallbackDispatcher> const dispatcher = callbackDispatcher;
   std::weak_ptr<CallbackSession> const session = callbackSession;
-  return [dispatcher, session](umbra::detail::FederateCallbackInvocation invocation) mutable {
+  auto pendingReceiveOrder =
+      std::make_shared<std::atomic<std::size_t>>(0U);
+  auto enqueue = [dispatcher, session, pendingReceiveOrder](
+                     umbra::detail::FederateCallbackInvocation invocation,
+                     bool receiveOrder) mutable {
+    if (!invocation) {
+      return;
+    }
+    if (receiveOrder) {
+      pendingReceiveOrder->fetch_add(1U, std::memory_order_relaxed);
+    }
     auto callbackDispatcher = dispatcher.lock();
     if (!callbackDispatcher) {
+      if (receiveOrder) {
+        pendingReceiveOrder->fetch_sub(1U, std::memory_order_relaxed);
+      }
       return;
     }
 
     // Callers invoke this route only after releasing federation state locks.
     // An immediate dispatcher can enter user code synchronously here.
-    callbackDispatcher->submit([session, invocation = std::move(invocation)]() mutable {
+    callbackDispatcher->submit([
+        session,
+        pendingReceiveOrder,
+        receiveOrder,
+        invocation = std::move(invocation)]() mutable {
+      if (receiveOrder) {
+        pendingReceiveOrder->fetch_sub(1U, std::memory_order_relaxed);
+      }
       auto callbackSession = session.lock();
       if (!callbackSession) {
         return;
@@ -2002,6 +2022,19 @@ umbra::detail::FederateCallbackRoute makeFederateCallbackRoute(
       callbackSession->invoke(std::move(invocation));
     });
   };
+
+  umbra::detail::FederateCallbackRoute route;
+  route.submit = [enqueue](umbra::detail::FederateCallbackInvocation invocation) mutable {
+    enqueue(std::move(invocation), false);
+  };
+  route.receiveOrderSubmit = [enqueue](
+      umbra::detail::FederateCallbackInvocation invocation) mutable {
+    enqueue(std::move(invocation), true);
+  };
+  route.pendingReceiveOrderCount = [pendingReceiveOrder] {
+    return pendingReceiveOrder->load(std::memory_order_relaxed);
+  };
+  return route;
 }
 
 // Request Retraction is a direct standard callback, not receive-order message
@@ -2062,7 +2095,7 @@ void submitReceiveOrderCallback(
     return;
   }
 
-  callbackRoute([
+  callbackRoute.enqueueReceiveOrder([
       callbackRoute,
       federationName = std::move(federationName),
       receivingFederateId,

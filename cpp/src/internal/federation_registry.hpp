@@ -41,7 +41,41 @@ namespace umbra::detail {
 // locked; the binding queues it onto the recipient's selected callback model.
 using FederateCallbackInvocation =
     std::function<void(rti1516_2025::FederateAmbassador&)>;
-using FederateCallbackRoute = std::function<void(FederateCallbackInvocation)>;
+// A route carries the ordinary callback submission used by RTI-initiated
+// control work plus an explicit receive-order submission used by application
+// traffic. Keeping the marker at the route boundary lets HLA_ROlength read
+// the same C++ queue ledger that the dispatcher drains; it does not infer a
+// count from Python callbacks or from payloads.
+struct FederateCallbackRoute final {
+  std::function<void(FederateCallbackInvocation)> submit;
+  std::function<void(FederateCallbackInvocation)> receiveOrderSubmit;
+  std::function<std::size_t()> pendingReceiveOrderCount;
+
+  FederateCallbackRoute() = default;
+
+  // Preserve the lightweight callback-route construction used by registry
+  // unit tests and older internal callers while allowing the production route
+  // to carry receive-order queue instrumentation as additional seams.
+  template <typename Callable>
+  FederateCallbackRoute(Callable callback)
+      : submit(std::move(callback)) {}
+
+  void operator()(FederateCallbackInvocation invocation) const {
+    if (submit) {
+      submit(std::move(invocation));
+    }
+  }
+
+  void enqueueReceiveOrder(FederateCallbackInvocation invocation) const {
+    if (receiveOrderSubmit) {
+      receiveOrderSubmit(std::move(invocation));
+    }
+  }
+
+  explicit operator bool() const noexcept {
+    return static_cast<bool>(submit);
+  }
+};
 
 // A private recipient route reserves the recipient's serial and appends the
 // supplied fully encoded record before its corresponding callback is exposed.
