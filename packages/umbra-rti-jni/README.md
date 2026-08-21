@@ -839,6 +839,12 @@ restores through both standard Java ambassadors. The restored C++ range and
 association then deliver a later update again, with the source `RegionHandle`
 preserved at the JPype callback boundary.
 
+The regional-interaction restore companion saves an overlapping regional
+subscription, moves the source range to a disjoint boundary after save, and
+restores the C++ range before sending through the standard Java interaction
+overload. The callback is admitted again with the restored source
+`RegionHandle`.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and

@@ -5401,6 +5401,234 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             receiver._implementation.close()
             owner._implementation.close()
 
+    def test_cpp_jni_java_jpype_restore_rewinds_regional_interaction_subscription(
+        self,
+    ) -> None:
+        """Restore rewinds C++ regional interaction ranges and subscriptions."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-restore-regional-interaction-{uuid4()}"
+        publisher = self.factory.getRtiAmbassador()
+        subscriber = self.factory.getRtiAmbassador()
+        publisher_callbacks = _JniCallbacks()
+        subscriber_callbacks = _JniCallbacks()
+        publisher_connected = subscriber_connected = False
+        publisher_joined = subscriber_joined = created = False
+        source_region: RegionHandle | None = None
+        subscriber_region: RegionHandle | None = None
+        subscriber_interaction: InteractionClassHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                publisher.evokeCallback(0.0)
+                subscriber.evokeCallback(0.0)
+
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            publisher_connected = True
+            subscriber.connect(subscriber_callbacks, CallbackModel.HLA_EVOKED)
+            subscriber_connected = True
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            publisher.joinFederationExecution(
+                "jni-restore-regional-interaction-publisher",
+                federation_name,
+                federateName="jni-restore-regional-interaction-publisher",
+            )
+            publisher_joined = True
+            subscriber.joinFederationExecution(
+                "jni-restore-regional-interaction-subscriber",
+                federation_name,
+                federateName="jni-restore-regional-interaction-subscriber",
+            )
+            subscriber_joined = True
+
+            interaction_name = (
+                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+            )
+            publisher_interaction = publisher.getInteractionClassHandle(interaction_name)
+            subscriber_interaction = subscriber.getInteractionClassHandle(interaction_name)
+            publisher_parameter = publisher.getParameterHandle(
+                publisher_interaction, "TemperatureOk"
+            )
+            subscriber_parameter = subscriber.getParameterHandle(
+                subscriber_interaction, "TemperatureOk"
+            )
+            publisher.publishInteractionClass(publisher_interaction)
+
+            publisher_dimension = publisher.getDimensionHandle("ServerId")
+            subscriber_dimension = subscriber.getDimensionHandle("ServerId")
+            source_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            subscriber_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
+            publisher.setRangeBounds(
+                source_region, publisher_dimension, RangeBounds(0, 2)
+            )
+            subscriber.setRangeBounds(
+                subscriber_region, subscriber_dimension, RangeBounds(1, 3)
+            )
+            publisher.commitRegionModifications(RegionHandleSet([source_region]))
+            subscriber.commitRegionModifications(
+                RegionHandleSet([subscriber_region])
+            )
+            subscriber.subscribeInteractionClassWithRegions(
+                subscriber_interaction, RegionHandleSet([subscriber_region])
+            )
+            subscriber.setConveyRegionDesignatorSetsSwitch(True)
+
+            save_label = f"jni-restore-regional-interaction-save-{uuid4()}"
+            publisher.requestFederationSave(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    publisher_callbacks.save_initiations == [save_label]
+                    and subscriber_callbacks.save_initiations == [save_label]
+                ):
+                    break
+            self.assertEqual(publisher_callbacks.save_initiations, [save_label])
+            self.assertEqual(subscriber_callbacks.save_initiations, [save_label])
+            publisher.federateSaveBegun()
+            subscriber.federateSaveBegun()
+            publisher.federateSaveComplete()
+            subscriber.federateSaveComplete()
+            for _ in range(30):
+                drain(1)
+                if (
+                    publisher_callbacks.saved_count == 1
+                    and subscriber_callbacks.saved_count == 1
+                ):
+                    break
+            self.assertEqual(publisher_callbacks.saved_count, 1)
+            self.assertEqual(subscriber_callbacks.saved_count, 1)
+
+            publisher.setRangeBounds(
+                source_region, publisher_dimension, RangeBounds(3, 4)
+            )
+            publisher.commitRegionModifications(RegionHandleSet([source_region]))
+            subscriber_callbacks.received_interactions.clear()
+            subscriber_callbacks.regional_interactions.clear()
+            publisher.sendInteractionWithRegions(
+                publisher_interaction,
+                ParameterHandleValueMap(
+                    {publisher_parameter: b"post-save-disjoint"}
+                ),
+                RegionHandleSet([source_region]),
+                b"post-save-disjoint-tag",
+            )
+            drain()
+            self.assertEqual(subscriber_callbacks.received_interactions, [])
+            self.assertEqual(subscriber_callbacks.regional_interactions, [])
+
+            publisher.requestFederationRestore(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    publisher_callbacks.restore_initiations
+                    and subscriber_callbacks.restore_initiations
+                ):
+                    break
+            self.assertEqual(publisher_callbacks.restore_acceptances, [save_label])
+            self.assertEqual(publisher_callbacks.restore_begun, 1)
+            self.assertEqual(subscriber_callbacks.restore_begun, 1)
+            publisher.federateRestoreComplete()
+            subscriber.federateRestoreComplete()
+            for _ in range(30):
+                drain(1)
+                if (
+                    publisher_callbacks.restore_completions == 1
+                    and subscriber_callbacks.restore_completions == 1
+                ):
+                    break
+            self.assertEqual(publisher_callbacks.restore_completions, 1)
+            self.assertEqual(subscriber_callbacks.restore_completions, 1)
+            self.assertEqual(
+                publisher.getRangeBounds(source_region, publisher_dimension),
+                RangeBounds(0, 2),
+            )
+
+            subscriber_callbacks.received_interactions.clear()
+            subscriber_callbacks.regional_interactions.clear()
+            publisher.sendInteractionWithRegions(
+                publisher_interaction,
+                ParameterHandleValueMap({publisher_parameter: b"post-restore"}),
+                RegionHandleSet([source_region]),
+                b"post-restore-tag",
+            )
+            for _ in range(30):
+                drain(1)
+                if subscriber_callbacks.regional_interactions:
+                    break
+            self.assertEqual(len(subscriber_callbacks.received_interactions), 0)
+            self.assertEqual(len(subscriber_callbacks.regional_interactions), 1)
+            reflection = subscriber_callbacks.regional_interactions[0]
+            self.assertEqual(reflection[0], subscriber_interaction)
+            self.assertEqual(
+                reflection[1],
+                ParameterHandleValueMap({subscriber_parameter: b"post-restore"}),
+            )
+            self.assertEqual(reflection[2], b"post-restore-tag")
+            self.assertEqual(
+                reflection[5],
+                RegionHandleSet([RegionHandle(source_region.encodedValue)]),
+            )
+        finally:
+            if subscriber_joined:
+                if subscriber_region is not None and subscriber_interaction is not None:
+                    try:
+                        subscriber.unsubscribeInteractionClassWithRegions(
+                            subscriber_interaction,
+                            RegionHandleSet([subscriber_region]),
+                        )
+                    except Exception:
+                        pass
+                    try:
+                        subscriber.deleteRegion(subscriber_region)
+                    except Exception:
+                        pass
+            if publisher_joined and source_region is not None:
+                try:
+                    publisher.deleteRegion(source_region)
+                except Exception:
+                    pass
+            if subscriber_joined:
+                try:
+                    subscriber.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if publisher_joined:
+                try:
+                    publisher.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    publisher.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if subscriber_connected:
+                try:
+                    subscriber.disconnect()
+                except Exception:
+                    pass
+            if publisher_connected:
+                try:
+                    publisher.disconnect()
+                except Exception:
+                    pass
+            subscriber._implementation.close()
+            publisher._implementation.close()
+
     def test_cpp_jni_java_jpype_restore_reschedules_pending_time_advance(
         self,
     ) -> None:
