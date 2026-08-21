@@ -11026,6 +11026,82 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     "Query Attribute Ownership",
                 ),
                 (
+                    lambda: subject.isAttributeOwnedByFederate(
+                        saved_object_instance, object_attribute
+                    ),
+                    "Is Attribute Owned By Federate",
+                ),
+                (
+                    lambda: subject.unconditionalAttributeOwnershipDivestiture(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                        b"save-in-progress",
+                    ),
+                    "Unconditional Attribute Ownership Divestiture",
+                ),
+                (
+                    lambda: subject.negotiatedAttributeOwnershipDivestiture(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                        b"save-in-progress",
+                    ),
+                    "Negotiated Attribute Ownership Divestiture",
+                ),
+                (
+                    lambda: subject.confirmDivestiture(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                        b"save-in-progress",
+                    ),
+                    "Confirm Divestiture",
+                ),
+                (
+                    lambda: subject.cancelNegotiatedAttributeOwnershipDivestiture(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                    ),
+                    "Cancel Negotiated Attribute Ownership Divestiture",
+                ),
+                (
+                    lambda: subject.attributeOwnershipAcquisition(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                        b"save-in-progress",
+                    ),
+                    "Attribute Ownership Acquisition",
+                ),
+                (
+                    lambda: subject.attributeOwnershipAcquisitionIfAvailable(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                        b"save-in-progress",
+                    ),
+                    "Attribute Ownership Acquisition If Available",
+                ),
+                (
+                    lambda: subject.cancelAttributeOwnershipAcquisition(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                    ),
+                    "Cancel Attribute Ownership Acquisition",
+                ),
+                (
+                    lambda: subject.attributeOwnershipReleaseDenied(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                        b"save-in-progress",
+                    ),
+                    "Attribute Ownership Release Denied",
+                ),
+                (
+                    lambda: subject.attributeOwnershipDivestitureIfWanted(
+                        saved_object_instance,
+                        AttributeHandleSet([object_attribute]),
+                        b"save-in-progress",
+                    ),
+                    "Attribute Ownership Divestiture If Wanted",
+                ),
+                (
                     lambda: subject.changeAttributeOrderType(
                         saved_object_instance,
                         AttributeHandleSet([object_attribute]),

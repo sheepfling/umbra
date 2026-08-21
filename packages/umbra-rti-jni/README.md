@@ -292,9 +292,11 @@ NMR, TARA, NMRA, and FQR; each service is submitted again after restore to
 prove the Java surface is released for continued use.
 The two-member interlock matrix holds both standard Java ambassadors in active
 save and restore barriers and verifies declaration, object-registration, region,
-time-query, synchronization, interaction, and order-change services fail with
-the corresponding C++-originated `SaveInProgress` or `RestoreInProgress` before
-the peer completes the barrier.
+time-query, synchronization, interaction, order-change, and every attribute-
+ownership service fail with the corresponding C++-originated `SaveInProgress` or
+`RestoreInProgress` before the peer completes the barrier. Ownership failures
+also arrive as separately decoded standard `HLAreportException` interactions,
+so the temporal guard and MOM reporting cross the same Java and JPype boundary.
 The immediate/evoked scope vector preserves synchronous versus queued
 `attributesInScope`/`attributesOutOfScope` callbacks, stale-transition
 suppression, and advisory-switch gating through the standard Java callback
