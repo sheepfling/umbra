@@ -9084,6 +9084,117 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 ambassador.disconnect()
             ambassador._implementation.close()
 
+    def test_cpp_jni_java_jpype_federation_save_restore_mom_reports(self) -> None:
+        """Preserve C++ save/restore MOM reports across the Java route."""
+
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-support-enabled-fom.xml"
+        )
+        federation_name = f"python-jni-save-restore-mom-{uuid4()}"
+        reports_directory = self._temporary_directory / f"save-restore-reports-{uuid4()}"
+        ambassador = self.factory.getRtiAmbassador()
+        callbacks = _JniCallbacks()
+        connected = created = joined = False
+
+        def report_text() -> str:
+            files = sorted(reports_directory.glob("*"))
+            self.assertEqual(len(files), 1)
+            return files[0].read_text(encoding="utf-8")
+
+        def assert_report(service_name: str) -> None:
+            self.assertIn(f'"HLAservice":"{service_name}"', report_text())
+
+        try:
+            configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                f"serviceReportDirectory={reports_directory}"
+            )
+            ambassador.connect(callbacks, CallbackModel.HLA_EVOKED, configuration)
+            connected = True
+            ambassador.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            ambassador.joinFederationExecution(
+                "jni-save-restore-mom", federation_name
+            )
+            joined = True
+
+            ambassador.queryFederationSaveStatus()
+            ambassador.evokeCallback(0.0)
+            assert_report("QueryFederationSaveStatus")
+            self.assertTrue(callbacks.save_status_reports)
+
+            save_label = "jni-save-restore-mom-save"
+            ambassador.requestFederationSave(save_label)
+            assert_report("RequestFederationSave")
+            self.assertIn('"HLAargumentName":"Optional timestamp"', report_text())
+            for _ in range(20):
+                ambassador.evokeCallback(0.0)
+                if callbacks.save_initiations:
+                    break
+            self.assertEqual(callbacks.save_initiations, [save_label])
+            assert_report("InitiateFederateSave")
+
+            ambassador.federateSaveBegun()
+            assert_report("FederateSaveBegun")
+            ambassador.federateSaveComplete()
+            assert_report("FederateSaveComplete")
+            for _ in range(20):
+                ambassador.evokeCallback(0.0)
+                if callbacks.saved_count:
+                    break
+            self.assertEqual(callbacks.saved_count, 1)
+            assert_report("FederationSaved")
+
+            ambassador.queryFederationRestoreStatus()
+            ambassador.evokeCallback(0.0)
+            assert_report("QueryFederationRestoreStatus")
+            self.assertTrue(callbacks.restore_status_reports)
+
+            ambassador.requestFederationRestore(save_label)
+            assert_report("RequestFederationRestore")
+            for _ in range(20):
+                ambassador.evokeCallback(0.0)
+                if callbacks.restore_initiations:
+                    break
+            self.assertEqual(callbacks.restore_acceptances, [save_label])
+            self.assertEqual(callbacks.restore_begun, 1)
+            self.assertEqual(callbacks.restore_initiations[0][0], save_label)
+            assert_report("ConfirmFederationRestorationRequest")
+            assert_report("FederationRestoreBegun")
+            assert_report("InitiateFederateRestore")
+
+            ambassador.queryFederationRestoreStatus()
+            ambassador.evokeCallback(0.0)
+            assert_report("QueryFederationRestoreStatus")
+            ambassador.federateRestoreComplete()
+            for _ in range(20):
+                ambassador.evokeCallback(0.0)
+                if callbacks.restore_completions:
+                    break
+            self.assertEqual(callbacks.restore_completions, 1)
+        finally:
+            if joined:
+                try:
+                    ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    ambassador.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if connected:
+                try:
+                    ambassador.disconnect()
+                except Exception:
+                    pass
+            ambassador._implementation.close()
+
     def test_cpp_jni_java_jpype_joined_federate_mom_discovery_reflection_and_removal(
         self,
     ) -> None:

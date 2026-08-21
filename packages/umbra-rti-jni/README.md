@@ -467,8 +467,8 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route runs 157 integration cases (all 157 passed) with 74
-subtests, including 140 functional vectors plus the artifact-level
+The external route runs 158 integration cases (all 158 passed) with 74
+subtests, including 141 functional vectors plus the artifact-level
 non-shadowing/ServiceLoader gate. It includes the focused
 federation-lifecycle exception vector (including same-member duplicate-join
 mapping), integer/floating malformed logical-time

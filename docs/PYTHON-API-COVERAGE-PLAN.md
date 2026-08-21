@@ -31,8 +31,8 @@ Umbra's repository fixture remains a fast compatibility harness; it is not
 the authority for Java API compatibility. On 2026-08-21, the JNI façade was
 compiled and smoke-tested against an independently obtained IEEE
 1516.1-2025 Java API JAR, then exercised through C++ → JNI → Java → JPype →
-the public Python API. The resulting integration suite now collects 157 test
-cases (all 157 passed, including 140 functional
+the public Python API. The resulting integration suite now collects 158 test
+cases (all 158 passed, including 141 functional
 vectors and the structural/runtime gates). The exception-surface check loads every C++ exception whose exact
 standard Java class is present in the external API; the independently supplied
 API remains authoritative for its vocabulary and intentionally omits a few
@@ -144,6 +144,10 @@ The mixed callback-model companion then runs the same two-member save/restore
 barrier with one HLA_IMMEDIATE and one HLA_EVOKED Java ambassador, proving that
 C++ notification ordering is preserved while each JPype callback route keeps
 its own delivery mode.
+The save/restore MOM companion also checks the C++ report-file records for
+status queries, request/confirm, initiation, begun/complete, and restore
+begin/initiation services while the corresponding standard Java callbacks are
+delivered through JPype.
 After the peer resigns, the same route reuses its still-structurally-valid
 standard `FederateHandle` in a later explicit set and preserves the asynchronous
 `SYNCHRONIZATION_SET_MEMBER_NOT_JOINED` failure for the former member.
@@ -444,8 +448,8 @@ overload with its fifth argument.
 
 With `UMBRA_JNI_REQUIRE_RUNTIME_SERVICE_COVERAGE=1`, the external suite also
 wraps the concrete JPype façade for accounting and executes all 184 services
-at runtime. The current external run passed this runtime gate (157 test cases,
-all 157 passed), including services selected through
+at runtime. The current external run passed this runtime gate (158 test cases,
+all 158 passed), including services selected through
 family loops and function references. It additionally proves RTI-owned
 joined-federate MOM discovery, initial/requested reflection, and removal, plus
 timestamped per-attribute update-rate reduction with reliable delivery and
