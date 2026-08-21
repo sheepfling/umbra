@@ -8087,6 +8087,18 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
   }
+  if (*attributeName == "HLAobjectInstancesDiscovered") {
+    // HLAstandardMIM defines this HLAcount as the number of Discover Object
+    // Instance callbacks committed for the represented joined federate. The
+    // application-object discovery ledger advances only after the callback
+    // route passes its final membership/interest checks.
+    auto const count = member->second.successfulObjectInstanceDiscoveriesCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
   if (*attributeName == "HLAROlength") {
     // HLAstandardMIM defines HLAROlength as the number of receive-order
     // messages waiting for the represented federate. The live callback route
@@ -12388,6 +12400,12 @@ EmbeddedFederationRegistry::beginObjectInstanceDiscovery(
   static_cast<void>(knownClass);
   if (!insertedKnownClass) {
     return std::nullopt;
+  }
+  auto const receivingMember = federation->second.members.find(receivingFederateId);
+  if (receivingMember != federation->second.members.end() &&
+      receivingMember->second.successfulObjectInstanceDiscoveriesCount !=
+          std::numeric_limits<std::uint64_t>::max()) {
+    ++receivingMember->second.successfulObjectInstanceDiscoveriesCount;
   }
   return knownObjectInstanceSnapshot(federation->second, instance->second, receivingFederateId);
 }

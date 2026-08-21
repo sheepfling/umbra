@@ -12797,12 +12797,16 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject_removed_objects_attribute = subject.getAttributeHandle(
                     subject_mom_class, "HLAobjectInstancesRemoved"
                 )
+                subject_discovered_objects_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAobjectInstancesDiscovered"
+                )
                 subject.subscribeObjectClassAttributes(
                     subject_mom_class,
                     AttributeHandleSet(
                         [
                             subject_federate_handle_attribute,
                             subject_removed_objects_attribute,
+                            subject_discovered_objects_attribute,
                         ]
                     ),
                     active=True,
@@ -12855,11 +12859,13 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     count.decode(dict(reflection[1])[attribute])
                     self.assertEqual(count.getValue(), expected)
 
-                def request_receiver_removed_count(expected: int) -> None:
+                def request_receiver_mom_count(
+                    attribute: AttributeHandle, expected: int
+                ) -> None:
                     before = len(subject_callbacks.reflected_attributes)
                     subject.requestAttributeValueUpdate(
                         observer_mom_object,
-                        AttributeHandleSet([subject_removed_objects_attribute]),
+                        AttributeHandleSet([attribute]),
                         b"",
                     )
 
@@ -12867,24 +12873,20 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                         if (
                             len(subject_callbacks.reflected_attributes) <= before
                             or candidate[0] != observer_mom_object
-                            or subject_removed_objects_attribute
-                            not in set(candidate[1])
+                            or attribute not in set(candidate[1])
                         ):
                             return False
                         candidate_count = encoder.createHLAinteger32BE()
-                        candidate_count.decode(
-                            dict(candidate[1])[subject_removed_objects_attribute]
-                        )
+                        candidate_count.decode(dict(candidate[1])[attribute])
                         return candidate_count.getValue() == expected
 
                     reflection = wait_for_subject_reflection(is_expected)
                     count = encoder.createHLAinteger32BE()
-                    count.decode(
-                        dict(reflection[1])[subject_removed_objects_attribute]
-                    )
+                    count.decode(dict(reflection[1])[attribute])
                     self.assertEqual(count.getValue(), expected)
 
-                request_receiver_removed_count(0)
+                request_receiver_mom_count(subject_removed_objects_attribute, 0)
+                request_receiver_mom_count(subject_discovered_objects_attribute, 0)
                 request_count(updates_sent_attribute, 0)
                 request_count(updated_objects_attribute, 0)
                 request_count(registered_objects_attribute, 0)
@@ -12904,6 +12906,8 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 )
                 first_object = subject.registerObjectInstance(subject_class)
                 request_count(registered_objects_attribute, 1)
+                request_receiver_mom_count(subject_discovered_objects_attribute, 1)
+                self.assertGreaterEqual(len(observer_callbacks.discovered_objects), 1)
                 subject.updateAttributeValues(first_object, update_values, b"")
                 request_count(updates_sent_attribute, 1)
                 request_count(updated_objects_attribute, 1)
@@ -12914,6 +12918,8 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
 
                 second_object = subject.registerObjectInstance(subject_class)
                 request_count(registered_objects_attribute, 2)
+                request_receiver_mom_count(subject_discovered_objects_attribute, 2)
+                self.assertGreaterEqual(len(observer_callbacks.discovered_objects), 2)
                 subject.updateAttributeValues(second_object, update_values, b"")
                 request_count(updates_sent_attribute, 3)
                 request_count(updated_objects_attribute, 2)
@@ -13005,7 +13011,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     pump()
                     time.sleep(0.025)
                 self.assertGreaterEqual(len(observer_callbacks.removed_objects), 1)
-                request_receiver_removed_count(1)
+                request_receiver_mom_count(subject_removed_objects_attribute, 1)
                 subject.deleteObjectInstance(second_object)
                 request_count(deleted_objects_attribute, 2)
                 deadline = time.monotonic() + 2.5
@@ -13016,7 +13022,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     pump()
                     time.sleep(0.025)
                 self.assertGreaterEqual(len(observer_callbacks.removed_objects), 2)
-                request_receiver_removed_count(2)
+                request_receiver_mom_count(subject_removed_objects_attribute, 2)
             finally:
                 for ambassador, joined in (
                     (subject, subject_joined),

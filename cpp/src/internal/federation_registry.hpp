@@ -160,6 +160,10 @@ struct FederateMembership {
   // callbacks delivered to this joined federate. A retracted timestamped
   // deletion never reaches this boundary and therefore is not counted.
   std::uint64_t successfulObjectInstanceRemovalsCount = 0;
+  // HLAobjectInstancesDiscovered counts committed Discover Object Instance
+  // callbacks delivered to this joined federate. A local delete followed by
+  // rediscovery therefore contributes another accepted callback.
+  std::uint64_t successfulObjectInstanceDiscoveriesCount = 0;
 };
 
 // A federation-owned snapshot captured while the registry holds its member
@@ -572,8 +576,8 @@ struct JoinedFederateMomObjectSnapshot {
   // HLAGALT/HLALITS/HLATSOlength/HLAupdatesSent/
   // HLAobjectInstancesThatCanBeDeleted/HLAobjectInstancesUpdated/
   // HLAobjectInstancesRegistered/HLAobjectInstancesDeleted/
-  // HLAobjectInstancesRemoved are encoded through the ordinary reflection
-  // planner.
+  // HLAobjectInstancesRemoved/HLAobjectInstancesDiscovered are encoded
+  // through the ordinary reflection planner.
   // HLAsetTiming schedules the catalog-declared Periodic subset at an Evoke
   // boundary or through the
   // embedded HLA_IMMEDIATE scheduler; remaining dynamic values remain later
