@@ -10754,6 +10754,448 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     pass
                 ambassador._implementation.close()
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_conditional_reflections_track_current_state(
+        self,
+    ) -> None:
+        """Carry conditional RTI-owned MOM values through standard callbacks."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+
+        def run_scenario(callback_model: CallbackModel) -> None:
+            federation_name = f"python-jni-conditional-mom-{uuid4()}"
+            subject = self.factory.getRtiAmbassador()
+            observer = self.factory.getRtiAmbassador()
+            subject_callbacks = _JniCallbacks()
+            observer_callbacks = _JniCallbacks()
+            subject_reports = self._temporary_directory / f"conditional-subject-{uuid4()}"
+            observer_reports = self._temporary_directory / f"conditional-observer-{uuid4()}"
+            subject_connected = observer_connected = False
+            subject_joined = observer_joined = created = False
+            subject_object: ObjectInstanceHandle | None = None
+
+            def drain(rounds: int = 30) -> None:
+                for _ in range(rounds):
+                    subject.evokeCallback(0.0)
+                    observer.evokeCallback(0.0)
+
+            try:
+                subject_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                    f"serviceReportDirectory={subject_reports}"
+                )
+                observer_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                    f"serviceReportDirectory={observer_reports}"
+                )
+                subject.connect(subject_callbacks, callback_model, subject_configuration)
+                subject_connected = True
+                observer.connect(observer_callbacks, callback_model, observer_configuration)
+                observer_connected = True
+                subject.createFederationExecution(
+                    federation_name, str(fom_module), "HLAinteger64Time"
+                )
+                created = True
+                subject_handle = subject.joinFederationExecution(
+                    "subject",
+                    federation_name,
+                    federateName="conditional-mom-subject",
+                )
+                subject_joined = True
+                observer.joinFederationExecution(
+                    "observer",
+                    federation_name,
+                    federateName="conditional-mom-observer",
+                )
+                observer_joined = True
+
+                mom_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                attribute_names = (
+                    "HLAfederateHandle",
+                    "HLAfederateName",
+                    "HLAfederateType",
+                    "HLAfederateHost",
+                    "HLARTIversion",
+                    "HLAFOMmoduleDesignatorList",
+                    "HLAreportServiceFile",
+                    "HLAobjectClassRelevanceAdvisory",
+                    "HLAattributeRelevanceAdvisory",
+                    "HLAattributeScopeAdvisory",
+                    "HLAinteractionRelevanceAdvisory",
+                    "HLAconveyRegionDesignatorSets",
+                    "HLAautomaticResignAction",
+                    "HLAserviceReporting",
+                    "HLAexceptionReporting",
+                    "HLAsendServiceReportsToFile",
+                    "HLAtimeConstrained",
+                    "HLAtimeRegulating",
+                    "HLAasynchronousDelivery",
+                    "HLAtimeManagerState",
+                    "HLAlogicalTime",
+                    "HLAlookahead",
+                )
+                attributes = {
+                    name: observer.getAttributeHandle(mom_class, name)
+                    for name in attribute_names
+                }
+                reliable = observer.getTransportationTypeHandle("HLAreliable")
+                observer.subscribeObjectClassAttributes(
+                    mom_class,
+                    AttributeHandleSet(attributes.values()),
+                    active=True,
+                )
+                drain()
+
+                initial = next(
+                    (
+                        reflection
+                        for reflection in observer_callbacks.reflected_attributes
+                        if dict(reflection[1]).get(attributes["HLAfederateHandle"])
+                        == subject_handle.encodedValue
+                    ),
+                    None,
+                )
+                self.assertIsNotNone(initial)
+                assert initial is not None
+                subject_object = initial[0]
+                initial_values = dict(initial[1])
+                self.assertEqual(len(initial_values), 7)
+                self.assertNotIn(attributes["HLAobjectClassRelevanceAdvisory"], initial_values)
+
+                encoder = self.factory.getEncoderFactory()
+
+                def decode_int(value: bytes) -> int:
+                    element = encoder.createHLAinteger32BE()
+                    element.decode(value)
+                    return element.getValue()
+
+                def decode_boolean(value: bytes) -> bool:
+                    element = encoder.createHLAboolean()
+                    element.decode(value)
+                    return element.getValue()
+
+                def assert_rti_reflection(reflection: tuple[object, ...]) -> None:
+                    self.assertEqual(reflection[0], subject_object)
+                    self.assertEqual(reflection[3], reliable)
+                    self.assertEqual(reflection[2], b"")
+                    self.assertFalse(any(reflection[4].encodedValue[4:]))
+
+                def find_reflection(after: int, attribute: AttributeHandle):
+                    for reflection in observer_callbacks.reflected_attributes[after:]:
+                        values = dict(reflection[1])
+                        if reflection[0] == subject_object and attribute in values:
+                            return reflection
+                    self.fail(f"MOM attribute {attribute!r} was not reflected")
+
+                def expect_integer(
+                    setter: object, attribute_name: str, expected: int
+                ) -> None:
+                    attribute = attributes[attribute_name]
+                    before = len(observer_callbacks.reflected_attributes)
+                    setter()  # type: ignore[operator]
+                    drain()
+                    reflection = find_reflection(before, attribute)
+                    assert_rti_reflection(reflection)
+                    values = dict(reflection[1])
+                    self.assertEqual(set(values), {attribute})
+                    self.assertEqual(decode_int(values[attribute]), expected)
+
+                def expect_boolean(
+                    setter: object, attribute_name: str, expected: bool
+                ) -> None:
+                    attribute = attributes[attribute_name]
+                    before = len(observer_callbacks.reflected_attributes)
+                    setter()  # type: ignore[operator]
+                    drain()
+                    reflection = find_reflection(before, attribute)
+                    assert_rti_reflection(reflection)
+                    values = dict(reflection[1])
+                    self.assertEqual(set(values), {attribute})
+                    self.assertEqual(decode_boolean(values[attribute]), expected)
+
+                # Before time regulation, logical time is defined but lookahead
+                # is an empty MIM value. Both must cross the standard encoder.
+                before_undefined = len(observer_callbacks.reflected_attributes)
+                observer.requestAttributeValueUpdate(
+                    subject_object,
+                    AttributeHandleSet(
+                        [attributes["HLAlogicalTime"], attributes["HLAlookahead"]]
+                    ),
+                    b"",
+                )
+                drain()
+                undefined = observer_callbacks.reflected_attributes[-1]
+                self.assertGreater(len(observer_callbacks.reflected_attributes), before_undefined)
+                assert_rti_reflection(undefined)
+                undefined_values = dict(undefined[1])
+                self.assertEqual(
+                    set(undefined_values),
+                    {attributes["HLAlogicalTime"], attributes["HLAlookahead"]},
+                )
+                logical_time = encoder.createHLAinteger64BE()
+                logical_time.decode(undefined_values[attributes["HLAlogicalTime"]])
+                self.assertEqual(logical_time.getValue(), 0)
+                self.assertEqual(undefined_values[attributes["HLAlookahead"]], b"")
+
+                expect_boolean(
+                    subject.enableTimeConstrained,
+                    "HLAtimeConstrained",
+                    True,
+                )
+                expect_boolean(
+                    lambda: subject.enableTimeRegulation(
+                        subject.getTimeFactory().makeLogicalTimeInterval(1)
+                    ),
+                    "HLAtimeRegulating",
+                    True,
+                )
+
+                before_periodic = len(observer_callbacks.reflected_attributes)
+                observer.requestAttributeValueUpdate(
+                    subject_object,
+                    AttributeHandleSet(
+                        [attributes["HLAlogicalTime"], attributes["HLAlookahead"]]
+                    ),
+                    b"",
+                )
+                drain()
+                periodic = observer_callbacks.reflected_attributes[-1]
+                self.assertGreater(len(observer_callbacks.reflected_attributes), before_periodic)
+                assert_rti_reflection(periodic)
+                periodic_values = dict(periodic[1])
+                periodic_lookahead = encoder.createHLAinteger64BE()
+                periodic_lookahead.decode(periodic_values[attributes["HLAlookahead"]])
+                self.assertEqual(periodic_lookahead.getValue(), 1)
+                self.assertEqual(periodic_values[attributes["HLAlogicalTime"]], logical_time.toByteArray())
+
+                expect_boolean(
+                    subject.enableAsynchronousDelivery,
+                    "HLAasynchronousDelivery",
+                    True,
+                )
+                expect_boolean(
+                    subject.disableAsynchronousDelivery,
+                    "HLAasynchronousDelivery",
+                    False,
+                )
+                expect_boolean(
+                    subject.disableTimeRegulation,
+                    "HLAtimeRegulating",
+                    False,
+                )
+                expect_boolean(
+                    subject.disableTimeConstrained,
+                    "HLAtimeConstrained",
+                    False,
+                )
+
+                expect_integer(
+                    lambda: subject.setObjectClassRelevanceAdvisorySwitch(True),
+                    "HLAobjectClassRelevanceAdvisory",
+                    1,
+                )
+                expect_integer(
+                    lambda: subject.setAttributeRelevanceAdvisorySwitch(True),
+                    "HLAattributeRelevanceAdvisory",
+                    1,
+                )
+                expect_integer(
+                    lambda: subject.setAttributeScopeAdvisorySwitch(True),
+                    "HLAattributeScopeAdvisory",
+                    1,
+                )
+                expect_integer(
+                    lambda: subject.setInteractionRelevanceAdvisorySwitch(True),
+                    "HLAinteractionRelevanceAdvisory",
+                    1,
+                )
+                expect_integer(
+                    lambda: subject.setConveyRegionDesignatorSetsSwitch(False),
+                    "HLAconveyRegionDesignatorSets",
+                    0,
+                )
+                expect_integer(
+                    lambda: subject.setAutomaticResignDirective(ResignAction.NO_ACTION),
+                    "HLAautomaticResignAction",
+                    5,
+                )
+                expect_integer(
+                    lambda: subject.setServiceReportingSwitch(True),
+                    "HLAserviceReporting",
+                    1,
+                )
+                expect_integer(
+                    lambda: subject.setExceptionReportingSwitch(False),
+                    "HLAexceptionReporting",
+                    0,
+                )
+                expect_integer(
+                    lambda: subject.setSendServiceReportsToFileSwitch(True),
+                    "HLAsendServiceReportsToFile",
+                    1,
+                )
+
+                conditional_names = (
+                    "HLAobjectClassRelevanceAdvisory",
+                    "HLAattributeRelevanceAdvisory",
+                    "HLAattributeScopeAdvisory",
+                    "HLAinteractionRelevanceAdvisory",
+                    "HLAconveyRegionDesignatorSets",
+                    "HLAautomaticResignAction",
+                    "HLAserviceReporting",
+                    "HLAexceptionReporting",
+                    "HLAsendServiceReportsToFile",
+                )
+                before_conditional = len(observer_callbacks.reflected_attributes)
+                observer.requestAttributeValueUpdate(
+                    subject_object,
+                    AttributeHandleSet(attributes[name] for name in conditional_names),
+                    b"",
+                )
+                drain()
+                conditional = observer_callbacks.reflected_attributes[-1]
+                self.assertGreater(len(observer_callbacks.reflected_attributes), before_conditional)
+                assert_rti_reflection(conditional)
+                conditional_values = dict(conditional[1])
+                self.assertEqual(
+                    set(conditional_values),
+                    {attributes[name] for name in conditional_names},
+                )
+                expected_conditional = (1, 1, 1, 1, 0, 5, 1, 0, 1)
+                for name, expected in zip(conditional_names, expected_conditional):
+                    self.assertEqual(
+                        decode_int(conditional_values[attributes[name]]), expected
+                    )
+
+                set_switches = subject.getInteractionClassHandle(
+                    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches"
+                )
+                service_reporting_parameter = subject.getParameterHandle(
+                    set_switches, "HLAserviceReporting"
+                )
+                disabled_switch = encoder.createHLAinteger32BE(0).toByteArray()
+                before_adjustment = len(observer_callbacks.reflected_attributes)
+                subject.sendInteraction(
+                    set_switches,
+                    ParameterHandleValueMap(
+                        {service_reporting_parameter: disabled_switch}
+                    ),
+                    b"",
+                )
+                drain()
+                self.assertGreater(len(observer_callbacks.reflected_attributes), before_adjustment)
+                adjustment = find_reflection(before_adjustment, attributes["HLAserviceReporting"])
+                assert_rti_reflection(adjustment)
+                self.assertEqual(
+                    decode_int(dict(adjustment[1])[attributes["HLAserviceReporting"]]),
+                    0,
+                )
+
+                time_attributes = AttributeHandleSet(
+                    [
+                        attributes["HLAtimeConstrained"],
+                        attributes["HLAtimeRegulating"],
+                        attributes["HLAasynchronousDelivery"],
+                    ]
+                )
+                before_time = len(observer_callbacks.reflected_attributes)
+                observer.requestAttributeValueUpdate(subject_object, time_attributes, b"")
+                drain()
+                requested_time = observer_callbacks.reflected_attributes[-1]
+                self.assertGreater(len(observer_callbacks.reflected_attributes), before_time)
+                assert_rti_reflection(requested_time)
+                requested_time_values = dict(requested_time[1])
+                self.assertEqual(set(requested_time_values), set(time_attributes))
+                for attribute in time_attributes:
+                    self.assertFalse(decode_boolean(requested_time_values[attribute]))
+
+                def expect_time_manager_transitions(before: int) -> None:
+                    observed: set[int] = set()
+                    for reflection in observer_callbacks.reflected_attributes[before:]:
+                        values = dict(reflection[1])
+                        if reflection[0] != subject_object:
+                            continue
+                        if attributes["HLAtimeManagerState"] not in values:
+                            continue
+                        assert_rti_reflection(reflection)
+                        self.assertEqual(len(values), 1)
+                        observed.add(decode_int(values[attributes["HLAtimeManagerState"]]))
+                    self.assertTrue({0, 1}.issubset(observed))
+
+                def apply_time_advance(request: object) -> None:
+                    before = len(observer_callbacks.reflected_attributes)
+                    request()  # type: ignore[operator]
+                    drain()
+                    expect_time_manager_transitions(before)
+
+                time_factory = subject.getTimeFactory()
+                apply_time_advance(
+                    lambda: subject.timeAdvanceRequest(time_factory.makeLogicalTime(1))
+                )
+                apply_time_advance(
+                    lambda: subject.timeAdvanceRequestAvailable(time_factory.makeLogicalTime(2))
+                )
+                apply_time_advance(
+                    lambda: subject.nextMessageRequest(time_factory.makeLogicalTime(3))
+                )
+                apply_time_advance(
+                    lambda: subject.nextMessageRequestAvailable(time_factory.makeLogicalTime(4))
+                )
+                apply_time_advance(
+                    lambda: subject.flushQueueRequest(time_factory.makeLogicalTime(5))
+                )
+
+                before_time_manager = len(observer_callbacks.reflected_attributes)
+                observer.requestAttributeValueUpdate(
+                    subject_object,
+                    AttributeHandleSet([attributes["HLAtimeManagerState"]]),
+                    b"",
+                )
+                drain()
+                requested_time_manager = observer_callbacks.reflected_attributes[-1]
+                self.assertGreater(len(observer_callbacks.reflected_attributes), before_time_manager)
+                assert_rti_reflection(requested_time_manager)
+                self.assertEqual(
+                    decode_int(
+                        dict(requested_time_manager[1])[attributes["HLAtimeManagerState"]]
+                    ),
+                    0,
+                )
+            finally:
+                if observer_joined:
+                    try:
+                        observer.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                if subject_joined:
+                    try:
+                        subject.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                if created:
+                    try:
+                        subject.destroyFederationExecution(federation_name)
+                    except Exception:
+                        pass
+                for ambassador, connected in (
+                    (observer, observer_connected),
+                    (subject, subject_connected),
+                ):
+                    if connected:
+                        try:
+                            ambassador.disconnect()
+                        except Exception:
+                            pass
+                    ambassador._implementation.close()
+
+        for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
+            with self.subTest(callback_model=callback_model):
+                run_scenario(callback_model)
+
     def test_cpp_jni_java_jpype_timestamped_attribute_update_rate_reduction(
         self,
     ) -> None:

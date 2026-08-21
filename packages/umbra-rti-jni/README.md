@@ -863,6 +863,14 @@ and removal for the matching observer while the disjoint observer remains
 unaware. The RTI-originated callbacks retain the invalid producer handle and
 empty tag expected for an RTI-owned MOM object.
 
+The conditional-MOM companion subscribes to the complete joined-federate
+attribute set and verifies that advisory switches, timing state, lookahead,
+logical time, and time-manager transitions are reflected only through their
+current C++ state. It drives all five standard time-advance/queue services and
+the standard `HLAsetSwitches` interaction through both evoked and immediate
+Java callback models, decoding the typed integer/boolean values with the
+external Java `EncoderFactory`.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and
