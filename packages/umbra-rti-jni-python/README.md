@@ -21,6 +21,15 @@ the no-argument overload.  Python calls and callbacks then use the existing
 generic JPype adapter, while C++ remains the only RTI state/semantics owner.
 
 The same values can be supplied as constructor arguments.  For a build
-directory produced by `packages/umbra-rti-jni/build.ps1`, set
-`UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY`; the adapter finds the bridge JAR and
-native library there and still requires `UMBRA_JNI_JAVA_API_JAR`.
+directory produced by `packages/umbra-rti-jni/build.ps1`, pass the directory
+directly or set `UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY`; the adapter finds the
+bridge JAR and native library there and still requires the standard API JAR.
+
+```python
+from umbra._java.jni_rti1516_2025 import JniRtiFactory
+
+factory = JniRtiFactory(
+    api_jar=r"C:\vendor\ieee-1516.1-2025-java-api.jar",
+    artifact_directory=r"C:\vendor\umbra-rti-jni-build",
+)
+```

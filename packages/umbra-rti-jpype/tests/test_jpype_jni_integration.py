@@ -729,8 +729,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
 
         cls.factory = JniRtiFactory(
             api_jar=cls.artifacts.api_jar,
-            bridge_jar=cls.artifacts.bridge_jar,
-            native_library=cls.artifacts.native_library,
+            artifact_directory=cls.artifacts.bridge_jar.parent,
         )
         # Optional runtime evidence can wrap the concrete JPype façade and
         # record every public service reached by the external suite.  It is

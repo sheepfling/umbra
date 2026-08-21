@@ -39,12 +39,15 @@ class JniRtiFactory(JavaRtiFactory):
         bridge_jar: str | Path | None = None,
         native_library: str | Path | None = None,
         *,
+        artifact_directory: str | Path | None = None,
         jvm_path: str | None = None,
         jvm_options: tuple[str, ...] = (),
         runtime: JavaRuntime | None = None,
     ) -> None:
-        artifact_directory = os.getenv(self.ARTIFACT_DIRECTORY_ENVIRONMENT_VARIABLE)
-        directory = Path(artifact_directory) if artifact_directory else None
+        configured_directory = artifact_directory
+        if configured_directory is None:
+            configured_directory = os.getenv(self.ARTIFACT_DIRECTORY_ENVIRONMENT_VARIABLE)
+        directory = Path(configured_directory) if configured_directory else None
 
         selected_api = self._selected_path(
             api_jar,

@@ -112,6 +112,33 @@ class JniRtiFactoryTest(unittest.TestCase):
                     else:
                         os.environ[name] = value
 
+    def test_artifact_directory_can_be_supplied_without_environment_state(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "umbra-rti-jni.jar").touch()
+            (root / "umbra_rti_jni.dll").touch()
+            api = root / "ieee-api.jar"
+            api.touch()
+
+            runtime = _FakeRuntime()
+            factory = JniRtiFactory(
+                api_jar=api,
+                artifact_directory=root,
+                runtime=runtime,
+            )
+
+            self.assertEqual(factory.rtiVersion(), "test")
+            self.assertEqual(
+                runtime.configuration.classpath,
+                (str(api), str(root / "umbra-rti-jni.jar")),
+            )
+            self.assertTrue(
+                any(
+                    option.startswith("-Dumbra.rti.jni.library=")
+                    for option in runtime.configuration.jvm_options
+                )
+            )
+
     def test_missing_artifacts_fail_before_starting_jvm(self):
         runtime = _FakeRuntime()
         factory = JniRtiFactory(runtime=runtime)
