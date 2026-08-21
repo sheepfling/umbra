@@ -5652,10 +5652,15 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             owner._implementation.close()
             peer._implementation.close()
 
-    def test_jni_fixture_declares_all_cpp_standard_exception_types(self) -> None:
-        """Keep C++ exception names loadable by the Java fixture at runtime."""
-        if os.environ.get("UMBRA_JNI_JAVA_API_JAR"):
-            self.skipTest("the external IEEE API owns its exception vocabulary")
+    def test_jni_api_declares_supported_cpp_standard_exception_types(self) -> None:
+        """Keep every shared C++/Java exception name loadable at runtime.
+
+        The compact fixture intentionally exposes the complete C++ exception
+        inventory.  An independently supplied IEEE Java API is authoritative
+        for its own vocabulary and omits a few legacy advisory exception
+        names, so the external lane checks the exact intersection instead of
+        skipping the boundary altogether.
+        """
         import jpype
 
         exception_header = (
@@ -5675,11 +5680,31 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             )
             - {"A"}
         )
-        for exception_name in exception_names:
-            exception_class = jpype.JClass(
-                f"hla.rti1516_2025.exceptions.{exception_name}"
+        api_jar = os.environ.get("UMBRA_JNI_JAVA_API_JAR")
+        if api_jar:
+            with zipfile.ZipFile(api_jar) as archive:
+                java_exception_names = {
+                    Path(entry).stem
+                    for entry in archive.namelist()
+                    if entry.startswith("hla/rti1516_2025/exceptions/")
+                    and entry.endswith(".class")
+                }
+            exception_names = [
+                name for name in exception_names if name in java_exception_names
+            ]
+            self.assertTrue(
+                exception_names,
+                "the external Java API did not expose any shared RTI exception classes",
             )
-            self.assertEqual(str(exception_class.class_.getSimpleName()), exception_name)
+        ambassador = self.factory.getRtiAmbassador()
+        try:
+            for exception_name in exception_names:
+                exception_class = jpype.JClass(
+                    f"hla.rti1516_2025.exceptions.{exception_name}"
+                )
+                self.assertEqual(str(exception_class.class_.getSimpleName()), exception_name)
+        finally:
+            ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_callback_failure_maps_to_federate_internal_error(
         self,
