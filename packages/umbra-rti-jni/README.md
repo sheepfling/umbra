@@ -848,6 +848,11 @@ restores the C++ range before sending through the standard Java interaction
 overload. The callback is admitted again with the restored source
 `RegionHandle`.
 
+The joined-federate MOM state companion subscribes to the RTI-owned
+`HLAfederateState` object, decodes its standard Java `HLAinteger32BE` values,
+and proves save/complete and restore/complete state reflections (3/1 and 5/1)
+through the C++ → JNI → Java → JPype callback route.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and

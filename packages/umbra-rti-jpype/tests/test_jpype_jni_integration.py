@@ -10140,6 +10140,172 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     pass
             ambassador._implementation.close()
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_state_tracks_save_restore(
+        self,
+    ) -> None:
+        """Carry RTI-owned HLAfederateState save/restore reflections through JPype."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-mom-state-save-restore-{uuid4()}"
+        subject = self.factory.getRtiAmbassador()
+        observer = self.factory.getRtiAmbassador()
+        subject_callbacks = _JniCallbacks()
+        observer_callbacks = _JniCallbacks()
+        subject_connected = observer_connected = False
+        subject_joined = observer_joined = created = False
+        subject_object: ObjectInstanceHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                subject.evokeCallback(0.0)
+                observer.evokeCallback(0.0)
+
+        try:
+            subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+            subject_connected = True
+            observer.connect(observer_callbacks, CallbackModel.HLA_EVOKED)
+            observer_connected = True
+            subject.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            observer.joinFederationExecution(
+                "jni-mom-state-observer",
+                federation_name,
+                federateName="jni-mom-state-observer",
+            )
+            observer_joined = True
+
+            mom_class = observer.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederate"
+            )
+            observer_federate_handle_attribute = observer.getAttributeHandle(
+                mom_class, "HLAfederateHandle"
+            )
+            observer_federate_state_attribute = observer.getAttributeHandle(
+                mom_class, "HLAfederateState"
+            )
+            observer.subscribeObjectClassAttributes(
+                mom_class,
+                AttributeHandleSet(
+                    [
+                        observer_federate_handle_attribute,
+                        observer_federate_state_attribute,
+                    ]
+                ),
+                active=True,
+            )
+
+            subject_handle = subject.joinFederationExecution(
+                "jni-mom-state-subject",
+                federation_name,
+                federateName="jni-mom-state-subject",
+            )
+            subject_joined = True
+            drain()
+
+            reflected_subject = next(
+                (
+                    reflection
+                    for reflection in observer_callbacks.reflected_attributes
+                    if dict(reflection[1]).get(observer_federate_handle_attribute)
+                    == subject_handle.encodedValue
+                ),
+                None,
+            )
+            self.assertIsNotNone(reflected_subject)
+            assert reflected_subject is not None
+            subject_object = reflected_subject[0]
+            self.assertNotIn(
+                observer_federate_state_attribute, dict(reflected_subject[1])
+            )
+
+            encoder = self.factory.getEncoderFactory()
+
+            def state_value(reflection: tuple[object, ...]) -> int:
+                values = dict(reflection[1])
+                state = encoder.createHLAinteger32BE()
+                state.decode(values[observer_federate_state_attribute])
+                return state.getValue()
+
+            def require_state(after: int, expected: int) -> None:
+                for _ in range(30):
+                    drain(1)
+                    for reflection in observer_callbacks.reflected_attributes[after:]:
+                        if reflection[0] != subject_object:
+                            continue
+                        if observer_federate_state_attribute not in dict(reflection[1]):
+                            continue
+                        if state_value(reflection) == expected:
+                            return
+                self.fail(f"HLAfederateState {expected} was not reflected")
+
+            before_initial = len(observer_callbacks.reflected_attributes)
+            observer.requestAttributeValueUpdate(
+                subject_object,
+                AttributeHandleSet([observer_federate_state_attribute]),
+                b"",
+            )
+            require_state(before_initial, 1)
+
+            save_label = f"jni-mom-state-save-{uuid4()}"
+            before_save = len(observer_callbacks.reflected_attributes)
+            subject.requestFederationSave(save_label)
+            require_state(before_save, 3)
+            subject.federateSaveBegun()
+            observer.federateSaveBegun()
+            subject.federateSaveComplete()
+            before_save_completion = len(observer_callbacks.reflected_attributes)
+            observer.federateSaveComplete()
+            require_state(before_save_completion, 1)
+
+            before_restore = len(observer_callbacks.reflected_attributes)
+            subject.requestFederationRestore(save_label)
+            require_state(before_restore, 5)
+            subject.federateRestoreComplete()
+            before_restore_completion = len(observer_callbacks.reflected_attributes)
+            observer.federateRestoreComplete()
+            require_state(before_restore_completion, 1)
+        finally:
+            if subject_joined:
+                try:
+                    subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if subject_joined or observer_joined:
+                try:
+                    drain(5)
+                except Exception:
+                    pass
+            if observer_joined:
+                try:
+                    observer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    subject.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if observer_connected:
+                try:
+                    observer.disconnect()
+                except Exception:
+                    pass
+            if subject_connected:
+                try:
+                    subject.disconnect()
+                except Exception:
+                    pass
+            observer._implementation.close()
+            subject._implementation.close()
+
     def test_cpp_jni_java_jpype_joined_federate_mom_discovery_reflection_and_removal(
         self,
     ) -> None:

@@ -153,6 +153,10 @@ The save/restore MOM companion also checks the C++ report-file records for
 status queries, request/confirm, initiation, begun/complete, and restore
 begin/initiation services while the corresponding standard Java callbacks are
 delivered through JPype.
+The joined-federate MOM state companion additionally subscribes to the
+RTI-owned `HLAfederateState` object, decodes the standard Java
+`HLAinteger32BE` state values, and proves the C++ save/restore callbacks
+reflect states 3/1 and 5/1 to the observer through JPype.
 After the peer resigns, the same route reuses its still-structurally-valid
 standard `FederateHandle` in a later explicit set and preserves the asynchronous
 `SYNCHRONIZATION_SET_MEMBER_NOT_JOINED` failure for the former member.
