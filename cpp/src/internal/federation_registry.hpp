@@ -103,6 +103,11 @@ struct FederateMembership {
   // HLAreportServiceInvocation uses an HLAcount serial number per joined
   // federate. The next accepted report starts at zero.
   std::uint32_t nextMomServiceReportSerialNumber = 0;
+  // HLAupdatesSent counts successful Update Attribute Values service
+  // invocations by this joined federate. Keep the counter on membership state
+  // so it follows the federate through save/restore without confusing it with
+  // the number of individual attribute values or downstream reflections.
+  std::uint64_t successfulUpdateAttributeValuesCount = 0;
 };
 
 // A federation-owned snapshot captured while the registry holds its member
@@ -511,10 +516,13 @@ struct JoinedFederateMomObjectSnapshot {
   RegionSpecificationSnapshot immutableFederatePoint;
   // Every effective MIM attribute is retained as metadata, including the
   // inherited optional HLAprivilegeToDeleteObject. Required initial values and
-  // the bounded direct-request projection for HLAlogicalTime/HLAlookahead are
-  // encoded through the ordinary reflection planner. HLAsetTiming currently
-  // schedules the catalog-declared Periodic subset at an Evoke boundary;
-  // remaining dynamic values and idle HLA_IMMEDIATE delivery remain later
+  // the bounded direct-request projection for HLAlogicalTime/HLAlookahead/
+  // HLAGALT/HLALITS/HLATSOlength/HLAupdatesSent/
+  // HLAobjectInstancesThatCanBeDeleted are encoded through the ordinary
+  // reflection planner.
+  // HLAsetTiming schedules the catalog-declared Periodic subset at an Evoke
+  // boundary or through the
+  // embedded HLA_IMMEDIATE scheduler; remaining dynamic values remain later
   // layers.
   std::set<std::uint64_t> effectiveAttributeHandles;
   // MIM updateType metadata is retained as handles so HLAsetTiming can
@@ -2143,6 +2151,16 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] FederationServiceOperationStatus serviceOperationStatus(
       std::wstring const& federationName,
       std::uint64_t federateId) const;
+
+  // Records the accepted boundary of one Update Attribute Values invocation.
+  // The public adapter calls this only after all synchronous validation and
+  // timestamped queue admission have succeeded; the counter is therefore an
+  // RTI-owned source for the HLAupdatesSent MOM attribute rather than a
+  // callback or payload-derived estimate.
+  [[nodiscard]] FederationRegistryStatus
+  recordSuccessfulUpdateAttributeValues(
+      std::wstring const& federationName,
+      std::uint64_t federateId);
 
   [[nodiscard]] FederationRestoreControlResult requestFederationRestore(
       std::wstring const& federationName,

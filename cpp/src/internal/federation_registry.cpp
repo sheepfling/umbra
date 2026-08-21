@@ -3364,6 +3364,28 @@ FederationServiceOperationStatus EmbeddedFederationRegistry::serviceOperationSta
   return FederationServiceOperationStatus::available;
 }
 
+FederationRegistryStatus
+EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
+    std::wstring const& federationName,
+    std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation(
+      "recordSuccessfulUpdateAttributeValues");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return FederationRegistryStatus::federation_does_not_exist;
+  }
+  auto member = federation->second.members.find(federateId);
+  if (member == federation->second.members.end()) {
+    return FederationRegistryStatus::federate_not_member;
+  }
+  if (member->second.successfulUpdateAttributeValuesCount !=
+      std::numeric_limits<std::uint64_t>::max()) {
+    ++member->second.successfulUpdateAttributeValuesCount;
+  }
+  return FederationRegistryStatus::applied;
+}
+
 FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRestore(
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
@@ -7983,6 +8005,19 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     }
     auto const encodedCount = count >
             static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAupdatesSent") {
+    // HLAstandardMIM defines HLAupdatesSent as the total number of times the
+    // represented joined federate has successfully invoked Update Attribute
+    // Values.  The membership counter is advanced at the accepted service
+    // boundary, so this value does not mistake individual attribute values or
+    // downstream reflections for additional service invocations.
+    auto const count = member->second.successfulUpdateAttributeValuesCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
         ? std::numeric_limits<std::int32_t>::max()
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
