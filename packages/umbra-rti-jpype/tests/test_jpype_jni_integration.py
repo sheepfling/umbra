@@ -9610,6 +9610,183 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             receiver._implementation.close()
             publisher._implementation.close()
 
+    def test_cpp_jni_java_jpype_timestamped_update_survives_ownership_transfer(
+        self,
+    ) -> None:
+        """Preserve an accepted TSO update across a pre-grant ownership transfer."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-tso-ownership-transfer-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        acquirer = self.factory.getRtiAmbassador()
+        owner_callbacks = _JniCallbacks()
+        acquirer_callbacks = _JniCallbacks()
+        owner_connected = acquirer_connected = False
+        owner_joined = acquirer_joined = created = False
+        object_instance: ObjectInstanceHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                owner.evokeCallback(0.0)
+                acquirer.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
+            owner_connected = True
+            acquirer.connect(acquirer_callbacks, CallbackModel.HLA_EVOKED)
+            acquirer_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner.joinFederationExecution(
+                "jni-tso-ownership-owner",
+                federation_name,
+                federateName="jni-tso-ownership-owner",
+            )
+            owner_joined = True
+            acquirer.joinFederationExecution(
+                "jni-tso-ownership-acquirer",
+                federation_name,
+                federateName="jni-tso-ownership-acquirer",
+            )
+            acquirer_joined = True
+
+            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            acquirer_class = acquirer.getObjectClassHandle(
+                "HLAobjectRoot.Employee.Server"
+            )
+            owner_attribute = owner.getAttributeHandle(owner_class, "Efficiency")
+            acquirer_attribute = acquirer.getAttributeHandle(
+                acquirer_class, "Efficiency"
+            )
+            owner_attributes = AttributeHandleSet([owner_attribute])
+            acquirer_attributes = AttributeHandleSet([acquirer_attribute])
+            owner.publishObjectClassAttributes(owner_class, owner_attributes)
+            acquirer.publishObjectClassAttributes(acquirer_class, acquirer_attributes)
+            acquirer.subscribeObjectClassAttributes(
+                acquirer_class, acquirer_attributes, active=True
+            )
+            object_instance = owner.registerObjectInstance(owner_class)
+            drain()
+            self.assertEqual(
+                acquirer_callbacks.discovered_objects[-1][0], object_instance
+            )
+
+            acquirer.enableTimeConstrained()
+            drain()
+            time_factory = owner.getTimeFactory()
+            # A five-unit lookahead lets the regulator's request to time 2
+            # establish GALT 7, so the constrained peer can cross the queued
+            # timestamp-5 callback after the ownership transfer.
+            owner.enableTimeRegulation(time_factory.makeLogicalTimeInterval(5))
+            drain()
+            self.assertTrue(acquirer_callbacks.time_constrained_enabled)
+            self.assertTrue(owner_callbacks.time_regulation_enabled)
+
+            owner_federate = owner.getFederateHandle("jni-tso-ownership-owner")
+            timestamp = time_factory.makeLogicalTime(5)
+            retraction = owner.updateAttributeValuesWithTime(
+                object_instance,
+                AttributeHandleValueMap({owner_attribute: b"before-transfer"}),
+                timestamp,
+                b"ownership-transfer-tag",
+            )
+            self.assertTrue(retraction.isValid())
+            # The constrained recipient has not crossed the TSO boundary yet.
+            self.assertEqual(acquirer_callbacks.timestamped_reflections, [])
+
+            # Transfer the source attribute after acceptance but before the
+            # recipient grant. The TSO payload is C++-owned and must retain the
+            # original producer/values rather than being rewritten as an update
+            # from the new owner or suppressed as no longer owned by the sender.
+            owner.unconditionalAttributeOwnershipDivestiture(
+                object_instance, owner_attributes, b"ownership-transfer"
+            )
+            for _ in range(30):
+                acquirer.evokeCallback(0.0)
+                if acquirer_callbacks.ownership_assumptions:
+                    break
+            self.assertEqual(
+                acquirer_callbacks.ownership_assumptions[-1],
+                (object_instance, acquirer_attributes, b"ownership-transfer"),
+            )
+            acquirer.attributeOwnershipAcquisitionIfAvailable(
+                object_instance, acquirer_attributes, b"ownership-after-tso"
+            )
+            for _ in range(30):
+                acquirer.evokeCallback(0.0)
+                if acquirer_callbacks.ownership_acquisitions:
+                    break
+            self.assertEqual(
+                acquirer_callbacks.ownership_acquisitions[-1],
+                (object_instance, acquirer_attributes, b"ownership-after-tso"),
+            )
+            self.assertFalse(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
+            self.assertTrue(
+                acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
+            )
+            self.assertEqual(acquirer_callbacks.timestamped_reflections, [])
+
+            acquirer.timeAdvanceRequest(acquirer.getTimeFactory().makeLogicalTime(5))
+            owner.timeAdvanceRequest(time_factory.makeLogicalTime(2))
+            drain()
+
+            self.assertEqual(len(acquirer_callbacks.timestamped_reflections), 1)
+            reflection = acquirer_callbacks.timestamped_reflections[0]
+            self.assertEqual(reflection[0], object_instance)
+            self.assertEqual(
+                reflection[1],
+                AttributeHandleValueMap({acquirer_attribute: b"before-transfer"}),
+            )
+            self.assertEqual(reflection[2], b"ownership-transfer-tag")
+            self.assertEqual(reflection[4], owner_federate)
+            self.assertEqual(reflection[6].getTime(), 5)
+            self.assertEqual(reflection[7], OrderType.TIMESTAMP)
+            self.assertEqual(reflection[8], OrderType.TIMESTAMP)
+            self.assertEqual(reflection[9], retraction)
+        finally:
+            if owner_joined and object_instance is not None:
+                try:
+                    owner.deleteObjectInstance(object_instance)
+                except Exception:
+                    pass
+            if acquirer_joined:
+                try:
+                    acquirer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if owner_joined:
+                try:
+                    owner.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if acquirer_connected:
+                try:
+                    acquirer.disconnect()
+                except Exception:
+                    pass
+            if owner_connected:
+                try:
+                    owner.disconnect()
+                except Exception:
+                    pass
+            acquirer._implementation.close()
+            owner._implementation.close()
+
     def test_cpp_jni_java_jpype_region_validation_exceptions(self) -> None:
         """Preserve C++ region validation errors through the standard Java API."""
         fom_module = (

@@ -791,6 +791,12 @@ The save/restore resignation vectors preserve
 the standard Java callbacks, reject stale save completion, and prove that the
 remaining member can complete a subsequent save after the failed save operation.
 
+The ownership/time boundary vector accepts a timestamped attribute update from
+one C++-owned source, transfers that attribute through the standard Java
+ownership services before the constrained recipient's grant, and then verifies
+through JPype that the original producer handle, copied value/tag, timestamp,
+`TIMESTAMP` order metadata, and live message-retraction handle are preserved.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and
