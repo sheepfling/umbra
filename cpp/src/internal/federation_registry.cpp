@@ -3367,7 +3367,8 @@ FederationServiceOperationStatus EmbeddedFederationRegistry::serviceOperationSta
 FederationRegistryStatus
 EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
     std::wstring const& federationName,
-    std::uint64_t federateId) {
+    std::uint64_t federateId,
+    std::uint64_t objectInstanceHandle) {
   auto instrumentationScope = beginInstrumentation(
       "recordSuccessfulUpdateAttributeValues");
   std::scoped_lock lock(mutex_);
@@ -3383,6 +3384,8 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
       std::numeric_limits<std::uint64_t>::max()) {
     ++member->second.successfulUpdateAttributeValuesCount;
   }
+  member->second.successfullyUpdatedObjectInstanceHandles.insert(
+      objectInstanceHandle);
   return FederationRegistryStatus::applied;
 }
 
@@ -8022,6 +8025,30 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
   }
+  if (*attributeName == "HLAobjectInstancesUpdated") {
+    // HLAstandardMIM defines this HLAcount as the number of distinct object
+    // instances for which the represented joined federate has successfully
+    // invoked Update Attribute Values. The membership-owned handle set is
+    // retained for the joined lifetime, so repeated updates to one instance
+    // do not count as additional object instances.
+    auto const count = member->second.successfullyUpdatedObjectInstanceHandles.size();
+    auto const encodedCount = count >
+            static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAobjectInstancesRegistered") {
+    // HLAstandardMIM defines this HLAcount as the total number of successful
+    // Register Object Instance and Register Object Instance with Regions
+    // invocations by the represented joined federate since Join.
+    auto const count = member->second.successfulObjectInstanceRegistrationsCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
   if (*attributeName == "HLAROlength") {
     // HLAstandardMIM defines HLAROlength as the number of receive-order
     // messages waiting for the represented federate. The live callback route
@@ -11405,6 +11432,12 @@ ObjectInstanceRegistrationResult EmbeddedFederationRegistry::registerObjectInsta
 
   federation->second.nextObjectInstanceHandle = objectInstanceHandle + 1;
   refreshRegionUsage(federation->second);
+  auto const member = federation->second.members.find(federateId);
+  if (member != federation->second.members.end() &&
+      member->second.successfulObjectInstanceRegistrationsCount !=
+      std::numeric_limits<std::uint64_t>::max()) {
+    ++member->second.successfulObjectInstanceRegistrationsCount;
+  }
   return {
       ObjectInstanceRegistrationStatus::applied,
       objectInstanceHandle,

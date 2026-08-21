@@ -12667,6 +12667,271 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_updated_object_count(
+        self,
+    ) -> None:
+        """Count distinct object instances updated through standard Java services."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+
+        def run_scenario(callback_model: CallbackModel) -> None:
+            federation_name = f"python-jni-updated-object-count-{uuid4()}"
+            subject = self.factory.getRtiAmbassador()
+            observer = self.factory.getRtiAmbassador()
+            subject_callbacks = _JniCallbacks()
+            observer_callbacks = _JniCallbacks()
+            subject_connected = observer_connected = False
+            subject_joined = observer_joined = created = False
+
+            def pump() -> None:
+                if callback_model is CallbackModel.HLA_EVOKED:
+                    observer.evokeCallback(0.0)
+
+            def wait_for_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    for reflection in observer_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail(
+                    "timed out waiting for the standard Java HLAobjectInstancesUpdated MOM value"
+                )
+
+            try:
+                subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+                subject_connected = True
+                observer.connect(observer_callbacks, callback_model)
+                observer_connected = True
+                subject.createFederationExecution(
+                    federation_name, str(fom_module), "HLAinteger64Time"
+                )
+                created = True
+                observer.joinFederationExecution(
+                    "updated-object-count-observer",
+                    federation_name,
+                    federateName="updated-object-count-observer",
+                )
+                observer_joined = True
+
+                mom_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                federate_handle_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAfederateHandle"
+                )
+                updates_sent_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAupdatesSent"
+                )
+                updated_objects_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAobjectInstancesUpdated"
+                )
+                registered_objects_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAobjectInstancesRegistered"
+                )
+                observer.subscribeObjectClassAttributes(
+                    mom_class,
+                    AttributeHandleSet(
+                        [
+                            federate_handle_attribute,
+                            updates_sent_attribute,
+                            updated_objects_attribute,
+                            registered_objects_attribute,
+                        ]
+                    ),
+                    active=True,
+                )
+
+                subject_handle = subject.joinFederationExecution(
+                    "updated-object-count-subject",
+                    federation_name,
+                    federateName="updated-object-count-subject",
+                )
+                subject_joined = True
+                initial = wait_for_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        federate_handle_attribute
+                    )
+                    == subject_handle.encodedValue
+                )
+                subject_object = initial[0]
+                reliable = observer.getTransportationTypeHandle("HLAreliable")
+                encoder = self.factory.getEncoderFactory()
+
+                def assert_rti_reflection(reflection: tuple[object, ...]) -> None:
+                    self.assertEqual(reflection[0], subject_object)
+                    self.assertEqual(reflection[3], reliable)
+                    self.assertEqual(reflection[2], b"")
+                    self.assertFalse(any(reflection[4].encodedValue[4:]))
+
+                def request_count(attribute: AttributeHandle, expected: int) -> None:
+                    before = len(observer_callbacks.reflected_attributes)
+                    observer.requestAttributeValueUpdate(
+                        subject_object,
+                        AttributeHandleSet([attribute]),
+                        b"",
+                    )
+
+                    def is_expected(candidate: tuple[object, ...]) -> bool:
+                        if (
+                            len(observer_callbacks.reflected_attributes) <= before
+                            or candidate[0] != subject_object
+                            or attribute not in set(candidate[1])
+                        ):
+                            return False
+                        candidate_count = encoder.createHLAinteger32BE()
+                        candidate_count.decode(dict(candidate[1])[attribute])
+                        return candidate_count.getValue() == expected
+
+                    reflection = wait_for_reflection(is_expected)
+                    assert_rti_reflection(reflection)
+                    count = encoder.createHLAinteger32BE()
+                    count.decode(dict(reflection[1])[attribute])
+                    self.assertEqual(count.getValue(), expected)
+
+                request_count(updates_sent_attribute, 0)
+                request_count(updated_objects_attribute, 0)
+                request_count(registered_objects_attribute, 0)
+
+                subject_class = subject.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
+                efficiency_attribute = subject.getAttributeHandle(
+                    subject_class, "Efficiency"
+                )
+                subject.publishObjectClassAttributes(
+                    subject_class, AttributeHandleSet([efficiency_attribute])
+                )
+                update_values = AttributeHandleValueMap(
+                    {efficiency_attribute: b"\x2a"}
+                )
+                first_object = subject.registerObjectInstance(subject_class)
+                request_count(registered_objects_attribute, 1)
+                subject.updateAttributeValues(first_object, update_values, b"")
+                request_count(updates_sent_attribute, 1)
+                request_count(updated_objects_attribute, 1)
+
+                subject.updateAttributeValues(first_object, update_values, b"")
+                request_count(updates_sent_attribute, 2)
+                request_count(updated_objects_attribute, 1)
+
+                second_object = subject.registerObjectInstance(subject_class)
+                request_count(registered_objects_attribute, 2)
+                subject.updateAttributeValues(second_object, update_values, b"")
+                request_count(updates_sent_attribute, 3)
+                request_count(updated_objects_attribute, 2)
+
+                set_timing = observer.getInteractionClassHandle(
+                    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
+                )
+                federate_parameter = observer.getParameterHandle(
+                    set_timing, "HLAfederate"
+                )
+                period_parameter = observer.getParameterHandle(
+                    set_timing, "HLAreportPeriod"
+                )
+                observer.sendInteraction(
+                    set_timing,
+                    ParameterHandleValueMap(
+                        {
+                            federate_parameter: subject_handle.encodedValue,
+                            period_parameter: encoder.createHLAinteger32BE(
+                                1
+                            ).toByteArray(),
+                        }
+                    ),
+                    b"",
+                )
+                before_periodic = len(observer_callbacks.reflected_attributes)
+
+                def periodic_is_complete(reflection: tuple[object, ...]) -> bool:
+                    if (
+                        len(observer_callbacks.reflected_attributes) <= before_periodic
+                        or reflection[0] != subject_object
+                        or updates_sent_attribute not in set(reflection[1])
+                        or updated_objects_attribute not in set(reflection[1])
+                        or registered_objects_attribute not in set(reflection[1])
+                    ):
+                        return False
+                    updates = encoder.createHLAinteger32BE()
+                    updated_objects = encoder.createHLAinteger32BE()
+                    registered_objects = encoder.createHLAinteger32BE()
+                    values = dict(reflection[1])
+                    updates.decode(values[updates_sent_attribute])
+                    updated_objects.decode(values[updated_objects_attribute])
+                    registered_objects.decode(values[registered_objects_attribute])
+                    return (
+                        updates.getValue() == 3
+                        and updated_objects.getValue() == 2
+                        and registered_objects.getValue() == 2
+                    )
+
+                periodic = wait_for_reflection(periodic_is_complete)
+                assert_rti_reflection(periodic)
+                periodic_values = dict(periodic[1])
+                periodic_updates = encoder.createHLAinteger32BE()
+                periodic_updates.decode(periodic_values[updates_sent_attribute])
+                periodic_objects = encoder.createHLAinteger32BE()
+                periodic_objects.decode(periodic_values[updated_objects_attribute])
+                periodic_registered = encoder.createHLAinteger32BE()
+                periodic_registered.decode(periodic_values[registered_objects_attribute])
+                self.assertEqual(periodic_updates.getValue(), 3)
+                self.assertEqual(periodic_objects.getValue(), 2)
+                self.assertEqual(periodic_registered.getValue(), 2)
+
+                observer.sendInteraction(
+                    set_timing,
+                    ParameterHandleValueMap(
+                        {
+                            federate_parameter: subject_handle.encodedValue,
+                            period_parameter: encoder.createHLAinteger32BE(
+                                0
+                            ).toByteArray(),
+                        }
+                    ),
+                    b"",
+                )
+                subject.deleteObjectInstance(first_object)
+                subject.deleteObjectInstance(second_object)
+            finally:
+                for ambassador, joined in (
+                    (subject, subject_joined),
+                    (observer, observer_joined),
+                ):
+                    if joined:
+                        try:
+                            ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                        except Exception:
+                            pass
+                if created:
+                    try:
+                        subject.destroyFederationExecution(federation_name)
+                    except Exception:
+                        pass
+                for ambassador, connected in (
+                    (observer, observer_connected),
+                    (subject, subject_connected),
+                ):
+                    if connected:
+                        try:
+                            ambassador.disconnect()
+                        except Exception:
+                            pass
+                    ambassador._implementation.close()
+
+        for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
+            with self.subTest(callback_model=callback_model):
+                run_scenario(callback_model)
+
     def test_cpp_jni_java_jpype_joined_federate_mom_snapshot_uses_join_fom_modules(
         self,
     ) -> None:

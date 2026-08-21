@@ -10477,21 +10477,6 @@ void UmbraRtiAmbassador::updateAttributeValues(
     }
   }
 
-  // The accepted Update Attribute Values invocation is the MOM counter's
-  // source boundary. Record it after all synchronous transport/catalog checks
-  // have succeeded and before any induced callback is exposed.
-  {
-    std::scoped_lock lock(federationManagementMutex());
-    auto const status = embeddedFederationManagement().registry()
-        .recordSuccessfulUpdateAttributeValues(
-            *federationName,
-            *producingFederateId);
-    if (status != umbra::detail::FederationRegistryStatus::applied) {
-      throw RTIinternalError(
-          L"The embedded federation lost the Update Attribute Values membership before its accepted boundary.");
-    }
-  }
-
   // Every synchronous pre-callback delivery check has now succeeded. Section
   // 6.10's accepted update is the report boundary, and the §11.5 file record
   // must precede any induced Reflect Attribute Values callback.
@@ -10499,6 +10484,22 @@ void UmbraRtiAmbassador::updateAttributeValues(
       L"UpdateAttributeValues",
       umbra::detail::MomServiceType::object_management,
       reportArguments);
+
+  // The accepted Update Attribute Values invocation is the MOM counter's
+  // source boundary. Record it after the service-report write has succeeded
+  // and before any induced callback is exposed.
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    auto const status = embeddedFederationManagement().registry()
+        .recordSuccessfulUpdateAttributeValues(
+            *federationName,
+            *producingFederateId,
+            *objectInstanceHandle);
+    if (status != umbra::detail::FederationRegistryStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation lost the Update Attribute Values membership before its accepted boundary.");
+    }
+  }
 
   // Do not hold either sender lock while submitting a route: HLA_IMMEDIATE may
   // synchronously enter a different federate's Reflect Attribute Values callback.
@@ -10722,7 +10723,8 @@ MessageRetractionHandle UmbraRtiAmbassador::updateAttributeValues(
     auto const status = embeddedFederationManagement().registry()
         .recordSuccessfulUpdateAttributeValues(
             *federationName,
-            *producingFederateId);
+            *producingFederateId,
+            *objectInstanceHandle);
     if (status != umbra::detail::FederationRegistryStatus::applied) {
       throw RTIinternalError(
           L"The embedded federation lost the timestamped Update Attribute Values membership before its accepted boundary.");
