@@ -16454,6 +16454,170 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             publisher._implementation.close()
             receiver._implementation.close()
 
+    def test_cpp_jni_java_jpype_timestamped_default_region_interaction_survives_reenable(
+        self,
+    ) -> None:
+        """Preserve a default-region TSO interaction across constrained re-enable."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-default-region-reenable-{uuid4()}"
+        publisher = self.factory.getRtiAmbassador()
+        receiver = self.factory.getRtiAmbassador()
+        publisher_callbacks = _JniCallbacks()
+        receiver_callbacks = _JniCallbacks()
+        publisher_connected = receiver_connected = False
+        publisher_joined = receiver_joined = created = False
+        receiver_region: RegionHandle | None = None
+
+        def pump(rounds: int = 20) -> None:
+            for _ in range(rounds):
+                publisher.evokeCallback(0.0)
+                receiver.evokeCallback(0.0)
+
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            publisher_connected = True
+            receiver.connect(receiver_callbacks, CallbackModel.HLA_EVOKED)
+            receiver_connected = True
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            publisher.joinFederationExecution(
+                "publisher",
+                federation_name,
+                federateName="jni-default-region-reenable-publisher",
+            )
+            publisher_joined = True
+            receiver.joinFederationExecution(
+                "subscriber",
+                federation_name,
+                federateName="jni-default-region-reenable-receiver",
+            )
+            receiver_joined = True
+            publisher_federate = publisher.getFederateHandle(
+                "jni-default-region-reenable-publisher"
+            )
+
+            interaction = publisher.getInteractionClassHandle(
+                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+            )
+            receiver_interaction = receiver.getInteractionClassHandle(
+                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+            )
+            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
+            receiver_parameter = receiver.getParameterHandle(
+                receiver_interaction, "TemperatureOk"
+            )
+            receiver_dimension = receiver.getDimensionHandle("ServerId")
+            parameters = ParameterHandleValueMap({parameter: b"DEFAULT-REENABLE"})
+            publisher.publishInteractionClass(interaction)
+            publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
+
+            receiver_region = receiver.createRegion(
+                DimensionHandleSet([receiver_dimension])
+            )
+            receiver.setRangeBounds(receiver_region, receiver_dimension, RangeBounds(8, 9))
+            receiver.commitRegionModifications(RegionHandleSet([receiver_region]))
+            receiver.subscribeInteractionClassWithRegions(
+                receiver_interaction,
+                RegionHandleSet([receiver_region]),
+                active=True,
+            )
+            receiver.setConveyRegionDesignatorSetsSwitch(True)
+            receiver.enableTimeConstrained()
+            pump()
+            self.assertTrue(receiver_callbacks.time_constrained_enabled)
+            publisher.enableTimeRegulation(
+                publisher.getTimeFactory().makeLogicalTimeInterval(5)
+            )
+            pump()
+            self.assertTrue(publisher_callbacks.time_regulation_enabled)
+
+            tag = b"default-region-reenable-tag"
+            retraction = publisher.sendInteractionWithTime(
+                interaction,
+                parameters,
+                publisher.getTimeFactory().makeLogicalTime(6),
+                tag,
+            )
+            self.assertTrue(retraction.isValid())
+            self.assertEqual(receiver_callbacks.timestamped_interactions, [])
+            receiver.disableTimeConstrained()
+            pump()
+            self.assertEqual(receiver_callbacks.timestamped_interactions, [])
+            receiver.enableTimeConstrained()
+            pump()
+            self.assertEqual(len(receiver_callbacks.time_constrained_enabled), 2)
+
+            receiver.timeAdvanceRequest(receiver.getTimeFactory().makeLogicalTime(6))
+            publisher.timeAdvanceRequest(publisher.getTimeFactory().makeLogicalTime(2))
+            pump()
+            self.assertEqual(len(receiver_callbacks.timestamped_interactions), 1)
+            report = receiver_callbacks.timestamped_interactions[0]
+            self.assertEqual(report[0], receiver_interaction)
+            self.assertEqual(
+                report[1],
+                ParameterHandleValueMap({receiver_parameter: b"DEFAULT-REENABLE"}),
+            )
+            self.assertEqual(report[2], tag)
+            self.assertEqual(report[4], publisher_federate)
+            self.assertEqual(report[5], RegionHandleSet())
+            self.assertEqual(report[6].getTime(), 6)
+            self.assertEqual(report[7], OrderType.TIMESTAMP)
+            self.assertEqual(report[8], OrderType.TIMESTAMP)
+            self.assertEqual(report[9], retraction)
+            with self.assertRaises(MessageCanNoLongerBeRetracted):
+                publisher.retract(retraction)
+        finally:
+            if receiver_region is not None and receiver_joined:
+                try:
+                    receiver.unsubscribeInteractionClassWithRegions(
+                        receiver.getInteractionClassHandle(
+                            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                        ),
+                        RegionHandleSet([receiver_region]),
+                    )
+                except Exception:
+                    pass
+                try:
+                    receiver.deleteRegion(receiver_region)
+                except Exception:
+                    pass
+            if receiver_joined:
+                try:
+                    receiver.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if publisher_joined:
+                try:
+                    publisher.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    publisher.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if receiver_connected:
+                try:
+                    receiver.disconnect()
+                except Exception:
+                    pass
+            if publisher_connected:
+                try:
+                    publisher.disconnect()
+                except Exception:
+                    pass
+            receiver._implementation.close()
+            publisher._implementation.close()
+
     def test_cpp_jni_java_jpype_regional_interaction_exception_matrix(self) -> None:
         """Preserve typed regional declaration/send errors through Java/JNI."""
         fom_module = (

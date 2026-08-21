@@ -240,7 +240,9 @@ The regional interaction re-enable vector mirrors the same callback-boundary
 rule through the standard Java API: one queued explicit-source timestamped
 interaction survives `disableTimeConstrained` followed by
 `enableTimeConstrained` exactly once, retaining its source region, order fields,
-and consumed retraction handle.
+and consumed retraction handle. Its companion default-region vector performs
+the same transition with an empty conveyed `RegionHandleSet`, proving that the
+Java callback keeps the standard default-region realization as well.
 The suppressed-timestamp vector verifies that a queued regional recipient
 becoming disjoint before delivery consumes the recipient ledger, so no reflection
 or `requestRetraction` callback is emitted after the publisher retracts it.
