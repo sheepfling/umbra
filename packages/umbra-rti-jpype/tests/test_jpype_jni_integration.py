@@ -12690,6 +12690,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             subject_joined = observer_joined = created = False
 
             def pump() -> None:
+                subject.evokeCallback(0.0)
                 if callback_model is CallbackModel.HLA_EVOKED:
                     observer.evokeCallback(0.0)
 
@@ -12707,6 +12708,20 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     "timed out waiting for the standard Java joined-federate MOM value"
                 )
 
+            def wait_for_subject_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    for reflection in subject_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail(
+                    "timed out waiting for the receiver MOM reflection through Java"
+                )
+
             try:
                 subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
                 subject_connected = True
@@ -12716,7 +12731,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     federation_name, str(fom_module), "HLAinteger64Time"
                 )
                 created = True
-                observer.joinFederationExecution(
+                observer_handle = observer.joinFederationExecution(
                     "updated-object-count-observer",
                     federation_name,
                     federateName="updated-object-count-observer",
@@ -12755,12 +12770,50 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     active=True,
                 )
 
+                observer_object_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
+                observer_efficiency_attribute = observer.getAttributeHandle(
+                    observer_object_class, "Efficiency"
+                )
+                observer.subscribeObjectClassAttributes(
+                    observer_object_class,
+                    AttributeHandleSet([observer_efficiency_attribute]),
+                    active=True,
+                )
+
                 subject_handle = subject.joinFederationExecution(
                     "updated-object-count-subject",
                     federation_name,
                     federateName="updated-object-count-subject",
                 )
                 subject_joined = True
+                subject_mom_class = subject.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                subject_federate_handle_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAfederateHandle"
+                )
+                subject_removed_objects_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAobjectInstancesRemoved"
+                )
+                subject.subscribeObjectClassAttributes(
+                    subject_mom_class,
+                    AttributeHandleSet(
+                        [
+                            subject_federate_handle_attribute,
+                            subject_removed_objects_attribute,
+                        ]
+                    ),
+                    active=True,
+                )
+                observer_mom_initial = wait_for_subject_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        subject_federate_handle_attribute
+                    )
+                    == observer_handle.encodedValue
+                )
+                observer_mom_object = observer_mom_initial[0]
                 initial = wait_for_reflection(
                     lambda reflection: dict(reflection[1]).get(
                         federate_handle_attribute
@@ -12802,6 +12855,36 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     count.decode(dict(reflection[1])[attribute])
                     self.assertEqual(count.getValue(), expected)
 
+                def request_receiver_removed_count(expected: int) -> None:
+                    before = len(subject_callbacks.reflected_attributes)
+                    subject.requestAttributeValueUpdate(
+                        observer_mom_object,
+                        AttributeHandleSet([subject_removed_objects_attribute]),
+                        b"",
+                    )
+
+                    def is_expected(candidate: tuple[object, ...]) -> bool:
+                        if (
+                            len(subject_callbacks.reflected_attributes) <= before
+                            or candidate[0] != observer_mom_object
+                            or subject_removed_objects_attribute
+                            not in set(candidate[1])
+                        ):
+                            return False
+                        candidate_count = encoder.createHLAinteger32BE()
+                        candidate_count.decode(
+                            dict(candidate[1])[subject_removed_objects_attribute]
+                        )
+                        return candidate_count.getValue() == expected
+
+                    reflection = wait_for_subject_reflection(is_expected)
+                    count = encoder.createHLAinteger32BE()
+                    count.decode(
+                        dict(reflection[1])[subject_removed_objects_attribute]
+                    )
+                    self.assertEqual(count.getValue(), expected)
+
+                request_receiver_removed_count(0)
                 request_count(updates_sent_attribute, 0)
                 request_count(updated_objects_attribute, 0)
                 request_count(registered_objects_attribute, 0)
@@ -12914,8 +12997,26 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 )
                 subject.deleteObjectInstance(first_object)
                 request_count(deleted_objects_attribute, 1)
+                deadline = time.monotonic() + 2.5
+                while (
+                    len(observer_callbacks.removed_objects) < 1
+                    and time.monotonic() < deadline
+                ):
+                    pump()
+                    time.sleep(0.025)
+                self.assertGreaterEqual(len(observer_callbacks.removed_objects), 1)
+                request_receiver_removed_count(1)
                 subject.deleteObjectInstance(second_object)
                 request_count(deleted_objects_attribute, 2)
+                deadline = time.monotonic() + 2.5
+                while (
+                    len(observer_callbacks.removed_objects) < 2
+                    and time.monotonic() < deadline
+                ):
+                    pump()
+                    time.sleep(0.025)
+                self.assertGreaterEqual(len(observer_callbacks.removed_objects), 2)
+                request_receiver_removed_count(2)
             finally:
                 for ambassador, joined in (
                     (subject, subject_joined),

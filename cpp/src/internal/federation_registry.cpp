@@ -5951,6 +5951,13 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
     return std::nullopt;
   }
 
+  auto const receivingMember = federation->second.members.find(receivingFederateId);
+  if (receivingMember != federation->second.members.end() &&
+      receivingMember->second.successfulObjectInstanceRemovalsCount !=
+          std::numeric_limits<std::uint64_t>::max()) {
+    ++receivingMember->second.successfulObjectInstanceRemovalsCount;
+  }
+
   // Commit the recipient state before changing the execution-wide object
   // state.  A later Retract observes this as a delivered recipient, restores
   // the invocation snapshot, and queues Request Retraction after releasing
@@ -8062,6 +8069,18 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     // federate since Join, regardless of whether a later Retract restores a
     // timestamped deletion's object state.
     auto const count = member->second.successfulObjectInstanceDeletionsCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAobjectInstancesRemoved") {
+    // HLAstandardMIM defines this HLAcount as the number of Remove Object
+    // Instance callbacks committed for the represented joined federate. The
+    // recipient membership ledger advances at callback admission, after any
+    // legal timestamped retraction can still cancel the removal.
+    auto const count = member->second.successfulObjectInstanceRemovalsCount;
     auto const encodedCount = count >
             static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
         ? std::numeric_limits<std::int32_t>::max()
@@ -12234,6 +12253,13 @@ EmbeddedFederationRegistry::beginObjectInstanceRemoval(
       federation->second.objectInstances.erase(instance);
     }
     return std::nullopt;
+  }
+
+  auto const receivingMember = federation->second.members.find(receivingFederateId);
+  if (receivingMember != federation->second.members.end() &&
+      receivingMember->second.successfulObjectInstanceRemovalsCount !=
+          std::numeric_limits<std::uint64_t>::max()) {
+    ++receivingMember->second.successfulObjectInstanceRemovalsCount;
   }
 
   RemovedObjectInstanceSnapshot const result{

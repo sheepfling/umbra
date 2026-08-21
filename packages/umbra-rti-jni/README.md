@@ -905,7 +905,9 @@ object raises it to two, and periodic reflection carries both that value and
 `HLAobjectInstancesRegistered` at zero, one, and two across the corresponding
 registration boundaries, and carries `HLAobjectInstancesDeleted` through
 periodic reflection at zero before the two accepted deletions and through
-direct requests at one and two afterward.
+direct requests at one and two afterward. The same vector verifies
+`HLAobjectInstancesRemoved` at zero before the two committed Remove Object
+Instance callbacks and at one and two afterward.
 
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`
