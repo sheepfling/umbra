@@ -819,6 +819,34 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         )
         java_ambassador.close()
 
+    def test_jni_factory_is_discovered_by_standard_java_no_arg_serviceloader(
+        self,
+    ) -> None:
+        """The bridge is usable through the normal no-argument factory API."""
+        import jpype
+
+        # The configured Python adapter uses the named standard overload to
+        # avoid ambiguity when an application class path contains several
+        # providers.  With only the independent IEEE API and Umbra bridge on
+        # this class path, the ordinary Java no-argument ServiceLoader route
+        # must discover the same C++ provider too.
+        self.factory.getRtiAmbassador()
+        factory_factory = jpype.JClass("hla.rti1516_2025.RtiFactoryFactory")
+        java_factory = factory_factory.getRtiFactory()
+        self.assertEqual(str(java_factory.rtiName()), self.factory.JAVA_FACTORY_NAME)
+        standard_factory = jpype.JClass("hla.rti1516_2025.RtiFactory").class_
+        self.assertTrue(standard_factory.isAssignableFrom(java_factory.getClass()))
+        java_ambassador = java_factory.getRtiAmbassador()
+        try:
+            standard_ambassador = jpype.JClass(
+                "hla.rti1516_2025.RTIambassador"
+            ).class_
+            self.assertTrue(
+                standard_ambassador.isAssignableFrom(java_ambassador.getClass())
+            )
+        finally:
+            java_ambassador.close()
+
     def test_jni_factory_probe_reads_standard_identity_without_ambassador(self) -> None:
         probe = self.factory.probe()
 
