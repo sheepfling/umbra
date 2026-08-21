@@ -857,6 +857,10 @@ The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and
 conveyed region metadata on the returned reflection.
+Its timestamped companion answers that callback with the standard Java timed
+update overload and proves the C++ queue holds delivery until the constrained
+grant, preserving `TIMESTAMP` order metadata, source-region conveyance, and
+the consumed retraction handle.
 
 The region-validation vector also preserves `InvalidRegion`,
 `RegionDoesNotContainSpecifiedDimension`, and `InvalidRangeBound` for

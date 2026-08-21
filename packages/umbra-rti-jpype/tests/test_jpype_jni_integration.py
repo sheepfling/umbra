@@ -22929,6 +22929,244 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             requester._implementation.close()
             owner._implementation.close()
 
+    def test_cpp_jni_java_jpype_regional_object_timestamped_request_response(
+        self,
+    ) -> None:
+        """Route a timestamped regional provider response through C++ and Java."""
+
+        class TimestampedRespondingCallbacks(_JniCallbacks):
+            def __init__(self) -> None:
+                super().__init__()
+                self.ambassador: RTIambassador | None = None
+                self.time_factory: object | None = None
+                self.respond = False
+                self.response_retraction: MessageRetractionHandle | None = None
+
+            def provideAttributeValueUpdate(
+                self,
+                objectInstance: ObjectInstanceHandle,
+                attributes: AttributeHandleSet,
+                userSuppliedTag: bytes,
+            ) -> None:
+                super().provideAttributeValueUpdate(
+                    objectInstance, attributes, userSuppliedTag
+                )
+                if (
+                    not self.respond
+                    or self.ambassador is None
+                    or self.time_factory is None
+                ):
+                    return
+                values = AttributeHandleValueMap(
+                    {attribute: b"jni-regional-timestamped-response" for attribute in attributes}
+                )
+                self.response_retraction = self.ambassador.updateAttributeValuesWithTime(
+                    objectInstance,
+                    values,
+                    self.time_factory.makeLogicalTime(2),  # type: ignore[attr-defined]
+                    b"jni-regional-timestamped-response-tag",
+                )
+
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-regional-timestamped-response-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        requester = self.factory.getRtiAmbassador()
+        owner_callbacks = TimestampedRespondingCallbacks()
+        requester_callbacks = _JniCallbacks()
+        owner_connected = requester_connected = False
+        owner_joined = requester_joined = created = False
+        object_instance: ObjectInstanceHandle | None = None
+        owner_region: RegionHandle | None = None
+        requester_region: RegionHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                owner.evokeCallback(0.0)
+                requester.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
+            owner_connected = True
+            requester.connect(requester_callbacks, CallbackModel.HLA_EVOKED)
+            requester_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner_handle = owner.joinFederationExecution(
+                "jni-regional-timestamped-response-owner", federation_name
+            )
+            owner_joined = True
+            requester.joinFederationExecution(
+                "jni-regional-timestamped-response-requester", federation_name
+            )
+            requester_joined = True
+
+            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
+            requester_class = requester.getObjectClassHandle(
+                "HLAobjectRoot.Food.Drink.Soda"
+            )
+            owner_attribute = owner.getAttributeHandle(owner_class, "Flavor")
+            requester_attribute = requester.getAttributeHandle(requester_class, "Flavor")
+            owner_attributes = AttributeHandleSet([owner_attribute])
+            requester_attributes = AttributeHandleSet([requester_attribute])
+            owner.publishObjectClassAttributes(owner_class, owner_attributes)
+            owner.changeDefaultAttributeOrderType(
+                owner_class, owner_attributes, OrderType.TIMESTAMP
+            )
+
+            owner_dimension = owner.getDimensionHandle("SodaFlavor")
+            requester_dimension = requester.getDimensionHandle("SodaFlavor")
+            owner_region = owner.createRegion(DimensionHandleSet([owner_dimension]))
+            requester_region = requester.createRegion(
+                DimensionHandleSet([requester_dimension])
+            )
+            owner.setRangeBounds(owner_region, owner_dimension, RangeBounds(0, 1))
+            requester.setRangeBounds(
+                requester_region, requester_dimension, RangeBounds(0, 1)
+            )
+            owner.commitRegionModifications(RegionHandleSet([owner_region]))
+            requester.commitRegionModifications(RegionHandleSet([requester_region]))
+
+            def pair_list(
+                ambassador: RTIambassador,
+                attributes: AttributeHandleSet,
+                region: RegionHandle,
+            ) -> AttributeSetRegionSetPairList:
+                pairs = ambassador.getAttributeSetRegionSetPairListFactory().create(1)
+                pairs.add(AttributeSetRegionSetPair(attributes, RegionHandleSet([region])))
+                return pairs
+
+            owner_pairs = pair_list(owner, owner_attributes, owner_region)
+            requester_pairs = pair_list(
+                requester, requester_attributes, requester_region
+            )
+            requester.subscribeObjectClassAttributesWithRegions(
+                requester_class, requester_pairs
+            )
+            requester.setConveyRegionDesignatorSetsSwitch(True)
+            object_instance = owner.registerObjectInstanceWithRegions(
+                owner_class, owner_pairs
+            )
+            for _ in range(30):
+                drain(1)
+                if requester_callbacks.discovered_objects:
+                    break
+            self.assertEqual(
+                requester_callbacks.discovered_objects[-1][0], object_instance
+            )
+
+            while owner.evokeCallback(0.0):
+                pass
+            owner_callbacks.ambassador = owner
+            owner_callbacks.time_factory = owner.getTimeFactory()
+            owner_callbacks.respond = True
+            requester.enableTimeConstrained()
+            owner.enableTimeRegulation(
+                owner_callbacks.time_factory.makeLogicalTimeInterval(1)  # type: ignore[attr-defined]
+            )
+            drain()
+            self.assertTrue(requester_callbacks.time_constrained_enabled)
+            self.assertTrue(owner_callbacks.time_regulation_enabled)
+
+            request_tag = b"jni-regional-timestamped-request-tag"
+            initial_request_count = len(owner_callbacks.attribute_value_update_requests)
+            requester.requestAttributeValueUpdateWithRegions(
+                requester_class, requester_pairs, request_tag
+            )
+            for _ in range(30):
+                owner.evokeCallback(0.0)
+                if len(owner_callbacks.attribute_value_update_requests) > initial_request_count:
+                    break
+            self.assertEqual(
+                owner_callbacks.attribute_value_update_requests[-1],
+                (object_instance, owner_attributes, request_tag),
+            )
+            self.assertIsNotNone(owner_callbacks.response_retraction)
+            self.assertEqual(requester_callbacks.timestamped_reflections, [])
+
+            requester.timeAdvanceRequest(requester.getTimeFactory().makeLogicalTime(2))
+            owner.timeAdvanceRequest(owner_callbacks.time_factory.makeLogicalTime(2))  # type: ignore[attr-defined]
+            drain()
+            self.assertEqual(len(requester_callbacks.timestamped_reflections), 1)
+            self.assertEqual(len(requester_callbacks.time_advance_grants), 1)
+            reflection = requester_callbacks.timestamped_reflections[0]
+            self.assertEqual(reflection[0], object_instance)
+            self.assertEqual(
+                reflection[1],
+                AttributeHandleValueMap(
+                    {requester_attribute: b"jni-regional-timestamped-response"}
+                ),
+            )
+            self.assertEqual(reflection[2], b"jni-regional-timestamped-response-tag")
+            self.assertEqual(reflection[3], owner.getTransportationTypeHandle("HLAreliable"))
+            self.assertEqual(reflection[4], owner_handle)
+            self.assertEqual(reflection[5], RegionHandleSet([owner_region]))
+            self.assertEqual(reflection[6].getTime(), 2)
+            self.assertEqual(reflection[7], OrderType.TIMESTAMP)
+            self.assertEqual(reflection[8], OrderType.TIMESTAMP)
+            self.assertEqual(reflection[9], owner_callbacks.response_retraction)
+            with self.assertRaises(MessageCanNoLongerBeRetracted):
+                owner.retract(owner_callbacks.response_retraction)
+        finally:
+            if requester_joined:
+                try:
+                    requester.unsubscribeObjectClassAttributesWithRegions(
+                        requester_class, requester_pairs
+                    )
+                except Exception:
+                    pass
+            if object_instance is not None and owner_joined:
+                try:
+                    owner.unassociateRegionsForUpdates(object_instance, owner_pairs)
+                except Exception:
+                    pass
+            for ambassador, region in (
+                (requester, requester_region),
+                (owner, owner_region),
+            ):
+                if region is not None:
+                    try:
+                        ambassador.deleteRegion(region)
+                    except Exception:
+                        pass
+            if requester_joined:
+                try:
+                    requester.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if owner_joined:
+                try:
+                    owner.resignFederationExecution(
+                        ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
+                    )
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if requester_connected:
+                try:
+                    requester.disconnect()
+                except Exception:
+                    pass
+            if owner_connected:
+                try:
+                    owner.disconnect()
+                except Exception:
+                    pass
+            requester._implementation.close()
+            owner._implementation.close()
+
     def test_cpp_jni_java_jpype_regional_object_filters_disjoint_subscriber(
         self,
     ) -> None:
