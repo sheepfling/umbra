@@ -4419,6 +4419,160 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             owner._implementation.close()
             peer._implementation.close()
 
+    def test_cpp_jni_java_jpype_mixed_callback_model_save_restore_sequence(
+        self,
+    ) -> None:
+        """Preserve save/restore ordering across immediate and evoked members."""
+
+        class SequencedCallbacks(_JniCallbacks):
+            def __init__(self) -> None:
+                super().__init__()
+                self.events: list[tuple[str, object | None]] = []
+
+            def initiateFederateSave(
+                self, label: str, time: object | None = None
+            ) -> None:
+                self.events.append(("save-initiate", label))
+                super().initiateFederateSave(label, time)
+
+            def federationSaved(self) -> None:
+                self.events.append(("save-complete", None))
+                super().federationSaved()
+
+            def requestFederationRestoreSucceeded(self, label: str) -> None:
+                self.events.append(("restore-accepted", label))
+                super().requestFederationRestoreSucceeded(label)
+
+            def federationRestoreBegun(self) -> None:
+                self.events.append(("restore-begun", None))
+                super().federationRestoreBegun()
+
+            def initiateFederateRestore(
+                self,
+                label: str,
+                federateName: str,
+                postRestoreFederateHandle: FederateHandle,
+            ) -> None:
+                self.events.append(("restore-initiate", label))
+                super().initiateFederateRestore(
+                    label, federateName, postRestoreFederateHandle
+                )
+
+            def federationRestored(self) -> None:
+                self.events.append(("restore-complete", None))
+                super().federationRestored()
+
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-mixed-callback-save-restore-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        peer = self.factory.getRtiAmbassador()
+        owner_callbacks = SequencedCallbacks()
+        peer_callbacks = SequencedCallbacks()
+        owner_connected = peer_connected = False
+        owner_joined = peer_joined = False
+        created = False
+
+        def evoke_peer(rounds: int = 20) -> None:
+            for _ in range(rounds):
+                peer.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_IMMEDIATE)
+            owner_connected = True
+            peer.connect(peer_callbacks, CallbackModel.HLA_EVOKED)
+            peer_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner.joinFederationExecution("jni-mixed-callback-owner", federation_name)
+            owner_joined = True
+            peer.joinFederationExecution("jni-mixed-callback-peer", federation_name)
+            peer_joined = True
+
+            save_label = "jni-mixed-callback-save"
+            owner.requestFederationSave(save_label)
+
+            # The immediate member observes its C++-originated initiation
+            # before the request returns; the evoked member remains quiet until
+            # the standard Java evoke service is called.
+            self.assertIn(("save-initiate", save_label), owner_callbacks.events)
+            self.assertNotIn(("save-initiate", save_label), peer_callbacks.events)
+            evoke_peer()
+            self.assertIn(("save-initiate", save_label), peer_callbacks.events)
+
+            owner.federateSaveBegun()
+            peer.federateSaveBegun()
+            owner.federateSaveComplete()
+            self.assertNotIn(("save-complete", None), owner_callbacks.events)
+            self.assertNotIn(("save-complete", None), peer_callbacks.events)
+            peer.federateSaveComplete()
+            self.assertIn(("save-complete", None), owner_callbacks.events)
+            self.assertNotIn(("save-complete", None), peer_callbacks.events)
+            evoke_peer()
+            self.assertIn(("save-complete", None), peer_callbacks.events)
+
+            owner.requestFederationRestore(save_label)
+            self.assertEqual(
+                owner_callbacks.events[-3:],
+                [
+                    ("restore-accepted", save_label),
+                    ("restore-begun", None),
+                    ("restore-initiate", save_label),
+                ],
+            )
+            self.assertNotIn(("restore-begun", None), peer_callbacks.events)
+            evoke_peer()
+            self.assertEqual(
+                peer_callbacks.events[-2:],
+                [("restore-begun", None), ("restore-initiate", save_label)],
+            )
+
+            owner.federateRestoreComplete()
+            self.assertNotIn(("restore-complete", None), owner_callbacks.events)
+            peer.federateRestoreComplete()
+            self.assertIn(("restore-complete", None), owner_callbacks.events)
+            self.assertNotIn(("restore-complete", None), peer_callbacks.events)
+            evoke_peer()
+            self.assertIn(("restore-complete", None), peer_callbacks.events)
+        finally:
+            if owner_connected:
+                try:
+                    if owner_joined:
+                        owner.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if peer_connected:
+                try:
+                    if peer_joined:
+                        peer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if owner_connected:
+                try:
+                    owner.disconnect()
+                except Exception:
+                    pass
+            if peer_connected:
+                try:
+                    peer.disconnect()
+                except Exception:
+                    pass
+            owner._implementation.close()
+            peer._implementation.close()
+
     def test_cpp_jni_java_jpype_two_member_save_restore_interlocks(self) -> None:
         """Preserve multi-member save/restore service interlocks through JNI."""
 

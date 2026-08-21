@@ -467,8 +467,8 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route runs 156 integration cases (155 passed and one
-capability-gated skip) with 74 subtests, including 139 functional vectors plus the artifact-level
+The external route runs 157 integration cases (all 157 passed) with 74
+subtests, including 140 functional vectors plus the artifact-level
 non-shadowing/ServiceLoader gate. It includes the focused
 federation-lifecycle exception vector (including same-member duplicate-join
 mapping), integer/floating malformed logical-time
@@ -497,12 +497,14 @@ message-retraction factory decode, the send-report switch, and
 `getHLAversion()`. A two-dimensional regional-interaction vector additionally
 requires overlap in both X and Y, then mutates one committed source region to
 prove independent X-only and Y-only recipient transitions through the standard
-Java region carriers. It also proves a two-member save/restore completion barrier,
-The companion two-dimensional regional-object vector first establishes known
+Java region carriers. It also proves a two-member save/restore completion
+barrier. The mixed callback-model vector additionally proves
+HLA_IMMEDIATE/HLA_EVOKED notification ordering through the standard Java
+callbacks. The companion two-dimensional regional-object vector first establishes known
 object discovery, then routes reflections through independent X-only and Y-only
 source-range mutations using the standard Java attribute/region pair-list
-carrier. It also proves a two-member save/restore completion barrier,
-typed member listing, requester-only restore acceptance callbacks, two-member
+carrier. It also proves a two-member save/restore completion barrier, typed
+member listing, requester-only restore acceptance callbacks, two-member
 save and restore failure/abort reason propagation, and both
 current-member and explicit two-member synchronization-point completion
 barriers, the standard failed-achievement path with its typed failed-member
