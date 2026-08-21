@@ -871,6 +871,13 @@ the standard `HLAsetSwitches` interaction through both evoked and immediate
 Java callback models, decoding the typed integer/boolean values with the
 external Java `EncoderFactory`.
 
+The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
+additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`
+through standard MOM reflection. It decodes the `HLAmoduleDesignatorList` with
+the external Java `EncoderFactory` and checks the corresponding C++ service
+report, proving that the federate-scoped list contains only modules supplied at
+Join.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and

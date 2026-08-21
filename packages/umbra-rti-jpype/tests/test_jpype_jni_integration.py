@@ -175,6 +175,14 @@ class _Integer32ElementFactory(DataElementFactory):
         return self._encoder.createHLAinteger32BE()
 
 
+class _UnicodeStringElementFactory(DataElementFactory):
+    def __init__(self, encoder: EncoderFactory) -> None:
+        self._encoder = encoder
+
+    def createElement(self, index: int):
+        return self._encoder.createHLAunicodeString()
+
+
 class _JniCallbacks(FederateAmbassador):
     def __init__(self) -> None:
         self.connection_lost: list[str] = []
@@ -11195,6 +11203,154 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
+
+    def test_cpp_jni_java_jpype_joined_federate_mom_snapshot_uses_join_fom_modules(
+        self,
+    ) -> None:
+        """Preserve the Join-scoped FOM module list in public MOM values."""
+        base_fom = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-known-class-enabled-fom.xml"
+        )
+        joined_fom = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        federation_name = f"python-jni-mom-join-fom-{uuid4()}"
+        subject = self.factory.getRtiAmbassador()
+        observer = self.factory.getRtiAmbassador()
+        subject_callbacks = _JniCallbacks()
+        observer_callbacks = _JniCallbacks()
+        subject_reports = self._temporary_directory / f"join-fom-subject-{uuid4()}"
+        observer_reports = self._temporary_directory / f"join-fom-observer-{uuid4()}"
+        subject_connected = observer_connected = False
+        subject_joined = observer_joined = created = False
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                subject.evokeCallback(0.0)
+                observer.evokeCallback(0.0)
+
+        try:
+            subject_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                f"serviceReportDirectory={subject_reports}"
+            )
+            observer_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                f"serviceReportDirectory={observer_reports}"
+            )
+            subject.connect(
+                subject_callbacks, CallbackModel.HLA_EVOKED, subject_configuration
+            )
+            subject_connected = True
+            observer.connect(
+                observer_callbacks, CallbackModel.HLA_EVOKED, observer_configuration
+            )
+            observer_connected = True
+            subject.createFederationExecution(
+                federation_name, str(base_fom), "HLAinteger64Time"
+            )
+            created = True
+            subject_handle = subject.joinFederationExecution(
+                "observer",
+                federation_name,
+                federateName="mom-snapshot-additional-fom",
+                additionalFomModules=[str(joined_fom)],
+            )
+            subject_joined = True
+            observer.joinFederationExecution(
+                "observer",
+                federation_name,
+                federateName="mom-snapshot-observer",
+            )
+            observer_joined = True
+
+            mom_class = observer.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederate"
+            )
+            handle_attribute = observer.getAttributeHandle(
+                mom_class, "HLAfederateHandle"
+            )
+            name_attribute = observer.getAttributeHandle(mom_class, "HLAfederateName")
+            module_attribute = observer.getAttributeHandle(
+                mom_class, "HLAFOMmoduleDesignatorList"
+            )
+            reliable = observer.getTransportationTypeHandle("HLAreliable")
+            observer.subscribeObjectClassAttributes(
+                mom_class,
+                AttributeHandleSet(
+                    [handle_attribute, name_attribute, module_attribute]
+                ),
+                active=True,
+            )
+            drain()
+
+            reflection = next(
+                (
+                    report
+                    for report in observer_callbacks.reflected_attributes
+                    if dict(report[1]).get(handle_attribute) == subject_handle.encodedValue
+                ),
+                None,
+            )
+            self.assertIsNotNone(reflection)
+            assert reflection is not None
+            values = dict(reflection[1])
+            self.assertEqual(
+                set(values), {handle_attribute, name_attribute, module_attribute}
+            )
+            self.assertEqual(reflection[3], reliable)
+            self.assertEqual(reflection[2], b"")
+            self.assertFalse(any(reflection[4].encodedValue[4:]))
+
+            encoder = self.factory.getEncoderFactory()
+            module_array = encoder.createHLAvariableArray(
+                _UnicodeStringElementFactory(encoder)
+            )
+            module_array.decode(values[module_attribute])
+            self.assertEqual(module_array.size(), 1)
+            self.assertEqual(
+                [module_array.get(index).getValue() for index in range(module_array.size())],
+                [str(joined_fom)],
+            )
+
+            report_files = sorted(subject_reports.glob("*"))
+            self.assertEqual(len(report_files), 1)
+            report_text = report_files[0].read_text(encoding="utf-8")
+            self.assertIn('"HLAFOMmoduleDesignatorList":[', report_text)
+            escaped_joined_fom = str(joined_fom).replace("\\", "\\\\")
+            self.assertIn(escaped_joined_fom, report_text)
+        finally:
+            if observer_joined:
+                try:
+                    observer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if subject_joined:
+                try:
+                    subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    subject.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            for ambassador, connected in (
+                (observer, observer_connected),
+                (subject, subject_connected),
+            ):
+                if connected:
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                ambassador._implementation.close()
 
     def test_cpp_jni_java_jpype_timestamped_attribute_update_rate_reduction(
         self,
