@@ -444,7 +444,7 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route passes 153 integration tests and 74 subtests, including
+The external route passes 154 integration tests and 74 subtests, including
 137 functional vectors plus the artifact-level non-shadowing/ServiceLoader
 gate. It includes the focused
 federation-lifecycle exception vector (including same-member duplicate-join
@@ -665,6 +665,9 @@ The exception-surface check loads every C++ exception whose exact standard
 Java class is present in the external API; the independently supplied API
 remains authoritative for its vocabulary and intentionally omits a few legacy
 advisory exception names.
+An external-interface arity audit also covers every standard
+`EncoderFactory.createHLA*` overload so a new creator cannot fall through the
+JNI handler silently.
 The malformed encoder matrix also covers all twenty-six primitive encoder
 classes and all four standard composite forms, including malformed nested
 composite children, proving that native decoder failures retain the standard

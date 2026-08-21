@@ -31,8 +31,8 @@ Umbra's repository fixture remains a fast compatibility harness; it is not
 the authority for Java API compatibility. On 2026-08-21, the JNI façade was
 compiled and smoke-tested against an independently obtained IEEE
 1516.1-2025 Java API JAR, then exercised through C++ → JNI → Java → JPype →
-the public Python API. The resulting integration suite collected 153 test cases
-(all 153 passed, including 137 functional vectors and the structural/runtime
+the public Python API. The resulting integration suite collected 154 test cases
+(all 154 passed, including 137 functional vectors and the structural/runtime
 gates). The exception-surface check loads every C++ exception whose exact
 standard Java class is present in the external API; the independently supplied
 API remains authoritative for its vocabulary and intentionally omits a few
@@ -42,7 +42,9 @@ and 78 subtests). An artifact gate
 additionally verifies that the JNI bridge JAR contains
 no `hla/rti1516_2025` API classes and exposes only its expected
 `NativeRtiFactory` and `NativeAuthorizerFactory` ServiceLoader entries, leaving
-the independently supplied IEEE JAR authoritative. The federation lifecycle vector also verifies duplicate federation,
+the independently supplied IEEE JAR authoritative. An external-interface
+arity audit also covers every standard `EncoderFactory.createHLA*` overload so
+a new creator cannot fall through the JNI handler silently. The federation lifecycle vector also verifies duplicate federation,
 missing federation, duplicate federate name, invalid FOM, and
 destroy-while-joined exception mappings. It also rejects an inconsistent
 logical-time FOM before the C++ federation registry reserves its name. The
@@ -438,8 +440,8 @@ overload with its fifth argument.
 
 With `UMBRA_JNI_REQUIRE_RUNTIME_SERVICE_COVERAGE=1`, the external suite also
 wraps the concrete JPype façade for accounting and executes all 184 services
-at runtime. The current external run passed this runtime gate (153 test cases,
-all 153 passed), including services selected through family loops and
+at runtime. The current external run passed this runtime gate (154 test cases,
+all 154 passed), including services selected through family loops and
 function references.
 
 The companion structural gates assert that every Java fixture
