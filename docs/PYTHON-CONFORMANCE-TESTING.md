@@ -328,6 +328,13 @@ standard callback and membership transition.
 The companion MOM vector subscribes to the standard `HLAreportFederateLost`
 interaction and decodes its four C++-encoded parameters through the Java
 `EncoderFactory` before JPype exposes the callback to Python.
+The joined-federate MOM vector additionally subscribes to the standard
+`HLAobjectRoot.HLAmanager.HLAfederate` object class, receives the RTI-owned
+discovery and initial `HLAreportServiceFile` reflection, requests the same
+value through the standard attribute-value-update service, and observes the
+typed removal callback when the subject resigns. Both the invalid producer
+handle and reliable transport remain C++-originated values through JNI and
+JPype.
 The exception-report vectors enable C++ exception reporting, preserve the
 typed `InteractionClassNotPublished` raised by standard Java `sendInteraction`,
 `sendInteractionWithTime`, `sendDirectedInteraction`, and
@@ -339,6 +346,13 @@ switches, invokes the standard Java `subscribeInteractionClass` conflict for
 `HLAreportServiceInvocation`, preserves the typed
 `FederateServiceInvocationsAreBeingReportedViaMOM`, and decodes its separate
 `HLAreportException` callback through the Java encoder factory.
+The timestamped attribute update-rate vector builds a FOM with the standard
+`Low` update-rate designator, sends reliable and best-effort attributes at
+successive logical times, and proves that reliable delivery continues while
+the best-effort passel is reduced by the C++ admission gate. A suppressed
+timestamped message still consumes its C++ recipient/retraction ledger and
+maps the second retract to `MessageCanNoLongerBeRetracted` through Java and
+JPype.
 The complementary switch vector subscribes the report stream first, then
 preserves `ReportServiceInvocationsAreSubscribed` from the standard Java
 `setServiceReportingSwitch(true)` call and decodes its separate exception

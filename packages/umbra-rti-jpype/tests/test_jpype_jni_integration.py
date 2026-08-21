@@ -8930,6 +8930,367 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 ambassador.disconnect()
             ambassador._implementation.close()
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_discovery_reflection_and_removal(
+        self,
+    ) -> None:
+        """Carry RTI-owned joined-federate MOM objects through standard callbacks."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        federation_name = f"python-jni-joined-federate-mom-{uuid4()}"
+        subject = self.factory.getRtiAmbassador()
+        observer = self.factory.getRtiAmbassador()
+        subject_callbacks = _JniCallbacks()
+        observer_callbacks = _JniCallbacks()
+        subject_connected = observer_connected = False
+        subject_joined = observer_joined = created = False
+        subject_reports = self._temporary_directory / f"joined-mom-subject-{uuid4()}"
+        observer_reports = self._temporary_directory / f"joined-mom-observer-{uuid4()}"
+        try:
+            subject_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                f"serviceReportDirectory={subject_reports}"
+            )
+            observer_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                f"serviceReportDirectory={observer_reports}"
+            )
+            subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED, subject_configuration)
+            subject_connected = True
+            observer.connect(observer_callbacks, CallbackModel.HLA_EVOKED, observer_configuration)
+            observer_connected = True
+            subject.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            subject.joinFederationExecution(
+                "public-mom-subject",
+                federation_name,
+                federateName="public-mom-subject",
+            )
+            subject_joined = True
+            observer.joinFederationExecution(
+                "public-mom-observer",
+                federation_name,
+                federateName="public-mom-observer",
+            )
+            observer_joined = True
+
+            mom_class = observer.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederate"
+            )
+            report_file_attribute = observer.getAttributeHandle(
+                mom_class, "HLAreportServiceFile"
+            )
+            reliable = observer.getTransportationTypeHandle("HLAreliable")
+            observer.subscribeObjectClassAttributes(
+                mom_class,
+                AttributeHandleSet([report_file_attribute]),
+                active=True,
+            )
+            while observer.evokeCallback(0.0):
+                pass
+
+            report_files = sorted(subject_reports.glob("*"))
+            self.assertEqual(len(report_files), 1)
+            expected_report_file = str(report_files[0])
+            expected_report_value = (
+                self.factory.getEncoderFactory()
+                .createHLAunicodeString(expected_report_file)
+                .toByteArray()
+            )
+
+            matching_reflection = next(
+                (
+                    reflection
+                    for reflection in observer_callbacks.reflected_attributes
+                    if report_file_attribute in reflection[1]
+                    and reflection[1][report_file_attribute]
+                    == expected_report_value
+                ),
+                None,
+            )
+            self.assertIsNotNone(matching_reflection)
+            assert matching_reflection is not None
+            subject_object_instance = matching_reflection[0]
+            self.assertEqual(matching_reflection[3], reliable)
+            self.assertFalse(any(matching_reflection[4].encodedValue[4:]))
+            self.assertEqual(matching_reflection[2], b"")
+            discovered = next(
+                (
+                    discovery
+                    for discovery in observer_callbacks.discovered_objects
+                    if discovery[0] == subject_object_instance
+                ),
+                None,
+            )
+            self.assertIsNotNone(discovered)
+            assert discovered is not None
+            self.assertEqual(discovered[0], subject_object_instance)
+            self.assertEqual(discovered[1], mom_class)
+            self.assertTrue(discovered[2])
+            self.assertFalse(any(discovered[3].encodedValue[4:]))
+
+            reflection_count = len(observer_callbacks.reflected_attributes)
+            observer.requestAttributeValueUpdate(
+                subject_object_instance,
+                AttributeHandleSet([report_file_attribute]),
+            )
+            while observer.evokeCallback(0.0):
+                pass
+            self.assertEqual(len(observer_callbacks.reflected_attributes), reflection_count + 1)
+            requested_reflection = observer_callbacks.reflected_attributes[-1]
+            self.assertEqual(requested_reflection[0], subject_object_instance)
+            self.assertEqual(requested_reflection[3], reliable)
+            self.assertFalse(any(requested_reflection[4].encodedValue[4:]))
+            self.assertEqual(
+                requested_reflection[1][report_file_attribute],
+                expected_report_value,
+            )
+
+            subject.resignFederationExecution(ResignAction.NO_ACTION)
+            subject_joined = False
+            while observer.evokeCallback(0.0):
+                pass
+            removed = next(
+                (
+                    removal
+                    for removal in observer_callbacks.removed_objects
+                    if removal[0] == subject_object_instance
+                ),
+                None,
+            )
+            self.assertIsNotNone(removed)
+            assert removed is not None
+            self.assertFalse(any(removed[2].encodedValue[4:]))
+        finally:
+            if observer_joined:
+                try:
+                    observer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if subject_joined:
+                try:
+                    subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    observer.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if observer_connected:
+                try:
+                    observer.disconnect()
+                except Exception:
+                    pass
+            if subject_connected:
+                try:
+                    subject.disconnect()
+                except Exception:
+                    pass
+            observer._implementation.close()
+            subject._implementation.close()
+
+    def test_cpp_jni_java_jpype_timestamped_attribute_update_rate_reduction(
+        self,
+    ) -> None:
+        """Preserve C++ per-attribute update-rate admission through JNI and JPype."""
+        source_fom = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "attribute-update-passel-fom.xml"
+        )
+        fom_module = self._temporary_directory / f"jni-update-rate-{uuid4()}.xml"
+        fom_text = source_fom.read_text(encoding="utf-8")
+        self.assertIn("</objects>", fom_text)
+        fom_module.write_text(
+            fom_text.replace(
+                "</objects>",
+                "</objects>\n"
+                "    <updateRates>\n"
+                "        <updateRate>\n"
+                "            <name>Low</name>\n"
+                "            <rate>0.2</rate>\n"
+                "        </updateRate>\n"
+                "    </updateRates>",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        federation_name = f"python-jni-update-rate-{uuid4()}"
+        publisher = self.factory.getRtiAmbassador()
+        receiver = self.factory.getRtiAmbassador()
+        publisher_callbacks = _JniCallbacks()
+        receiver_callbacks = _JniCallbacks()
+        publisher_connected = receiver_connected = False
+        publisher_joined = receiver_joined = created = False
+
+        def drain(rounds: int = 20) -> None:
+            for _ in range(rounds):
+                publisher.evokeCallback(0.0)
+                receiver.evokeCallback(0.0)
+
+        def count_attribute(attribute: AttributeHandle) -> int:
+            return sum(
+                attribute in reflection[1]
+                for reflection in receiver_callbacks.timestamped_reflections
+            )
+
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            publisher_connected = True
+            receiver.connect(receiver_callbacks, CallbackModel.HLA_EVOKED)
+            receiver_connected = True
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            publisher.joinFederationExecution(
+                "jni-update-rate-publisher", federation_name
+            )
+            publisher_joined = True
+            receiver.joinFederationExecution(
+                "jni-update-rate-receiver", federation_name
+            )
+            receiver_joined = True
+
+            publisher_class = publisher.getObjectClassHandle(
+                "HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild"
+            )
+            receiver_class = receiver.getObjectClassHandle(
+                "HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild"
+            )
+            publisher_reliable = publisher.getAttributeHandle(
+                publisher_class, "ReliableBaseA"
+            )
+            publisher_best_effort = publisher.getAttributeHandle(
+                publisher_class, "BestEffortBase"
+            )
+            receiver_reliable = receiver.getAttributeHandle(
+                receiver_class, "ReliableBaseA"
+            )
+            receiver_best_effort = receiver.getAttributeHandle(
+                receiver_class, "BestEffortBase"
+            )
+            attributes = AttributeHandleSet(
+                [publisher_reliable, publisher_best_effort]
+            )
+            publisher.publishObjectClassAttributes(publisher_class, attributes)
+            receiver.subscribeObjectClassAttributes(
+                receiver_class,
+                AttributeHandleSet([receiver_reliable]),
+                active=True,
+            )
+            receiver.subscribeObjectClassAttributes(
+                receiver_class,
+                AttributeHandleSet([receiver_best_effort]),
+                active=True,
+                updateRateDesignator="Low",
+            )
+            publisher.changeDefaultAttributeOrderType(
+                publisher_class, attributes, OrderType.TIMESTAMP
+            )
+
+            object_instance = publisher.registerObjectInstance(publisher_class)
+            drain()
+            self.assertEqual(receiver_callbacks.discovered_objects[-1][0], object_instance)
+
+            receiver.enableTimeConstrained()
+            drain()
+            time_factory = publisher.getTimeFactory()
+            publisher.enableTimeRegulation(
+                time_factory.makeLogicalTimeInterval(5)
+            )
+            drain()
+
+            values = AttributeHandleValueMap(
+                {
+                    publisher_reliable: b"qr",
+                    publisher_best_effort: b"\x81\x82",
+                }
+            )
+            tag = b"\x91"
+            first = publisher.updateAttributeValuesWithTime(
+                object_instance,
+                values,
+                time_factory.makeLogicalTime(6),
+                tag,
+            )
+            self.assertTrue(first.isValid())
+            receiver.timeAdvanceRequest(receiver.getTimeFactory().makeLogicalTime(6))
+            publisher.timeAdvanceRequest(time_factory.makeLogicalTime(2))
+            drain()
+            self.assertEqual(count_attribute(receiver_reliable), 1)
+            self.assertEqual(count_attribute(receiver_best_effort), 1)
+
+            second = publisher.updateAttributeValuesWithTime(
+                object_instance,
+                values,
+                time_factory.makeLogicalTime(7),
+                tag,
+            )
+            self.assertTrue(second.isValid())
+            receiver.timeAdvanceRequest(receiver.getTimeFactory().makeLogicalTime(7))
+            publisher.timeAdvanceRequest(time_factory.makeLogicalTime(2))
+            drain()
+            self.assertEqual(count_attribute(receiver_reliable), 2)
+            self.assertEqual(count_attribute(receiver_best_effort), 1)
+            self.assertEqual(
+                receiver_callbacks.timestamped_reflections[-1][1],
+                AttributeHandleValueMap({receiver_reliable: b"qr"}),
+            )
+
+            best_effort_only = publisher.updateAttributeValuesWithTime(
+                object_instance,
+                AttributeHandleValueMap({publisher_best_effort: b"\x81\x82"}),
+                time_factory.makeLogicalTime(8),
+                tag,
+            )
+            self.assertTrue(best_effort_only.isValid())
+            receiver.timeAdvanceRequest(receiver.getTimeFactory().makeLogicalTime(8))
+            publisher.timeAdvanceRequest(time_factory.makeLogicalTime(2))
+            drain()
+            self.assertEqual(count_attribute(receiver_reliable), 2)
+            self.assertEqual(count_attribute(receiver_best_effort), 1)
+            publisher.retract(best_effort_only)
+            with self.assertRaises(MessageCanNoLongerBeRetracted):
+                publisher.retract(best_effort_only)
+        finally:
+            if receiver_joined:
+                try:
+                    receiver.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if publisher_joined:
+                try:
+                    publisher.resignFederationExecution(
+                        ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
+                    )
+                except Exception:
+                    pass
+            if created:
+                try:
+                    publisher.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if receiver_connected:
+                try:
+                    receiver.disconnect()
+                except Exception:
+                    pass
+            if publisher_connected:
+                try:
+                    publisher.disconnect()
+                except Exception:
+                    pass
+            receiver._implementation.close()
+            publisher._implementation.close()
+
     def test_cpp_jni_java_jpype_region_validation_exceptions(self) -> None:
         """Preserve C++ region validation errors through the standard Java API."""
         fom_module = (
