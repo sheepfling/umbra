@@ -827,6 +827,12 @@ attribute, transfers ownership to federate B after save completion, and restores
 the image through both standard Java ambassadors. The post-restore ownership
 queries prove the saved C++ owner is reinstated and the later transfer is gone.
 
+The object-management restore companion saves a completed baseline before the
+standard Java members publish/subscribe and register an object. After both
+members complete restore, `getKnownObjectClassHandle` maps the C++
+`ObjectInstanceNotKnown` result through JNI and JPype, proving the post-save
+object and declarations were rolled back while the Java members remain joined.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and

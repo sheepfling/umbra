@@ -5029,6 +5029,151 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             acquirer._implementation.close()
             owner._implementation.close()
 
+    def test_cpp_jni_java_jpype_restore_rolls_back_object_management_snapshot(
+        self,
+    ) -> None:
+        """Restore removes post-save declarations and objects through Java."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-restore-object-management-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        peer = self.factory.getRtiAmbassador()
+        owner_callbacks = _JniCallbacks()
+        peer_callbacks = _JniCallbacks()
+        owner_connected = peer_connected = False
+        owner_joined = peer_joined = created = False
+        object_instance: ObjectInstanceHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                owner.evokeCallback(0.0)
+                peer.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
+            owner_connected = True
+            peer.connect(peer_callbacks, CallbackModel.HLA_EVOKED)
+            peer_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner.joinFederationExecution(
+                "jni-restore-object-owner",
+                federation_name,
+                federateName="jni-restore-object-owner",
+            )
+            owner_joined = True
+            peer.joinFederationExecution(
+                "jni-restore-object-peer",
+                federation_name,
+                federateName="jni-restore-object-peer",
+            )
+            peer_joined = True
+
+            save_label = f"jni-restore-object-baseline-{uuid4()}"
+            owner.requestFederationSave(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    owner_callbacks.save_initiations == [save_label]
+                    and peer_callbacks.save_initiations == [save_label]
+                ):
+                    break
+            self.assertEqual(owner_callbacks.save_initiations, [save_label])
+            self.assertEqual(peer_callbacks.save_initiations, [save_label])
+            owner.federateSaveBegun()
+            peer.federateSaveBegun()
+            owner.federateSaveComplete()
+            peer.federateSaveComplete()
+            for _ in range(30):
+                drain(1)
+                if owner_callbacks.saved_count == 1 and peer_callbacks.saved_count == 1:
+                    break
+            self.assertEqual(owner_callbacks.saved_count, 1)
+            self.assertEqual(peer_callbacks.saved_count, 1)
+
+            # These declarations and the object are intentionally created after
+            # the baseline image. Restore must remove all of them.
+            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            peer_class = peer.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            owner_attribute = owner.getAttributeHandle(owner_class, "Efficiency")
+            peer_attribute = peer.getAttributeHandle(peer_class, "Efficiency")
+            owner_attributes = AttributeHandleSet([owner_attribute])
+            peer_attributes = AttributeHandleSet([peer_attribute])
+            owner.publishObjectClassAttributes(owner_class, owner_attributes)
+            peer.subscribeObjectClassAttributes(peer_class, peer_attributes, active=True)
+            object_instance = owner.registerObjectInstance(owner_class)
+            for _ in range(30):
+                drain(1)
+                if peer_callbacks.discovered_objects:
+                    break
+            self.assertEqual(peer_callbacks.discovered_objects[-1][0], object_instance)
+
+            owner.requestFederationRestore(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    owner_callbacks.restore_initiations
+                    and peer_callbacks.restore_initiations
+                ):
+                    break
+            self.assertEqual(owner_callbacks.restore_acceptances, [save_label])
+            self.assertEqual(owner_callbacks.restore_begun, 1)
+            self.assertEqual(peer_callbacks.restore_begun, 1)
+            self.assertEqual(owner_callbacks.restore_initiations[0][:2],
+                             (save_label, "jni-restore-object-owner"))
+            self.assertEqual(peer_callbacks.restore_initiations[0][:2],
+                             (save_label, "jni-restore-object-peer"))
+
+            owner.federateRestoreComplete()
+            peer.federateRestoreComplete()
+            for _ in range(30):
+                drain(1)
+                if owner_callbacks.restore_completions == 1 and peer_callbacks.restore_completions == 1:
+                    break
+            self.assertEqual(owner_callbacks.restore_completions, 1)
+            self.assertEqual(peer_callbacks.restore_completions, 1)
+
+            # The ambassador remains joined, but the saved C++ image no longer
+            # contains the post-save object or its declarations.
+            with self.assertRaises(ObjectInstanceNotKnown):
+                owner.getKnownObjectClassHandle(object_instance)
+        finally:
+            if owner_joined:
+                try:
+                    owner.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if peer_joined:
+                try:
+                    peer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if peer_connected:
+                try:
+                    peer.disconnect()
+                except Exception:
+                    pass
+            if owner_connected:
+                try:
+                    owner.disconnect()
+                except Exception:
+                    pass
+            peer._implementation.close()
+            owner._implementation.close()
+
     def test_cpp_jni_java_jpype_restore_reschedules_pending_time_advance(
         self,
     ) -> None:
