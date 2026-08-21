@@ -31,12 +31,12 @@ Umbra's repository fixture remains a fast compatibility harness; it is not
 the authority for Java API compatibility. On 2026-08-21, the JNI façade was
 compiled and smoke-tested against an independently obtained IEEE
 1516.1-2025 Java API JAR, then exercised through C++ → JNI → Java → JPype →
-the public Python API. The resulting integration suite collected 152 test cases
-(151 passed, including 137 functional vectors and the structural/runtime gates,
-and one deliberate skip); the skip is
-deliberately limited to the
-fixture-only assertion that every C++ exception name has a matching fixture
-class. Running Python's complete JPype test-package discovery against the same
+the public Python API. The resulting integration suite collected 153 test cases
+(all 153 passed, including 137 functional vectors and the structural/runtime
+gates). The exception-surface check loads every C++ exception whose exact
+standard Java class is present in the external API; the independently supplied
+API remains authoritative for its vocabulary and intentionally omits a few
+legacy advisory exception names. Running Python's complete JPype test-package discovery against the same
 artifact also executes 202 discovered tests (180 passed, 22 deliberate skips,
 and 78 subtests). An artifact gate
 additionally verifies that the JNI bridge JAR contains
@@ -438,8 +438,8 @@ overload with its fifth argument.
 
 With `UMBRA_JNI_REQUIRE_RUNTIME_SERVICE_COVERAGE=1`, the external suite also
 wraps the concrete JPype façade for accounting and executes all 184 services
-at runtime. The current external run passed this runtime gate (152 test cases,
-151 passed and one fixture-only skip), including services selected through family loops and
+at runtime. The current external run passed this runtime gate (153 test cases,
+all 153 passed), including services selected through family loops and
 function references.
 
 The companion structural gates assert that every Java fixture

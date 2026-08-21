@@ -444,8 +444,9 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route passes 137 functional vectors, plus an artifact-level
-non-shadowing/ServiceLoader gate, including the focused
+The external route passes 153 integration tests and 74 subtests, including
+137 functional vectors plus the artifact-level non-shadowing/ServiceLoader
+gate. It includes the focused
 federation-lifecycle exception vector (including same-member duplicate-join
 mapping), integer/floating malformed logical-time
 decode mapping, empty/short/trailing and structurally invalid standard
@@ -660,8 +661,10 @@ survivor cleanup and duplicate-control rejection, and proves the connected
 proxy can rejoin. An HLA_IMMEDIATE companion verifies synchronous delivery,
 the same survivor cleanup, and rejoin through the still-live proxy. Neither
 control input is part of the Java RTI service API.
-fixture-exception-inventory assertion is intentionally skipped, because the
-external JAR—not Umbra—owns that Java exception vocabulary.
+The exception-surface check loads every C++ exception whose exact standard
+Java class is present in the external API; the independently supplied API
+remains authoritative for its vocabulary and intentionally omits a few legacy
+advisory exception names.
 The malformed encoder matrix also covers all twenty-six primitive encoder
 classes and all four standard composite forms, including malformed nested
 composite children, proving that native decoder failures retain the standard
