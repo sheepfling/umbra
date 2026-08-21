@@ -736,6 +736,9 @@ survivor cleanup and duplicate-control rejection, and proves the connected
 proxy can rejoin. An HLA_IMMEDIATE companion verifies synchronous delivery,
 the same survivor cleanup, and rejoin through the still-live proxy. Neither
 control input is part of the Java RTI service API.
+The federate-lookup companion covers disconnected/unjoined preconditions,
+cross-federation handle rejection, missing joined names, and preservation of a
+departed member's immutable name from its returned `FederateHandle`.
 The exception-surface check loads every C++ exception whose exact standard
 Java class is present in the external API; the independently supplied API
 remains authoritative for its vocabulary and intentionally omits a few legacy

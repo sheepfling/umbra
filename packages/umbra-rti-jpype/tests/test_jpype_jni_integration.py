@@ -1701,6 +1701,135 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             creator._implementation.close()
             joiner._implementation.close()
 
+    def test_cpp_jni_java_jpype_federate_lookup_preserves_departed_designator(
+        self,
+    ) -> None:
+        """Keep a departed member's federate-name identity through Java/JPype."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-federate-lookup-{uuid4()}"
+        foreign_federation_name = f"python-jni-federate-lookup-foreign-{uuid4()}"
+        unjoined = self.factory.getRtiAmbassador()
+        owner = self.factory.getRtiAmbassador()
+        peer = self.factory.getRtiAmbassador()
+        foreign_creator = self.factory.getRtiAmbassador()
+        foreign_member = self.factory.getRtiAmbassador()
+        callbacks = [
+            _JniCallbacks(),
+            _JniCallbacks(),
+            _JniCallbacks(),
+            _JniCallbacks(),
+            _JniCallbacks(),
+        ]
+        ambassadors = [unjoined, owner, peer, foreign_creator, foreign_member]
+        connected = [False] * len(ambassadors)
+        joined = [False] * len(ambassadors)
+        created = [False, False]
+
+        try:
+            unknown_federate = FederateHandle(b"\x00\x00\x00\x08" + b"\x00" * 8)
+            with self.assertRaises(NotConnected):
+                unjoined.getFederateHandle("jni-lookup-owner")
+            with self.assertRaises(NotConnected):
+                unjoined.getFederateName(unknown_federate)
+
+            for index, ambassador in enumerate(ambassadors):
+                ambassador.connect(callbacks[index], CallbackModel.HLA_EVOKED)
+                connected[index] = True
+
+            with self.assertRaises(FederateNotExecutionMember):
+                unjoined.getFederateHandle("jni-lookup-owner")
+            with self.assertRaises(FederateNotExecutionMember):
+                unjoined.getFederateName(unknown_federate)
+
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created[0] = True
+            foreign_creator.createFederationExecution(
+                foreign_federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created[1] = True
+
+            owner_handle = owner.joinFederationExecution(
+                "jni-federate-lookup-owner",
+                federation_name,
+                federateName="jni-federate-lookup-owner",
+            )
+            joined[1] = True
+            peer_handle = peer.joinFederationExecution(
+                "jni-federate-lookup-peer",
+                federation_name,
+                federateName="jni-federate-lookup-peer",
+            )
+            joined[2] = True
+            foreign_handle = foreign_member.joinFederationExecution(
+                "jni-federate-lookup-foreign",
+                foreign_federation_name,
+                federateName="jni-federate-lookup-foreign",
+            )
+            joined[4] = True
+
+            self.assertEqual(
+                owner.getFederateHandle("jni-federate-lookup-owner"), owner_handle
+            )
+            self.assertEqual(
+                owner.getFederateHandle("jni-federate-lookup-peer"), peer_handle
+            )
+            self.assertEqual(peer.getFederateName(owner_handle), "jni-federate-lookup-owner")
+            self.assertEqual(peer.getFederateName(peer_handle), "jni-federate-lookup-peer")
+            with self.assertRaises(NameNotFound):
+                owner.getFederateHandle("jni-no-such-federate")
+            with self.assertRaises(InvalidFederateHandle):
+                owner.getFederateName(unknown_federate)
+            with self.assertRaises(FederateHandleNotKnown):
+                owner.getFederateName(foreign_handle)
+
+            peer.resignFederationExecution(ResignAction.NO_ACTION)
+            joined[2] = False
+            with self.assertRaises(NameNotFound):
+                owner.getFederateHandle("jni-federate-lookup-peer")
+            self.assertEqual(owner.getFederateName(peer_handle), "jni-federate-lookup-peer")
+
+            foreign_member.resignFederationExecution(ResignAction.NO_ACTION)
+            joined[4] = False
+            owner.resignFederationExecution(ResignAction.NO_ACTION)
+            joined[1] = False
+            foreign_creator.destroyFederationExecution(foreign_federation_name)
+            created[1] = False
+            owner.destroyFederationExecution(federation_name)
+            created[0] = False
+        finally:
+            for index, ambassador in enumerate(ambassadors):
+                if joined[index]:
+                    try:
+                        ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+            if created[0] and connected[1]:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if created[1] and connected[3]:
+                try:
+                    foreign_creator.destroyFederationExecution(foreign_federation_name)
+                except Exception:
+                    pass
+            for index, ambassador in enumerate(ambassadors):
+                if connected[index]:
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                ambassador._implementation.close()
+
     def test_cpp_jni_java_jpype_membership_reentry_rejects_callback_call(self) -> None:
         """Membership services reject re-entrant join and resign calls."""
         fom_module = (
