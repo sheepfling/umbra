@@ -3416,6 +3416,33 @@ EmbeddedFederationRegistry::recordSuccessfulObjectInstanceReflection(
   return FederationRegistryStatus::applied;
 }
 
+FederationRegistryStatus
+EmbeddedFederationRegistry::recordSuccessfulInteractionSend(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    bool directed) {
+  auto instrumentationScope = beginInstrumentation(
+      "recordSuccessfulInteractionSend");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return FederationRegistryStatus::federation_does_not_exist;
+  }
+  auto member = federation->second.members.find(federateId);
+  if (member == federation->second.members.end()) {
+    return FederationRegistryStatus::federate_not_member;
+  }
+  if (member->second.successfulInteractionsSentCount !=
+      std::numeric_limits<std::uint64_t>::max()) {
+    ++member->second.successfulInteractionsSentCount;
+  }
+  if (directed && member->second.successfulDirectedInteractionsSentCount !=
+                      std::numeric_limits<std::uint64_t>::max()) {
+    ++member->second.successfulDirectedInteractionsSentCount;
+  }
+  return FederationRegistryStatus::applied;
+}
+
 FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRestore(
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
@@ -8134,6 +8161,28 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     auto const count = member->second.successfullyReflectedObjectInstanceHandles.size();
     auto const encodedCount = count >
             static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAinteractionsSent") {
+    // HLAstandardMIM defines this HLAcount as accepted Send Interaction
+    // service invocations by the represented joined federate. The counter is
+    // advanced at the C++ service boundary and therefore includes sends with
+    // no eligible recipients without inferring from callback fan-out.
+    auto const count = member->second.successfulInteractionsSentCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAdirectedInteractionsSent") {
+    // Directed sends are a separately reported subset of the total
+    // interaction-send count, keyed from the same accepted-service ledger.
+    auto const count = member->second.successfulDirectedInteractionsSentCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
         ? std::numeric_limits<std::int32_t>::max()
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();

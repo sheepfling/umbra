@@ -910,9 +910,19 @@ direct requests at one and two afterward. The same vector verifies
 Instance callbacks and at one and two afterward. It also verifies
 `HLAobjectInstancesDiscovered` on the receiving federate’s MOM object at zero,
 one, and two as the two application-object discovery callbacks commit.
+The native Catch2 MOM companion additionally performs Local Delete Object
+Instance followed by a repeated eligible subscription and proves the same
+object is rediscovered, raising that counter to three; the Java route remains
+the direct 0/1/2 bridge evidence.
 It also keeps `HLAobjectInstancesReflected` distinct by object: the first
 application reflection raises it to one, a repeated update remains one, and a
 second object raises it to two.
+
+The interaction-send MOM companion counts accepted ordinary and directed
+`sendInteraction` invocations at the C++ service boundary. It observes
+`HLAinteractionsSent` at 0/1/2 and the directed subset
+`HLAdirectedInteractionsSent` at 0/0/1 through standard Java
+`HLAinteger32BE` reflection in both callback models.
 
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`

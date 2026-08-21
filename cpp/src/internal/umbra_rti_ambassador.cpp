@@ -13840,6 +13840,20 @@ void UmbraRtiAmbassador::sendInteraction(
   };
 
   if (handleMomSwitchAdjustment()) {
+    // HLAsetTiming/HLAsetSwitches are still successful Send Interaction
+    // invocations. Count their accepted service boundary even though the
+    // embedded profile consumes them as MOM adjustments without application
+    // fan-out.
+    {
+      std::scoped_lock lock(federationManagementMutex());
+      auto const status = embeddedFederationManagement().registry()
+          .recordSuccessfulInteractionSend(
+              *federationName, *producingFederateId, false);
+      if (status != umbra::detail::FederationRegistryStatus::applied) {
+        throw RTIinternalError(
+            L"The embedded federation lost the Send Interaction membership before its accepted MOM adjustment boundary.");
+      }
+    }
     if (momSwitchWork) {
       queueJoinedFederateMomConditionalAttributeUpdate(
           momSwitchWork->federationName,
@@ -13949,6 +13963,19 @@ void UmbraRtiAmbassador::sendInteraction(
       umbra::detail::MomServiceType::object_management,
       reportArguments,
       true);
+
+  // The accepted Send Interaction invocation is the MOM counter boundary;
+  // recipient callback fan-out must not inflate HLAinteractionsSent.
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    auto const status = embeddedFederationManagement().registry()
+        .recordSuccessfulInteractionSend(
+            *federationName, *producingFederateId, false);
+    if (status != umbra::detail::FederationRegistryStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation lost the Send Interaction membership before its accepted boundary.");
+    }
+  }
 
   // Do not hold either sender lock while submitting a route: HLA_IMMEDIATE may
   // synchronously enter a different federate's Receive Interaction callback.
@@ -14161,6 +14188,20 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
       reportArguments,
       returnedArgument));
 
+  // Timestamped queue admission (or successful no-recipient validation) is
+  // the accepted Send Interaction boundary. Count the service once, not once
+  // per TSO/receive-order recipient.
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    auto const status = embeddedFederationManagement().registry()
+        .recordSuccessfulInteractionSend(
+            *federationName, *producingFederateId, false);
+    if (status != umbra::detail::FederationRegistryStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation lost the timestamped Send Interaction membership before its accepted boundary.");
+    }
+  }
+
   // The first public slice queues TSO for time-constrained recipients. A
   // non-time-constrained recipient still receives the timestamped callback
   // immediately as Receive Order, with the sender's TSO designator when one
@@ -14351,6 +14392,17 @@ void UmbraRtiAmbassador::sendDirectedInteraction(
       L"SendDirectedInteraction",
       umbra::detail::MomServiceType::object_management,
       reportArguments);
+
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    auto const status = embeddedFederationManagement().registry()
+        .recordSuccessfulInteractionSend(
+            *federationName, *producingFederateId, true);
+    if (status != umbra::detail::FederationRegistryStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation lost the Send Directed Interaction membership before its accepted boundary.");
+    }
+  }
 
   // Submit only after releasing the sender/runtime locks: HLA_IMMEDIATE may
   // synchronously enter another federate's Receive Directed Interaction callback.
@@ -14543,6 +14595,17 @@ MessageRetractionHandle UmbraRtiAmbassador::sendDirectedInteraction(
           L"The embedded federation could not enqueue the timestamped directed interaction.");
     }
     messageId = result.messageId;
+  }
+
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    auto const status = embeddedFederationManagement().registry()
+        .recordSuccessfulInteractionSend(
+            *federationName, *producingFederateId, true);
+    if (status != umbra::detail::FederationRegistryStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation lost the timestamped Send Directed Interaction membership before its accepted boundary.");
+    }
   }
 
   for (auto const& recipient : recipients) {
@@ -14783,6 +14846,17 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteractionWithRegions(
       reportArguments,
       returnedArgument));
 
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    auto const status = embeddedFederationManagement().registry()
+        .recordSuccessfulInteractionSend(
+            *federationName, *producingFederateId, false);
+    if (status != umbra::detail::FederationRegistryStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation lost the timestamped regional Send Interaction membership before its accepted boundary.");
+    }
+  }
+
   for (auto const& recipient : plan.recipients) {
     if (timeSnapshot.timeRegulating && plan.preferredOrderType == TIMESTAMP &&
         timeConstrainedRecipients.contains(recipient.federateId)) {
@@ -14964,6 +15038,17 @@ void UmbraRtiAmbassador::sendInteractionWithRegions(
       umbra::detail::MomServiceType::object_management,
       reportArguments,
       true);
+
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    auto const status = embeddedFederationManagement().registry()
+        .recordSuccessfulInteractionSend(
+            *federationName, *producingFederateId, false);
+    if (status != umbra::detail::FederationRegistryStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation lost the regional Send Interaction membership before its accepted boundary.");
+    }
+  }
 
   for (auto& delivery : deliveries) {
     queueReceiveOrderInteraction(

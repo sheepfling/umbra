@@ -13080,6 +13080,193 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_interaction_send_counts(
+        self,
+    ) -> None:
+        """Count ordinary and directed Send Interaction services through Java."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+
+        def run_scenario(callback_model: CallbackModel) -> None:
+            federation_name = f"python-jni-interaction-send-count-{uuid4()}"
+            subject = self.factory.getRtiAmbassador()
+            observer = self.factory.getRtiAmbassador()
+            subject_callbacks = _JniCallbacks()
+            observer_callbacks = _JniCallbacks()
+            subject_connected = observer_connected = False
+            subject_joined = observer_joined = created = False
+
+            def pump() -> None:
+                subject.evokeCallback(0.0)
+                if callback_model is CallbackModel.HLA_EVOKED:
+                    observer.evokeCallback(0.0)
+
+            def wait_for_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    for reflection in observer_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail("timed out waiting for the Java interaction-count MOM value")
+
+            try:
+                subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+                subject_connected = True
+                observer.connect(observer_callbacks, callback_model)
+                observer_connected = True
+                subject.createFederationExecution(
+                    federation_name, str(fom_module), "HLAinteger64Time"
+                )
+                created = True
+                observer.joinFederationExecution(
+                    "interaction-count-observer",
+                    federation_name,
+                    federateName="interaction-count-observer",
+                )
+                observer_joined = True
+
+                mom_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                federate_handle_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAfederateHandle"
+                )
+                interactions_sent_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAinteractionsSent"
+                )
+                directed_interactions_sent_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAdirectedInteractionsSent"
+                )
+                observer.subscribeObjectClassAttributes(
+                    mom_class,
+                    AttributeHandleSet(
+                        [
+                            federate_handle_attribute,
+                            interactions_sent_attribute,
+                            directed_interactions_sent_attribute,
+                        ]
+                    ),
+                    active=True,
+                )
+
+                subject_handle = subject.joinFederationExecution(
+                    "interaction-count-subject",
+                    federation_name,
+                    federateName="interaction-count-subject",
+                )
+                subject_joined = True
+                initial = wait_for_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        federate_handle_attribute
+                    )
+                    == subject_handle.encodedValue
+                )
+                subject_object = initial[0]
+                encoder = self.factory.getEncoderFactory()
+
+                def request_count(attribute: AttributeHandle, expected: int) -> None:
+                    before = len(observer_callbacks.reflected_attributes)
+                    observer.requestAttributeValueUpdate(
+                        subject_object, AttributeHandleSet([attribute]), b""
+                    )
+
+                    def is_expected(candidate: tuple[object, ...]) -> bool:
+                        if (
+                            len(observer_callbacks.reflected_attributes) <= before
+                            or candidate[0] != subject_object
+                            or attribute not in set(candidate[1])
+                        ):
+                            return False
+                        value = encoder.createHLAinteger32BE()
+                        value.decode(dict(candidate[1])[attribute])
+                        return value.getValue() == expected
+
+                    reflection = wait_for_reflection(is_expected)
+                    value = encoder.createHLAinteger32BE()
+                    value.decode(dict(reflection[1])[attribute])
+                    self.assertEqual(value.getValue(), expected)
+
+                interaction = subject.getInteractionClassHandle(
+                    "HLAinteractionRoot.ServerAction.TakeOrder"
+                )
+                observer_interaction = observer.getInteractionClassHandle(
+                    "HLAinteractionRoot.ServerAction.TakeOrder"
+                )
+                subject.publishInteractionClass(interaction)
+                observer.subscribeInteractionClass(observer_interaction)
+
+                object_class = subject.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
+                observer_object_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
+                efficiency_attribute = subject.getAttributeHandle(
+                    object_class, "Efficiency"
+                )
+                subject.publishObjectClassAttributes(
+                    object_class, AttributeHandleSet([efficiency_attribute])
+                )
+                subject.publishObjectClassDirectedInteractions(
+                    object_class, InteractionClassHandleSet([interaction])
+                )
+                observer.subscribeObjectClassDirectedInteractionsUniversally(
+                    observer_object_class, InteractionClassHandleSet([observer_interaction])
+                )
+                target = subject.registerObjectInstance(object_class)
+
+                request_count(interactions_sent_attribute, 0)
+                request_count(directed_interactions_sent_attribute, 0)
+
+                subject.sendInteraction(interaction, ParameterHandleValueMap(), b"")
+                request_count(interactions_sent_attribute, 1)
+                request_count(directed_interactions_sent_attribute, 0)
+
+                subject.sendDirectedInteraction(
+                    interaction, target, ParameterHandleValueMap(), b""
+                )
+                request_count(interactions_sent_attribute, 2)
+                request_count(directed_interactions_sent_attribute, 1)
+            finally:
+                for ambassador, joined in (
+                    (subject, subject_joined),
+                    (observer, observer_joined),
+                ):
+                    if joined:
+                        try:
+                            ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                        except Exception:
+                            pass
+                if created:
+                    try:
+                        subject.destroyFederationExecution(federation_name)
+                    except Exception:
+                        pass
+                for ambassador, connected in (
+                    (observer, observer_connected),
+                    (subject, subject_connected),
+                ):
+                    if connected:
+                        try:
+                            ambassador.disconnect()
+                        except Exception:
+                            pass
+                    ambassador._implementation.close()
+
+        for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
+            with self.subTest(callback_model=callback_model):
+                run_scenario(callback_model)
+
     def test_cpp_jni_java_jpype_joined_federate_mom_snapshot_uses_join_fom_modules(
         self,
     ) -> None:

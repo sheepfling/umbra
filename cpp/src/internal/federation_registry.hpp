@@ -168,6 +168,11 @@ struct FederateMembership {
   // for which this joined federate has received an accepted Reflect Attribute
   // Values callback. MOM-owned objects are deliberately excluded.
   std::set<std::uint64_t> successfullyReflectedObjectInstanceHandles;
+  // HLAinteractionsSent counts accepted Send Interaction service invocations
+  // by this joined federate. Directed sends are retained separately for the
+  // directed-interaction MOM counter while still contributing to the total.
+  std::uint64_t successfulInteractionsSentCount = 0;
+  std::uint64_t successfulDirectedInteractionsSentCount = 0;
 };
 
 // A federation-owned snapshot captured while the registry holds its member
@@ -2234,6 +2239,16 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t federateId,
       std::uint64_t objectInstanceHandle);
+
+  // Records one accepted Send Interaction invocation. The public adapter
+  // calls this only after synchronous validation and any timestamped queue
+  // admission have succeeded, so MOM values are service counts rather than
+  // callback or recipient counts.
+  [[nodiscard]] FederationRegistryStatus
+  recordSuccessfulInteractionSend(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      bool directed);
 
   [[nodiscard]] FederationRestoreControlResult requestFederationRestore(
       std::wstring const& federationName,
