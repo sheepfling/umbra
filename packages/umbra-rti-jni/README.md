@@ -247,6 +247,8 @@ The regional object-update companion carries the same proof through the
 attribute-value passel: one queued explicit-source reflection survives the
 constrained-role transition with its source region, `TIMESTAMP` metadata, and
 retraction handle intact.
+The default-region object companion repeats the transition with an empty
+conveyed `RegionHandleSet`, keeping the standard default realization intact.
 The suppressed-timestamp vector verifies that a queued regional recipient
 becoming disjoint before delivery consumes the recipient ledger, so no reflection
 or `requestRetraction` callback is emitted after the publisher retracts it.

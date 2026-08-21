@@ -20636,6 +20636,186 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             receiver._implementation.close()
             publisher._implementation.close()
 
+    def test_cpp_jni_java_jpype_timestamped_default_region_object_update_survives_reenable(
+        self,
+    ) -> None:
+        """Preserve a default-region object TSO passel across constrained re-enable."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-default-region-object-reenable-{uuid4()}"
+        publisher = self.factory.getRtiAmbassador()
+        receiver = self.factory.getRtiAmbassador()
+        publisher_callbacks = _JniCallbacks()
+        receiver_callbacks = _JniCallbacks()
+        publisher_connected = receiver_connected = False
+        publisher_joined = receiver_joined = created = False
+        receiver_region: RegionHandle | None = None
+        receiver_pairs: AttributeSetRegionSetPairList | None = None
+        object_instance: ObjectInstanceHandle | None = None
+
+        def pump(rounds: int = 20) -> None:
+            for _ in range(rounds):
+                publisher.evokeCallback(0.0)
+                receiver.evokeCallback(0.0)
+
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            publisher_connected = True
+            receiver.connect(receiver_callbacks, CallbackModel.HLA_EVOKED)
+            receiver_connected = True
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            publisher.joinFederationExecution(
+                "publisher",
+                federation_name,
+                federateName="jni-default-region-object-reenable-publisher",
+            )
+            publisher_joined = True
+            receiver.joinFederationExecution(
+                "subscriber",
+                federation_name,
+                federateName="jni-default-region-object-reenable-receiver",
+            )
+            receiver_joined = True
+            publisher_federate = publisher.getFederateHandle(
+                "jni-default-region-object-reenable-publisher"
+            )
+
+            publisher_class = publisher.getObjectClassHandle(
+                "HLAobjectRoot.Food.Drink.Soda"
+            )
+            receiver_class = receiver.getObjectClassHandle(
+                "HLAobjectRoot.Food.Drink.Soda"
+            )
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, "Flavor"
+            )
+            receiver_attribute = receiver.getAttributeHandle(receiver_class, "Flavor")
+            publisher_attributes = AttributeHandleSet([publisher_attribute])
+            receiver_attributes = AttributeHandleSet([receiver_attribute])
+            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
+            receiver_dimension = receiver.getDimensionHandle("SodaFlavor")
+            publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
+            publisher.changeDefaultAttributeOrderType(
+                publisher_class, publisher_attributes, OrderType.TIMESTAMP
+            )
+
+            receiver_region = receiver.createRegion(
+                DimensionHandleSet([receiver_dimension])
+            )
+            receiver.setRangeBounds(receiver_region, receiver_dimension, RangeBounds(2, 3))
+            receiver.commitRegionModifications(RegionHandleSet([receiver_region]))
+            receiver_pairs = receiver.getAttributeSetRegionSetPairListFactory().create(1)
+            receiver_pairs.add(
+                AttributeSetRegionSetPair(
+                    receiver_attributes, RegionHandleSet([receiver_region])
+                )
+            )
+            receiver.subscribeObjectClassAttributesWithRegions(
+                receiver_class, receiver_pairs, active=True
+            )
+            receiver.setConveyRegionDesignatorSetsSwitch(True)
+            object_instance = publisher.registerObjectInstance(publisher_class)
+            pump()
+            self.assertIn(
+                object_instance,
+                [discovery[0] for discovery in receiver_callbacks.discovered_objects],
+            )
+
+            receiver.enableTimeConstrained()
+            pump()
+            self.assertTrue(receiver_callbacks.time_constrained_enabled)
+            publisher.enableTimeRegulation(
+                publisher.getTimeFactory().makeLogicalTimeInterval(5)
+            )
+            pump()
+            self.assertTrue(publisher_callbacks.time_regulation_enabled)
+
+            tag = b"default-region-object-reenable-tag"
+            retraction = publisher.updateAttributeValuesWithTime(
+                object_instance,
+                AttributeHandleValueMap({publisher_attribute: b"DEFAULT-OBJECT"}),
+                publisher.getTimeFactory().makeLogicalTime(6),
+                tag,
+            )
+            self.assertTrue(retraction.isValid())
+            self.assertEqual(receiver_callbacks.timestamped_reflections, [])
+            receiver.disableTimeConstrained()
+            pump()
+            self.assertEqual(receiver_callbacks.timestamped_reflections, [])
+            receiver.enableTimeConstrained()
+            pump()
+            self.assertEqual(len(receiver_callbacks.time_constrained_enabled), 2)
+
+            receiver.timeAdvanceRequest(receiver.getTimeFactory().makeLogicalTime(6))
+            publisher.timeAdvanceRequest(publisher.getTimeFactory().makeLogicalTime(2))
+            pump()
+            self.assertEqual(len(receiver_callbacks.timestamped_reflections), 1)
+            reflection = receiver_callbacks.timestamped_reflections[0]
+            self.assertEqual(reflection[0], object_instance)
+            self.assertEqual(
+                reflection[1],
+                AttributeHandleValueMap({receiver_attribute: b"DEFAULT-OBJECT"}),
+            )
+            self.assertEqual(reflection[2], tag)
+            self.assertEqual(reflection[4], publisher_federate)
+            self.assertEqual(reflection[5], RegionHandleSet())
+            self.assertEqual(reflection[6].getTime(), 6)
+            self.assertEqual(reflection[7], OrderType.TIMESTAMP)
+            self.assertEqual(reflection[8], OrderType.TIMESTAMP)
+            self.assertEqual(reflection[9], retraction)
+            with self.assertRaises(MessageCanNoLongerBeRetracted):
+                publisher.retract(retraction)
+        finally:
+            if receiver_joined and receiver_pairs is not None:
+                try:
+                    receiver.unsubscribeObjectClassAttributesWithRegions(
+                        receiver.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda"),
+                        receiver_pairs,
+                    )
+                except Exception:
+                    pass
+            if receiver_region is not None:
+                try:
+                    receiver.deleteRegion(receiver_region)
+                except Exception:
+                    pass
+            if receiver_joined:
+                try:
+                    receiver.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if publisher_joined:
+                try:
+                    publisher.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    publisher.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if receiver_connected:
+                try:
+                    receiver.disconnect()
+                except Exception:
+                    pass
+            if publisher_connected:
+                try:
+                    publisher.disconnect()
+                except Exception:
+                    pass
+            receiver._implementation.close()
+            publisher._implementation.close()
+
     def test_cpp_jni_java_jpype_timestamped_regional_object_update_available_advances(
         self,
     ) -> None:
