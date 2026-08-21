@@ -9798,6 +9798,220 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             receiver._implementation.close()
             publisher._implementation.close()
 
+    def test_cpp_jni_java_jpype_update_rate_is_scoped_per_subscriber_generation(
+        self,
+    ) -> None:
+        """Keep update-rate admission independent across subscribers and resubscriptions."""
+        source_fom = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "attribute-update-passel-fom.xml"
+        )
+        fom_module = self._temporary_directory / f"jni-update-rate-matrix-{uuid4()}.xml"
+        fom_text = source_fom.read_text(encoding="utf-8")
+        self.assertIn("</objects>", fom_text)
+        fom_module.write_text(
+            fom_text.replace(
+                "</objects>",
+                "</objects>\n"
+                "    <updateRates>\n"
+                "        <updateRate>\n"
+                "            <name>Low</name>\n"
+                "            <rate>0.2</rate>\n"
+                "        </updateRate>\n"
+                "    </updateRates>",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        federation_name = f"python-jni-update-rate-matrix-{uuid4()}"
+        publisher = self.factory.getRtiAmbassador()
+        reduced = self.factory.getRtiAmbassador()
+        default = self.factory.getRtiAmbassador()
+        publisher_callbacks = _JniCallbacks()
+        reduced_callbacks = _JniCallbacks()
+        default_callbacks = _JniCallbacks()
+        publisher_connected = reduced_connected = default_connected = False
+        publisher_joined = reduced_joined = default_joined = created = False
+        object_instance: ObjectInstanceHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                publisher.evokeCallback(0.0)
+                reduced.evokeCallback(0.0)
+                default.evokeCallback(0.0)
+
+        def reflections(callbacks: _JniCallbacks) -> list[tuple[object, ...]]:
+            return [
+                reflection
+                for reflection in callbacks.reflected_attributes
+                if object_instance is None or reflection[0] == object_instance
+            ]
+
+        try:
+            publisher.connect(publisher_callbacks, CallbackModel.HLA_EVOKED)
+            publisher_connected = True
+            reduced.connect(reduced_callbacks, CallbackModel.HLA_EVOKED)
+            reduced_connected = True
+            default.connect(default_callbacks, CallbackModel.HLA_EVOKED)
+            default_connected = True
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            publisher.joinFederationExecution(
+                "jni-update-rate-matrix-publisher",
+                federation_name,
+                federateName="jni-update-rate-matrix-publisher",
+            )
+            publisher_joined = True
+            reduced.joinFederationExecution(
+                "jni-update-rate-matrix-reduced",
+                federation_name,
+                federateName="jni-update-rate-matrix-reduced",
+            )
+            reduced_joined = True
+            default.joinFederationExecution(
+                "jni-update-rate-matrix-default",
+                federation_name,
+                federateName="jni-update-rate-matrix-default",
+            )
+            default_joined = True
+
+            publisher_class = publisher.getObjectClassHandle(
+                "HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild"
+            )
+            reduced_class = reduced.getObjectClassHandle(
+                "HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild"
+            )
+            default_class = default.getObjectClassHandle(
+                "HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild"
+            )
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, "BestEffortBase"
+            )
+            reduced_attribute = reduced.getAttributeHandle(
+                reduced_class, "BestEffortBase"
+            )
+            default_attribute = default.getAttributeHandle(
+                default_class, "BestEffortBase"
+            )
+            publisher_attributes = AttributeHandleSet([publisher_attribute])
+            reduced_attributes = AttributeHandleSet([reduced_attribute])
+            default_attributes = AttributeHandleSet([default_attribute])
+            publisher.publishObjectClassAttributes(
+                publisher_class, publisher_attributes
+            )
+            reduced.subscribeObjectClassAttributes(
+                reduced_class,
+                reduced_attributes,
+                active=True,
+                updateRateDesignator="Low",
+            )
+            default.subscribeObjectClassAttributes(
+                default_class, default_attributes, active=True
+            )
+            object_instance = publisher.registerObjectInstance(publisher_class)
+            drain()
+            self.assertIn(
+                object_instance,
+                [discovery[0] for discovery in reduced_callbacks.discovered_objects],
+            )
+            self.assertIn(
+                object_instance,
+                [discovery[0] for discovery in default_callbacks.discovered_objects],
+            )
+            self.assertEqual(reduced.getUpdateRateValue("Low"), 0.2)
+            self.assertEqual(
+                reduced.getUpdateRateValueForAttribute(
+                    object_instance, reduced_attribute
+                ),
+                0.2,
+            )
+            self.assertEqual(
+                default.getUpdateRateValueForAttribute(
+                    object_instance, default_attribute
+                ),
+                0.0,
+            )
+
+            values = AttributeHandleValueMap({publisher_attribute: b"matrix-first"})
+            publisher.updateAttributeValues(object_instance, values, b"matrix-first-tag")
+            drain()
+            self.assertEqual(len(reflections(reduced_callbacks)), 1)
+            self.assertEqual(len(reflections(default_callbacks)), 1)
+
+            # The second best-effort passel is submitted immediately. The
+            # reduced subscriber is gated by its 0.2-Hz designator, while the
+            # default subscriber has no reduction and receives it independently.
+            publisher.updateAttributeValues(object_instance, values, b"matrix-second-tag")
+            drain()
+            self.assertEqual(len(reflections(reduced_callbacks)), 1)
+            self.assertEqual(len(reflections(default_callbacks)), 2)
+            self.assertEqual(reflections(default_callbacks)[-1][2], b"matrix-second-tag")
+
+            # A new active subscription increments the C++ projection
+            # generation. Its admission key must not inherit the previous
+            # reduced stream's wall-clock timestamp.
+            reduced.unsubscribeObjectClassAttributes(reduced_class, reduced_attributes)
+            reduced.subscribeObjectClassAttributes(
+                reduced_class,
+                reduced_attributes,
+                active=True,
+                updateRateDesignator="Low",
+            )
+            publisher.updateAttributeValues(object_instance, values, b"matrix-third-tag")
+            drain()
+            self.assertEqual(len(reflections(reduced_callbacks)), 2)
+            self.assertEqual(len(reflections(default_callbacks)), 3)
+            self.assertEqual(reflections(reduced_callbacks)[-1][2], b"matrix-third-tag")
+        finally:
+            if publisher_joined and object_instance is not None:
+                try:
+                    publisher.deleteObjectInstance(object_instance)
+                except Exception:
+                    pass
+            if default_joined:
+                try:
+                    default.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if reduced_joined:
+                try:
+                    reduced.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if publisher_joined:
+                try:
+                    publisher.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    publisher.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if default_connected:
+                try:
+                    default.disconnect()
+                except Exception:
+                    pass
+            if reduced_connected:
+                try:
+                    reduced.disconnect()
+                except Exception:
+                    pass
+            if publisher_connected:
+                try:
+                    publisher.disconnect()
+                except Exception:
+                    pass
+            default._implementation.close()
+            reduced._implementation.close()
+            publisher._implementation.close()
+
     def test_cpp_jni_java_jpype_timestamped_update_survives_ownership_transfer(
         self,
     ) -> None:

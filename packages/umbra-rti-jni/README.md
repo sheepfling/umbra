@@ -217,6 +217,11 @@ C++ no-op semantics survive matching teardown.
 The regional-rate vector additionally invokes the standard named-rate
 subscription overload and preserves the C++ scope-advisory callbacks,
 including the `High` update-rate designator, through JPype.
+The update-rate matrix then drives two independent standard Java subscribers:
+the `Low` best-effort stream is gated while an `HLAdefault` subscriber receives
+the same immediate passels, and an unsubscribe/resubscribe creates a fresh C++
+projection-generation admission key. The queried FDD and per-attribute rates
+are retained through the same Java and JPype surface.
 The ownership-transfer vector also verifies that C++ clears the former owner's
 association: the new owner's first update carries the empty/default region
 designator, and a later explicit association carries the new owner's region.

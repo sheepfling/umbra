@@ -449,12 +449,15 @@ overload with its fifth argument.
 
 With `UMBRA_JNI_REQUIRE_RUNTIME_SERVICE_COVERAGE=1`, the external suite also
 wraps the concrete JPype façade for accounting and executes all 184 services
-at runtime. The current external run passed this runtime gate (159 test cases,
-all 159 passed), including services selected through
+at runtime. The current external run passed this runtime gate, including
+services selected through
 family loops and function references. It additionally proves RTI-owned
 joined-federate MOM discovery, initial/requested reflection, and removal, plus
 timestamped per-attribute update-rate reduction with reliable delivery and
-retraction consumption, through the independent IEEE Java API.
+retraction consumption, and the two-subscriber update-rate matrix proves
+default-rate delivery remains independent from a gated `Low` stream while an
+unsubscribe/resubscribe projection generation admits a fresh best-effort
+passel, through the independent IEEE Java API.
 
 The companion structural gates assert that every Java fixture
 `RTIambassador` name/arity has a Java proxy dispatch branch, each declared JNI
