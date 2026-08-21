@@ -139,8 +139,16 @@ try {
 
 if ($RunSmokeTest) {
     $classpath = "$apiJarPath$([System.IO.Path]::PathSeparator)$jarPath"
-    & java "-Dumbra.rti.jni.library=$nativeLibraryPath" -cp $classpath `
-        org.umbra.jni.rti1516_2025.NativeSmokeTest
+    $smokeArguments = @(
+        "-Dumbra.rti.jni.library=$nativeLibraryPath",
+        "-cp", $classpath,
+        "org.umbra.jni.rti1516_2025.NativeSmokeTest"
+    )
+    $smokeFomModule = Join-Path $repositoryRoot "third_party\ieee1516.2-2025\resources\examples\RestaurantFOMmodule-2025.xml"
+    if (Test-Path -LiteralPath $smokeFomModule -PathType Leaf) {
+        $smokeArguments += $smokeFomModule
+    }
+    & java @smokeArguments
     if ($LASTEXITCODE -ne 0) {
         throw "JNI Java RTI smoke test failed with exit code $LASTEXITCODE"
     }

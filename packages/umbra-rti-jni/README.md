@@ -391,6 +391,12 @@ Build and run the Java-side smoke test from this directory:
 .\build.ps1 -RunSmokeTest
 ```
 
+The smoke run covers the Java `ServiceLoader`, native encoder, connection and
+callback path, missing-federation reporting, and—when the checked-in 2025
+Restaurant FOM is available—create/join/member-report/handle-lookup/resign/
+destroy lifecycle calls. These operations all enter the C++ RTI through the
+standard Java `RTIambassador`; the Java façade owns no federation state.
+
 For a consumer or release build, pass the independently obtained standard API
 JAR explicitly. It remains a dependency on the application class path; Umbra
 does not repackage its declarations into the provider JAR.

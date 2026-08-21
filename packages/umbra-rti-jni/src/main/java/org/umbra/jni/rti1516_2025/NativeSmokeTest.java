@@ -3,9 +3,11 @@ package org.umbra.jni.rti1516_2025;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.ConfigurationResult;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.RtiFactoryFactory;
+import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger16LE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
@@ -76,6 +78,7 @@ public final class NativeSmokeTest {
       }
       RTIambassador ambassador = factory.getRtiAmbassador();
       AtomicInteger executionReports = new AtomicInteger();
+      AtomicInteger memberReports = new AtomicInteger();
       AtomicReference<String> missingFederation = new AtomicReference<>();
       FederateAmbassador callbacks = (FederateAmbassador) Proxy.newProxyInstance(
          FederateAmbassador.class.getClassLoader(),
@@ -83,6 +86,8 @@ public final class NativeSmokeTest {
          (proxy, method, invocationArguments) -> {
             if ("reportFederationExecutions".equals(method.getName())) {
                executionReports.incrementAndGet();
+            } else if ("reportFederationExecutionMembers".equals(method.getName())) {
+               memberReports.incrementAndGet();
             } else if ("reportFederationExecutionDoesNotExist".equals(method.getName())) {
                missingFederation.set((String) invocationArguments[0]);
             }
@@ -109,6 +114,30 @@ public final class NativeSmokeTest {
       ambassador.evokeCallback(0.0);
       if (!"jni-missing-federation".equals(missingFederation.get())) {
          throw new AssertionError("C++ missing-federation callback did not reach Java");
+      }
+      if (arguments.length > 0) {
+         String federationName = "jni-smoke-membership-" + System.nanoTime();
+         ambassador.createFederationExecution(
+            federationName,
+            arguments[0],
+            "HLAinteger64Time");
+         FederateHandle member = ambassador.joinFederationExecution(
+            "jni-smoke-member",
+            "jni-smoke-type",
+            federationName);
+         if (member == null || member.encodedLength() == 0) {
+            throw new AssertionError("C++ membership did not return a federate handle");
+         }
+         ambassador.listFederationExecutionMembers(federationName);
+         ambassador.evokeCallback(0.0);
+         if (memberReports.get() != 1) {
+            throw new AssertionError("C++ membership report did not reach Java");
+         }
+         if (!"jni-smoke-member".equals(ambassador.getFederateName(member))) {
+            throw new AssertionError("C++ federate handle/name lookup did not round-trip");
+         }
+         ambassador.resignFederationExecution(ResignAction.NO_ACTION);
+         ambassador.destroyFederationExecution(federationName);
       }
       ambassador.disconnect();
       ambassador.disconnect();
