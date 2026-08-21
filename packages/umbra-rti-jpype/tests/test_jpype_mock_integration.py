@@ -496,6 +496,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         # directory for process cleanup after the one integration JVM exits.
         cls._temporary_directory = Path(tempfile.mkdtemp(prefix="umbra-mock-java-rti-"))
         jar_path = build_mock_java_rti(cls._temporary_directory)
+        cls._jar_path = jar_path
         cls.factory = JavaRtiFactory(
             JavaProviderConfiguration(
                 classpath=(str(jar_path),),
@@ -4356,6 +4357,17 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(ambassador.queryLookahead().getInterval(), 2)
         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
         ambassador.disconnect()
+
+    def test_probe_jar_uses_standard_factory_factory_without_connecting(self) -> None:
+        probe = JavaRtiFactory.probe_jar(
+            self._jar_path,
+            factory_name="Umbra Mock Java RTI",
+        )
+
+        self.assertEqual(probe.rti_name, "Umbra Mock Java RTI")
+        self.assertEqual(probe.rti_version, "2025.mock")
+        self.assertEqual(probe.configuration.classpath, (str(self._jar_path),))
+        self.assertEqual(probe.factory.rtiName(), "Umbra Mock Java RTI")
 
     def test_real_jvm_restore_preserves_deferred_lookahead_decrease(self) -> None:
         ambassador = self.factory.getRtiAmbassador()

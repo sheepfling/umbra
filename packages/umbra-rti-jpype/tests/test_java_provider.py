@@ -75,7 +75,7 @@ from hla.rti1516_2025.exceptions import (
     InvalidLogicalTimeInterval,
     RTIinternalError,
 )
-from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory
+from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory, JavaRtiProbe
 from umbra._java.rti1516_2025.provider import JavaRTIambassador
 from umbra._java.rti1516_2025._runtime import (
     JavaCallbackBinding,
@@ -4179,3 +4179,24 @@ class JavaProviderTest(unittest.TestCase):
                 "-Djava.library.path="
             )
         )
+
+    def test_probe_jar_resolves_standard_factory_metadata_without_ambassador(self) -> None:
+        probe = JavaRtiFactory.probe_jar(
+            "vendor-rti.jar",
+            factory_name="Vendor RTI",
+            dependencies=("vendor-support.jar",),
+            runtime=self.runtime,
+        )
+
+        self.assertIsInstance(probe, JavaRtiProbe)
+        self.assertEqual(probe.rti_name, "Fake Java RTI")
+        self.assertEqual(probe.rti_version, "2025.test")
+        self.assertEqual(
+            probe.configuration.classpath,
+            ("vendor-rti.jar", "vendor-support.jar"),
+        )
+        self.assertIs(probe.factory.unwrap_java_factory(), self.runtime.factory)
+
+        direct_probe = probe.factory.probe()
+        self.assertEqual(direct_probe.rti_name, probe.rti_name)
+        self.assertIs(direct_probe.factory, probe.factory)

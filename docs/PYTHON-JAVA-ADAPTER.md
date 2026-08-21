@@ -47,6 +47,12 @@ This still delegates to the exact standard Java `RtiFactoryFactory` and
 `ServiceLoader` path; dependency JARs and a native-library path can also be
 supplied through the helper.
 
+For a preflight check, `JavaRtiFactory.probe_jar(...)` resolves the same
+standard factory and returns `JavaRtiProbe` metadata (`rti_name` and
+`rti_version`) together with the ready-to-use factory. The probe performs no
+ambassador, connection, or federation calls, so an application can reject an
+incompatible JAR before beginning RTI work.
+
 The equivalent environment configuration is intentionally separate from the
 Java-standard default-provider environment variable:
 

@@ -58,6 +58,18 @@ standard Java `hla.rti1516_2025.RtiFactoryFactory`/`ServiceLoader` flow. The
 IEEE API JAR must still be present on the classpath when the vendor JAR does
 not bundle it.
 
+To validate a JAR before connecting, use the metadata-only probe:
+
+```python
+probe = JavaRtiFactory.probe_jar("vendor-rti.jar", factory_name="Pitch RTI")
+print(probe.rti_name, probe.rti_version)
+ambassador = probe.factory.getRtiAmbassador()
+```
+
+The probe invokes only the standard `RtiFactoryFactory` and the required
+`RtiFactory.rtiName()`/`rtiVersion()` methods. It does not connect or create
+federation state.
+
 Package discovery can select the Java *transport* without starting every
 installed provider. Keep the Java vendor's factory name separate from the
 Python transport alias:

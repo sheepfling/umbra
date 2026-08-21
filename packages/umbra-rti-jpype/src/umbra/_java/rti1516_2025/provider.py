@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import dataclass
 import math
 from pathlib import Path
 from typing import Any, Callable, TypeVar
@@ -2738,6 +2739,16 @@ class JavaRTIambassador(RTIambassador):
             raise exceptionForName(name, str(error)) from error
 
 
+@dataclass(frozen=True, slots=True)
+class JavaRtiProbe:
+    """Metadata discovered from one standard Java ``RtiFactory``."""
+
+    factory: "JavaRtiFactory"
+    rti_name: str
+    rti_version: str
+    configuration: JavaProviderConfiguration
+
+
 class JavaRtiFactory(RtiFactory):
     """A discovered provider that delegates to a selected Java RTI factory."""
 
@@ -2777,6 +2788,39 @@ class JavaRtiFactory(RtiFactory):
             runtime=runtime,
         )
 
+    @classmethod
+    def probe_jar(
+        cls,
+        jar: str | Path,
+        *,
+        factory_name: str | None = None,
+        dependencies: tuple[str | Path, ...] = (),
+        jvm_path: str | None = None,
+        jvm_options: tuple[str, ...] = (),
+        native_library_path: str | Path | None = None,
+        convert_strings: bool = False,
+        runtime: JavaRuntime | None = None,
+    ) -> JavaRtiProbe:
+        """Validate and describe a vendor JAR through standard discovery.
+
+        The probe resolves ``RtiFactoryFactory``/``ServiceLoader`` and reads
+        only ``RtiFactory.rtiName()`` and ``RtiFactory.rtiVersion()``. It does
+        not create an ambassador, connect, or create federation state. The
+        returned factory is ready for those later calls.
+        """
+
+        factory = cls.from_jar(
+            jar,
+            factory_name=factory_name,
+            dependencies=dependencies,
+            jvm_path=jvm_path,
+            jvm_options=jvm_options,
+            native_library_path=native_library_path,
+            convert_strings=convert_strings,
+            runtime=runtime,
+        )
+        return factory.probe()
+
     def __init__(
         self,
         configuration: JavaProviderConfiguration | None = None,
@@ -2790,6 +2834,16 @@ class JavaRtiFactory(RtiFactory):
     def getRtiAmbassador(self) -> RTIambassador:
         implementation = self._call(getattr(self._java_factory(), "getRtiAmbassador"))
         return JavaRTIambassador(implementation, self._runtime)
+
+    def probe(self) -> JavaRtiProbe:
+        """Read standard factory identity without creating an ambassador."""
+
+        return JavaRtiProbe(
+            factory=self,
+            rti_name=self.rtiName(),
+            rti_version=self.rtiVersion(),
+            configuration=self._configuration,
+        )
 
     def getEncoderFactory(self) -> EncoderFactory:
         implementation = self._call(getattr(self._java_factory(), "getEncoderFactory"))

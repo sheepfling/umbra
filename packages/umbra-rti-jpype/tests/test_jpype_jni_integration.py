@@ -820,6 +820,17 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
         )
         java_ambassador.close()
 
+    def test_jni_factory_probe_reads_standard_identity_without_ambassador(self) -> None:
+        probe = self.factory.probe()
+
+        self.assertIs(probe.factory, self.factory)
+        self.assertEqual(probe.rti_name, self.factory.JAVA_FACTORY_NAME)
+        self.assertTrue(probe.rti_version)
+        self.assertEqual(
+            probe.configuration.classpath,
+            (str(self.artifacts.api_jar), str(self.artifacts.bridge_jar)),
+        )
+
     def test_jni_bridge_artifact_does_not_shadow_external_api(self) -> None:
         """Keep the standard API in the supplied JAR, not in the JNI bridge."""
         with zipfile.ZipFile(self.artifacts.bridge_jar) as bridge:
