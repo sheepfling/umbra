@@ -152,6 +152,10 @@ struct FederateMembership {
   // and Register Object Instance with Regions invocations in this joined
   // federate lifetime.
   std::uint64_t successfulObjectInstanceRegistrationsCount = 0;
+  // HLAobjectInstancesDeleted counts accepted Delete Object Instance
+  // invocations, including timestamped queue admission, in this joined
+  // federate lifetime. Retraction does not erase the historical invocation.
+  std::uint64_t successfulObjectInstanceDeletionsCount = 0;
 };
 
 // A federation-owned snapshot captured while the registry holds its member
@@ -563,8 +567,8 @@ struct JoinedFederateMomObjectSnapshot {
   // the bounded direct-request projection for HLAlogicalTime/HLAlookahead/
   // HLAGALT/HLALITS/HLATSOlength/HLAupdatesSent/
   // HLAobjectInstancesThatCanBeDeleted/HLAobjectInstancesUpdated/
-  // HLAobjectInstancesRegistered are encoded through the ordinary reflection
-  // planner.
+  // HLAobjectInstancesRegistered/HLAobjectInstancesDeleted are encoded
+  // through the ordinary reflection planner.
   // HLAsetTiming schedules the catalog-declared Periodic subset at an Evoke
   // boundary or through the
   // embedded HLA_IMMEDIATE scheduler; remaining dynamic values remain later

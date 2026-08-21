@@ -12704,7 +12704,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                             return reflection
                     time.sleep(0.025)
                 self.fail(
-                    "timed out waiting for the standard Java HLAobjectInstancesUpdated MOM value"
+                    "timed out waiting for the standard Java joined-federate MOM value"
                 )
 
             try:
@@ -12738,6 +12738,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 registered_objects_attribute = observer.getAttributeHandle(
                     mom_class, "HLAobjectInstancesRegistered"
                 )
+                deleted_objects_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAobjectInstancesDeleted"
+                )
                 observer.subscribeObjectClassAttributes(
                     mom_class,
                     AttributeHandleSet(
@@ -12746,6 +12749,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                             updates_sent_attribute,
                             updated_objects_attribute,
                             registered_objects_attribute,
+                            deleted_objects_attribute,
                         ]
                     ),
                     active=True,
@@ -12801,6 +12805,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 request_count(updates_sent_attribute, 0)
                 request_count(updated_objects_attribute, 0)
                 request_count(registered_objects_attribute, 0)
+                request_count(deleted_objects_attribute, 0)
 
                 subject_class = subject.getObjectClassHandle(
                     "HLAobjectRoot.Employee.Server"
@@ -12860,19 +12865,23 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                         or updates_sent_attribute not in set(reflection[1])
                         or updated_objects_attribute not in set(reflection[1])
                         or registered_objects_attribute not in set(reflection[1])
+                        or deleted_objects_attribute not in set(reflection[1])
                     ):
                         return False
                     updates = encoder.createHLAinteger32BE()
                     updated_objects = encoder.createHLAinteger32BE()
                     registered_objects = encoder.createHLAinteger32BE()
+                    deleted_objects = encoder.createHLAinteger32BE()
                     values = dict(reflection[1])
                     updates.decode(values[updates_sent_attribute])
                     updated_objects.decode(values[updated_objects_attribute])
                     registered_objects.decode(values[registered_objects_attribute])
+                    deleted_objects.decode(values[deleted_objects_attribute])
                     return (
                         updates.getValue() == 3
                         and updated_objects.getValue() == 2
                         and registered_objects.getValue() == 2
+                        and deleted_objects.getValue() == 0
                     )
 
                 periodic = wait_for_reflection(periodic_is_complete)
@@ -12884,9 +12893,12 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 periodic_objects.decode(periodic_values[updated_objects_attribute])
                 periodic_registered = encoder.createHLAinteger32BE()
                 periodic_registered.decode(periodic_values[registered_objects_attribute])
+                periodic_deleted = encoder.createHLAinteger32BE()
+                periodic_deleted.decode(periodic_values[deleted_objects_attribute])
                 self.assertEqual(periodic_updates.getValue(), 3)
                 self.assertEqual(periodic_objects.getValue(), 2)
                 self.assertEqual(periodic_registered.getValue(), 2)
+                self.assertEqual(periodic_deleted.getValue(), 0)
 
                 observer.sendInteraction(
                     set_timing,
@@ -12901,7 +12913,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                     b"",
                 )
                 subject.deleteObjectInstance(first_object)
+                request_count(deleted_objects_attribute, 1)
                 subject.deleteObjectInstance(second_object)
+                request_count(deleted_objects_attribute, 2)
             finally:
                 for ambassador, joined in (
                     (subject, subject_joined),

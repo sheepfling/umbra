@@ -5196,6 +5196,13 @@ EmbeddedFederationRegistry::enqueueTsoObjectDeletion(
             ObjectInstanceDeletionStatus::inconsistent_catalog};
   }
 
+  auto const deletingMember = federation->second.members.find(producingFederateId);
+  if (deletingMember != federation->second.members.end() &&
+      deletingMember->second.successfulObjectInstanceDeletionsCount !=
+          std::numeric_limits<std::uint64_t>::max()) {
+    ++deletingMember->second.successfulObjectInstanceDeletionsCount;
+  }
+
   // No other federate knows this object.  The deletion is accepted without a
   // callback, while a queued or immediate recipient keeps the object alive
   // until its corresponding Remove Object Instance boundary.  Keep the
@@ -8043,6 +8050,18 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     // Register Object Instance and Register Object Instance with Regions
     // invocations by the represented joined federate since Join.
     auto const count = member->second.successfulObjectInstanceRegistrationsCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAobjectInstancesDeleted") {
+    // HLAstandardMIM defines this HLAcount as the total number of Delete
+    // Object Instance service invocations accepted for the represented joined
+    // federate since Join, regardless of whether a later Retract restores a
+    // timestamped deletion's object state.
+    auto const count = member->second.successfulObjectInstanceDeletionsCount;
     auto const encodedCount = count >
             static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
         ? std::numeric_limits<std::int32_t>::max()
@@ -11730,6 +11749,12 @@ ObjectInstanceDeletionPlan EmbeddedFederationRegistry::deleteObjectInstance(
   instance->second.pendingConfirmDivestitureNotifications.clear();
   instance->second.knownObjectClassHandlesByFederate.erase(deletingFederateId);
   instance->second.deleteAccepted = true;
+  auto const deletingMember = federation->second.members.find(deletingFederateId);
+  if (deletingMember != federation->second.members.end() &&
+      deletingMember->second.successfulObjectInstanceDeletionsCount !=
+          std::numeric_limits<std::uint64_t>::max()) {
+    ++deletingMember->second.successfulObjectInstanceDeletionsCount;
+  }
   if (canPurgeDeletedObjectInstance(instance->second)) {
     federation->second.objectInstanceHandlesByName.erase(instance->second.name);
     federation->second.objectInstances.erase(instance);

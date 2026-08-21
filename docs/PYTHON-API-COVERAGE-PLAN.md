@@ -202,7 +202,9 @@ handle set: repeated updates to one object leave the count at one, a second
 object raises it to two, and periodic reflection carries both that value and
 `HLAupdatesSent=3` through the standard Java route. The same vector checks
 `HLAobjectInstancesRegistered` at zero, one, and two across the corresponding
-registration boundaries.
+registration boundaries, and carries `HLAobjectInstancesDeleted` through
+periodic reflection at zero before the two accepted deletions and through
+direct requests at one and two afterward.
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, observes the RTI-owned `HLAFOMmoduleDesignatorList`
 through standard MOM reflection, decodes the `HLAmoduleDesignatorList` with the
