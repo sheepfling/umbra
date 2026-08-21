@@ -11979,6 +11979,228 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_deletable_object_count(
+        self,
+    ) -> None:
+        """Expose the standard HLAcount for federate-owned delete privileges."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+
+        def run_scenario(callback_model: CallbackModel) -> None:
+            federation_name = f"python-jni-deletable-count-{uuid4()}"
+            subject = self.factory.getRtiAmbassador()
+            observer = self.factory.getRtiAmbassador()
+            subject_callbacks = _JniCallbacks()
+            observer_callbacks = _JniCallbacks()
+            subject_connected = observer_connected = False
+            subject_joined = observer_joined = created = False
+
+            def pump() -> None:
+                if callback_model is CallbackModel.HLA_EVOKED:
+                    observer.evokeCallback(0.0)
+
+            def wait_for_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    for reflection in observer_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail(
+                    "timed out waiting for the standard Java deletable-object MOM value"
+                )
+
+            try:
+                subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+                subject_connected = True
+                observer.connect(observer_callbacks, callback_model)
+                observer_connected = True
+                subject.createFederationExecution(
+                    federation_name, str(fom_module), "HLAinteger64Time"
+                )
+                created = True
+                observer.joinFederationExecution(
+                    "deletable-count-observer",
+                    federation_name,
+                    federateName="deletable-count-observer",
+                )
+                observer_joined = True
+
+                mom_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                federate_handle_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAfederateHandle"
+                )
+                deletable_count_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAobjectInstancesThatCanBeDeleted"
+                )
+                observer.subscribeObjectClassAttributes(
+                    mom_class,
+                    AttributeHandleSet(
+                        [federate_handle_attribute, deletable_count_attribute]
+                    ),
+                    active=True,
+                )
+
+                subject_handle = subject.joinFederationExecution(
+                    "deletable-count-subject",
+                    federation_name,
+                    federateName="deletable-count-subject",
+                )
+                subject_joined = True
+                initial = wait_for_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        federate_handle_attribute
+                    )
+                    == subject_handle.encodedValue
+                )
+                subject_object = initial[0]
+                reliable = observer.getTransportationTypeHandle("HLAreliable")
+                encoder = self.factory.getEncoderFactory()
+
+                def assert_rti_reflection(reflection: tuple[object, ...]) -> None:
+                    self.assertEqual(reflection[0], subject_object)
+                    self.assertEqual(reflection[3], reliable)
+                    self.assertEqual(reflection[2], b"")
+                    self.assertFalse(any(reflection[4].encodedValue[4:]))
+
+                def request_count(expected: int) -> tuple[object, ...]:
+                    before = len(observer_callbacks.reflected_attributes)
+                    observer.requestAttributeValueUpdate(
+                        subject_object,
+                        AttributeHandleSet([deletable_count_attribute]),
+                        b"",
+                    )
+
+                    def is_expected(candidate: tuple[object, ...]) -> bool:
+                        if (
+                            len(observer_callbacks.reflected_attributes) <= before
+                            or candidate[0] != subject_object
+                            or deletable_count_attribute not in set(candidate[1])
+                        ):
+                            return False
+                        candidate_count = encoder.createHLAinteger32BE()
+                        candidate_count.decode(
+                            dict(candidate[1])[deletable_count_attribute]
+                        )
+                        return candidate_count.getValue() == expected
+
+                    reflection = wait_for_reflection(is_expected)
+                    assert_rti_reflection(reflection)
+                    count = encoder.createHLAinteger32BE()
+                    count.decode(dict(reflection[1])[deletable_count_attribute])
+                    self.assertEqual(count.getValue(), expected)
+                    return reflection
+
+                request_count(0)
+
+                subject_class = subject.getObjectClassHandle(
+                    "HLAobjectRoot.Employee.Server"
+                )
+                efficiency_attribute = subject.getAttributeHandle(
+                    subject_class, "Efficiency"
+                )
+                subject.publishObjectClassAttributes(
+                    subject_class, AttributeHandleSet([efficiency_attribute])
+                )
+                registered_object = subject.registerObjectInstance(subject_class)
+                self.assertTrue(registered_object.encodedValue)
+                request_count(1)
+
+                set_timing = observer.getInteractionClassHandle(
+                    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
+                )
+                federate_parameter = observer.getParameterHandle(
+                    set_timing, "HLAfederate"
+                )
+                period_parameter = observer.getParameterHandle(
+                    set_timing, "HLAreportPeriod"
+                )
+
+                def send_timing(period: int) -> None:
+                    observer.sendInteraction(
+                        set_timing,
+                        ParameterHandleValueMap(
+                            {
+                                federate_parameter: subject_handle.encodedValue,
+                                period_parameter: encoder.createHLAinteger32BE(
+                                    period
+                                ).toByteArray(),
+                            }
+                        ),
+                        b"",
+                    )
+
+                send_timing(1)
+                before_periodic = len(observer_callbacks.reflected_attributes)
+
+                def periodic_is_one(reflection: tuple[object, ...]) -> bool:
+                    if (
+                        len(observer_callbacks.reflected_attributes) <= before_periodic
+                        or reflection[0] != subject_object
+                        or deletable_count_attribute not in set(reflection[1])
+                    ):
+                        return False
+                    periodic_value = encoder.createHLAinteger32BE()
+                    periodic_value.decode(
+                        dict(reflection[1])[deletable_count_attribute]
+                    )
+                    return periodic_value.getValue() == 1
+
+                periodic = wait_for_reflection(
+                    periodic_is_one
+                )
+                assert_rti_reflection(periodic)
+                periodic_count = encoder.createHLAinteger32BE()
+                periodic_count.decode(
+                    dict(periodic[1])[deletable_count_attribute]
+                )
+                self.assertEqual(periodic_count.getValue(), 1)
+
+                send_timing(0)
+                subject.deleteObjectInstance(registered_object)
+                request_count(0)
+            finally:
+                if subject_joined:
+                    try:
+                        subject.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                if observer_joined:
+                    try:
+                        observer.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                if created:
+                    try:
+                        subject.destroyFederationExecution(federation_name)
+                    except Exception:
+                        pass
+                for ambassador, connected in (
+                    (observer, observer_connected),
+                    (subject, subject_connected),
+                ):
+                    if connected:
+                        try:
+                            ambassador.disconnect()
+                        except Exception:
+                            pass
+                    ambassador._implementation.close()
+
+        for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
+            with self.subTest(callback_model=callback_model):
+                run_scenario(callback_model)
+
     def test_cpp_jni_java_jpype_joined_federate_mom_snapshot_uses_join_fom_modules(
         self,
     ) -> None:

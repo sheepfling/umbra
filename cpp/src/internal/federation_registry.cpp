@@ -7950,15 +7950,53 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
   if (*attributeName == "HLAsendServiceReportsToFile") {
     return encodeSwitch(member->second.sendServiceReportsToFileSwitch);
   }
+  if (*attributeName == "HLAobjectInstancesThatCanBeDeleted") {
+    // HLAstandardMIM defines this HLAcount as the number of live
+    // federate-created object instances whose HLAprivilegeToDeleteObject
+    // attribute is owned by the represented joined federate. The object
+    // ownership ledger is authoritative; RTI-owned MOM objects are kept in a
+    // separate map and are intentionally not included.
+    std::size_t count = 0U;
+    if (federation.definition.catalog && federation.objectClassHandles &&
+        federation.attributeHandles) {
+      for (auto const& [objectHandle, objectInstance] : federation.objectInstances) {
+        static_cast<void>(objectHandle);
+        auto const objectClassName = federation.objectClassHandles->nameFor(
+            objectInstance.registeredObjectClassHandle);
+        if (!objectClassName) {
+          continue;
+        }
+        auto const privilegeToDelete = federation.attributeHandles->handleFor(
+            federation.definition.catalog.get(),
+            *objectClassName,
+            "HLAprivilegeToDeleteObject");
+        if (!privilegeToDelete) {
+          continue;
+        }
+        auto const privilegeOwner = objectInstance.attributeOwnersByHandle.find(
+            *privilegeToDelete);
+        if (privilegeOwner != objectInstance.attributeOwnersByHandle.end() &&
+            privilegeOwner->second == object.joinedFederateId) {
+          ++count;
+        }
+      }
+    }
+    auto const encodedCount = count >
+            static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
   if (!timeSnapshot) {
     return std::nullopt;
   }
-  // IEEE 1516.2-2025 HLAstandardMIM marks HLAlogicalTime and HLAlookahead
-  // Periodic, but IEEE 1516.1-2025 §11.4.1 still requires the RTI to supply
-  // values for a direct Request Attribute Value Update regardless of whether
-  // HLAsetTiming has ever enabled periodic reporting.  Use the selected
-  // official logical-time provider's own wire representation; an undefined
-  // value is represented by the MIM's empty variable-array form.
+  // IEEE 1516.2-2025 HLAstandardMIM marks HLAlogicalTime, HLAlookahead,
+  // HLAGALT, and HLALITS Periodic, but IEEE 1516.1-2025 §11.4.1 still
+  // requires the RTI to supply values for a direct Request Attribute Value
+  // Update regardless of whether HLAsetTiming has ever enabled periodic
+  // reporting.  Use the selected official logical-time provider's own wire
+  // representation; an undefined value is represented by the MIM's empty
+  // variable-array form.
   if (*attributeName == "HLAlogicalTime") {
     return timeSnapshot->currentTime
         ? timeSnapshot->currentTime->encode()
