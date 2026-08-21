@@ -8531,18 +8531,37 @@ EmbeddedFederationRegistry::candidateAttributeOwnershipQueryRecipient(
     return std::nullopt;
   }
 
+  // RTI-owned joined-federate MOM objects have a separate lifetime and known
+  // instance ledger. Keep this branch before the federate-created object map:
+  // the object handle namespace is shared, but the two ownership models are
+  // deliberately not represented by one synthetic owner ID.
+  auto const momObject = federation.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  bool const rtiOwnedMomObject =
+      momObject != federation.rtiOwnedJoinedFederateMomObjects.end();
   auto const instance = federation.objectInstances.find(objectInstanceHandle);
   // A pending Remove Object Instance invalidates every queued ownership report
   // for that instance before a federate callback may be made.
-  if (instance == federation.objectInstances.end() || instance->second.deleteAccepted) {
+  if (!rtiOwnedMomObject &&
+      (instance == federation.objectInstances.end() || instance->second.deleteAccepted)) {
     return std::nullopt;
   }
-  auto const knownClass = instance->second.knownObjectClassHandlesByFederate.find(
-      requestingFederateId);
-  if (knownClass == instance->second.knownObjectClassHandlesByFederate.end()) {
-    return std::nullopt;
+
+  std::uint64_t knownClassHandle = 0;
+  if (rtiOwnedMomObject) {
+    if (!momObject->second.knownFederateIds.contains(requestingFederateId)) {
+      return std::nullopt;
+    }
+    knownClassHandle = momObject->second.objectClassHandle;
+  } else {
+    auto const knownClass = instance->second.knownObjectClassHandlesByFederate.find(
+        requestingFederateId);
+    if (knownClass == instance->second.knownObjectClassHandlesByFederate.end()) {
+      return std::nullopt;
+    }
+    knownClassHandle = knownClass->second;
   }
-  auto const knownClassName = federation.objectClassHandles->nameFor(knownClass->second);
+  auto const knownClassName = federation.objectClassHandles->nameFor(knownClassHandle);
   if (!knownClassName ||
       federation.definition.catalog->objectClass(*knownClassName) == nullptr) {
     return std::nullopt;
@@ -8561,17 +8580,33 @@ EmbeddedFederationRegistry::candidateAttributeOwnershipQueryRecipient(
       continue;
     }
 
-    auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
+    if (rtiOwnedMomObject &&
+        !momObject->second.effectiveAttributeHandles.contains(attributeHandle)) {
+      continue;
+    }
+    std::optional<std::uint64_t> ownerId;
+    if (!rtiOwnedMomObject) {
+      auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
+      if (owner != instance->second.attributeOwnersByHandle.end()) {
+        ownerId = owner->second;
+      }
+    }
     switch (reportKind) {
       case AttributeOwnershipQueryReportKind::federate:
-        if (owner != instance->second.attributeOwnersByHandle.end() &&
-            owner->second == owningFederateId &&
+        if (!rtiOwnedMomObject &&
+            ownerId && *ownerId == owningFederateId &&
             federation.members.contains(owningFederateId)) {
           recipient.attributeHandles.insert(attributeHandle);
         }
         break;
       case AttributeOwnershipQueryReportKind::unowned:
-        if (owner == instance->second.attributeOwnersByHandle.end()) {
+        if (!rtiOwnedMomObject &&
+            !ownerId) {
+          recipient.attributeHandles.insert(attributeHandle);
+        }
+        break;
+      case AttributeOwnershipQueryReportKind::rti:
+        if (rtiOwnedMomObject) {
           recipient.attributeHandles.insert(attributeHandle);
         }
         break;
@@ -11930,6 +11965,49 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeOwnershipQueryStatus::requesting_federate_not_member};
   }
+  // RTI-owned joined-federate MOM instances are not federate-created object
+  // instances. Their ownership answer is nevertheless a normal standard
+  // Query Attribute Ownership result, delivered to the requesting federate
+  // through its callback route.
+  auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
+    if (!momObject->second.knownFederateIds.contains(requestingFederateId)) {
+      return {AttributeOwnershipQueryStatus::object_instance_not_known};
+    }
+    if (!federation->second.definition.catalog ||
+        !federation->second.objectClassHandles ||
+        !federation->second.attributeHandles) {
+      return {AttributeOwnershipQueryStatus::inconsistent_catalog};
+    }
+    auto const objectClassName = federation->second.objectClassHandles->nameFor(
+        momObject->second.objectClassHandle);
+    if (!objectClassName ||
+        federation->second.definition.catalog->objectClass(*objectClassName) == nullptr) {
+      return {AttributeOwnershipQueryStatus::inconsistent_catalog};
+    }
+    for (std::uint64_t const attributeHandle : requestedAttributeHandles) {
+      if (!momObject->second.effectiveAttributeHandles.contains(attributeHandle) ||
+          !federation->second.attributeHandles->nameFor(
+              federation->second.definition.catalog.get(),
+              *objectClassName,
+              attributeHandle)) {
+        return {AttributeOwnershipQueryStatus::attribute_not_defined};
+      }
+    }
+    AttributeOwnershipQueryPlan result;
+    auto recipient = candidateAttributeOwnershipQueryRecipient(
+        federation->second,
+        requestingFederateId,
+        objectInstanceHandle,
+        AttributeOwnershipQueryReportKind::rti,
+        0,
+        requestedAttributeHandles);
+    if (recipient) {
+      result.recipients.push_back(std::move(*recipient));
+    }
+    return result;
+  }
   auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
       !instance->second.knownObjectClassHandlesByFederate.contains(requestingFederateId)) {
@@ -12038,6 +12116,36 @@ AttributeOwnershipCheckResult EmbeddedFederationRegistry::attributeOwnedByFedera
   }
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeOwnershipCheckStatus::requesting_federate_not_member};
+  }
+  // A discovered RTI-owned MOM object is known to the requesting federate
+  // through the separate MOM ledger. Its attributes are valid object-class
+  // attributes but none are owned by the invoking federate, so answer the
+  // standard boolean query directly instead of reporting ObjectInstanceNotKnown.
+  auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
+    if (!momObject->second.knownFederateIds.contains(requestingFederateId)) {
+      return {AttributeOwnershipCheckStatus::object_instance_not_known};
+    }
+    if (!federation->second.definition.catalog ||
+        !federation->second.objectClassHandles ||
+        !federation->second.attributeHandles) {
+      return {AttributeOwnershipCheckStatus::inconsistent_catalog};
+    }
+    auto const objectClassName = federation->second.objectClassHandles->nameFor(
+        momObject->second.objectClassHandle);
+    if (!objectClassName ||
+        federation->second.definition.catalog->objectClass(*objectClassName) == nullptr) {
+      return {AttributeOwnershipCheckStatus::inconsistent_catalog};
+    }
+    if (!momObject->second.effectiveAttributeHandles.contains(attributeHandle) ||
+        !federation->second.attributeHandles->nameFor(
+            federation->second.definition.catalog.get(),
+            *objectClassName,
+            attributeHandle)) {
+      return {AttributeOwnershipCheckStatus::attribute_not_defined};
+    }
+    return {AttributeOwnershipCheckStatus::applied, false};
   }
   auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||

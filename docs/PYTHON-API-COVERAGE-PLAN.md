@@ -607,20 +607,20 @@ preserving `InteractionClassNotPublished` and decoding a distinct C++
 JPype.
 The JNI ownership slice now sends all eleven standard ownership services to
 the C++ ambassador. Its callback target has every nine standard ownership
-entry point, while the C++ state machine presently emits eight of them: owner
-reports, unowned reports, assumption offers, negotiated divestiture requests,
-acquisition notifications, release requests, unavailable reports, and
-acquisition-cancellation confirmations. The isolated two-member Python vector
-proves every implemented callback shape, binary tags, typed owner and
-attribute handles, the native boolean ownership query, and the C++ out
-parameter reconstructed as a public Python `AttributeHandleSet` by
-`attributeOwnershipDivestitureIfWanted`. The negative-path vector also proves
+entry point, while ordinary instances emit owner reports, unowned reports,
+assumption offers, negotiated divestiture requests, acquisition notifications,
+release requests, unavailable reports, and acquisition-cancellation
+confirmations. The isolated two-member Python vector proves every implemented
+callback shape, binary tags, typed owner and attribute handles, the native
+boolean ownership query, and the C++ out parameter reconstructed as a public
+Python `AttributeHandleSet` by `attributeOwnershipDivestitureIfWanted`. The
+same route now discovers RTI-owned joined-federate MOM objects and delivers
+the explicit standard `attributeIsOwnedByRTI` callback without inventing a
+federate handle; `isAttributeOwnedByFederate` returns false for those
+attributes. The negative-path vector also proves
 confirm-without-request (`AttributeDivestitureWasNotRequested`) and duplicate
 negotiated divestiture (`AttributeAlreadyBeingDivested`) across the exact
-Java API. `attributeIsOwnedByRTI` remains
-wired for standard completeness, but the current C++ ownership model
-represents released attributes as unowned and therefore does not produce that
-callback. A companion real-JVM negative-path vector now proves
+Java API. A companion real-JVM negative-path vector now proves
 `FederateNotExecutionMember`, `ObjectInstanceNotKnown`, and
 `AttributeNotDefined` survive the C++ → JNI → Java → JPype route with
 standards-valid handle encodings.

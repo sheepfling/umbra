@@ -325,13 +325,14 @@ callbacks; target handles, time/order/retraction metadata, and declaration
 teardown all reach the public Python adapter in the JNI integration vector.
 All eleven standard ownership services now also route to the C++ ambassador.
 The JNI federate-ambassador target declares all nine ownership callback
-methods and the opt-in two-member Python vector proves the eight callbacks
-that the current C++ ownership state machine emits, including ownership
+methods and the opt-in two-member Python vector proves the ownership
 assumption, query/report, transfer, denial, and cancellation flows. It also
 proves typed tag and handle conversion plus the C++ `AttributeHandleSet` out
-parameter of `attributeOwnershipDivestitureIfWanted`; the standard
-`attributeIsOwnedByRTI` entry point remains wired for future semantics, while
-the current C++ model reports released attributes as unowned. A companion
+parameter of `attributeOwnershipDivestitureIfWanted`. Discovered RTI-owned
+joined-federate MOM objects now use the explicit standard
+`attributeIsOwnedByRTI` callback without inventing a federate owner handle;
+the same vector checks `isAttributeOwnedByFederate` remains false for that
+object. A companion
 real-JVM negative-path vector proves membership, unknown-instance, and
 undefined-attribute ownership exceptions retain their standard Python types.
 That vector also proves an if-available request against an already-owned

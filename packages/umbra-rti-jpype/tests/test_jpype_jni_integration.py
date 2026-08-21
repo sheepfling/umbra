@@ -9326,6 +9326,32 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             self.assertTrue(discovered[2])
             self.assertFalse(any(discovered[3].encodedValue[4:]))
 
+            # HLAfederate is an RTI-owned MOM object, not a federate-created
+            # instance with an invented owner handle.  Querying its effective
+            # attribute must therefore reach the standard
+            # attributeIsOwnedByRTI callback through C++ -> JNI -> Java ->
+            # JPype, while the boolean ownership query remains false.
+            ownership_count = len(observer_callbacks.ownership_owned_by_rti)
+            observer.queryAttributeOwnership(
+                subject_object_instance,
+                AttributeHandleSet([report_file_attribute]),
+            )
+            while observer.evokeCallback(0.0):
+                pass
+            self.assertEqual(
+                len(observer_callbacks.ownership_owned_by_rti), ownership_count + 1
+            )
+            self.assertEqual(
+                observer_callbacks.ownership_owned_by_rti[-1],
+                (subject_object_instance, AttributeHandleSet([report_file_attribute])),
+            )
+            self.assertFalse(
+                observer.isAttributeOwnedByFederate(
+                    subject_object_instance,
+                    report_file_attribute,
+                )
+            )
+
             reflection_count = len(observer_callbacks.reflected_attributes)
             observer.requestAttributeValueUpdate(
                 subject_object_instance,

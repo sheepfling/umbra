@@ -3845,6 +3845,11 @@ void queueAttributeOwnershipQueryReport(
             makeObjectInstanceHandle(projection->objectInstanceHandle),
             attributes);
         return;
+      case umbra::detail::AttributeOwnershipQueryReportKind::rti:
+        requester.attributeIsOwnedByRTI(
+            makeObjectInstanceHandle(projection->objectInstanceHandle),
+            attributes);
+        return;
     }
   });
 }

@@ -927,11 +927,9 @@ struct AttributeValueUpdateClassRequestPlan {
 };
 
 // Private immutable routing result for the 2025 Query Attribute Ownership
-// foundation. The current runtime has only two ownership states that can be
-// reached through implemented services: a joined federate owns an attribute,
-// or it is available for acquisition. RTI-owned state is intentionally not
-// synthesized with a sentinel handle; it requires the later ownership-transfer
-// state model before Attribute Is Owned By RTI can be delivered faithfully.
+// foundation. Federate-created instances report a joined-federate owner or an
+// available attribute. RTI-created joined-federate MOM instances use the
+// explicit RTI-owned report kind; no sentinel federate handle is synthesized.
 enum class AttributeOwnershipQueryStatus {
   applied,
   federation_does_not_exist,
@@ -944,6 +942,7 @@ enum class AttributeOwnershipQueryStatus {
 enum class AttributeOwnershipQueryReportKind {
   federate,
   unowned,
+  rti,
 };
 
 struct AttributeOwnershipQueryRecipient {
@@ -2948,9 +2947,9 @@ class EmbeddedFederationRegistry final {
 
   // Validates a Query Attribute Ownership request at the requester's known
   // class, then groups requested attributes into their standard C++ owner
-  // reports. The bounded runtime can currently emit federate-owned and
-  // unowned reports only; RTI-owned state is reserved for later ownership
-  // transfer work rather than being encoded as an invented handle value.
+  // reports. Federate-created instances use federate/unowned reports;
+  // discovered RTI-owned joined-federate MOM instances use the explicit RTI
+  // report kind.
   [[nodiscard]] AttributeOwnershipQueryPlan planAttributeOwnershipQuery(
       std::wstring const& federationName,
       std::uint64_t requestingFederateId,
