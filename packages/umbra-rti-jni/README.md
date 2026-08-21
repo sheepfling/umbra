@@ -797,6 +797,11 @@ ownership services before the constrained recipient's grant, and then verifies
 through JPype that the original producer handle, copied value/tag, timestamp,
 `TIMESTAMP` order metadata, and live message-retraction handle are preserved.
 
+The companion restore vector saves the same C++ object while federate A owns its
+attribute, transfers ownership to federate B after save completion, and restores
+the image through both standard Java ambassadors. The post-restore ownership
+queries prove the saved C++ owner is reinstated and the later transfer is gone.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and

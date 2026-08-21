@@ -4841,6 +4841,194 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             peer._implementation.close()
             owner._implementation.close()
 
+    def test_cpp_jni_java_jpype_restore_rewinds_attribute_ownership(
+        self,
+    ) -> None:
+        """Restore the C++-saved attribute owner through the standard Java API."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+        federation_name = f"python-jni-restore-ownership-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        acquirer = self.factory.getRtiAmbassador()
+        owner_callbacks = _JniCallbacks()
+        acquirer_callbacks = _JniCallbacks()
+        owner_connected = acquirer_connected = False
+        owner_joined = acquirer_joined = created = False
+        object_instance: ObjectInstanceHandle | None = None
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                owner.evokeCallback(0.0)
+                acquirer.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
+            owner_connected = True
+            acquirer.connect(acquirer_callbacks, CallbackModel.HLA_EVOKED)
+            acquirer_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner.joinFederationExecution(
+                "jni-restore-ownership-owner",
+                federation_name,
+                federateName="jni-restore-ownership-owner",
+            )
+            owner_joined = True
+            acquirer.joinFederationExecution(
+                "jni-restore-ownership-acquirer",
+                federation_name,
+                federateName="jni-restore-ownership-acquirer",
+            )
+            acquirer_joined = True
+
+            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            acquirer_class = acquirer.getObjectClassHandle(
+                "HLAobjectRoot.Employee.Server"
+            )
+            owner_attribute = owner.getAttributeHandle(owner_class, "Efficiency")
+            acquirer_attribute = acquirer.getAttributeHandle(
+                acquirer_class, "Efficiency"
+            )
+            owner_attributes = AttributeHandleSet([owner_attribute])
+            acquirer_attributes = AttributeHandleSet([acquirer_attribute])
+            owner.publishObjectClassAttributes(owner_class, owner_attributes)
+            acquirer.publishObjectClassAttributes(acquirer_class, acquirer_attributes)
+            acquirer.subscribeObjectClassAttributes(
+                acquirer_class, acquirer_attributes, active=True
+            )
+            object_instance = owner.registerObjectInstance(owner_class)
+            drain()
+            self.assertEqual(
+                acquirer_callbacks.discovered_objects[-1][0], object_instance
+            )
+            self.assertTrue(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
+            self.assertFalse(
+                acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
+            )
+
+            save_label = f"jni-restore-ownership-save-{uuid4()}"
+            owner.requestFederationSave(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    save_label in owner_callbacks.save_initiations
+                    and save_label in acquirer_callbacks.save_initiations
+                ):
+                    break
+            self.assertIn(save_label, owner_callbacks.save_initiations)
+            self.assertIn(save_label, acquirer_callbacks.save_initiations)
+            owner.federateSaveBegun()
+            acquirer.federateSaveBegun()
+            owner.federateSaveComplete()
+            acquirer.federateSaveComplete()
+            for _ in range(30):
+                drain(1)
+                if owner_callbacks.saved_count == 1 and acquirer_callbacks.saved_count == 1:
+                    break
+            self.assertEqual(owner_callbacks.saved_count, 1)
+            self.assertEqual(acquirer_callbacks.saved_count, 1)
+
+            # Mutate ownership after the save image is complete. Restore must
+            # reinstate the saved owner rather than retaining this later state.
+            owner.unconditionalAttributeOwnershipDivestiture(
+                object_instance, owner_attributes, b"post-save-divest"
+            )
+            for _ in range(30):
+                acquirer.evokeCallback(0.0)
+                if acquirer_callbacks.ownership_assumptions:
+                    break
+            self.assertEqual(
+                acquirer_callbacks.ownership_assumptions[-1],
+                (object_instance, acquirer_attributes, b"post-save-divest"),
+            )
+            acquirer.attributeOwnershipAcquisitionIfAvailable(
+                object_instance, acquirer_attributes, b"post-save-acquire"
+            )
+            for _ in range(30):
+                acquirer.evokeCallback(0.0)
+                if acquirer_callbacks.ownership_acquisitions:
+                    break
+            self.assertEqual(
+                acquirer_callbacks.ownership_acquisitions[-1],
+                (object_instance, acquirer_attributes, b"post-save-acquire"),
+            )
+            self.assertFalse(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
+            self.assertTrue(
+                acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
+            )
+
+            owner.requestFederationRestore(save_label)
+            for _ in range(30):
+                drain(1)
+                if (
+                    owner_callbacks.restore_initiations
+                    and acquirer_callbacks.restore_initiations
+                ):
+                    break
+            self.assertEqual(owner_callbacks.restore_acceptances, [save_label])
+            self.assertEqual(owner_callbacks.restore_begun, 1)
+            self.assertEqual(acquirer_callbacks.restore_begun, 1)
+            owner.federateRestoreComplete()
+            acquirer.federateRestoreComplete()
+            for _ in range(30):
+                drain(1)
+                if owner_callbacks.restore_completions == 1 and acquirer_callbacks.restore_completions == 1:
+                    break
+            self.assertEqual(owner_callbacks.restore_completions, 1)
+            self.assertEqual(acquirer_callbacks.restore_completions, 1)
+
+            self.assertTrue(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
+            self.assertFalse(
+                acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
+            )
+        finally:
+            if owner_joined and object_instance is not None:
+                try:
+                    owner.deleteObjectInstance(object_instance)
+                except Exception:
+                    pass
+            if acquirer_joined:
+                try:
+                    acquirer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if owner_joined:
+                try:
+                    owner.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            if acquirer_connected:
+                try:
+                    acquirer.disconnect()
+                except Exception:
+                    pass
+            if owner_connected:
+                try:
+                    owner.disconnect()
+                except Exception:
+                    pass
+            acquirer._implementation.close()
+            owner._implementation.close()
+
     def test_cpp_jni_java_jpype_restore_reschedules_pending_time_advance(
         self,
     ) -> None:
