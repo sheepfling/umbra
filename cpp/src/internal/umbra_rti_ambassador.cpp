@@ -5063,6 +5063,27 @@ void queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
   }
 }
 
+void queueFederationMomConditionalAttributeUpdate(
+    std::wstring const& federationName,
+    std::vector<std::string_view> attributeNames,
+    std::optional<std::uint64_t> excludedReceivingFederateId = std::nullopt) {
+  std::optional<JoinedFederateMomConditionalWork> work;
+  {
+    std::scoped_lock lock(federationManagementMutex());
+    work = federationMomConditionalWorkFor(
+        embeddedFederationManagement().registry(),
+        federationName,
+        std::move(attributeNames));
+  }
+  if (work) {
+    queueJoinedFederateMomConditionalAttributeUpdate(
+        work->federationName,
+        work->objectInstanceHandle,
+        std::move(work->attributeHandles),
+        excludedReceivingFederateId);
+  }
+}
+
 // HLA_EVOKED applications expose callback delivery through the Evoke
 // services, so the embedded profile claims due wall-clock periods at the
 // callback boundary rather than running user code from a registry timer
@@ -7057,6 +7078,9 @@ bool UmbraRtiAmbassador::handleEmbeddedMembershipLoss(
       std::move(objectRemovals),
       federationName,
       emptyMembershipLossTag);
+  queueFederationMomConditionalAttributeUpdate(
+      federationName,
+      {"HLAfederatesInFederation"});
 
   if (callbackSession) {
     callbacks_->submit([
@@ -7607,6 +7631,9 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
       federationName,
       joinedFederateId,
       {"HLAfederateState"});
+  queueFederationMomConditionalAttributeUpdate(
+      federationName,
+      {"HLAfederatesInFederation"});
   return result;
   } catch (Exception const& exception) {
     emitExceptionReport(L"Join Federation Execution", exception);
@@ -7771,6 +7798,9 @@ void UmbraRtiAmbassador::resignFederationExecution(ResignAction resignAction) {
       std::move(resignObjectRemovals),
       federationName,
       emptyResignTag);
+  queueFederationMomConditionalAttributeUpdate(
+      federationName,
+      {"HLAfederatesInFederation"});
   if (finalServiceReportAppendFailed) {
     throw RTIinternalError(
         L"Umbra could not append the selected service-report file record.");

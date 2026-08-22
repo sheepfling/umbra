@@ -750,6 +750,11 @@ federation `HLAsetSwitches` service compares the C++ switch ledger, queues a
 conditional reflection only when the value changes, and supports discovery
 when the subscription contains no static federation attribute. The remaining
 conditional federation values stay open.
+The execution-scoped `HLAfederatesInFederation` exception is now closed as
+well: the C++ membership map is encoded as the standard nested
+`HLAfederateReferenceList`, and Join, Resign, and connection-loss boundaries
+queue the resulting conditional reflection through the normal JNI/Java/JPype
+route.
 
 The intended implementation order is:
 

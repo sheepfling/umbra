@@ -184,6 +184,22 @@ class _UnicodeStringElementFactory(DataElementFactory):
         return self._encoder.createHLAunicodeString()
 
 
+class _ByteElementFactory(DataElementFactory):
+    def __init__(self, encoder: EncoderFactory) -> None:
+        self._encoder = encoder
+
+    def createElement(self, index: int):
+        return self._encoder.createHLAbyte()
+
+
+class _FederateReferenceElementFactory(DataElementFactory):
+    def __init__(self, encoder: EncoderFactory) -> None:
+        self._encoder = encoder
+
+    def createElement(self, index: int):
+        return self._encoder.createHLAvariableArray(_ByteElementFactory(self._encoder))
+
+
 class _JniCallbacks(FederateAmbassador):
     def __init__(self) -> None:
         self.connection_lost: list[str] = []
@@ -13647,6 +13663,144 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             if subject_joined:
                 try:
                     subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    subject.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            for ambassador, connected in (
+                (observer, observer_connected),
+                (subject, subject_connected),
+            ):
+                if connected:
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                ambassador._implementation.close()
+
+    def test_cpp_jni_java_jpype_federation_mom_membership_updates(
+        self,
+    ) -> None:
+        """Reflect HLAfederatesInFederation at Join and Resign boundaries."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        federation_name = f"python-jni-federation-mom-membership-{uuid4()}"
+        subject = self.factory.getRtiAmbassador()
+        observer = self.factory.getRtiAmbassador()
+        subject_callbacks = _JniCallbacks()
+        observer_callbacks = _JniCallbacks()
+        subject_connected = observer_connected = False
+        subject_joined = observer_joined = created = False
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                subject.evokeCallback(0.0)
+                observer.evokeCallback(0.0)
+
+        def decode_references(encoded: bytes) -> list[bytes]:
+            encoder = self.factory.getEncoderFactory()
+            references = encoder.createHLAvariableArray(
+                _FederateReferenceElementFactory(encoder)
+            )
+            references.decode(encoded)
+            return [references.get(index).toByteArray() for index in range(references.size())]
+
+        try:
+            subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+            subject_connected = True
+            observer.connect(observer_callbacks, CallbackModel.HLA_EVOKED)
+            observer_connected = True
+            subject.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+
+            observer_handle = observer.joinFederationExecution(
+                "federation-mom-membership-observer", federation_name
+            )
+            observer_joined = True
+            mom_class = observer.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederation"
+            )
+            membership_attribute = observer.getAttributeHandle(
+                mom_class, "HLAfederatesInFederation"
+            )
+            observer.subscribeObjectClassAttributes(
+                mom_class,
+                AttributeHandleSet([membership_attribute]),
+                active=True,
+            )
+            drain()
+            federation_object = next(
+                (
+                    discovered[0]
+                    for discovered in observer_callbacks.discovered_objects
+                    if discovered[2] == "HLAfederation"
+                ),
+                None,
+            )
+            self.assertIsNotNone(federation_object)
+            assert federation_object is not None
+
+            observer.requestAttributeValueUpdate(
+                federation_object,
+                AttributeHandleSet([membership_attribute]),
+            )
+            drain()
+            initial_reflection = next(
+                reflection
+                for reflection in reversed(observer_callbacks.reflected_attributes)
+                if membership_attribute in reflection[1]
+            )
+            self.assertEqual(
+                decode_references(dict(initial_reflection[1])[membership_attribute]),
+                [observer_handle.encodedValue],
+            )
+
+            subject_handle = subject.joinFederationExecution(
+                "federation-mom-membership-subject", federation_name
+            )
+            subject_joined = True
+            drain()
+            joined_reflection = next(
+                reflection
+                for reflection in reversed(observer_callbacks.reflected_attributes)
+                if membership_attribute in reflection[1]
+            )
+            self.assertEqual(
+                decode_references(dict(joined_reflection[1])[membership_attribute]),
+                [observer_handle.encodedValue, subject_handle.encodedValue],
+            )
+
+            subject.resignFederationExecution(ResignAction.NO_ACTION)
+            subject_joined = False
+            drain()
+            resigned_reflection = next(
+                reflection
+                for reflection in reversed(observer_callbacks.reflected_attributes)
+                if membership_attribute in reflection[1]
+            )
+            self.assertEqual(
+                decode_references(dict(resigned_reflection[1])[membership_attribute]),
+                [observer_handle.encodedValue],
+            )
+        finally:
+            if subject_joined:
+                try:
+                    subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if observer_joined:
+                try:
+                    observer.resignFederationExecution(ResignAction.NO_ACTION)
                 except Exception:
                     pass
             if created:

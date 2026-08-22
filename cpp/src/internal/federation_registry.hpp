@@ -2139,8 +2139,9 @@ class EmbeddedFederationRegistry final {
 
   // Establishes the single RTI-owned HLAmanager.HLAfederation object for an
   // execution.  This bounded foundation supplies only the MIM's static
-  // federation-wide attributes; conditional membership/FDD/save values are
-  // intentionally added by later service-family slices.
+  // federation-wide attributes; lifecycle-backed conditional values are
+  // projected by their service-family update paths rather than as stale
+  // initial values.
   [[nodiscard]] JoinedFederateMomObjectStatus establishFederationMomObject(
       std::wstring const& federationName,
       std::wstring const& rtiVersion,

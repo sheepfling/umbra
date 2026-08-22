@@ -44,9 +44,9 @@ constexpr char kHlaReportServiceFileMimConditionalUpdateCondition[] =
     "The first time that both HLAserviceReporting and "
     "HLAsendServiceReportsToFile become true.";
 
-// The first federation-object slice deliberately contains only MIM Static
-// attributes.  Conditional membership/FDD/save attributes are separate
-// lifecycle work and must not be presented as stale initial values.
+// The federation-object foundation deliberately keeps MIM Static attributes
+// as initial values. Conditional lifecycle values are projected from their
+// authoritative ledgers and must not be presented as stale initial values.
 constexpr char kFederationMomStaticAttributeNames[][40] = {
     "HLAfederationName",
     "HLARTIversion",
@@ -192,6 +192,26 @@ rti1516_2025::VariableLengthData encodeModuleDesignatorList(
   for (auto const& designator : designators) {
     rti1516_2025::HLAunicodeString encodedDesignator{designator};
     appendDataElement(bytes, encodedDesignator);
+  }
+  return rti1516_2025::VariableLengthData(bytes.data(), bytes.size());
+}
+
+rti1516_2025::VariableLengthData encodeFederateReferenceList(
+    std::vector<std::uint64_t> const& federateIds) {
+  if (federateIds.size() >
+      static_cast<std::size_t>(std::numeric_limits<rti1516_2025::Integer32>::max())) {
+    throw rti1516_2025::EncoderException(
+        L"The federation contains too many joined federate references.");
+  }
+
+  std::vector<rti1516_2025::Octet> bytes;
+  rti1516_2025::HLAinteger32BE count{
+      static_cast<rti1516_2025::Integer32>(federateIds.size())};
+  appendDataElement(bytes, count);
+  for (std::uint64_t const federateId : federateIds) {
+    auto const encodedHandle =
+        rti1516_2025::umbra_binding_detail::encodeUmbraHandleVariableArray(federateId);
+    bytes.insert(bytes.end(), encodedHandle.begin(), encodedHandle.end());
   }
   return rti1516_2025::VariableLengthData(bytes.data(), bytes.size());
 }
@@ -8182,6 +8202,20 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     // joined-federate attributes it has no represented member lookup.
     return rti1516_2025::HLAinteger32BE{
         federation.autoProvideSwitch ? 1 : 0}.encode();
+  }
+  if (object.federationExecutionObject &&
+      *attributeName == "HLAfederatesInFederation") {
+    std::vector<std::uint64_t> federateIds;
+    federateIds.reserve(federation.members.size());
+    for (auto const& [federateId, membership] : federation.members) {
+      static_cast<void>(membership);
+      federateIds.push_back(federateId);
+    }
+    // The MIM value is a variable array of HLAfederateReference values;
+    // each reference is the standard HLAfederateHandle variable-array wire
+    // representation.  The execution membership map is the sole source of
+    // truth, so the value changes exactly at join/resign boundaries.
+    return encodeFederateReferenceList(federateIds);
   }
   auto const member = federation.members.find(object.joinedFederateId);
   if (member == federation.members.end()) {

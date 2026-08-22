@@ -248,6 +248,10 @@ the existing standard Java `HLAsetSwitches` vector subscribes only to
 `HLAautoProvide`, discovers the federation object from its effective MIM
 attribute metadata, and observes the C++ switch transition at 0→1→0→1 through
 the normal JNI/JPype reflection callback path.
+The federation-membership companion now subscribes only to
+`HLAfederatesInFederation`, decodes the standard nested
+`HLAfederateReferenceList` through the external Java encoder, and observes the
+live C++ membership vector at 1→2→1 across Join and Resign callbacks.
 The timestamped regional request/response companion also answers a
 `provideAttributeValueUpdate` callback with the standard Java timed update
 overload, preserving constrained delivery, `TIMESTAMP` metadata, source

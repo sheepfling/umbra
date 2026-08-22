@@ -953,6 +953,10 @@ The Auto Provide companion closes the first conditional gap: the standard
 Java `HLAsetSwitches` vector subscribes only to `HLAautoProvide`, discovers the
 federation object from its effective MIM attributes, and observes the C++
 switch transition at 0→1→0→1 through JNI and JPype reflection callbacks.
+The federation-membership companion subscribes only to
+`HLAfederatesInFederation`, decodes the standard nested
+`HLAfederateReferenceList` through the external Java encoder, and observes the
+live C++ membership vector at 1→2→1 across Join and Resign callbacks.
 
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
