@@ -33,6 +33,8 @@ constexpr char kReportExceptionInteractionClassName[] =
 
 constexpr char kJoinedFederateMomObjectClassName[] =
     "HLAobjectRoot.HLAmanager.HLAfederate";
+constexpr char kFederationMomObjectClassName[] =
+    "HLAobjectRoot.HLAmanager.HLAfederation";
 constexpr char kHlaFederateDimensionName[] = "HLAfederate";
 constexpr char kHlaPrivilegeToDeleteObjectAttributeName[] =
     "HLAprivilegeToDeleteObject";
@@ -41,6 +43,31 @@ constexpr char kHlaReportServiceFileMimConditionalUpdate[] = "Conditional";
 constexpr char kHlaReportServiceFileMimConditionalUpdateCondition[] =
     "The first time that both HLAserviceReporting and "
     "HLAsendServiceReportsToFile become true.";
+
+// The first federation-object slice deliberately contains only MIM Static
+// attributes.  Conditional membership/FDD/save attributes are separate
+// lifecycle work and must not be presented as stale initial values.
+constexpr char kFederationMomStaticAttributeNames[][40] = {
+    "HLAfederationName",
+    "HLARTIversion",
+    "HLAMIMdesignator",
+    "HLAtimeImplementationName",
+    "HLAadvisoriesUseKnownClass",
+    "HLAdelaySubscriptionEvaluation",
+    "HLAnonRegulatedGrant",
+    "HLAallowRelaxedDDM",
+};
+
+constexpr char kFederationMomStaticAttributeDataTypes[][24] = {
+    "HLAunicodeString",
+    "HLAunicodeString",
+    "HLAunicodeString",
+    "HLAunicodeString",
+    "HLAswitch",
+    "HLAswitch",
+    "HLAswitch",
+    "HLAswitch",
+};
 
 // Table 8's direct required joined-federate values. HLAreportServiceFile is
 // included in the initial private snapshot under the selected 1516.1 Static
@@ -930,6 +957,131 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
   return JoinedFederateMomObjectStatus::applied;
 }
 
+JoinedFederateMomObjectStatus
+EmbeddedFederationRegistry::establishFederationMomObject(
+    std::wstring const& federationName,
+    std::wstring const& rtiVersion,
+    std::wstring const& mimDesignator) {
+  auto instrumentationScope = beginInstrumentation("establishFederationMomObject");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return JoinedFederateMomObjectStatus::federation_does_not_exist;
+  }
+  for (auto const& [objectHandle, object] :
+       federation->second.rtiOwnedJoinedFederateMomObjects) {
+    static_cast<void>(objectHandle);
+    if (object.federationExecutionObject) {
+      return JoinedFederateMomObjectStatus::already_established;
+    }
+  }
+  if (!federation->second.definition.catalog ||
+      !federation->second.objectClassHandles ||
+      !federation->second.attributeHandles) {
+    return JoinedFederateMomObjectStatus::inconsistent_catalog;
+  }
+  auto const objectClassHandle = federation->second.objectClassHandles->handleFor(
+      kFederationMomObjectClassName);
+  auto const effectiveAttributes =
+      federation->second.definition.catalog->effectiveObjectClassAttributes(
+          kFederationMomObjectClassName);
+  if (!objectClassHandle || !effectiveAttributes) {
+    return JoinedFederateMomObjectStatus::inconsistent_catalog;
+  }
+
+  std::map<std::string, std::uint64_t> attributeHandlesByName;
+  std::set<std::uint64_t> effectiveAttributeHandles;
+  for (auto const& [attributeName, attribute] : *effectiveAttributes) {
+    auto const attributeHandle = federation->second.attributeHandles->handleFor(
+        federation->second.definition.catalog.get(),
+        kFederationMomObjectClassName,
+        attributeName);
+    if (!attributeHandle || !effectiveAttributeHandles.insert(*attributeHandle).second ||
+        !attributeHandlesByName.emplace(attributeName, *attributeHandle).second) {
+      return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+  }
+  for (std::size_t index = 0; index < std::size(kFederationMomStaticAttributeNames); ++index) {
+    auto const attribute = effectiveAttributes->find(kFederationMomStaticAttributeNames[index]);
+    if (attribute == effectiveAttributes->end() ||
+        attribute->second.dataType != kFederationMomStaticAttributeDataTypes[index] ||
+        !attribute->second.valueRequired ||
+        attribute->second.ownership != "NoTransfer" ||
+        attribute->second.updateType != "Static" ||
+        !attributeHandlesByName.contains(kFederationMomStaticAttributeNames[index])) {
+      return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+  }
+
+  auto encodeSwitch = [](bool value) {
+    return rti1516_2025::HLAinteger32BE{value ? 1 : 0}.encode();
+  };
+  std::map<std::uint64_t, rti1516_2025::VariableLengthData> initialAttributeValues;
+  auto addInitialValue = [&](char const* attributeName,
+                             rti1516_2025::VariableLengthData value) {
+    auto const attributeHandle = attributeHandlesByName.find(attributeName);
+    return attributeHandle != attributeHandlesByName.end() &&
+        initialAttributeValues.emplace(attributeHandle->second, std::move(value)).second;
+  };
+  try {
+    if (!addInitialValue(
+            "HLAfederationName",
+            rti1516_2025::HLAunicodeString{federationName}.encode()) ||
+        !addInitialValue(
+            "HLARTIversion",
+            rti1516_2025::HLAunicodeString{rtiVersion}.encode()) ||
+        !addInitialValue(
+            "HLAMIMdesignator",
+            rti1516_2025::HLAunicodeString{mimDesignator}.encode()) ||
+        !addInitialValue(
+            "HLAtimeImplementationName",
+            rti1516_2025::HLAunicodeString{
+                federation->second.definition.logicalTimeImplementationName}.encode()) ||
+        !addInitialValue(
+            "HLAadvisoriesUseKnownClass",
+            encodeSwitch(federation->second.advisoriesUseKnownClassSwitch)) ||
+        !addInitialValue(
+            "HLAdelaySubscriptionEvaluation",
+            encodeSwitch(federation->second.delaySubscriptionEvaluationSwitch)) ||
+        !addInitialValue(
+            "HLAnonRegulatedGrant",
+            encodeSwitch(federation->second.nonRegulatedGrantSwitch)) ||
+        !addInitialValue(
+            "HLAallowRelaxedDDM",
+            encodeSwitch(federation->second.allowRelaxedDDMSwitch))) {
+      return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+  } catch (rti1516_2025::EncoderException const&) {
+    return JoinedFederateMomObjectStatus::invalid_descriptor;
+  }
+
+  std::uint64_t objectInstanceHandle = federation->second.nextObjectInstanceHandle;
+  while (objectInstanceHandle == 0 ||
+         objectInstanceHandle == std::numeric_limits<std::uint64_t>::max() ||
+         federation->second.objectInstances.contains(objectInstanceHandle) ||
+         federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    if (objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
+      return JoinedFederateMomObjectStatus::object_instance_handle_exhausted;
+    }
+    ++objectInstanceHandle;
+  }
+  JoinedFederateMomObjectSnapshot object;
+  object.objectInstanceHandle = objectInstanceHandle;
+  object.objectClassHandle = *objectClassHandle;
+  object.federationExecutionObject = true;
+  object.effectiveAttributeHandles = std::move(effectiveAttributeHandles);
+  object.initialAttributeValues = std::move(initialAttributeValues);
+  auto const [position, inserted] =
+      federation->second.rtiOwnedJoinedFederateMomObjects.emplace(
+          objectInstanceHandle, std::move(object));
+  static_cast<void>(position);
+  if (!inserted) {
+    return JoinedFederateMomObjectStatus::inconsistent_catalog;
+  }
+  federation->second.nextObjectInstanceHandle = objectInstanceHandle + 1U;
+  return JoinedFederateMomObjectStatus::applied;
+}
+
 std::optional<JoinedFederateMomObjectSnapshot>
 EmbeddedFederationRegistry::joinedFederateMomObjectFor(
     std::wstring const& federationName,
@@ -1530,7 +1682,7 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   for (auto const& [objectInstanceHandle, object] :
        federation->second.rtiOwnedJoinedFederateMomObjects) {
     static_cast<void>(objectInstanceHandle);
-    if (object.joinedFederateId != federateId) {
+    if (object.federationExecutionObject || object.joinedFederateId != federateId) {
       continue;
     }
     for (std::uint64_t const receivingFederateId : object.knownFederateIds) {
@@ -2111,7 +2263,12 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   // boundary, just as the ordinary object ledger retains a deleted instance.
   for (auto momObject = federation->second.rtiOwnedJoinedFederateMomObjects.begin();
        momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end();) {
-    if (momObject->second.joinedFederateId == federateId) {
+    if (momObject->second.federationExecutionObject) {
+      momObject->second.pendingDiscoveryFederateIds.erase(federateId);
+      momObject->second.pendingRemovalFederateIds.erase(federateId);
+      momObject->second.knownFederateIds.erase(federateId);
+      ++momObject;
+    } else if (momObject->second.joinedFederateId == federateId) {
       momObject->second.pendingDiscoveryFederateIds.clear();
       momObject->second.knownFederateIds.erase(federateId);
       for (std::uint64_t const receivingFederateId : momObject->second.knownFederateIds) {
@@ -12197,7 +12354,8 @@ EmbeddedFederationRegistry::planJoinedFederateMomObjectDiscoveriesForInstance(
   auto object = federation->second.rtiOwnedJoinedFederateMomObjects.find(
       objectInstanceHandle);
   if (object == federation->second.rtiOwnedJoinedFederateMomObjects.end() ||
-      !federation->second.members.contains(object->second.joinedFederateId)) {
+      (!object->second.federationExecutionObject &&
+       !federation->second.members.contains(object->second.joinedFederateId))) {
     return {};
   }
 
@@ -12231,7 +12389,9 @@ EmbeddedFederationRegistry::planJoinedFederateMomObjectDiscoveriesForInstance(
             receivingFederateId,
             object->second.objectInstanceHandle,
             object->second.objectClassHandle,
-            L"HLAfederate-" + std::to_wstring(object->second.joinedFederateId),
+            object->second.federationExecutionObject
+                ? L"HLAfederation"
+                : L"HLAfederate-" + std::to_wstring(object->second.joinedFederateId),
             0U,
             callbackRoute->second,
             FederateServiceReportRoute{},
@@ -12276,7 +12436,8 @@ EmbeddedFederationRegistry::planJoinedFederateMomObjectDiscoveriesForFederate(
       static_cast<void>(objectInstanceHandle);
       if (object.knownFederateIds.contains(receivingFederateId) ||
           object.pendingDiscoveryFederateIds.contains(receivingFederateId) ||
-          !federation->second.members.contains(object.joinedFederateId) ||
+          (!object.federationExecutionObject &&
+           !federation->second.members.contains(object.joinedFederateId)) ||
           !candidateJoinedFederateMomObjectDiscoveryClass(
               federation->second,
               object,
@@ -12294,7 +12455,9 @@ EmbeddedFederationRegistry::planJoinedFederateMomObjectDiscoveriesForFederate(
             receivingFederateId,
             object.objectInstanceHandle,
             object.objectClassHandle,
-            L"HLAfederate-" + std::to_wstring(object.joinedFederateId),
+            object.federationExecutionObject
+                ? L"HLAfederation"
+                : L"HLAfederate-" + std::to_wstring(object.joinedFederateId),
             0U,
             callbackRoute->second,
             FederateServiceReportRoute{},
@@ -12619,7 +12782,9 @@ EmbeddedFederationRegistry::beginJoinedFederateMomObjectDiscovery(
   return KnownObjectInstanceSnapshot{
       object->second.objectInstanceHandle,
       *discoveredClass,
-      L"HLAfederate-" + std::to_wstring(object->second.joinedFederateId),
+      object->second.federationExecutionObject
+          ? L"HLAfederation"
+          : L"HLAfederate-" + std::to_wstring(object->second.joinedFederateId),
       0U,
       std::move(initialAttributeHandles),
   };

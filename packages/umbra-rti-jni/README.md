@@ -940,6 +940,16 @@ the external Java `EncoderFactory` and checks the corresponding C++ service
 report, proving that the federate-scoped list contains only modules supplied at
 Join.
 
+The federation-MOM companion now discovers the single RTI-owned
+`HLAobjectRoot.HLAmanager.HLAfederation` object and decodes its static
+`HLAfederationName`, `HLARTIversion`, `HLAMIMdesignator`,
+`HLAtimeImplementationName`, `HLAadvisoriesUseKnownClass`,
+`HLAdelaySubscriptionEvaluation`, `HLAnonRegulatedGrant`, and
+`HLAallowRelaxedDDM` values through the external IEEE Java API, JNI, and
+JPype. Conditional federation-object values (`HLAfederatesInFederation`, FDD
+and module changes, save names/times, and `HLAautoProvide`) remain deferred
+until their lifecycle-triggered update plans are source-backed.
+
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and

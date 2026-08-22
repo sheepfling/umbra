@@ -7422,6 +7422,22 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
           L"Umbra could not initialize the joined federate's service-report state.");
     }
 
+    // The federation-execution MOM object is independent of any one joined
+    // federate's report-file lifetime.  Establish it once at the first
+    // successful Join so later standard subscriptions can discover the
+    // static HLAmanager.HLAfederation attributes through the same RTI-owned
+    // object callback path as HLAmanager.HLAfederate.
+    auto const federationMomStatus = management.registry().establishFederationMomObject(
+        federationName,
+        std::wstring{kUmbraRtiVersion},
+        L"HLAstandardMIM");
+    if (federationMomStatus != umbra::detail::JoinedFederateMomObjectStatus::applied &&
+        federationMomStatus != umbra::detail::JoinedFederateMomObjectStatus::already_established) {
+      rollbackJoinedMembership();
+      throw RTIinternalError(
+          L"Umbra could not establish the federation execution's RTI-owned MOM object state.");
+    }
+
     std::optional<JoinedServiceReportState> pendingServiceReport;
     try {
       auto const joinIdentifier = nextServiceReportJoinIdentifier();

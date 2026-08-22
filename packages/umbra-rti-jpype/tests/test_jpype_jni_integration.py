@@ -13353,6 +13353,170 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
 
+    def test_cpp_jni_java_jpype_federation_mom_static_attributes(
+        self,
+    ) -> None:
+        """Carry static HLAfederation MOM attributes through standard callbacks."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        federation_name = f"python-jni-federation-mom-static-{uuid4()}"
+        subject = self.factory.getRtiAmbassador()
+        observer = self.factory.getRtiAmbassador()
+        subject_callbacks = _JniCallbacks()
+        observer_callbacks = _JniCallbacks()
+        subject_connected = observer_connected = False
+        subject_joined = observer_joined = created = False
+        subject_reports = self._temporary_directory / f"federation-mom-subject-{uuid4()}"
+        observer_reports = self._temporary_directory / f"federation-mom-observer-{uuid4()}"
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                subject.evokeCallback(0.0)
+                observer.evokeCallback(0.0)
+
+        try:
+            subject_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                f"serviceReportDirectory={subject_reports}"
+            )
+            observer_configuration = RtiConfiguration.createConfiguration().withAdditionalSettings(
+                f"serviceReportDirectory={observer_reports}"
+            )
+            subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED, subject_configuration)
+            subject_connected = True
+            observer.connect(observer_callbacks, CallbackModel.HLA_EVOKED, observer_configuration)
+            observer_connected = True
+            subject.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            subject.joinFederationExecution(
+                "federation-mom-subject",
+                federation_name,
+                federateName="federation-mom-subject",
+            )
+            subject_joined = True
+            observer.joinFederationExecution(
+                "federation-mom-observer",
+                federation_name,
+                federateName="federation-mom-observer",
+            )
+            observer_joined = True
+
+            mom_class = observer.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederation"
+            )
+            names = [
+                "HLAfederationName",
+                "HLARTIversion",
+                "HLAMIMdesignator",
+                "HLAtimeImplementationName",
+                "HLAadvisoriesUseKnownClass",
+                "HLAdelaySubscriptionEvaluation",
+                "HLAnonRegulatedGrant",
+                "HLAallowRelaxedDDM",
+            ]
+            attributes = {
+                name: observer.getAttributeHandle(mom_class, name) for name in names
+            }
+            observer.subscribeObjectClassAttributes(
+                mom_class,
+                AttributeHandleSet(list(attributes.values())),
+                active=True,
+            )
+            drain()
+
+            federation_reflection = next(
+                (
+                    reflection
+                    for reflection in observer_callbacks.reflected_attributes
+                    if attributes["HLAfederationName"] in reflection[1]
+                ),
+                None,
+            )
+            self.assertIsNotNone(federation_reflection)
+            assert federation_reflection is not None
+            values = dict(federation_reflection[1])
+            self.assertEqual(set(values), set(attributes.values()))
+
+            reflection_count = len(observer_callbacks.reflected_attributes)
+            observer.requestAttributeValueUpdate(
+                federation_reflection[0],
+                AttributeHandleSet(list(attributes.values())),
+            )
+            drain()
+            self.assertGreater(len(observer_callbacks.reflected_attributes), reflection_count)
+            requested_values = dict(observer_callbacks.reflected_attributes[-1][1])
+            self.assertEqual(
+                requested_values[attributes["HLAfederationName"]],
+                values[attributes["HLAfederationName"]],
+            )
+
+            encoder = self.factory.getEncoderFactory()
+
+            def decode_unicode(attribute_name: str) -> str:
+                unicode_value = encoder.createHLAunicodeString()
+                unicode_value.decode(values[attributes[attribute_name]])
+                return unicode_value.getValue()
+
+            def decode_switch(attribute_name: str) -> int:
+                switch_value = encoder.createHLAinteger32BE()
+                switch_value.decode(values[attributes[attribute_name]])
+                return switch_value.getValue()
+
+            self.assertEqual(decode_unicode("HLAfederationName"), federation_name)
+            self.assertEqual(decode_unicode("HLARTIversion"), "Umbra 0.1.0")
+            self.assertEqual(decode_unicode("HLAMIMdesignator"), "HLAstandardMIM")
+            self.assertEqual(
+                decode_unicode("HLAtimeImplementationName"), "HLAinteger64Time"
+            )
+            self.assertEqual(
+                decode_switch("HLAadvisoriesUseKnownClass"),
+                int(observer.getAdvisoriesUseKnownClassSwitch()),
+            )
+            self.assertEqual(
+                decode_switch("HLAdelaySubscriptionEvaluation"),
+                int(observer.getDelaySubscriptionEvaluationSwitch()),
+            )
+            self.assertEqual(
+                decode_switch("HLAnonRegulatedGrant"),
+                int(observer.getNonRegulatedGrantSwitch()),
+            )
+            self.assertEqual(
+                decode_switch("HLAallowRelaxedDDM"),
+                int(observer.getAllowRelaxedDDMSwitch()),
+            )
+        finally:
+            if observer_joined:
+                try:
+                    observer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if subject_joined:
+                try:
+                    subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    subject.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            for ambassador, connected in (
+                (observer, observer_connected),
+                (subject, subject_connected),
+            ):
+                if connected:
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                ambassador._implementation.close()
+
     def test_cpp_jni_java_jpype_joined_federate_mom_snapshot_uses_join_fom_modules(
         self,
     ) -> None:
@@ -16608,7 +16772,11 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             report_at(0, "Get Federate Handle", "NameNotFound")
 
             invalid_federate_encoding = bytearray(subject_federate.encodedValue)
-            invalid_federate_encoding[-1] = 0x7F
+            # Flip the high identity octet instead of forcing a low-byte
+            # literal.  The latter can accidentally equal the current
+            # federate handle once a long integration process has allocated
+            # enough globally monotonic federate IDs.
+            invalid_federate_encoding[4] ^= 0x80
             unknown_federate = subject.getFederateHandleFactory().decode(
                 bytes(invalid_federate_encoding)
             )

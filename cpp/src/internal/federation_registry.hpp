@@ -588,6 +588,11 @@ struct JoinedFederateMomObjectSnapshot {
   std::uint64_t objectInstanceHandle = 0;
   std::uint64_t joinedFederateId = 0;
   std::uint64_t objectClassHandle = 0;
+  // The federation-execution MOM object shares the RTI-owned discovery and
+  // reflection machinery with HLAfederate objects, but has execution scope
+  // rather than one represented member lifetime.  It is retained in this
+  // private snapshot map so the public adapter can keep one callback gate.
+  bool federationExecutionObject = false;
   RegionSpecificationSnapshot immutableFederatePoint;
   // Every effective MIM attribute is retained as metadata, including the
   // inherited optional HLAprivilegeToDeleteObject. Required initial values and
@@ -2131,6 +2136,15 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t federateId,
       JoinedFederateMomObjectDescriptor const& descriptor);
+
+  // Establishes the single RTI-owned HLAmanager.HLAfederation object for an
+  // execution.  This bounded foundation supplies only the MIM's static
+  // federation-wide attributes; conditional membership/FDD/save values are
+  // intentionally added by later service-family slices.
+  [[nodiscard]] JoinedFederateMomObjectStatus establishFederationMomObject(
+      std::wstring const& federationName,
+      std::wstring const& rtiVersion,
+      std::wstring const& mimDesignator);
 
   [[nodiscard]] std::optional<JoinedFederateMomObjectSnapshot>
   joinedFederateMomObjectFor(

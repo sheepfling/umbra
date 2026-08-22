@@ -736,12 +736,24 @@ That remains an intentional source gate for the unimplemented generic report
 families, not a claim that the bounded direct-send slice covers all §11.5
 traffic.
 
+The same RTI-owned object ledger now registers one execution-scoped
+`HLAobjectRoot.HLAmanager.HLAfederation` object. Its static values
+(`HLAfederationName`, `HLARTIversion`, `HLAMIMdesignator`,
+`HLAtimeImplementationName`, and the four federation-wide support switches)
+are encoded and delivered through the normal discovery/reflection and
+Request Attribute Value Update paths, including the JNI/Java/JPype route. The
+object is not tied to a represented member's resignation lifetime. Its
+conditional membership/FDD/save/Auto-Provide attributes remain deferred until
+their lifecycle update sources and callback plans are implemented.
+
 The intended implementation order is:
 
 1. Retain the MIM object-attribute policy in the composed catalog (complete).
 2. Add a private RTI-owned object-instance foundation with a common-namespace
    identity, full effective-attribute metadata, seven encoded initial values,
    and an immutable `HLAfederate` dimension point (complete).
+   The execution-scoped `HLAfederation` static-object slice is now established
+   from the same foundation; its conditional attributes remain open.
 3. Expose the bounded initial public object-management route: active ordinary
    and immutable-point-filtered regional discovery, reliable reflection of all
    seven required initial values, known-object requested-value reflection for

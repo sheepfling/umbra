@@ -234,6 +234,15 @@ additional FOM module, observes the RTI-owned `HLAFOMmoduleDesignatorList`
 through standard MOM reflection, decodes the `HLAmoduleDesignatorList` with the
 external Java `EncoderFactory`, and checks the corresponding C++ service report
 so the federate-scoped list contains only modules supplied at Join.
+The federation-MOM companion now discovers the single RTI-owned
+`HLAobjectRoot.HLAmanager.HLAfederation` object and decodes its static
+`HLAfederationName`, `HLARTIversion`, `HLAMIMdesignator`,
+`HLAtimeImplementationName`, `HLAadvisoriesUseKnownClass`,
+`HLAdelaySubscriptionEvaluation`, `HLAnonRegulatedGrant`, and
+`HLAallowRelaxedDDM` attributes through C++ → JNI → the external IEEE Java
+API → JPype.  Conditional federation-object values (`HLAfederatesInFederation`,
+FDD/module changes, save names/times, and `HLAautoProvide`) remain explicitly
+deferred until their lifecycle-triggered update plans are source-backed.
 The timestamped regional request/response companion also answers a
 `provideAttributeValueUpdate` callback with the standard Java timed update
 overload, preserving constrained delivery, `TIMESTAMP` metadata, source
