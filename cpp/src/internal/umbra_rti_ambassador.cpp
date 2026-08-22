@@ -7634,6 +7634,11 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
   queueFederationMomConditionalAttributeUpdate(
       federationName,
       {"HLAfederatesInFederation"});
+  if (!additionalFomModules.empty()) {
+    queueFederationMomConditionalAttributeUpdate(
+        federationName,
+        {"HLAFOMmoduleDesignatorList"});
+  }
   return result;
   } catch (Exception const& exception) {
     emitExceptionReport(L"Join Federation Execution", exception);

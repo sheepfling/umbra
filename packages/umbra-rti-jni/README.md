@@ -946,9 +946,10 @@ The federation-MOM companion now discovers the single RTI-owned
 `HLAtimeImplementationName`, `HLAadvisoriesUseKnownClass`,
 `HLAdelaySubscriptionEvaluation`, `HLAnonRegulatedGrant`, and
 `HLAallowRelaxedDDM` values through the external IEEE Java API, JNI, and
-JPype. Conditional federation-object values (`HLAfederatesInFederation`, FDD
-and module changes, save names/times, and `HLAautoProvide`) remain deferred
-until their lifecycle-triggered update plans are source-backed.
+JPype. `HLAfederatesInFederation`, `HLAFOMmoduleDesignatorList`, and
+`HLAautoProvide` now have bounded lifecycle-triggered update plans; save
+names/times and the `HLAcurrentFDD` payload remain deferred until their
+sources are implemented.
 The Auto Provide companion closes the first conditional gap: the standard
 Java `HLAsetSwitches` vector subscribes only to `HLAautoProvide`, discovers the
 federation object from its effective MIM attributes, and observes the C++
@@ -957,6 +958,11 @@ The federation-membership companion subscribes only to
 `HLAfederatesInFederation`, decodes the standard nested
 `HLAfederateReferenceList` through the external Java encoder, and observes the
 live C++ membership vector at 1→2→1 across Join and Resign callbacks.
+The federation-FOM companion now subscribes only to
+`HLAFOMmoduleDesignatorList`, decodes the standard `HLAmoduleDesignatorList`
+with the external Java encoder, and observes the execution module vector
+change from the Create-supplied base module to the base-plus-additional list at
+an exact Java `String[]` Join boundary.
 
 The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed

@@ -13819,6 +13819,151 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                         pass
                 ambassador._implementation.close()
 
+    def test_cpp_jni_java_jpype_federation_mom_fom_module_updates(
+        self,
+    ) -> None:
+        """Reflect the execution FOM-module list after an additional-FOM Join."""
+        base_fom = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-known-class-enabled-fom.xml"
+        )
+        joined_fom = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        federation_name = f"python-jni-federation-mom-fom-{uuid4()}"
+        subject = self.factory.getRtiAmbassador()
+        observer = self.factory.getRtiAmbassador()
+        subject_callbacks = _JniCallbacks()
+        observer_callbacks = _JniCallbacks()
+        subject_connected = observer_connected = False
+        subject_joined = observer_joined = created = False
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                subject.evokeCallback(0.0)
+                observer.evokeCallback(0.0)
+
+        def decode_modules(encoded: bytes) -> list[str]:
+            encoder = self.factory.getEncoderFactory()
+            modules = encoder.createHLAvariableArray(
+                _UnicodeStringElementFactory(encoder)
+            )
+            modules.decode(encoded)
+            return [modules.get(index).getValue() for index in range(modules.size())]
+
+        try:
+            subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+            subject_connected = True
+            observer.connect(observer_callbacks, CallbackModel.HLA_EVOKED)
+            observer_connected = True
+            subject.createFederationExecution(
+                federation_name, str(base_fom), "HLAinteger64Time"
+            )
+            created = True
+            observer.joinFederationExecution(
+                "federation-mom-fom-observer", federation_name
+            )
+            observer_joined = True
+
+            mom_class = observer.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederation"
+            )
+            module_attribute = observer.getAttributeHandle(
+                mom_class, "HLAFOMmoduleDesignatorList"
+            )
+            observer.subscribeObjectClassAttributes(
+                mom_class,
+                AttributeHandleSet([module_attribute]),
+                active=True,
+            )
+            drain()
+            federation_object = next(
+                (
+                    discovered[0]
+                    for discovered in observer_callbacks.discovered_objects
+                    if discovered[2] == "HLAfederation"
+                ),
+                None,
+            )
+            self.assertIsNotNone(federation_object)
+            assert federation_object is not None
+
+            observer.requestAttributeValueUpdate(
+                federation_object,
+                AttributeHandleSet([module_attribute]),
+            )
+            drain()
+            initial_reflection = next(
+                reflection
+                for reflection in reversed(observer_callbacks.reflected_attributes)
+                if module_attribute in reflection[1]
+            )
+            self.assertEqual(
+                decode_modules(dict(initial_reflection[1])[module_attribute]),
+                [str(base_fom)],
+            )
+
+            reflection_count = sum(
+                module_attribute in reflection[1]
+                for reflection in observer_callbacks.reflected_attributes
+            )
+            subject.joinFederationExecution(
+                "federation-mom-fom-subject",
+                federation_name,
+                additionalFomModules=[str(joined_fom)],
+            )
+            subject_joined = True
+            for _ in range(30):
+                drain()
+                if sum(
+                    module_attribute in reflection[1]
+                    for reflection in observer_callbacks.reflected_attributes
+                ) > reflection_count:
+                    break
+            module_reflections = [
+                reflection
+                for reflection in observer_callbacks.reflected_attributes
+                if module_attribute in reflection[1]
+            ]
+            self.assertGreater(len(module_reflections), reflection_count)
+            self.assertEqual(
+                decode_modules(dict(module_reflections[-1][1])[module_attribute]),
+                [str(base_fom), str(joined_fom)],
+            )
+        finally:
+            if subject_joined:
+                try:
+                    subject.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if observer_joined:
+                try:
+                    observer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    subject.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            for ambassador, connected in (
+                (observer, observer_connected),
+                (subject, subject_connected),
+            ):
+                if connected:
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                ambassador._implementation.close()
+
     def test_cpp_jni_java_jpype_timestamped_attribute_update_rate_reduction(
         self,
     ) -> None:

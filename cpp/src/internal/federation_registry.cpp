@@ -196,6 +196,18 @@ rti1516_2025::VariableLengthData encodeModuleDesignatorList(
   return rti1516_2025::VariableLengthData(bytes.data(), bytes.size());
 }
 
+rti1516_2025::VariableLengthData encodeFederationFomModuleList(
+    FederationDefinition const& definition) {
+  std::vector<PrevalidatedFomModule> fomModules;
+  fomModules.reserve(definition.fomModules.size());
+  for (auto const& module : definition.fomModules) {
+    if (module.kind == FomModuleKind::fom) {
+      fomModules.push_back(module);
+    }
+  }
+  return encodeModuleDesignatorList(fomModules);
+}
+
 rti1516_2025::VariableLengthData encodeFederateReferenceList(
     std::vector<std::uint64_t> const& federateIds) {
   if (federateIds.size() >
@@ -8216,6 +8228,15 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     // representation.  The execution membership map is the sole source of
     // truth, so the value changes exactly at join/resign boundaries.
     return encodeFederateReferenceList(federateIds);
+  }
+  if (object.federationExecutionObject &&
+      *attributeName == "HLAFOMmoduleDesignatorList") {
+    // The execution-scoped MIM value is the current FOM subset, excluding
+    // HLAstandardMIM itself. Federation-management preparation owns the
+    // canonical designators and source identity; encode that ledger through
+    // the same standard HLAvariableArray<HLAunicodeString> representation as
+    // the joined-federate MOM snapshot.
+    return encodeFederationFomModuleList(federation.definition);
   }
   auto const member = federation.members.find(object.joinedFederateId);
   if (member == federation.members.end()) {
