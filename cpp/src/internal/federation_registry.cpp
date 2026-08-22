@@ -1102,6 +1102,25 @@ EmbeddedFederationRegistry::joinedFederateMomObjectFor(
   return std::nullopt;
 }
 
+std::optional<JoinedFederateMomObjectSnapshot>
+EmbeddedFederationRegistry::federationMomObjectFor(
+    std::wstring const& federationName) const {
+  auto instrumentationScope = beginInstrumentation("federationMomObjectFor");
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return std::nullopt;
+  }
+  for (auto const& [objectHandle, object] :
+       federation->second.rtiOwnedJoinedFederateMomObjects) {
+    static_cast<void>(objectHandle);
+    if (object.federationExecutionObject) {
+      return object;
+    }
+  }
+  return std::nullopt;
+}
+
 SynchronizationPointRegistrationPlan
 EmbeddedFederationRegistry::registerSynchronizationPoint(
     std::wstring const& federationName,
@@ -8097,8 +8116,7 @@ EmbeddedFederationRegistry::candidateJoinedFederateMomObjectDiscoveryClass(
     }
     auto const perClass = declarations->second.byObjectClass.find(*currentClassHandle);
     if (perClass != declarations->second.byObjectClass.end()) {
-      for (auto const& [attributeHandle, value] : object.initialAttributeValues) {
-        static_cast<void>(value);
+      for (std::uint64_t const attributeHandle : object.effectiveAttributeHandles) {
         if (!federation.attributeHandles->nameFor(
                 federation.definition.catalog.get(),
                 currentClassName,
@@ -8157,6 +8175,13 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
       attributeHandle);
   if (!attributeName) {
     return std::nullopt;
+  }
+  if (object.federationExecutionObject && *attributeName == "HLAautoProvide") {
+    // HLAautoProvide is Conditional on the execution-scoped federation MOM
+    // object.  The federation-wide switch is the authoritative value; unlike
+    // joined-federate attributes it has no represented member lookup.
+    return rti1516_2025::HLAinteger32BE{
+        federation.autoProvideSwitch ? 1 : 0}.encode();
   }
   auto const member = federation.members.find(object.joinedFederateId);
   if (member == federation.members.end()) {

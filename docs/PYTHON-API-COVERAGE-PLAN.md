@@ -243,6 +243,11 @@ The federation-MOM companion now discovers the single RTI-owned
 API → JPype.  Conditional federation-object values (`HLAfederatesInFederation`,
 FDD/module changes, save names/times, and `HLAautoProvide`) remain explicitly
 deferred until their lifecycle-triggered update plans are source-backed.
+The Auto Provide companion now closes the first of those conditional gaps:
+the existing standard Java `HLAsetSwitches` vector subscribes only to
+`HLAautoProvide`, discovers the federation object from its effective MIM
+attribute metadata, and observes the C++ switch transition at 0→1→0→1 through
+the normal JNI/JPype reflection callback path.
 The timestamped regional request/response companion also answers a
 `provideAttributeValueUpdate` callback with the standard Java timed update
 overload, preserving constrained delivery, `TIMESTAMP` metadata, source

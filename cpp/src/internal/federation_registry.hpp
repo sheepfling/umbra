@@ -2151,6 +2151,9 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t federateId) const;
 
+  [[nodiscard]] std::optional<JoinedFederateMomObjectSnapshot>
+  federationMomObjectFor(std::wstring const& federationName) const;
+
   // A transport fault applies the member's current Automatic Resign
   // Directive while forcing the membership transition even when a normal
   // caller-initiated resign would reject unresolved ownership work. The

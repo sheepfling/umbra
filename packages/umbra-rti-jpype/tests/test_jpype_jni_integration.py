@@ -25787,6 +25787,35 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             self.assertFalse(owner.getAutoProvideSwitch())
             self.assertFalse(requester.getAutoProvideSwitch())
 
+            federation_mom_class = requester.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederation"
+            )
+            federation_auto_provide_attribute = requester.getAttributeHandle(
+                federation_mom_class, "HLAautoProvide"
+            )
+            requester.subscribeObjectClassAttributes(
+                federation_mom_class,
+                AttributeHandleSet([federation_auto_provide_attribute]),
+                active=True,
+            )
+            for _ in range(20):
+                requester.evokeCallback(0.0)
+
+            def require_federation_auto_provide(expected: bool) -> None:
+                encoder = self.factory.getEncoderFactory()
+                for _ in range(30):
+                    requester.evokeCallback(0.0)
+                    for reflection in requester_callbacks.reflected_attributes:
+                        values = dict(reflection[1])
+                        encoded = values.get(federation_auto_provide_attribute)
+                        if encoded is None:
+                            continue
+                        switch = encoder.createHLAinteger32BE()
+                        switch.decode(encoded)
+                        if bool(switch.getValue()) == expected:
+                            return
+                self.fail(f"HLAautoProvide federation MOM value {expected} was not reflected")
+
             set_switches = owner.getInteractionClassHandle(
                 "HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches"
             )
@@ -25806,6 +25835,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             )
             self.assertTrue(owner.getAutoProvideSwitch())
             self.assertTrue(requester.getAutoProvideSwitch())
+            require_federation_auto_provide(True)
 
             owner_class = owner.getObjectClassHandle(
                 "HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild"
@@ -25841,6 +25871,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             )
             self.assertFalse(owner.getAutoProvideSwitch())
             self.assertFalse(requester.getAutoProvideSwitch())
+            require_federation_auto_provide(False)
             second_object = owner.registerObjectInstance(owner_class)
             for _ in range(20):
                 requester.evokeCallback(0.0)
@@ -25858,6 +25889,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             )
             self.assertTrue(owner.getAutoProvideSwitch())
             self.assertTrue(requester.getAutoProvideSwitch())
+            require_federation_auto_provide(True)
             third_object = owner.registerObjectInstance(owner_class)
             for _ in range(20):
                 requester.evokeCallback(0.0)

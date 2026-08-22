@@ -745,6 +745,11 @@ Request Attribute Value Update paths, including the JNI/Java/JPype route. The
 object is not tied to a represented member's resignation lifetime. Its
 conditional membership/FDD/save/Auto-Provide attributes remain deferred until
 their lifecycle update sources and callback plans are implemented.
+The first conditional exception is now closed for `HLAautoProvide`: the
+federation `HLAsetSwitches` service compares the C++ switch ledger, queues a
+conditional reflection only when the value changes, and supports discovery
+when the subscription contains no static federation attribute. The remaining
+conditional federation values stay open.
 
 The intended implementation order is:
 

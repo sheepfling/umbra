@@ -5015,6 +5015,31 @@ joinedFederateMomConditionalWorkFor(
   return result;
 }
 
+std::optional<JoinedFederateMomConditionalWork>
+federationMomConditionalWorkFor(
+    umbra::detail::EmbeddedFederationRegistry& registry,
+    std::wstring const& federationName,
+    std::vector<std::string_view> attributeNames) {
+  auto const object = registry.federationMomObjectFor(federationName);
+  if (!object) {
+    return std::nullopt;
+  }
+  JoinedFederateMomConditionalWork result;
+  result.federationName = federationName;
+  result.objectInstanceHandle = object->objectInstanceHandle;
+  for (std::string_view const attributeName : attributeNames) {
+    auto const handle = registry.attributeHandleFor(
+        federationName,
+        "HLAobjectRoot.HLAmanager.HLAfederation",
+        std::string(attributeName));
+    if (!handle) {
+      return std::nullopt;
+    }
+    result.attributeHandles.insert(*handle);
+  }
+  return result;
+}
+
 void queueJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
     std::wstring const& federationName,
     std::uint64_t joinedFederateId,
@@ -13578,6 +13603,7 @@ void UmbraRtiAmbassador::sendInteraction(
   }
 
   std::optional<JoinedFederateMomConditionalWork> momSwitchWork;
+  std::optional<JoinedFederateMomConditionalWork> federationMomSwitchWork;
   auto const handleMomSwitchAdjustment = [&]() {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -13728,12 +13754,22 @@ void UmbraRtiAmbassador::sendInteraction(
       if (!autoProvideSwitchValue) {
         return true;
       }
+      auto const previousAutoProvide = registry.autoProvideSwitchFor(
+          *federationName,
+          *producingFederateId);
       auto const result = registry.setAutoProvideSwitch(
           *federationName,
           *producingFederateId,
           *autoProvideSwitchValue);
       switch (result) {
         case umbra::detail::FederationRegistryStatus::applied:
+          if (previousAutoProvide &&
+              *previousAutoProvide != *autoProvideSwitchValue) {
+            federationMomSwitchWork = federationMomConditionalWorkFor(
+                registry,
+                *federationName,
+                {"HLAautoProvide"});
+          }
           return true;
         case umbra::detail::FederationRegistryStatus::federation_does_not_exist:
         case umbra::detail::FederationRegistryStatus::federate_not_member:
@@ -13903,6 +13939,12 @@ void UmbraRtiAmbassador::sendInteraction(
           momSwitchWork->federationName,
           momSwitchWork->objectInstanceHandle,
           std::move(momSwitchWork->attributeHandles));
+    }
+    if (federationMomSwitchWork) {
+      queueJoinedFederateMomConditionalAttributeUpdate(
+          federationMomSwitchWork->federationName,
+          federationMomSwitchWork->objectInstanceHandle,
+          std::move(federationMomSwitchWork->attributeHandles));
     }
     return;
   }
