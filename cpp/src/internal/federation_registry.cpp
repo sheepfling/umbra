@@ -3470,6 +3470,28 @@ EmbeddedFederationRegistry::recordSuccessfulInteractionReceipt(
   return FederationRegistryStatus::applied;
 }
 
+FederationRegistryStatus
+EmbeddedFederationRegistry::recordSuccessfulReflectionReceipt(
+    std::wstring const& federationName,
+    std::uint64_t federateId) {
+  auto instrumentationScope = beginInstrumentation(
+      "recordSuccessfulReflectionReceipt");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return FederationRegistryStatus::federation_does_not_exist;
+  }
+  auto member = federation->second.members.find(federateId);
+  if (member == federation->second.members.end()) {
+    return FederationRegistryStatus::federate_not_member;
+  }
+  if (member->second.successfulReflectionsReceivedCount !=
+      std::numeric_limits<std::uint64_t>::max()) {
+    ++member->second.successfulReflectionsReceivedCount;
+  }
+  return FederationRegistryStatus::applied;
+}
+
 FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRestore(
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
@@ -8188,6 +8210,18 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     auto const count = member->second.successfullyReflectedObjectInstanceHandles.size();
     auto const encodedCount = count >
             static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        ? std::numeric_limits<std::int32_t>::max()
+        : static_cast<std::int32_t>(count);
+    return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAreflectionsReceived") {
+    // HLAstandardMIM defines this HLAcount as the number of Reflect
+    // Attribute Values callback invocations at the joined federate. This
+    // application ledger advances immediately before each callback and does
+    // not infer from attribute-value fan-out or distinct object handles.
+    auto const count = member->second.successfulReflectionsReceivedCount;
+    auto const encodedCount = count >
+            static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max())
         ? std::numeric_limits<std::int32_t>::max()
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();

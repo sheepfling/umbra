@@ -12819,6 +12819,9 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject_reflected_objects_attribute = subject.getAttributeHandle(
                     subject_mom_class, "HLAobjectInstancesReflected"
                 )
+                subject_reflections_received_attribute = subject.getAttributeHandle(
+                    subject_mom_class, "HLAreflectionsReceived"
+                )
                 subject.subscribeObjectClassAttributes(
                     subject_mom_class,
                     AttributeHandleSet(
@@ -12827,6 +12830,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                             subject_removed_objects_attribute,
                             subject_discovered_objects_attribute,
                             subject_reflected_objects_attribute,
+                            subject_reflections_received_attribute,
                         ]
                     ),
                     active=True,
@@ -12908,6 +12912,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 request_receiver_mom_count(subject_removed_objects_attribute, 0)
                 request_receiver_mom_count(subject_discovered_objects_attribute, 0)
                 request_receiver_mom_count(subject_reflected_objects_attribute, 0)
+                request_receiver_mom_count(subject_reflections_received_attribute, 0)
                 request_count(updates_sent_attribute, 0)
                 request_count(updated_objects_attribute, 0)
                 request_count(registered_objects_attribute, 0)
@@ -12932,12 +12937,14 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject.updateAttributeValues(first_object, update_values, b"")
                 wait_for_application_reflection(first_object)
                 request_receiver_mom_count(subject_reflected_objects_attribute, 1)
+                request_receiver_mom_count(subject_reflections_received_attribute, 1)
                 request_count(updates_sent_attribute, 1)
                 request_count(updated_objects_attribute, 1)
 
                 subject.updateAttributeValues(first_object, update_values, b"")
                 wait_for_application_reflection(first_object)
                 request_receiver_mom_count(subject_reflected_objects_attribute, 1)
+                request_receiver_mom_count(subject_reflections_received_attribute, 2)
                 request_count(updates_sent_attribute, 2)
                 request_count(updated_objects_attribute, 1)
 
@@ -12948,6 +12955,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                 subject.updateAttributeValues(second_object, update_values, b"")
                 wait_for_application_reflection(second_object)
                 request_receiver_mom_count(subject_reflected_objects_attribute, 2)
+                request_receiver_mom_count(subject_reflections_received_attribute, 3)
                 request_count(updates_sent_attribute, 3)
                 request_count(updated_objects_attribute, 2)
 

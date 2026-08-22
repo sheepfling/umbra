@@ -2091,6 +2091,16 @@ void recordSuccessfulInteractionReceipt(
                             directed));
 }
 
+void recordSuccessfulReflectionReceipt(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId) {
+  std::scoped_lock lock(federationManagementMutex());
+  static_cast<void>(embeddedFederationManagement().registry()
+                        .recordSuccessfulReflectionReceipt(
+                            federationName,
+                            receivingFederateId));
+}
+
 // Receive-order messages use the ordinary callback route, but their delivery
 // is additionally gated by the recipient's temporal state.  Deferring the
 // route invocation (rather than the projected callback payload) preserves the
@@ -3527,6 +3537,7 @@ void queueTimestampedReflectAttributeUpdate(
         }
       }
 
+      recordSuccessfulReflectionReceipt(federationName, receivingFederateId);
       recipient.reflectAttributeValues(
           makeObjectInstanceHandle(objectInstanceHandle),
           attributeValues,
@@ -3810,6 +3821,7 @@ void queueReceiveOrderAttributeUpdate(
                                 receivingFederateId,
                                 objectInstanceHandle));
     }
+    recordSuccessfulReflectionReceipt(federationName, receivingFederateId);
     recipient.reflectAttributeValues(
         makeObjectInstanceHandle(objectInstanceHandle),
         attributeValues,

@@ -216,6 +216,10 @@ the direct 0/1/2 bridge evidence.
 It also keeps `HLAobjectInstancesReflected` distinct by object: the first
 application reflection raises it to one, a repeated update remains one, and a
 second object raises it to two.
+The same application-reflection vector observes `HLAreflectionsReceived`
+at 0/1/2/3 for the three accepted callback invocations, while the distinct
+object counter remains 0/1/1/2. RTI-owned MOM reflection uses its separate
+path and is not folded into this application callback ledger.
 The interaction-send MOM vector counts accepted ordinary and directed
 `sendInteraction` invocations at the C++ service boundary. It observes
 `HLAinteractionsSent` at 0/1/2 and the directed subset

@@ -164,6 +164,10 @@ struct FederateMembership {
   // callbacks delivered to this joined federate. A local delete followed by
   // rediscovery therefore contributes another accepted callback.
   std::uint64_t successfulObjectInstanceDiscoveriesCount = 0;
+  // HLAreflectionsReceived counts accepted application Reflect Attribute
+  // Values callback invocations at this joined federate. RTI-owned MOM
+  // reflections use a separate callback path and are intentionally excluded.
+  std::uint64_t successfulReflectionsReceivedCount = 0;
   // HLAobjectInstancesReflected counts distinct application object instances
   // for which this joined federate has received an accepted Reflect Attribute
   // Values callback. MOM-owned objects are deliberately excluded.
@@ -2261,6 +2265,11 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t federateId,
       bool directed);
+
+  [[nodiscard]] FederationRegistryStatus
+  recordSuccessfulReflectionReceipt(
+      std::wstring const& federationName,
+      std::uint64_t federateId);
 
   [[nodiscard]] FederationRestoreControlResult requestFederationRestore(
       std::wstring const& federationName,
