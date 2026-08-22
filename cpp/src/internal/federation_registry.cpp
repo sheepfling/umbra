@@ -4503,10 +4503,60 @@ EmbeddedFederationRegistry::takeDueJoinedFederateMomPeriodicUpdates(
         });
     if (object != federation->second.rtiOwnedJoinedFederateMomObjects.end() &&
         !object->second.periodicAttributeHandles.empty()) {
-      result.push_back({
+      JoinedFederateMomPeriodicUpdate update{
           object->second.objectInstanceHandle,
           object->second.periodicAttributeHandles,
-      });
+          {}};
+      auto const objectClassName = federation->second.objectClassHandles
+          ? federation->second.objectClassHandles->nameFor(
+                object->second.objectClassHandle)
+          : std::nullopt;
+      auto const timeState = federation->second.timeCoordinator.timeStateFor(
+          targetFederateId);
+      if (objectClassName && timeState && federation->second.attributeHandles &&
+          federation->second.definition.catalog) {
+        std::set<std::uint64_t> durationAttributeHandles;
+        for (auto const attributeHandle : update.attributeHandles) {
+          auto const attributeName = federation->second.attributeHandles->nameFor(
+              federation->second.definition.catalog.get(),
+              *objectClassName,
+              attributeHandle);
+          if (attributeName &&
+              (*attributeName == "HLAtimeGrantedTime" ||
+               *attributeName == "HLAtimeAdvancingTime")) {
+            durationAttributeHandles.insert(attributeHandle);
+          }
+        }
+        auto const durations = durationAttributeHandles.empty()
+            ? FederateMomTimeDurations{}
+            : timeState->takeMomTimeDurations();
+        auto const encodeMilliseconds = [](std::uint64_t milliseconds) {
+          auto const bounded = std::min<std::uint64_t>(
+              milliseconds,
+              static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max()));
+          return rti1516_2025::HLAinteger32BE{
+              static_cast<std::int32_t>(bounded)}.encode();
+        };
+        for (auto const attributeHandle : durationAttributeHandles) {
+          auto const attributeName = federation->second.attributeHandles->nameFor(
+              federation->second.definition.catalog.get(),
+              *objectClassName,
+              attributeHandle);
+          if (!attributeName) {
+            continue;
+          }
+          if (*attributeName == "HLAtimeGrantedTime") {
+            update.attributeValues.emplace(
+                attributeHandle,
+                encodeMilliseconds(durations.grantedMilliseconds));
+          } else if (*attributeName == "HLAtimeAdvancingTime") {
+            update.attributeValues.emplace(
+                attributeHandle,
+                encodeMilliseconds(durations.advancingMilliseconds));
+          }
+        }
+      }
+      result.push_back(std::move(update));
     }
 
     // Keep a stable cadence if callback polling was delayed for several
@@ -8332,6 +8382,14 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
       std::optional<FederateTimeSnapshot>{timeState->snapshot()} :
       std::nullopt;
 
+  auto encodeMomMilliseconds = [](std::uint64_t milliseconds) {
+    auto const bounded = std::min<std::uint64_t>(
+        milliseconds,
+        static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max()));
+    return rti1516_2025::HLAinteger32BE{
+        static_cast<std::int32_t>(bounded)}.encode();
+  };
+
   auto encodeSwitch = [](bool value) {
     return rti1516_2025::HLAinteger32BE{value ? 1 : 0}.encode();
   };
@@ -8585,6 +8643,17 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
         ? std::numeric_limits<std::int32_t>::max()
         : static_cast<std::int32_t>(count);
     return rti1516_2025::HLAinteger32BE{encodedCount}.encode();
+  }
+  if (*attributeName == "HLAtimeGrantedTime" ||
+      *attributeName == "HLAtimeAdvancingTime") {
+    if (!timeState) {
+      return std::nullopt;
+    }
+    auto const durations = timeState->momTimeDurations();
+    return encodeMomMilliseconds(
+        *attributeName == "HLAtimeGrantedTime"
+            ? durations.grantedMilliseconds
+            : durations.advancingMilliseconds);
   }
   if (!timeSnapshot) {
     return std::nullopt;

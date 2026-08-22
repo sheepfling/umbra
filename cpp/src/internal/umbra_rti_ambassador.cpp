@@ -4931,10 +4931,24 @@ void queueJoinedFederateMomAttributeValueUpdate(
       return;
     }
 
+    std::map<std::uint64_t, VariableLengthData> values;
+    if (plannedAttributeValues.has_value()) {
+      for (auto const& [attributeHandle, reflectedValue] :
+           reflection->attributeValues) {
+        auto const planned = plannedAttributeValues->find(attributeHandle);
+        values.emplace(
+            attributeHandle,
+            planned == plannedAttributeValues->end() ? reflectedValue
+                                                       : planned->second);
+      }
+    } else {
+      values = reflection->attributeValues;
+    }
+    if (values.empty()) {
+      return;
+    }
+
     AttributeHandleValueMap attributeValues;
-    auto const& values = plannedAttributeValues.has_value()
-        ? *plannedAttributeValues
-        : reflection->attributeValues;
     for (auto const& [attributeHandle, value] : values) {
       attributeValues.emplace(makeAttributeHandle(attributeHandle), value);
     }
@@ -4954,7 +4968,9 @@ void queueJoinedFederateMomConditionalAttributeUpdate(
     std::wstring const& federationName,
     std::uint64_t objectInstanceHandle,
     std::set<std::uint64_t> requestedAttributeHandles,
-    std::optional<std::uint64_t> excludedReceivingFederateId = std::nullopt) {
+    std::optional<std::uint64_t> excludedReceivingFederateId = std::nullopt,
+    std::optional<std::map<std::uint64_t, VariableLengthData>>
+        plannedAttributeValues = std::nullopt) {
   umbra::detail::JoinedFederateMomAttributeValueUpdateClassPlan plan;
   {
     std::scoped_lock lock(federationManagementMutex());
@@ -4970,6 +4986,15 @@ void queueJoinedFederateMomConditionalAttributeUpdate(
     if (!recipient.callbackRoute || recipient.attributeValues.empty()) {
       continue;
     }
+    auto plannedValues = std::move(recipient.attributeValues);
+    if (plannedAttributeValues.has_value()) {
+      for (auto const& [attributeHandle, value] : *plannedAttributeValues) {
+        auto const planned = plannedValues.find(attributeHandle);
+        if (planned != plannedValues.end()) {
+          planned->second = value;
+        }
+      }
+    }
     queueJoinedFederateMomAttributeValueUpdate(
         std::move(recipient.callbackRoute),
         federationName,
@@ -4977,7 +5002,7 @@ void queueJoinedFederateMomConditionalAttributeUpdate(
         recipient.objectInstanceHandle,
         requestedAttributeHandles,
         true,
-        std::move(recipient.attributeValues));
+        std::move(plannedValues));
   }
 }
 
@@ -5099,14 +5124,16 @@ void pumpDueJoinedFederateMomPeriodicUpdates(std::wstring const& federationName)
             federationName,
             std::chrono::steady_clock::now());
   }
-  for (auto const& update : due) {
+  for (auto& update : due) {
     if (update.objectInstanceHandle == 0U || update.attributeHandles.empty()) {
       continue;
     }
     queueJoinedFederateMomConditionalAttributeUpdate(
         federationName,
         update.objectInstanceHandle,
-        update.attributeHandles);
+        update.attributeHandles,
+        std::nullopt,
+        std::move(update.attributeValues));
   }
 }
 

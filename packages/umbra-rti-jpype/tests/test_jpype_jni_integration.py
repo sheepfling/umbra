@@ -11498,6 +11498,203 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             with self.subTest(callback_model=callback_model):
                 run_scenario(callback_model)
 
+    def test_cpp_jni_java_jpype_joined_federate_mom_time_state_durations(
+        self,
+    ) -> None:
+        """Expose standard HLAmsec time-state durations through Java/JPype."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "third_party"
+            / "ieee1516.2-2025"
+            / "resources"
+            / "examples"
+            / "RestaurantFOMmodule-2025.xml"
+        )
+
+        def run_scenario(callback_model: CallbackModel) -> None:
+            federation_name = f"python-jni-time-duration-mom-{uuid4()}"
+            subject = self.factory.getRtiAmbassador()
+            observer = self.factory.getRtiAmbassador()
+            subject_callbacks = _JniCallbacks()
+            observer_callbacks = _JniCallbacks()
+            subject_connected = observer_connected = False
+            subject_joined = observer_joined = created = False
+
+            def pump() -> None:
+                if callback_model is CallbackModel.HLA_EVOKED:
+                    observer.evokeCallback(0.0)
+
+            def wait_for_reflection(
+                predicate: object, timeout_seconds: float = 2.5
+            ) -> tuple[object, ...]:
+                deadline = time.monotonic() + timeout_seconds
+                while time.monotonic() < deadline:
+                    pump()
+                    for reflection in observer_callbacks.reflected_attributes:
+                        if predicate(reflection):  # type: ignore[operator]
+                            return reflection
+                    time.sleep(0.025)
+                self.fail("timed out waiting for the standard Java MOM duration reflection")
+
+            try:
+                subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
+                subject_connected = True
+                observer.connect(observer_callbacks, callback_model)
+                observer_connected = True
+                subject.createFederationExecution(
+                    federation_name, str(fom_module), "HLAinteger64Time"
+                )
+                created = True
+                observer.joinFederationExecution(
+                    "time-duration-observer",
+                    federation_name,
+                    federateName="time-duration-observer",
+                )
+                observer_joined = True
+
+                mom_class = observer.getObjectClassHandle(
+                    "HLAobjectRoot.HLAmanager.HLAfederate"
+                )
+                federate_handle_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAfederateHandle"
+                )
+                granted_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAtimeGrantedTime"
+                )
+                advancing_attribute = observer.getAttributeHandle(
+                    mom_class, "HLAtimeAdvancingTime"
+                )
+                observer.subscribeObjectClassAttributes(
+                    mom_class,
+                    AttributeHandleSet(
+                        [
+                            federate_handle_attribute,
+                            granted_attribute,
+                            advancing_attribute,
+                        ]
+                    ),
+                    active=True,
+                )
+
+                subject_handle = subject.joinFederationExecution(
+                    "time-duration-subject",
+                    federation_name,
+                    federateName="time-duration-subject",
+                )
+                subject_joined = True
+                initial = wait_for_reflection(
+                    lambda reflection: dict(reflection[1]).get(
+                        federate_handle_attribute
+                    )
+                    == subject_handle.encodedValue
+                )
+                subject_object = initial[0]
+                initial_values = dict(initial[1])
+                self.assertNotIn(granted_attribute, initial_values)
+                self.assertNotIn(advancing_attribute, initial_values)
+
+                encoder = self.factory.getEncoderFactory()
+
+                def decode_duration(
+                    reflection: tuple[object, ...], attribute: AttributeHandle
+                ) -> int:
+                    value = encoder.createHLAinteger32BE()
+                    value.decode(dict(reflection[1])[attribute])
+                    return value.getValue()
+
+                # A request AVU exercises the direct conditional branch; the
+                # periodic report below exercises the consume-once interval.
+                time.sleep(0.05)
+                before_direct = len(observer_callbacks.reflected_attributes)
+                observer.requestAttributeValueUpdate(
+                    subject_object,
+                    AttributeHandleSet([granted_attribute, advancing_attribute]),
+                    b"",
+                )
+                direct = wait_for_reflection(
+                    lambda reflection: len(observer_callbacks.reflected_attributes)
+                    > before_direct
+                    and reflection[0] == subject_object
+                    and {granted_attribute, advancing_attribute}.issubset(
+                        set(dict(reflection[1]))
+                    )
+                )
+                self.assertGreaterEqual(
+                    decode_duration(direct, granted_attribute), 0
+                )
+                self.assertGreaterEqual(
+                    decode_duration(direct, advancing_attribute), 0
+                )
+
+                set_timing = observer.getInteractionClassHandle(
+                    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming"
+                )
+                federate_parameter = observer.getParameterHandle(
+                    set_timing, "HLAfederate"
+                )
+                period_parameter = observer.getParameterHandle(
+                    set_timing, "HLAreportPeriod"
+                )
+                before_periodic = len(observer_callbacks.reflected_attributes)
+                observer.sendInteraction(
+                    set_timing,
+                    ParameterHandleValueMap(
+                        {
+                            federate_parameter: subject_handle.encodedValue,
+                            period_parameter: encoder.createHLAinteger32BE(
+                                1
+                            ).toByteArray(),
+                        }
+                    ),
+                    b"",
+                )
+                periodic = wait_for_reflection(
+                    lambda reflection: len(observer_callbacks.reflected_attributes)
+                    > before_periodic
+                    and reflection[0] == subject_object
+                    and {granted_attribute, advancing_attribute}.issubset(
+                        set(dict(reflection[1]))
+                    )
+                )
+                self.assertGreaterEqual(
+                    decode_duration(periodic, granted_attribute), 0
+                )
+                self.assertGreaterEqual(
+                    decode_duration(periodic, advancing_attribute), 0
+                )
+                self.assertEqual(len(dict(direct[1])[granted_attribute]), 4)
+                self.assertEqual(len(dict(direct[1])[advancing_attribute]), 4)
+            finally:
+                if subject_joined:
+                    try:
+                        subject.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                if observer_joined:
+                    try:
+                        observer.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                if created:
+                    try:
+                        subject.destroyFederationExecution(federation_name)
+                    except Exception:
+                        pass
+                for ambassador, connected in (
+                    (observer, observer_connected),
+                    (subject, subject_connected),
+                ):
+                    if connected:
+                        try:
+                            ambassador.disconnect()
+                        except Exception:
+                            pass
+                    ambassador._implementation.close()
+
+        for callback_model in (CallbackModel.HLA_EVOKED, CallbackModel.HLA_IMMEDIATE):
+            with self.subTest(callback_model=callback_model):
+                run_scenario(callback_model)
+
     def test_cpp_jni_java_jpype_joined_federate_mom_galt_lits_track_time_bounds(
         self,
     ) -> None:

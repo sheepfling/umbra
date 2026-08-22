@@ -4,6 +4,7 @@
 #include <RTI/time/LogicalTimeInterval.h>
 
 #include <cstdint>
+#include <chrono>
 #include <deque>
 #include <functional>
 #include <memory>
@@ -128,6 +129,14 @@ struct FederateTimeSnapshot {
   std::shared_ptr<rti1516_2025::LogicalTimeInterval const> requestedLookahead;
 };
 
+// Wall-clock time spent in each temporal state since the previous MOM
+// duration report. The values are kept wide internally and clamped to the
+// standard HLAmsec HLAinteger32BE representation at the MOM boundary.
+struct FederateMomTimeDurations {
+  std::uint64_t grantedMilliseconds = 0;
+  std::uint64_t advancingMilliseconds = 0;
+};
+
 // Per-federate logical-time state for the embedded development profile. The
 // selected implementation and all stored values are official LogicalTime
 // instances; this component owns no Umbra replacement time representation.
@@ -242,6 +251,11 @@ class FederateTimeState final {
   takeEligibleAsynchronousReceiveCallbacks();
   [[nodiscard]] std::size_t deferredAsynchronousReceiveCount() const;
 
+  // Direct AVU observes the current interval without consuming it. Periodic
+  // MOM delivery claims the interval exactly once through the non-const form.
+  [[nodiscard]] FederateMomTimeDurations momTimeDurations() const;
+  [[nodiscard]] FederateMomTimeDurations takeMomTimeDurations();
+
   void deactivate() noexcept;
 
  private:
@@ -252,6 +266,9 @@ class FederateTimeState final {
 
   [[nodiscard]] std::shared_ptr<rti1516_2025::LogicalTime const> grantImpl(
       std::uint64_t generation);
+  void accumulateMomTimeLocked(std::chrono::steady_clock::time_point now);
+  [[nodiscard]] FederateMomTimeDurations momTimeDurationsLocked(
+      std::chrono::steady_clock::time_point now) const;
 
   mutable std::mutex mutex_;
   std::wstring implementationName_;
@@ -272,6 +289,11 @@ class FederateTimeState final {
   bool asynchronousDeliveryEnabled_ = false;
   bool minimumTimestampIsExclusive_ = false;
   bool active_ = true;
+  bool timeAdvancing_ = false;
+  std::chrono::steady_clock::time_point momStateSince_ =
+      std::chrono::steady_clock::now();
+  std::uint64_t momGrantedMilliseconds_ = 0;
+  std::uint64_t momAdvancingMilliseconds_ = 0;
   std::deque<DeferredCallback> deferredAsynchronousReceives_;
 };
 

@@ -4,6 +4,7 @@
 #include <RTI/time/HLAlogicalTimeFactoryFactory.h>
 
 #include <limits>
+#include <chrono>
 #include <utility>
 
 namespace umbra::detail {
@@ -56,10 +57,13 @@ FederateTimeState::FederateTimeState(
     std::wstring implementationName,
     std::shared_ptr<rti1516_2025::LogicalTime> initialTime)
     : implementationName_(std::move(implementationName)),
-      currentTime_(std::move(initialTime)) {}
+      currentTime_(std::move(initialTime)),
+      momStateSince_(std::chrono::steady_clock::now()) {}
 
 FederateTimeState::FederateTimeState(FederateTimeState const& other) {
   std::scoped_lock lock(other.mutex_);
+  auto const now = std::chrono::steady_clock::now();
+  auto const momDurations = other.momTimeDurationsLocked(now);
   implementationName_ = other.implementationName_;
   currentTime_ = cloneLogicalTime(other.currentTime_, implementationName_);
   pendingTime_ = cloneLogicalTime(other.pendingTime_, implementationName_);
@@ -80,6 +84,10 @@ FederateTimeState::FederateTimeState(FederateTimeState const& other) {
   asynchronousDeliveryEnabled_ = other.asynchronousDeliveryEnabled_;
   minimumTimestampIsExclusive_ = other.minimumTimestampIsExclusive_;
   active_ = other.active_;
+  timeAdvancing_ = other.timeAdvancing_;
+  momGrantedMilliseconds_ = momDurations.grantedMilliseconds;
+  momAdvancingMilliseconds_ = momDurations.advancingMilliseconds;
+  momStateSince_ = now;
 }
 
 FederateTimeState& FederateTimeState::operator=(FederateTimeState const& other) {
@@ -87,6 +95,8 @@ FederateTimeState& FederateTimeState::operator=(FederateTimeState const& other) 
     return *this;
   }
   std::scoped_lock lock(mutex_, other.mutex_);
+  auto const now = std::chrono::steady_clock::now();
+  auto const momDurations = other.momTimeDurationsLocked(now);
   implementationName_ = other.implementationName_;
   currentTime_ = cloneLogicalTime(other.currentTime_, implementationName_);
   pendingTime_ = cloneLogicalTime(other.pendingTime_, implementationName_);
@@ -107,6 +117,10 @@ FederateTimeState& FederateTimeState::operator=(FederateTimeState const& other) 
   asynchronousDeliveryEnabled_ = other.asynchronousDeliveryEnabled_;
   minimumTimestampIsExclusive_ = other.minimumTimestampIsExclusive_;
   active_ = other.active_;
+  timeAdvancing_ = other.timeAdvancing_;
+  momGrantedMilliseconds_ = momDurations.grantedMilliseconds;
+  momAdvancingMilliseconds_ = momDurations.advancingMilliseconds;
+  momStateSince_ = now;
   // Deferred callbacks belong to the live callback session, not to a copied
   // save/restore temporal snapshot.  A restore must not replay a closure that
   // was created after the snapshot was taken.
@@ -253,6 +267,8 @@ FederateTimeAdvanceResult FederateTimeState::requestAdvanceImpl(
   pendingTime_ = std::move(effectiveTime);
   pendingAdvanceRequestTime_ = std::move(requestedTime);
   advanceMode_ = mode;
+  accumulateMomTimeLocked(std::chrono::steady_clock::now());
+  timeAdvancing_ = true;
   return {FederateTimeAdvanceStatus::applied, pendingGeneration_};
 }
 
@@ -294,6 +310,8 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
     }
   }
 
+  accumulateMomTimeLocked(std::chrono::steady_clock::now());
+  timeAdvancing_ = false;
   currentTime_ = std::move(pendingTime_);
   if (optimisticTime_ && currentTime_) {
     try {
@@ -563,8 +581,64 @@ std::size_t FederateTimeState::deferredAsynchronousReceiveCount() const {
   return deferredAsynchronousReceives_.size();
 }
 
+FederateMomTimeDurations FederateTimeState::momTimeDurations() const {
+  std::scoped_lock lock(mutex_);
+  return momTimeDurationsLocked(std::chrono::steady_clock::now());
+}
+
+FederateMomTimeDurations FederateTimeState::takeMomTimeDurations() {
+  std::scoped_lock lock(mutex_);
+  accumulateMomTimeLocked(std::chrono::steady_clock::now());
+  FederateMomTimeDurations result{
+      momGrantedMilliseconds_, momAdvancingMilliseconds_};
+  momGrantedMilliseconds_ = 0;
+  momAdvancingMilliseconds_ = 0;
+  return result;
+}
+
+void FederateTimeState::accumulateMomTimeLocked(
+    std::chrono::steady_clock::time_point now) {
+  auto const elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+      now - momStateSince_);
+  momStateSince_ = now;
+  if (elapsed.count() <= 0) {
+    return;
+  }
+  auto const milliseconds = static_cast<std::uint64_t>(elapsed.count());
+  auto& selected = timeAdvancing_
+      ? momAdvancingMilliseconds_
+      : momGrantedMilliseconds_;
+  if (std::numeric_limits<std::uint64_t>::max() - selected < milliseconds) {
+    selected = std::numeric_limits<std::uint64_t>::max();
+  } else {
+    selected += milliseconds;
+  }
+}
+
+FederateMomTimeDurations FederateTimeState::momTimeDurationsLocked(
+    std::chrono::steady_clock::time_point now) const {
+  auto result = FederateMomTimeDurations{
+      momGrantedMilliseconds_, momAdvancingMilliseconds_};
+  auto const elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+      now - momStateSince_);
+  if (elapsed.count() <= 0) {
+    return result;
+  }
+  auto const milliseconds = static_cast<std::uint64_t>(elapsed.count());
+  auto& selected = timeAdvancing_
+      ? result.advancingMilliseconds
+      : result.grantedMilliseconds;
+  if (std::numeric_limits<std::uint64_t>::max() - selected < milliseconds) {
+    selected = std::numeric_limits<std::uint64_t>::max();
+  } else {
+    selected += milliseconds;
+  }
+  return result;
+}
+
 void FederateTimeState::deactivate() noexcept {
   std::scoped_lock lock(mutex_);
+  accumulateMomTimeLocked(std::chrono::steady_clock::now());
   active_ = false;
   currentTime_.reset();
   pendingTime_.reset();

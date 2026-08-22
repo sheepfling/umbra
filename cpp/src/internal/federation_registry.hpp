@@ -631,6 +631,10 @@ struct JoinedFederateMomObjectSnapshot {
 struct JoinedFederateMomPeriodicUpdate {
   std::uint64_t objectInstanceHandle = 0;
   std::set<std::uint64_t> attributeHandles;
+  // Periodic duration values are consumed at the registry-owned deadline so
+  // the reflection reports time spent since the preceding update rather than
+  // recomputing a later interval in the callback thread.
+  std::map<std::uint64_t, rti1516_2025::VariableLengthData> attributeValues;
 };
 
 enum class FederateMOMTimingUpdateStatus {
