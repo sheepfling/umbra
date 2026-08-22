@@ -749,7 +749,7 @@ The first conditional exception is now closed for `HLAautoProvide`: the
 federation `HLAsetSwitches` service compares the C++ switch ledger, queues a
 conditional reflection only when the value changes, and supports discovery
 when the subscription contains no static federation attribute. The remaining
-conditional federation values stay open.
+save/restore conditional federation values remain the next open slice.
 The execution-scoped `HLAfederatesInFederation` exception is now closed as
 well: the C++ membership map is encoded as the standard nested
 `HLAfederateReferenceList`, and Join, Resign, and connection-loss boundaries
@@ -759,9 +759,13 @@ closed for its module-list payload: the current C++ definition ledger filters
 out the MIM, encodes the remaining canonical FOM designators as the standard
 `HLAmoduleDesignatorList`, and an additional-FOM Join queues the conditional
 reflection. The `HLAcurrentFDD` payload is serialized from the composed
-FDD artifact and co-queued at the same Join boundary; save-name/time payloads
-remain open because their public conditional serialization and lifecycle
-sources are not yet implemented.
+FDD artifact and co-queued at the same Join boundary. The save conditionals
+are sourced from the federation save ledger: `HLAnextSaveName` and
+`HLAnextSaveTime` reflect a pending admitted request, clear when Initiate
+Federate Save begins, and `HLAlastSaveName`/`HLAlastSaveTime` update only
+after a snapshot is successfully materialized. Untimed values use the empty
+HLAunicodeString/empty HLAlogicalTime representation, while timed values
+reuse the selected official logical-time encoding.
 
 The intended implementation order is:
 

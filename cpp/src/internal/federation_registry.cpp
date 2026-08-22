@@ -2611,6 +2611,10 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.saveOperation.reset();
   target.pendingImmediateSave = snapshot.pendingImmediateSave;
   target.pendingTimedSave = snapshot.pendingTimedSave;
+  target.lastSaveName = snapshot.lastSaveName;
+  target.lastSaveTime = snapshot.lastSaveTime;
+  target.nextSaveName = snapshot.nextSaveName;
+  target.nextSaveTime = snapshot.nextSaveTime;
   target.restoreOperation.reset();
 }
 
@@ -2643,6 +2647,8 @@ bool EmbeddedFederationRegistry::startFederationSave(
   // requested (but not yet initiated) save of either form.
   federation.pendingImmediateSave.reset();
   federation.pendingTimedSave.reset();
+  federation.nextSaveName.clear();
+  federation.nextSaveTime.reset();
 
   result.notifications.reserve(federation.saveOperation->statuses.size());
   for (auto const& [federateId, status] : federation.saveOperation->statuses) {
@@ -2723,6 +2729,9 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
   federation->second.pendingImmediateSave = Federation::PendingImmediateSave{
       std::move(label)};
   federation->second.pendingTimedSave.reset();
+  federation->second.nextSaveName =
+      federation->second.pendingImmediateSave->label;
+  federation->second.nextSaveTime.reset();
   return result;
 }
 
@@ -2816,6 +2825,8 @@ EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary(
     }
     federation->second.saveOperation = std::move(operation);
     federation->second.pendingImmediateSave.reset();
+    federation->second.nextSaveName.clear();
+    federation->second.nextSaveTime.reset();
   }
 
   auto& operation = *federation->second.saveOperation;
@@ -2939,6 +2950,10 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
   federation->second.pendingImmediateSave.reset();
   federation->second.pendingTimedSave = Federation::PendingTimedSave{
       std::move(label), std::move(timestamp)};
+  federation->second.nextSaveName =
+      federation->second.pendingTimedSave->label;
+  federation->second.nextSaveTime =
+      federation->second.pendingTimedSave->timestamp;
 
   auto pending = federation->second.pendingTimedSave;
   bool ready = true;
@@ -3187,6 +3202,8 @@ EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary(
     }
     federation->second.saveOperation = std::move(operation);
     federation->second.pendingTimedSave.reset();
+    federation->second.nextSaveName.clear();
+    federation->second.nextSaveTime.reset();
   }
 
   auto& operation = *federation->second.saveOperation;
@@ -3425,6 +3442,12 @@ FederationSaveControlResult EmbeddedFederationRegistry::federateSaveComplete(
         snapshotStored,
         rti1516_2025::RTI_UNABLE_TO_SAVE,
         result.notifications);
+    if (snapshotStored) {
+      result.saveCompletedSuccessfully = true;
+      federation->second.lastSaveName = snapshotLabel;
+      federation->second.lastSaveTime =
+          federation->second.saveOperation->scheduledSaveTime;
+    }
     federation->second.saveOperation.reset();
   }
   return result;
@@ -8254,6 +8277,24 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
           L"The composed Current FDD is not valid UTF-8 text.");
     }
     return rti1516_2025::HLAunicodeString{*currentFdd}.encode();
+  }
+  if (object.federationExecutionObject && *attributeName == "HLAlastSaveName") {
+    // The official MIM has no null wire value for HLAunicodeString; an empty
+    // string is the standard representation before the first successful save.
+    return rti1516_2025::HLAunicodeString{federation.lastSaveName}.encode();
+  }
+  if (object.federationExecutionObject && *attributeName == "HLAnextSaveName") {
+    return rti1516_2025::HLAunicodeString{federation.nextSaveName}.encode();
+  }
+  if (object.federationExecutionObject && *attributeName == "HLAlastSaveTime") {
+    return federation.lastSaveTime
+        ? federation.lastSaveTime->encode()
+        : rti1516_2025::VariableLengthData{};
+  }
+  if (object.federationExecutionObject && *attributeName == "HLAnextSaveTime") {
+    return federation.nextSaveTime
+        ? federation.nextSaveTime->encode()
+        : rti1516_2025::VariableLengthData{};
   }
   auto const member = federation.members.find(object.joinedFederateId);
   if (member == federation.members.end()) {

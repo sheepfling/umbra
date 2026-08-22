@@ -8048,6 +8048,9 @@ void UmbraRtiAmbassador::requestFederationSave(std::wstring const& label) {
   submitFederationSaveNotifications(
       *joinedFederationName_,
       std::move(notifications));
+  queueFederationMomConditionalAttributeUpdate(
+      *joinedFederationName_,
+      {"HLAnextSaveName", "HLAnextSaveTime"});
   } catch (Exception const& exception) {
     emitExceptionReport(L"Request Federation Save", exception);
     throw;
@@ -8214,6 +8217,9 @@ void UmbraRtiAmbassador::requestFederationSave(
   submitFederationSaveNotifications(
       federationName,
       std::move(notifications));
+  queueFederationMomConditionalAttributeUpdate(
+      federationName,
+      {"HLAnextSaveName", "HLAnextSaveTime"});
   } catch (Exception const& exception) {
     emitExceptionReport(L"Request Federation Save", exception);
     throw;
@@ -8257,6 +8263,7 @@ void UmbraRtiAmbassador::federateSaveComplete() {
   auto instrumentationScope = beginRtiCall("federateSaveComplete");
   try {
   std::vector<umbra::detail::FederationSaveNotification> notifications;
+  bool saveCompletedSuccessfully = false;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -8286,11 +8293,17 @@ void UmbraRtiAmbassador::federateSaveComplete() {
         {{umbra::detail::MomArgumentType::boolean,
           L"Federate save-success indicator",
           umbra::detail::formatMomBoolean(true)}});
+    saveCompletedSuccessfully = result.saveCompletedSuccessfully;
     notifications = std::move(result.notifications);
   }
   submitFederationSaveNotifications(
       *joinedFederationName_,
       std::move(notifications));
+  if (saveCompletedSuccessfully) {
+    queueFederationMomConditionalAttributeUpdate(
+        *joinedFederationName_,
+        {"HLAlastSaveName", "HLAlastSaveTime"});
+  }
   } catch (Exception const& exception) {
     emitExceptionReport(L"Federate Save Complete", exception);
     throw;

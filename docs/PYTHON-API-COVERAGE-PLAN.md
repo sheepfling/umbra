@@ -242,8 +242,11 @@ The federation-MOM companion now discovers the single RTI-owned
 `HLAallowRelaxedDDM` attributes through C++ → JNI → the external IEEE Java
 API → JPype.  `HLAfederatesInFederation`, `HLAFOMmoduleDesignatorList`,
 `HLAcurrentFDD`, and `HLAautoProvide` now have bounded lifecycle-triggered
-update plans; save names/times remain explicitly deferred until their sources
-are implemented.
+update plans. The save-name/time companion now subscribes to
+`HLAlastSaveName`, `HLAlastSaveTime`, `HLAnextSaveName`, and `HLAnextSaveTime`,
+decodes the standard Java HLAunicodeString and HLAlogicalTime payloads, and
+proves pending timed-save, Initiate, and Federation Saved boundaries through
+the C++ → JNI → Java → JPype route.
 The Auto Provide companion now closes the first of those conditional gaps:
 the existing standard Java `HLAsetSwitches` vector subscribes only to
 `HLAautoProvide`, discovers the federation object from its effective MIM

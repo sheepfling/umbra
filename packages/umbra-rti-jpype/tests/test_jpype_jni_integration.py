@@ -13977,6 +13977,220 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
                         pass
                 ambassador._implementation.close()
 
+    def test_cpp_jni_java_jpype_federation_mom_save_name_and_time_updates(
+        self,
+    ) -> None:
+        """Reflect federation save-name/time conditionals through Java."""
+        fom_module = (
+            Path(__file__).parents[3]
+            / "cpp"
+            / "tests"
+            / "data"
+            / "switch-nrg-disabled-fom.xml"
+        )
+        federation_name = f"python-jni-federation-mom-save-state-{uuid4()}"
+        owner = self.factory.getRtiAmbassador()
+        peer = self.factory.getRtiAmbassador()
+        owner_callbacks = _JniCallbacks()
+        peer_callbacks = _JniCallbacks()
+        owner_connected = peer_connected = False
+        owner_joined = peer_joined = created = False
+
+        def drain(rounds: int = 30) -> None:
+            for _ in range(rounds):
+                owner.evokeCallback(0.0)
+                peer.evokeCallback(0.0)
+
+        try:
+            owner.connect(owner_callbacks, CallbackModel.HLA_EVOKED)
+            owner_connected = True
+            peer.connect(peer_callbacks, CallbackModel.HLA_EVOKED)
+            peer_connected = True
+            owner.createFederationExecution(
+                federation_name, str(fom_module), "HLAinteger64Time"
+            )
+            created = True
+            owner.joinFederationExecution("federation-mom-save-owner", federation_name)
+            owner_joined = True
+            peer.joinFederationExecution("federation-mom-save-peer", federation_name)
+            peer_joined = True
+
+            mom_class = peer.getObjectClassHandle(
+                "HLAobjectRoot.HLAmanager.HLAfederation"
+            )
+            names = (
+                "HLAlastSaveName",
+                "HLAlastSaveTime",
+                "HLAnextSaveName",
+                "HLAnextSaveTime",
+            )
+            attributes = {
+                name: peer.getAttributeHandle(mom_class, name) for name in names
+            }
+            requested_attributes = AttributeHandleSet(list(attributes.values()))
+            peer.subscribeObjectClassAttributes(
+                mom_class, requested_attributes, active=True
+            )
+            drain()
+            federation_object = next(
+                (
+                    discovered[0]
+                    for discovered in peer_callbacks.discovered_objects
+                    if discovered[2] == "HLAfederation"
+                ),
+                None,
+            )
+            self.assertIsNotNone(federation_object)
+            assert federation_object is not None
+
+            encoder = self.factory.getEncoderFactory()
+
+            def decode_unicode(encoded: bytes) -> str:
+                value = encoder.createHLAunicodeString()
+                value.decode(encoded)
+                return value.getValue()
+
+            def assert_save_values(
+                values: dict[object, bytes],
+                *,
+                last_name: str,
+                next_name: str,
+                last_time: bytes = b"",
+                next_time: bytes = b"",
+            ) -> None:
+                self.assertEqual(set(values), set(attributes.values()))
+                self.assertEqual(
+                    decode_unicode(values[attributes["HLAlastSaveName"]]),
+                    last_name,
+                )
+                self.assertEqual(
+                    decode_unicode(values[attributes["HLAnextSaveName"]]),
+                    next_name,
+                )
+                self.assertEqual(values[attributes["HLAlastSaveTime"]], last_time)
+                self.assertEqual(values[attributes["HLAnextSaveTime"]], next_time)
+
+            def wait_for_values(
+                after: int, required: set[object]
+            ) -> dict[object, bytes]:
+                for _ in range(30):
+                    drain(1)
+                    for reflection in peer_callbacks.reflected_attributes[after:]:
+                        values = dict(reflection[1])
+                        if required.issubset(values):
+                            return values
+                self.fail("federation save MOM values were not reflected")
+
+            before_initial = len(peer_callbacks.reflected_attributes)
+            peer.requestAttributeValueUpdate(federation_object, requested_attributes)
+            initial_values = wait_for_values(before_initial, set(attributes.values()))
+            assert_save_values(initial_values, last_name="", next_name="")
+
+            # A constrained member keeps a timestamped request pending. That
+            # makes both HLAnextSaveName and HLAnextSaveTime observable before
+            # the save reaches Initiate.
+            owner.enableTimeRegulation(
+                owner.getTimeFactory().makeLogicalTimeInterval(1)
+            )
+            peer.enableTimeConstrained()
+            drain()
+            save_label = f"jni-mom-save-state-{uuid4()}"
+            save_time = owner.getTimeFactory().makeLogicalTime(5)
+            encoded_save_time = save_time.toByteArray()
+            before_request = len(peer_callbacks.reflected_attributes)
+            owner.requestFederationSave(save_label, save_time)
+            pending_values = wait_for_values(
+                before_request,
+                {
+                    attributes["HLAnextSaveName"],
+                    attributes["HLAnextSaveTime"],
+                },
+            )
+            self.assertEqual(
+                decode_unicode(pending_values[attributes["HLAnextSaveName"]]),
+                save_label,
+            )
+            self.assertEqual(
+                pending_values[attributes["HLAnextSaveTime"]], encoded_save_time
+            )
+
+            owner.timeAdvanceRequest(save_time)
+            drain()
+            peer.timeAdvanceRequest(peer.getTimeFactory().makeLogicalTime(5))
+            for _ in range(30):
+                drain(1)
+                if (
+                    [label for label, _ in owner_callbacks.timestamped_save_initiations]
+                    == [save_label]
+                    and [label for label, _ in peer_callbacks.timestamped_save_initiations]
+                    == [save_label]
+                ):
+                    break
+            self.assertEqual(
+                [label for label, _ in owner_callbacks.timestamped_save_initiations],
+                [save_label],
+            )
+            self.assertEqual(
+                [label for label, _ in peer_callbacks.timestamped_save_initiations],
+                [save_label],
+            )
+
+            owner.federateSaveBegun()
+            peer.federateSaveBegun()
+            owner.federateSaveComplete()
+            peer.federateSaveComplete()
+            before_completion = len(peer_callbacks.reflected_attributes)
+            last_values = wait_for_values(
+                before_completion,
+                {
+                    attributes["HLAlastSaveName"],
+                    attributes["HLAlastSaveTime"],
+                },
+            )
+            self.assertEqual(
+                decode_unicode(last_values[attributes["HLAlastSaveName"]]),
+                save_label,
+            )
+            self.assertEqual(
+                last_values[attributes["HLAlastSaveTime"]], encoded_save_time
+            )
+
+            before_final = len(peer_callbacks.reflected_attributes)
+            peer.requestAttributeValueUpdate(federation_object, requested_attributes)
+            final_values = wait_for_values(before_final, set(attributes.values()))
+            assert_save_values(
+                final_values,
+                last_name=save_label,
+                next_name="",
+                last_time=encoded_save_time,
+            )
+        finally:
+            if peer_joined:
+                try:
+                    peer.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if owner_joined:
+                try:
+                    owner.resignFederationExecution(ResignAction.NO_ACTION)
+                except Exception:
+                    pass
+            if created:
+                try:
+                    owner.destroyFederationExecution(federation_name)
+                except Exception:
+                    pass
+            for ambassador, connected in (
+                (peer, peer_connected),
+                (owner, owner_connected),
+            ):
+                if connected:
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                ambassador._implementation.close()
+
     def test_cpp_jni_java_jpype_timestamped_attribute_update_rate_reduction(
         self,
     ) -> None:

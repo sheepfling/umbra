@@ -323,6 +323,9 @@ struct FederationSaveNotification {
 struct FederationSaveControlResult {
   FederationSaveControlStatus status = FederationSaveControlStatus::applied;
   std::vector<FederationSaveNotification> notifications;
+  // True only when this completion call materialized the federation snapshot
+  // and therefore crossed the Federation Saved MOM condition boundary.
+  bool saveCompletedSuccessfully = false;
 };
 
 // A time-constrained member must receive Initiate Federate Save while it is
@@ -4029,6 +4032,13 @@ class EmbeddedFederationRegistry final {
     std::optional<SaveOperation> saveOperation;
     std::optional<PendingImmediateSave> pendingImmediateSave;
     std::optional<PendingTimedSave> pendingTimedSave;
+    // Federation-scoped save history is part of the execution MOM, not a
+    // callback-derived adapter cache. An absent time means the corresponding
+    // save was untimed (or has not occurred yet).
+    std::wstring lastSaveName;
+    std::shared_ptr<rti1516_2025::LogicalTime const> lastSaveTime;
+    std::wstring nextSaveName;
+    std::shared_ptr<rti1516_2025::LogicalTime const> nextSaveTime;
     std::optional<RestoreOperation> restoreOperation;
     std::map<std::uint64_t, ObjectClassAttributeDeclarations> objectClassAttributeDeclarations;
     std::map<std::uint64_t, InteractionCallbackRoute> interactionCallbackRoutes;
