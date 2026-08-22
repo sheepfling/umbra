@@ -83,7 +83,18 @@ std::string normalizedText(std::string value) {
   std::string result;
   bool pendingSpace = false;
   for (unsigned char const character : value) {
-    if (std::isspace(character) != 0) {
+    // FOM text is UTF-8. Only the XML/ASCII whitespace bytes are separators;
+    // applying locale-sensitive std::isspace to UTF-8 continuation bytes can
+    // classify a byte such as 0x86 as whitespace and corrupt a multibyte
+    // scalar while normalizing otherwise valid source text.
+    bool const asciiWhitespace =
+        character == static_cast<unsigned char>(' ') ||
+        character == static_cast<unsigned char>('\t') ||
+        character == static_cast<unsigned char>('\n') ||
+        character == static_cast<unsigned char>('\r') ||
+        character == static_cast<unsigned char>('\f') ||
+        character == static_cast<unsigned char>('\v');
+    if (asciiWhitespace) {
       pendingSpace = !result.empty();
       continue;
     }

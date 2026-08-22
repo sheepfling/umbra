@@ -13822,7 +13822,7 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
     def test_cpp_jni_java_jpype_federation_mom_fom_module_updates(
         self,
     ) -> None:
-        """Reflect the execution FOM-module list after an additional-FOM Join."""
+        """Reflect the execution FOM and module lists after an additional Join."""
         base_fom = (
             Path(__file__).parents[3]
             / "cpp"
@@ -13858,6 +13858,11 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             modules.decode(encoded)
             return [modules.get(index).getValue() for index in range(modules.size())]
 
+        def decode_unicode(encoded: bytes) -> str:
+            value = self.factory.getEncoderFactory().createHLAunicodeString()
+            value.decode(encoded)
+            return value.getValue()
+
         try:
             subject.connect(subject_callbacks, CallbackModel.HLA_EVOKED)
             subject_connected = True
@@ -13878,9 +13883,10 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             module_attribute = observer.getAttributeHandle(
                 mom_class, "HLAFOMmoduleDesignatorList"
             )
+            fdd_attribute = observer.getAttributeHandle(mom_class, "HLAcurrentFDD")
             observer.subscribeObjectClassAttributes(
                 mom_class,
-                AttributeHandleSet([module_attribute]),
+                AttributeHandleSet([module_attribute, fdd_attribute]),
                 active=True,
             )
             drain()
@@ -13897,18 +13903,21 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
 
             observer.requestAttributeValueUpdate(
                 federation_object,
-                AttributeHandleSet([module_attribute]),
+                AttributeHandleSet([module_attribute, fdd_attribute]),
             )
             drain()
             initial_reflection = next(
                 reflection
                 for reflection in reversed(observer_callbacks.reflected_attributes)
-                if module_attribute in reflection[1]
+                if module_attribute in reflection[1] and fdd_attribute in reflection[1]
             )
+            initial_values = dict(initial_reflection[1])
             self.assertEqual(
-                decode_modules(dict(initial_reflection[1])[module_attribute]),
+                decode_modules(initial_values[module_attribute]),
                 [str(base_fom)],
             )
+            initial_fdd = decode_unicode(initial_values[fdd_attribute])
+            self.assertIn("<objectmodel", initial_fdd.lower())
 
             reflection_count = sum(
                 module_attribute in reflection[1]
@@ -13930,13 +13939,17 @@ class JPypeJniIntegrationTest(ProviderBindingParityConformanceMixin, unittest.Te
             module_reflections = [
                 reflection
                 for reflection in observer_callbacks.reflected_attributes
-                if module_attribute in reflection[1]
+                if module_attribute in reflection[1] and fdd_attribute in reflection[1]
             ]
             self.assertGreater(len(module_reflections), reflection_count)
+            updated_values = dict(module_reflections[-1][1])
             self.assertEqual(
-                decode_modules(dict(module_reflections[-1][1])[module_attribute]),
+                decode_modules(updated_values[module_attribute]),
                 [str(base_fom), str(joined_fom)],
             )
+            updated_fdd = decode_unicode(updated_values[fdd_attribute])
+            self.assertIn("<objectmodel", updated_fdd.lower())
+            self.assertNotEqual(updated_fdd, initial_fdd)
         finally:
             if subject_joined:
                 try:

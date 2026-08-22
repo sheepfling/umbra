@@ -1,9 +1,11 @@
 #include "internal/federation_registry.hpp"
 
 #include "internal/fom_catalog.hpp"
+#include "internal/fdd_document.hpp"
 #include "internal/federation_time_bounds.hpp"
 #include "internal/federation_time_grant_policy.hpp"
 #include "internal/handle_variable_array_encoding.hpp"
+#include "internal/utf8_string.hpp"
 
 #include <RTI/encoding/BasicDataElements.h>
 
@@ -8237,6 +8239,21 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
     // the same standard HLAvariableArray<HLAunicodeString> representation as
     // the joined-federate MOM snapshot.
     return encodeFederationFomModuleList(federation.definition);
+  }
+  if (object.federationExecutionObject && *attributeName == "HLAcurrentFDD") {
+    // MaterializedFdd is the immutable output of the same 1516.2 composition
+    // transaction that owns the current catalog and module ledger. Convert
+    // its validated UTF-8 XML to the official binding's unicode string rather
+    // than exposing a path, a private wrapper, or a stale module snapshot.
+    if (!federation.definition.fdd) {
+      return std::nullopt;
+    }
+    auto const currentFdd = wideFromUtf8(federation.definition.fdd->xmlUtf8());
+    if (!currentFdd) {
+      throw rti1516_2025::EncoderException(
+          L"The composed Current FDD is not valid UTF-8 text.");
+    }
+    return rti1516_2025::HLAunicodeString{*currentFdd}.encode();
   }
   auto const member = federation.members.find(object.joinedFederateId);
   if (member == federation.members.end()) {

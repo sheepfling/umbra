@@ -758,9 +758,10 @@ route. The execution-scoped `HLAFOMmoduleDesignatorList` exception is also
 closed for its module-list payload: the current C++ definition ledger filters
 out the MIM, encodes the remaining canonical FOM designators as the standard
 `HLAmoduleDesignatorList`, and an additional-FOM Join queues the conditional
-reflection. `HLAcurrentFDD` and save-name/time payloads remain open because
-their public conditional serialization and lifecycle sources are not yet
-implemented.
+reflection. The `HLAcurrentFDD` payload is serialized from the composed
+FDD artifact and co-queued at the same Join boundary; save-name/time payloads
+remain open because their public conditional serialization and lifecycle
+sources are not yet implemented.
 
 The intended implementation order is:
 
