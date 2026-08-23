@@ -8,6 +8,7 @@ from threading import Lock
 from typing import Any, Callable, Protocol
 
 from hla.rti1516_2025 import (
+    BytesLike,
     CallbackModel,
     FederateAmbassador,
     FederationExecutionInformation,
@@ -126,7 +127,7 @@ class JavaRuntime(Protocol):
         self,
         ambassador: object,
         factory_method_name: str,
-        encoded_value: bytes,
+        encoded_value: BytesLike,
     ) -> object:
         """Rebuild a Java handle through its standard per-handle factory."""
 
@@ -175,10 +176,10 @@ class JavaRuntime(Protocol):
     def logical_time_factory(self, ambassador: object) -> object:
         """Return the selected Java logical-time factory."""
 
-    def decode_logical_time(self, ambassador: object, encoded_value: bytes) -> object:
+    def decode_logical_time(self, ambassador: object, encoded_value: BytesLike) -> object:
         """Decode a logical time through the selected Java factory."""
 
-    def decode_logical_interval(self, ambassador: object, encoded_value: bytes) -> object:
+    def decode_logical_interval(self, ambassador: object, encoded_value: BytesLike) -> object:
         """Decode an interval through the selected Java factory."""
 
     def dimension_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> object:
@@ -199,7 +200,7 @@ class JavaRuntime(Protocol):
     def service_group(self, service_group_name: str) -> object:
         """Return the matching Java ``ServiceGroup`` enum member."""
 
-    def byte_array(self, value: bytes) -> object:
+    def byte_array(self, value: BytesLike) -> object:
         """Create a Java byte array without exposing JPype publicly."""
 
     def data_element_factory(self, factory: object) -> object:
@@ -879,7 +880,7 @@ class JPypeJavaRuntime:
         self,
         ambassador: object,
         factory_method_name: str,
-        encoded_value: bytes,
+        encoded_value: BytesLike,
     ) -> object:
         handle_factory = getattr(ambassador, factory_method_name)()
         return handle_factory.decode(self.byte_array(encoded_value), 0)
@@ -891,14 +892,14 @@ class JPypeJavaRuntime:
     def logical_time_factory(self, ambassador: object) -> object:
         return getattr(ambassador, "getTimeFactory")()
 
-    def decode_logical_time(self, ambassador: object, encoded_value: bytes) -> object:
+    def decode_logical_time(self, ambassador: object, encoded_value: BytesLike) -> object:
         factory = self.logical_time_factory(ambassador)
         decoder = getattr(factory, "decodeTime", None)
         if decoder is None:
             decoder = getattr(factory, "decodeLogicalTime")
         return decoder(self.byte_array(encoded_value), 0)
 
-    def decode_logical_interval(self, ambassador: object, encoded_value: bytes) -> object:
+    def decode_logical_interval(self, ambassador: object, encoded_value: BytesLike) -> object:
         factory = self.logical_time_factory(ambassador)
         decoder = getattr(factory, "decodeInterval", None)
         if decoder is None:
@@ -1024,7 +1025,7 @@ class JPypeJavaRuntime:
             service_group_name,
         )
 
-    def byte_array(self, value: bytes) -> object:
+    def byte_array(self, value: BytesLike) -> object:
         jpype = self._require_started_jvm()
         return jpype.JArray(jpype.JByte)(value)
 

@@ -26,7 +26,7 @@ class JavaProviderConfiguration:
     def from_environment(
         cls,
         environment: Mapping[str, str] | None = None,
-    ) -> "JavaProviderConfiguration":
+    ) -> JavaProviderConfiguration:
         """Build configuration from deliberately Java-specific environment keys.
 
         `HLA_RTI_FACTORY_NAME` remains owned by the standard Java factory. The

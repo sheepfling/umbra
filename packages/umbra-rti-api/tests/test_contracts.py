@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 import unittest
+from array import array
 from unittest.mock import patch
 
 import hla.rti1516_2025.exceptions as exceptions
@@ -188,6 +189,18 @@ class ContractsTest(unittest.TestCase):
         self.assertEqual(destination, b"xxhandle")
         self.assertEqual(ResignAction.NO_ACTION.name, "NO_ACTION")
         self.assertEqual(OrderType.RECEIVE.name, "RECEIVE")
+
+    def test_read_only_binary_inputs_accept_buffer_protocol_values(self) -> None:
+        source = array("B", b"handle")
+        handle = FederateHandle(source)
+        destination = memoryview(bytearray(8))
+
+        source[0] = ord("H")
+        handle.encode(destination, 1)
+
+        self.assertEqual(handle.encodedValue, b"handle")
+        self.assertEqual(destination.tobytes(), b"\x00handle\x00")
+        self.assertEqual(Credentials("token", memoryview(b"secret")).getData(), b"secret")
 
     def test_portable_handle_domains_are_immutable_and_remain_distinct(self) -> None:
         encoded = bytearray(b"provider-owned-handle")

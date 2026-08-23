@@ -1,6 +1,7 @@
-import unittest
+import ast
 import math
 import struct
+import unittest
 from importlib.metadata import entry_points
 from pathlib import Path
 from uuid import uuid4
@@ -95,14 +96,18 @@ from hla.rti1516_2025.exceptions import (
 )
 from hla.rti1516_2025.encoding import DecoderException, EncoderException
 from hla.rti1516_2025.encoding import DataElement, DataElementFactory
-from hla.rti1516_2025.testing import (
+from umbra_rti_test_support import (
     ConnectionFoundationConformanceMixin,
     FederationExecutionDiscoveryConformanceMixin,
     FederationExecutionMemberDiscoveryConformanceMixin,
     ConnectionOverloadConformanceMixin,
     ProviderBindingParityConformanceMixin,
 )
-from umbra._native.rti1516_2025 import UmbraRtiFactory, _UmbraRTIambassador
+from umbra._native.rti1516_2025 import (
+    UmbraRtiFactory,
+    _UmbraRTIambassador,
+    _native,
+)
 
 
 class _Integer32ElementFactory(DataElementFactory):
@@ -135,6 +140,40 @@ class NativeProviderTest(unittest.TestCase):
             if not hasattr(_UmbraRTIambassador, name)
         )
         self.assertEqual(missing, [])
+
+    def test_native_facade_calls_only_exported_pybind_ambassador_methods(self) -> None:
+        """Keep the Python façade and the pybind NativeAmbassador in lockstep."""
+        source = (
+            Path(__file__).parents[1]
+            / "src"
+            / "umbra"
+            / "_native"
+            / "rti1516_2025"
+            / "provider.py"
+        ).read_text(encoding="utf-8")
+        module = ast.parse(source)
+        facade = next(
+            node
+            for node in module.body
+            if isinstance(node, ast.ClassDef) and node.name == "_UmbraRTIambassador"
+        )
+        calls = {
+            node.attr
+            for node in ast.walk(facade)
+            if isinstance(node, ast.Attribute)
+            and isinstance(node.value, ast.Attribute)
+            and node.value.attr == "_implementation"
+        }
+        exported = {
+            name
+            for name in dir(_native.NativeAmbassador)
+            if not name.startswith("_")
+        }
+        self.assertEqual(
+            sorted(calls - exported),
+            [],
+            "the native Python façade called a method not exported by pybind11",
+        )
 
     def test_native_encoder_factory_uses_real_cpp_data_elements(self) -> None:
         encoder = UmbraRtiFactory().getEncoderFactory()

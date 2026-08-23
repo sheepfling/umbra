@@ -63,7 +63,7 @@ from hla.rti1516_2025 import (
     SynchronizationPointFailureReason,
     TransportationTypeHandle,
 )
-from hla.rti1516_2025.testing import ProviderBindingParityConformanceMixin
+from umbra_rti_test_support import ProviderBindingParityConformanceMixin
 from hla.rti1516_2025.exceptions import (
     AlreadyConnected,
     AsynchronousDeliveryAlreadyEnabled,

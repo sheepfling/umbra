@@ -1,0 +1,86 @@
+"""Public encoding contracts for IEEE 1516.1-2025.
+
+The abstract contracts and validation helpers live in :mod:`.contracts` so
+this package initializer remains an import-compatible namespace only.
+"""
+
+from .contracts import (
+    DataElement,
+    DataElementFactory,
+    DecoderException,
+    EncoderException,
+    EncoderFactory,
+    HLAASCIIchar,
+    HLAASCIIstring,
+    HLAboolean,
+    HLAbyte,
+    HLAfixedArray,
+    HLAfixedRecord,
+    HLAfloat32BE,
+    HLAfloat32LE,
+    HLAfloat64BE,
+    HLAfloat64LE,
+    HLAinteger16BE,
+    HLAinteger16LE,
+    HLAinteger32BE,
+    HLAinteger32LE,
+    HLAinteger64BE,
+    HLAinteger64LE,
+    HLAoctet,
+    HLAoctetPairBE,
+    HLAoctetPairLE,
+    HLAopaqueData,
+    HLAunicodeChar,
+    HLAunicodeString,
+    HLAunsignedInteger16BE,
+    HLAunsignedInteger16LE,
+    HLAunsignedInteger32BE,
+    HLAunsignedInteger32LE,
+    HLAunsignedInteger64BE,
+    HLAunsignedInteger64LE,
+    HLAvariableArray,
+    HLAvariantRecord,
+)
+
+__all__ = [
+    "DataElement",
+    "DataElementFactory",
+    "DecoderException",
+    "EncoderException",
+    "EncoderFactory",
+    "HLAfixedArray",
+    "HLAfixedRecord",
+    "HLAvariantRecord",
+    "HLAboolean",
+    "HLAASCIIchar",
+    "HLAASCIIstring",
+    "HLAbyte",
+    "HLAfloat32BE",
+    "HLAfloat32LE",
+    "HLAfloat64BE",
+    "HLAfloat64LE",
+    "HLAinteger16BE",
+    "HLAinteger16LE",
+    "HLAinteger32BE",
+    "HLAinteger32LE",
+    "HLAinteger64BE",
+    "HLAinteger64LE",
+    "HLAunsignedInteger16BE",
+    "HLAunsignedInteger16LE",
+    "HLAunsignedInteger32LE",
+    "HLAunsignedInteger32BE",
+    "HLAunsignedInteger64BE",
+    "HLAunsignedInteger64LE",
+    "HLAoctet",
+    "HLAoctetPairBE",
+    "HLAoctetPairLE",
+    "HLAopaqueData",
+    "HLAvariableArray",
+    "HLAunicodeChar",
+    "HLAunicodeString",
+]
+
+for _name in __all__:
+    _value = globals()[_name]
+    if isinstance(_value, type):
+        _value.__module__ = __package__

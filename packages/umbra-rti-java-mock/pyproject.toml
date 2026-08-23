@@ -7,7 +7,7 @@ name = "umbra-rti-java-mock"
 version = "0.1.0"
 description = "Reference vendor-style adapter for the Umbra mock Java 2025 RTI"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Umbra contributors" }]
 dependencies = [
   "hla-rti-api==0.1.0",
@@ -21,6 +21,7 @@ classifiers = [
 
 [project.optional-dependencies]
 jpype = ["umbra-rti-jpype[jpype]==0.1.0"]
+test = ["umbra-rti-test-support==0.1.0"]
 
 [project.entry-points."hla.rti1516_2025.factories"]
 umbra-mock-java = "umbra._java.mock_rti1516_2025:MockJavaRtiFactory"

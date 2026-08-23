@@ -7,7 +7,7 @@ name = "umbra-rti-native"
 version = "0.1.0"
 description = "pybind11 provider for the Umbra IEEE 1516.1-2025 C++ RTI"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Umbra contributors" }]
 dependencies = ["hla-rti-api==0.1.0"]
 classifiers = [
@@ -15,6 +15,9 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
 ]
+
+[project.optional-dependencies]
+test = ["umbra-rti-test-support==0.1.0"]
 
 [tool.scikit-build]
 minimum-version = "build-system.requires"

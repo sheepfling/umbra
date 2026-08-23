@@ -6,9 +6,9 @@ that provider packages can mix into their own ``unittest.TestCase`` classes.
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
-from .core import (
+from hla.rti1516_2025.core import (
     AdditionalSettingsResultCode,
     CallbackModel,
     ConfigurationResult,
@@ -19,12 +19,12 @@ from .core import (
     RtiConfiguration,
     RTIambassador,
 )
-from .auth import HLAnoCredentials
-from .exceptions import AlreadyConnected, NotConnected, UnsupportedCallbackModel
-from .encoding import EncoderFactory
+from hla.rti1516_2025.auth import HLAnoCredentials
+from hla.rti1516_2025.exceptions import AlreadyConnected, NotConnected, UnsupportedCallbackModel
+from hla.rti1516_2025.encoding import EncoderFactory
 
 
-class ProviderBindingParityConformanceMixin:
+class ProviderBindingParityConformanceMixin(ABC):
     """Run the same public Python calls against any provider factory.
 
     This deliberately knows nothing about pybind11, JNI, JPype, or Java
@@ -60,7 +60,7 @@ class ProviderBindingParityConformanceMixin:
         ambassador.disconnect()
 
 
-class ConnectionFoundationConformanceMixin:
+class ConnectionFoundationConformanceMixin(ABC):
     """Mirror the supported state-machine assertions in the C++ connection tests.
 
     Combine this mixin with ``unittest.TestCase`` and implement
@@ -152,7 +152,7 @@ class ConnectionFoundationConformanceMixin:
         ambassador.disconnect()
 
 
-class ConnectionOverloadConformanceMixin:
+class ConnectionOverloadConformanceMixin(ABC):
     """Verify the four Java ``connect`` overloads exposed by Python.
 
     The overload where credentials is the third Java argument is represented
@@ -201,7 +201,7 @@ class ConnectionOverloadConformanceMixin:
                 ambassador.disconnect()
 
 
-class FederationExecutionDiscoveryConformanceMixin:
+class FederationExecutionDiscoveryConformanceMixin(ABC):
     """Verify the list/report federation-execution callback service pair."""
 
     @abstractmethod
@@ -236,7 +236,7 @@ class FederationExecutionDiscoveryConformanceMixin:
                 ambassador.disconnect()
 
 
-class FederationExecutionMemberDiscoveryConformanceMixin:
+class FederationExecutionMemberDiscoveryConformanceMixin(ABC):
     """Verify the missing-federation half of the member-reporting service."""
 
     @abstractmethod

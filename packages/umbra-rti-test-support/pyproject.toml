@@ -3,26 +3,19 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "umbra-rti-jpype"
+name = "umbra-rti-test-support"
 version = "0.1.0"
-description = "Optional JPype provider for Java IEEE 1516.1-2025 RTIs"
+description = "Shared provider conformance tests for the Umbra Python RTI bindings"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Umbra contributors" }]
 dependencies = ["hla-rti-api==0.1.0"]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
 ]
 
-[project.optional-dependencies]
-jpype = ["JPype1>=1.5"]
-test = ["umbra-rti-test-support==0.1.0"]
-
-[project.entry-points."hla.rti1516_2025.factories"]
-java = "umbra._java.rti1516_2025:JavaRtiFactory"
-umbra-jni = "umbra._java.rti1516_2025:UmbraJniRtiFactory"
-
 [tool.hatch.build.targets.wheel]
-packages = ["src/umbra"]
+packages = ["src/umbra_rti_test_support"]

@@ -1,27 +1,10 @@
-"""Implemented credential values for the 2025 connection foundation."""
+"""Public authentication value types for IEEE 1516.1-2025."""
 
 from __future__ import annotations
 
-
-class Credentials:
-    """Immutable Python representation of the Java ``Credentials`` value."""
-
-    def __init__(self, credentialType: str, data: bytes | bytearray | memoryview) -> None:
-        self._type = str(credentialType)
-        self._data = bytes(data)
-
-    def getType(self) -> str:
-        return self._type
-
-    def getData(self) -> bytes:
-        return self._data
-
-
-class HLAnoCredentials(Credentials):
-    HLA_NO_CREDENTIALS_TYPE = "HLAnoCredentials"
-
-    def __init__(self) -> None:
-        super().__init__(self.HLA_NO_CREDENTIALS_TYPE, b"")
-
+from .values import Credentials, HLAnoCredentials
 
 __all__ = ["Credentials", "HLAnoCredentials"]
+
+for _name in __all__:
+    globals()[_name].__module__ = __name__
