@@ -18,7 +18,7 @@
     {
       "id": "umbra-get-update-rate-value-for-attribute-returns-maximum",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-252-l17-1",
-      "clause_id": "clause-10.13.2",
+      "clause_id": "clause-10.12",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::updateRateValueForAttribute",
       "tests": [

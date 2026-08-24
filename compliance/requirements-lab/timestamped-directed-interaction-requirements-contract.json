@@ -217,7 +217,7 @@
     {
       "id": "umbra-timestamped-directed-interaction-unsubscription-suppresses-stale-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-103-l108-29",
-      "clause_id": "clause-5.14.3",
+      "clause_id": "clause-5.13",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderDirectedInteractionRecipientFor",
       "tests": [

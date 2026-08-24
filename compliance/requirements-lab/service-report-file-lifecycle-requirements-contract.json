@@ -19,7 +19,7 @@
     {
       "id": "umbra-service-report-file-lifecycle-switches-gate-appends-only",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::momServiceReportRoutingPlanFor",
       "notes": "The routing plan suppresses appends while file reporting is disabled and resumes the same writer when it is enabled again. The focused regression performs a report-producing lookup in each state and verifies that the disabled interval does not change the file set or contents.",

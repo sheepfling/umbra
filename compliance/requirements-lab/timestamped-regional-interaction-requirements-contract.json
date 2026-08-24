@@ -180,7 +180,7 @@
     {
       "id": "umbra-timestamped-regional-interaction-service-report-selects-configured-backend",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "tests": [
@@ -191,7 +191,7 @@
     {
       "id": "umbra-timestamped-regional-interaction-service-report-emits-mom-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
@@ -202,7 +202,7 @@
     {
       "id": "umbra-timestamped-regional-interaction-service-report-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "tests": [

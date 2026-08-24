@@ -142,7 +142,7 @@
     {
       "id": "umbra-interaction-region-subscribe-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
       "tests": [
@@ -152,7 +152,7 @@
     {
       "id": "umbra-interaction-region-unsubscribe-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
       "tests": [
@@ -162,7 +162,7 @@
     {
       "id": "umbra-interaction-region-subscription-service-report-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
@@ -173,7 +173,7 @@
     {
       "id": "umbra-interaction-region-send-failure-service-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "tests": [
@@ -185,7 +185,7 @@
     {
       "id": "umbra-interaction-region-send-success-service-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "tests": [

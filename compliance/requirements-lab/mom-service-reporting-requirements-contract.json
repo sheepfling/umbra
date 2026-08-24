@@ -9,7 +9,7 @@
     {
       "id": "umbra-mom-service-report-routing-selects-the-standard-sink",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::momServiceReportRoutingPlanFor",
       "notes": "The external Java/JPype service-report boundary vector selects the configured private directory through the standard Java RtiConfiguration route and observes the C++ EnableTimeRegulation and DisableTimeRegulation records in that sink.",
@@ -58,7 +58,7 @@
     {
       "id": "umbra-mom-service-report-reservation-uses-a-per-federate-serial",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::reserveMomServiceReport",
       "notes": "The external Java/JPype service-report boundary vector decodes the selected file's integer HLAserialNumber and then observes the next DisableTimeRegulation record, while the per-join vector verifies independent serial/file streams for two joined federates.",
@@ -205,7 +205,7 @@
     {
       "id": "umbra-query-attribute-ownership-file-report-precedes-result-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeOwnership",
       "tests": [
@@ -216,7 +216,7 @@
     {
       "id": "umbra-request-attribute-value-update-file-report-precedes-provider-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
       "notes": "The external Java/JPype vectors now cover the accepted object-instance and object-class request overloads plus the regional object-class request overload. The object/class vector exercises the public interaction route and then selects the alternative private file sink to decode exact type-37/type-36, type-1, and type-63 records with shared serial progression; the regional vector decodes the private type-36 object-class, type-4 attribute/region pair-list, and type-63 user-tag payload before the standard Java provider callback. Successful-void and serial metadata remain exact source-backed evidence.",
@@ -229,7 +229,7 @@
     {
       "id": "umbra-update-attribute-values-file-report-precedes-reflection-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
@@ -241,7 +241,7 @@
     {
       "id": "umbra-send-interaction-file-report-precedes-receive-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The external Java/JPype vectors cover both direct and receive-order regional Send Interaction overloads. The regional private-file vector decodes the type-27 interaction class, type-40 parameter/value map, type-43 region set, type-63 tag, type-34 optional timestamp, successful-void return, and serial before the standard regional callback; timestamped regional sends remain covered through the public MOM interaction because their C++ path reports through the interaction sink.",
@@ -254,7 +254,7 @@
     {
       "id": "umbra-send-directed-interaction-file-report-precedes-receive-directed-interaction-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendDirectedInteraction",
       "tests": [
@@ -265,7 +265,7 @@
     {
       "id": "umbra-cancel-attribute-ownership-acquisition-file-report-precedes-confirmation-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::cancelAttributeOwnershipAcquisition",
       "tests": [
@@ -276,7 +276,7 @@
     {
       "id": "umbra-attribute-ownership-acquisition-file-report-precedes-release-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisition",
       "tests": [
@@ -287,7 +287,7 @@
     {
       "id": "umbra-attribute-ownership-acquisition-if-available-file-report-precedes-notification-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable",
       "tests": [
@@ -298,7 +298,7 @@
     {
       "id": "umbra-attribute-ownership-release-denied-file-report-precedes-unavailable-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipReleaseDenied",
       "tests": [
@@ -309,7 +309,7 @@
     {
       "id": "umbra-confirm-divestiture-file-report-precedes-acquisition-notification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::confirmDivestiture",
       "tests": [
@@ -320,7 +320,7 @@
     {
       "id": "umbra-negotiated-attribute-ownership-divestiture-file-report-precedes-confirmation-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::negotiatedAttributeOwnershipDivestiture",
       "tests": [
@@ -331,7 +331,7 @@
     {
       "id": "umbra-cancel-negotiated-attribute-ownership-divestiture-file-report-precedes-restored-release-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::cancelNegotiatedAttributeOwnershipDivestiture",
       "tests": [
@@ -342,7 +342,7 @@
     {
       "id": "umbra-synchronization-service-reports-use-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPointImpl",
       "notes": "Accepted RegisterFederationSynchronizationPoint, ConfirmSynchronizationPointRegistration, and SynchronizationPointAchieved records select the public federation-management service-report interaction (type 0) only after native federation locks are released. The Java/JPype vector decodes quoted type-53 labels, base-64 type-63 tags, type-34 Null optional slots, and serial order before the corresponding registration, announcement, and federation-synchronized callbacks.",
@@ -354,7 +354,7 @@
     {
       "id": "umbra-request-federation-save-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestFederationSave",
       "notes": "Both accepted §4.19 overloads emit the federation-management type-0 service-report interaction after releasing native locks. Their required type-53 Federation save label and type-34 Null or type-31 LogicalTime Optional timestamp are decoded through the external IEEE Java API and JPype before Initiate Federate Save work is queued.",
@@ -368,7 +368,7 @@
     {
       "id": "umbra-initiate-federate-save-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSaveNotifications",
       "notes": "The RTI-initiated §4.20 Initiate Federate Save notification uses the recipient's public federation-management type-0 route before the callback, preserving the type-53 Federation save label and type-34 Null or type-31 LogicalTime Optional timestamp through the external IEEE Java API and JPype.",
@@ -380,7 +380,7 @@
     {
       "id": "umbra-federation-saved-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSaveNotifications",
       "notes": "The RTI-initiated §4.23 Federation Saved notification uses the recipient's public federation-management type-0 route before federationSaved() or federationNotSaved(), preserving type-6 success plus type-34 Null or type-48 SaveFailureReason optional failure data.",
@@ -392,7 +392,7 @@
     {
       "id": "umbra-federation-save-status-response-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSaveNotifications",
       "notes": "The RTI-initiated §4.26 Federation Save Status Response uses the querying recipient's public federation-management type-0 route before federationSaveStatusResponse(), carrying the type-21 FederateHandleSaveStatusPairSet through the standard Java/JPype path.",
@@ -404,7 +404,7 @@
     {
       "id": "umbra-federate-save-begun-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateSaveBegun",
       "notes": "Accepted §4.21 Federate Save Begun emits the recipient's public federation-management type-0 service-report interaction after the native save-state transition and outside native locks. The Java/JPype vector decodes its no-argument successful-void form before the save-completion callback sequence.",
@@ -416,7 +416,7 @@
     {
       "id": "umbra-federate-save-complete-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateSaveComplete",
       "notes": "Both accepted §4.22 completion selectors use the public federation-management type-0 route before the final save result callback. FederateSaveComplete carries type-6 true or false; the external IEEE Java/JPype vector exercises both indicators and preserves serial order before FederationSaved or FederationNotSaved.",
@@ -428,7 +428,7 @@
     {
       "id": "umbra-abort-federation-save-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::abortFederationSave",
       "notes": "Accepted §4.24 Abort Federation Save emits its no-argument successful-void record on the public federation-management type-0 route before the SAVE_ABORTED FederationNotSaved callback. The timestamped Java/JPype vector decodes both records, including the type-48 failure reason.",
@@ -440,7 +440,7 @@
     {
       "id": "umbra-request-federation-restore-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestFederationRestore",
       "notes": "The accepted §4.27 Request Federation Restore invocation emits the federation-management type-0 service-report interaction after releasing native locks. Its type-53 Federation save label is decoded through the external IEEE Java API and JPype before restore acceptance, initiation, and completion callbacks are queued.",
@@ -452,7 +452,7 @@
     {
       "id": "umbra-federate-restore-complete-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateRestoreComplete",
       "notes": "FederateRestoreComplete emits the federation-management type-0 service-report interaction after releasing native locks. Its required type-6 Federate restore-success indicator is true for federateRestoreComplete() and false for federateRestoreNotComplete(), and the external Java/JPype vector decodes the record before the corresponding Federation Restored or Federation Not Restored callback.",
@@ -465,7 +465,7 @@
     {
       "id": "umbra-confirm-federation-restoration-request-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The RTI-initiated §4.28 Confirm Federation Restoration Request notification uses the federation-management type-0 public route before the success or failure callback, preserving the type-53 Federation save label and type-6 Request-success indicator through the external IEEE Java API and JPype.",
@@ -477,7 +477,7 @@
     {
       "id": "umbra-federation-restore-begun-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The RTI-initiated §4.29 Federation Restore Begun notification uses the recipient's public federation-management type-0 route before federationRestoreBegun(), retaining the successful-void no-argument form.",
@@ -489,7 +489,7 @@
     {
       "id": "umbra-initiate-federate-restore-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The RTI-initiated §4.30 Initiate Federate Restore notification uses the public route before initiateFederateRestore(), preserving the type-53 Federation save label, type-15 Joined federate designator, and type-53 Federate name.",
@@ -501,7 +501,7 @@
     {
       "id": "umbra-federation-restore-status-response-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The RTI-initiated §4.35 Federation Restore Status Response uses the public federation-management type-0 route before federationRestoreStatusResponse(), carrying the official-MIM type-20 FederateRestoreStatusSet through the standard Java/JPype path.",
@@ -513,7 +513,7 @@
     {
       "id": "umbra-query-federation-restore-status-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryFederationRestoreStatus",
       "notes": "An accepted §4.34 Query Federation Restore Status invocation emits the no-argument federation-management type-0 service-report interaction after releasing native locks and before the Federation Restore Status Response callback. The external IEEE Java/JPype vector decodes the public record and then observes the status callback.",
@@ -525,7 +525,7 @@
     {
       "id": "umbra-abort-federation-restore-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::abortFederationRestore",
       "notes": "An accepted §4.33 Abort Federation Restore invocation emits the no-argument federation-management type-0 service-report interaction after releasing native locks and before the restore-aborted Federation Not Restored callback. The external IEEE Java/JPype vector decodes the public record and then observes the RESTORE_ABORTED callback result.",
@@ -537,7 +537,7 @@
     {
       "id": "umbra-register-federation-synchronization-point-file-report-preserves-optional-set-and-precedes-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPointImpl",
       "notes": "The report producer intentionally precedes submitSynchronizationPointRegistration so the selected registration-success or registration-failure callback cannot be evoked before the durable record. This entry covers only the registering federate's §4.15 report; the separate §4.16 and §4.18 recipient paths are traced below.",
@@ -549,7 +549,7 @@
     {
       "id": "umbra-confirm-synchronization-point-registration-file-report-precedes-result-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPointImpl",
       "tests": [
@@ -561,7 +561,7 @@
     {
       "id": "umbra-announce-synchronization-point-file-report-precedes-recipient-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitSynchronizationPointAnnouncements",
       "notes": "The registry carries a weak private report endpoint for each joined federate. Before its §4.16 callback is queued, the recipient route selects that federate's reporting switches, reserves its own serial only for a file record, and appends type-53 label plus the bounded type-63 user tag without changing its joined-federate file identity.",
@@ -575,7 +575,7 @@
     {
       "id": "umbra-federation-synchronized-file-report-precedes-recipient-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSynchronizedNotifications",
       "notes": "The recipient route selects each joined federate's reporting switches, reserves its file serial only when selected, and writes the §4.18 type-53 synchronization-point label plus type-18 failed-federate set before the corresponding callback can be evoked. Focused regressions cover both normal all-achieved completion and completion after an unachieved member resigns.",
@@ -589,7 +589,7 @@
     {
       "id": "umbra-initiate-federate-save-file-report-precedes-recipient-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSaveNotifications",
       "notes": "The ordinary queued §4.20 path selects each joined recipient's reporting switches and appends its type-53 Federation save label plus type-34 Null or type-31 LogicalTime Optional timestamp before its callback is queued. The external IEEE Java/JPype private-file timestamp vector decodes the type-31 overload before initiateFederateSave(label, time). It does not yet cover the direct time-constrained pre-grant path, whose re-entrant ordering needs a separate focused lane.",
@@ -602,7 +602,7 @@
     {
       "id": "umbra-federation-saved-file-report-precedes-recipient-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSaveNotifications",
       "notes": "The §4.23 recipient route selects each joined federate's reporting switches and appends the Boolean Federation save-success indicator followed by either type-34 Null or type-48 SaveFailureReason before its Federation Saved or Federation Not Saved callback is queued. The external IEEE Java/JPype private-file vector decodes the successful type-6 plus type-34 Null form and observes federationSaved only after the durable record; the focused integration also covers the ordinary SAVE_ABORTED result. Remaining standard failure reasons and direct time-constrained initiation reporting remain separate slices.",
@@ -615,7 +615,7 @@
     {
       "id": "umbra-request-federation-save-file-report-preserves-optional-timestamp-overloads",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestFederationSave",
       "notes": "The external IEEE Java/JPype private-file vector decodes both required type-53 label and type-31 Optional timestamp arguments for RequestFederationSave before the timestamped initiation callback.",
@@ -627,7 +627,7 @@
     {
       "id": "umbra-request-federation-restore-file-report-precedes-confirmation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestFederationRestore",
       "tests": [
@@ -639,7 +639,7 @@
     {
       "id": "umbra-confirm-federation-restoration-request-file-report-precedes-result-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The §4.28 requester route uses the joined federate's selected filesystem writer and serial sequence. It appends one type-53 Federation save label and one type-6 Request-success indicator for either Boolean result before requestFederationRestoreSucceeded() or requestFederationRestoreFailed() can be evoked. A missing snapshot remains a normally returned §4.27 request followed by the false §4.28 result, rather than a generic failed-service record.",
@@ -654,7 +654,7 @@
     {
       "id": "umbra-federation-restore-begun-file-report-precedes-recipient-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The §4.29 recipient route uses each joined federate's selected filesystem writer and serial sequence. It appends the Table 5 successful-void FederationRestoreBegun no-argument form at every recipient, including the requester, before the recipient can evoke federationRestoreBegun(). The external IEEE Java/JPype private-file vector decodes that record before the HLA_EVOKED restore-begun callback.",
@@ -667,7 +667,7 @@
     {
       "id": "umbra-initiate-federate-restore-file-report-precedes-recipient-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The §4.30 recipient route uses each joined federate's selected filesystem writer and serial sequence. It appends the Table 5 successful-void InitiateFederateRestore form with the type-53 Federation save label, type-15 Joined federate designator, and type-53 Federate name before the recipient can evoke initiateFederateRestore(). The external IEEE Java/JPype private-file vector decodes all three arguments before the callback.",
@@ -680,7 +680,7 @@
     {
       "id": "umbra-abort-federation-restore-file-report-precedes-restore-result-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::abortFederationRestore",
       "notes": "The external IEEE Java/JPype private-file vector decodes the accepted no-argument successful-void AbortFederationRestore record before HLA_EVOKED delivers RESTORE_ABORTED through federationNotRestored().",
@@ -692,7 +692,7 @@
     {
       "id": "umbra-query-federation-restore-status-file-report-precedes-status-response",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryFederationRestoreStatus",
       "notes": "The external IEEE Java/JPype private-file vector decodes the no-argument query and the following type-20 status response, then verifies the callback remains queued until HLA_EVOKED delivery.",
@@ -704,7 +704,7 @@
     {
       "id": "umbra-federation-restore-status-response-file-report-precedes-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationRestoreNotifications",
       "notes": "The §4.35 recipient route appends the official MIM type-20 FederateRestoreStatusSet form to the querying joined federate's selected file before federationRestoreStatusResponse() can be evoked. Each ordered record retains quoted public pre/post FederateHandle text and RestoreStatus spelling; the external IEEE Java/JPype vector decodes the no-restore-in-progress form and observes the status callback afterward. Table 5's conflicting collection spelling and malformed second example are reconciled explicitly under RL-083; this remains private file-report traceability, not a claim about an emitted MOM interaction.",
@@ -717,7 +717,7 @@
     {
       "id": "umbra-resign-federation-execution-file-report-reserves-final-serial-before-membership-removal",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::resignFederationExecution",
       "notes": "The external IEEE Java/JPype vector selects the report file, decodes the accepted type-44 HLAresignAction payload and successful-void return, and confirms the record is written before the federate lifetime is released.",
@@ -729,7 +729,7 @@
     {
       "id": "umbra-resign-federation-execution-uses-public-java-interaction-route",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::resignFederationExecution",
       "notes": "The ordinary §4.12 Resign Federation Execution service reserves its public federation-management type-0 interaction before membership removal, then queues the prevalidated recipient projection after native teardown. Its supplied type-44 HLAresignAction remains distinct from the RTI-originated FederateResigned callback/report service.",
@@ -740,7 +740,7 @@
     {
       "id": "umbra-federate-resigned-file-report-precedes-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::handleEmbeddedMembershipLoss",
       "notes": "The external IEEE Java/JPype vector decodes the RTI-originated type-53 reason record from the private file and verifies it is durable before HLA_EVOKED delivers federateResigned().",
@@ -752,7 +752,7 @@
     {
       "id": "umbra-federate-resigned-uses-public-java-interaction-route-before-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::handleEmbeddedMembershipLoss",
       "notes": "The RTI-initiated Federate Resigned path reserves its final public federation-management type-0 service-report interaction while the member still exists, then queues the prevalidated recipient projection after native membership removal and before the standard federateResigned callback. The type-53 Reason for resigning is decoded by the external IEEE Java/JPype observer. Connection Lost remains file/callback-only because its callback endpoint is intentionally torn down.",
@@ -763,7 +763,7 @@
     {
       "id": "umbra-connection-lost-file-report-precedes-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::handleEmbeddedMembershipLoss",
       "notes": "The external IEEE Java/JPype transport-loss vector decodes the type-53 fault-description record from the private file and verifies it is durable before the standard connectionLost() callback; the same connection then rejects further federation services with NotConnected.",
@@ -775,7 +775,7 @@
     {
       "id": "umbra-federate-restore-complete-file-report-selects-success-before-federation-restored-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateRestoreComplete",
       "notes": "The external IEEE Java/JPype private-file vector decodes the accepted type-6 true FederateRestoreComplete record and observes federationRestored only after the completion callback is evoked.",
@@ -787,7 +787,7 @@
     {
       "id": "umbra-federate-restore-complete-file-report-selects-failure-before-federation-not-restored-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateRestoreNotComplete",
       "notes": "The external IEEE Java/JPype restore vector now decodes the type-6 false FederateRestoreComplete record, proves its serial advances beyond the prior successful restore, and observes FEDERATE_REPORTED_FAILURE_DURING_RESTORE only after callback eviction.",
@@ -811,7 +811,7 @@
     {
       "id": "umbra-federate-save-begun-file-report-follows-accepted-save-state-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateSaveBegun",
       "notes": "The external IEEE Java/JPype private-file vector decodes the accepted no-argument successful-void FederateSaveBegun record after the save-initiation callback and before the completion phase.",
@@ -823,7 +823,7 @@
     {
       "id": "umbra-federate-save-complete-file-report-selects-success-before-federation-saved-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateSaveComplete",
       "notes": "The external IEEE Java/JPype private-file vector decodes the accepted type-6 true FederateSaveComplete record and verifies the following FederationSaved record is durable before the federationSaved callback is evoked.",
@@ -835,7 +835,7 @@
     {
       "id": "umbra-federate-save-complete-file-report-selects-failure-before-federation-not-saved-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::federateSaveNotComplete",
       "notes": "The external Java/JPype private-file vector repeats the save lifecycle, decodes false FederateSaveComplete and FederationSaved records with FEDERATE_REPORTED_FAILURE_DURING_SAVE, and verifies the failure callback remains absent until HLA_EVOKED delivery.",
@@ -847,7 +847,7 @@
     {
       "id": "umbra-abort-federation-save-file-report-precedes-save-result-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::abortFederationSave",
       "notes": "The external IEEE Java/JPype vector selects the private file sink and decodes the accepted no-argument successful-void AbortFederationSave record with an empty supplied-argument array and [null] return before the standard federationNotSaved callback carrying SAVE_ABORTED.",
@@ -859,7 +859,7 @@
     {
       "id": "umbra-query-federation-save-status-file-report-precedes-status-response-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryFederationSaveStatus",
       "notes": "The external IEEE Java/JPype save-status vector decodes the accepted no-argument QueryFederationSaveStatus record and the following type-17 response record from the selected report file, then verifies the status callback is still absent until HLA_EVOKED delivery.",
@@ -871,7 +871,7 @@
     {
       "id": "umbra-federation-save-status-response-file-report-precedes-status-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitFederationSaveNotifications",
       "notes": "The §4.26 recipient route appends the type-17 Table 5 FederateHandleSaveStatusPairSet: each array record has the quoted public FederateHandle text and SaveStatus spelling. The selected file receives the durable response record before its HLA_EVOKED callback. The focused case covers one in-progress member; no-save and multi-member status matrices remain separate work.",
@@ -884,7 +884,7 @@
     {
       "id": "umbra-synchronization-point-achieved-file-report-precedes-federation-synchronized-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
       "notes": "The external Java/JPype vector now selects the private file sink for registration, confirmation, and achievement, then decodes the exact SynchronizationPointAchieved type-53 label and type-6 success indicator before any completion callback. The public interaction route remains covered separately by the synchronization lifecycle vector.",
@@ -896,7 +896,7 @@
     {
       "id": "umbra-delete-object-instance-file-report-precedes-removal-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
       "notes": "The external Java/JPype removal vector selects the publisher's private file, decodes the accepted type-37 object, type-63 tag, and type-34 null timestamp record, then verifies the induced RemoveObjectInstance callback remains deferred.",
@@ -908,7 +908,7 @@
     {
       "id": "umbra-delete-object-instance-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The non-timestamped §6.16 Delete Object Instance service now reports unknown-object failures through the configured filesystem. The matrix preserves type-37 ObjectInstanceHandle, type-63 User-supplied tag, type-34 Null Optional timestamp, Null returned argument, false indicator, exact ObjectInstanceNotKnown text, and serials zero and two around accepted serial-one deletion. Accepted emission occurs after the registry transition and outside native locks; timestamped delete remains separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -919,7 +919,7 @@
     {
       "id": "umbra-delete-object-instance-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed non-timestamped §6.16 Delete Object Instance invocations through HLAreportServiceInvocation with object-management service type 2, type-37 ObjectInstanceHandle, type-63 User-supplied tag, and type-34 Null Optional timestamp supplied values, a Null returned argument, false indicators, exact ObjectInstanceNotKnown text, and serials zero and two around accepted serial-one deletion. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is bounded development-profile interaction evidence rather than validation or conformance.",
@@ -930,7 +930,7 @@
     {
       "id": "umbra-unconditional-attribute-ownership-divestiture-file-report-precedes-assumption-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture",
       "tests": [
@@ -941,7 +941,7 @@
     {
       "id": "umbra-local-delete-object-instance-file-report-follows-accepted-local-forget-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::localDeleteObjectInstance",
       "tests": [
@@ -952,7 +952,7 @@
     {
       "id": "umbra-local-delete-object-instance-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §6.18 Local Delete Object Instance service now reports unknown-object failures through the selected filesystem. The matrix preserves the type-37 ObjectInstanceHandle supplied form, Null returned argument, false indicator, exact ObjectInstanceNotKnown descriptions, and serials zero and two around an accepted local-forget record at serial one. Accepted emission occurs after the registry transition and outside native locks. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -963,7 +963,7 @@
     {
       "id": "umbra-local-delete-object-instance-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §6.18 Local Delete Object Instance invocations through HLAreportServiceInvocation with object-management service type 2, type-37 ObjectInstanceHandle supplied values, Null returned arguments, false indicators, exact ObjectInstanceNotKnown descriptions, and serials zero and two. The accepted local-forget record remains visible with a true indicator at serial one. This is bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -974,7 +974,7 @@
     {
       "id": "umbra-publish-object-class-attributes-file-report-precedes-declaration-advisories-and-ownership-assumptions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
       "tests": [
@@ -985,7 +985,7 @@
     {
       "id": "umbra-unpublish-object-class-attributes-file-report-follows-accepted-teardown-before-declaration-advisories",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassAttributes",
       "tests": [
@@ -996,7 +996,7 @@
     {
       "id": "umbra-subscribe-object-class-attributes-file-report-precedes-declaration-scope-relevance-and-discovery-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
       "tests": [
@@ -1007,7 +1007,7 @@
     {
       "id": "umbra-unsubscribe-object-class-attributes-subset-file-report-precedes-declaration-scope-and-relevance-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
       "tests": [
@@ -1018,7 +1018,7 @@
     {
       "id": "umbra-unsubscribe-object-class-attributes-whole-class-file-report-precedes-declaration-scope-and-relevance-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClass",
       "tests": [
@@ -1029,7 +1029,7 @@
     {
       "id": "umbra-publish-object-class-directed-interactions-file-report-follows-accepted-declaration",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassDirectedInteractions",
       "tests": [
@@ -1040,7 +1040,7 @@
     {
       "id": "umbra-unpublish-object-class-directed-interactions-file-report-follows-accepted-declaration",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
       "tests": [
@@ -1051,7 +1051,7 @@
     {
       "id": "umbra-publish-interaction-class-file-report-precedes-declaration-advisories",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishInteractionClass",
       "tests": [
@@ -1062,7 +1062,7 @@
     {
       "id": "umbra-subscribe-interaction-class-file-report-precedes-declaration-advisories",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClass",
       "tests": [
@@ -1073,7 +1073,7 @@
     {
       "id": "umbra-subscribe-object-class-directed-interactions-file-report-follows-the-accepted-declaration-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
       "tests": [
@@ -1084,7 +1084,7 @@
     {
       "id": "umbra-unsubscribe-object-class-directed-interactions-file-report-follows-the-accepted-declaration-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
       "tests": [
@@ -1095,7 +1095,7 @@
     {
       "id": "umbra-unsubscribe-interaction-class-file-report-precedes-declaration-advisories",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClass",
       "tests": [
@@ -1106,7 +1106,7 @@
     {
       "id": "umbra-unpublish-interaction-class-file-report-precedes-declaration-advisories",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishInteractionClass",
       "tests": [
@@ -1491,7 +1491,7 @@
     {
       "id": "umbra-discover-object-instance-file-report-precedes-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceDiscovery",
       "notes": "The registry retains each §6.9 recipient's private service-report route with the planned discovery. At callback-time recheck, the adapter appends the recipient's selected-file successful-void DiscoverObjectInstance record in object-management group 2 before FederateAmbassador::discoverObjectInstance() runs. Its source-backed descriptor uses type-37 ObjectInstanceHandle, type-36 ObjectClassHandle, type-53 String object name, and type-15 FederateHandle producer text. A cancelled or stale HLA_EVOKED plan writes nothing because it never becomes an invoked discovery service. This remains private file text rather than public MOM interaction delivery; Table 5 remains subject to RL-067/RL-076 and the direct §6.9 callback source remains in the object-instance trace contract.",
@@ -1504,7 +1504,7 @@
     {
       "id": "umbra-remove-object-instance-file-report-precedes-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceRemoval",
       "notes": "The receive-order §6.17 recipient retains its private selected-file route with the pending removal. Only after the callback-time transition confirms the removal does Umbra append the object-management-group successful-void RemoveObjectInstance record before FederateAmbassador::removeObjectInstance() enters user code. The seven narrative slots use type-37 ObjectInstanceHandle, type-63 base-64 UserSuppliedTag, type-38 RECEIVE sent order, type-15 producing FederateHandle, and type-34 Null placeholders for optional timestamp, receive order, and retraction. Timestamped/retraction callback reporting is traced separately below. It remains private file text rather than public MOM interaction delivery, with Table 5 limitations recorded by RL-067/RL-076 and the type-63 caveat by RL-077.",
@@ -1517,7 +1517,7 @@
     {
       "id": "umbra-timestamped-remove-object-instance-file-report-precedes-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueTimestampedObjectInstanceRemoval",
       "notes": "The timestamped §6.17 payload retains a recipient-local selected-file route through both delivery boundaries. At a non-time-constrained recipient's callback-time begin transition, queueTimestampedObjectInstanceRemoval appends the private successful-void record before user code with type-37 ObjectInstanceHandle, type-63 base-64 UserSuppliedTag, type-38 TIMESTAMP sent order, type-15 producer, type-31 LogicalTime, type-38 RECEIVE received order, and either type-33 MessageRetractionHandle or type-34 Null. At the constrained TSO grant boundary, makeTimeAdvanceGrantDispatch appends the same record with TIMESTAMP received order and its supplied type-33 retraction handle before FederateAmbassador::removeObjectInstance(). A cancelled/stale callback appends nothing because the registry transition fails first. These callback records are distinct from the timestamped Delete Object Instance sender report, which the native queue-admission path now emits through the standard HLAreportServiceInvocation interaction with type-37 object, type-63 tag, type-31 logical time, and type-33 retraction return when the sender is time-regulating. This contract entry remains focused on private callback file text; Table 5 remains subject to RL-067/RL-076 and the type-63 caveat by RL-077.",
@@ -1530,7 +1530,7 @@
     {
       "id": "umbra-provide-attribute-value-update-file-report-precedes-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeValueUpdateProvide",
       "notes": "The provider-side §6.22 callback retains its owner-specific selected-file route with queued work. Only after the callback-time eligibility projection succeeds does queueAttributeValueUpdateProvide append the object-management successful-void ProvideAttributeValueUpdate record before FederateAmbassador::provideAttributeValueUpdate() enters user code. The descriptor uses type-37 ObjectInstanceHandle, type-1 AttributeHandleSet, and the Table 5 type-63 base-64 UserSuppliedTag form. A cancelled or stale plan writes nothing. The focused production-filesystem regression proves the explicit object-instance request path only; class, regional, and automatic-provision sources share this queue primitive but have no report-specific proof yet. This remains private file text rather than public MOM interaction delivery; Table 5 remains subject to RL-067/RL-076, type 63 to RL-077, and the §6.22 source-candidate structural owner to RL-078.",
@@ -1543,7 +1543,7 @@
     {
       "id": "umbra-auto-provide-file-report-precedes-provider-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeValueUpdateProvide",
       "notes": "Auto Provide is an RTI-invoked §6.22 callback after discovery. Its provider-specific selected-file route is retained through callback-time revalidation, and the private object-management successful-void record is appended immediately before FederateAmbassador::provideAttributeValueUpdate() enters user code. The three slots are type-37 ObjectInstanceHandle, type-1 AttributeHandleSet, and type-63 UserSuppliedTag encoded as zero-length binary data, as required for an RTI-invoked service with a mandatory tag by §1.5. This focused proof does not claim a report for discovery or switch setters, nor class/regional automatic-provision variants; Table 5 remains subject to RL-067/RL-076 and type 63 to RL-077.",
@@ -1556,7 +1556,7 @@
     {
       "id": "umbra-flush-queue-request-file-report-precedes-grant",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
       "notes": "The accepted §8.12 Flush Queue Request retains the requester-supplied boundary in its selected private file route before the HLA_EVOKED flushQueueGrant callback. The external Java/JPype case decodes the type-31 LogicalTime argument, successful-void [null] return, and serial, while separately checking that the C++ grant reports effective and optimistic times rather than rewriting the supplied boundary. This remains private file-report evidence and does not claim public MOM interaction delivery or Requirements Lab conformance.",
@@ -1568,7 +1568,7 @@
     {
       "id": "umbra-time-advance-and-next-message-file-reports-precede-grants",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "notes": "The accepted §8.2/§8.3/§8.8/§8.9 time-advance and next-message request forms retain their supplied type-31 LogicalTime boundaries in the selected private file route before the common HLA_EVOKED timeAdvanceGrant callback. The external Java/JPype vectors decode each distinct service name, type-31 argument, successful-void [null] return, and serial while checking the C++ grant's effective logical time. This is callback/file evidence only and does not conflate the supplied request boundary with the grant result or claim public MOM interaction delivery.",
@@ -1586,7 +1586,7 @@
     {
       "id": "umbra-declaration-relevance-advisory-file-reports-precede-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "notes": "The registry retains each advisory recipient's private service-report route. Before queuing the §5.14 Start Registration For Object Class, §5.15 Stop Registration For Object Class, §5.16 Turn Interactions On, or §5.17 Turn Interactions Off callback, the adapter appends that recipient's selected-file successful-void record in declaration-management group 1. Object advisories use type-36 ObjectClassHandle and interaction advisories use type-27 InteractionClassHandle, preserving public handle text. The external Java/JPype vector now decodes all four advisory records from the publisher's selected file before evoking each standard callback. This private file boundary does not claim public MOM interaction delivery; RL-080/RL-002 remain the Lab source-ownership/provenance limitations for the service candidates, and Table 5 remains a private-text trace under RL-067/RL-076.",
@@ -1599,7 +1599,7 @@
     {
       "id": "umbra-commit-region-modifications-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::commitRegionModifications",
       "notes": "The accepted void-return §9.3 Commit Region Modifications invocation appends its private data-distribution-management successful-void record while the federation and ambassador locks still hold the joined-federate writer. Its sole supplied argument is the standard §9.3 Set of region designators, encoded as Table 5 type 43 RegionHandleSet/Array<RegionHandle> with the official public RegionHandle::toString() values. Rejected invalid handles append nothing. The native and external Java/JPype filesystem cases now decode the same type-43 record through the independent IEEE Java surface. These focused cases deliberately do not claim Create/Delete Region report coverage, regional callback delivery, generic non-void ReturnArgument forms, public MOM interaction delivery, remote transport, or conformance; the §9.3 source/API lifecycle mapping remains in the region-lifecycle contracts.",
@@ -1612,7 +1612,7 @@
     {
       "id": "umbra-delete-region-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteRegion",
       "notes": "The accepted void-return §9.4 Delete Region invocation appends its private data-distribution-management successful-void record after the registry removes the caller-owned unused region. Its sole supplied argument is the source-named Region designator, encoded as Table 5 type 42 RegionHandle using the official quoted RegionHandle::toString() value. Invalid handles and other rejected deletions append nothing. The focused filesystem case is paired with the bounded Create Region/Get Range Bounds non-void slice, but does not claim region-realization or callback delivery, generic non-void ReturnArgument forms beyond that slice, public MOM interaction delivery, remote transport, or conformance; the §9.4 source/API lifecycle mapping remains in the region-lifecycle contracts.",
@@ -1625,7 +1625,7 @@
     {
       "id": "umbra-set-range-bounds-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
       "notes": "The accepted void-return §10.28 Set Range Bounds invocation appends its private data-distribution-management successful-void record after the registry stores the pending range. Its four supplied arguments retain the source names and Table 5 forms: type 42 RegionHandle, type 10 DimensionHandle, and two type 35 Number values for Range lower bound and Range upper bound. A rejected invalid bound appends nothing. The focused filesystem case is paired with the bounded Get Range Bounds non-void record and the existing Commit Region Modifications lane; region realization/callback delivery, generic non-void ReturnArgument forms beyond the bounded DDM slice, public MOM interaction delivery, remote transport, or conformance remain outside this entry; the §10.28 source/API lifecycle mapping remains in the region-lifecycle contracts.",
@@ -1638,7 +1638,7 @@
     {
       "id": "umbra-create-region-nonvoid-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::createRegion",
       "notes": "The accepted §9.2 Create Region invocation now appends a private data-distribution-management non-void record when file reporting is selected. Its supplied argument is the source-defined Set of dimension designators, encoded as type 11 DimensionHandleSet, and its returned argument is the type 42 RegionHandle designator. The file wrapper uses the rendered 2025 Table 5 one-element returned-argument array while the public MOM interaction path remains the standard MIM HLAargument fixed record. This focused C++ slice proves stable filesystem sequencing and the return shape, but the Lab has no positive Table 5 row-level candidate; it is not Lab validation or conformance (RL-042/RL-067/RL-076).",
@@ -1650,7 +1650,7 @@
     {
       "id": "umbra-get-range-bounds-nonvoid-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getRangeBounds",
       "notes": "The accepted §10.27 Get Range Bounds query now appends a private data-distribution-management non-void record when file reporting is selected. Its supplied arguments are type 42 RegionHandle and type 10 DimensionHandle, and its returned argument is type 41 RangeBounds rendered as the Table 5 lower/upper record. The file wrapper uses the rendered 2025 one-element returned-argument array while the public MOM interaction path remains the standard MIM HLAargument fixed record. This focused C++ slice proves stable filesystem sequencing and the return shape, but the Lab has no positive Table 5 row-level candidate; it is not Lab validation or conformance (RL-042/RL-067/RL-076).",
@@ -1662,7 +1662,7 @@
     {
       "id": "umbra-ddm-nonvoid-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §9.2 Create Region and §10.27 Get Range Bounds failure pair now uses the selected filesystem sink. Invalid DimensionHandleSet input records type 11 supplied values; an invalid dimension for a valid region records type 42/type 10 supplied values. Both use a Null returned argument, false success indicator, public exception description, and contiguous serials before successful CreateRegion/GetRangeBounds records. The focused C++ case proves switch-gated suppression and one stable joined-federate file. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this remains development-profile evidence rather than validation or conformance.",
@@ -1673,7 +1673,7 @@
     {
       "id": "umbra-ddm-nonvoid-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers the same failed CreateRegion/GetRangeBounds pair through HLAreportServiceInvocation with service type 5, the type-11 or type-42/type-10 supplied forms, Null returned arguments, false success indicators, exception descriptions, and serials zero and one before successful serials two and three. This is bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -1684,7 +1684,7 @@
     {
       "id": "umbra-ddm-mutation-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The adjacent §9.3 Commit Region Modifications, §9.4 Delete Region, and §10.28 Set Range Bounds failures now use the selected filesystem sink. The matrix records type-43 invalid region sets, type-42 invalid region handles, and type-42/type-10/type-35 invalid-dimension or invalid-bound forms with Null returns, false indicators, public exception descriptions, and serials zero through three before successful SetRangeBounds/CommitRegionModifications/DeleteRegion serials four through six. This is C++ development-profile evidence only; the Lab has no row-level conditional failure mapping (RL-152).",
@@ -1695,7 +1695,7 @@
     {
       "id": "umbra-ddm-mutation-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers the four failed §9.3/§9.4/§10.28 mutation invocations with service type 5, type-43/type-42/type-42/type-10/type-35 supplied forms, Null returns, false indicators, exception descriptions, and serials zero through three, followed by successful SetRangeBounds/CommitRegionModifications/DeleteRegion records with Null returns, true indicators, and serials four through six. This remains bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -1706,7 +1706,7 @@
     {
       "id": "umbra-ddm-regional-interaction-subscription-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §9.10 Subscribe Interaction Class With Regions and §9.11 Unsubscribe Interaction Class With Regions pair now reports invalid interaction-class and region-set inputs through the selected filesystem sink. The matrix preserves type-27 InteractionClassHandle and type-43 RegionHandleSet supplied forms, plus the type-6 optional passive-subscription boolean for Subscribe, with Null returned arguments, false success indicators, public exception descriptions, and serials zero, one, and three around successful Subscribe/Unsubscribe serials two and four. Switches suppress setup and disabled calls, while one immutable joined-federate file is retained. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -1717,7 +1717,7 @@
     {
       "id": "umbra-ddm-regional-interaction-subscription-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §9.10/§9.11 regional interaction subscription calls through HLAreportServiceInvocation with service type 5, type-27/type-43 supplied forms and the type-6 passive-subscription indicator, Null returned arguments, false indicators, exact exception descriptions, and serials zero, one, and three. Successful regional Subscribe/Unsubscribe calls remain visible with true indicators at serials two and four. This is bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -1728,7 +1728,7 @@
     {
       "id": "umbra-support-dimension-lookup-nonvoid-file-reports",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAvailableDimensionsForObjectClass",
       "notes": "The accepted §10.21–§10.26 support lookup services now append private non-void records to the selected joined-federate file. The forms follow the rendered 2025 service definitions and official MIM type values: object/interaction class handle supplied values (types 36/27) return type-11 DimensionHandleSet values; Get Dimension Handle takes a type-53 Dimension name and returns type 10; Get Dimension Name takes type 10 and returns type 53; Get Dimension Upper Bound takes type 10 and returns type-35 Number; and Get Dimension Handle Set takes type-42 Region handle and returns type-11 DimensionHandleSet. The append occurs after successful lookup and outside the service locks, preserving the same writer and serial sequence. This is source-backed C++ development-profile traceability only: the Lab has no positive Table 5 row-level mapping for these private file ReturnArgument forms, and no conformance or public MOM-interaction claim is made (RL-042/RL-067/RL-076).",
@@ -1740,7 +1740,7 @@
     {
       "id": "umbra-support-dimension-region-lookup-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The six §10.21–§10.26 available-dimension, dimension-name/handle, upper-bound, and region dimension-set services now report failed invocations through the selected filesystem sink. The matrix preserves type-36/type-27/type-53/type-10/type-42 supplied forms, Null returned arguments, HLAsuccessIndicator false, public exception text, and serials zero through five before a successful serial-six GetDimensionHandle. This is C++ development-profile evidence only; the Lab has no row-level conditional failure relation (RL-152), so no validation or conformance claim is made.",
@@ -1751,7 +1751,7 @@
     {
       "id": "umbra-support-order-transportation-lookup-nonvoid-file-reports",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getOrderType",
       "notes": "The accepted §10.17--§10.20 support lookup pairs now append private non-void records to the selected joined-federate file. GetOrderType and GetOrderName use the rendered Table 5 type-53 Order name and type-38 Order type forms, with quoted RECEIVE/TIMESTAMP values; GetTransportationTypeHandle and GetTransportationTypeName use type-53 Transportation type name and type-59 Transportation type handle forms, with quoted TransportationTypeHandle::toString() text. Each report is appended after successful lookup and outside native locks, while switch-gated setup consumes no serials. This is source-backed C++ development-profile traceability only: the Lab has no positive Table 5 row-level mapping for these private file ReturnArgument forms, and no conformance or public MOM-interaction claim is made (RL-042/RL-067/RL-076/RL-147).",
@@ -1763,7 +1763,7 @@
     {
       "id": "umbra-support-order-transportation-lookup-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The four §10.17–§10.20 order and transportation lookup services now report failed invocations through the selected filesystem sink. The matrix preserves type-53 Order name and Transportation type name or type-38 Order type and type-59 Transportation type handle supplied forms, a Null returned argument, HLAsuccessIndicator false, public exception text, and serials zero through three before a successful serial-four lookup. Invalid OrderType uses a deterministic type-38 UNSUPPORTED diagnostic because the closed Table 5 encoder has no canonical invalid-enum spelling. This is C++ development-profile evidence only; the Lab has no row-level conditional failure relation (RL-152), and no validation or conformance claim is made.",
@@ -1774,7 +1774,7 @@
     {
       "id": "umbra-support-federate-object-class-lookup-nonvoid-file-reports",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getFederateHandle",
       "notes": "The accepted §10.2–§10.5 support lookup services now append private non-void records to the selected joined-federate file. GetFederateHandle and GetFederateName use the official type-53 Federate name and type-15 FederateHandle forms; GetObjectClassHandle and GetObjectClassName use type-53 Object class name and type-36 ObjectClassHandle forms. Each append occurs after successful validation and outside native service locks, preserving the immutable joined-federate writer and serial sequence. The rendered source pages and official MIM values are covered by focused C++ unit/filesystem integration selectors, but the Lab still has no positive Table 5 row-level mapping for these private file ReturnArgument forms; this is source-backed development-profile traceability only, not validation or conformance (RL-042/RL-067/RL-076/RL-149).",
@@ -1786,7 +1786,7 @@
     {
       "id": "umbra-support-interaction-parameter-lookup-nonvoid-file-reports",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getInteractionClassHandle",
       "notes": "The accepted §10.13–§10.16 support lookup services now append private non-void records to the selected joined-federate file. GetInteractionClassHandle and GetInteractionClassName use the official type-53 Interaction class name and type-27 InteractionClassHandle forms; GetParameterHandle and GetParameterName use type-27 InteractionClassHandle plus type-53 Parameter name or type-39 ParameterHandle forms. Each append occurs after successful validation and outside native service locks, preserving one immutable joined-federate writer and serial sequence. The rendered source pages and official MIM values are covered by focused C++ unit/filesystem integration selectors, but the Lab still has no positive Table 5 row-level mapping for these private file ReturnArgument forms; this is source-backed development-profile traceability only, not validation or conformance (RL-042/RL-067/RL-076/RL-150).",
@@ -1798,7 +1798,7 @@
     {
       "id": "umbra-support-known-object-attribute-update-rate-lookup-nonvoid-file-reports",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getKnownObjectClassHandle",
       "notes": "The accepted §10.6–§10.12 support lookup services now append private non-void records to the selected joined-federate file. GetKnownObjectClassHandle uses type-37 ObjectInstanceHandle supplied and type-36 ObjectClassHandle returned forms; GetObjectInstanceHandle and GetObjectInstanceName use the type-53/type-37 object-instance name/handle pair; GetAttributeHandle and GetAttributeName use type-36/type-53 class-attribute supplied forms with type-0 AttributeHandle returns; and GetUpdateRateValue/GetUpdateRateValueForAttribute use type-53 or type-37/type-0 supplied forms with type-35 Maximum update rate value returns. Each append occurs after successful validation and outside native service locks, preserving one immutable joined-federate writer and serial sequence. The rendered source pages and official MIM values are covered by focused C++ unit/filesystem integration selectors, but the Lab still has no positive Table 5 row-level mapping for these private file ReturnArgument forms; this is source-backed development-profile traceability only, not validation or conformance (RL-042/RL-067/RL-076/RL-151).",
@@ -1810,7 +1810,7 @@
     {
       "id": "umbra-support-interaction-parameter-lookup-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The four §10.13–§10.16 interaction-class and parameter lookup services now report failed invocations through the selected service-report sink. The filesystem matrix preserves type-53/type-27/type-39 supplied forms, Null returned arguments, HLAsuccessIndicator false, public exception text, and serials zero through three before a successful serial-four lookup. This is C++ development-profile evidence only; the Lab has no row-level conditional failure relation (RL-152), and the public interaction matrix remains separately traced.",
@@ -1821,7 +1821,7 @@
     {
       "id": "umbra-support-failed-object-class-lookup-service-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "A failed GetObjectClassHandle invocation now uses the same selected joined-federate service-report route as successful calls. The report records the supplied type-53 Object class name, a Null returned argument, HLAsuccessIndicator false, and the public NameNotFound description, then the next successful invocation receives the next serial. This is a bounded C++ development-profile failure proof; the Requirements Lab source export provides the generic §11.5.1 candidate but no row-level conditional mapping for the Null return/exception relation (RL-152), so no validation or conformance claim is made.",
@@ -1833,7 +1833,7 @@
     {
       "id": "umbra-support-object-attribute-update-rate-lookup-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The seven §10.6–§10.12 known-object, object-instance, attribute, and update-rate lookup services now report failed invocations through the shared selected sink. Each preserves its official supplied argument forms, emits a Null returned argument with HLAsuccessIndicator false and the public exception description, and advances the same per-joined-federate serial stream. The exact matrix is C++ filesystem evidence; a separate HLA_IMMEDIATE matrix decodes the same seven failure forms through the public interaction sink. The Requirements Lab still exports no row-level conditional failure relation (RL-152), so other failure families, validation, and conformance remain open.",
@@ -1844,7 +1844,7 @@
     {
       "id": "umbra-support-failed-object-attribute-update-rate-lookup-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE public interaction matrix covers all seven §10.6–§10.12 failed known-object, object-instance, attribute, and update-rate lookup forms. Each report decodes service type 6, its official supplied argument forms, Null returned argument, HLAsuccessIndicator false, public exception text, and contiguous serials zero through six; a successful lookup follows at serial seven. This is C++ development-profile evidence only. The Requirements Lab still exports no row-level conditional failure relation (RL-152), so validation and conformance are not claimed.",
@@ -1855,7 +1855,7 @@
     {
       "id": "umbra-support-failed-interaction-parameter-lookup-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE public interaction matrix covers all four §10.13–§10.16 failed interaction-class and parameter lookup forms. Each report decodes service type 6, its official supplied argument forms, Null returned argument, HLAsuccessIndicator false, public exception text, and contiguous serials zero through three; a successful lookup follows at serial four. This is C++ development-profile evidence only. The Requirements Lab still exports no row-level conditional failure relation (RL-152), so validation and conformance are not claimed.",
@@ -1866,7 +1866,7 @@
     {
       "id": "umbra-support-failed-order-transportation-lookup-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE public interaction matrix covers all four §10.17–§10.20 failed order and transportation lookups. Each report decodes service type 6, the official type-53/type-38/type-59 supplied forms, Null returned argument, HLAsuccessIndicator false, public exception text, and contiguous serials zero through three; a successful GetOrderType follows at serial four. Invalid OrderType is represented by the deterministic type-38 UNSUPPORTED diagnostic used by the paired filesystem matrix. This is C++ development-profile evidence only; the Requirements Lab still exports no row-level conditional failure relation (RL-152), so validation and conformance are not claimed.",
@@ -1877,7 +1877,7 @@
     {
       "id": "umbra-support-failed-dimension-region-lookup-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE public interaction matrix covers all six §10.21–§10.26 failed dimension and region support lookups. Each report decodes service type 6, the official type-36/type-27/type-53/type-10/type-42 supplied forms, Null returned argument, HLAsuccessIndicator false, public exception text, and contiguous serials zero through five; a successful GetDimensionHandle follows at serial six. This is C++ development-profile evidence only; the Requirements Lab still exports no row-level conditional failure relation (RL-152), so validation and conformance are not claimed.",
@@ -1888,7 +1888,7 @@
     {
       "id": "umbra-support-failed-object-class-lookup-service-report-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "A failed GetObjectClassHandle invocation now reaches the public HLAreportServiceInvocation interaction route when an eligible observer has selected the interaction sink. The HLA_IMMEDIATE C++ proof decodes service type 6, the type-53 supplied argument, Null returned argument, false success indicator, source-backed NameNotFound text, and serial zero; a following successful lookup continues at serial one. This is a bounded development-profile interaction proof; the adjacent seven-case matrix carries the remaining §10.6–§10.12 forms. The Requirements Lab has no row-level conditional failure mapping (RL-152), so other failure families, validation, and conformance remain open.",
@@ -1899,7 +1899,7 @@
     {
       "id": "umbra-support-handle-normalization-nonvoid-file-reports",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeServiceGroup",
       "notes": "The accepted §10.29--§10.33 support services now append private non-void records to the selected joined-federate file. NormalizeServiceGroup uses type-50 ServiceGroup indicator text and returns the type-35 Number coordinate; NormalizeFederateHandle, NormalizeObjectClassHandle, NormalizeInteractionClassHandle, and NormalizeObjectInstanceHandle use the official type-15/type-36/type-27/type-37 handle forms and each return a type-35 Number. The normalized handle values are execution-scoped coordinates, while the returned Table 5 file form is the regular Number type rather than an implementation-dependent HLAnormalized* MIM datatype. Appends occur after successful validation and outside native service locks. This is source-backed C++ development-profile traceability only: the Lab has no positive Table 5 row-level mapping for these private file ReturnArgument forms, and no conformance or public MOM-interaction claim is made (RL-042/RL-067/RL-076/RL-148).",
@@ -1911,7 +1911,7 @@
     {
       "id": "umbra-support-handle-normalization-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The five §10.29–§10.33 normalization services now report failed invocations through the selected filesystem sink. The matrix preserves type-50/type-15/type-36/type-27/type-37 supplied forms, Null returned arguments, HLAsuccessIndicator false, public exception text, deterministic type-50 UNSUPPORTED text for an invalid ServiceGroup enum, and serials zero through four before a successful serial-five NormalizeServiceGroup. This is C++ development-profile evidence only; the Lab has no row-level conditional failure relation (RL-152), so no validation or conformance claim is made.",
@@ -1922,7 +1922,7 @@
     {
       "id": "umbra-support-failed-handle-normalization-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE native matrix delivers all five §10.29–§10.33 failed normalization invocations through HLAreportServiceInvocation with service type 6, the official type-50/type-15/type-36/type-27/type-37 supplied forms, Null returned arguments, false success indicators, public exception text, deterministic UNSUPPORTED text for invalid ServiceGroup, and serials zero through four. A successful NormalizeServiceGroup follows at serial five. The Lab has no row-level conditional failure relation (RL-152), so this remains development-profile evidence rather than validation or conformance.",
@@ -1933,7 +1933,7 @@
     {
       "id": "umbra-mom-service-report-interaction-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The external IEEE Java/JPype vector now mirrors the native public route: one accepted ordinary Send Interaction is emitted as an RTI-originated HLAreportServiceInvocation to an eligible observer whose own reporting switch is disabled. The observer decodes all seven MIM parameters over HLAreliable before the ordinary interaction callback, including service type 2, type-27/type-40/type-63/type-34 supplied arguments, the empty ReturnArgument and exception, and serial zero. The callback producer remains the embedded adapter's default-invalid FederateHandle because the pinned Lab does not resolve an RTI-originated MOM producer designator (RL-043). A native HLA_IMMEDIATE matrix now covers all seven failed support lookups; timestamped/regional variants and broader public MOM interaction matrices remain separate development-profile evidence, not Lab validation or conformance.",
@@ -1945,7 +1945,7 @@
     {
       "id": "umbra-mom-service-report-directed-interaction-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendDirectedInteraction",
       "notes": "The external IEEE Java/JPype vector now covers the public directed route for untimed and timestamped SendDirectedInteraction, decoding the seven MIM parameters, service type 2, serial progression, target callback fan-out, and timestamped logical-time callback argument through the standard Java surface. It does not claim generic file ReturnArgument formatting (RL-042), a resolved RTI producer mapping (RL-043), or complete directed DDM, time-management, transport, JUnit, protected-review, or conformance evidence.",
@@ -1957,7 +1957,7 @@
     {
       "id": "umbra-timestamped-send-directed-interaction-service-report-file-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped §6.14 Send Directed Interaction path now uses the shared file-or-interaction service-report selector. The focused production-filesystem matrix proves the type-27 InteractionClassHandle, type-37 ObjectInstanceHandle, type-40 ParameterHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable report-before-Receive Directed Interaction ordering. Time-regulated retraction-return behavior, directed DDM, remote transport, and conformance remain separate; the Requirements Lab has no row-level report-backend relation (RL-105/RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -1968,7 +1968,7 @@
     {
       "id": "umbra-timestamped-send-interaction-service-report-file-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped §6.12 Send Interaction path now uses the shared file-or-interaction selector. The focused production-filesystem matrix proves the type-27 InteractionClassHandle, type-40 ParameterHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable report-before-Receive Interaction ordering. Time-regulated type-33 return records, regional/timestamped object-update/delete families, remote transport, and conformance remain separate; the Requirements Lab has no row-level report-backend relation (RL-105/RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -1979,7 +1979,7 @@
     {
       "id": "umbra-mom-service-report-timestamped-delete-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
       "notes": "The accepted timestamped Delete Object Instance service now emits the standard RTI-originated HLAreportServiceInvocation at queue admission. Its complete seven-parameter payload uses service DeleteObjectInstance, object-management service type 2, success true, type-37 ObjectInstanceHandle/type-63 UserSuppliedTag/type-31 LogicalTime supplied records, and a type-33 MessageRetractionHandle returned record for a time-regulating sender. The observer receives this sender report before the timestamped Remove Object Instance callback through the external IEEE Java API and JPype; the callback's recipient-local file report remains a separate route. This is development-profile evidence only and does not claim regional sender forms, generic file ReturnArgument formatting, producer-handle resolution, Lab validation, or conformance.",
@@ -1990,7 +1990,7 @@
     {
       "id": "umbra-timestamped-delete-object-instance-service-report-file-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped §6.16 Delete Object Instance queue-admission path now uses the shared file-or-interaction selector. The focused production-filesystem matrix proves the type-37 ObjectInstanceHandle, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable sender-report-before-Remove Object Instance ordering. Time-regulated type-33 return records, regional deletion, recipient-local callback records, remote transport, and conformance remain separate; the Requirements Lab has no row-level report-backend relation (RL-105/RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -2001,7 +2001,7 @@
     {
       "id": "umbra-timestamped-delete-object-instance-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.16 Delete Object Instance failure matrix now reports invalid object and lower-than-lookahead timestamp failures through the configured filesystem. It preserves type-37 ObjectInstanceHandle, type-63 User-supplied tag, type-31 LogicalTime supplied values, a Null returned argument, false indicators, exact ObjectInstanceNotKnown/InvalidLogicalTime descriptions, and serials zero and one. No accepted timestamped sender file record is claimed here; the existing public interaction success path and recipient-local §6.17 callback file path remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -2012,7 +2012,7 @@
     {
       "id": "umbra-timestamped-delete-object-instance-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.16 Delete Object Instance failures through HLAreportServiceInvocation with object-management service type 2, type-37/type-63/type-31 supplied forms, a Null returned argument, false indicators, exact ObjectInstanceNotKnown/InvalidLogicalTime descriptions, and serials zero and one. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is bounded development-profile interaction evidence rather than validation or conformance.",
@@ -2023,7 +2023,7 @@
     {
       "id": "umbra-timestamped-update-attribute-values-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.10 Update Attribute Values failure matrix reports invalid object, invalid attribute, and lower-than-lookahead timestamp failures through the configured filesystem. It preserves type-37 ObjectInstanceHandle, type-2 AttributeHandleValueMap, type-63 User-supplied tag, type-31 LogicalTime supplied forms, Null returned arguments, false indicators, exact ObjectInstanceNotKnown/AttributeNotDefined/InvalidLogicalTime descriptions, and serials zero through two. No accepted timestamped sender file record is claimed; the existing public interaction success path and callback delivery remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -2034,7 +2034,7 @@
     {
       "id": "umbra-timestamped-send-interaction-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.12 Send Interaction failure matrix reports invalid interaction-class and parameter designators plus a lower-than-lookahead timestamp through the configured filesystem. It preserves type-27 InteractionClassHandle, type-40 ParameterHandleValueMap, type-63 User-supplied tag, type-31 LogicalTime supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through two. Accepted timestamped sender output, retraction, and recipient delivery remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -2045,7 +2045,7 @@
     {
       "id": "umbra-timestamped-send-directed-interaction-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.14 Send Directed Interaction failure matrix reports invalid interaction-class, target-object, parameter, and lower-than-lookahead timestamp designators through the configured filesystem. It preserves type-27 InteractionClassHandle, type-37 ObjectInstanceHandle, type-40 ParameterHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/ObjectInstanceNotKnown/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through three. Accepted timestamped sender output, retraction, and directed recipient delivery remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -2056,7 +2056,7 @@
     {
       "id": "umbra-timestamped-send-directed-interaction-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.14 Send Directed Interaction failures through HLAreportServiceInvocation with object-management service type 2, type-27/type-37/type-40/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/ObjectInstanceNotKnown/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through three. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this remains bounded development-profile interaction evidence rather than validation or conformance.",
@@ -2067,7 +2067,7 @@
     {
       "id": "umbra-timestamped-send-interaction-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.12 Send Interaction failures through HLAreportServiceInvocation with object-management service type 2, type-27/type-40/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through two. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this remains bounded development-profile interaction evidence rather than validation or conformance.",
@@ -2078,7 +2078,7 @@
     {
       "id": "umbra-timestamped-update-attribute-values-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.10 Update Attribute Values failures through HLAreportServiceInvocation with object-management service type 2, type-37/type-2/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact ObjectInstanceNotKnown/AttributeNotDefined/InvalidLogicalTime descriptions, and serials zero through two. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this remains bounded development-profile interaction evidence rather than validation or conformance.",
@@ -2089,7 +2089,7 @@
     {
       "id": "umbra-timestamped-regional-update-attribute-values-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.10 Update Attribute Values failures through HLAreportServiceInvocation after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact ObjectInstanceNotKnown/AttributeNotDefined/InvalidLogicalTime descriptions, and serials zero through two, without claiming application reflection delivery. RL-152 records the missing row-level conditional failure relation; broader regional failure families, transport, Lab validation, and conformance remain open.",
@@ -2100,7 +2100,7 @@
     {
       "id": "umbra-timestamped-regional-update-attribute-values-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers an accepted timestamped §6.10 Update Attribute Values invocation through HLAreportServiceInvocation after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-31 supplied forms, the quoted type-33 MessageRetractionHandle return with the admitted message identity, success true, empty exception, and serial zero before the constrained regional Reflect Attribute Values callback; the callback separately verifies the source RegionHandleSet and timestamped order metadata. This is bounded C++ development-profile interaction evidence; broader regional forms, lifecycle, transport, Lab validation, and conformance remain open.",
@@ -2111,7 +2111,7 @@
     {
       "id": "umbra-timestamped-update-attribute-values-service-report-file-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped §6.10 Update Attribute Values path now uses the shared file-or-interaction selector after validation and any TSO queue admission. The focused production-filesystem matrix proves the type-37 ObjectInstanceHandle, type-2 AttributeHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable sender-report-before-Reflect Attribute Values ordering. Time-regulated type-33 return records, regional/default-region update matrices, recipient-local callback records, remote transport, and conformance remain separate; the Requirements Lab has no row-level report-backend relation (RL-105/RL-152), so this is development-profile evidence rather than validation or conformance.",
@@ -2122,7 +2122,7 @@
     {
       "id": "umbra-mom-service-report-attribute-value-request-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
       "notes": "Accepted object-instance and object-class Request Attribute Value Update invocations now use the standard RTI-originated HLAreportServiceInvocation path when interaction reporting is selected. The complete payload preserves object/class designator type 37 or 36, type-1 attribute set, type-63 user tag, object-management service type 2, success true, and the standard Null returned argument; the report is emitted after acceptance and before provider Provide Attribute Value Update callbacks. The regional class-request overload uses the analogous DDM service type and type-4 attribute/region pair list. The external Java/JPype vector decodes both nonregional forms; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2135,7 +2135,7 @@
     {
       "id": "umbra-mom-service-report-query-attribute-ownership-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeOwnership",
       "notes": "An accepted Query Attribute Ownership invocation now emits the RTI-originated HLAreportServiceInvocation through the ownership-management service group before grouped owner/not-owned callbacks. The complete payload preserves type-37 ObjectInstanceHandle and type-1 AttributeHandleSet supplied records, service type 3, success true, a Null returned argument, the empty exception, and the per-federate serial. The external IEEE Java/JPype vector decodes the report and then verifies the typed owner callback; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2147,7 +2147,7 @@
     {
       "id": "umbra-mom-service-report-transportation-request-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeTransportationTypeChange",
       "notes": "Accepted attribute and interaction transportation-type requests now emit RTI-originated HLAreportServiceInvocation interactions after their C++ registry plans accept the pending change and before their confirmation callbacks. The object-management service type 2 payloads preserve type-37/type-1/type-59 or type-27/type-59 supplied handle records, success true, empty exception, serial, and a standard Null returned argument. External Java/JPype vectors decode both public interaction and private-file forms and then verify the C++ confirmation callbacks; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2163,7 +2163,7 @@
     {
       "id": "umbra-mom-service-report-transportation-query-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeTransportationType",
       "notes": "Accepted attribute and interaction transportation-type queries now emit RTI-originated HLAreportServiceInvocation interactions after their C++ registry plans accept and before their typed Report Attribute Transportation Type or Report Interaction Transportation Type callbacks. The object-management service type 2 payloads preserve type-37/type-0 or type-15/type-27 supplied handle records, success true, empty exception, serial, and a standard Null returned argument. External Java/JPype vectors decode both forms through the independent IEEE Java API and then verify the typed report callbacks; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2177,7 +2177,7 @@
     {
       "id": "umbra-mom-service-report-order-and-default-transport-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeAttributeOrderType",
       "notes": "Accepted order and default-transport changes now emit RTI-originated HLAreportServiceInvocation interactions after their C++ registry transitions and outside the registry lock. The time-management order payloads preserve type-37/type-1/type-38, type-36/type-1/type-38, and type-27/type-38 records; the object-management default-transport payload preserves type-36/type-1/type-59. The external Java/JPype vector decodes all four complete payloads, including service group, success, Null return, and serial progression. This remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2192,7 +2192,7 @@
     {
       "id": "umbra-mom-service-report-object-name-reservation-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::reserveObjectInstanceName",
       "notes": "Accepted single and multiple object-instance-name reservation services now emit RTI-originated HLAreportServiceInvocation interactions after their C++ registry reservations and before the asynchronous typed reservation callbacks. The object-management service type 2 payloads preserve type-53 String or type-54 StringSet supplied records, success true, empty exception, serial, and standard Null returned arguments. The external Java/JPype vector decodes both forms through the independent IEEE Java API and verifies the corresponding reservation callbacks; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2206,7 +2206,7 @@
     {
       "id": "umbra-object-name-reservation-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §6.2 Reserve Object Instance Name and §6.4 Release Object Instance Name pair now reports rejected single-name calls through the configured filesystem. The matrix preserves the type-53 Name supplied form and standard Null returned argument, records false indicators with exact IllegalName and ObjectInstanceNameNotReserved descriptions at serials zero and two, and keeps accepted reservation/release records at serials one and three. Switch gating suppresses disabled calls and the joined-federate file identity remains stable. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2217,7 +2217,7 @@
     {
       "id": "umbra-object-name-reservation-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers rejected §6.2/§6.4 single-name reservation calls through HLAreportServiceInvocation with object-management service type 2, type-53 Name supplied values, Null returned arguments, false indicators, exact exception descriptions, and serials zero and two. Accepted reservation/release records remain visible with true indicators at serials one and three. This is bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2228,7 +2228,7 @@
     {
       "id": "umbra-mom-service-report-time-constrained-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
       "notes": "An accepted Enable Time Constrained request now emits an RTI-originated HLAreportServiceInvocation after its C++ time-state request is accepted and before the asynchronous timeConstrainedEnabled callback is queued. The time-management service type 4 payload preserves the empty supplied-argument array, success true, empty exception, serial, and standard Null returned argument. External Java/JPype vectors decode the complete public interaction and private-file forms through the independent IEEE Java API and then verify the typed callback; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2241,7 +2241,7 @@
     {
       "id": "umbra-mom-service-report-time-regulation-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
       "notes": "An accepted Enable Time Regulation request now emits an RTI-originated HLAreportServiceInvocation after its C++ time-state request is accepted and before the asynchronous timeRegulationEnabled callback is queued. The time-management service type 4 payload preserves the type-32 LogicalTimeInterval Lookahead record using the private reference interval's quoted toString() value, success true, empty exception, serial, and standard Null returned argument. External Java/JPype vectors decode the complete public interaction and private-file forms through the independent IEEE Java API and then verify the typed callback; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2254,7 +2254,7 @@
     {
       "id": "umbra-mom-service-report-support-switch-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setObjectClassRelevanceAdvisorySwitch",
       "notes": "Accepted support-service switch setters now emit RTI-originated HLAreportServiceInvocation interactions after their C++ registry transitions and outside native service locks. The type-6 support-service payload preserves Boolean SwitchValue records for the object-class, attribute, scope, interaction, convey, and exception-reporting switches, plus the type-44 quoted AutomaticResignDirective record, success true, empty exception, Null returned argument, and serial progression. Native and external IEEE Java/JPype vectors decode the standard public reports, and the private file vector now decodes the exact C++ AutomaticResignDirective JSON payload through the JNI Java façade and JPype; RTI-owned MOM attribute updates remain separately queued. This remains development-profile evidence and does not claim Lab validation or conformance.",
@@ -2268,7 +2268,7 @@
     {
       "id": "umbra-mom-service-report-time-role-transition-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLogicalTime",
       "notes": "Successful Query Logical Time, Query GALT, Query LITS, and Query Lookahead invocations now emit RTI-originated HLAreportServiceInvocation interactions, alongside Modify Lookahead, all five accepted time-advance request forms, Enable/Disable Asynchronous Delivery, Disable Time Regulation, and Disable Time Constrained, after C++ computes or accepts the result and outside native service locks. The time-management service type 4 payload preserves the type-31 logical-time return for Query Logical Time, type-32 LogicalTimeInterval for Query Lookahead, Null returned arguments for the undefined GALT/LITS results exercised here, the type-32 Requested lookahead record for Modify Lookahead, type-31 Logical time supplied records for TimeAdvanceRequest, TimeAdvanceRequestAvailable, NextMessageRequest, NextMessageRequestAvailable, and FlushQueueRequest, empty supplied arguments for the asynchronous and time-role services, success true, empty exception, serial progression, and standard Null returned arguments for the void services. Native and external IEEE Java/JPype vectors decode the public reports around the typed time-role callbacks; private file vectors additionally decode the exact TimeAdvanceRequest logical-time payload before the Java grant callback and the paired empty-payload Enable/Disable Asynchronous Delivery records. This remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
@@ -2282,7 +2282,7 @@
     {
       "id": "umbra-mom-object-instances-updated-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestObjectInstancesUpdated and HLArequestObjectInstancesThatCanBeDeleted MOM interactions, computes class-grouped live object and delete-privilege counts in C++, and emits the RTI-originated HLAreportObjectInstancesUpdated and HLAreportObjectInstancesThatCanBeDeleted reports through the ordinary reliable interaction callback route. The external IEEE Java/JPype vector verifies the invalid producer identity, empty tag, nested HLAobjectClassBasedCounts variable-array/fixed-record encoding, one count for each registered class, and removal of the deleted class from the live ownership projection. This is development-profile evidence only and does not claim the remaining MOM request/report families, producer-handle resolution beyond the standard invalid identity, Lab validation, or conformance.",
@@ -2295,7 +2295,7 @@
     {
       "id": "umbra-mom-object-instances-reflected-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestObjectInstancesReflected MOM interaction from the requesting federate, computes distinct reflected application-object counts for the reported federate in C++, and emits the RTI-originated HLAreportObjectInstancesReflected report through the reliable interaction callback route. The external IEEE Java/JPype vector verifies the exact callback metadata and decodes the nested HLAobjectClassBasedCounts payload with one count per reflected object class, independent of repeated updates to one object. This is development-profile evidence only and does not claim the remaining MOM request/report families, producer-handle resolution beyond the standard invalid identity, Lab validation, or conformance.",
@@ -2307,7 +2307,7 @@
     {
       "id": "umbra-mom-updates-sent-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestUpdatesSent MOM interaction, groups accepted attribute updates by transportation and registered object class in C++, and emits one reliable RTI-originated HLAreportUpdatesSent report per represented transportation bucket, including empty HLAupdateCounts buckets. The external IEEE Java/JPype vector decodes HLAtransportation plus nested HLAupdateCounts and verifies two best-effort Server updates versus one reliable Soda update through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2319,7 +2319,7 @@
     {
       "id": "umbra-mom-interactions-sent-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestInteractionsSent MOM interaction, groups accepted ordinary and dimensioned sends by transportation and interaction class in C++, and emits one reliable RTI-originated HLAreportInteractionsSent report per represented transportation bucket. The external IEEE Java/JPype vector decodes nested HLAinteractionCounts and verifies reliable TakeOrder, best-effort TakeOrder, and reliable dimensioned MainCourseServed counts through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2331,7 +2331,7 @@
     {
       "id": "umbra-mom-directed-interactions-sent-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestDirectedInteractionsSent MOM interaction, keeps directed sends in a ledger separate from ordinary interactions, and emits one reliable RTI-originated HLAreportDirectedInteractionsSent report per supported transportation bucket, including the empty best-effort HLAinteractionCounts bucket. The external IEEE Java/JPype vector decodes nested HLAinteractionCounts and verifies two reliable directed TakeOrder sends plus the empty best-effort bucket through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2343,7 +2343,7 @@
     {
       "id": "umbra-mom-interactions-received-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestInteractionsReceived MOM interaction, groups application interaction callbacks by original sent interaction class and transportation in C++, and emits one reliable RTI-originated HLAreportInteractionsReceived report per supported transportation bucket. The external IEEE Java/JPype vector decodes nested HLAinteractionCounts and verifies one received TakeOrder under reliable and one under best-effort transport through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2355,7 +2355,7 @@
     {
       "id": "umbra-mom-directed-interactions-received-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestDirectedInteractionsReceived MOM interaction, keeps directed application callbacks separate from ordinary interaction receives, and emits one reliable RTI-originated HLAreportDirectedInteractionsReceived report per transportation bucket, including the empty best-effort HLAinteractionCounts bucket. The external IEEE Java/JPype vector decodes the directed nested counts and verifies one reliable directed TakeOrder receive while the ordinary receive is excluded. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2367,7 +2367,7 @@
     {
       "id": "umbra-mom-reflections-received-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestReflectionsReceived MOM interaction, groups application attribute reflections by registered object class and effective transportation in C++, and emits one reliable RTI-originated HLAreportReflectionsReceived report per transportation bucket, including empty HLAreflectCounts buckets. The external IEEE Java/JPype vector decodes nested HLAobjectClassBasedCounts, verifies reliable and best-effort Server reflections, and requests an empty joined-federate ledger through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2379,7 +2379,7 @@
     {
       "id": "umbra-mom-object-instance-information-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestObjectInstanceInformation MOM interaction and emits the RTI-originated HLAreportObjectInstanceInformation response with the requested object handle, nested HLAattributeHandleList, registered class, and known class. The external IEEE Java/JPype vector drives unknown-at-observer NULL, observer-known, and registering-federate reports through the standard Java encoder, including Efficiency and HLAprivilegeToDeleteObject ownership. This is development-profile evidence only and does not claim the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2391,7 +2391,7 @@
     {
       "id": "umbra-mom-publications-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes the standard HLArequestPublications MOM interaction and emits the three reliable RTI-originated publication reports: HLAreportObjectClassPublication, HLAreportInteractionPublication, and HLAreportDirectedInteractionPublication. The external IEEE Java/JPype vector decodes nested HLAattributeHandleList and HLAinteractionClassList values for published Server/Efficiency, HLAprivilegeToDeleteObject, and TakeOrder declarations, then verifies the zero-count/empty-list shapes after unpublication. This is development-profile evidence only and does not claim the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2403,7 +2403,7 @@
     {
       "id": "umbra-mom-fom-module-data-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes HLArequestFOMmoduleData for a joined module index and emits the reliable RTI-originated HLAreportFOMmoduleData with the indicator and retained module text. The external IEEE Java/JPype vector joins the Restaurant FOM through the standard additional-FOM-module overload and decodes the indicator plus HLAunicodeString XML payload through the official Java encoder. This is development-profile evidence only and does not claim invalid-index exception-report routing, federation-scoped FOM/MIM content, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2415,7 +2415,7 @@
     {
       "id": "umbra-mom-federation-content-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes federation-scoped HLArequestFOMmoduleData and HLArequestMIMdata interactions and emits reliable HLAreportFOMmoduleData and HLAreportMIMdata payloads. The external IEEE Java/JPype vector decodes the indicator, Restaurant FOM XML, and Standard MOM MIM text through the official Java unicode-string encoder. This is development-profile evidence only and does not claim invalid-index exception-report routing, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2427,7 +2427,7 @@
     {
       "id": "umbra-mom-synchronization-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes HLArequestSynchronizationPoints and HLArequestSynchronizationPointStatus and emits reliable HLAreportSynchronizationPoints and HLAreportSynchronizationPointStatus interactions. The external IEEE Java/JPype vector decodes the standard Unicode synchronization-label array and federate-handle/status records before and after each federate achieves the point, including an empty missing-label status and an empty list after completion. This is development-profile evidence only and does not claim malformed-request MOM exception coverage, the remaining MOM request/report families, Lab validation, or conformance.",
@@ -2439,7 +2439,7 @@
     {
       "id": "umbra-mom-subscriptions-request-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI consumes HLArequestSubscriptions and emits reliable HLAreportObjectClassSubscription, HLAreportInteractionSubscription, and HLAreportDirectedInteractionSubscription interactions. The external IEEE Java/JPype vector decodes active/passive object subscriptions with Low/High update rates, ordinary interaction active flags, directed class/list records, and the zero/empty projections after unsubscription through the official Java encoder. This is development-profile evidence only and does not claim regional subscription report shapes, remaining MOM request/report families, Lab validation, or conformance.",
@@ -2451,7 +2451,7 @@
     {
       "id": "umbra-mom-malformed-interaction-exception-report-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "notes": "The embedded RTI retains the typed caller exception for malformed parameters across every standard federate- and federation-scoped MOM request family, including HLAsetSwitches, while emitting subscription-selected HLAreportMOMexception interactions with the fully qualified service name, exception text, and HLAparameterError true; a well-formed service-reporting adjustment rejected by its report-subscription precondition emits the same report with HLAparameterError false. The external IEEE Java/JPype vector drives all seventeen standard request classes with a cross-class parameter and decodes each report through the official Java encoder while preserving the C++ exception types. This is development-profile evidence only and does not claim every malformed MOM payload shape, Lab validation, or conformance.",
@@ -2463,7 +2463,7 @@
     {
       "id": "umbra-mom-current-fdd-refresh-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "notes": "The embedded RTI exposes the federation-scoped HLAcurrentFDD attribute as an HLAunicodeString containing the materialized current FDD and queues a reliable refresh when a compatible additional-FOM Join changes that FDD. The external IEEE Java/JPype vector decodes the initial Restaurant FOM, observes the UmbraReferenceFixtureClass refresh, and confirms a direct request returns the refreshed value. This is development-profile evidence only and does not claim remote transport, the remaining federation-MOM attributes, Lab validation, or conformance.",
@@ -2475,7 +2475,7 @@
     {
       "id": "umbra-regional-association-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
       "notes": "Accepted Associate Regions For Updates and Unassociate Regions For Updates invocations append successful data-distribution-management records with the object-instance designator (type 37) and the collection of attribute-designator/region-designator pairs (type 4). The native and external Java/JPype filesystem vectors decode the nested handle sets through the independent IEEE Java surface, preserve the serial transition, and prove rejected deleted-region associations append nothing. These development-profile cases do not claim regional subscription-report shapes, remote transport, generic return arguments, Lab validation, or conformance.",
@@ -2487,7 +2487,7 @@
     {
       "id": "umbra-regional-subscription-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
       "notes": "Accepted regional object-class subscription and unsubscription invocations append successful data-distribution-management records with type-36 object-class designators, type-4 nested attribute/region pair sets, and the active/passive and optional update-rate slots. The native and external Java/JPype filesystem vectors decode High and default-rate forms through the independent IEEE Java surface, prove file-sink gating, preserve serial progression, and verify a deleted-region rejection appends nothing. The paired C++ failure/public-interaction matrices now also exercise the same accepted forms through HLA_IMMEDIATE. These development-profile cases do not claim non-regional subscription report shapes, remote transport, generic return arguments, Lab validation, or conformance.",
@@ -2499,7 +2499,7 @@
     {
       "id": "umbra-ddm-regional-object-subscription-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §9.8 Subscribe Object Class Attributes With Regions and §9.9 Unsubscribe Object Class Attributes With Regions pair now reports invalid object-class and region inputs through the selected filesystem sink. The matrix preserves type-36 ObjectClassHandle and type-4 AttributeSetRegionSetPairList supplied forms, plus Subscribe's type-6 passive-subscription and type-53/type-34 update-rate slots, with Null returned arguments, false indicators, public exception descriptions, and serials zero through three around successful Subscribe/Unsubscribe serials four and five. Switches suppress disabled calls and one joined-federate file remains the report identity. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2510,7 +2510,7 @@
     {
       "id": "umbra-ddm-regional-object-subscription-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §9.8/§9.9 regional object-class subscription calls through HLAreportServiceInvocation with service type 5, type-36/type-4 supplied forms and Subscribe's type-6 passive and type-53 update-rate values, Null returned arguments, false indicators, exact exception descriptions, and serials zero through three. Successful regional Subscribe/Unsubscribe calls remain visible with true indicators at serials four and five. This is bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2521,7 +2521,7 @@
     {
       "id": "umbra-ddm-regional-association-failure-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §9.6 Associate Regions For Updates and §9.7 Unassociate Regions For Updates pair now reports invalid object-instance and region inputs through the selected filesystem sink. The matrix preserves type-37 ObjectInstanceHandle and type-4 AttributeSetRegionSetPairList supplied forms, with Null returned arguments, false indicators, public exception descriptions, and serials zero through three around successful Associate/Unassociate serials four and five. Switches suppress disabled calls and one joined-federate file remains the report identity. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2532,7 +2532,7 @@
     {
       "id": "umbra-ddm-regional-association-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §9.6/§9.7 regional association calls through HLAreportServiceInvocation with service type 5, type-37/type-4 supplied forms, Null returned arguments, false indicators, exact exception descriptions, and serials zero through three. Successful Associate/Unassociate calls remain visible with true indicators at serials four and five. This is bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2543,7 +2543,7 @@
     {
       "id": "umbra-object-attribute-subscription-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §5.8 Subscribe Object Class Attributes and §5.9 Unsubscribe Object Class Attributes overloads now report invalid object-class and attribute inputs through the configured filesystem. The matrix preserves type-36 ObjectClassHandle, type-1 AttributeHandleSet, Subscribe's type-6 Optional passive subscription indicator and type-53 update-rate designator, plus the whole-class Unsubscribe type-34 Null optional slot, with Null returned arguments, false indicators, exact public exception descriptions, and serials zero through four before accepted Subscribe/subset/whole-unsubscribe records at serials five through seven. Accepted public MOM emission occurs after native locks are released. The Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2554,7 +2554,7 @@
     {
       "id": "umbra-object-attribute-subscription-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §5.8/§5.9 object-class attribute subscriptions through HLAreportServiceInvocation with declaration-management service type 1, type-36/type-1 supplied forms, Subscribe's type-6 passive and type-53 update-rate values, and the whole-class Unsubscribe type-34 Null slot, Null returned arguments, false indicators, exact exception descriptions, and serials zero through four. Accepted Subscribe/subset/whole-unsubscribe records remain visible with true indicators at serials five through seven. The public MOM route is exercised outside native locks; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2565,7 +2565,7 @@
     {
       "id": "umbra-object-attribute-declaration-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §5.2 Publish Object Class Attributes and §5.3 Unpublish Object Class Attributes pair now reports invalid object-class and attribute inputs through the configured filesystem. The matrix preserves type-36 ObjectClassHandle and type-1 AttributeHandleSet forms, with Null returned arguments, false indicators, exact public exception descriptions, and serials zero through three before accepted publication/removal records at serials four and five. Accepted public MOM emission occurs after native locks are released. The Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2576,7 +2576,7 @@
     {
       "id": "umbra-object-attribute-declaration-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §5.2/§5.3 object-attribute declarations through HLAreportServiceInvocation with declaration-management service type 1, type-36/type-1 supplied forms, Null returned arguments, false indicators, exact exception descriptions, and serials zero through three. Accepted Publish/Unpublish records remain visible with true indicators at serials four and five. The public MOM route is exercised outside native locks; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2587,7 +2587,7 @@
     {
       "id": "umbra-directed-subscription-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §5.12 Subscribe Object Class Directed Interactions and §5.13 Unsubscribe Object Class Directed Interactions overloads now report invalid object-class and interaction-class inputs through the configured filesystem. The matrix preserves type-36 ObjectClassHandle, type-28 directed InteractionClassHandleSet, Subscribe's type-6 Optional universal subscription indicator, and the whole-class Unsubscribe type-34 Null optional slot, with Null returned arguments, false indicators, exact public exception descriptions, and serials zero through three before accepted records at serials four through six. Accepted public MOM emission occurs after native locks are released. The Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2598,7 +2598,7 @@
     {
       "id": "umbra-directed-subscription-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §5.12/§5.13 directed subscription calls through HLAreportServiceInvocation with declaration-management service type 1, type-36/type-28 supplied forms, Subscribe's type-6 Boolean selector, and the whole-class Unsubscribe type-34 Null slot, Null returned arguments, false indicators, exact exception descriptions, and serials zero through three. Accepted Subscribe/Unsubscribe records remain visible with true indicators at serials four through six. The public MOM route is exercised outside native locks; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2609,7 +2609,7 @@
     {
       "id": "umbra-directed-declaration-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §5.6 Publish Object Class Directed Interactions and §5.7 Unpublish Object Class Directed Interactions overloads now report invalid object-class and interaction-class inputs through the configured filesystem. The matrix preserves type-36 ObjectClassHandle and type-28 InteractionClassHandleSet forms, plus the whole-class Unpublish type-34 Null optional slot, with Null returned arguments, false indicators, exact public exception descriptions, and serials zero through three before accepted explicit-set records at serials four and five and a whole-class Null-form record at serial six. Accepted public MOM emission occurs after native locks are released. The Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2620,7 +2620,7 @@
     {
       "id": "umbra-directed-declaration-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §5.6/§5.7 directed declarations through HLAreportServiceInvocation with declaration-management service type 1, type-36/type-28 supplied forms, and the whole-class Unpublish type-34 Null slot, Null returned arguments, false indicators, exact exception descriptions, and serials zero through three. Accepted explicit-set Publish/Unpublish records follow at serials four and five, and accepted whole-class Unpublish remains visible at serial six. The public MOM route is exercised outside native locks; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2631,7 +2631,7 @@
     {
       "id": "umbra-declaration-subscription-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §5.10 Subscribe Interaction Class and §5.11 Unsubscribe Interaction Class pair now reports failed invalid-handle invocations through the configured joined-federate filesystem. The matrix preserves type-27 InteractionClassHandle supplied forms and Subscribe's type-6 Optional passive subscription indicator, with Null returned arguments, false indicators, exact public exception descriptions, and serials zero and one before accepted subscription/removal records at serials two and three. The HLA_IMMEDIATE-safe accepted emission occurs after native locks are released and before declaration advisories are queued. The Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2642,7 +2642,7 @@
     {
       "id": "umbra-declaration-subscription-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §5.10/§5.11 interaction-class subscriptions through HLAreportServiceInvocation with declaration-management service type 1, type-27 supplied forms, Subscribe's type-6 passive indicator, Null returned arguments, false indicators, exact exception descriptions, and serials zero and one. Accepted Subscribe/Unsubscribe calls remain visible with true indicators at serials two and three. The public MOM route is exercised outside native locks; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2653,7 +2653,7 @@
     {
       "id": "umbra-declaration-interaction-failure-file-report-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §5.4 Publish Interaction Class and §5.5 Unpublish Interaction Class pair now reports failed invalid-handle invocations through the configured joined-federate filesystem. The matrix preserves type-27 InteractionClassHandle supplied forms, Null returned arguments, false indicators, exact public exception descriptions, and serials zero and one before accepted publication/removal records at serials two and three. Accepted MOM emission occurs after native locks are released, before declaration advisories are queued, and the report file identity remains stable for the joined lifetime. The Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
@@ -2664,7 +2664,7 @@
     {
       "id": "umbra-declaration-interaction-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §5.4/§5.5 interaction-class declarations through HLAreportServiceInvocation with declaration-management service type 1, type-27 supplied forms, Null returned arguments, false indicators, exact exception descriptions, and serials zero and one. Accepted Publish/Unpublish calls remain visible with true indicators at serials two and three. The public MOM route is exercised outside native locks; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
@@ -2675,7 +2675,7 @@
     {
       "id": "umbra-regional-interaction-subscription-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
       "notes": "Accepted regional interaction subscription and unsubscription invocations now have an external Java/JPype private-file vector. It decodes the type-27 interaction-class designator, type-43 region set, type-6 optional passive indicator for the active subscription, successful-void return, and monotonic serial progression through the C++ → JNI → standard Java → JPype route. This remains development-profile evidence and does not claim public regional subscription-report projections, generic return arguments, Lab validation, or conformance.",
@@ -2687,7 +2687,7 @@
     {
       "id": "umbra-regional-interaction-subscription-service-report-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted §9.10 Subscribe Interaction Class With Regions and §9.11 Unsubscribe Interaction Class With Regions pair now has a native HLA_IMMEDIATE public-MOM vector. The focused C++ case decodes DDM service type 5, type-27 InteractionClassHandle and type-43 RegionHandleSet supplied values, type-6 passive-indicator inversion for passive then active replacement, Null returned arguments, success true, empty exception, and serials zero through two. This remains development-profile interaction evidence; the Requirements Lab has no row-level backend/lifecycle relation for the cross-cutting §11.5.1 behavior, so validation and conformance are not claimed.",
@@ -2698,7 +2698,7 @@
     {
       "id": "umbra-timestamped-regional-interaction-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped Send Interaction With Regions service is recorded through the configured joined-federate filesystem before the constrained Receive Interaction callback. The focused C++ case verifies serial zero, type-27 interaction class, type-40 parameter map, type-43 source-region set, type-63 tag, type-31 timestamp, and type-33 MessageRetractionHandle return. This is development-profile file evidence; public MOM interaction routing, remote transport, the time-regulated/non-file matrix, JUnit/protected review, Lab validation, and conformance remain open.",
@@ -2709,7 +2709,7 @@
     {
       "id": "umbra-timestamped-regional-interaction-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted timestamped Send Interaction With Regions service report is delivered through the public HLAreportServiceInvocation interaction to an HLA_IMMEDIATE observer before the constrained regional Receive Interaction callback. The focused C++ case decodes service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, the quoted type-33 MessageRetractionHandle return, success true, empty exception, and serial zero, then verifies source-region and timestamp/order/retraction callback metadata. This remains development-profile traceability; the Requirements Lab's RL-105/RL-152 backend/lifecycle gap, remote transport, JUnit/protected review, validation, and conformance remain open.",
@@ -2720,7 +2720,7 @@
     {
       "id": "umbra-timestamped-regional-update-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped Update Attribute Values service is recorded through the configured joined-federate filesystem even when regional object/attribute association drives recipient eligibility. The focused C++ case verifies serial zero, type-37 object, type-2 attribute/value map, type-63 tag, type-31 timestamp, and type-33 MessageRetractionHandle return before the constrained regional reflection callback, while the callback separately conveys the source RegionHandle. This remains development-profile file evidence; public MOM interaction delivery, other regional-update failure matrices, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
@@ -2731,7 +2731,7 @@
     {
       "id": "umbra-regional-update-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "notes": "The accepted ordinary Update Attribute Values service is recorded through the configured joined-federate filesystem even when explicit committed regional object/attribute association drives recipient eligibility. The focused C++ case verifies serial zero, type-37 object, type-2 attribute/value map, type-63 tag, type-34 Null optional timestamp, and durable sender-report-before-constrained-regional-Reflect Attribute Values ordering, while the callback separately conveys the source RegionHandleSet. Its paired HLA_IMMEDIATE case now exercises the public MOM route with the same four supplied forms, type-34 Null return, success, empty exception, and serial zero before the constrained callback. This remains development-profile evidence; regional-update failure matrices, re-enable/save/restore, regional deletion, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
@@ -2743,7 +2743,7 @@
     {
       "id": "umbra-regional-update-service-report-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted ordinary Update Attribute Values service now projects through HLAreportServiceInvocation to an HLA_IMMEDIATE observer when an explicit committed regional object/attribute association drives recipient eligibility. The focused C++ case decodes object-management service type 2, type-37/type-2/type-63/type-34 supplied forms, the Table 5 type-34 Null return, success true, empty exception, and serial zero, then verifies source RegionHandleSet and receive-order reflection metadata at the callback. The Lab has no row-level backend/lifecycle relation for this cross-cutting §11.5.1 behavior, so this remains development-profile interaction evidence rather than validation or conformance.",
@@ -2754,7 +2754,7 @@
     {
       "id": "umbra-regional-update-failure-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The ordinary regional Update Attribute Values failure matrix records invalid-object and invalid-attribute exceptions through the configured joined-federate filesystem and its paired HLA_IMMEDIATE public MOM route. Both cases preserve serials zero and one, type-37/type-2/type-63/type-34 supplied forms, Null returned arguments, false success indicators, and exact exception text while the known object remains explicitly region-associated; the interaction case proves no reflection callback is synthesized. Broader failure families, re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance remain open.",
@@ -2766,7 +2766,7 @@
     {
       "id": "umbra-timestamped-regional-update-failure-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped regional Update Attribute Values failure matrix records invalid-object, invalid-attribute, and invalid-logical-time exceptions through the configured joined-federate filesystem after explicit committed regional association. It preserves serials zero through two, type-37/type-2/type-63/type-31 supplied forms, Null returned arguments, false success indicators, and exact exception text with no callback delivery. This is development-profile evidence only; public HLAreportServiceInvocation routing, re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance remain open, and RL-152 records the missing row-level conditional relation.",
@@ -2777,7 +2777,7 @@
     {
       "id": "umbra-timestamped-regional-interaction-failure-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped regional Send Interaction With Regions failure matrix records invalid interaction-class, parameter, region, and logical-time exceptions through the configured joined-federate filesystem. It preserves serials zero through three, interaction-management service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, Null returned arguments, false success indicators, and exact exception text without application callback delivery. This remains development-profile file evidence; public HLAreportServiceInvocation routing, re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance remain open, and RL-105/RL-152 provide no row-level failure/backend relation.",
@@ -2788,7 +2788,7 @@
     {
       "id": "umbra-timestamped-regional-interaction-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped regional Send Interaction With Regions failures through HLAreportServiceInvocation. It decodes serials zero through three, interaction-management service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, the Table 5 type-34 Null return, false success indicators, and exact InteractionClassNotDefined, InteractionParameterNotDefined, InvalidRegion, and InvalidLogicalTime descriptions; no application Receive Interaction callback is expected. Requirements Lab RL-105/RL-152 leave the conditional failure relation unmodeled, so this remains development-profile interaction evidence rather than validation or conformance.",
@@ -2799,7 +2799,7 @@
     {
       "id": "umbra-regional-interaction-failure-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The ordinary regional Send Interaction With Regions failure matrix records invalid interaction-class, parameter, and region exceptions through the configured joined-federate filesystem. It preserves serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, Null returned arguments, false success indicators, and exact exception text without application callback delivery. Public MOM routing, timestamped/re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance remain open; RL-105/RL-152 provide no row-level failure/backend relation.",
@@ -2810,7 +2810,7 @@
     {
       "id": "umbra-regional-interaction-failure-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers ordinary regional Send Interaction With Regions failures through HLAreportServiceInvocation. It decodes serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, the Table 5 type-34 Null return, false success indicators, and exact InteractionClassNotDefined, InteractionParameterNotDefined, and InvalidRegion descriptions; no application Receive Interaction callback is expected. Requirements Lab RL-105/RL-152 leave the conditional failure relation unmodeled, so this remains development-profile interaction evidence rather than validation or conformance.",
@@ -2821,7 +2821,7 @@
     {
       "id": "umbra-regional-interaction-success-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "notes": "The accepted ordinary regional Send Interaction With Regions invocation is recorded through the configured joined-federate filesystem before the constrained Receive Interaction callback. The focused C++ case verifies serial zero, interaction-management service type 2, the type-27 interaction-class designator, type-40 parameter/value map, type-43 source-region set, type-63 tag, type-34 Null timestamp, Null returned argument, success true, and callback delivery of the same source RegionHandleSet. This is development-profile file evidence; lifecycle/re-enable, timestamped/retraction, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
@@ -2832,7 +2832,7 @@
     {
       "id": "umbra-regional-interaction-success-service-report-interaction-matrix",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted ordinary regional Send Interaction With Regions invocation is delivered through HLAreportServiceInvocation to an HLA_IMMEDIATE observer before the constrained Receive Interaction callback. The focused C++ case decodes service type 2, five supplied arguments of types 27/40/43/63/34, the Table 5 type-34 Null return, success true, empty exception, and serial zero, then verifies the application callback's source RegionHandleSet and payload. This remains development-profile interaction evidence; the Requirements Lab's RL-105/RL-152 backend/lifecycle gap, remote transport, JUnit/protected review, validation, and conformance remain open.",

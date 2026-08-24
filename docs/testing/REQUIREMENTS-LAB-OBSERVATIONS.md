@@ -8,14 +8,23 @@ not a claim that the Lab, IEEE source, or Umbra is non-conformant.
 ## Pinned input
 
 - Lab repository: `../Document-Recreation`
-- Reviewed revision: `4f012fb1c21367cfde67aab8498ae00e2a64c615`
+- Reviewed release: `v0.1.0.a1` (`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`)
 - Umbra lock: `compliance/requirements-lab/requirements-lab.lock.json`
-- Last reviewed: 2026-08-21
+- Editions exported: 2010 and 2025
+- Last reviewed: 2026-08-24
 
 Umbra consumes only the Lab's exported portable JSON bundle. The generated
 bundle under `.compliance/` is intentionally ignored, so each observation
 below names the pinned revision and durable source identifiers rather than
 depending on an uncommitted export artifact.
+
+The current synchronization target is the `v0.1.0.a1` all-edition export. It
+contains six documents: 2010 and 2025 editions of Parts 1, 1.1, and 1.2. The
+2025 Part 1.1 corpus now exports 1,860 requirements (up from 1,697 in the
+historical revision cited by the older observations below). Existing Umbra
+contracts remain implementation-scoped to 2025; the 2010 documents are
+included in the portable bundle and lock so their numbering remains available
+for future edition-specific contracts.
 
 ## How future consumers should interpret the Lab
 

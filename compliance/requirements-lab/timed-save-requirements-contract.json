@@ -98,7 +98,7 @@
     {
       "id": "umbra-timed-save-constrained-initiate-is-at-time-advance-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
-      "clause_id": "clause-4.21.1",
+      "clause_id": "clause-4.20",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
@@ -118,7 +118,7 @@
     {
       "id": "umbra-timed-save-constrained-initiate-observes-time-advancing-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9",
-      "clause_id": "clause-4.21.1",
+      "clause_id": "clause-4.20",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [

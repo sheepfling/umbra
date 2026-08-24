@@ -8,7 +8,7 @@
     {
       "id": "umbra-normalize-service-group-produces-an-hlaservicegroup-coordinate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-264-l133-41",
-      "clause_id": "clause-10.29.5",
+      "clause_id": "clause-10.29",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeServiceGroup",
       "tests": [
@@ -18,7 +18,7 @@
     {
       "id": "umbra-normalize-federate-handle-produces-an-hlafederate-coordinate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-265-l45-11",
-      "clause_id": "clause-10.31.2",
+      "clause_id": "clause-10.30",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeFederateHandle",
       "tests": [
@@ -28,7 +28,7 @@
     {
       "id": "umbra-normalize-object-class-handle-produces-an-hlaobjectclass-coordinate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-265-l150-46",
-      "clause_id": "clause-10.31.2",
+      "clause_id": "clause-10.31",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeObjectClassHandle",
       "tests": [
@@ -38,7 +38,7 @@
     {
       "id": "umbra-normalize-interaction-class-handle-produces-an-hlainteractionclass-coordinate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-266-l95-28",
-      "clause_id": "clause-10.32.5",
+      "clause_id": "clause-10.32",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeInteractionClassHandle",
       "tests": [
@@ -48,7 +48,7 @@
     {
       "id": "umbra-normalize-object-instance-handle-produces-an-hlaobjectinstance-coordinate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-267-l39-9",
-      "clause_id": "clause-10.34.2",
+      "clause_id": "clause-10.33",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeObjectInstanceHandle",
       "tests": [

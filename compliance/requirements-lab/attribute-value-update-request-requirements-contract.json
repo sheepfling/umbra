@@ -70,7 +70,7 @@
     {
       "id": "umbra-provide-attribute-value-update-carries-request-tag-at-callback-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l40-8",
-      "clause_id": "clause-6.23",
+      "clause_id": "clause-6.22",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeValueUpdateProvide",
       "notes": "The direct page-137 source is §6.22, Provide Attribute Value Update: its provider callback carries the requesting federate's supplied tag. The Requirements Lab exports the immutable candidate with structural owner clause-6.23 because the page coalesces the later Turn Updates On heading; RL-078 records that extractor-boundary mismatch. Umbra keeps the checker-required owner without reclassifying the callback semantics.",
@@ -81,7 +81,7 @@
     {
       "id": "umbra-attribute-value-request-at-most-one-provide-per-owner",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
-      "clause_id": "clause-6.23",
+      "clause_id": "clause-6.22",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [

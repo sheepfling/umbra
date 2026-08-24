@@ -61,7 +61,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
-        "packages/umbra-rti-jpype/tests/test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction"
       ]
     },

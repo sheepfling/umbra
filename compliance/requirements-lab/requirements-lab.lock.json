@@ -1,12 +1,16 @@
 {
   "schema_version": 1,
   "repository": "../Document-Recreation",
-  "revision": "4f012fb1c21367cfde67aab8498ae00e2a64c615",
-  "edition": "2025",
+  "revision": "4bafa0619cf8c777a79294c9e0e78f2a38ee55b4",
+  "tag": "v0.1.0.a1",
+  "edition": "all",
   "document_ids": [
+    "hla-1516-2010",
+    "hla-1516.1-2010",
+    "hla-1516.2-2010",
     "hla-1516-2025",
     "hla-1516.1-2025",
     "hla-1516.2-2025"
   ],
-  "notes": "Update this lock and re-run tools/requirements_lab.py check when adopting a newer HLA Requirements Lab revision."
+  "notes": "Pinned to the v0.1.0.a1 HLA Requirements Lab release. The Umbra contracts currently bind 2025 implementation slices, while the portable bundle is exported for both 2010 and 2025 editions."
 }

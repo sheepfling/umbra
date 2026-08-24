@@ -123,7 +123,7 @@
     {
       "id": "umbra-directed-subscription-gates-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-102-l10-1",
-      "clause_id": "clause-5.13",
+      "clause_id": "clause-5.12",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
@@ -134,7 +134,7 @@
     {
       "id": "umbra-directed-at-most-one-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-102-l19-4",
-      "clause_id": "clause-5.13",
+      "clause_id": "clause-5.12",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [

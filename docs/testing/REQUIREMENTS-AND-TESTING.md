@@ -3610,6 +3610,12 @@ python tools/requirements_lab.py export
 python tools/requirements_lab.py check
 ~~~
 
+The locked `v0.1.0.a1` input exports both the 2010 and 2025 editions by
+default. Umbra's implementation contracts remain explicitly scoped to the
+2025 surfaces they exercise; the 2010 documents are included so future
+edition-specific contracts can use the same pinned bundle without a second
+Lab checkout or an untracked numbering baseline.
+
 To assess a newer Lab revision before changing the lock:
 
 ~~~powershell

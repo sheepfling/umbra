@@ -144,7 +144,7 @@
     {
       "id": "umbra-mom-report-service-switch-subscription-exclusion",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setServiceReportingSwitch",
       "tests": [
@@ -194,7 +194,7 @@
     {
       "id": "umbra-mom-federate-set-switches-service-reporting-interlock",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::applyFederateMOMSwitchUpdate",
       "tests": [

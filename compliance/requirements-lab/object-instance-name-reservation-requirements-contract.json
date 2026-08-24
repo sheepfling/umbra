@@ -8,7 +8,7 @@
     {
       "id": "umbra-object-name-reservation-single-validates-and-reports",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
-      "clause_id": "clause-6.3",
+      "clause_id": "clause-6.2",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::reserveObjectInstanceName",
       "tests": [
@@ -20,7 +20,7 @@
     {
       "id": "umbra-object-name-reservation-rejects-hla-namespace",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l24-4",
-      "clause_id": "clause-6.3",
+      "clause_id": "clause-6.2",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "objectInstanceNameIsLegal",
       "tests": [
@@ -131,7 +131,7 @@
     {
       "id": "umbra-object-name-reservation-file-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
-      "clause_id": "clause-6.3",
+      "clause_id": "clause-6.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::reserveObjectInstanceName",
       "tests": [

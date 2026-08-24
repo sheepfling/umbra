@@ -8,7 +8,7 @@
     {
       "id": "umbra-publish-interaction-class-enables-the-invoking-publication",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l17-1",
-      "clause_id": "clause-5.5.2",
+      "clause_id": "clause-5.4",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setInteractionClassPublication",
       "tests": [
@@ -19,7 +19,7 @@
     {
       "id": "umbra-publish-interaction-class-file-report-follows-the-accepted-declaration-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishInteractionClass",
       "tests": [

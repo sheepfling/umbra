@@ -77,7 +77,7 @@
     {
       "id": "umbra-object-class-attribute-value-request-at-most-one-provide-per-owner-instance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
-      "clause_id": "clause-6.23",
+      "clause_id": "clause-6.22",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
       "tests": [
@@ -88,7 +88,7 @@
     {
       "id": "umbra-object-class-provide-attribute-value-update-file-report-precedes-callbacks",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
-      "clause_id": "clause-11.5.1",
+      "clause_id": "clause-11.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeValueUpdateClassProvide",
       "notes": "The nonregional class-designator §6.21 request expands to concrete object instances, and each provider-side §6.22 callback retains its owner-specific selected-file route through callback-time revalidation. Umbra appends one object-management successful-void record per expanded instance immediately before FederateAmbassador::provideAttributeValueUpdate() enters user code, using type-37 ObjectInstanceHandle, type-1 AttributeHandleSet, and the propagated type-63 base-64 UserSuppliedTag. The focused two-instance proof checks serial ordering and cumulative file content; it does not serialize the requester's class designator into the provider callback report or claim regional/automatic-provision variants.",

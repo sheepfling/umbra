@@ -34,7 +34,7 @@
     {
       "id": "umbra-regular-acquisition-preserves-existing-acquisition-pending-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-162-l16-4",
-      "clause_id": "clause-7.8.3",
+      "clause_id": "clause-7.8",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisition",
       "tests": [
@@ -54,7 +54,7 @@
     {
       "id": "umbra-owner-release-request-is-delivered-once-per-regular-call",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-166-l41-10",
-      "clause_id": "clause-7.11.6",
+      "clause_id": "clause-7.11",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeOwnershipAcquisitionWorkItem",
       "tests": [
@@ -66,7 +66,7 @@
     {
       "id": "umbra-release-denied-terminates-matching-regular-acquisitions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
-      "clause_id": "clause-7.12.5",
+      "clause_id": "clause-7.12",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied",
       "tests": [
@@ -78,7 +78,7 @@
     {
       "id": "umbra-regular-acquisition-cancellation-targets-only-pending-regular-requests",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12",
-      "clause_id": "clause-7.15.5",
+      "clause_id": "clause-7.15",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
@@ -89,7 +89,7 @@
     {
       "id": "umbra-regular-acquisition-cancellation-suppresses-stale-acquisition-work",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
-      "clause_id": "clause-7.15.5",
+      "clause_id": "clause-7.15",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
@@ -100,7 +100,7 @@
     {
       "id": "umbra-regular-acquisition-cancellation-confirms-qualifying-attributes-once",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13",
-      "clause_id": "clause-7.16.4",
+      "clause_id": "clause-7.16",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation",
       "tests": [
@@ -111,7 +111,7 @@
     {
       "id": "umbra-regular-acquisition-cancellation-releases-publication-at-confirmation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11",
-      "clause_id": "clause-7.16.4",
+      "clause_id": "clause-7.16",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation",
       "tests": [

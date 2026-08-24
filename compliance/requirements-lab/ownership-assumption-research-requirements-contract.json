@@ -38,7 +38,7 @@
     {
       "id": "umbra-assumption-research-republication-produces-one-fresh-offer",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-157-l103-29",
-      "clause_id": "clause-7.4.3",
+      "clause_id": "clause-7.4",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate",
       "tests": [

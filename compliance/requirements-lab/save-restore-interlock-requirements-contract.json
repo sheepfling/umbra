@@ -11,7 +11,9 @@
       "clause_id": "clause-5.1.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-object-registration",
@@ -19,7 +21,9 @@
       "clause_id": "clause-6.8.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstance",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-region-creation",
@@ -27,7 +31,9 @@
       "clause_id": "clause-9.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::createRegion",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-attribute-update",
@@ -35,7 +41,9 @@
       "clause_id": "clause-6.21",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-interaction-send",
@@ -43,7 +51,9 @@
       "clause_id": "clause-6.12.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-ownership-acquisition",
@@ -51,7 +61,9 @@
       "clause_id": "clause-7.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisition",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-time-advance",
@@ -59,7 +71,9 @@
       "clause_id": "clause-8.8.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-object-class-unpublish",
@@ -67,7 +81,9 @@
       "clause_id": "clause-5.1.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-object-class-unsubscribe",
@@ -75,7 +91,9 @@
       "clause_id": "clause-5.1.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-interaction-publish",
@@ -83,7 +101,9 @@
       "clause_id": "clause-5.1.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishInteractionClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-interaction-subscribe",
@@ -91,7 +111,9 @@
       "clause_id": "clause-5.1.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-directed-publish",
@@ -99,7 +121,9 @@
       "clause_id": "clause-5.1.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-directed-subscribe",
@@ -107,7 +131,9 @@
       "clause_id": "clause-5.1.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-order-control",
@@ -115,7 +141,9 @@
       "clause_id": "clause-8.24.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeAttributeOrderType",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-transport-control",
@@ -123,7 +151,9 @@
       "clause_id": "clause-6.25.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeTransportationTypeChange",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-ownership-query",
@@ -131,7 +161,9 @@
       "clause_id": "clause-7.17.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeOwnership",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-ownership-check",
@@ -139,7 +171,9 @@
       "clause_id": "clause-7.19.6",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::isAttributeOwnedByFederate",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-negotiated-ownership",
@@ -147,7 +181,9 @@
       "clause_id": "clause-7.3.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::negotiatedAttributeOwnershipDivestiture",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-confirm-ownership",
@@ -155,39 +191,49 @@
       "clause_id": "clause-7.6.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::confirmDivestiture",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unconditional-ownership",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l152-47",
-      "clause_id": "clause-7.1.1",
+      "clause_id": "clause-7.1.2.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-divestiture-if-wanted",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-168-l35-7",
-      "clause_id": "clause-7.13.5",
+      "clause_id": "clause-7.13",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-release-denied",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
-      "clause_id": "clause-7.12.5",
+      "clause_id": "clause-7.12",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipReleaseDenied",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-cancel-acquisition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12",
-      "clause_id": "clause-7.15.5",
+      "clause_id": "clause-7.15",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::cancelAttributeOwnershipAcquisition",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-time-regulation-role",
@@ -195,7 +241,9 @@
       "clause_id": "clause-8.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-disable-time-regulation",
@@ -203,7 +251,9 @@
       "clause_id": "clause-8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-time-constrained-role",
@@ -211,7 +261,9 @@
       "clause_id": "clause-8.5.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-disable-time-constrained",
@@ -219,7 +271,9 @@
       "clause_id": "clause-8.7.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeConstrained",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-logical-time",
@@ -227,7 +281,9 @@
       "clause_id": "clause-8.18.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLogicalTime",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-galt",
@@ -235,7 +291,9 @@
       "clause_id": "clause-8.18.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryGALT",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-lits",
@@ -243,7 +301,9 @@
       "clause_id": "clause-8.19.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLITS",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-lookahead",
@@ -251,7 +311,9 @@
       "clause_id": "clause-8.21.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-modify-lookahead",
@@ -259,7 +321,9 @@
       "clause_id": "clause-8.20.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::modifyLookahead",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-get-attribute-scope-advisory-switch",
@@ -267,7 +331,9 @@
       "clause_id": "clause-10.38.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAttributeScopeAdvisorySwitch",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-set-attribute-scope-advisory-switch",
@@ -275,7 +341,9 @@
       "clause_id": "clause-10.39.6",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAttributeScopeAdvisorySwitch",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-registration",
@@ -283,7 +351,9 @@
       "clause_id": "clause-9.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-association",
@@ -291,7 +361,9 @@
       "clause_id": "clause-9.6",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-unassociation",
@@ -299,7 +371,9 @@
       "clause_id": "clause-9.7.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unassociateRegionsForUpdates",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-object-subscription",
@@ -307,7 +381,9 @@
       "clause_id": "clause-9.8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-object-unsubscription",
@@ -315,7 +391,9 @@
       "clause_id": "clause-9.9.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-attribute-update-request",
@@ -323,7 +401,9 @@
       "clause_id": "clause-9.13.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdateWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-interaction-subscription",
@@ -331,7 +411,9 @@
       "clause_id": "clause-9.10",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-interaction-unsubscription",
@@ -339,7 +421,9 @@
       "clause_id": "clause-9.11.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-regional-interaction-send",
@@ -347,7 +431,9 @@
       "clause_id": "clause-9.12.5",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-synchronization-registration",
@@ -355,7 +441,9 @@
       "clause_id": "clause-4.14",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-synchronization-explicit-set",
@@ -363,7 +451,9 @@
       "clause_id": "clause-4.15",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-synchronization-achievement",
@@ -371,7 +461,9 @@
       "clause_id": "clause-4.17.1",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     }
   ]
 }

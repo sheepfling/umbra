@@ -340,7 +340,7 @@ def main() -> int:
     export.add_argument("--output", type=Path, default=DEFAULT_BUNDLE)
     export.add_argument("--lock", type=Path, default=DEFAULT_LOCK)
     export.add_argument("--revision", help="Override the reviewed Requirements Lab revision")
-    export.add_argument("--edition", choices=("2010", "2025", "all"), default="2025")
+    export.add_argument("--edition", choices=("2010", "2025", "all"), default="all")
     export.add_argument("--python", default=sys.executable, help="Python environment for the Lab")
 
     check = subparsers.add_parser("check", help="Check an Umbra baseline or contract against a bundle")
