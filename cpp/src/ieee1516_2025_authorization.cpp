@@ -1,4 +1,4 @@
-#include "internal/reference_authorizer.hpp"
+#include "internal/runtime/reference_authorizer.hpp"
 
 #include <RTI/VariableLengthData.h>
 #include <RTI/auth/AuthorizationResult.h>

@@ -1,0 +1,120 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "windows-default",
+      "displayName": "Windows default",
+      "description": "Core native build and offline-friendly baseline tests.",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/out/cmake/default"
+    },
+    {
+      "name": "windows-catch2",
+      "displayName": "Windows Catch2",
+      "description": "Native behavior tests; downloads Catch2 when it is not already available.",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/out/cmake/catch2",
+      "cacheVariables": {
+        "UMBRA_FETCH_CATCH2": "ON"
+      }
+    },
+    {
+      "name": "windows-fom",
+      "displayName": "Windows FOM validator",
+      "description": "FOM/XML validation tests; downloads the pinned Catch2 and libxml2 dependencies when needed.",
+      "inherits": "windows-catch2",
+      "binaryDir": "${sourceDir}/out/cmake/fom",
+      "cacheVariables": {
+        "UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR": "ON",
+        "UMBRA_FETCH_LIBXML2": "ON"
+      }
+    },
+    {
+      "name": "windows-fom-services",
+      "displayName": "Windows embedded federation-management development profile",
+      "description": "Non-installable FOM-services development profile.",
+      "inherits": "windows-fom",
+      "binaryDir": "${sourceDir}/out/cmake/fom-services",
+      "cacheVariables": {
+        "UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-default-debug",
+      "configurePreset": "windows-default",
+      "configuration": "Debug",
+      "jobs": 1
+    },
+    {
+      "name": "windows-catch2-debug",
+      "configurePreset": "windows-catch2",
+      "configuration": "Debug",
+      "jobs": 1
+    },
+    {
+      "name": "windows-fom-debug",
+      "configurePreset": "windows-fom",
+      "configuration": "Debug",
+      "jobs": 1
+    },
+    {
+      "name": "windows-fom-services-debug",
+      "configurePreset": "windows-fom-services",
+      "configuration": "Debug",
+      "jobs": 1
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-default-debug",
+      "configurePreset": "windows-default",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-catch2-debug",
+      "configurePreset": "windows-catch2",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-fom-debug",
+      "configurePreset": "windows-fom",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-fom-services-debug",
+      "configurePreset": "windows-fom-services",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

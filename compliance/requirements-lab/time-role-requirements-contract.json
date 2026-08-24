@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded temporal-role development slice to source-derived IEEE 1516.1-2025 records. It keeps Enable Time Regulation and Enable Time Constrained pending until their respective standard callback is dispatched; stores the requested lookahead only when time regulation becomes enabled; exposes Query Lookahead; and clears the corresponding mode on Disable. Relevant role state changes re-evaluate the bounded embedded TAR scheduler. The role callback tests use the federate's current time; timestamped callback times and retraction lifetime are covered by separate service contracts. Focused regressions now include default-region and explicit-source regional timestamped interactions plus an explicit-source regional timestamped object update that remain queued across a Time Constrained disable/re-enable cycle, while a separate normal-interaction regression proves that disabling regulation temporarily removes Retract authority without terminalizing a live designator and that callback-gated re-enable at the same lookahead permits one legal Retract before normal terminal classification. The JNI/Java/JPype callback-gating companion exercises the same lifecycle through both HLA_EVOKED and HLA_IMMEDIATE, preserving the pending-request and already-enabled exception mappings. Separate restore-control regressions return a saved actual lookahead after a post-save increase and retain one saved deferred decrease target; they do not establish general time-role save/restore behavior. It does not cover complete TSO delivery/order, asynchronous delivery, the separately traced Modify Lookahead service, full enable-time coordination, broader re-enable matrices, package support, catalog result, JUnit sidecar, protected review, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-embedded-time-regulation-request-pending",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+      "clause_id": "clause-8.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+      ]
+    },
+    {
+      "id": "umbra-embedded-time-regulation-callback-honors-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+      "clause_id": "clause-8.3.1",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::grantTimeRegulation",
+      "tests": [
+       "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
+       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+       "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
+       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+     ]
+   },
+    {
+      "id": "umbra-embedded-time-regulation-stores-lookahead",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l93-28",
+      "clause_id": "clause-8.2",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::grantTimeRegulation",
+      "tests": [
+        "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+      ]
+    },
+    {
+      "id": "umbra-embedded-disable-time-regulation-clears-role",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::disableTimeRegulation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services"
+      ]
+    },
+    {
+      "id": "umbra-embedded-enable-time-constrained-request-pending",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+      "clause_id": "clause-8.5.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-embedded-time-constrained-callback-honors-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
+      "clause_id": "clause-8.6.3",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::grantTimeConstrained",
+      "tests": [
+        "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-embedded-disable-time-constrained-clears-role",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l58-12",
+      "clause_id": "clause-8.7.5",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::disableTimeConstrained",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-embedded-query-lookahead-reads-actual-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-209-l75-19",
+      "clause_id": "clause-8.21.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryLookahead",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+[
+  {
+    "id": "umbra-jni",
+    "apiJar": "C:\\deps\\hla-4-api-2.1.0.jar",
+    "providerJar": "C:\\deps\\umbra-rti-jni.jar",
+    "nativeLibrary": "C:\\deps\\umbra_rti_jni.dll",
+    "factoryName": "Umbra JNI C++ RTI",
+    "fomPath": "C:\\fom\\RestaurantFOMmodule-2025.xml",
+    "capabilityProfile": "packages\\umbra-rti-java-tck\\profiles\\umbra-jni.properties"
+  },
+  {
+    "id": "pure-java-provider",
+    "apiJar": "C:\\deps\\hla-4-api-2.1.0.jar",
+    "providerJar": "C:\\deps\\unrelated-java-rti.jar",
+    "factoryName": "Unrelated Pure Java RTI",
+    "fomPath": "C:\\fom\\RestaurantFOMmodule-2025.xml",
+    "capabilityProfile": "packages\\umbra-rti-java-tck\\profiles\\pure-java-mock.properties"
+  }
+]

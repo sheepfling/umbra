@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-runtime-foundation-not-conformance-evidence",
+  "notes": "This contract records Umbra's private federation-owned input boundary for its no-TSO GALT/LITS calculator, limited TAR scheduler, and later full time-management work. A runtime-backed Join Federation Execution commits membership and its selected LogicalTime state together; a snapshot exposes the composed FDD definition plus current/pending time, role, lookahead, and zero-lookahead timestamp-boundary state for every runtime-backed member. The separate scheduler contract consumes this boundary for limited GALT/NRG TAR release. This foundation alone is not an implementation of TSO queueing, full time coordination, JUnit evidence, protected review, package support, or a conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-federation-time-snapshot-is-galt-input-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/federation/federation_registry.hpp",
+      "source_symbol": "FederationTimeExecutionSnapshot",
+      "tests": [
+        "cpp/tests/federation_registry_catch2.cpp::The registry commits runtime time state with its federate membership",
+        "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator retains a coherent federation-owned time input set"
+      ]
+    },
+    {
+      "id": "umbra-federation-time-snapshot-retains-regulation-lookahead-input",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/time/federate_time_state.hpp",
+      "source_symbol": "FederateTimeSnapshot",
+      "tests": [
+        "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator retains a coherent federation-owned time input set"
+      ]
+    }
+  ]
+}

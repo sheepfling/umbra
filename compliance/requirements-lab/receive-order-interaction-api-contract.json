@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 receive-order interaction-development slice to the exact C++ Send Interaction and Receive Interaction surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The separately listed joined-federate HLAsetSwitches selector exercises a bounded standards-specific MOM control path before ordinary routing; its semantics are traced in support-switches-service-requirements-contract.json and do not expand this receive-order delivery claim. The ordinary slice accepts only the non-timestamped Send Interaction overload; it selects a recipient's closest active subscribed class, projects sent parameters available at that received class, suppresses the sender, rechecks subscription immediately before delivery, preserves tag/producer/FOM-selected mandatory transportation data, and dispatches through the recipient's immediate or evoked callback model. A passive ordinary subscription remains declaration state but does not arrange a Receive Interaction callback. It always supplies a null sent-region pointer. Timestamped delivery, retraction, regions/DDM, directed interaction, FOM sharing-policy enforcement, custom transportation, save/restore, object delivery, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-send-interaction-receive-order",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void sendInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::sendInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
+      ]
+    },
+    {
+      "id": "umbra-embedded-receive-interaction-receive-order",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, const RegionHandleSet * optionalSentRegions) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.receiveInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
+      ]
+    }
+  ]
+}

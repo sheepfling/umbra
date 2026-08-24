@@ -1,5 +1,15 @@
 # umbra-rti-jni
 
+## Start here
+
+This is a Java/JNI bridge artifact, not a Python package and not a second RTI
+implementation. Use it only when developing Umbra's C++ to JNI to Java route.
+For normal Python provider selection, start with the
+[package map](../README.md); for portable Java behavior tests, use the
+[Java TCK](../umbra-rti-java-tck/README.md).
+
+## Scope and integration boundary
+
 The staged C++ → JNI → Java façade for Umbra's own Java RTI provider. Umbra
 has one semantic RTI implementation: C++. This artifact exposes that
 implementation to standard-shaped Java callers and, through JPype, to Python.
@@ -81,7 +91,11 @@ The bridge also publishes `NativeAuthorizerFactory` through the standard
 without moving policy into Java. Authorization objects remain outside the
 provider-neutral Python contract.
 The direct pybind provider remains the primary C++→Python route, while the
-ordinary JPype path continues to support vendor JARs independently.
+ordinary JPype path continues to support vendor JARs independently. The
+generic `JavaRtiFactory.from_jar(...)` onboarding path is also exercised
+against this bridge: Python can select a standard `RtiFactory` by name,
+discover it through the Java factory API, and run the same C++-backed
+federation lifecycle without constructing `UmbraJniRtiFactory`.
 
 The build script clears its generated Java classes directory before invoking
 `javac`, so a reused output directory cannot retain stale façade or API
@@ -149,11 +163,15 @@ C++ discovery/reflection and reservation callbacks return typed
 instance/class/attribute/transportation/federate values and copied
 octets/tags. Receive-order deletion/removal crosses the same route and
 preserves the standard `ObjectInstanceNotKnown` exception after removal.
+The raw external Java map carrier also exercises `containsKey`, key/value/entry
+views, reusable `ByteWrapper` access, and clone isolation before the map is
+consumed by C++ update and interaction services.
 Both standard receive-order attribute-value request overloads and the
 `provideAttributeValueUpdate` callback also cross the route with copied typed
 attribute sets and tags. Attribute and interaction transportation queries
-return their typed standard report callbacks, while explicit transportation
-change requests return typed confirmation callbacks. Time- and region-based
+emit complete public `HLAreportServiceInvocation` payloads before their typed
+standard report callbacks, while explicit transportation change requests use
+the same boundary before typed confirmation callbacks. Time- and region-based
 object variants now use the same C++-owned carriers: timestamped
 updates/deletions, region associations, regional requests, and scope callbacks
 cross the JNI route with typed time, retraction, and region metadata. Attribute
@@ -166,6 +184,10 @@ uses the C++ time factory to decode all five standard advance/queue requests
 and reconstitutes the selected reference-time Java carrier for
 `timeAdvanceGrant`, `flushQueueGrant`, and `timeConstrainedEnabled`;
 constrained-mode and asynchronous-delivery state changes also remain in C++.
+The get-time-factory lifecycle companion preserves `NotConnected` before
+connection, `FederateNotExecutionMember` before join and after resignation,
+and the selected C++ `HLAinteger64Time` factory's initial carrier through the
+standard Java and JPype surfaces.
 Provider-created integer and floating logical-time intervals now cross the same
 boundary for time regulation and lookahead queries/modification, and GALT/LITS
 return each C++ validity bit and encoded time as one atomic bridge result.
@@ -191,7 +213,12 @@ Java overload while the normalized Python factory rejects them.
 Timestamped interaction send now
 returns an opaque C++ message-retraction handle; timestamped receipt preserves
 time, both order types, and the handle, and `retract` returns through the
-standard typed retraction callback. The same route now covers timestamped
+standard typed retraction callback. The ordinary three-member retraction
+fan-out vector also proves that an unconstrained Java recipient receives the
+interaction and retraction callback while a constrained recipient's queued
+copy is removed before its grant; after that member resigns, the delivered
+recipient still receives the next retraction through the C++ ledger. The same
+route now covers timestamped
 attribute updates and object deletion, with typed timed reflection/removal
 callbacks and matching retraction notifications.
 Dimension/region factory values, range bounds, and region lifecycle are also
@@ -245,6 +272,9 @@ interaction survives `disableTimeConstrained` followed by
 and consumed retraction handle. Its companion default-region vector performs
 the same transition with an empty conveyed `RegionHandleSet`, proving that the
 Java callback keeps the standard default-region realization as well.
+The two-dimensional regional interaction vector also combines two source
+regions, proving complete-dimensional overlap uses OR semantics without
+duplicate delivery and conveys the full source set through Java.
 The regional object-update companion carries the same proof through the
 attribute-value passel: one queued explicit-source reflection survives the
 constrained-role transition with its source region, `TIMESTAMP` metadata, and
@@ -284,6 +314,15 @@ The matching regional-object vector routes a timestamped associated update
 through FQR, TARA, and NMRA available-advance requests, preserving the
 conveyed source region, `TIMESTAMP` order metadata, shared retraction handle,
 and callback-before-grant ordering.
+The dedicated TAR/NMR companion routes the same regional TSO through ordinary
+`timeAdvanceRequest` and `nextMessageRequest`, proving both receivers deliver
+before their logical-time-7 grants with the explicit source region, timestamp
+order metadata, and identical C++ retraction bytes.
+The order-control companion preserves the C++ default/override state machine:
+the Restaurant FOM timestamp default is captured by the first registration,
+a prospective class-default RECEIVE change affects later registrations, one
+instance is overridden back to TIMESTAMP, and a publisher-scoped RECEIVE
+interaction arrives without a timestamped retraction handle.
 The multi-source regional-object matrix registers one attribute against two
 source regions, isolates recipient delivery and conveyed-region metadata as
 associations are removed, verifies default-region fallback after the final
@@ -305,6 +344,24 @@ The all-advance-mode timed-save vector joins five constrained Java members and
 one regulator, requests TAR/NMR/TARA/NMRA/FQR at their qualifying boundaries,
 and proves each constrained callback precedes its own grant while the regulator
 receives save initiation after its grant.
+The mixed FQR/TAR companion then requests two Flush Queue boundaries (6 and 7)
+and an inclusive TAR boundary (5) in one timed save. It proves the C++ GALT
+frontier clamps the second FQR's effective Java grant to 6 while preserving
+initiation-before-grant ordering for both FQR members and TAR, with the
+regulator's save initiation still ordered after its grant.
+Its HLA_IMMEDIATE companion stages the same frontier behind the standard
+callback-disable service, then re-enables each Java member and proves the
+immediate callback path preserves the identical effective-grant and ordering
+rules.
+The FQR boundary companion adds a queued timestamped interaction at the save
+time: its first inclusive FQG delivers the interaction without initiating the
+save, while the later strict FQG initiates before grant and preserves the C++
+retraction handle through the Java callback.
+Its HLA_IMMEDIATE companion stages those same six standard requests behind the
+public callback-disable boundary, then re-enables each member and proves the
+immediate Java callback path preserves every C++ initiation-before-grant
+ordering across TAR/NMR/TARA/NMRA/FQR while the regulator remains ordered after
+its grant.
 The restore matrix then runs each exact Java advance service in an isolated
 saved execution, reconstructs its pending grant through C++, and proves the
 standard `federationRestored` callback precedes the reconstructed grant for TAR,
@@ -323,7 +380,10 @@ suppression, and advisory-switch gating through the standard Java callback
 surface.
 When using the IEEE API JAR, the bridge creates that interface through
 `AttributeSetRegionSetPairListFactory` and supplies standard
-`AttributeRegionAssociation` values. JNI reads their `ahset`/`rhset` fields;
+`AttributeRegionAssociation` values. The external-JAR vector exercises the
+inherited Java `List` collection operations (add/addAll, contains/index,
+iteration, array conversion, removal, and clone isolation) before the list
+reaches a regional service. JNI reads their `ahset`/`rhset` fields;
 the compact fixture's older accessor-pair carrier remains a compatibility
 fallback only.
 The Python adapter exposes the exact Java passive and universal declaration
@@ -339,7 +399,11 @@ C++ value; and `normalizeServiceGroup` takes the standard Java `ServiceGroup`
 enum. The standard `setSendServiceReportsToFileSwitch` setter/getter also
 round-trips per-federate state, and `getHLAversion()` returns the C++-owned
 `IEEE 1516.1-2025` metadata string. The opt-in Python vector exercises those
-public Python results rather than accessing JNI carriers directly.
+public Python results rather than accessing JNI carriers directly. Its two-member
+extension now also verifies FDD-seeded defaults (`conveyRegionDesignatorSets`,
+service/exception/file reporting, delayed subscription, relaxed DDM, and the
+automatic-resign action) and proves that mutable changes on one joined federate
+do not leak into the peer's independently seeded state.
 Directed interaction declarations accept the standard Java
 `Set<InteractionClassHandle>` carrier. Their C++ receive-order and timestamped
 sends return through the distinct standard Java `receiveDirectedInteraction`
@@ -457,6 +521,26 @@ $bridgeDirectory = 'C:\path\to\umbra-rti-jni-build'
   -ManifestPath (Join-Path $bridgeDirectory 'umbra-jni-manifest.json')
 ```
 
+After compiling the provider-neutral TCK, the same verifier can run its
+standard Java contract against this artifact. This is deliberately opt-in so
+artifact verification remains usable without shipping test classes:
+
+```powershell
+.\verify.ps1 `
+  -ArtifactDirectory $bridgeDirectory `
+  -JavaApiJar C:\path\to\ieee-1516.1-2025-java-api.jar `
+  -RunJavaTck `
+  -JavaTckClassesDirectory ..\umbra-rti-java-tck\.build\classes
+```
+
+`-JavaTckFomPath` selects a compatible FOM when the default Restaurant FOM is
+not appropriate, and `-JavaTckTimeImplementation` selects the matching Java
+logical-time implementation. When no profile is supplied, verification
+automatically loads the checked-in `umbra-jni.properties` capability profile;
+pass `-JavaTckProfilePath` to use a different provider profile. The TCK remains
+provider-neutral; this command only supplies the packaged JNI provider through
+the standard `ServiceLoader`.
+
 The Python adapter accepts the same directory directly. If it contains one
 top-level API JAR beside `umbra-rti-jni.jar`, that JAR is selected; multiple
 siblings remain explicit-only so dependencies cannot be mistaken for the
@@ -480,7 +564,7 @@ dependency and its redistribution decision visible:
 The resulting directory contains `umbra-rti-jni.jar`, the platform native
 library, `umbra-rti-jni-manifest.json`, and
 `umbra-rti-jni-dependencies.json` (plus the copied API JAR when requested).
-It can be supplied as `artifact_directory` to `JniRtiFactory`; the adapter then
+It can be supplied as `artifact_directory` to `UmbraJniRtiFactory`; the adapter then
 uses the adjacent API JAR and the standard Java `ServiceLoader` route.
 
 The Python integration test starts a fresh JPype JVM with those first two JARs
@@ -495,9 +579,9 @@ generic JPype provider can leave `rti_factory_name` unset when the application
 intentionally wants default `ServiceLoader` selection. The Python JNI adapter
 does not contain a private factory implementation or a second RTI state model.
 Applications that want this route through ordinary Python entry-point
-discovery can install the small companion `umbra-rti-jni-python` package. It
-only supplies artifact paths and delegates to `umbra-rti-jpype`; it does not
-add a Python or Java RTI state model.
+discovery can install `umbra-rti-jpype[jpype]` and select its `umbra-jni`
+entry point. `UmbraJniRtiFactory` only supplies artifact paths and delegates to
+the generic JPype transport; it does not add a Python or Java RTI state model.
 
 ```powershell
 $env:UMBRA_ENABLE_JNI_INTEGRATION_TESTS = '1'
@@ -518,28 +602,77 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route runs 166 integration cases (all 166 passed) with 88
-subtests, including 153 functional vectors, both named and no-argument
+The external route currently runs 438 integration tests (all passing),
+including functional vectors, both named and no-argument
 standard `RtiFactoryFactory` discovery paths, plus the artifact-level
 non-shadowing/ServiceLoader gate. It includes the focused
-federation-lifecycle exception vector (including same-member duplicate-join
+fresh-JVM generic `JavaRtiFactory.from_jar` vendor-JAR route, where the
+bridge is supplied as the vendor artifact and the independent IEEE API JAR
+is supplied as a dependency before the standard ambassador is created. It
+also includes a fresh-JVM release-directory route that copies the external
+API, bridge, and native artifacts into one directory and starts
+`UmbraJniRtiFactory(artifact_directory=...)` without any JNI path environment
+overrides. It includes the focused federation-lifecycle exception vector (including
+same-member duplicate-join
 mapping), integer/floating malformed logical-time
 decode mapping, empty/short/trailing and structurally invalid standard
 handle-factory decode mapping, C++-owned
-float64 add/subtract/distance boundary arithmetic,
+float64 time and interval add/subtract/distance boundary arithmetic,
 integer64 precision above 2^53 through the standard Java `long` carriers
 and `getValue`/`distance` methods, and direct standard Java interval
 add/subtract, standard carrier predicate/comparison/equality/hash-code methods,
 canonical signed-zero construction and raw-wire decoding for
 both Java and Python time carriers, all six standard `ResignAction` values with
-post-resignation member reports, disconnect-while-member `FederateIsExecutionMember`
+post-resignation member reports;
+standard Java/Python logical-time data elements reject carriers from a
+different selected factory with `EncoderException` before opaque bytes are
+reinterpreted, preserving the prior value.
+The external integer64 decode companion now preserves the signed BE decode
+boundary through the exact Java factory: raw Java accepts offset and trailing
+windows, maps negative payloads to C++ `CouldNotDecode`, and retains Java's
+short-window `IllegalArgumentException`, while the Python factory remains
+strict about exact eight-octet input. The external float64 decode companion
+also preserves the C++ boundary for
+negative, NaN, and infinity payloads: raw Java maps them to `CouldNotDecode`,
+short windows remain Java `IllegalArgumentException`, and the Python factory
+keeps strict exact-length validation while both routes accept finite 3.25.
+The same float vector also exercises raw Java `HLAlogicalTime` and
+`HLAlogicalTimeInterval` data elements with C++-selected carriers, preserving
+the C++ opaque one-octet alignment, exact bytes, cursor consumption, and the
+C++ `CouldNotDecode` cause; Python data-element encoders mirror the wire
+values.
+The raw Java scalar companion also sends the twenty-six malformed primitive,
+string, opaque, and boolean payloads through the exact `decode(byte[])`
+overload, preserving the standard Java `DecoderException` before Python
+normalization.
+The standard Java encoder vector also invokes all nine raw handle-factory
+`decode(byte[], offset)` methods with malformed envelopes, preserving the
+declared Java `CouldNotDecode` before Python normalization.
+The route also preserves disconnect-while-member `FederateIsExecutionMember`
 mapping, and direct standard Java two-argument scalar-`String` and `String[]`
 federation-create, unnamed-join, and three-argument standard-MIM-create
 overloads. It also lists two simultaneous federation executions and resolves
-an extension-defined object class from a join-time additional FOM. The
+an extension-defined object class from a join-time additional FOM. The public
+handle-decoder companion preserves the C++ lifecycle boundary at the
+Python-visible standard surface: JPype factory getters reject disconnected and
+unjoined callers, and every supported handle domain—including `RegionHandle`—
+round-trips its encoded identity through the standard Java-backed Python
+surface. The
 join-time composed-FDD vector additionally proves that advisory-switch
 defaults contributed by that additional FOM are seeded only for the new Java
-member; the existing C++ member retains its prior switch values. The
+member; the existing C++ member retains its prior switch values. A companion
+join-time NRG vector proves that an additional module containing
+`nonRegulatedGrant=true` cannot change the creation-time, federation-wide NRG
+switch or release a constrained TAR already pending on another member. A
+companion explicit-FOM vector proves that
+`automaticResignAction="NoAction"` is seeded into the joined member rather
+than being confused with an omitted-switch default. The static
+`Advisories Use Known Class` companion also proves that a join-time module
+explicitly disabling that switch cannot override the creation-time federation
+policy. The
+federation-preparation rollback vector also proves that an invalid default-time
+create and an invalid join-time extension leave the valid federation name and
+base FOM usable for the subsequent standard create/join operations. The
 resignation vector additionally routes `DELETE_OBJECTS` through C++ object
 cleanup and verifies the surviving member receives the standard
 `removeObjectInstance` callback with the departing owner handle and empty tag.
@@ -574,7 +707,36 @@ regional-object overlap/disjoint filter using the official pair-list factory,
 and multi-region discovery reprojection with duplicate-discovery suppression and
 selective unassociation. The external regional-object vector also keeps two
 independently associated attributes separate across disjoint filtering,
-association, selective unassociation, and default-region fallback. It also
+association, selective unassociation, and default-region fallback. Its
+no-time overlap companion also mirrors the C++ sequence of ordinary versus
+conveyed updates, subscriber-range disjoint suppression and re-overlap, and
+source-association removal through the official Java pair-list carrier.
+The new three-dimensional `Soda.Light` matrix extends this proof across the
+inherited `BarQuantity`, `SodaFlavor`, and `Sweetener` dimensions: each
+one-dimensional disjoint source transition suppresses reflection, and
+restoring all three admits one callback with the C++ source-region designator.
+Its native Catch2 companion applies the same complete-overlap and
+one-dimension-at-a-time suppression assertions before the Java/JPype path.
+The time-factory matrix also drives provider-selected integer and floating
+logical-time creation, encoding, decode, arithmetic, and typed boundary errors
+through the standard Java carriers.
+two-subscriber companion gives one Java member only Flavor and the other only
+Organic: selective source-range moves silence exactly one member, and fully
+disjoint ranges suppress both callbacks. A two-dimensional companion moves
+Flavor out on X and Organic out on Y, then restores both source regions,
+proving conjunctive overlap and independent attribute routing through the
+standard Java region carriers. Its request companion repeats that state
+space before the provider callback: the Java callback receives both
+attributes, then Organic-only, then neither, and finally both again. It also
+queues a request, moves both requester regions disjoint before the evoked
+provider callback, and confirms C++ suppresses the stale callback and
+reflection. Its default-region request companion keeps an ordinary
+registration eligible while an explicitly associated source is disjoint,
+admits both after the requester overlaps, and suppresses only the queued
+explicit callback when the requester moves away before delivery. It also
+fans an explicit-region object and a default-region object to FQR, TARA, and
+NMRA recipients, preserving source-region versus empty-region callback metadata
+and reflection-before-grant ordering for both timestamped payloads. It also
 proves C++ automatic provision queues the standard empty-tag
 `provideAttributeValueUpdate` callback after discovery through the Java
 `String[]` FOM-create overload. The same route drives the standard
@@ -588,8 +750,10 @@ defers a save requested re-entrantly from that callback until the callback
 returns. It also verifies restore rewinds the saved logical time and lookahead
 after both are mutated post-save, including a float64-time round trip, and preserves a terminal TSO retraction
 across restore while rejecting a post-save handle as invalid. Its
-relaxed-DDM vector also proves boundary-touching regional interaction and
-object-update delivery through the external Java region carriers. Its
+relaxed-DDM vectors prove boundary-touching regional interaction and
+object-update delivery through the external Java region carriers when the
+switch is enabled, and reject those exact touching ranges in the strict
+profile until a real overlap is committed. Its
 regional interaction lifetime vector preserves
 `RegionInUseForUpdateOrSubscription` until standard regional unsubscription
 releases the region for deletion, while an independent observer decodes the
@@ -613,7 +777,10 @@ pending-time restore vector saves a constrained member while a time advance
 is still pending, completes the save from the standard Java callback, rejects
 time services during restore with the standard typed state exceptions, and
 proves that the C++-reconstructed request emits the saved time-5 grant only
-after `federationRestored`. Its HLA_IMMEDIATE companion saves a pending
+after `federationRestored`. Its HLA_IMMEDIATE companion saves a pending TAR on
+the direct Java callback stack, preserves save-initiate/save-complete/grant
+ordering, reconstructs the saved time-5 grant synchronously after restore, and
+admits a fresh time-6 request. Its HLA_IMMEDIATE companion also saves a pending
 `flushQueueRequest`, preserves `save-initiate`/`save-complete`/`flush-grant`
 ordering, reconstructs the saved time-6 flush grant synchronously after
 restore, and accepts a fresh time-7 flush request. Its
@@ -624,6 +791,9 @@ post-restore usability for every standard Java overload. A dedicated NMR
 vector then advances the C++ regulator to timestamps 5 and 7 and proves that
 the standard Java request selects the two queued interactions in order,
 preserving tags, timestamp/order metadata, and distinct retraction handles.
+The GALT/NRG role-transition vector also proves a default-disabled constrained
+TAR wakes when a regulator becomes active, while enabled NRG releases a
+boundary TAR when its sole regulator disables or resigns.
 Its lifecycle
 precondition vector invokes the exact scalar, `String[]`, and create-with-MIM
 federation-management overloads before connection, plus destroy, join, and
@@ -632,7 +802,9 @@ rejects an inconsistent logical-time FOM before the C++ registry reserves its
 name. Its logical-time
 implementation-mismatch vector also obtains carriers from separate C++-backed
 providers and preserves typed `InvalidLogicalTime`/`InvalidLookahead` rejection
-before mismatched bytes can reach a time service. Its regional-object
+before mismatched bytes can reach a time service; the same vector now exercises
+the public Python `LogicalTime` and `LogicalTimeInterval` carriers so
+implementation identity cannot be lost at the JPype adapter. Its regional-object
 recipient-isolation vector also keeps two known subscribers separate as C++
 source associations are added and selectively removed, preserving typed
 `attributesInScope`/`attributesOutOfScope` callbacks and default-region
@@ -641,6 +813,10 @@ two-member live-retraction restore vector flushes a queued timestamped
 interactions after restore, verifies their ordered typed time/order/retraction
 metadata, and routes each restored handle's `requestRetraction` callback to the
 receiving federate.
+Its saved-live-regional vector applies the same ledger to an explicit-source
+regional timestamped interaction: it retracts after save, restores the source
+region and interaction metadata, flushes through the standard Java FQR path,
+and preserves the restored handle for a later `requestRetraction` callback.
 Its transport-loss vector uses an internal embedded-transport fault source only
 to drive the exact standard Java `connectionLost` callback; it then verifies
 C++ membership cleanup in the surviving member report and typed `NotConnected`
@@ -653,6 +829,25 @@ Its companion MOM vector subscribes through the exact Java
 `HLAreportFederateLost` interaction and decodes the C++ federate handle,
 federate name, last-known logical time, and fault description with the Java
 `EncoderFactory` before JPype delivers the callback to Python.
+The strict-before cutoff companion repeats the route with a time-5 interaction
+and a time-6 survivor grant, proving that messages strictly before the
+last-known cutoff are delivered in the same interaction-before-grant order.
+The post-loss-request companion goes further: with no survivor advance pending
+at disconnect, a later standard TAR establishes the boundary and releases the
+queued TSO before its grant.
+The combined federate-lost MOM companion additionally decodes the same cutoff
+timestamp from `HLAreportFederateLost` while delivering the application TSO and
+grant through their standard Java callbacks.
+The HLA_IMMEDIATE companion proves the federate-lost MOM interaction is
+delivered synchronously during the fault call, without callback eviction, and
+decodes the source federate and fault description through the Java encoder.
+The HLA_IMMEDIATE regional companion adds source-coordinate filtering: only the
+matching federate-lost subscriber receives the synchronous report, while the
+adjacent disjoint subscription remains silent.
+The regional-selector cutoff companion moves a surviving Java member's committed
+region disjoint after the C++ transport fault and before the cutoff grant,
+suppressing the stale regional reflection while retaining the separate
+receive-order automatic deletion and stale-name transition.
 The exception-report vectors enable the C++ Exception Reporting Switch,
 retain the typed `InteractionClassNotPublished` from standard Java
 `sendInteraction`, `sendInteractionWithTime`, `sendDirectedInteraction`, and
@@ -727,6 +922,10 @@ the survivor's exact `removeObjectInstance` callback and stale-name rejection.
 Its unconditional-divest companion retains the object and carries the exact
 typed ownership-assumption callback, including the delete-privilege attribute,
 to the surviving Java member.
+Its configured `NO_ACTION` companion covers the bounded forced-loss policy:
+the lost Java member receives only `connectionLost`, while the survivor retains
+the object, receives one typed ownership-assumption callback for both formerly
+owned attributes, and receives no automatic remove-object callback.
 Its delete-then-divest companion applies the standard
 `DELETE_OBJECTS_THEN_DIVEST` directive through C++ transport loss, proving the
 survivor receives one typed object-removal callback for the lost member's object
@@ -761,12 +960,237 @@ primitive, fixed-record, fixed-array varargs, variable-length
 ASCII/unicode-string, opaque-data, and variable-array carriers (including the
 standard `resize` operation) with non-zero offsets and consumed-byte
 advancement;
+handle and logical-time data-element carriers likewise decode from a bounded
+slice, consume exactly their encoded width, preserve trailing bytes, and leave
+the cursor unchanged when a short decode fails;
+the extendable-variant carrier follows the same one-element cursor contract,
+including unknown alternatives, while its exact `byte[]` overload still
+rejects trailing payload bytes;
+the mapped `HLAvariantRecord` carrier also preserves C++'s maximum-alternative
+alignment, consumes exactly one record from a `ByteWrapper` while leaving a
+sentinel, and projects an unknown discriminant without inventing an
+alternative in Java or Python;
+the fixed-record/fixed-array carriers preserve the C++ declaration-order
+alignment vectors and zero padding, consume one composite from a
+sentinel-bearing `ByteWrapper`, and retain standard `DecoderException` for
+nonzero padding or trailing bytes in both raw Java and Python;
 malformed string length prefixes, fixed-record/fixed-array child payloads,
-variable-array counts, and signed integer primitive decoders preserve
+variable-array counts and float64 alignment/padding, and signed integer
+primitive decoders preserve
 `DecoderException` at the raw Java boundary as well as through the Python
 adapter.
 The complete JPype test-package discovery against the same external artifact
-executes 212 discovered tests (211 passed and one deliberate skip).
+executes 438 tests, all passing, including the HLA_IMMEDIATE
+`SendInteraction` and timestamped `UpdateAttributeValues`
+service-report-before-callback ordering vectors, plus the timestamped
+`DeleteObjectInstance` sender-report and removal-callback ordering vector.
+The external float-time provider edge vector also carries signed zero,
+denormal epsilon stepping, finite-final arithmetic boundaries, non-finite
+interval rejection, and malformed time/interval payloads through the standard
+IEEE Java carrier.
+The clean native C++ companion run is also green at 755 test cases and 41,797
+assertions; its object-class request regression follows the standard
+`evokeMultipleCallbacks` zero-window return contract when two provider
+callbacks are queued.
+That native corpus also directly exercises the float64 timed-save scheduling
+boundary, including the typed save timestamp, grant, and completion callbacks.
+The external IEEE-JAR route additionally completes a float64 timed-save/restore
+round trip with typed per-member restore initiation and completion callbacks.
+The service-report-file lifetime companion also uses one configured directory
+for two joined members, proves their JSON files remain independent when one
+member records a switch service, and verifies a rejoin receives a new immutable
+joined-lifetime file.
+The declaration/relevance vector decodes all four object/interaction advisory
+records before their Java callbacks, and the save-completion vector decodes both
+successful and `FEDERATE_REPORTED_FAILURE_DURING_SAVE` private-file outcomes
+before callback eviction.
+The directed-retraction restore vector also proves a live post-save directed
+message cannot alias a fresh post-restore retraction designator: the stale
+handle is rejected and only the fresh handle retracts.
+The object/class `RequestAttributeValueUpdate` vector also verifies the
+standard sender report before provider callbacks and decodes its typed
+argument records through the external Java encoder.
+The ownership-query and acquisition-cancellation vectors additionally decode
+their exact type-37/type-1 service-report arguments through JPype before the
+typed ownership callbacks.
+The receive-order `SendInteraction` companion also decodes its type-27,
+type-40, type-63, and type-34 supplied arguments through the standard Java
+encoder.
+The regular acquisition vector also decodes its type-37/type-1 arguments and
+Table 5 type-63 tag before the owner's release-request callback.
+The If Available and Release Denied vectors decode their matching typed
+arguments and tags before the standard acquisition or unavailable callbacks.
+The negotiated-divestiture, cancellation, and confirmation vectors also
+decode their typed arguments and tags before the corresponding callbacks.
+The MOM object-count vector also sends the standard
+`HLArequestObjectInstancesUpdated` interaction through the Java API, receives
+the C++-originated `HLAreportObjectInstancesUpdated` callback, and decodes the
+nested `HLAobjectClassBasedCounts` variable-array/fixed-record payload with
+the standard Java encoder, including reliable transport and the invalid RTI
+producer identity. The same vector exercises the sibling
+`HLArequestObjectInstancesThatCanBeDeleted` /
+`HLAreportObjectInstancesThatCanBeDeleted` pair and verifies the deleted class
+disappears from the next live ownership-count response. It also sends
+`HLArequestObjectInstancesReflected` from the subject federate and decodes the
+observer's distinct reflected-object count report through the standard Java
+encoder. The same vector sends `HLArequestUpdatesSent`, receives one reliable
+`HLAreportUpdatesSent` per represented transportation type, and decodes the
+nested `HLAupdateCounts` payload to distinguish two best-effort Server updates
+from one reliable Soda update.
+The ownership-query vector also decodes the ownership-group service report
+before the requester receives its typed ownership result.
+The attribute and interaction transportation-request vectors also verify
+public MOM reports and typed Null returns before confirmation callbacks.
+The corresponding attribute and interaction transportation-query vectors
+decode the public type-37/type-0 and type-15/type-27 argument records and
+typed Null returns before the standard transportation-report callbacks.
+The standalone `HLArequestInteractionsSent` vector follows the same
+standard-Java route for ordinary and dimensioned sends, decoding reliable and
+best-effort `HLAreportInteractionsSent` buckets with nested
+`HLAinteractionCounts` for TakeOrder and MainCourseServed.
+The directed companion sends `HLArequestDirectedInteractionsSent` through the
+same standard Java route, decodes the separate directed-send ledger, and
+verifies two reliable TakeOrder counts alongside the required empty
+best-effort bucket.
+The receive-side companions then request `HLAreportInteractionsReceived` and
+`HLAreportDirectedInteractionsReceived`, decoding one reliable and one
+best-effort ordinary receive plus the directed-only reliable count and its
+empty best-effort bucket.
+The reflection-count companion also requests `HLAreportReflectionsReceived`,
+decoding reliable and best-effort `HLAreflectCounts` plus the two empty
+transportation buckets for a federate with no application reflections.
+The object-information companion requests `HLAreportObjectInstanceInformation`
+for an unknown observer-local object, a known object, and the registering
+federate, decoding the nested attribute-handle list and registered/known class
+parameters through the standard Java encoder.
+The publication companion requests all three standard publication reports,
+decodes their nested attribute/interaction handle lists, and verifies the
+zero-count and empty-list responses after unpublishing.
+The FOM-module companion uses the exact Java additional-FOM-module join
+overload, requests `HLAreportFOMmoduleData`, and decodes the indicator and
+retained Restaurant FOM XML as a standard `HLAunicodeString`.
+The federation-content companion also requests federation-scoped FOM and MIM
+reports and decodes the retained XML and Standard MOM text through the same
+official Java encoder path.
+The synchronization companion requests both list and status reports, decoding
+the Unicode label array and federate status records before achievement, after
+subject achievement, for a missing label, and after full completion.
+The subscription companion requests the object, interaction, and directed
+subscription reports, preserving active/passive flags, Low/High update-rate
+designators, and empty projections after unsubscription.
+The malformed-MOM companion also preserves typed `InteractionParameterNotDefined`
+and `RTIinternalError` failures while decoding the corresponding
+`HLAreportMOMexception` parameter-error flags.
+The order/default-transport vector also decodes public reports for all three
+order-change services and default attribute transportation, including their
+service groups, Table 5 argument records, Null returns, and serials.
+The native service-report regression locks the corresponding C++ service
+classifications before this Java decoder: all order changes are declaration
+management (type 1), while default transportation remains transportation
+management (type 2).
+The object-name reservation vector decodes the single-name String and batch
+StringSet reports before the standard reservation callbacks. Its companion
+also decodes the type-53/type-54 records from the configured C++ JSON
+service-report file, proves switch gating, and verifies rejected releases do
+not append false-success records.
+The configuration-recovery companion also proves that an empty or
+non-directory `serviceReportDirectory` raises the standard `RTIinternalError`
+before Connect changes lifecycle state, after which ordinary Connect and
+Disconnect remain usable.
+The Commit Region Modifications companion decodes the type-43 Set of region
+designators record through the same external Java/JPype route and verifies an
+invalid committed handle leaves the report file unchanged.
+The regional association companion decodes the type-37 object-instance and
+type-4 nested attribute/region pair records for Associate and Unassociate
+Regions For Updates, preserving serial progression and rejected-region
+file stability.
+The regional subscription companion decodes type-36 object-class and type-4
+nested pair records plus passive/update-rate optional slots for both active and
+passive subscriptions, preserving file-sink gating and unsubscription serials.
+It also re-enables reporting after a gated deleted-region call and decodes the
+C++ `InvalidRegion` failure records for regional subscribe and unsubscribe,
+including their supplied pair-list arguments.
+The regional interaction-subscription failure companion likewise preserves
+type-27/type-43/type-6 service arguments and C++ `InvalidRegion` records for
+both subscribe and unsubscribe after file-sink gating is lifted.
+Its MOM companion sends a failed regional subscribe record to a second Java
+federate and decodes the typed `HLAreportServiceInvocation` callback,
+including nested region-set arguments and C++ exception text.
+The directed-interaction companion also decodes type-27 interaction, type-37
+target, type-40 parameter-map, type-63 tag, and timestamp records through the
+standard Java encoder for receive-order and timestamped sends.
+The receive-order attribute-reflection companion likewise decodes the type-37,
+type-2, type-63, and type-34 `UpdateAttributeValues` records.
+The provider callback companion decodes the type-37 object, type-1 attribute
+set, and type-63 request tag for `ProvideAttributeValueUpdate`.
+The time-constrained vector decodes the time-management report and Null return
+before the typed `timeConstrainedEnabled` callback.
+The time-regulation vector decodes the LogicalTimeInterval Lookahead record
+and Null return before the typed `timeRegulationEnabled` callback. Its paired
+time-role vector decodes `QueryLogicalTime`, `QueryGALT`, `QueryLITS`,
+`QueryLookahead`, `ModifyLookahead`, all five accepted time-advance request
+forms, `DisableTimeRegulation`, and `DisableTimeConstrained` reports with the
+type-31 logical-time return, undefined GALT/LITS Null returns, type-32
+returned/requested lookahead, `Enable/DisableAsynchronousDelivery` transitions,
+serial progression, and Null returns through the same external Java/JPype
+interaction path. The same vector decodes support-service type 6 reports for
+the object-class, attribute, scope, interaction, convey, automatic-resign, and
+exception-reporting switch setters, including their boolean or quoted
+resign-action supplied arguments.
+The callback-gating companion runs the same enable/query/disable lifecycle
+through both `HLA_EVOKED` and `HLA_IMMEDIATE`, proving pending-request and
+already-enabled exception mapping as well as the typed completion callbacks.
+The federation-list companion exercises both list services through the same
+two callback models, including missing-federation reporting and cancellation
+of a queued report when the provider disconnects.
+The time-advance companion proves that the selected logical time remains at its
+initial value until `timeAdvanceGrant` in `HLA_EVOKED`, while the standard
+`HLA_IMMEDIATE` route completes the same request synchronously; resignation
+also discards a later queued grant.
+The regional asynchronous-delivery companion repeats the overlap-qualified
+receive-order gate with an immediate Java callback recipient, proving that
+enabling and disabling the standard switch controls delivery without requiring
+an explicit Python callback pump.
+The temporal asynchronous-delivery companion mirrors the C++ gate under both
+`HLA_EVOKED` and `HLA_IMMEDIATE`: a constrained receiver retains a
+receive-order interaction while the switch is disabled, releases it when
+asynchronous delivery is enabled, retains the next interaction after disable,
+and releases that queued callback at the time-advance boundary without
+manufacturing a grant.
+The synchronization vector decodes federation-management type 0 reports for
+registration, registration confirmation, and achievement through the standard
+Java/JPype interaction callback path, preserving quoted labels, base-64 tags,
+type-34 Null optional slots, and serial order before the corresponding
+registration, announcement, and federation-synchronized callbacks.
+The same public route covers both `RequestFederationSave` overloads,
+preserving the quoted type-53 save label, the type-34 Null or type-31
+logical-time timestamp slot, and serial order before save-initiation work is
+queued. The RTI-initiated `InitiateFederateSave`, `FederationSaved`, and
+`FederationSaveStatusResponse` notifications now use that same standard
+Java/JPype route before their callbacks, preserving the type-53/type-34-or-
+type-31, type-6/type-34-or-type-48, and type-21 payloads.
+Direct `FederateSaveBegun`, both `FederateSaveComplete` selectors, and
+`AbortFederationSave` now use the same public type-0 route before their save
+result callbacks. The external Java/JPype vector decodes the no-argument begun
+form, type-6 true/false completion indicators, and the type-48 `SAVE_ABORTED`
+reason.
+`RequestFederationRestore` now uses the same public type-0 route with
+its quoted type-53 label before restore acceptance, initiation, and completion
+callbacks. `FederateRestoreComplete` now uses that same public type-0 route with
+its type-6 restore-success indicator before the final restore-result callback;
+`QueryFederationRestoreStatus` and `AbortFederationRestore` use the same
+no-argument type-0 route before their status and restore-aborted callbacks;
+the RTI-initiated `ConfirmFederationRestorationRequest`,
+`FederationRestoreBegun`, `InitiateFederateRestore`, and
+`FederationRestoreStatusResponse` notifications now use that same standard
+Java/JPype route before their callbacks, preserving the exact type-53/type-6,
+no-argument, type-53/type-15/type-53, and type-20 payloads. The
+ordinary `ResignFederationExecution` service now uses the same final public
+route with its distinct type-44 `HLAresignAction` payload.
+RTI-initiated `FederateResigned` path now reserves its final public type-0
+interaction before membership removal and delivers the type-53 reason through
+the external Java/JPype observer before `federateResigned`; `ConnectionLost`
+remains file/callback-only because its Java endpoint is intentionally torn down.
 
 The object-name reservation matrix also preserves standard validation and
 state semantics through the external Java API: disconnected and unjoined
@@ -796,6 +1220,10 @@ JNI and JPype. A late-publication companion proves an unconditional
 divestiture retains its C++ assumption search until a known candidate publishes,
 then delivers the standard assumption set including the implicit delete
 privilege through Java and JPype.
+The late-join companion extends this ownership proof across membership
+boundaries: a candidate that joins after the owner resigns first discovers the
+retained object without a false assumption callback, then receives the complete
+assumption set after publishing.
 
 The resignation ownership vector also proves that `NO_ACTION` preserves the
 standard `FederateOwnsAttributes` precondition, while
@@ -815,6 +1243,10 @@ The save/restore resignation vectors preserve
 `FEDERATE_RESIGNED_DURING_SAVE` and `FEDERATE_RESIGNED_DURING_RESTORE` through
 the standard Java callbacks, reject stale save completion, and prove that the
 remaining member can complete a subsequent save after the failed save operation.
+The evoked restore-resignation companion additionally proves that the
+surviving Java member receives restore acceptance, begin, initiation, and
+`FEDERATE_RESIGNED_DURING_RESTORE` in order, while the resigning member's
+queued restore callbacks are discarded before its callback pump runs.
 
 The ownership/time boundary vector accepts a timestamped attribute update from
 one C++-owned source, transfers that attribute through the standard Java
@@ -851,6 +1283,84 @@ subscription, moves the source range to a disjoint boundary after save, and
 restores the C++ range before sending through the standard Java interaction
 overload. The callback is admitted again with the restored source
 `RegionHandle`.
+The regional retraction fan-out companion sends one timestamped regional
+interaction to immediate and constrained recipients, retracts it after only
+the immediate callback, and proves the constrained queued passel is suppressed
+while the delivered recipient receives the standard `requestRetraction`.
+The suppressed-regional companion moves a previously eligible receiver to a
+disjoint range before its callback, proves the interaction is dropped, and
+confirms the later retraction produces no stale `requestRetraction` callback.
+The no-overlap regional-send companion separately proves a valid sender-side
+retraction handle exists even with zero eligible recipients, then preserves
+the standard terminal-expiry error after the publisher crosses its lookahead
+boundary without manufacturing a receiver callback.
+The mixed regional TSO matrix then fans the same explicit-source interaction
+to FQR, TARA, and NMRA recipients, preserving source-region metadata and
+callback-before-grant ordering for all three standard advance families.
+The timed-restore vector saves at logical time 6 while a default-region
+timestamped interaction at time 8 is queued, consumes the post-save handle,
+restores it, and proves FQR delivery retains the empty conveyed region set,
+original retraction handle, and request-retraction callback.
+The directed timed-restore vector preserves target object identity and
+reliable transport through the standard directed callback, while the timed
+attribute-update vector preserves the object/attribute map and empty default
+region projection. The live timestamped-deletion vector restores the removal,
+reconstitutes the object on retraction, and exposes `ObjectInstanceNotKnown`
+only while the restored removal is active.
+The explicit-source regional attribute timed-restore vector additionally keeps
+the publisher's source-region designator, timestamp, producer, and live
+retraction handle across save/restore before the constrained receiver flushes.
+The multi-recipient timed-restore vector independently flushes two constrained
+receivers and proves one restored queued attribute update retains separate
+recipient delivery state and sends both standard `requestRetraction` callbacks.
+The terminal regional-attribute vector keeps a pre-save terminal retraction
+classification across restore while rejecting a post-save handle as
+`InvalidMessageRetractionHandle`.
+The terminal timestamped-deletion vector additionally proves the deleted
+object name can be reused before restore, while restore retains the original
+tombstone and invalidates the post-save deletion handle.
+The default-region attribute tombstone companion preserves the same terminal
+classification when the publisher uses the standard empty source-region
+projection and the receiver subscribes through a regional filter.
+The directed-interaction tombstone companion preserves the same terminal
+classification for a targeted timestamped send and rejects the post-save
+directed-message handle after restore.
+The regional-interaction tombstone companion carries explicit source-region
+metadata through the same terminal classification and restore boundary.
+The pending-available-mode matrix now exercises TARA, NMR, and NMRA under both
+`HLA_EVOKED` and `HLA_IMMEDIATE`, proving each restored request remains pending
+until its reconstructed grant and that the same service remains usable after
+restore.
+The timed pending-FQR matrix now performs the equivalent restore under both
+callback models, preserving the saved Flush Queue Grant boundary and allowing a
+fresh post-restore FQR.
+The default-region interaction tombstone companion now preserves the empty
+source-region projection and terminal retraction classification through the
+same save/restore boundary.
+The float64 pending-FQR vector now carries the saved request through the
+standard `HLAfloat64Time`/`HLAfloat64Interval` Java carriers and restores its
+grant boundary before admitting a fresh FQR.
+Its immediate-callback companion restores the same timed FQR boundary through
+the standard Java callback path and admits a fresh post-restore FQR.
+The float64 pending-available-request vector restores a saved strict time
+advance request under both `HLA_EVOKED` and `HLA_IMMEDIATE`, preserving the
+float64 grant boundary and allowing a fresh request after restore.
+The two-member float64 timed-save boundary vectors also prove C++ waits for
+both the regulating and constrained Java members under `HLA_EVOKED` and
+`HLA_IMMEDIATE`, then carries the typed timestamped save initiation through
+JNI before either qualifying grant.
+The float64 timestamped-interaction vector additionally verifies the Java
+callback carries the C++ time type, timestamp/order metadata, producer, and
+opaque retraction handle through JPype.
+The companion float64 timestamped-attribute vector verifies the same carrier
+and retraction metadata on `reflectAttributeValues` callbacks.
+The float64 timestamped-deletion vector completes the object-management path
+with the same `HLAfloat64Time` and retraction carrier checks on removal.
+The float64 directed-interaction vector completes the specialized directed
+callback shape with the same timestamp/order/retraction checks.
+The float64 time-factory vector also advances by one representable ULP through
+the standard `timeAdvanceRequestAvailable` overload, proving the scheduler
+preserves the smallest distinguishable target through Java, JNI, and JPype.
 
 The joined-federate MOM state companion subscribes to the RTI-owned
 `HLAfederateState` object, decodes its standard Java `HLAinteger32BE` values,
@@ -923,15 +1433,23 @@ The same application-reflection vector observes `HLAreflectionsReceived` at
 counter remains 0/1/1/2. RTI-owned MOM reflection uses its separate path and is
 not folded into this application callback ledger.
 
-The interaction-send MOM companion counts accepted ordinary and directed
+The interaction-send MOM bridge companion counts accepted ordinary and directed
 `sendInteraction` invocations at the C++ service boundary. It observes
 `HLAinteractionsSent` at 0/1/2 and the directed subset
 `HLAdirectedInteractionsSent` at 0/0/1 through standard Java
-`HLAinteger32BE` reflection in both callback models.
-The same two-member vector observes the receiver's
+`HLAinteger32BE` reflection in both callback models. The native Catch2
+companion extends the sender evidence across ordinary, directed, timestamped,
+regional, and timestamped-regional forms, proving total 0/1/2/3/4/5/6,
+directed 0/0/1/1/2/2, and periodic 6/2; the Java bridge remains the direct
+0/1/2 adapter vector.
+The same two-member bridge vector observes the receiver's
 `HLAinteractionsReceived` at 0/1/2 and
 `HLAdirectedInteractionsReceived` at 0/0/1, with the C++ ledger advanced
-immediately before each accepted Java callback.
+immediately before each accepted Java callback. The native Catch2 companion
+extends that receiver evidence across ordinary, directed, timestamped,
+regional, and timestamped-regional delivery, proving total 0/1/2/3/4/5/6 and
+directed 0/0/1/1/2/2, plus periodic 6/2; the bridge remains intentionally
+limited to its direct Java vector.
 
 The FOM-snapshot companion uses the exact Java `String[]` Join overload with an
 additional FOM module, then observes the RTI-owned `HLAFOMmoduleDesignatorList`
@@ -966,8 +1484,72 @@ The federation-FOM companion now subscribes only to
 with the external Java encoder, and observes the execution module vector
 change from the Create-supplied base module to the base-plus-additional list at
 an exact Java `String[]` Join boundary.
+The current-FDD companion mirrors the native three-member vector: it subscribes
+to `HLAcurrentFDD`, decodes the composed Restaurant FOM as an
+`HLAunicodeString`, observes the reliable refresh after a compatible
+`UmbraReferenceFixtureClass` additional-FOM Join, and confirms a direct request
+returns the same refreshed XML through the external Java encoder.
+The `HLAmodifyAttributeState` companion drives the standard MOM adjustment
+interaction through the Java surface after publishing it, transfers an
+application attribute to a second federate without ownership callbacks, verifies
+the unowned transition and immediate re-transfer, and preserves
+`RTIinternalError` when the same control targets an RTI-owned MOM object.
+The `HLAsetSwitches` companion drives the standard predefined parameter subset,
+proves sender-only state changes and peer isolation, preserves empty/invalid
+typed failures and the report-subscription interlock, and accepts both an
+extension parameter and a subclass carrying inherited standard switches.
+The companion report-subscription vector exercises both ordinary and regional
+passive `HLAreportServiceInvocation` declarations: each is rejected while
+service reporting is enabled, accepted while disabled, and blocks re-enabling
+until its exact declaration is removed through Java and JPype.
+The local-delete companion invokes the standard `localDeleteObjectInstance`
+overload from Java, proves an unknown handle leaves the private report file
+untouched, and decodes the accepted type-37 object-instance argument, null
+return, success indicator, and local-forget state transition.
+The declaration-report companion invokes the standard publish and unpublish
+object-class-attributes overloads, verifies invalid handles do not append
+records, and decodes type-36 object-class and type-1 attribute-set arguments,
+including the Java-standard optional-set name on unpublication.
+The object-attribute subscription companion covers passive and active
+subscriptions with explicit and default update rates, invalid-handle no-op
+behavior, subset unsubscription, and the whole-class Java overload; it decodes
+the corresponding Boolean, String, Null, and optional attribute-set records.
+The directed-declaration companion exercises publish and unpublish directed
+interaction sets, invalid object/interaction handles, explicit empty sets, and
+the whole-class optional-set overload, preserving type-28 and type-34 report
+forms through the standard Java/JPype route.
+The directed-subscription companion covers ordinary and universal selectors,
+invalid handles, explicit empty sets, subset removal, and whole-class removal,
+preserving the standard Boolean universal flag and type-28/type-34 optional-set
+encodings.
+The transport-loss directed-selector companion queues a timestamped directed
+interaction, changes the survivor from universal to ownership-only before its
+callback boundary, and verifies C++ suppresses that stale callback while the
+independent `DELETE_OBJECTS` receive-order cleanup still removes the target.
+The directed-cutoff companion covers the complementary live-target path: a
+queued timestamped directed interaction is delivered at the lost federate's
+last-known time before the survivor's grant, preserving target, producer,
+reliable transport, timestamp/order metadata, and the C++ retraction handle.
+The explicit-unsubscribe companion covers the same queued cutoff after the
+standard `unsubscribeObjectClassDirectedInteractions` call, suppressing the
+stale directed callback while preserving the independent cleanup event.
+The multi-survivor cutoff companion queues one timestamped attribute update for
+two constrained Java members, releasing each at its own time-6 boundary while
+preserving the shared C++ producer, transport, timestamp/order metadata, and
+retraction handle.
+The ordinary interaction-declaration companion covers publish, passive
+subscribe, unpublish, and unsubscribe through the standard Java overloads,
+preserving type-27 interaction handles and the inverse passive Boolean while
+ensuring invalid declarations append no successful report.
+The region-service companion drives `SetRangeBounds` and `DeleteRegion` through
+the Java provider, suppresses setup reports while switches are disabled,
+decodes type-42/type-10/type-35 arguments, and confirms invalid bounds and
+repeated deletion append no successful record.
 
-The regional request/response vector invokes the standard Java
+The regional request/default-region vector also invokes the standard Java
+`requestAttributeValueUpdateWithRegions` surface, retaining default-region
+eligibility alongside explicit source filtering and callback-boundary
+reprojection. The regional request/response vector invokes the standard Java
 `provideAttributeValueUpdate` callback, answers through the same routed
 ambassador, and verifies copied values, tags, transport, producer, and
 conveyed region metadata on the returned reflection.
@@ -975,6 +1557,58 @@ Its timestamped companion answers that callback with the standard Java timed
 update overload and proves the C++ queue holds delivery until the constrained
 grant, preserving `TIMESTAMP` order metadata, source-region conveyance, and
 the consumed retraction handle.
+The companion DDM-recheck vector queues an untimed regional provider response,
+mutates only the requester's committed range before callback dispatch, and
+verifies C++ suppresses the stale reflection through the standard Java region
+carrier.
+The regional-association MOM vector decodes six standard
+`HLAreportServiceInvocation` callbacks for unknown-object, invalid-region, and
+successful association/unassociation calls, including nested pair-list
+arguments and C++ exception text.
+The regional object-subscription MOM vector likewise decodes six standard
+callbacks for unknown-class, invalid-region, and successful subscribe/
+unsubscribe calls, including passive/update-rate arguments and nested
+attribute-region pair-list payloads.
+The accepted regional-interaction MOM vector decodes passive-to-active
+replacement and unsubscribe reports, preserving the inverse passive indicator,
+region-set argument, null returned record, and serial ordering.
+The accepted regional-send MOM vector decodes the five supplied argument
+records, including constrained parameter values, source region, user tag, and
+the null timestamp slot, before the receiver's conveyed-region callback.
+The accepted regional-update MOM vector decodes the four supplied argument
+records, including the constrained attribute/value map, user tag, and null
+timestamp slot, before the receiver's conveyed-region reflection callback.
+The accepted timestamped regional-update MOM vector additionally decodes the
+logical-time argument and message-retraction return record, then preserves
+timestamp/order/retraction metadata through the constrained reflection.
+The failed ordinary regional-update MOM vector decodes two unsuccessful
+service reports, preserving typed unknown-object/ownership exception text,
+value-map/tag arguments, null returns, serials, and the absence of reflection;
+structurally valid unknown handles are used because the standard Java decoder
+rejects malformed empty handle bytes before C++ service reporting can run.
+The failed regional-send MOM vector similarly decodes three unsuccessful
+`SendInteractionWithRegions` reports, including interaction/parameter/region
+arguments and null returns, while preserving publication,
+parameter-definition, and invalid-region exception mappings without an
+application interaction.
+The failed timestamped regional-send MOM vector extends that matrix to four
+reports, retaining the logical-time argument and mapping invalid timestamp
+admission to `InvalidLogicalTime` with null returns and ordered serials.
+The failed timestamped regional-update MOM vector adds the corresponding
+three-report object matrix, preserving object/value/tag/time arguments,
+unknown-object and ownership failures, invalid-time mapping, null returns,
+serial ordering, and suppression of timestamped reflection.
+The timestamped DeleteObjectInstance failure vector adds the two-report
+unknown-object/invalid-time matrix, preserving type-37 object, type-63 tag,
+type-31 time, null return, exception, and serial fields without a removal
+callback.
+The receive-order DeleteObjectInstance vector adds the three-state
+unknown/success/repeat matrix, proving the service report precedes removal
+and repeat deletion produces no second removal callback.
+The failed timestamped directed-interaction MOM vector decodes four
+`SendDirectedInteraction` reports, preserving interaction/target/parameter/
+tag/time records and mapping unknown class, target, parameter, and invalid
+time failures without emitting a directed callback.
 
 The region-validation vector also preserves `InvalidRegion`,
 `RegionDoesNotContainSpecifiedDimension`, and `InvalidRangeBound` for
@@ -1023,6 +1657,12 @@ The integration suite audits every fixture `RTIambassador` name/arity route so
 new Java overloads cannot silently fall through as unbound. It also verifies
 that every `NativeBridge` declaration is registered by the C++ JNI table and
 that Java dispatch calls only declared endpoints. The same audit compares every
+overload declared by the loaded IEEE `RTIambassador` interface (206 exact Java
+declarations) against the `NativeRTIambassador` arity branches, allowing only
+the deliberate compact `connect` and `joinFederationExecution` helpers.
+This keeps the shared 184-service Python contract from masking a missing
+standard Java overload.
+The same audit compares every
 Java `FederateAmbassador` overload against the C++ callback slots and JPype
 marshaller; when an external IEEE JAR is selected, it first reflects the actual
 loaded callback interface instead of trusting the compact fixture, verifies all

@@ -10,7 +10,7 @@ from verify_external_siso_fom_corpus import _load_manifest, verify
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = REPOSITORY_ROOT / "compliance" / "external-2025-fom-corpus.json"
+DEFAULT_MANIFEST = REPOSITORY_ROOT / "compliance" / "fom" / "external-2025-fom-corpus.json"
 
 
 def main() -> int:

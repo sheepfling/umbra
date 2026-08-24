@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins one bounded IEEE 1516.2-2025 FOM-composition rule: object attributes and interaction parameters may name only simple, enumerated, reference, array, fixed-record, or variant-record data types (or NA). The generic composed-model resolver recognizes basic-data names from the complete schema key so table-specific predicates can report the applicable category error, while these two application-table columns reject a raw basic-data name. The predefined HLAtoken remains accepted without an Umbra-specific name exception because the official MIM declares it as array data. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-object-attribute-data-type-kind",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l105-4",
+      "clause_id": "clause-4.5.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateObjectAttributeAndInteractionParameterDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects raw basic data types for attributes and parameters"
+      ]
+    },
+    {
+      "id": "umbra-omt-interaction-parameter-data-type-kind",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-053-l47-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateObjectAttributeAndInteractionParameterDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects raw basic data types for attributes and parameters"
+      ]
+    }
+  ]
+}

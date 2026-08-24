@@ -82,9 +82,23 @@ def import_resources(source_archive: Path) -> int:
     return 0
 
 
-def verify_resources() -> tuple[str, ...]:
+def verify_resources(
+    resource_root: Path = RESOURCE_ROOT,
+    digest_manifest: Path = DIGESTS,
+) -> tuple[str, ...]:
+    """Return deterministic findings for a staged 1516.2 resource set.
+
+    The default arguments keep the historical source-tree check intact.  The
+    explicit paths are also used by the installed-package smoke test so that
+    packaging verifies the files that consumers will actually load rather
+    than only the vendored checkout.
+    """
+    resource_root = resource_root.resolve()
+    digest_manifest = digest_manifest.resolve()
+    if not resource_root.is_dir():
+        return (f"resource root is not a directory: {resource_root}",)
     try:
-        manifest = json.loads(DIGESTS.read_text(encoding="utf-8"))
+        manifest = json.loads(digest_manifest.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         return (f"cannot read digest manifest: {error}",)
 
@@ -102,9 +116,9 @@ def verify_resources() -> tuple[str, ...]:
         expected[path] = digest
 
     actual_files = {
-        path.relative_to(RESOURCE_ROOT).as_posix(): path
+        path.relative_to(resource_root).as_posix(): path
         for pattern in ("*.xsd", "*.xml")
-        for path in RESOURCE_ROOT.rglob(pattern)
+        for path in resource_root.rglob(pattern)
     }
     findings = [f"unexpected resource {path}" for path in sorted(actual_files.keys() - expected.keys())]
     findings.extend(f"missing resource {path}" for path in sorted(expected.keys() - actual_files.keys()))
@@ -118,10 +132,22 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, help="local IEEE 1516-2025 downloads archive")
     parser.add_argument("--check", action="store_true", help="verify the vendored resource set")
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=RESOURCE_ROOT,
+        help="resource root to verify (defaults to the vendored source tree)",
+    )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=DIGESTS,
+        help="digest manifest to verify (defaults to the vendored manifest)",
+    )
     arguments = parser.parse_args()
 
     if arguments.check:
-        findings = verify_resources()
+        findings = verify_resources(arguments.root, arguments.manifest)
         if findings:
             print("IEEE 1516.2 resource integrity: FAIL", file=sys.stderr)
             for finding in findings:

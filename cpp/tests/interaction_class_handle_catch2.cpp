@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/interaction_class_handle.hpp"
+#include "internal/handles/interaction_class_handle.hpp"
 
 #include <array>
 #include <cstring>

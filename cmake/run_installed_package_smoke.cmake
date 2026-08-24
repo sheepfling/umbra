@@ -1,6 +1,7 @@
 foreach(required_variable IN ITEMS
     UMBRA_CMAKE_COMMAND
     UMBRA_CTEST_COMMAND
+    UMBRA_PYTHON_EXECUTABLE
     UMBRA_SOURCE_DIRECTORY
     UMBRA_BINARY_DIRECTORY)
   if(NOT DEFINED ${required_variable} OR "${${required_variable}}" STREQUAL "")
@@ -34,6 +35,24 @@ if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND install_command --config "${UMBRA_CONFIGURATION}")
 endif()
 umbra_run_checked(${install_command})
+
+# The installed package must carry the exact 1516.2 schemas, MIM, examples,
+# and reviewed digest manifest that the source-tree validator uses.  Validate
+# the staged files before compiling the consumer so a successful CMake export
+# cannot mask a truncated or altered standards-resource payload.
+set(installed_resource_root
+  "${install_prefix}/share/umbra_rti/ieee1516.2-2025"
+)
+set(installed_resource_manifest
+  "${install_prefix}/share/umbra_rti/ieee1516.2-2025/resource-digests.json"
+)
+umbra_run_checked(
+  "${UMBRA_PYTHON_EXECUTABLE}"
+  "${UMBRA_SOURCE_DIRECTORY}/tools/ieee_1516_2_resources.py"
+  --check
+  --root "${installed_resource_root}"
+  --manifest "${installed_resource_manifest}"
+)
 
 set(configure_command
   "${UMBRA_CMAKE_COMMAND}"

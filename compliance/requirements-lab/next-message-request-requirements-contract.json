@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 Next Message Request service to source-derived clause 8.10. The embedded profile selects the earliest currently queued TSO timestamp for the recipient when it is no greater than the supplied request, records the accepted supplied request with its Table 5 LogicalTime representation before the later grant, delivers that timestamp cohort through the existing callback-gated Time Advance Grant path, and otherwise uses the supplied request as the effective target. Regional interaction and object-attribute TSO companions also exercise this ordinary NMR frontier over committed explicit-source overlaps and preserve callback-before-grant ordering. The separate bounded timestamped-save integration case exercises that no-queued-message target at the inclusive save boundary. A separate restore-control matrix snapshots one no-queued-TSO, single-federate NMR request at direct save initiation and restores its fresh grant after Federation Restored under both callback models. Future transport input, asynchronous delivery, full LITS/GALT coordination, the Available and Flush Queue variants, multi-member or queued/in-transit restore, package/catalog evidence, protected review, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-next-message-request-selects-next-tso-target",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+      "clause_id": "clause-8.10.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::nextMessageRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Next Message Request grants at the next queued TSO timestamp",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants"
+      ]
+    },
+    {
+      "id": "umbra-next-message-request-delivers-before-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+      "clause_id": "clause-8.10.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Next Message Request grants at the next queued TSO timestamp",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants"
+      ]
+    },
+    {
+      "id": "umbra-embedded-next-message-request-report-preserves-supplied-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+      "clause_id": "clause-8.10.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::nextMessageRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary"
+      ]
+    }
+  ]
+}

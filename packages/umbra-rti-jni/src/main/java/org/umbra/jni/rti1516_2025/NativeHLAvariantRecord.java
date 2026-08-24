@@ -1,9 +1,11 @@
 package org.umbra.jni.rti1516_2025;
 
 import hla.rti1516_2025.encoding.DataElement;
+import hla.rti1516_2025.encoding.DecoderException;
 import hla.rti1516_2025.encoding.HLAvariantRecord;
 import java.lang.ref.Cleaner;
 import java.util.Base64;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -94,7 +96,34 @@ final class NativeHLAvariantRecord implements HLAvariantRecord {
    }
    @Override public HLAvariantRecord decode(hla.rti1516_2025.encoding.ByteWrapper bytes)
       throws hla.rti1516_2025.encoding.DecoderException {
-      return NativeDataElementEncoding.decode(this, bytes);
+      if (bytes == null) throw new DecoderException("ByteWrapper must not be null");
+      int offset = bytes.getPos();
+      int remaining = bytes.remaining();
+      int discriminantLength = discriminant.getEncodedLength();
+      if (remaining < discriminantLength) {
+         throw new DecoderException("HLAvariantRecord discriminant is truncated");
+      }
+
+      byte[] source = bytes.array();
+      byte[] discriminantBytes = Arrays.copyOfRange(
+         source, offset, offset + discriminantLength);
+      // Decode the fixed-width discriminant independently, then project that
+      // value into the native record so C++ selects the mapped alternative and
+      // computes the standard alignment/encoded width.
+      NativeDataElementEncoding.decode(
+         discriminant, new hla.rti1516_2025.encoding.ByteWrapper(discriminantBytes));
+      setDiscriminant(discriminant);
+      DataElement mapped = variants.get(key(discriminant));
+      int consumed = mapped == null
+         ? discriminantLength
+         : NativeBridge.nativeHLAvariantRecordEncodedLength(nativeHandle.require());
+      if (remaining < consumed) {
+         throw new DecoderException("HLAvariantRecord alternative is truncated");
+      }
+      byte[] encoded = Arrays.copyOfRange(source, offset, offset + consumed);
+      NativeBridge.nativeDecodeHLAvariantRecord(nativeHandle.require(), encoded);
+      bytes.advance(consumed);
+      return this;
    }
    @Override public HLAvariantRecord decode(byte[] bytes) {
       NativeBridge.nativeDecodeHLAvariantRecord(nativeHandle.require(), bytes);

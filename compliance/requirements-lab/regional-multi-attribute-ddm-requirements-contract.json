@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This focused contract translates the sibling two-dimensional RegionalThing stress scenario into the native C++ development profile. It keeps Flavor and Organic on independent two-dimensional source regions, proves conjunctive overlap per source, and verifies that an X-only or Y-only source mutation affects only the attribute whose source became disjoint. The fixture is a checked-in sibling-derived DIF input, not a Requirements Lab requirement or a conformance model. This slice deliberately excludes timestamped/retraction delivery, relaxed DDM, scope advisories, regional value requests, save/restore, remote transport, package/JUnit/protected-review evidence, and conformance.",
+  "requirements": [
+    {
+      "id": "umbra-regional-multi-attribute-registration-preserves-independent-sources",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41",
+      "clause_id": "clause-9.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    },
+    {
+      "id": "umbra-regional-multi-attribute-routing-requires-complete-overlap",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    },
+    {
+      "id": "umbra-regional-multi-attribute-subscriptions-project-per-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l48-13",
+      "clause_id": "clause-9.8",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    },
+    {
+      "id": "umbra-regional-multi-attribute-unsubscription-releases-projector",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
+      "clause_id": "clause-9.9.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    }
+  ]
+}

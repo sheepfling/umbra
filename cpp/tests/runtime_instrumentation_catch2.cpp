@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/runtime_instrumentation_output.hpp"
+#include "internal/observability/runtime_instrumentation_output.hpp"
 
 #include <atomic>
 #include <chrono>

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 handle-normalization support-services slice to the official C++ RTIambassador declarations. The embedded development profile validates connection, joined membership, and each specific invalid-handle exception; it produces stable execution-scoped point-range coordinates for federate, object-class, interaction-class, and live object-instance handles. Service-group coordinates stay inside the MIM HLAserviceGroup range. The Catch2 case proves equality preservation across joined ambassadors and the current registry keeps a departed federate designator normalizable for the still-joined peer. It does not yet create RTI-originated MOM regions, route MOM reports, prove distributed/external execution semantics, publish package evidence, produce JUnit/protected-review evidence, or claim conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-normalize-service-group",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.normalizeservicegroup.766646292813",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeServiceGroup( ServiceGroup serviceGroup) = 0",
+      "exception_types": [
+        "InvalidServiceGroup",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::normalizeServiceGroup",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+      ]
+    },
+    {
+      "id": "umbra-embedded-normalize-federate-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.normalizefederatehandle.ed3858cc768a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeFederateHandle( FederateHandle const & federate) = 0",
+      "exception_types": [
+        "InvalidFederateHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::normalizeFederateHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+      ]
+    },
+    {
+      "id": "umbra-embedded-normalize-object-class-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.normalizeobjectclasshandle.e33f8b0b4661",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeObjectClassHandle( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "InvalidObjectClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::normalizeObjectClassHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+      ]
+    },
+    {
+      "id": "umbra-embedded-normalize-interaction-class-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.normalizeinteractionclasshandle.dadfefad8ca6",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeInteractionClassHandle( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InvalidInteractionClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::normalizeInteractionClassHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+      ]
+    },
+    {
+      "id": "umbra-embedded-normalize-object-instance-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.normalizeobjectinstancehandle.31623897189d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeObjectInstanceHandle( ObjectInstanceHandle const & objectInstance) = 0",
+      "exception_types": [
+        "InvalidObjectInstanceHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::normalizeObjectInstanceHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+      ]
+    }
+  ]
+}

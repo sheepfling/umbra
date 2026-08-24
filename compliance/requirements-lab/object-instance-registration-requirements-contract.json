@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only the non-region unnamed Register Object Instance path, its generated private identity/name state, and induced discovery/known-instance lookup in Umbra's non-installable development profile. It uses only requirement candidates exported by the Requirements Lab and does not infer missing IDs. A separate contract covers the limited no-time deletion/removal slice that consumes registration ownership state. This contract intentionally excludes named registration and reservation, object update/reflection, timestamped/retraction or local deletion, DDM scope, ownership transfer, FOM sharing policy, save/restore, complete resignation disposition, remote transport, packaging, and all evidence promotion. The linked tests demonstrate a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "requirements": [
+    {
+      "id": "umbra-object-registration-implicit-privilege-publication",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l119-38",
+      "clause_id": "clause-5.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::publishedObjectClassAttributes",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication"
+      ]
+    },
+    {
+      "id": "umbra-object-registration-requires-published-class",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l191-62",
+      "clause_id": "clause-5.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-object-registration-retains-registered-class",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l200-65",
+      "clause_id": "clause-5.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-object-registration-allocates-uniform-unique-handle",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
+      "clause_id": "clause-6.8.4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
+        "cpp/tests/object_instance_handle_catch2.cpp::The embedded ObjectInstanceHandle encoding is an HLAvariableArray-wrapped identity"
+      ]
+    },
+    {
+      "id": "umbra-object-registration-snapshots-currently-published-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+      "clause_id": "clause-6.8.4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-object-registration-generates-unique-unnamed-name",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l67-18",
+      "clause_id": "clause-6.8.4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-object-discovery-selects-candidate-class",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l39-9",
+      "clause_id": "clause-6.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-object-discovery-promotes-to-closest-subscribed-superclass",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l45-11",
+      "clause_id": "clause-6.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-object-discovery-rechecks-before-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
+      "clause_id": "clause-6.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+      ]
+    },
+    {
+      "id": "umbra-object-discovery-informs-recipient-and-producer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
+      "clause_id": "clause-6.9.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueObjectInstanceDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Discover Object Instance before its callback"
+      ]
+    }
+  ]
+}

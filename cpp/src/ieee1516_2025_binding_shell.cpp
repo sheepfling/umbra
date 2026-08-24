@@ -1,4 +1,4 @@
-#include "internal/umbra_rti_ambassador.hpp"
+#include "internal/runtime/umbra_rti_ambassador.hpp"
 
 #include <memory>
 #include <ostream>

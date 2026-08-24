@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "private-sdk-reference-authorizer-foundation-not-runtime-or-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded implementation of the official 2025 C++ RTI/auth/HLAplainTextPassword.h value class, the reference HLAauthorizer/AuthorizerFactory/HLAauthorizerFactoryFactory behavior, the separate static library-level AuthorizerFactoryFactory forwarding boundary, and the current embedded profile's disabled-authorization Connect behavior. IEEE 1516.1-2025 §12.6 requires the HLAplainTextPassword constructor to set its predefined type and encode its supplied text as HLAunicodeString; Umbra therefore delegates both encoding and validation to the completed standard HLAunicodeString helper rather than defining a password byte format. The private ReferenceAuthorizerConfiguration seam permits deterministic unit tests of the reference global-password behavior, but no public configuration selects it and the public factory is intentionally unconfigured until a secure RID-backed configuration/lifecycle exists. The runtime therefore still has no configured authorization service: a no-credentials Connect overload remains available, an explicit empty HLAnoCredentials envelope is accepted as the standard no-credentials form, and another supplied Credentials envelope is rejected as Unauthorized rather than silently treated as authenticated. The static umbra_authorizer target preserves the C++ forwarding boundary only; it does not claim completion of the SISO library-nomenclature/dynamic-link, custom-authorizer, secure configuration, Connect/Create/Destroy/Join lifecycle, adapter, catalog/JUnit/package, interoperability, security-review, or conformance work. The direct page-357 candidates retain exported Annex/§12.8 provenance even though the reconstructed source places the relevant text in §§12.5-12.6; RL-056 records that source-export drift. RL-057 records that the reconstructed authorization-library prose says getAuthorizationFactory while the official C++ headers declare getAuthorizerFactory, the spelling used by Umbra.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-hla-plain-text-password-hlaunicode-string",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l100-32",
+      "clause_id": "clause-12.8",
+      "source": "cpp/src/ieee1516_2025_authorization.cpp",
+      "source_symbol": "HLAplainTextPassword::HLAplainTextPassword",
+      "related_source_symbols": [
+        "encodePlainTextPassword",
+        "HLAplainTextPassword::decode",
+        "HLAplainTextPassword::encode"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::HLAplainTextPassword stores the standard HLAunicodeString credential payload",
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::HLAplainTextPassword rejects malformed HLAunicodeString credential payloads"
+      ]
+    },
+    {
+      "id": "umbra-embedded-disabled-authorization-connect-credentials",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l67-21",
+      "clause_id": "clause-12.8",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "requireNoCredentialsWhenAuthorizationIsDisabled",
+      "related_source_symbols": [
+        "UmbraRtiAmbassador::connect"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::Embedded Connect rejects supplied credentials while authorization is disabled"
+      ]
+    },
+    {
+      "id": "umbra-cpp-hlaauthorizer-reference-service",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l76-24",
+      "clause_id": "clause-12.8",
+      "source": "cpp/src/ieee1516_2025_authorization.cpp",
+      "source_symbol": "ReferenceHlaAuthorizer",
+      "related_source_symbols": [
+        "HLAauthorizerFactoryFactory::getAuthorizerFactory",
+        "ReferenceHlaAuthorizerFactory"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::HLAauthorizer factories select and forward the standard reference service",
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::Configured reference HLAauthorizer recognizes only valid matching plaintext credentials"
+      ]
+    },
+    {
+      "id": "umbra-cpp-hlaauthorizer-global-plaintext-password",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l106-34",
+      "clause_id": "clause-12.8",
+      "source": "cpp/src/ieee1516_2025_authorization.cpp",
+      "source_symbol": "globalPlainTextPassword_",
+      "related_source_symbols": [
+        "ReferenceHlaAuthorizer"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::Configured reference HLAauthorizer recognizes only valid matching plaintext credentials"
+      ]
+    },
+    {
+      "id": "umbra-cpp-hlaauthorizer-factory-creates-reference-authorizer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l130-42",
+      "clause_id": "clause-12.8",
+      "source": "cpp/src/ieee1516_2025_authorization.cpp",
+      "source_symbol": "ReferenceHlaAuthorizerFactory",
+      "related_source_symbols": [
+        "ReferenceHlaAuthorizerFactory::getAuthorizer",
+        "HLAauthorizerFactoryFactory::getAuthorizerFactory"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::HLAauthorizer factories select and forward the standard reference service"
+      ]
+    },
+    {
+      "id": "umbra-cpp-hlaauthorizer-supports-plaintext-password",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l151-49",
+      "clause_id": "clause-12.8",
+      "source": "cpp/src/ieee1516_2025_authorization.cpp",
+      "source_symbol": "HLAplainTextPasswordType",
+      "related_source_symbols": [
+        "ReferenceHlaAuthorizer"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::Configured reference HLAauthorizer recognizes only valid matching plaintext credentials"
+      ]
+    },
+    {
+      "id": "umbra-cpp-authorizer-library-forwards-standard-reference-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-379-l44-13",
+      "clause_id": "clause-12.12.4",
+      "source": "cpp/src/ieee1516_2025_authorizer.cpp",
+      "source_symbol": "AuthorizerFactoryFactory::getAuthorizerFactory",
+      "related_source_symbols": [
+        "HLAauthorizerFactoryFactory::getAuthorizerFactory"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_authorization_catch2.cpp::HLAauthorizer factories select and forward the standard reference service"
+      ]
+    }
+  ]
+}

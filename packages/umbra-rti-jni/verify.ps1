@@ -8,7 +8,12 @@ param(
     [string]$ExpectedBridgeSha256,
     [string]$ExpectedNativeSha256,
     [string]$ManifestPath,
-    [switch]$SkipSmokeTest
+    [switch]$SkipSmokeTest,
+    [switch]$RunJavaTck,
+    [string]$JavaTckClassesDirectory,
+    [string]$JavaTckFomPath,
+    [string]$JavaTckTimeImplementation = "HLAinteger64Time",
+    [string]$JavaTckProfilePath
 )
 
 Set-StrictMode -Version Latest
@@ -135,6 +140,48 @@ if (-not $SkipSmokeTest) {
     & java @smokeArguments
     if ($LASTEXITCODE -ne 0) {
         throw "JNI Java RTI smoke test failed with exit code $LASTEXITCODE"
+    }
+}
+
+if ($RunJavaTck) {
+    if ([string]::IsNullOrWhiteSpace($JavaTckClassesDirectory)) {
+        throw "-JavaTckClassesDirectory is required with -RunJavaTck"
+    }
+    $tckClassesPath = (Resolve-Path -LiteralPath $JavaTckClassesDirectory -ErrorAction Stop).Path
+    $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+    if ([string]::IsNullOrWhiteSpace($JavaTckFomPath)) {
+        $JavaTckFomPath = Join-Path $repositoryRoot "third_party\ieee1516.2-2025\resources\examples\RestaurantFOMmodule-2025.xml"
+    }
+    $tckFom = (Resolve-Path -LiteralPath $JavaTckFomPath -ErrorAction Stop).Path
+    $tckClasspath = $apiPath + [System.IO.Path]::PathSeparator + $bridgePath +
+        [System.IO.Path]::PathSeparator + $tckClassesPath
+    $tckArguments = @(
+        "-Dumbra.rti.jni.library=$nativePath",
+        "-Dumbra.rti.tck.fom=$tckFom",
+        "-Dumbra.rti.tck.time=$JavaTckTimeImplementation",
+        "-cp", $tckClasspath,
+        "umbra.rti.tck.RtiTckMain"
+    )
+    if ([string]::IsNullOrWhiteSpace($JavaTckProfilePath)) {
+        $repositoryProfile = Join-Path $repositoryRoot "packages\umbra-rti-java-tck\profiles\umbra-jni.properties"
+        if (Test-Path -LiteralPath $repositoryProfile -PathType Leaf) {
+            $JavaTckProfilePath = $repositoryProfile
+        }
+    }
+    if (-not [string]::IsNullOrWhiteSpace($JavaTckProfilePath)) {
+        $tckProfile = (Resolve-Path -LiteralPath $JavaTckProfilePath -ErrorAction Stop).Path
+        $tckArguments = @(
+            "-Dumbra.rti.jni.library=$nativePath",
+            "-Dumbra.rti.tck.fom=$tckFom",
+            "-Dumbra.rti.tck.time=$JavaTckTimeImplementation",
+            "-Dumbra.rti.tck.capabilityProfile=$tckProfile",
+            "-cp", $tckClasspath,
+            "umbra.rti.tck.RtiTckMain"
+        )
+    }
+    & java @tckArguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "Provider-neutral Java RTI TCK failed with exit code $LASTEXITCODE"
     }
 }
 

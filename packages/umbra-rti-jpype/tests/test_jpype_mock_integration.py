@@ -516,7 +516,11 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual(result.message, "connected through the mock Java RTI using HLA_EVOKED")
 
         encoder = self.factory.getEncoderFactory()
-        self.assertFalse(hasattr(encoder, "createHLAextendableVariantRecord"))
+        # The provider-scoped Java façade exposes the creator declared by the
+        # standard 2025 EncoderFactory.  The mock implementation predates
+        # that method, so this assertion checks the façade surface without
+        # claiming the fixture implements the optional creator.
+        self.assertTrue(hasattr(encoder, "createHLAextendableVariantRecord"))
         integer16 = encoder.createHLAinteger16BE(-1234)
         float64 = encoder.createHLAfloat64BE(math.pi)
         float32 = encoder.createHLAfloat32BE(math.pi)

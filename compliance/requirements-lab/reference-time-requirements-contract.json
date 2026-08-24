@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "reference-time-library-not-public-service-evidence",
+  "notes": "This contract pins Umbra's IEEE 1516.1-2025 reference-time implementation to source-derived Requirements-Lab records. It checks implementation symbols and Catch2 selectors only. The default packaged profile keeps getTimeFactory, federation creation, and time-management services unavailable; the non-installable development profile separately traces its getTimeFactory adapter through an exact Lab API-surface contract. Neither contract is a public-service catalog entry, JUnit evidence record, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-reference-float64-time-type",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-376-l256-84",
+      "clause_id": "clause-12.11.6.24.3",
+      "source": "cpp/src/ieee1516_2025_time.cpp",
+      "source_symbol": "HLAfloat64Time::HLAfloat64Time",
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::HLAfloat64Time uses finite IEEE boundaries and epsilon advances by a representable step"
+      ]
+    },
+    {
+      "id": "umbra-reference-integer64-epsilon",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-354-l288-95",
+      "clause_id": "clause-12.4",
+      "source": "cpp/src/ieee1516_2025_time.cpp",
+      "source_symbol": "HLAinteger64Interval::setEpsilon",
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::HLAinteger64Time implements the IEEE reference values, arithmetic, and HLAinteger64BE encoding"
+      ]
+    },
+    {
+      "id": "umbra-reference-float64-epsilon-arithmetic",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-356-l71-23",
+      "clause_id": "clause-12.5",
+      "source": "cpp/src/ieee1516_2025_time.cpp",
+      "source_symbol": "addFloatValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::HLAfloat64Time uses finite IEEE boundaries and epsilon advances by a representable step"
+      ]
+    },
+    {
+      "id": "umbra-reference-time-factory-names",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-376-l319-105",
+      "clause_id": "clause-12.11.6.24.3",
+      "source": "cpp/src/ieee1516_2025_time.cpp",
+      "source_symbol": "HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory",
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::IEEE reference factory selection returns both mandated names and defaults to HLAfloat64Time"
+      ]
+    },
+    {
+      "id": "umbra-reference-time-creation-default",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l87-18",
+      "clause_id": "clause-4.5.5",
+      "source": "cpp/src/internal/time/reference_time_selection.cpp",
+      "source_symbol": "ReferenceLogicalTimeSelector::select",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::Reference logical-time selection defaults to HLAfloat64Time and rejects incompatible FDD documentation"
+      ]
+    },
+    {
+      "id": "umbra-reference-time-shared-implementation-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l124-39",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/time/reference_time_selection.cpp",
+      "source_symbol": "ReferenceLogicalTimeSelector::select",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::Reference logical-time selection defaults to HLAfloat64Time and rejects incompatible FDD documentation"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins one bounded IEEE 1516.2-2025 Object Class Table preflight: when a composed object attribute supplies update type Conditional or Periodic and also supplies an Update Condition field, that field must contain nonempty, non-NA text. DIF permits partial attribute rows, so Umbra preserves an omitted Update Condition field rather than manufacturing one. This does not parse or prove the Periodic rate grammar, validate initial-condition prose, or apply the candidate's conflicting Static/NA direction; RL-046 records the supplied official 2025 Static/On change example tension. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-dynamic-attribute-update-condition",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l26-2",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDynamicAttributeUpdateConditions",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires supplied dynamic update conditions"
+      ]
+    }
+  ]
+}

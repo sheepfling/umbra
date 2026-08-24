@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/callback_dispatcher.hpp"
-#include "internal/callback_session.hpp"
-#include "internal/embedded_transport.hpp"
-#include "internal/umbra_rti_ambassador.hpp"
+#include "internal/callbacks/callback_dispatcher.hpp"
+#include "internal/callbacks/callback_session.hpp"
+#include "internal/federation/embedded_transport.hpp"
+#include "internal/runtime/umbra_rti_ambassador.hpp"
 
 #include <algorithm>
 #include <chrono>

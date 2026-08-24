@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable getTimeFactory implementation to the exact C++ API surface exported by the Requirements Lab. The Lab currently exports no higher-level implementation mapping for this service, so this verifies only the official signature, declared exception set, source symbol, and real Catch2 selector. It is not a service catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-get-time-factory",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.gettimefactory.eba6ba05f07c",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual std::unique_ptr<LogicalTimeFactory> getTimeFactory () const = 0",
+      "exception_types": [
+        "FederateNotExecutionMember",
+        "NotConnected"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getTimeFactory",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded getTimeFactory returns the joined federation's selected time factory"
+      ]
+    }
+  ]
+}

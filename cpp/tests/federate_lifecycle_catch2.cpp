@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/federate_lifecycle.hpp"
+#include "internal/federation/federate_lifecycle.hpp"
 
 using umbra::detail::FederateLifecycle;
 using umbra::detail::FederateLifecycleEvent;

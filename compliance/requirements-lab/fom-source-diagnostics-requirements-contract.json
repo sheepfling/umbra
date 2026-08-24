@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins the private 2025 FOM source boundary used before federation creation. A missing designator remains source_not_found, while an existing path that cannot be consumed as a regular XML source is source_unreadable and maps through the embedded federation-management boundary to ErrorReadingFOM. The Requirements Lab candidate covers rejection of an unloadable FOM module but does not provide a row-level filesystem diagnostic relation; this is source/test traceability only, not a public service catalog, JUnit evidence record, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-fom-source-readability-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l57-18",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_document.cpp",
+      "source_symbol": "resolveRegularFile",
+      "tests": [
+        "cpp/tests/libxml2_fom_validator_catch2.cpp::The libxml2 FOM validator reports an existing non-file source as unreadable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM"
+      ]
+    }
+  ]
+}

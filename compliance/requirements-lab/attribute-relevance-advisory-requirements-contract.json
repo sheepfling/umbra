@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This bounded contract covers the implemented IEEE 1516.1-2025 Attribute Relevance Advisory path in Umbra's non-installable embedded development profile. The registry plans Turn Updates On/Off advisories when active ordinary or active overlapping regional subscriptions and update-region associations cause an owned attribute to enter or leave effective scope; passive declaration state remains retained but cannot arrange a relevance advisory. The adapter rechecks ownership, knowledge, scope, and the Attribute Relevance Advisory Switch before invoking the official callback. Explicit subscription designators are retained and select the rate-bearing Turn Updates On overload; omitted/default-rate subscriptions select the no-rate overload. Queued Turn Updates On callbacks resolve the currently retained designator again at callback entry, including regional overlap changes. The callback's complete update-rate enforcement/reduction semantics, Advisories Use Known Class behavior, initial registration/discovery-time advisory generation, complete regional DDM semantics, MOM, transport, package evidence, protected review, catalog evidence, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-turn-updates-on-indicates-required-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l148-37",
+      "clause_id": "clause-6.23",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
+      ]
+    },
+    {
+      "id": "umbra-turn-updates-on-requires-relevance-switch",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-138-l20-4",
+      "clause_id": "clause-6.24",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
+      ]
+    },
+    {
+      "id": "umbra-turn-updates-on-reaches-owning-federate",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-138-l23-5",
+      "clause_id": "clause-6.24",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "attributeRelevanceAdvisoriesForScopeChanges",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+      ]
+    },
+    {
+      "id": "umbra-turn-updates-off-indicates-no-longer-required-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-138-l146-39",
+      "clause_id": "clause-6.24",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+      ]
+    },
+    {
+      "id": "umbra-turn-updates-off-requires-relevance-switch",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-138-l158-43",
+      "clause_id": "clause-6.24",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+      ]
+    },
+    {
+      "id": "umbra-get-attribute-relevance-advisory-switch",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-269-l50-13",
+      "clause_id": "clause-10.37.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getAttributeRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+      ]
+    },
+    {
+      "id": "umbra-set-attribute-relevance-advisory-switch",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-269-l164-51",
+      "clause_id": "clause-10.37.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setAttributeRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+      ]
+    },
+    {
+      "id": "umbra-turn-updates-on-omits-rate-for-default-unspecified-subscription",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l160-41",
+      "clause_id": "clause-6.23",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "subscribedUpdateRateDesignatorForAttribute",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
+      ]
+    },
+    {
+      "id": "umbra-turn-updates-on-supplies-subscription-rate-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l163-42",
+      "clause_id": "clause-6.23",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
+      ]
+    }
+  ]
+}

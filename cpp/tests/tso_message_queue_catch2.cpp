@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/tso_message_queue.hpp"
+#include "internal/time/tso_message_queue.hpp"
 
 #include <RTI/time/HLAfloat64Time.h>
 #include <RTI/time/HLAinteger64Time.h>

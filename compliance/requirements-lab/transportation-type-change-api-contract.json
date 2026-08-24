@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded transportation-type control implementation to the exact IEEE 1516.1-2025 C++ API surfaces exported by the Requirements Lab. It covers the three attribute RTIambassador services and their two FederateAmbassador callbacks plus the two interaction RTIambassador services and their two callbacks. It is source/API traceability only: no catalog, protected-review, JUnit, package, or conformance claim is made.",
+  "api_surfaces": [
+    {
+      "id": "umbra-request-attribute-transportation-type-change",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.requestattributetransportationtypechange.bbfa4faf7e8d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void requestAttributeTransportationTypeChange( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": [
+        "AttributeAlreadyBeingChanged",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "InvalidTransportationTypeHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAttributeTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments"
+      ]
+    },
+    {
+      "id": "umbra-change-default-attribute-transportation-type",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.changedefaultattributetransportationtype.ee6a217a6f2f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void changeDefaultAttributeTransportationType( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "InvalidTransportationTypeHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::changeDefaultAttributeTransportationType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments"
+      ]
+    },
+    {
+      "id": "umbra-query-attribute-transportation-type",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.queryattributetransportationtype.fa65d76e56cb",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void queryAttributeTransportationType( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute) = 0",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryAttributeTransportationType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments"
+      ]
+    },
+    {
+      "id": "umbra-confirm-attribute-transportation-type-change",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.confirmattributetransportationtypechange.7400a095ebaf",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void confirmAttributeTransportationTypeChange( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueConfirmAttributeTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments"
+      ]
+    },
+    {
+      "id": "umbra-report-attribute-transportation-type",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.reportattributetransportationtype.c9a7b8083270",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void reportAttributeTransportationType( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute, TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReportAttributeTransportationType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments"
+      ]
+    },
+    {
+      "id": "umbra-request-interaction-transportation-type-change",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.requestinteractiontransportationtypechange.d8afce747757",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void requestInteractionTransportationTypeChange( InteractionClassHandle const & interactionClass, TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": [
+        "InteractionClassAlreadyBeingChanged",
+        "InteractionClassNotPublished",
+        "InteractionClassNotDefined",
+        "InvalidTransportationTypeHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestInteractionTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments"
+      ]
+    },
+    {
+      "id": "umbra-query-interaction-transportation-type",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.queryinteractiontransportationtype.de6e32d0ad89",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void queryInteractionTransportationType( FederateHandle const & federate, InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryInteractionTransportationType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments"
+      ]
+    },
+    {
+      "id": "umbra-confirm-interaction-transportation-type-change",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.confirminteractiontransportationtypechange.1634e10d319b",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void confirmInteractionTransportationTypeChange( InteractionClassHandle const & interactionClass, TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueConfirmInteractionTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-report-interaction-transportation-type",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.reportinteractiontransportationtype.7d067d206a57",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void reportInteractionTransportationType( FederateHandle const & federate, InteractionClassHandle const & interactionClass, TransportationTypeHandle const & transportationType) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReportInteractionTransportationType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments"
+      ]
+    }
+  ]
+}

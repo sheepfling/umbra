@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract records Umbra's bounded IEEE 1516.1-2025 default-region realization in the non-installable embedded development profile. The RTI keeps the default region as derived, invisible state rather than inventing a public RegionHandle; it applies it to active object discovery/scope/reflection, ordinary and regional interaction routing, update-rate relevance, source association replacement/restoration, and receive-order and timestamped callback metadata. The Catch2 cases prove receive-order behavior, direct time-constrained timestamped object reflection and interaction delivery, default-source object and interaction mixed fanout, a default-source interaction delivered through Flush Queue before FQG, default-source interaction delivery through the inclusive TARA and NMRA boundaries, default-source timestamped object and interaction updates delivered through the shared FQR/TARA/NMRA frontier, and default-source object and interaction queues that survive a Time Constrained disable/re-enable cycle: each regional callback carries the supplied-empty RegionHandleSet while the derived default source remains private. A focused untimed save/restore companion now reconstructs one queued default-source timestamped interaction, its supplied-empty callback projection, and live retraction ledger through restore before Flush Queue delivery and Request Retraction. A timed companion retains a timestamp-eight default-source attribute passel across a timestamp-six save boundary before restore and FQR delivery; RL-141 records the missing cross-service save-boundary relation. They do not independently validate the remaining timestamped default-region/re-enable matrix beyond these bounded role transitions, relaxed DDM, all dimension/attribute combinations, distributed transport, durable save/restore, package/JUnit/protected-review evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-default-region-remains-private-derived-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l126-39",
+      "clause_id": "clause-9",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::regionOverlapsDefault",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region object routing derives 2025 ordinary and regional effectiveness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region interaction routing derives 2025 ordinary and regional effectiveness",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_default_region_interaction_effectiveness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update preserves 2025 regional callback metadata",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+      ]
+    },
+    {
+      "id": "umbra-default-region-replaces-and-resumes-object-update-association",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l134-43",
+      "clause_id": "clause-9.1.3.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region object routing derives 2025 ordinary and regional effectiveness"
+      ]
+    },
+    {
+      "id": "umbra-default-region-selects-object-attribute-subscription",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l98-32",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region object routing derives 2025 ordinary and regional effectiveness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update preserves 2025 regional callback metadata",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-default-region-selects-ordinary-interaction-send",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region interaction routing derives 2025 ordinary and regional effectiveness",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_default_region_interaction_effectiveness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+      ]
+    },
+    {
+      "id": "umbra-default-region-selects-interaction-subscription",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l26-8",
+      "clause_id": "clause-9.1.4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region interaction routing derives 2025 ordinary and regional effectiveness",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_default_region_interaction_effectiveness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+      ]
+    },
+    {
+      "id": "umbra-default-region-conveyed-empty-for-object-reflection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
+      "clause_id": "clause-9.1.8",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region object routing derives 2025 ordinary and regional effectiveness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-default-region-conveyed-empty-for-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
+      "clause_id": "clause-9.1.8",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region interaction routing derives 2025 ordinary and regional effectiveness",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_default_region_interaction_effectiveness"
+      ]
+    },
+    {
+      "id": "umbra-default-region-conveyed-empty-for-timestamped-object-reflection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
+      "clause_id": "clause-9.1.8",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update preserves 2025 regional callback metadata",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-default-region-conveyed-empty-for-timestamped-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
+      "clause_id": "clause-9.1.8",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+      ]
+    },
+    {
+      "id": "umbra-explicit-object-association-removes-default-realization",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l148-45",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded default-region object routing derives 2025 ordinary and regional effectiveness"
+      ]
+    },
+    {
+      "id": "umbra-default-region-timestamped-interaction-save-restore-reconstructs-live-record",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region interaction"
+      ],
+      "notes": "The bounded untimed case saves one live timestamped interaction whose private default source overlaps a committed receiver region, terminalizes the pre-save designator, restores the payload and recipient ledger, and proves supplied-empty region metadata plus Request Retraction after Flush Queue delivery. This is not general timed/durable recovery evidence."
+    },
+    {
+      "id": "umbra-default-region-timestamped-attribute-update-save-restore-reconstructs-live-record",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region attribute update",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary"
+      ],
+      "notes": "The bounded untimed case saves one live ordinary-registration timestamped attribute passel whose private default source overlaps a committed receiver region, terminalizes the pre-save designator, restores the payload and recipient ledger, and proves supplied-empty region metadata plus Request Retraction after Flush Queue delivery. The timed companion retains a timestamp-eight passel across a timestamp-six save boundary before restore and FQR delivery; RL-141 records the missing save-boundary relation. These are not general timed/durable recovery evidence."
+    },
+    {
+      "id": "umbra-default-region-timestamped-attribute-update-save-restore-preserves-terminal-tombstone",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification"
+      ],
+      "notes": "This bounded two-member default-source image saves a terminal timestamped Update Attribute Values retraction record after a successful pre-save Retract, with a separate live private-default passel providing the constrained save-admission frontier. A distinct post-save default-region attribute update is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This is terminal-classification evidence only; it does not claim callback delivery, live payload recovery, region mutation, timed, durable, alternate-advance, changed-membership, remote, package/JUnit/protected-review, or conformance evidence."
+    },
+    {
+      "id": "umbra-default-region-timestamped-interaction-save-restore-preserves-terminal-tombstone",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region interaction classification"
+      ],
+      "notes": "This bounded two-member default-source image saves a terminal timestamped Send Interaction retraction record after a successful pre-save Retract, with a separate live private-default passel providing the constrained save-admission frontier. A distinct post-save default-region interaction is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This is terminal-classification evidence only; it does not claim callback delivery, live payload recovery, region mutation, timed, durable, alternate-advance, changed-membership, remote, package/JUnit/protected-review, or conformance evidence."
+    },
+    {
+      "id": "umbra-default-region-timestamped-interaction-timed-save-restore-reconstructs-live-record",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary"
+      ],
+      "notes": "The bounded timed case schedules save at logical time 6 while a timestamp-eight Send Interaction from the private default source remains queued for an overlap-qualified regional subscriber. It restores the live payload and recipient ledger, preserves the supplied-empty callback RegionHandleSet, and proves Flush Queue delivery before post-delivery Request Retraction. This is a timed interaction companion to the untimed default-source restore case, not durable, general timed, alternate-advance, changed-membership, transport, package/JUnit/protected-review, or conformance evidence; RL-141 records the missing cross-service save-boundary relation."
+    }
+  ]
+}

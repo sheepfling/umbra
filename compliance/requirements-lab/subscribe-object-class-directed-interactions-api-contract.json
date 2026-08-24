@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded Subscribe Object Class Directed Interactions service-report implementation to the official IEEE 1516.1-2025 C++ RTIambassador declaration exported by the Requirements Lab for §5.12. The focused real-filesystem regression verifies rejected undefined object or interaction class inputs append no successful-void record; an accepted defaulted C++ invocation uses ObjectClassHandle type 36, InteractionClassHandleSet type 28, and the effective optional universal selector as type-6 Boolean false; and an explicitly universal invocation with a supplied empty interaction set preserves type-28 [] plus Boolean true. It does not prove complete directed-subscription delivery, generic return/failure forms, public MOM publication, timestamped behavior, DDM, remote transport, JUnit/protected-review evidence, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-subscribe-object-class-directed-interactions-service-report",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeobjectclassdirectedinteractions.4c460a3c84d8",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses, bool universally = false) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
+      ]
+    }
+  ]
+}

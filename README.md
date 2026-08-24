@@ -1,5 +1,39 @@
 # Umbra
 
+Umbra is a standards-first C++20 foundation for an HLA Run-Time Infrastructure
+(RTI). It is a bounded implementation, not a complete RTI or a
+standards-conformance claim. Native C++ owns RTI semantics; Python and Java
+are provider adapters around that implementation.
+
+## Start here
+
+- [Repository guide](docs/development/REPOSITORY-GUIDE.md) — where code,
+  packages, compliance inputs, tools, and vendored material live.
+- [Architecture](docs/architecture/ARCHITECTURE.md) — public API boundary and
+  runtime layers.
+- [Roadmap](docs/planning/ROADMAP.md) — current gates and future capability
+  phases.
+- [Requirements and testing](docs/testing/REQUIREMENTS-AND-TESTING.md) —
+  authoritative test lanes and evidence rules.
+- [Package map](packages/README.md) — Python and Java provider selection.
+
+## Quick build
+
+Requirements: CMake 3.23+, Visual Studio 2022 with the C++ desktop workload,
+and Python 3.11+ for repository tools and Python packages.
+
+    python tools/ci.py native
+
+This runs the same profile used by CI: configure, build, then test. It builds
+serially to avoid a Windows MSVC program-database contention issue. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for first-change guidance, rerunning one
+stage, and other build profiles.
+
+## Detailed current development scope
+
+<details>
+<summary>Expanded implementation boundary and deliberate limits</summary>
+
 Umbra is a standards-first C++20 foundation for building an HLA Run-Time
 Infrastructure (RTI). Its current state is an official IEEE 1516.1-2025 API
 baseline plus small embedded connection, callback-control, federate, object-class,
@@ -262,15 +296,17 @@ The repository makes no whole-RTI or
 standards-conformance claim; the implemented Disconnect slice has only raw,
 unreviewed Requirements-Lab evidence.
 
+</details>
+
 ## Build and test
 
 Requirements: CMake 3.23+, a C++20 compiler, and Python for the optional
 header-integrity test.
 
 ```powershell
-cmake -S . -B .build -G "Visual Studio 17 2022" -A x64
-cmake --build .build --config Debug
-ctest --test-dir .build -C Debug --output-on-failure
+cmake -S . -B out/cmake/default -G "Visual Studio 17 2022" -A x64
+cmake --build out/cmake/default --config Debug
+ctest --test-dir out/cmake/default -C Debug --output-on-failure
 ```
 
 The baseline compiles the complete official header tree and verifies its
@@ -293,21 +329,21 @@ separate build tree. It is deliberately non-installable until libxml2 and the
 vendored resource path are part of the SDK dependency contract.
 
 ```powershell
-cmake -S . -B .build-fom-services -G "Visual Studio 17 2022" -A x64 `
+cmake -S . -B out/cmake/fom-services -G "Visual Studio 17 2022" -A x64 `
   -DUMBRA_FETCH_CATCH2=ON `
   -DUMBRA_ENABLE_LIBXML2_FOM_VALIDATOR=ON `
   -DUMBRA_FETCH_LIBXML2=ON `
   -DUMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=ON
-cmake --build .build-fom-services --config Debug -- /m:1
-ctest --test-dir .build-fom-services -C Debug --output-on-failure
+cmake --build out/cmake/fom-services --config Debug -- /m:1
+ctest --test-dir out/cmake/fom-services -C Debug --output-on-failure
 ```
 
 For focused development feedback, use the named CTest lane targets after that
 configuration—for example,
-`cmake --build .build-fom-services --config Debug --target
+`cmake --build out/cmake/fom-services --config Debug --target
 umbra_test_federation_management`. `umbra_test_rapid` runs foundational and
 Catch2 unit tests; `umbra_test_all` remains the full regression gate. See the
-[requirements and testing guide](docs/REQUIREMENTS-AND-TESTING.md#development-test-lanes)
+[requirements and testing guide](docs/testing/REQUIREMENTS-AND-TESTING.md#development-test-lanes)
 for all lanes and exact service-level selection.
 
 The unmodified official IEEE 1516.1-2025 C++ headers are vendored under
@@ -325,14 +361,15 @@ artifact is private—not an Umbra-owned replacement format. It is consumed only
 by the opt-in development profile and does not make the packaged public
 Create/Join services available.
 
-See [the architecture](docs/ARCHITECTURE.md),
-[the implementation roadmap](docs/ROADMAP.md), and
-[the native implementation plan](docs/IMPLEMENTATION-PLAN.md) for boundaries,
+[the documentation index](docs/README.md) for the full map. See
+[the architecture](docs/architecture/ARCHITECTURE.md),
+[the implementation roadmap](docs/planning/ROADMAP.md), and
+[the native implementation plan](docs/planning/IMPLEMENTATION-PLAN.md) for boundaries,
 sequencing, and completion gates. The [requirements and testing
-guide](docs/REQUIREMENTS-AND-TESTING.md) explains how Umbra consumes the
+guide](docs/testing/REQUIREMENTS-AND-TESTING.md) explains how Umbra consumes the
 adjacent HLA Requirements Lab and how native Catch2 results flow through its
 portable compliance contract. See the [compliance
-workflow](docs/COMPLIANCE-WORKFLOW.md) for the raw-to-verified promotion path
-and the [FOM validation design](docs/FOM-VALIDATION-DESIGN.md) for the next
-federation-management gate. The [logical-time design](docs/LOGICAL-TIME-DESIGN.md)
+workflow](docs/testing/COMPLIANCE-WORKFLOW.md) for the raw-to-verified promotion path
+and the [FOM validation design](docs/fom/FOM-VALIDATION-DESIGN.md) for the next
+federation-management gate. The [logical-time design](docs/design/LOGICAL-TIME-DESIGN.md)
 records the standards-first time-library boundary before that gate is opened.

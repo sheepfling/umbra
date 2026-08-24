@@ -1,8 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/libxml2_fom_validator.hpp"
+#include "internal/fom/libxml2_fom_validator.hpp"
 
 #include <filesystem>
+#include <string>
 #include <utility>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -90,6 +91,26 @@ TEST_CASE("The libxml2 FOM validator distinguishes missing, invalid, and DTD-bea
   });
   REQUIRE(malformed.status == FomValidationStatus::source_parse_error);
   REQUIRE_FALSE(malformed.module.has_value());
+}
+
+TEST_CASE(
+    "The libxml2 FOM validator reports an existing non-file source as unreadable",
+    "[unit][fom][xml-schema][fom-source-diagnostics]") {
+  LibXml2FomValidator validator;
+  auto const directory = resourcePath("examples");
+  REQUIRE(std::filesystem::is_directory(directory));
+
+  auto result = validator.validate({
+      directory,
+      resourcePath("schemas/IEEE1516-DIF-2025.xsd"),
+      FomModuleKind::fom,
+      L"urn:umbra:test:directory-source",
+      L"IEEE1516-DIF-2025.xsd",
+  });
+
+  REQUIRE(result.status == FomValidationStatus::source_unreadable);
+  REQUIRE_FALSE(result.module.has_value());
+  REQUIRE(result.diagnostics.find("not a regular file") != std::string::npos);
 }
 
 TEST_CASE("The strict OMT schema is not substituted for individual 2025 modules", "[unit][fom][xml-schema][schema-policy]") {

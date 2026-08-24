@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/service_report_store.hpp"
+#include "internal/observability/service_report_store.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -58,6 +58,30 @@ TEST_CASE(
   std::string contents{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
   REQUIRE(contents == "{\"text\":\"\xC3\xA9\"}");
   std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Filesystem service-report stores remove a reserved file when the initial record is invalid",
+    "[mom][service-report-store][service-reporting][filesystem-rollback][unit]") {
+  auto const directory = temporaryDirectory();
+  std::error_code ignored;
+  // CTest can launch this focused case in a fresh process, so the helper's
+  // process-local sequence is not sufficient to distinguish a prior failed
+  // run. Start from a clean test-only directory before asserting rollback.
+  std::filesystem::remove_all(directory, ignored);
+  auto record = descriptor();
+  // A lone surrogate is not a Unicode scalar value on either the Windows
+  // UTF-16 or POSIX wide-string representation. Initial-record conversion
+  // must fail after reservation without leaving a misleading empty file.
+  record.initialRecord = std::wstring{L"{\"text\":\""} +
+      std::wstring(1U, static_cast<wchar_t>(0xD800U)) + L"\"}";
+  umbra::detail::FilesystemServiceReportStore store(directory);
+
+  REQUIRE_THROWS(store.createForJoinedFederate(record));
+  REQUIRE(std::filesystem::exists(directory));
+  REQUIRE(std::filesystem::is_empty(directory));
+
   std::filesystem::remove_all(directory, ignored);
 }
 

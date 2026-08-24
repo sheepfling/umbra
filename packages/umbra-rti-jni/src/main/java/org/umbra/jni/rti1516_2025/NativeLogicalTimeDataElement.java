@@ -1,6 +1,7 @@
 package org.umbra.jni.rti1516_2025;
 
 import hla.rti1516_2025.encoding.ByteWrapper;
+import hla.rti1516_2025.encoding.EncoderException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -96,10 +97,30 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
       }
       if ("getValue".equals(name) && values.length == 0) return value;
       if ("setValue".equals(name) && values.length == 1) {
+         if (values[0] == null) {
+            throw new EncoderException("Logical-time value must not be null");
+         }
+         Class<?> valueType = standardType(
+            "hla.rti1516_2025." + (interval ? "LogicalTimeInterval" : "LogicalTime"),
+            "hla.rti1516_2025.time." + (interval ? "LogicalTimeInterval" : "LogicalTime"));
+         if (!valueType.isInstance(values[0])) {
+            throw new EncoderException(
+               "Logical-time data element received the wrong standard value kind");
+         }
+         String expectedName = String.valueOf(
+            factory.getClass().getMethod("getName").invoke(factory));
+         String actualName = NativeLogicalTimeFactories.implementationName(values[0]);
+         if (!expectedName.equals(actualName)) {
+            throw new EncoderException(
+               "Logical-time data element requires " + expectedName + ", received " + actualName);
+         }
          value = values[0];
          return proxy;
       }
-      if ("getOctetBoundary".equals(name) && values.length == 0) return Integer.valueOf(8);
+      // HLAlogicalTime and HLAlogicalTimeInterval are opaque data elements;
+      // their C++ reference implementations deliberately use the generic
+      // one-octet alignment rather than the selected carrier's wire width.
+      if ("getOctetBoundary".equals(name) && values.length == 0) return Integer.valueOf(1);
       if ("getEncodedLength".equals(name) && values.length == 0) {
          return Integer.valueOf(encodedValue().length);
       }
@@ -112,17 +133,27 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
       if ("decode".equals(name) && values.length == 1 && values[0] instanceof byte[]) {
          try {
             return decode((byte[]) values[0]);
-         } catch (Throwable error) {
+         } catch (Exception error) {
             throw unwrap(error);
          }
       }
       if ("decode".equals(name) && values.length == 1 && values[0] instanceof ByteWrapper) {
          ByteWrapper source = (ByteWrapper) values[0];
-         byte[] encoded = new byte[source.remaining()];
-         source.get(encoded);
+         // Decode from a non-advancing view and advance only the fixed
+         // logical-time element width.  This preserves following composite
+         // fields and leaves the caller's cursor untouched on failure.
+         if (source.remaining() < Long.BYTES) {
+            throw new IllegalArgumentException(
+               "Logical-time ByteWrapper input is shorter than eight octets");
+         }
+         ByteWrapper window = source.slice(Long.BYTES);
+         byte[] encoded = new byte[Long.BYTES];
+         window.get(encoded);
          try {
-            return decode(encoded);
-         } catch (Throwable error) {
+            Object result = decode(encoded);
+            source.advance(Long.BYTES);
+            return result;
+         } catch (Exception error) {
             throw unwrap(error);
          }
       }

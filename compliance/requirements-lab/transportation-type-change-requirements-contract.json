@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract traces the bounded embedded IEEE 1516.1-2025 transportation-type control slice. Attribute defaults are per-federate and prospective, registered instance attributes capture their effective type, accepted instance changes commit at Confirm Attribute Transportation Type Change, and queries report the current effective type. Interaction changes apply to future ordinary and regional sends for the invoking publisher and commit at confirmation. Only HLAreliable and HLAbestEffort are supported. Save/restore, update-rate policy, custom transport, remote transport, protected review, catalog evidence, JUnit evidence, and conformance remain outside this contract.",
+  "requirements": [
+    {
+      "id": "umbra-attribute-transport-initializes-from-fdd-or-federate-default",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
+      "clause_id": "clause-6.25.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-change-affects-future-updates",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
+      "clause_id": "clause-6.25.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginAttributeTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-resets-after-ownership-transfer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l150-40",
+      "clause_id": "clause-6.25.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-confirmation-reports-achieved-type",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
+      "clause_id": "clause-6.26",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueConfirmAttributeTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-confirmation-is-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+      "clause_id": "clause-6.26",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAttributeTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-one-confirmation-for-one-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+      "clause_id": "clause-6.27",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueConfirmAttributeTransportationTypeChange",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-new-instance-uses-federate-default",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l125-32",
+      "clause_id": "clause-6.27",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::attributeDefaultTransportationName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-fdd-initialization",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l131-34",
+      "clause_id": "clause-6.27",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::attributeTransportationName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-default-uses-class-and-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
+      "clause_id": "clause-6.27",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::changeDefaultAttributeTransportationType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-default-is-prospective",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l143-38",
+      "clause_id": "clause-6.27",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-query-responds",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-142-l173-48",
+      "clause_id": "clause-6.28",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReportAttributeTransportationType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments"
+      ]
+    },
+    {
+      "id": "umbra-attribute-transport-query-reports-current-type",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
+      "clause_id": "clause-6.29.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::effectiveAttributeTransportationName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type control commits at callbacks and preserves FOM defaults"
+      ]
+    }
+  ]
+}

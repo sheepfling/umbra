@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-and-fdd-seeding-not-conformance-evidence",
+  "notes": "This contract pins the official Advisories Use Known Class switch return semantics to the 2025 Requirements Lab and the composed FDD/federation-creation path. Umbra captures the FDD-seeded boolean once as a static federation-wide value and exposes it through the exact RTIambassador getter for every member, including after additional-FOM joins. The switch is not yet consumed by complete known-class advisory generation, and package evidence, protected review, JUnit promotion, and conformance remain open.",
+  "requirements": [
+    {
+      "id": "umbra-advisories-use-known-class-switch-is-returned",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-282-l38-9",
+      "clause_id": "clause-10.55.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getAdvisoriesUseKnownClassSwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation shares the static Advisories Use Known Class switch"
+      ]
+    },
+    {
+      "id": "umbra-advisories-use-known-class-switch-is-boolean",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-282-l41-10",
+      "clause_id": "clause-10.55.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getAdvisoriesUseKnownClassSwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation shares the static Advisories Use Known Class switch"
+      ]
+    }
+  ]
+}

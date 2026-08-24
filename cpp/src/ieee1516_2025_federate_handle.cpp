@@ -1,5 +1,5 @@
-#include "internal/federate_handle.hpp"
-#include "internal/handle_variable_array_encoding.hpp"
+#include "internal/handles/federate_handle.hpp"
+#include "internal/handles/handle_variable_array_encoding.hpp"
 
 #include <cstddef>
 #include <cstring>

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the official C++ surfaces used by the focused two-dimensional, multi-attribute regional object matrix. The native test uses no-name regional registration, active regional subscriptions, ordinary Update Attribute Values, and the optional source-region callback carrier. It is a development-profile stress slice, not a claim that the broader DDM, timestamped, retraction, package, or conformance surfaces are complete.",
+  "api_surfaces": [
+    {
+      "id": "umbra-regional-multi-attribute-register-object-instance-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle registerObjectInstanceWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    },
+    {
+      "id": "umbra-regional-multi-attribute-subscribe-object-class-attributes-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, bool active = true, std::wstring const & updateRateDesignator = L\"\") = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    },
+    {
+      "id": "umbra-regional-multi-attribute-unsubscribe-object-class-attributes-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributeswithregions.4ff75062570b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    },
+    {
+      "id": "umbra-regional-multi-attribute-update-attribute-values",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void updateAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    },
+    {
+      "id": "umbra-regional-multi-attribute-reflect-attribute-values",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void reflectAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+      ]
+    }
+  ]
+}

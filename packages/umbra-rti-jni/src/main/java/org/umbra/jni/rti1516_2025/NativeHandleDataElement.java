@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 
 /**
  * Standard Java handle data-element projection backed by an RTI handle
@@ -124,19 +125,43 @@ final class NativeHandleDataElement implements InvocationHandler {
       if ("decode".equals(name) && values.length == 1 && values[0] instanceof byte[]) {
          try {
             return decode((byte[]) values[0]);
-         } catch (Throwable error) {
+         } catch (Exception error) {
             throw unwrap(error);
          }
       }
       if ("decode".equals(name) && values.length == 1 && values[0] instanceof ByteWrapper) {
          ByteWrapper source = (ByteWrapper) values[0];
-         byte[] encoded = new byte[source.remaining()];
-         source.get(encoded);
-         try {
-            return decode(encoded);
-         } catch (Throwable error) {
-            throw unwrap(error);
+         // Decode from a non-advancing view.  A DataElement must consume
+         // exactly its encoded length, not every byte remaining in the
+         // caller's wrapper; this is observable when a composite has a
+         // following element or a trailing sentinel.
+         ByteWrapper window = source.slice();
+         byte[] available = new byte[window.remaining()];
+         window.get(available);
+         Throwable lastError = null;
+         // The standard handle factory exposes decode(byte[], offset), but
+         // does not expose a separate wire-length query.  Probe prefixes
+         // from shortest to longest until C++ accepts one, then consume the
+         // exact length reported by the decoded handle.  This keeps the
+         // carrier generic across vendor handle widths while preserving
+         // trailing bytes in the caller's wrapper.
+         for (int length = 1; length <= available.length; ++length) {
+            try {
+               Object result = decode(Arrays.copyOf(available, length));
+               int consumed = encodedValue().length;
+               if (consumed != length || consumed > source.remaining()) {
+                  lastError = new IllegalArgumentException(
+                     "Decoded handle length does not match ByteWrapper input");
+                  continue;
+               }
+               source.advance(consumed);
+               return result;
+            } catch (Exception error) {
+               lastError = unwrap(error);
+            }
          }
+         if (lastError != null) throw lastError;
+         throw new IllegalArgumentException("ByteWrapper contains no handle encoding");
       }
       throw new UnsupportedOperationException("Unsupported Java handle data-element operation: " + method);
    }

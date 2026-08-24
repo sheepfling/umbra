@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers Umbra's nonregional object-class Request Attribute Value Update and matching Provide Attribute Value Update callback path in the non-installable IEEE 1516.1-2025 development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The implementation validates the requested class and its available attributes, expands to current registered instances at that class and its subclasses, groups existing owners per object instance, preserves the tag, and rechecks a provider after queueing. A focused filesystem regression proves the provider-side §6.22 report is appended per expanded instance before each callback. A separate real class-expansion response scenario has the provider invoke timestamped Update Attribute Values from that callback and verifies the requester-side reflection; the response remains explicit federate code rather than RTI-automatic provision and its timestamped/retraction surfaces are traced by the dedicated timestamped attribute-update contract. The separate class-level regional request form is traced by attribute-value-update-with-regions contracts. Automatic provision, broader timestamped/retraction behavior beyond that response companion, DDM beyond the sibling regional slice, update-rate reduction, ownership transfer, FOM sharing policy, save/restore, remote transport, packaging, catalog evidence, and conformance remain outside this contract. The linked Catch2 tests demonstrate bounded implementation slices, not full IEEE 1516.1-2025 conformance.",
+  "requirements": [
+    {
+      "id": "umbra-object-class-attribute-value-request-stimulates-specified-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded class Request Attribute Value Update reports each provider callback before delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-solicits-current-owners",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-skips-unowned-instance-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l146-39",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-expands-to-subclass-instances",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l152-41",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::objectInstanceRegisteredAtOrBelowClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-does-not-provide-to-requester-owner",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2",
+      "clause_id": "clause-6.21.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "candidateAttributeValueUpdateClassProvideRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-propagates-user-tag",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+      "clause_id": "clause-6.21.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "provider.provideAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded class Request Attribute Value Update reports each provider callback before delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+      ]
+    },
+    {
+      "id": "umbra-object-class-attribute-value-request-at-most-one-provide-per-owner-instance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
+      "clause_id": "clause-6.23",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded class Request Attribute Value Update reports each provider callback before delivery"
+      ]
+    },
+    {
+      "id": "umbra-object-class-provide-attribute-value-update-file-report-precedes-callbacks",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeValueUpdateClassProvide",
+      "notes": "The nonregional class-designator §6.21 request expands to concrete object instances, and each provider-side §6.22 callback retains its owner-specific selected-file route through callback-time revalidation. Umbra appends one object-management successful-void record per expanded instance immediately before FederateAmbassador::provideAttributeValueUpdate() enters user code, using type-37 ObjectInstanceHandle, type-1 AttributeHandleSet, and the propagated type-63 base-64 UserSuppliedTag. The focused two-instance proof checks serial ordering and cumulative file content; it does not serialize the requester's class designator into the provider callback report or claim regional/automatic-provision variants.",
+      "tests": [
+        "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Provide Attribute Value Update descriptor form",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded class Request Attribute Value Update reports each provider callback before delivery"
+      ]
+    }
+  ]
+}

@@ -13,7 +13,7 @@
 #include <RTI/encoding/EncodingExceptions.h>
 #include <RTI/libauth/AuthorizerFactoryFactory.h>
 
-#include "internal/reference_authorizer.hpp"
+#include "internal/runtime/reference_authorizer.hpp"
 
 namespace {
 

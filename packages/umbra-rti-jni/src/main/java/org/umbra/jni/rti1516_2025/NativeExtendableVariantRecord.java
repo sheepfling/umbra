@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.ref.Cleaner;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -146,10 +147,32 @@ final class NativeExtendableVariantRecord implements InvocationHandler {
       }
       if ("decode".equals(name) && values.length == 1 && values[0] instanceof ByteWrapper) {
          ByteWrapper source = (ByteWrapper) values[0];
-         byte[] encoded = new byte[source.remaining()];
-         source.get(encoded);
-         NativeBridge.nativeDecodeHLAextendableVariantRecord(nativeHandle.require(), encoded);
-         return proxy;
+         // Decode from a non-advancing view.  This carrier has a variable
+         // wire length and the standard factory exposes no length query
+         // before decode, so probe prefixes until the native C++ decoder
+         // accepts one, then advance exactly that element length.
+         ByteWrapper window = source.slice();
+         byte[] available = new byte[window.remaining()];
+         window.get(available);
+         Exception lastError = null;
+         for (int length = 1; length <= available.length; ++length) {
+            try {
+               NativeBridge.nativeDecodeHLAextendableVariantRecord(
+                  nativeHandle.require(), Arrays.copyOf(available, length));
+               // The successful prefix is the exact wire length: the native
+               // decode(byte[]) operation rejects trailing bytes itself.  Do
+               // not derive this from getEncodedLength(), because an unknown
+               // alternative is intentionally skipped and cannot be
+               // reconstructed by that accessor.
+               source.advance(length);
+               return proxy;
+            } catch (Exception error) {
+               lastError = error;
+            }
+         }
+         if (lastError != null) throw lastError;
+         throw new IllegalArgumentException(
+            "ByteWrapper contains no extendable-variant encoding");
       }
       throw new UnsupportedOperationException(
          "Unsupported Java HLAextendableVariantRecord operation: " + method);

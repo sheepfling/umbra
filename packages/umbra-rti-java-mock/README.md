@@ -1,5 +1,15 @@
 # umbra-rti-java-mock
 
+## Start here
+
+This is a reference/test adapter for authors of vendor-specific Java packages,
+not the normal production provider. Install the provider-neutral API and
+JPype transport first; then use this package to study named factory
+registration, explicit JAR configuration, and integration-test shape. See the
+[package map](../README.md) for the intended dependency direction.
+
+## Scope and reference pattern
+
 This is a working reference for a vendor-specific Java RTI adapter package.
 It registers the stable Python provider alias `umbra-mock-java`, resolves one
 known Java JAR, and selects the Java `RtiFactory` by its actual vendor name.

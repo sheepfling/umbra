@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only Umbra's Attribute Ownership Acquisition If Available path and its two matching terminal callbacks in the non-installable IEEE 1516.1-2025 development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The implementation validates the requester's known instance, known-class attributes, publication state, and current ownership; it retains a private Willing to Acquire reservation until callback delivery. A repeat for attributes already in that federate's Willing to Acquire state is an applied no-op for those attributes, while an eligible additional attribute receives its own reservation. The paired Unpublish Object Class Attributes path rejects removal of a still-required publication with OwnershipAcquisitionPending; the pinned Lab export has no granular candidate for that 5.3.3(f) guard, so RL-014 records the traceability limitation. At delivery the runtime atomically assigns still-unowned attributes to the requester and invokes Attribute Ownership Acquisition Notification, while attributes owned by another joined federate invoke Attribute Ownership Unavailable without a release request. It also nullifies pending requests on requester resignation or receive-order Remove Object Instance. Negotiated acquisition, all divestiture forms, RTI-owned state, full resign-action ownership disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, and conformance remain outside this slice. The linked Catch2 test demonstrates a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "requirements": [
+    {
+      "id": "umbra-acquisition-if-available-records-a-request-without-owner-release",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
+      "clause_id": "clause-7.9.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionIfAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
+      ]
+    },
+    {
+      "id": "umbra-acquisition-if-available-preserves-pending-willing-to-acquire-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43",
+      "clause_id": "clause-7.9.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionIfAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+      ]
+    },
+    {
+      "id": "umbra-acquisition-if-available-notifies-after-atomic-ownership-assignment",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
+      "clause_id": "clause-7.7.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
+      ]
+    },
+    {
+      "id": "umbra-acquisition-if-available-reports-unavailable-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1",
+      "clause_id": "clause-7.10.6",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipAcquisitionIfAvailableReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+      ]
+    }
+  ]
+}

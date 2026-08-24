@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 regular ownership-acquisition development slice to the exact C++ declarations exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The private runtime records regular Acquisition Pending state separately from Willing to Acquire, cancels the invoking federate's overlapping If Available reservation, retains a repeated regular request without duplicate release work, queues one owner-side Request Attribute Ownership Release per request/owner subset, and assigns a still-unowned attribute only immediately before its Acquisition Notification callback. Attribute Ownership Release Denied leaves ownership unchanged, terminates all matching regular requests, and queues Attribute Ownership Unavailable using the denial tag; queued terminal callbacks are rechecked against removal and membership before user code. Cancel Attribute Ownership Acquisition accepts a still-pending regular request into a separate cancellation reservation, suppresses stale acquisition work, retains publication until Confirm Attribute Ownership Acquisition Cancellation begins, and then permits later regular work. Competing in-flight cancellation races that yield acquisition notification or unavailable, unconditional/negotiated divestiture, divestiture if wanted, RTI-owned state, full resign-action ownership disposition, save/restore, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-attribute-ownership-acquisition",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisition( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & desiredAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "FederateOwnsAttributes",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisition",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments"
+      ]
+    },
+    {
+      "id": "umbra-embedded-request-attribute-ownership-release",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void requestAttributeOwnershipRelease( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & candidateAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "owner.requestAttributeOwnershipRelease",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments"
+      ]
+    },
+    {
+      "id": "umbra-embedded-attribute-ownership-release-denied",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipreleasedenied.7b1cc2290e39",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipReleaseDenied( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::attributeOwnershipReleaseDenied",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
+      ]
+    },
+    {
+      "id": "umbra-embedded-cancel-attribute-ownership-acquisition",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.cancelattributeownershipacquisition.2c855e13192e",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void cancelAttributeOwnershipAcquisition( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
+      "exception_types": [
+        "AttributeAcquisitionWasNotRequested",
+        "AttributeAlreadyOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::cancelAttributeOwnershipAcquisition",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
+      ]
+    },
+    {
+      "id": "umbra-embedded-confirm-attribute-ownership-acquisition-cancellation",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.confirmattributeownershipacquisitioncancellation.7eb7a984121a",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void confirmAttributeOwnershipAcquisitionCancellation( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "requester.confirmAttributeOwnershipAcquisitionCancellation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
+      ]
+    },
+    {
+      "id": "umbra-embedded-regular-acquisition-notification",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipAcquisitionNotification( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & securedAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "requester.attributeOwnershipAcquisitionNotification",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks"
+      ]
+    },
+    {
+      "id": "umbra-embedded-regular-acquisition-unavailable",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void attributeOwnershipUnavailable( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipUnavailableRecipients",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
+      ]
+    }
+  ]
+}

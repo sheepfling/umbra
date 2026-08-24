@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/region_handle.hpp"
+#include "internal/handles/region_handle.hpp"
 
 #include <array>
 #include <cstring>

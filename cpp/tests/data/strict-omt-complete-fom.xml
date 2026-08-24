@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Umbra Strict OMT Complete FOM Fixture</name>
+        <type>FOM</type>
+        <version>2025.1</version>
+        <modificationDate>2025-02-10</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <purpose>Exercise complete-model materialization against the 2025 OMT schema.</purpose>
+        <description>A minimal complete FOM with no cross-module references.</description>
+        <poc>
+            <pocType>Author</pocType>
+            <pocName>Umbra test suite</pocName>
+            <pocOrg>Umbra</pocOrg>
+        </poc>
+        <poc>
+            <pocType>Reviewer</pocType>
+            <pocName>IEEE 1516.2 test fixture</pocName>
+            <pocOrg>Umbra</pocOrg>
+        </poc>
+        <reference>
+            <type>Test fixture</type>
+            <identification>strict-omt-complete-fom.xml</identification>
+        </reference>
+        <reference>
+            <type>Schema</type>
+            <identification>IEEE1516-OMT-2025.xsd</identification>
+        </reference>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <transportation>UmbraTransport</transportation>
+            <order>Receive</order>
+        </interactionClass>
+    </interactions>
+    <dimensions/>
+    <transportations>
+        <transportation>
+            <name>UmbraTransport</name>
+            <reliable>Yes</reliable>
+        </transportation>
+    </transportations>
+    <dataTypes>
+        <basicDataRepresentations>
+            <basicData>
+                <name>UmbraOctet</name>
+                <size>8</size>
+                <interpretation>One unsigned octet.</interpretation>
+                <endian>Big</endian>
+                <encoding>One unsigned octet.</encoding>
+            </basicData>
+        </basicDataRepresentations>
+        <simpleDataTypes/>
+        <enumeratedDataTypes/>
+        <arrayDataTypes/>
+        <fixedRecordDataTypes/>
+        <variantRecordDataTypes/>
+    </dataTypes>
+</objectModel>

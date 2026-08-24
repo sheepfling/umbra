@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/federate_time_state.hpp"
+#include "internal/time/federate_time_state.hpp"
 
 #include <memory>
 

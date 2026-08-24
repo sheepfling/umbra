@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the private Annex C.4 dimension-composition rule. Same-name dimensions are compared with the first definition: an identical duplicate is ignored, while any differing name/data type/upperBound/normalization/value/notes sub-element fails composition. Equivalent referenced note content remains stable across Umbra's per-module note-label remapping, and unique dimension names are inserted. This is source/test traceability only, not a public FOM conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-dimension-duplicate-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l18-3",
+      "clause_id": "clause-C.4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeDimensions",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.4 dimension duplicate rule"
+      ]
+    },
+    {
+      "id": "umbra-omt-dimension-duplicate-ignore",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l14-2",
+      "clause_id": "clause-C.4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeDimensions",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.4 dimension duplicate rule"
+      ]
+    },
+    {
+      "id": "umbra-omt-dimension-duplicate-sub-elements",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l26-5",
+      "clause_id": "clause-C.4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "semanticNodesEquivalentWithNotes",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.4 dimension duplicate rule"
+      ]
+    },
+    {
+      "id": "umbra-omt-dimension-unique-insertion",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l38-8",
+      "clause_id": "clause-C.4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeDimensions",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.4 dimension duplicate rule"
+      ]
+    }
+  ]
+}

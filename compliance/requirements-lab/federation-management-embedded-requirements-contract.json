@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded federation-management development profile to source-derived IEEE 1516.1-2025 records. It checks the public adapter symbols and real Catch2 selectors only when UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT is enabled. It is not a Requirements Lab service catalog entry, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-embedded-federation-management-requires-connection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "requireConnected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services require an RTI connection"
+      ]
+    },
+    {
+      "id": "umbra-embedded-create-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l43-7",
+      "clause_id": "clause-4.5.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Create Federation Execution accepts a validated explicit MIM path"
+      ]
+    },
+    {
+      "id": "umbra-embedded-destroy-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-054-l101-29",
+      "clause_id": "clause-4.6.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::destroyFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged"
+      ]
+    },
+    {
+      "id": "umbra-embedded-join-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5",
+      "clause_id": "clause-4.11.4",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::joinFederationExecutionImpl",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged"
+      ]
+    },
+    {
+      "id": "umbra-embedded-resign-federation-execution",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+      "clause_id": "clause-4.12",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::resignFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded NRG-enabled constrained TAR is released when its only regulator resigns"
+      ]
+    },
+    {
+      "id": "umbra-embedded-federation-mom-fom-module-data-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomFederationFomModuleDataReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM federation content reports FOM module and MIM data"
+      ],
+      "notes": "The federation-scoped HLArequestFOMmoduleData/HLAreportFOMmoduleData pair uses the official dimensionless MIM route. This bounded native-first slice retains the validated federation FOM serialization in first-designator order, broadcasts the reliable report to current subscribers, rechecks subscription at callback time, and rejects unavailable or negative HLAindex values synchronously. It is development-profile traceability only; current-FDD reporting, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-embedded-federation-mom-mim-data-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomFederationMimDataReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM federation content reports FOM module and MIM data"
+      ],
+      "notes": "The federation-scoped HLArequestMIMdata/HLAreportMIMdata pair reports the validated MIM serialization as one reliable dimensionless RTI-originated interaction to current subscribers and rejects unexpected request parameters. The content is retained by the composed federation definition rather than reread from its source path. This remains development-profile traceability only; current-FDD reporting, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-embedded-federation-mom-current-fdd",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation MOM exposes and refreshes HLAcurrentFDD"
+      ],
+      "notes": "The federation-scoped HLAcurrentFDD MOM attribute is exposed as the official HLAunicodeString encoding of the materialized, schema-validated current FDD. A compatible additional-FOM Join updates the same RTI-owned HLAfederation object through a reliable conditional reflection, and a direct Request Attribute Value Update returns the refreshed value. The native case verifies default-invalid RTI producer metadata, no sent regions, and an empty tag. This remains development-profile traceability only; remote transport, the complete module/FDD access matrix, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-embedded-federation-mom-save-conditionals",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation MOM save conditionals follow pending admission and completion"
+      ],
+      "notes": "The federation-scoped HLAnextSaveName/HLAnextSaveTime and HLAlastSaveName/HLAlastSaveTime attributes are sourced from the authoritative save ledger. The native case checks empty initial values, a pending timestamped request with official HLAunicodeString/HLAinteger64Time encodings, a two-attribute reliable conditional reflection clearing the next values when Initiate Federate Save is admitted at the time-advance boundary, and a completion reflection updating the last values only after the snapshot succeeds. RTI-originated metadata uses the default-invalid producer, no regions, and an empty tag. The official 2025 federation MOM defines no separate restore-name/time conditional family; this remains development-profile traceability only, with restore-operation semantics, remote transport, JUnit/protected review, and conformance open."
+    },
+    {
+      "id": "umbra-embedded-federation-mom-synchronization-points-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomFederationSynchronizationPointsReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM federation synchronization reports list and status"
+      ],
+      "notes": "The federation-scoped HLArequestSynchronizationPoints/HLAreportSynchronizationPoints pair is implemented as a dimensionless reliable RTI-originated report. It snapshots active synchronization labels from the federation ledger, encodes the official HLAsyncPointList variable array including the empty-array NULL form, broadcasts to current subscribers, and rechecks subscriptions at callback time. This is development-profile traceability only; remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-embedded-federation-mom-synchronization-point-status-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l150-49",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomFederationSynchronizationPointStatusReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM federation synchronization reports list and status"
+      ],
+      "notes": "The federation-scoped HLArequestSynchronizationPointStatus/HLAreportSynchronizationPointStatus pair requires HLAsyncPointName, returns the official HLAsyncPointFederateList fixed-record array for the active synchronization set, and emits an empty array for an unknown label. MovingToSyncPoint and WaitingForRestOfFederation are derived from the retained achievement ledger; malformed/missing/unexpected request parameters are rejected synchronously. This is development-profile traceability only; remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-embedded-federation-mom-exception-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomExceptionReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM rejects malformed interactions through HLAreportMOMexception"
+      ],
+      "notes": "A rejected MOM Send Interaction now has a separate subscription-selected HLAreportMOMexception route. The RTI-originated reliable report targets the rejected sender's private HLAfederate dimension point, carries the fully qualified MOM interaction name, exception text, and official HLAparameterError Boolean, uses the default-invalid callback producer, and revalidates the report subscription at callback time. The bounded native case covers the malformed HLAsetSwitches empty-parameter form with HLAparameterError=true and a well-formed service-reporting adjustment rejected by its report-subscription precondition with HLAparameterError=false; it verifies HLA_EVOKED gating plus withdrawal suppression. Ordinary application interaction failures remain on HLAreportException; broader HLAservice failure families, remote transport, JUnit/protected review, and conformance remain open."
+    }
+  ]
+}

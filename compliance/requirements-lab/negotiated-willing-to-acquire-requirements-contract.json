@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only Umbra's bounded extension of Negotiated Attribute Ownership Divestiture to a currently pending Willing-to-Acquire request in the opt-in, non-installable IEEE 1516.1-2025 development profile. The owner remains owner while the private Waiting state selects one deterministic pending regular or If Available candidate; the selected If Available request's original acquisition tag reaches Request Divestiture Confirmation, and successful Confirm Divestiture consumes the stale If Available reservation before the normal acquisition notification. The selection policy is an internal earliest-request policy, not a complete owner-search or arbitration implementation. This contract is source/API traceability only, with no validation, catalog, JUnit, protected-review, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-negotiated-divestiture-identifies-a-willing-to-acquire-candidate",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l41-12",
+      "clause_id": "clause-7.3.4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+      ]
+    },
+    {
+      "id": "umbra-negotiated-divestiture-uses-the-private-willing-owner-selection-mechanism",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l50-15",
+      "clause_id": "clause-7.3.4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+      ]
+    },
+    {
+      "id": "umbra-willing-to-acquire-tag-reaches-request-divestiture-confirmation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l50-10",
+      "clause_id": "clause-7.5.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginRequestDivestitureConfirmation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+      ]
+    },
+    {
+      "id": "umbra-confirm-divestiture-completes-the-selected-willing-to-acquire-transfer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l71-17",
+      "clause_id": "clause-7.5.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+      ]
+    },
+    {
+      "id": "umbra-confirm-divestiture-gives-the-selected-willing-owner-ownership",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11",
+      "clause_id": "clause-7.6.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+      ]
+    },
+    {
+      "id": "umbra-willing-to-acquire-confirmation-produces-one-normal-acquisition-notification",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
+      "clause_id": "clause-7.7.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueConfirmDivestitureNotifications",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+      ]
+    }
+  ]
+}

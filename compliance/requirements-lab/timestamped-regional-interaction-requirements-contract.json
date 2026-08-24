@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped regional interaction slice: owner-created committed regions, active-region overlap planning, constrained and nonconstrained overlap-qualified recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, sent-region callback propagation, lower-bound validation, pending-fanout suppression, and a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient. A dedicated Flush Queue companion now uses the same committed overlap path, delivers the timestamped interaction before FQG, and verifies the conveyed source-region set plus actual/optimistic grant values. Separate explicit-source companions exercise ordinary TAR/NMR and the inclusive TARA/NMRA boundaries and preserve the source RegionHandle before each grant. A further explicit-source companion keeps the same queued regional TSO and source RegionHandle through a Time Constrained disable/re-enable cycle, proving one callback before the post-re-enable grant without replacement or duplication. A focused save/restore companion now saves one queued overlap-qualified regional payload and its live retraction ledger, terminalizes the designator after saving, restores the source-region realization, delivers through Flush Queue Request, and proves post-delivery Request Retraction from the original designator; RL-136 records the Requirements Lab's missing cross-service regional save/restore relation. A committed recipient-region move can make an initially overlap-qualified queued callback disjoint before delivery; it terminally suppresses that recipient without fabricating Receive Interaction or Request Retraction. The shared predicate includes the separately documented exact-boundary Allow Relaxed DDM policy, but these timestamped cases exercise only strict-overlap and do not independently validate that policy. A direct disjoint-region regression additionally proves that a qualifying timestamped Send Interaction With Regions returns a valid designator even when no subscription overlaps; the ledger supports legal Retract and later terminal classification without retaining typed interaction payload. The accepted filesystem service-report case now has a paired HLA_IMMEDIATE public MOM matrix that decodes the SendInteractionWithRegions invocation before the constrained callback, including type-27/type-40/type-43/type-63/type-31 supplied forms, the quoted type-33 return, success/empty-exception fields, serial zero, and the callback's source RegionHandle and timestamp/order metadata. A new paired failure matrix covers invalid interaction, parameter, region, and logical-time inputs in both filesystem and HLA_IMMEDIATE public-MOM routes, preserving serials zero through three, Null returns, false indicators, exact exceptions, and no application callback. Passive regional pairs are excluded by the shared planner, but this timestamped contract does not independently test their mode transition. It does not claim object-region services, broader relaxed-DDM matrices, further alternate advance forms, timed or durable restore, remote transport, catalog evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-regional-interaction-overlap",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-send-context",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l150-43",
+      "clause_id": "clause-9.12",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-no-overlap",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l9-1",
+      "clause_id": "clause-9.12.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-no-overlap-returns-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-lower-bound",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+      "clause_id": "clause-4.19",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "validateTsoTimestamp",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-queues-constrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-callback-before-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-retracts-before-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::retract",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-notifies-delivered-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueRequestRetraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-suppresses-pending-fanout",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-covers-nonconstrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-disjoint-callback-closes-recipient-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l9-1",
+      "clause_id": "clause-9.12.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-save-restore-reconstructs-live-record",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped regional interaction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-save-restore-preserves-terminal-tombstone",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional interaction classification"
+      ],
+      "notes": "The bounded two-member explicit-source image saves a terminal timestamped Send Interaction With Regions tombstone after a successful pre-save Retract, while a separate overlap-qualified live regional passel provides the constrained save-admission frontier. A distinct post-save regional interaction is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This does not claim regional callback delivery, live payload recovery, region mutation, timed, durable, alternate-advance, changed-membership, remote, package/JUnit, or conformance coverage."
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-service-report-selects-configured-backend",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback"
+      ],
+      "notes": "The accepted timestamped Send Interaction With Regions boundary uses the joined federate's shared file-or-MOM selector. In the filesystem-selected path, the one durable record preserves the type-27 interaction class, type-40 parameter map, type-43 source-region set, type-63 tag, type-31 timestamp, and type-33 message-retraction return before the constrained recipient callback. The paired HLA_IMMEDIATE public MOM case decodes the same service type 2 interaction and all supplied/returned forms, then proves the report is present before the constrained callback. This is bounded C++ development-profile evidence; the Requirements Lab provides no row-level backend/lifecycle relation for this service-report matrix (RL-105/RL-152), so validation and conformance remain open."
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-service-report-emits-mom-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction"
+      ],
+      "notes": "The HLA_IMMEDIATE observer receives the accepted timestamped regional Send Interaction With Regions service report before the constrained regional Receive Interaction callback. The decoder verifies service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, the quoted Table 5 type-33 MessageRetractionHandle return, success true, empty exception, and serial zero; the callback verifies the source RegionHandle, timestamp, TIMESTAMP order metadata, and valid retraction. Requirements Lab RL-105/RL-152 leave this as development traceability rather than Lab validation or conformance."
+    },
+    {
+      "id": "umbra-timestamped-regional-interaction-service-report-failure-matrix",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction"
+      ],
+      "notes": "The focused C++ failure matrix covers timestamped Send Interaction With Regions pre-admission failures for an invalid interaction class, invalid parameter, invalid region, and invalid logical time. The filesystem and HLA_IMMEDIATE public-MOM paths preserve serials zero through three, object-management service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, Null return, false success, and exact exception text; no application Receive Interaction is delivered. Requirements Lab RL-105/RL-152 provide no row-level backend or conditional-failure relation, so this remains development-profile traceability rather than validation or conformance."
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract covers the bounded timestamped regional Update Attribute Values path in the embedded development profile. A committed update-region association feeds a timestamped attribute passel; only active overlapping regional attribute triples are eligible, while passive triples remain retained without arranging reflection; the timestamped cases do not independently test that mode selector. Time-constrained recipients receive the reflection before the matching Time Advance Grant while non-time-constrained recipients receive the accepted timestamped callback immediately. Focused ordinary TAR/NMR and explicit-source Time Constrained disable/re-enable companions now drive the same overlap-qualified passel to their grant frontiers, preserving callback-before-grant ordering and the source RegionHandle metadata. A focused untimed save/restore companion now saves one queued explicit-source passel and its live retraction ledger, terminalizes the designator after saving, restores the object/update association and source RegionHandle set, delivers through Flush Queue Request, and proves post-delivery Request Retraction; RL-137 records the Requirements Lab's missing cross-service regional attribute save/restore relation. A matching default-source save/restore companion preserves one ordinary-registration passel, its private default source, supplied-empty callback projection, and live retraction ledger through an untimed snapshot before Flush Queue reflection and Request Retraction; RL-140 records the corresponding relation gap. Its timed companion retains a timestamp-eight default-source passel across a timestamp-six save boundary before restore and FQR delivery; RL-141 records the missing save-boundary relation. A class-level regional Request Attribute Value Update companion now supplies a timestamped provider response through the official Provide callback and proves the same TSO ordering and source-region preservation. Separate default-source companions drive ordinary/default-region passels to FQR, TARA, and NMRA and through a Time Constrained disable/re-enable transition; they verify the supplied-empty callback RegionHandleSet remains stable and that the queued reflection is delivered exactly once before the post-re-enable grant. The federation-owned recipient ledger lets Retract suppress the pending constrained delivery and invoke Request Retraction for the delivered nonconstrained recipient; the recipient's Convey Region Designator Sets switch gates optional sent-region callback metadata. A direct disjoint-region regression proves that a qualifying regional update—time-regulating with a TSO-preferred submitted attribute—returns a valid designator even though no subscription overlaps; the ledger supports legal Retract and later terminal classification without retaining typed passels. Separate immediate- and time-constrained-recipient callback-boundary regressions accept initial strict overlap, commit the recipient region to the valid disjoint interval [2, 3] before dispatch, and suppress Reflect Attribute Values from the current projection. The immediate case terminally closes its recipient ledger state and proves that a still-legal Retract emits no Request Retraction; the time-constrained case reaches only its time-6 grant, after which the producer's strict boundary makes the designator no longer retractable without manufacturing a callback. A focused source-association replacement regression additionally proves that a queued passel captured under sourceRegionA is suppressed after unassociation and association of sourceRegionB, while a later passel uses sourceRegionB; it does not claim replacement semantics for every transport or lifecycle mode. Complete default-region/re-enable coverage beyond these bounded role-transition companions, timed/durable restore, remote transport, package evidence, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-regional-update-provides-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-no-overlap-returns-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-validates-lower-bound",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "validateTsoTimestamp",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-retains-update-region-set",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-121-l36-10",
+      "clause_id": "clause-6.10.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-queues-for-constrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-reflection-provides-time-and-retraction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.reflectAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-reflection-conveys-sent-regions-when-enabled",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l103-31",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueTimestampedReflectAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-retracts-before-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::retract",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-notifies-delivered-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueRequestRetraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-suppresses-pending-fanout",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-covers-nonconstrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
+      "clause_id": "clause-8.23.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-rechecks-current-overlap-at-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::receiveOrderAttributeUpdateRecipientFor",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-disjoint-callback-closes-recipient-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-update-save-restore-reconstructs-live-record",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live explicit-source regional timestamped attribute update"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-default-region-attribute-update-save-restore-reconstructs-live-record",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region attribute update",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary"
+      ],
+      "notes": "This bounded untimed save/restore case reconstructs one ordinary-registration attribute passel whose source is the private default region, preserves supplied-empty sent-region metadata and the live retraction designator, and proves Flush Queue reflection followed by Request Retraction. The timed companion retains a timestamp-eight passel across a timestamp-six save boundary before restore and FQR delivery; RL-141 records the missing cross-service save-boundary relation. Neither case establishes durable or general timed recovery."
+    },
+    {
+      "id": "umbra-timestamped-regional-update-save-restore-preserves-terminal-tombstone",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional attribute classification"
+      ],
+      "notes": "This bounded two-member explicit-source regional attribute case saves a terminal timestamped Update Attribute Values retraction record after a successful pre-save Retract, with a separate overlap-qualified live regional passel providing the constrained save-admission frontier. A distinct post-save regional attribute update is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This is terminal-classification evidence only; it does not claim regional callback delivery, live payload recovery, region mutation, timed, durable, alternate-advance, changed-membership, remote, package/JUnit/protected-review, or conformance evidence."
+    },
+    {
+      "id": "umbra-timestamped-default-region-update-save-restore-preserves-terminal-tombstone",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification"
+      ],
+      "notes": "This bounded two-member default-source regional attribute case saves a terminal timestamped Update Attribute Values retraction record after a successful pre-save Retract, with a separate live private-default passel providing the constrained save-admission frontier. A distinct post-save default-region attribute update is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This is terminal-classification evidence only; it does not claim callback delivery, live payload recovery, region mutation, timed, durable, alternate-advance, changed-membership, remote, package/JUnit/protected-review, or conformance evidence."
+    },
+    {
+      "id": "umbra-timestamped-regional-update-service-report-selects-configured-backend",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped regional Update Attribute Values before reflection callback"
+      ],
+      "notes": "The accepted timestamped Update Attribute Values service uses the shared file-or-MOM selector even when the object/attribute source is an explicit committed regional association. The focused filesystem case preserves the standard type-37 object, type-2 attribute map, type-63 tag, type-31 timestamp, and type-33 retraction return before the constrained regional Reflect Attribute Values callback; source-region conveyance is verified separately on the callback. The Lab has no row-level backend/lifecycle relation (RL-105/RL-152), so this remains C++ development-profile evidence rather than validation or conformance."
+    }
+  ]
+}

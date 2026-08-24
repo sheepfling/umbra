@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 order-type lookup foundation to the exact C++ API surfaces exported by the Requirements Lab. The embedded profile recognizes only the two mandatory standard order names, Receive and TimeStamp; order-change services, per-instance preferred-order state, alternate time/TSO modes, save/restore, transport, packaging, protected review, and conformance remain unimplemented.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-get-order-type",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getordertype.1968b685f7e1",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual OrderType getOrderType( std::wstring const & orderTypeName) = 0",
+      "exception_types": [
+        "InvalidOrderName",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getOrderType",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-order-name",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getordername.7d79fb80d635",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual std::wstring getOrderName( OrderType orderType) = 0",
+      "exception_types": [
+        "InvalidOrderType",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getOrderName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Umbra Transportation Regional Fixture</name>
+        <type>FOM</type>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>UmbraTransportationRegionalObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>UmbraRegionX</dimension>
+                    <dimension>UmbraRegionY</dimension>
+                </dimensions>
+                <attribute>
+                    <name>Value</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>UmbraTransportationFixture</transportation>
+                    <order>Receive</order>
+                    <semantics>Regional custom-transportation object value.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>UmbraTransportationRegionalInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>UmbraRegionX</dimension>
+                    <dimension>UmbraRegionY</dimension>
+                </dimensions>
+                <transportation>UmbraTransportationFixture</transportation>
+                <order>Receive</order>
+                <semantics>Regional custom-transportation interaction.</semantics>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+    <dimensions>
+        <dimension>
+            <name>UmbraRegionX</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Fixture X coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Fixture X normalization.</normalization>
+            <outputDataSemantics>Fixture X coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+        <dimension>
+            <name>UmbraRegionY</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Fixture Y coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Fixture Y normalization.</normalization>
+            <outputDataSemantics>Fixture Y coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+    </dimensions>
+</objectModel>

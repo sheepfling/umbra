@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import zipfile
 
 
 JNI_ROOT = Path(__file__).parents[2] / "umbra-rti-jni"
@@ -56,12 +57,26 @@ def build_jni_bridge(output_directory: Path, *, run_smoke_test: bool = False) ->
 
 def _artifacts(output_directory: Path) -> JniBridgeArtifacts:
     configured_api_jar = os.environ.get("UMBRA_JNI_JAVA_API_JAR")
+    if configured_api_jar:
+        api_jar = Path(configured_api_jar)
+    else:
+        # The repository mock fixture is both an API declaration JAR and a
+        # vendor fixture, so it carries its own ServiceLoader provider.  That
+        # provider must not participate in the JNI integration class path:
+        # the bridge should be the sole provider discovered by the standard
+        # no-argument RtiFactoryFactory API.
+        source_api = output_directory / "mock-java-api" / "umbra-mock-java-rti.jar"
+        api_jar = output_directory / "mock-java-api" / "umbra-mock-java-api.jar"
+        if not api_jar.is_file():
+            with zipfile.ZipFile(source_api) as source, zipfile.ZipFile(
+                api_jar, "w", compression=zipfile.ZIP_DEFLATED
+            ) as target:
+                for entry in source.infolist():
+                    if entry.filename.startswith("META-INF/services/"):
+                        continue
+                    target.writestr(entry, source.read(entry.filename))
     artifacts = JniBridgeArtifacts(
-        api_jar=(
-            Path(configured_api_jar)
-            if configured_api_jar
-            else output_directory / "mock-java-api" / "umbra-mock-java-rti.jar"
-        ),
+        api_jar=api_jar,
         bridge_jar=output_directory / "umbra-rti-jni.jar",
         native_library=output_directory / "umbra_rti_jni.dll",
     )

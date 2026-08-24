@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded non-timestamped, non-region IEEE 1516.1-2025 Request Attribute Value Update response path to the exact official C++ request service, Provide Attribute Value Update callback, Update Attribute Values service, and Reflect Attribute Values callback declarations exported by the Requirements Lab. It verifies signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The test exercises a provider invoking Update Attribute Values from inside the Provide callback and a requester receiving the resulting reflection. Regional requests, timestamped/retraction behavior, DDM, update-rate reduction, custom transportation, FOM sharing policy, save/restore, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-request-attribute-value-update-response-request",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.requestattributevalueupdate.375c19e701d1",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void requestAttributeValueUpdate( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-embedded-provide-attribute-value-update-response-callback",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.provideattributevalueupdate.926496a1ca57",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void provideAttributeValueUpdate( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeValueUpdateProvide",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-embedded-update-attribute-values-response-service",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void updateAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-embedded-reflect-attribute-values-response-callback",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void reflectAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    }
+  ]
+}

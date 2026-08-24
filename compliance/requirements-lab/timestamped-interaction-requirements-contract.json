@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records Umbra's first bounded public timestamped service family in the non-installable IEEE 1516.1-2025 development profile: timestamped Send Interaction for non-regional interactions, with federation-owned queueing for time-constrained recipients, callback-gated delivery before Time Advance Grant, official timestamp/order/retraction callback fields, lower-bound validation from the sender's current or requested time plus lookahead, and pre-delivery Retract. The shared recipient planner selects active ordinary subscriptions only; passive ordinary subscriptions remain declared but do not arrange delivery, although the current timestamped cases do not independently test that selector. A callback-boundary ordinary unsubscribe terminally suppresses an accepted nonconstrained recipient without pretending it received the interaction or later Request Retraction. The separately checked request-retraction contract covers the deliberately bounded legal post-delivery normal interaction path and terminal-designator lifecycle. A focused regression advances the producer to the exact strict Retract boundary while the recipient's interaction remains queued: the callback still arrives, while the returned designator is retained as MessageCanNoLongerBeRetracted after delivery. Connection Lost regressions retain queued payloads through a source-mandated loss cutoff at time 6: two exact-time cases cover a TAR pending at loss or submitted afterward, and a strict-less-than case delivers timestamp 5 before the survivor's grant to 6. A composite asynchronous-delivery case proves the exact time-6 boundary also appears in HLAreportFederateLost; none claims a result for a later timestamp. A separate one-federate regression proves that an eligible-recipient set of zero still yields a valid public designator backed by the lightweight federation ledger; it covers legal Retract and later terminal classification without retaining a typed interaction payload. A default-region companion now proves that a queued timestamped interaction survives a Time Constrained disable/re-enable cycle and still delivers once before its grant with the supplied-empty region marker. An ordinary non-regional companion now covers the same lifecycle boundary without DDM or a source-region realization, proving the joined-federate queue identity survives callback-gated Time Constrained re-enable and that one Receive Interaction callback still precedes the matching grant with the official metadata and terminal retraction classification. A second focused normal-interaction regression proves that Disable Time Regulation temporarily removes Retract authority without terminalizing a pending designator; callback-gated re-enable at unchanged lookahead restores authority for one legal Retract and later terminal classification. A third save/restore regression restores a pre-save live queued interaction and retraction ledger after a post-save Retract made it terminal, then verifies original delivery and legal post-delivery Retract. One bounded ordinary non-regional interaction scenario now drives the same queued payload through Flush Queue Request, Time Advance Request Available, and Next Message Request Available recipients, proving callback-before-grant ordering, FQR actual/optimistic time, and official callback metadata. This contract still does not claim timestamped Update Attribute Values, Delete Object Instance, Send Directed Interaction, Send Interaction With Regions, a complete alternate-advance matrix beyond that ordinary frontier, broader Disable Time Regulation/re-enable boundaries, broader asynchronous-delivery behavior, request-retraction callbacks for other message families, complete terminal save/restore recovery, remote transport, package support, catalog evidence, JUnit evidence, protected review, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-send-interaction-uses-regulator-tso-lower-bound",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+      "clause_id": "clause-4.19",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "validateTsoTimestamp",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-interaction-queues-for-time-constrained-recipient",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-interaction-covers-alternate-advance-frontiers",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed timestamped interactions deliver before FQR TARA and NMRA grants"
+      ],
+      "notes": "One bounded ordinary non-regional TSO case admits the same queued interaction through Flush Queue Request, Time Advance Request Available, and Next Message Request Available. It proves callback-before-grant ordering, FQR actual/optimistic time, producer GALT setup, and official timestamp/order/tag/producer metadata. Broader alternate-advance, re-enable, remote, save/restore, package/JUnit/protected-review, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-timestamped-send-interaction-waits-until-recipient-eligible",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-interaction-survives-time-constrained-reenable",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
+      ],
+      "notes": "The ordinary non-regional case isolates the joined-federate lifecycle boundary: a queued TSO interaction remains pending across Disable Time Constrained and callback-gated Enable Time Constrained, then is delivered exactly once before the matching Time Advance Grant with the original metadata. Regional and default-region companions cover their distinct source-region realizations separately. This is development-profile evidence only; alternate advances, remote transport, save/restore, package/JUnit/protected-review, and conformance remain open."
+    },
+    {
+      "id": "umbra-timestamped-receive-reports-time-and-order",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l97-28",
+      "clause_id": "clause-6.13",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.receiveInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-receive-supplies-retraction-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33",
+      "clause_id": "clause-6.13",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeMessageRetractionHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-terminal-designator-retains-pending-payload",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-retracts-before-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::retract",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-retraction-uses-message-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+      "clause_id": "clause-8.22.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region interaction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-send-suppressed-callback-closes-recipient-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-default-region-interaction-save-restore-reconstructs-live-record",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region interaction"
+      ],
+      "notes": "This bounded untimed save/restore case reconstructs a queued timestamped interaction whose source is the private default region, preserves supplied-empty sent-region metadata and the live retraction designator, and proves Flush Queue delivery followed by Request Retraction. It does not establish general timed/durable recovery."
+    },
+    {
+      "id": "umbra-timestamped-send-interaction-service-report-selects-configured-backend",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
+      "notes": "The accepted timestamped §6.12 Send Interaction path uses the shared file-or-interaction selector after TSO admission assigns any message-retraction identity and before a queued Receive Interaction callback. The focused production-filesystem case proves type-27 InteractionClassHandle, type-40 ParameterHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable report-before-callback ordering. Time-regulated type-33 returns, regional/timestamped object-update/delete families, remote transport, and conformance remain separate; the Lab has no row-level backend relation (RL-105/RL-152), so this is development-profile traceability only.",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Send Interaction before interaction callback"
+      ]
+    }
+  ]
+}

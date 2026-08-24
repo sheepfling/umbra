@@ -12,7 +12,7 @@ from typing import Any
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = REPOSITORY_ROOT / "compliance" / "external-siso-fom-corpus.json"
+DEFAULT_MANIFEST = REPOSITORY_ROOT / "compliance" / "fom" / "external-siso-fom-corpus.json"
 XSI_SCHEMA_LOCATION = "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation"
 
 

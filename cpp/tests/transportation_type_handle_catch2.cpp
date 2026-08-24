@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/transportation_type_handle.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
 
 #include <array>
 #include <cstring>

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's official C++ Handle::encode foundation to the 2025 C++ helper rule: each helper emits its corresponding HLA<type>Handle data type from HLAstandardMIM. The standard MIM declares the ten handle data types as HLAvariableArray of HLAbyte; the companion 1516.2 contract pins that array's signed HLAinteger32BE element-count rule. Umbra deliberately uses one fixed eight-octet implementation-owned identity payload inside that required wrapper. This is source/test traceability only. It does not demonstrate interoperability with another RTI implementation, public service behavior, package/JUnit/protected-review evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-handle-encoding-uses-the-corresponding-standard-mim-type",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-382-l24-7",
+      "clause_id": "clause-12.12.5.1",
+      "source": "cpp/src/internal/handles/handle_variable_array_encoding.hpp",
+      "source_symbol": "encodeUmbraHandleVariableArray",
+      "tests": [
+        "cpp/tests/attribute_handle_catch2.cpp::The embedded AttributeHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/dimension_handle_catch2.cpp::The embedded DimensionHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/federate_handle_catch2.cpp::The embedded FederateHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/interaction_class_handle_catch2.cpp::The embedded InteractionClassHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding",
+        "cpp/tests/object_class_handle_catch2.cpp::The embedded ObjectClassHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/object_instance_handle_catch2.cpp::The embedded ObjectInstanceHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/parameter_handle_catch2.cpp::The embedded ParameterHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/region_handle_catch2.cpp::The embedded RegionHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/transportation_type_handle_catch2.cpp::The embedded TransportationTypeHandle encoding is an HLAvariableArray-wrapped identity"
+      ]
+    }
+  ]
+}

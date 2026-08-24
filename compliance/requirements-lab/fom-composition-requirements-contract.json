@@ -1,0 +1,340 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the private FOM/MIM composition preflight to source-derived IEEE 1516.2 Annex C requirements. It checks source and Catch2 selector traceability only; it is not a public RTI service catalog, JUnit evidence record, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-annex-c-class-conflict-preflight",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l46-6",
+      "clause_id": "clause-C.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeNode",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight permits equivalent duplicates and rejects a real class conflict"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-enumerated-value-preflight",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l86-19",
+      "clause_id": "clause-C.3",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateEnumeratedValues",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces enumerated and variant-record merge invariants"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-variant-record-preflight",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1",
+      "clause_id": "clause-7",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateVariantRecordAlternatives",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces enumerated and variant-record merge invariants"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-composed-from-fdd-metadata",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l34-4",
+      "clause_id": "clause-C.1",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "materializeFdd",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-notes-remapping",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11",
+      "clause_id": "clause-C.9",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "makeNoteLabelMap",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer remaps referenced notes and logically ORs service usage"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-service-usage-merge",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12",
+      "clause_id": "clause-C.10",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeServiceUtilization",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer remaps referenced notes and logically ORs service usage"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-switch-retains-first-setting",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l34-5",
+      "clause_id": "clause-C.8",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeSwitches",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-equivalent-duplicate-switch-is-ignored",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6",
+      "clause_id": "clause-C.8",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeSwitches",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-switch-name-comparison",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l42-7",
+      "clause_id": "clause-C.8",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeSwitches",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-switch-warning-for-non-equivalent-duplicate",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l50-9",
+      "clause_id": "clause-C.8",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeSwitches",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+      ]
+    },
+    {
+      "id": "umbra-omt-composed-data-type-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-068-l41-3",
+      "clause_id": "clause-4.14.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDataTypeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves data-type references after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-data-type-name-uniqueness",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-068-l33-2",
+      "clause_id": "clause-4.14.1",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects a data-type name collision across modules"
+      ]
+    },
+    {
+      "id": "umbra-omt-annex-c-data-type-name-conflict",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9",
+      "clause_id": "clause-C.3",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects a data-type name collision across modules"
+      ]
+    },
+    {
+      "id": "umbra-omt-array-element-data-type-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l118-23",
+      "clause_id": "clause-6.2.18",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDataTypeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves data-type references after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-class-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l94-18",
+      "clause_id": "clause-6.2.17",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeClassReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data classes after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-referenced-class",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l53-4",
+      "clause_id": "clause-4.14.9",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeClassReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data classes after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-attribute-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l98-19",
+      "clause_id": "clause-6.2.17",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeAttributeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-representation-matches-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20",
+      "clause_id": "clause-6.2.17",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeAttributeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-referenced-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5",
+      "clause_id": "clause-4.14.9",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeAttributeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-representation-matches-referenced-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l49-3",
+      "clause_id": "clause-4.14.9",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeAttributeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-inherited-attribute-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l97-2",
+      "clause_id": "clause-4.5.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "referencedAttributeDataType",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+      ]
+    },
+    {
+      "id": "umbra-omt-directed-interaction-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l34-6",
+      "clause_id": "clause-6.2.4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDirectedInteractionReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
+      ]
+    },
+    {
+      "id": "umbra-omt-directed-interaction-merge",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l22-5",
+      "clause_id": "clause-7",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeNode",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer refuses the supplied extension when the official FDD schema cannot represent its directed-interaction merge",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
+      ]
+    },
+    {
+      "id": "umbra-omt-object-available-dimension-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l78-16",
+      "clause_id": "clause-6.2.5",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateAvailableDimensionReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves available dimensions after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-interaction-available-dimension-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l118-25",
+      "clause_id": "clause-6.2.6",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateAvailableDimensionReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves available dimensions after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-attribute-transportation-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l82-17",
+      "clause_id": "clause-6.2.5",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateTransportationReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves transportation names after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-interaction-transportation-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l122-26",
+      "clause_id": "clause-6.2.6",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateTransportationReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves transportation names after the complete module set is merged"
+      ]
+    },
+    {
+      "id": "umbra-omt-time-representation-data-type-category-validation",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9",
+      "clause_id": "clause-6.2.8",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateTimeRepresentationDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates time-representation data type categories"
+      ]
+    },
+    {
+      "id": "umbra-omt-user-supplied-tag-data-type-category-validation",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l58-11",
+      "clause_id": "clause-6.2.9",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateTagDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates user-supplied and synchronization tag data type categories"
+      ]
+    },
+    {
+      "id": "umbra-omt-synchronization-tag-data-type-category-validation",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l74-14",
+      "clause_id": "clause-6.2.10",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateTagDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates user-supplied and synchronization tag data type categories"
+      ]
+    },
+    {
+      "id": "umbra-omt-inherited-object-attribute-name-validation",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l54-10",
+      "clause_id": "clause-6.2.5",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateInheritedObjectClassAttributeNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects inherited attribute and parameter name overloading"
+      ]
+    },
+    {
+      "id": "umbra-omt-inherited-interaction-parameter-name-validation",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l110-23",
+      "clause_id": "clause-6.2.6",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateInheritedInteractionClassParameterNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects inherited attribute and parameter name overloading"
+      ]
+    },
+    {
+      "id": "umbra-omt-time-representation-selection-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-059-l48-4",
+      "clause_id": "clause-4.8.3",
+      "source": "cpp/src/internal/time/reference_time_selection.cpp",
+      "source_symbol": "ReferenceLogicalTimeSelector::select",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::Reference logical-time selection defaults to HLAfloat64Time and rejects incompatible FDD documentation"
+      ]
+    }
+  ]
+}

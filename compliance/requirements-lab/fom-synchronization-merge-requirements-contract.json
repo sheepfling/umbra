@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the private Annex C.5 synchronization-point composition rule. Same-label synchronization points are compared with the first definition: an identical duplicate is ignored, while any differing label/data type/capability/semantics/note sub-element fails composition. Referenced notes are compared by note content after Umbra's per-module label remapping, so semantically identical modules remain equivalent. This is source/test traceability only, not a public synchronization-service or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-synchronization-duplicate-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l54-9",
+      "clause_id": "clause-C.5",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeSynchronizationPoints",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.5 synchronization duplicate rule"
+      ]
+    },
+    {
+      "id": "umbra-omt-synchronization-duplicate-ignore",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l58-10",
+      "clause_id": "clause-C.5",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeSynchronizationPoints",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.5 synchronization duplicate rule"
+      ]
+    },
+    {
+      "id": "umbra-omt-synchronization-duplicate-sub-elements",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l78-15",
+      "clause_id": "clause-C.5",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "semanticNodesEquivalentWithNotes",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.5 synchronization duplicate rule"
+      ]
+    }
+  ]
+}

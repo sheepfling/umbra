@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/federation_time_grant_policy.hpp"
+#include "internal/time/federation_time_grant_policy.hpp"
 
 #include <cstdint>
 #include <memory>

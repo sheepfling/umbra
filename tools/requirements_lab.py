@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -19,9 +20,11 @@ from typing import Any
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BUNDLE = REPOSITORY_ROOT / ".compliance" / "corpus-bundle.json"
-DEFAULT_CONTRACT = REPOSITORY_ROOT / "compliance" / "api-baseline.json"
-DEFAULT_LOCK = REPOSITORY_ROOT / "compliance" / "requirements-lab.lock.json"
+DEFAULT_CONTRACT = REPOSITORY_ROOT / "compliance" / "requirements-lab" / "api-baseline.json"
+DEFAULT_LOCK = REPOSITORY_ROOT / "compliance" / "requirements-lab" / "requirements-lab.lock.json"
 DEFAULT_LAB_ROOT = REPOSITORY_ROOT.parent / "Document-Recreation"
+DEFAULT_OBSERVATIONS = REPOSITORY_ROOT / "docs" / "testing" / "REQUIREMENTS-LAB-OBSERVATIONS.md"
+OBSERVATION_HEADING = re.compile(r"^###\\s+(RL-\\d{3})\\s+—", re.MULTILINE)
 
 
 def _lab_root(value: Path | None) -> Path:
@@ -109,6 +112,23 @@ def _header_path(value: object) -> Path | None:
     if not candidate.is_relative_to(root):
         return None
     return candidate
+
+
+def _check_observations(path: Path = DEFAULT_OBSERVATIONS) -> tuple[str, ...]:
+    """Return findings for duplicate Requirements Lab observation identifiers."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        return (f"cannot read observations log {path}: {error}",)
+    identifiers = OBSERVATION_HEADING.findall(text)
+    counts: dict[str, int] = {}
+    for identifier in identifiers:
+        counts[identifier] = counts.get(identifier, 0) + 1
+    return tuple(
+        f"observations log contains duplicate identifier {identifier} ({count} headings)"
+        for identifier, count in sorted(counts.items())
+        if count > 1
+    )
 
 
 def _check_source_and_tests(owned_id: object, owned: dict[str, Any]) -> list[str]:
@@ -339,7 +359,8 @@ def main() -> int:
             )
             print(f"exported Requirements Lab bundle to {args.output}")
             return 0
-        findings = check_contract(args.contract, args.bundle)
+        findings = list(check_contract(args.contract, args.bundle))
+        findings.extend(_check_observations())
     except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         print(f"requirements-lab: {error}", file=sys.stderr)
         return 2

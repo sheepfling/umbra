@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers the ownership boundary for explicit object-attribute update-region associations in Umbra's opt-in, non-installable IEEE 1516.1-2025 development profile. The private registry treats an update-region association as state of the current owner: when ownership is transferred, divested, unconditionally released, unpublished, or otherwise lost, the former association is erased and is not inherited by a later owner. The linked Catch2 scenario exercises If Available acquisition followed by Divestiture If Wanted and proves that a stale former-owner association cannot route an update until the new owner explicitly associates a region. Confirm Divestiture, unconditional divestiture, unpublish, and resignation use the same helper but remain implementation paths without separate public scenarios here. Default-region synthesis, scope-advisory callback completeness, regional request forms, negotiated ownership, save/restore, remote transport, package evidence, protected review, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-update-region-association-is-owner-scoped",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l26-8",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-update-region-association-is-lost-on-divestiture",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l50-16",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-registration-region-association-is-not-restored-after-reacquisition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l17-4",
+      "clause_id": "clause-9.5.4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-associated-update-region-is-not-restored-after-reacquisition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l175-54",
+      "clause_id": "clause-9.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-selects-a-pending-acquirer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-151-l138-45",
+      "clause_id": "clause-7.1.2.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+      ]
+    }
+  ]
+}

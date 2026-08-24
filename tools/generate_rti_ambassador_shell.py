@@ -17,7 +17,7 @@ from typing import Any
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INVENTORY = REPOSITORY_ROOT / "compliance" / "binding-inventory.json"
+DEFAULT_INVENTORY = REPOSITORY_ROOT / "compliance" / "standards" / "binding-inventory.json"
 DEFAULT_OUTPUT = REPOSITORY_ROOT / "cpp" / "generated" / "rti_ambassador_shell.hpp"
 _RTI_AMBASSADOR = "rti1516_2025::RTIambassador"
 

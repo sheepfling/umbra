@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-embedded-transport-traceability-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded transport-fault route for HLAreportFederateLost to the Requirements Lab's surviving-subscriber and time-regulating-federate requirements. The planner captures the lost federate's active current logical time before automatic-resign cleanup and the callback route rechecks a surviving recipient's subscription before delivery. Catch2 proves the MIM class and parameter values, HLAreliable receive-order callback, selective ordinary and DDM-matching regional subscription under HLA_EVOKED and HLA_IMMEDIATE, and the one local default-invalid producer-handle adapter representation. A complementary asynchronous-delivery integration case proves that the report's encoded time-6 parameter is the same inclusive cutoff that releases a queued timestamp-6 application interaction. The broader page-50 TSO cutoff/delivery matrix, remote transport, generic MOM delivery, JUnit/protected review, and conformance remain open. RL-065 records the C++ producer-designator crosswalk gap.",
+  "requirements": [
+    {
+      "id": "umbra-federate-lost-report-notifies-subscribed-survivors",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l18-5",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planFederateLostReport",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry plans HLAreportFederateLost before a fault-driven resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports HLAreportFederateLost to subscribed survivors",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers HLAreportFederateLost immediately to immediate subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss DDM-filters HLAreportFederateLost regional subscriptions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss DDM-delivers HLAreportFederateLost immediately to matching subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+      ]
+    },
+    {
+      "id": "umbra-federate-lost-report-captures-time-regulator-last-known-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l21-6",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planFederateLostReport",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry plans HLAreportFederateLost before a fault-driven resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports HLAreportFederateLost to subscribed survivors",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers HLAreportFederateLost immediately to immediate subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss DDM-delivers HLAreportFederateLost immediately to matching subscribers",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+      ]
+    }
+  ]
+}

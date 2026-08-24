@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 dimension metadata and lookup foundation in Umbra's opt-in, non-installable development profile. The composed 1516.2-2025 FOM catalog retains declared class/interaction dimension associations and upper bounds; the registry allocates stable DimensionHandle values; and the public lookup services expose inherited available dimensions and upper bounds. Region creation, range state, region routing, timestamped/retraction behavior, save/restore, remote transport, catalog evidence, validation, and conformance remain outside this slice. The contract uses immutable 2025 candidate IDs exported by the Requirements Lab.",
+  "requirements": [
+    {
+      "id": "umbra-dimension-available-for-object-class-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l107-34",
+      "clause_id": "clause-9.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableDimensionsForObjectClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    },
+    {
+      "id": "umbra-dimension-available-for-object-instance-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l110-35",
+      "clause_id": "clause-9.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableDimensionsForObjectClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    },
+    {
+      "id": "umbra-dimension-available-for-interaction-class",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l119-38",
+      "clause_id": "clause-9.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableDimensionsForInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    },
+    {
+      "id": "umbra-dimension-upper-bound-retained-from-fom",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l140-45",
+      "clause_id": "clause-9.1.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "appendDimension",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    }
+  ]
+}

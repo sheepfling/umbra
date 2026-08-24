@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the immutable FOM catalog's synchronization-point projection to the 2025 synchronization table. It checks source and Catch2 traceability only; it is not a public synchronization service catalog, JUnit evidence record, or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-synchronization-table-template-catalog",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-061-l86-4",
+      "clause_id": "clause-4.10.2",
+      "source": "cpp/src/internal/fom/fom_catalog.hpp",
+      "source_symbol": "FomSynchronizationPointDefinition",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM"
+      ]
+    },
+    {
+      "id": "umbra-omt-synchronization-label-catalog",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-061-l90-5",
+      "clause_id": "clause-4.10.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "synchronizationPoints_",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM"
+      ]
+    },
+    {
+      "id": "umbra-omt-synchronization-semantics-catalog",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-062-l55-3",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "FomSynchronizationPointDefinition",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM"
+      ]
+    },
+    {
+      "id": "umbra-omt-synchronization-fom-documentation-catalog",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-062-l63-4",
+      "clause_id": "clause-4.10.3",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "FomCatalogBuilder::build",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM"
+      ]
+    }
+  ]
+}

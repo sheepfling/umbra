@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the bounded embedded IEEE 1516.1-2025 federation synchronization-point implementation to the exact C++ RTIambassador and FederateAmbassador declarations exported by the Requirements Lab. It verifies official signatures, exception sets, callback symbols, and real Catch2 scenarios. Focused filesystem lanes connect the two C++ registration-result callbacks to the one §4.15 HLA service report and independently cover recipient-side §4.16 and §4.18 records without claiming a public MOM-interaction implementation. It is not catalog evidence, protected-review evidence, package support, or a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-register-synchronization-point",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.registerfederationsynchronizationpoint.6ee5e7a64a16",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-register-synchronization-point-with-set",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.registerfederationsynchronizationpoint.f5f7f0fef499",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag, FederateHandleSet const & synchronizationSet) = 0",
+      "exception_types": ["InvalidFederateHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-achieve-synchronization-point",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.synchronizationpointachieved.efdd0c3257fc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void synchronizationPointAchieved( std::wstring const & synchronizationPointLabel, bool successfully = true) = 0",
+      "exception_types": ["SynchronizationPointLabelNotAnnounced", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-registration-succeeded",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.synchronizationpointregistrationsucceeded.49b4d834a912",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void synchronizationPointRegistrationSucceeded( std::wstring const & synchronizationPointLabel) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitSynchronizationPointRegistration",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Confirm Synchronization Point Registration result forms"
+      ]
+    },
+    {
+      "id": "umbra-synchronization-point-registration-failed",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.synchronizationpointregistrationfailed.6a41159e8e3c",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void synchronizationPointRegistrationFailed( std::wstring const & synchronizationPointLabel, SynchronizationPointFailureReason reason) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitSynchronizationPointRegistration",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Confirm Synchronization Point Registration result forms"
+      ]
+    },
+    {
+      "id": "umbra-announce-synchronization-point",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.announcesynchronizationpoint.19aa68d2a525",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void announceSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitSynchronizationPointAnnouncements",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Announce Synchronization Point at recipient files"
+      ]
+    },
+    {
+      "id": "umbra-federation-synchronized",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.federationsynchronized.88769635ba5c",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void federationSynchronized( std::wstring const & synchronizationPointLabel, FederateHandleSet const & failedToSyncSet) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "submitFederationSynchronizedNotifications",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized at recipient files",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
+      ]
+    }
+  ]
+}

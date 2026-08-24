@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-sdk-encoding-foundation-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded 1516.2 predefined HLAvariableArray encoding foundation. The array prefix is a signed HLAinteger32BE element count at offset zero, and elements are padded according to their octet boundary. HLAunicodeString, HLAASCIIstring, HLAopaqueData, the standard MIM HLAargumentList, HLAmoduleDesignatorList, and the MIM's HLA<type>Handle values use that rule; the companion 1516.1 handle-encoding contract tracks the latter public-binding use. This does not establish complete BasicDataElements support, generic constructed-data encoding, public MOM reporting, package evidence, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-omt-variable-array-element-count",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11",
+      "clause_id": "clause-4",
+      "source_subclause": "4.14.10.5",
+      "source": "cpp/src/ieee1516_2025_basic_data_elements.cpp",
+      "source_symbol": "HLAunicodeString::encodeInto",
+      "related_source_symbols": [
+        "HLAunicodeString::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAunicodeString uses a UTF-16BE element-count payload",
+        "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report records use the standard MIM fixed-record layout"
+      ]
+    },
+    {
+      "id": "umbra-omt-ascii-string-variable-array-element-count",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11",
+      "clause_id": "clause-4",
+      "source_subclause": "4.14.10.5",
+      "source": "cpp/src/ieee1516_2025_basic_data_elements.cpp",
+      "source_symbol": "HLAASCIIstring::encodeInto",
+      "related_source_symbols": [
+        "HLAASCIIstring::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official octet, byte, and ASCII basic encoding helpers use their 1516.2 wire representations"
+      ]
+    },
+    {
+      "id": "umbra-omt-hla-opaque-data-variable-array-element-count",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-084-l95-11",
+      "clause_id": "clause-4",
+      "source_subclause": "4.14.10.5",
+      "source": "cpp/src/ieee1516_2025_opaque_data.cpp",
+      "source_symbol": "HLAopaqueData::encodeInto",
+      "related_source_symbols": [
+        "HLAopaqueData::decodeFrom"
+      ],
+      "tests": [
+        "cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp::Official HLAopaqueData uses an HLAbyte HLAvariableArray payload"
+      ]
+    },
+    {
+      "id": "umbra-omt-variable-array-element-padding",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-085-l63-4",
+      "clause_id": "clause-4",
+      "source_subclause": "4.14.10.5",
+      "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
+      "source_symbol": "encodeMomServiceArgumentList",
+      "related_source_symbols": [
+        "encodeModuleDesignatorList"
+      ],
+      "tests": [
+        "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report records use the standard MIM fixed-record layout",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry builds a private joined-federate MOM snapshot from canonical Join FOM modules"
+      ]
+    }
+  ]
+}

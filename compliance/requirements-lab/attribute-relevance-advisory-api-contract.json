@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the official IEEE 1516.1-2025 C++ Attribute Relevance Advisory switch accessors and both Turn Updates On overloads plus the Turn Updates Off FederateAmbassador callback used by Umbra's bounded embedded scope-transition path. Explicit retained subscription designators are grouped into the rate-bearing callback; omitted designators use the no-rate overload. Queued callbacks re-resolve the current designator at callback entry, including regional overlap transitions. It verifies exact official signatures, exception sets, adapter symbols, and real Catch2 selectors. The narrow file-selected successful-void record for Set Attribute Relevance Advisory Switch is traced separately in mom-service-reporting-requirements-contract.json; generic MOM behavior and interaction delivery remain outside this slice. Advisories Use Known Class, initial registration/discovery-time advisories, complete regional DDM, update-rate enforcement/reduction, transport, package evidence, protected review, catalog evidence, and conformance remain outside the slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-get-attribute-relevance-advisory-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getattributerelevanceadvisoryswitch.a7d78199839a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual bool getAttributeRelevanceAdvisorySwitch() const = 0",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getAttributeRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+      ]
+    },
+    {
+      "id": "umbra-embedded-set-attribute-relevance-advisory-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setattributerelevanceadvisoryswitch.73f461c94e8a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setAttributeRelevanceAdvisorySwitch(bool switchValue) = 0",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setAttributeRelevanceAdvisorySwitch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters"
+      ]
+    },
+    {
+      "id": "umbra-embedded-turn-updates-on-for-object-instance",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.turnupdatesonforobjectinstance.b721f45f5535",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void turnUpdatesOnForObjectInstance( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
+      ]
+    },
+    {
+      "id": "umbra-embedded-turn-updates-off-for-object-instance",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.turnupdatesoffforobjectinstance.34a3c2ae0436",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void turnUpdatesOffForObjectInstance( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+      ]
+    },
+    {
+      "id": "umbra-embedded-turn-updates-on-for-object-instance-with-rate",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.turnupdatesonforobjectinstance.45e8b672fc3e",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void turnUpdatesOnForObjectInstance( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, std::wstring const & updateRateDesignator) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeRelevanceAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's opt-in, non-installable inherited-parameter lookup development slice to the exact 2025 C++ API surfaces exported by the Requirements Lab. It verifies only the official signatures, declared exception sets, adapter symbols, and real Catch2 selector. The scenario distinguishes an invalid interaction-class handle, an invalid parameter handle, and a valid handle not defined for the supplied interaction class; it also preserves issued values across a compatible additional-FOM join. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only: it is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-get-parameter-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual ParameterHandle getParameterHandle( InteractionClassHandle const & interactionClass, std::wstring const & parameterName) = 0",
+      "exception_types": [
+        "NameNotFound",
+        "InvalidInteractionClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getParameterHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded parameter lookup resolves inherited definitions in the joined federation FOM"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-parameter-name",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getparametername.42e0650f3e73",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual std::wstring getParameterName( InteractionClassHandle const & interactionClass, ParameterHandle const & parameter) = 0",
+      "exception_types": [
+        "InteractionParameterNotDefined",
+        "InvalidParameterHandle",
+        "InvalidInteractionClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getParameterName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded parameter lookup resolves inherited definitions in the joined federation FOM"
+      ]
+    }
+  ]
+}

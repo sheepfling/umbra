@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 region-template and range-state services to the exact official C++ RTIambassador declarations exported by the Requirements Lab. It verifies signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The implementation is limited to private metadata/state for region specifications: create, pending range updates, complete commit, owner-scoped support lookups, deletion rejection while a region is still used by a passive regional subscription, successful unused-region deletion, and handle decode. It does not claim region realizations, broader associations, overlap filtering, DDM routing, timestamped/retraction behavior, save/restore, remote transport, package support, catalog evidence, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-create-region",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual RegionHandle createRegion( DimensionHandleSet const & dimensions) = 0",
+      "exception_types": ["InvalidDimensionHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createRegion",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-embedded-commit-region-modifications",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void commitRegionModifications( RegionHandleSet const & regions) = 0",
+      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::commitRegionModifications",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-embedded-delete-region",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.deleteregion.6470d9fe34cf",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void deleteRegion( RegionHandle const & region) = 0",
+      "exception_types": ["RegionInUseForUpdateOrSubscription", "RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::deleteRegion",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-dimension-handle-set",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getdimensionhandleset.dad4d47dece7",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual DimensionHandleSet getDimensionHandleSet( RegionHandle const & region) = 0",
+      "exception_types": ["InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getDimensionHandleSet",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-range-bounds",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getrangebounds.c5db50c46578",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual RangeBounds getRangeBounds( RegionHandle const & region, DimensionHandle const & dimension) = 0",
+      "exception_types": ["RegionDoesNotContainSpecifiedDimension", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getRangeBounds",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+      ]
+    },
+    {
+      "id": "umbra-embedded-set-range-bounds",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setRangeBounds( RegionHandle const & region, DimensionHandle const & dimension, RangeBounds const & rangeBounds) = 0",
+      "exception_types": ["InvalidRangeBound", "RegionDoesNotContainSpecifiedDimension", "RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+      ]
+    },
+    {
+      "id": "umbra-embedded-decode-region-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.decoderegionhandle.cc62da679ba2",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual RegionHandle decodeRegionHandle ( VariableLengthData const & encodedValue) const = 0",
+      "exception_types": ["CouldNotDecode", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::decodeRegionHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+      ]
+    }
+  ]
+}

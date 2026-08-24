@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-embedded-transport-traceability-not-conformance-evidence",
+  "notes": "This contract pins the embedded Connection Lost scenario to the exact IEEE 1516.1-2025 C++ FederateAmbassador callback. The callback is invoked on a best-effort basis after the private transport endpoint forces the member out of the execution; the focused selected-file lane proves its distinct §4.4 fault-description record is durable before that callback and writer release. The directive cases validate configured DELETE_OBJECTS, UNCONDITIONALLY_DIVEST_ATTRIBUTES, DELETE_OBJECTS_THEN_DIVEST, CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, and CANCEL_THEN_DELETE_THEN_DIVEST automatic-resign dispositions before that callback, plus the bounded NO_ACTION forced-resign policy that retains the object, divests owned attributes, offers assumptions to a survivor, and emits no automatic removal. The focused TSO-cutoff cases additionally prove the faulted federate's callback alongside a surviving recipient's independently traced ordinary and directed timestamped interaction callbacks, timestamped Reflect Attribute Values callback, and timestamped Remove Object Instance callback; the reflection and deletion paths are independently delivered to two staggered survivors, deletion remains timestamped across an automatic-delete collision, and both a late timestamped reflection and a late directed interaction remain distinct from their later receive-order automatic deletions. Bounded evoked and immediate asynchronous attribute cases prove Reflect Attribute Values, matching Time Advance Grant, then receive-order automatic removal in the same TAR. The composite asynchronous-delivery case also pairs that cutoff with HLAreportFederateLost. It is source/API traceability only; protected review, package support, remote transport, and conformance remain open.",
+  "api_surfaces": [
+    {
+      "id": "umbra-connection-lost-cpp-callback",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void connectionLost( std::wstring const & faultDescription) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::handleEmbeddedTransportFailure",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss forces the official connection-lost transition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Connection Lost before its callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
+    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss preserves a cutoff timestamped deletion across automatic delete cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss drains a cutoff timestamped deletion to each pending survivor",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+      ]
+    }
+  ]
+}

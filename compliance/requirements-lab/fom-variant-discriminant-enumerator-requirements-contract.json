@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins three bounded IEEE 1516.2-2025 variant-record Discriminant Enumerator lexical rules: supplied fields contain comma-separated enumerators or bracketed two-endpoint ranges; HLAother is a standalone special symbol and may occur at most once per record. The completed-model preflight keeps an omitted field representable for incomplete DIF. Membership, table-order range expansion, cross-alternative overlap, and the HLAother complement model are intentionally covered by paired private contracts. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-variant-record-discriminant-enumerator-list",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l58-12",
+      "clause_id": "clause-6.2.20",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateVariantRecordDiscriminantEnumeratorSyntax",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates variant-record discriminant-enumerator syntax"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-record-discriminant-enumerator-range",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l62-13",
+      "clause_id": "clause-6.2.20",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateVariantRecordDiscriminantEnumeratorSyntax",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates variant-record discriminant-enumerator syntax"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-record-discriminant-hlaother-cardinality",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14",
+      "clause_id": "clause-6.2.20",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateVariantRecordDiscriminantEnumeratorSyntax",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates variant-record discriminant-enumerator syntax"
+      ]
+    }
+  ]
+}

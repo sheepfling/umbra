@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This focused contract records the terminal-callback boundary for the bounded Unconditional Attribute Ownership Divestiture profile. A queued Request Attribute Ownership Assumption callback is rechecked before FederateAmbassador code: if the candidate has stopped publishing, the callback is suppressed and its outstanding candidate reservation is released. A later publication therefore continues the unowned search and produces one fresh grouped offer while the instance attribute remains unowned, carrying the original divestiture tag. The behavior is traced to the exported ownership candidates for tag propagation, eligibility, the continuing unowned search, and the single-offer callback rule; it does not claim complete ownership arbitration, RTI-owned state, every resignation action, negotiated divestiture, save/restore, DDM, timestamped/retraction behavior, remote transport, packaging, JUnit/protected review, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-assumption-research-preserves-originating-divestiture-tag",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13",
+      "clause_id": "clause-7.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipAssumptionRecipients",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates"
+      ]
+    },
+    {
+      "id": "umbra-assumption-research-rechecks-candidate-at-callback-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l125-39",
+      "clause_id": "clause-7.1.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::attributeOwnershipAssumptionDeliveryFor",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates"
+      ]
+    },
+    {
+      "id": "umbra-assumption-research-continues-while-attribute-is-unowned",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49",
+      "clause_id": "clause-7.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates"
+      ]
+    },
+    {
+      "id": "umbra-assumption-research-republication-produces-one-fresh-offer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-157-l103-29",
+      "clause_id": "clause-7.4.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates"
+      ]
+    }
+  ]
+}

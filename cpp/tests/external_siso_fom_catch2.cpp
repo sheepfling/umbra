@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/libxml2_fom_validator.hpp"
+#include "internal/fom/libxml2_fom_validator.hpp"
 
 #include <array>
 #include <filesystem>

@@ -1,0 +1,502 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This bounded contract covers the first public RTI-owned HLAmanager.HLAfederate object-management route in the non-installable embedded profile: active ordinary and immutable-point-filtered regional subscription discovery, reliable reflection of all seven required Table 8 initial values, event-driven reflections of the nine predefined switch attributes and four bounded temporal-state attributes after their successful service transitions, accepted time-advance requests/grants, or accepted HLAsetSwitches subset, plus the save/restore lifecycle projection of HLAfederateState (ActiveFederate=1, FederateSaveInProgress=3, FederateRestoreInProgress=5) at the corresponding callback boundaries. The execution-scoped HLAmanager.HLAfederation object additionally projects HLAfederatesInFederation from the live membership map, with direct current-value requests and Join/Resign conditional reflections. Known-object Request Attribute Value Update covers the complete initial and bounded conditional projections plus direct values for the MIM-periodic HLAlogicalTime, HLAlookahead, HLAGALT, HLALITS, HLATSOlength, HLAupdatesSent, HLAobjectInstancesThatCanBeDeleted, HLAobjectInstancesUpdated, HLAobjectInstancesRegistered, HLAobjectInstancesDeleted, HLAobjectInstancesRemoved, HLAobjectInstancesDiscovered, HLAobjectInstancesReflected, HLAreflectionsReceived, HLAinteractionsSent, HLAdirectedInteractionsSent, HLAinteractionsReceived, and HLAdirectedInteractionsReceived attributes, as required even before a periodic timer is configured; ordinary-object local-delete rediscovery and resignation removal are covered. HLAinteractionsSent counts accepted sender-side Send Interaction service invocations once at the service boundary, including ordinary, directed, timestamped, and regional forms; HLAdirectedInteractionsSent is the directed subset. HLAinteractionsReceived and HLAdirectedInteractionsReceived count accepted application Receive Interaction callbacks once at the receiver callback boundary, excluding RTI-originated MOM traffic and suppressed callbacks. HLAobjectInstancesReflected counts distinct application object instances at that same accepted Reflect Attribute Values callback boundary, while HLAreflectionsReceived counts callback invocations; repeated reflections of one object increase only the total, and timestamped queued reflections use the same boundary. The bounded HLAsetTiming interaction now accepts the official HLAfederateReference/HLAseconds pair, arms or disables a target joined-federate deadline, and emits the catalog-defined periodic subset through the normal active-subscription reflection planner. HLA_EVOKED remains caller-gated at an Evoke boundary; HLA_IMMEDIATE now has an embedded per-ambassador scheduler that invokes the same callback route without an Evoke call. The implementation keeps the real filesystem-backed report path and Join-scoped module-designator list as standards-facing values and uses the default-invalid FederateHandle only as an explicitly documented local policy for RTI-originated callbacks. It also has two bounded public MOM request/report pairs, HLArequestObjectInstancesUpdated to HLAreportObjectInstancesUpdated and HLArequestObjectInstancesThatCanBeDeleted to HLAreportObjectInstancesThatCanBeDeleted, with class-grouped nested counts and callback-gated delivery. It does not claim the remaining periodic/other conditional attributes, optional/inherited non-initial attributes beyond this bounded state projection, RTI-owned MOM discovery counting, the other public MOM request/report families, a resolved standard producer mapping, JUnit/protected review, remote transport, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-joined-federate-mom-discovery-ordinary-subscription",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
+      "clause_id": "clause-6.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planJoinedFederateMomObjectDiscoveriesForFederate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-discovery-subscription-eligibility",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+      "clause_id": "clause-6.1.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateJoinedFederateMomObjectDiscoveryClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-discover-object-instance-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
+      "clause_id": "clause-6.9.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueObjectInstanceDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-rti-updates-federate-object",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM conditional reflections track current state"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-federate-state-save-restore",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM HLAfederateState follows save and restore callbacks"
+      ],
+      "notes": "This is a bounded projection of the MIM HLAfederateState enumeration, driven by the embedded save/restore operation ledgers and reflected after Initiate/Federation Saved and Federation Restore Begun/Initiate/Federation Restored callback boundaries in both callback models. During save initiation the event-only MOM planner suppresses the state reflect at the saving federate itself while retaining direct Request Attribute Value Update access to the current value; observer reflections remain reliable and RTI-originated. It is not a claim that every conditional HLAfederate attribute, producer mapping, or conformance obligation is complete."
+    },
+    {
+      "id": "umbra-joined-federate-mom-direct-periodic-time-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM conditional reflections track current state"
+      ],
+      "notes": "The official HLAstandardMIM marks HLAlogicalTime, HLAlookahead, HLAGALT, HLALITS, and HLATSOlength Periodic, while §11.4.1 requires Request Attribute Value Update to supply static, periodic, and conditional values alike. This bounded slice returns the selected official LogicalTime/LogicalTimeInterval encodings (or the MIM empty-array undefined form) through the known-object direct-request path. Federation GALT/LITS reuse the same snapshot and calculator as Query GALT/Query LITS, including defined and undefined bounds; HLATSOlength reads the authoritative recipient-scoped queued TSO ledger. It deliberately does not claim HLAsetTiming wall-clock scheduling, the remaining periodic attributes, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-time-granted-duration-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::momTimeDurations",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes time-state durations directly and periodically",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_time_state_durations"
+      ],
+      "notes": "HLAstandardMIM defines HLAtimeGrantedTime as an HLAinteger32BE HLAmsec duration. This bounded development-profile slice exposes a non-consuming direct Request Attribute Value Update value and a consume-once HLAsetTiming periodic value from the federation-owned wall-clock state, with nonnegative official four-octet encoding in both callback models. It does not claim the full time-statistics matrix, public MOM producer mapping, remote transport, JUnit/protected review, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-time-advancing-duration-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::momTimeDurations",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes time-state durations directly and periodically",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_time_state_durations"
+      ],
+      "notes": "HLAstandardMIM defines HLAtimeAdvancingTime as an HLAinteger32BE HLAmsec duration. This bounded development-profile slice exposes the current advancing interval through direct Request Attribute Value Update and the registry-owned consume-once periodic reflection route, preserving official four-octet nonnegative encoding and both callback models. It does not claim every time-management transition, the full time-statistics matrix, public MOM producer mapping, remote transport, JUnit/protected review, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-hla-set-timing-periodic-updates",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setFederateMomReportPeriod",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives joined-federate periodic values"
+      ],
+      "notes": "The official HLAstandardMIM defines HLAsetTiming.HLAreportPeriod as HLAseconds represented by HLAinteger32BE and targets a joined federate through HLAfederateReference. This bounded slice validates the signed wire value, rejects negative periods without state mutation, stores one target-local wall-clock deadline, disables on zero, and claims the MIM-declared Periodic attribute handles through the ordinary active-subscription reflection planner at an Evoke callback boundary. The bounded MOM projection now supplies HLAlogicalTime/HLAlookahead, HLAGALT/HLALITS, and HLATSOlength when those Periodic attributes are actively subscribed; remaining periodic/conditional attributes, public MOM producer mapping, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-hla-set-timing-immediate-scheduler",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::periodicMomSchedulerLoop",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives HLA_IMMEDIATE periodic values without Evoke"
+      ],
+      "notes": "The embedded profile's HLA_IMMEDIATE callback model now runs a private per-ambassador scheduler that claims the same registry-owned HLAsetTiming deadline and invokes the ordinary active-subscription reflection route without an Evoke call. The focused case uses a thread-safe observer, verifies a periodic HLAlogicalTime/HLAlookahead reflection after one second, and verifies that HLAreportPeriod=0 stops later reflections. The scheduler is an embedded development-profile implementation detail; remaining periodic/conditional attributes, remote transport, producer mapping, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-galt-lits-periodic-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes federation GALT and LITS"
+      ],
+      "notes": "HLAGALT and HLALITS are official HLAlogicalTime Periodic attributes. This bounded development-profile case proves direct known-object requests and HLAsetTiming delivery use the same federation-owned time snapshot/calculator as Query GALT/Query LITS: a joined regulator's initial time plus lookahead yields defined value 2 for both bounds, and disabling the sole regulator returns the MIM empty-array undefined form. It does not claim the remaining HLAcount/statistical periodic attributes, public MOM producer mapping, remote transport, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-tso-length-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes queued TSO length"
+      ],
+      "notes": "HLATSOlength is an official HLAcount Periodic attribute whose semantics count TSO messages queued for the joined federate. This bounded case proves direct and HLAsetTiming reflections read the coordinator's recipient-scoped queued ledger: one timestamped interaction is reported as count 1 before the target grant, and count 0 after delivery; in-transit and completed delivery state are not counted as queued. It does not claim the remaining traffic statistics, public MOM producer mapping, remote transport, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-deletable-object-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes deletable object count"
+      ],
+      "notes": "HLAstandardMIM defines HLAobjectInstancesThatCanBeDeleted as an HLAcount of live object instances whose HLAprivilegeToDeleteObject is owned by the represented joined federate. This bounded case reads the existing object ownership ledger, excludes RTI-owned MOM objects, and proves direct requests 0 before registration, 1 after a real implicit-privilege registration, periodic HLAsetTiming value 1, and 0 after the owner deletes the object. It does not claim the remaining traffic/statistical counts, public MOM producer mapping, remote transport, or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-ro-length-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes receive-order queue length",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_ro_length_tracks_queued_messages"
+      ],
+      "notes": "HLAstandardMIM defines HLAROlength as the number of receive-order messages waiting for the represented joined federate. This bounded development-profile slice reads the live callback-route/deferred-receive ledger, proves direct HLAinteger32BE values 0 before a send, 1 while one application receive-order callback is queued, 1 through HLAsetTiming periodic reflection, and 0 after the target crosses its callback boundary. The native case covers HLA_EVOKED and the Java/JPype companion covers both HLA_EVOKED and HLA_IMMEDIATE. The generic Lab candidate does not express the represented-federate queue source, callback gate, direct/periodic relation, or callback model; RL-108 records that refinement gap. Remaining statistical attributes, public MOM producer mapping, remote transport, JUnit promotion, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-updates-sent-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+      ],
+      "notes": "HLAstandardMIM defines HLAupdatesSent as the total number of times the represented joined federate has successfully invoked Update Attribute Values. This bounded case uses an RTI-owned membership counter advanced only after synchronous validation/queue admission, proves direct values 0 before any invocation and 1 then 2 after two accepted updates, and verifies periodic HLAsetTiming reflection of 2. It counts service invocations rather than individual attribute values or downstream reflections; other traffic/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-updated-object-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+      ],
+      "notes": "HLAstandardMIM defines HLAobjectInstancesUpdated as the HLAcount of distinct object instances for which the represented joined federate has successfully invoked Update Attribute Values. This bounded case retains the accepted-boundary object-handle set on the joined membership, proves direct values 0 before updates, 1 after two invocations for one object, and 2 after a successful update for a second object, then verifies periodic reflection of 2 alongside HLAupdatesSent=3. Repeated updates to one object do not inflate the distinct-object count; remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-registered-object-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+      ],
+      "notes": "HLAstandardMIM defines HLAobjectInstancesRegistered as the HLAcount of successful Register Object Instance and Register Object Instance with Regions invocations since Join. This bounded case increments one membership-owned counter in the common registry registration path, proves direct values 0 before registration, 1 after the first object, and 2 after the second, and verifies periodic reflection of 2 alongside HLAupdatesSent=3 and HLAobjectInstancesUpdated=2. Invalid registrations do not increment the counter; remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-deleted-object-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::deleteObjectInstance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+      ],
+      "notes": "HLAstandardMIM defines HLAobjectInstancesDeleted as the total number of Delete Object Instance invocations by the joined federate since Join. This bounded case increments the membership-owned count after accepted receive-order deletion and after successful timestamped deletion queue admission, proves direct values 0/1/2 and periodic reflection of 0 before deletion and 2 after two deletions, and keeps the historical count across object purge. Retracted timestamped deletion does not decrement the historical invocation statistic; remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-removed-object-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceRemoval",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion"
+      ],
+      "notes": "HLAstandardMIM defines HLAobjectInstancesRemoved as the total number of Remove Object Instance service invocations for the represented joined federate since Join. This bounded case advances the recipient-owned counter only when an ordinary application-object receive-order or timestamped removal reaches its callback-admission boundary, leaves a pending legally retracted timestamped removal uncounted, and preserves a count for a removal retracted after delivery. The C++ vectors prove the receiving federate's direct value at 0, 1, and 2 after two committed receive-order callbacks and its periodic HLAsetTiming reflection at 2; the reconstitution vector proves one delivered timestamped removal remains counted while a suppressed constrained recipient remains at zero after retraction. RTI-owned joined-federate MOM-object removal, remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-discovered-object-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+      ],
+      "notes": "HLAstandardMIM defines HLAobjectInstancesDiscovered as the total number of Discover Object Instance invocations for the represented joined federate since Join and requires repeated discovery after Local Delete Object Instance to contribute again. This bounded development-profile slice advances the recipient-owned counter only after the ordinary application-object callback route has passed membership, declaration, class-selection, and known-state checks; it proves direct values 0, 1, 2, and 3, a periodic value of 3, and a third discovery for the same object after local deletion and a repeated eligible subscription. RTI-owned joined-federate MOM-object discovery, other statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-report-file-path",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l119-39",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::establishJoinedFederateMomObject",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-initial-record-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l122-40",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::establishJoinedFederateMomObject",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-initial-record-independent-of-switch",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::joinFederationExecutionImpl",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-following-service-report-records",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l131-43",
+      "clause_id": "clause-11.5.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends a Table 5 void-service record to the selected filesystem sink"
+      ]
+    },
+    {
+      "id": "umbra-joined-federate-mom-interactions-sent-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulInteractionSend",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes interaction send counts",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_interaction_send_counts"
+      ],
+      "notes": "HLAstandardMIM defines HLAinteractionsSent as the total number of interactions sent by the represented joined federate and requires the value to reflect related DDM usage. This bounded development-profile slice increments one sender-owned counter after the accepted Send Interaction service boundary, not once per recipient callback, and proves direct values 0 through 6 plus periodic value 6 across ordinary, directed, timestamped, regional, and timestamped-regional forms. Failed validation paths do not increment; timestamped forms count at queue admission. The native case also verifies the ordinary/direct callback routes and overlapping regional delivery. Remaining traffic/statistical attributes, RTI-owned MOM traffic, public producer mapping, remote transport, JUnit/protected review, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-directed-interactions-sent-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulInteractionSend",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes interaction send counts",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_interaction_send_counts"
+      ],
+      "notes": "HLAstandardMIM defines HLAdirectedInteractionsSent as the total number of directed interactions sent by the represented joined federate. This bounded slice increments the directed subset exactly once for accepted receive-order and timestamped Send Directed Interaction invocations, keeps regional ordinary sends in the total-only counter, and proves direct and periodic values 0, 1, and 2 while HLAinteractionsSent reaches 6. Directed DDM, complete directed-subscription arbitration, remaining traffic/statistical attributes, public producer mapping, remote transport, JUnit/protected review, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-interactions-received-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulInteractionReceipt",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes interaction send counts",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_interaction_send_counts"
+      ],
+      "notes": "HLAstandardMIM defines HLAinteractionsReceived as the total number of interactions received by the represented joined federate. This bounded development-profile slice increments one receiver-owned counter immediately before each accepted application Receive Interaction callback, once per callback rather than per parameter or sender fan-out, and deliberately excludes RTI-originated MOM callbacks and suppressed projections. The native matrix proves direct values 0, 1, 2, 3, 4, 5, and 6 across ordinary, directed, timestamped, regional, and timestamped-regional delivery plus periodic value 6; the Java/JPype companion covers its smaller direct vector. Remaining traffic/statistical attributes, remote transport, JUnit/protected review, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-directed-interactions-received-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulInteractionReceipt",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes interaction send counts",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_interaction_send_counts"
+      ],
+      "notes": "HLAstandardMIM defines HLAdirectedInteractionsReceived as the directed subset of interactions received by the represented joined federate. This bounded slice advances the subset only at accepted Receive Directed Interaction and timestamped directed callback boundaries while retaining each directed callback in HLAinteractionsReceived. The native matrix proves direct directed values 0, 0, 1, 1, 2, and 2 with periodic value 2 alongside total receiver value 6; invalid sends and RTI-owned MOM traffic do not inflate either counter. Directed DDM, remaining traffic/statistical attributes, remote transport, JUnit/protected review, and conformance evidence remain open."
+    },
+    {
+      "id": "umbra-federation-mom-federates-in-federation-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation MOM reflects HLAfederatesInFederation at membership boundaries",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_federation_mom_membership_updates"
+      ],
+      "notes": "The execution-scoped HLAmanager.HLAfederation object exposes HLAfederatesInFederation as the official nested HLAvariableArray<HLAfederateReference> representation, encoded from the authoritative live membership map. The native and Java/JPype cases prove a direct current-value request for one member and conditional reflections at the 1-to-2-to-1 Join/Resign boundaries. The pinned Lab export supplies only the generic §11.4.1 MOM candidate, so this remains development-profile traceability rather than Lab validation or conformance evidence."
+    },
+    {
+      "id": "umbra-joined-federate-mom-reflected-object-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulObjectInstanceReflection",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM separates reflection totals from distinct objects"
+      ],
+      "notes": "HLAstandardMIM defines HLAobjectInstancesReflected as the number of distinct application object instances for which the represented joined federate has received a Reflect Attribute Values callback. This bounded development-profile slice retains a joined-lifetime object-handle set at the accepted callback boundary, excludes RTI-owned MOM reflections, proves direct values 0, 1, 1, and 2 for repeated updates to one object followed by an update to a second object, keeps the value at 2 for a queued timestamped reflection of the first object, and verifies periodic HLAsetTiming value 2. The generic Lab candidate does not encode the distinct-object relation, callback boundary, or RTI-owned exclusion; RL-107 records that refinement gap. Remaining statistical attributes, public producer mapping, remote transport, protected review, JUnit promotion, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-reflections-received-count-periodic-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulReflectionReceipt",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM separates reflection totals from distinct objects"
+      ],
+      "notes": "HLAstandardMIM defines HLAreflectionsReceived as the number of accepted Reflect Attribute Values callback invocations at the represented joined federate. This bounded development-profile slice advances one receiver-owned counter immediately before each application callback, excludes MOM-owned callback traffic and suppressed projections, proves direct values 0, 1, 2, 3, and 4 across three receive-order updates plus one queued timestamped update, and verifies periodic HLAsetTiming value 4. The generic Lab candidate does not relate the statistic to callback admission, timestamped delivery, or RTI-owned exclusion; RL-107 records that refinement gap. Remaining statistical attributes, public producer mapping, remote transport, protected review, JUnit promotion, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-object-instances-updated-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesUpdatedReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesUpdated as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesUpdated response with HLAobjectClassBasedCounts. This bounded native-first slice consumes the request without ordinary publication validation, snapshots the target joined-federate update ledger by registered object class, encodes the official nested HLAvariableArray<HLAfixedRecord> value, and routes the reliable report through the target HLAfederate dimension point. The focused case proves two classes with one distinct object each after repeated updates, an empty user tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, class grouping, nested encoding, or the RTI producer route; RL-109 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-object-instances-that-can-be-deleted-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesThatCanBeDeletedReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesThatCanBeDeleted as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesThatCanBeDeleted response with HLAobjectClassBasedCounts. This bounded native-first slice derives live class-grouped counts from the authoritative HLAprivilegeToDeleteObject ownership ledger, encodes the official nested value, and routes a reliable report through the target HLAfederate dimension point. The focused case proves two registered classes initially report one deletable instance each, then deleting one instance removes only that class from the next report; the report has an empty tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, live ownership semantics, class grouping, nested encoding, or the RTI producer route; RL-110 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-object-instances-reflected-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesReflectedReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesReflected as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesReflected response with HLAobjectClassBasedCounts. This bounded native-first slice derives joined-lifetime distinct reflected-instance counts from the accepted application Reflect Attribute Values callback ledger, groups them by registered object class, encodes the official nested value, and routes a reliable report through the target HLAfederate dimension point. The focused case proves two classes after two initial reflections plus a repeated reflection of one object, empty tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, callback-boundary ownership, distinct-object semantics, class grouping, nested encoding, or the RTI producer route; RL-111 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-updates-sent-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomUpdatesSentReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestUpdatesSent reports class and transportation counts",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestUpdatesSent as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportUpdatesSent response for each supported transportation type, with HLAtransportation and nested HLAupdateCounts parameters. This bounded native-first slice records accepted Update Attribute Values by registered object class and effective HLAreliable/HLAbestEffort transportation, emits one reliable report per supported transportation including an empty HLAupdateCounts NULL response, encodes the official nested HLAobjectClassBasedCounts value, and routes through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused cases prove two best-effort Server updates and one reliable Soda update, plus an empty-ledger report for both transport buckets; reports have empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express per-transport report cardinality, accepted-update boundary, registered-class grouping, nested encoding, private endpoint, or producer route; RL-112 records that refinement gap. Custom/remote transportation, other HLArequest/HLAreport families, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-interactions-sent-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomInteractionsSentReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestInteractionsSent reports class and transportation counts",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestInteractionsSent as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportInteractionsSent response for each supported transportation type. This bounded native-first slice records accepted ordinary, regional, timestamped, directed, and accepted MOM Send Interaction invocations by sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits one reliable report per supported transportation including an empty HLAinteractionCounts NULL response, encodes the official array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused cases prove one reliable ordinary TakeOrder, one best-effort TakeOrder, one reliable regional MainCourseServed count, and an empty-ledger report for both transport buckets; reports have empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express per-transport report cardinality, regional inclusion, accepted sender boundary, class grouping, nested encoding, private endpoint, or producer route; RL-113 records that refinement gap. Custom/remote transportation, the remaining MOM request/report families, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-directed-interactions-sent-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomDirectedInteractionsSentReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestDirectedInteractionsSent reports directed class and transportation counts",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestDirectedInteractionsSent as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportDirectedInteractionsSent response for each supported transportation type. This bounded native-first slice records accepted directed Send Interaction invocations separately from the all-interactions ledger by sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits one reliable report per supported transportation including an empty HLAinteractionCounts NULL response, encodes the official array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused cases prove two reliable directed TakeOrder sends plus an empty best-effort bucket, empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express directed-subset accounting, per-transport report cardinality, accepted sender boundary, class grouping, nested encoding, private endpoint, or producer route; RL-114 records that refinement gap. Custom/remote transportation, the remaining MOM request/report families, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-reflections-received-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomReflectionsReceivedReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestReflectionsReceived reports class and transportation counts"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestReflectionsReceived as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportReflectionsReceived response for each transportation type. This bounded native-first slice records accepted application Reflect Attribute Values callbacks at the receiver boundary by registered object class and effective HLAreliable/HLAbestEffort transportation, emits both standard buckets including an empty HLAreflectCounts NULL response, encodes the official HLAobjectClassBasedCounts array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused case proves one reliable and one best-effort reflection, then an empty report for a joined federate with no reflections; reports have empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express callback-boundary reflection semantics, per-transport report cardinality, registered-class grouping, nested encoding, private endpoint, or producer route; RL-118 records that refinement gap. Custom/remote transportation, other MOM request/report families, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-object-instance-information-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstanceInformationReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestObjectInstanceInformation as a Subscribe-only MOM request carrying HLAobjectInstance and requires one RTI-originated HLAreportObjectInstanceInformation response. This bounded native-first slice snapshots the requesting joined federate's object knowledge at the request boundary, emits the requested HLAobjectInstance plus an official nested HLAattributeHandleList, and includes HLAregisteredClass/HLAknownClass only when the represented federate knows the object. The focused case proves the NULL response for an object removed from the observer's known-object ledger, the known response with no owned attributes, and the registering federate's response containing both Efficiency and the implicitly published HLAprivilegeToDeleteObject ownership. Reports use reliable transport, the target federate's private dimension point, empty tags, default-invalid RTI producers, and callback-gated delivery. The generic Lab candidate does not express request-object correlation, known-vs-NULL parameter omission, nested attribute-handle-list encoding, ownership/class snapshot semantics, private endpoint, or producer route; RL-119 records that refinement gap. Other MOM request/report families, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-publications-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomPublicationsReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestPublications reports publication state and NULL responses"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestPublications as a Subscribe-only MOM request inherited from HLAfederate and requires one HLAreportInteractionPublication plus one HLAreportObjectClassPublication for each published object class and one HLAreportDirectedInteractionPublication for each object class with directed publications. This bounded native-first slice snapshots ordinary object-class publication (including implicit HLAprivilegeToDeleteObject), ordinary interaction publication, and object-class directed-interaction publication at request acceptance; emits reliable RTI-originated reports through the target's private HLAfederate endpoint; and preserves the MIM NULL shapes (object report count only, empty interaction list, and directed count plus empty list). The focused case proves all three populated reports, nested official handle-list encodings, empty tags, default-invalid RTI producers, callback-gated delivery, and the three corresponding empty-ledger responses after unpublication. The generic Lab candidate does not express the three-report cardinality, target publication snapshot, implicit privilege publication, directed class grouping, NULL parameter omission, nested lists, private endpoint, or producer route; RL-120 records that refinement gap. Remaining subscription/FOM-module/statistical MOM families, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-subscriptions-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomSubscriptionsReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestSubscriptions reports active passive and directed subscription state"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestSubscriptions as a Subscribe-only MOM request inherited from HLAfederate. This bounded native-first slice snapshots ordinary and regional object-class subscriptions by (object class, HLAactive), aggregates each group's maximum HLAupdateRateName, emits the official nested HLAattributeHandleList, encodes HLAinteractionSubList as fixed records of interaction-class handle plus HLAactive, and reports directed object-class subscriptions. It emits reliable RTI-originated reports through the target's private HLAfederate endpoint, preserves callback-time membership/subscription revalidation, and emits the MIM NULL shapes (object count only, empty interaction-subscription list, and directed count plus empty interaction list). The focused case proves active/passive groups, High/Low rate values, ordinary active/passive interaction pairs, directed lists, empty tags, default-invalid RTI producers, callback gating, and all three NULL responses after unsubscription. The generic Lab candidate does not express the three correlated report families, active/passive grouping, rate aggregation, nested HLAinteractionSubList, regional DDM relation, directed grouping, NULL parameter shape, private endpoint, or producer route; RL-122 records that refinement gap and the local official-MIM/semantic-reconstruction HLAuniversal shape discrepancy. Remaining FOM-module/statistical MOM families, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-fom-module-data-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomFomModuleDataReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestFOMmoduleData reports retained joined module content"
+      ],
+      "notes": "The official 2025 MIM defines the federate-scoped HLArequestFOMmoduleData interaction with HLAfederate and HLAFOMmoduleIndicator parameters and requires an RTI-originated HLAreportFOMmoduleData response containing the selected indicator and module content. This native-first slice retains the validated canonical UTF-8 XML serialization at Join, addresses the first-designator FOM sequence supplied by that joined federate, routes the reliable report through the target's private HLAfederate endpoint, and rechecks membership/subscription at the callback boundary. The focused case proves HLA_EVOKED gating, reliable transport, empty tag, default-invalid RTI producer, canonical Restaurant module content, and synchronous rejection of an unavailable index. Federation-scoped HLArequestFOMmoduleData, HLArequestMIMdata, current-FDD reporting, remote transport, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-interactions-received-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomInteractionsReceivedReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestInteractionsReceived reports class and transportation counts"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestInteractionsReceived as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportInteractionsReceived response for each supported transportation type. This bounded native-first slice records accepted application Receive Interaction callbacks at the receiver boundary by original sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits both standard buckets including an empty HLAinteractionCounts NULL response, encodes the official HLAinteractionCounts array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused case proves one reliable and one best-effort TakeOrder receive, empty tag, default-invalid RTI producer, and HLA_EVOKED delivery. The generic Lab candidate does not express callback-boundary receipt semantics, per-transport report cardinality, sent-class grouping, nested encoding, private endpoint, or producer route; RL-115 records that refinement gap. Custom/remote transportation, directed-receipt reports, other MOM request/report families, JUnit/protected review, and conformance remain open."
+    },
+    {
+      "id": "umbra-joined-federate-mom-request-directed-interactions-received-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planMomDirectedInteractionsReceivedReport",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestDirectedInteractionsReceived reports directed counts and NULL buckets"
+      ],
+      "notes": "The official HLAstandardMIM defines HLArequestDirectedInteractionsReceived as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportDirectedInteractionsReceived response for each supported transportation type. This native-first slice records accepted directed Receive Interaction callbacks separately from the all-interactions receive ledger, groups them by original sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits both standard buckets including an empty HLAinteractionCounts NULL response, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused case proves that an ordinary receive is excluded, one reliable directed TakeOrder receive is counted, the best-effort bucket is empty, and the report has an empty tag, default-invalid RTI producer, and HLA_EVOKED delivery. The generic Lab candidate does not express directed callback-boundary receipt semantics, per-transport report cardinality, sent-class grouping, nested encoding, private endpoint, or producer route; RL-116 records that refinement gap. Custom/remote transportation, the other MOM request/report families, JUnit/protected review, and conformance remain open."
+    }
+  ]
+}

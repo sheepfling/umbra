@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 Subscribe Interaction Class service in Umbra's opt-in, non-installable development profile. The declaration transition establishes ordinary interaction delivery eligibility for the invoking federate. Its focused production-filesystem regression adds the successful-void service-report boundary: an invalid class appends nothing, while an accepted passive subscription appends type-27 InteractionClassHandle and type-6 Boolean arguments before any separately queued declaration advisories. The official C++ binding names its Boolean `active`; the standards-facing Optional passive subscription indicator is therefore serialized as its inverse. Section 11.5.1 defines the Boolean text as lowercase `true`/`false`; RL-079 records the divergent uppercase Table 5 example. The Requirements Lab currently assigns this service-level candidate on its coalesced source page to clause-5.10.2; RL-078 records that ownership mismatch while the service/test descriptions retain the direct §5.10 source context. Timestamped interaction behavior, advisory delivery matrices, MOM interaction delivery, save/restore, DDM, remote transport, catalog evidence, validation, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-subscribe-interaction-class-establishes-the-invoking-subscription",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+      "clause_id": "clause-5.10.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments"
+      ]
+    },
+    {
+      "id": "umbra-subscribe-interaction-class-file-report-follows-the-accepted-declaration-transition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments"
+      ]
+    }
+  ]
+}

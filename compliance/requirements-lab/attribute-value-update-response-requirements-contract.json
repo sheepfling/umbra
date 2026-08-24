@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only the bounded non-timestamped, non-region IEEE 1516.1-2025 Request Attribute Value Update response path in Umbra's opt-in, non-installable development profile. A requester solicits a currently owning provider, the provider answers from inside the official Provide Attribute Value Update callback by invoking the official non-timestamped Update Attribute Values service, and the requester receives the resulting Reflect Attribute Values callback with the provider's response tag, producer identity, and FOM-selected mandatory transportation type. It does not claim regional requests, automatic values without federate code, timestamped/retraction behavior, DDM, update-rate reduction, custom transportation, FOM sharing policy, save/restore, remote transport, catalog evidence, validation, or conformance. The contract uses immutable candidate IDs exported by the Requirements Lab.",
+  "requirements": [
+    {
+      "id": "umbra-value-request-stimulates-a-provider-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-value-request-solicits-current-owner",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-provider-response-uses-the-official-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l146-39",
+      "clause_id": "clause-6.21",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeValueUpdateProvide",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-provider-response-preserves-the-request-tag",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+      "clause_id": "clause-6.21.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeValueUpdateProvide",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-provider-response-updates-only-owned-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l86-23",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    },
+    {
+      "id": "umbra-provider-response-reaches-reflection-with-response-tag",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins one bounded IEEE 1516.2-2025 FOM-composition rule: a supplied variant-record Discriminant Type must name an enumerated data type. The completed-model preflight resolves names before applying that predicate, preserves an omitted field for an incomplete DIF row, and rejects the NA marker because the applicable table rule provides no NA path. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-variant-record-discriminant-data-type-kind",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11",
+      "clause_id": "clause-6.2.20",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateVariantRecordDiscriminantDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires enumerated data types for variant-record discriminants"
+      ]
+    }
+  ]
+}

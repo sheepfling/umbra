@@ -1,14 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/fdd_document.hpp"
-#include "internal/federate_time_state.hpp"
-#include "internal/fom_catalog.hpp"
-#include "internal/federation_management_coordinator.hpp"
-#include "internal/federation_registry.hpp"
-#include "internal/handle_variable_array_encoding.hpp"
-#include "internal/libxml2_fom_composer.hpp"
-#include "internal/libxml2_fom_validator.hpp"
-#include "internal/reference_time_selection.hpp"
+#include "internal/fom/fdd_document.hpp"
+#include "internal/time/federate_time_state.hpp"
+#include "internal/fom/fom_catalog.hpp"
+#include "internal/federation/federation_management_coordinator.hpp"
+#include "internal/federation/federation_registry.hpp"
+#include "internal/handles/handle_variable_array_encoding.hpp"
+#include "internal/fom/libxml2_fom_composer.hpp"
+#include "internal/fom/libxml2_fom_validator.hpp"
+#include "internal/time/reference_time_selection.hpp"
 
 #include <atomic>
 #include <filesystem>
@@ -104,6 +104,185 @@ ScopedTemporaryFile nrgEnabledRestaurantModule() {
   return ScopedTemporaryFile(path);
 }
 
+ScopedTemporaryFile restaurantModuleWithConflictingSynchronizationNote() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const labelPosition = fomText.find("<label>PauseExecution</label>");
+  REQUIRE(labelPosition != std::string::npos);
+  auto const synchronizationPointPosition = fomText.rfind(
+      "<synchronizationPoint>",
+      labelPosition);
+  REQUIRE(synchronizationPointPosition != std::string::npos);
+  fomText.replace(
+      synchronizationPointPosition,
+      std::string("<synchronizationPoint>").size(),
+      "<synchronizationPoint noteReferences=\"Note1\">");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-sync-duplicate-note-" + std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile mimWithConflictingTransportationNote() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = resourcePath("mim/HLAstandardMIM-2025.xml");
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string mimText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const namePosition = mimText.find("<name>HLAreliable</name>");
+  REQUIRE(namePosition != std::string::npos);
+  auto const transportationPosition = mimText.rfind(
+      "<transportation>",
+      namePosition);
+  REQUIRE(transportationPosition != std::string::npos);
+  mimText.replace(
+      transportationPosition,
+      std::string("<transportation>").size(),
+      "<transportation noteReferences=\"MOM1\">");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-transport-duplicate-note-" + std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << mimText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile restaurantModuleWithConflictingUpdateRateNote() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const namePosition = fomText.find("<name>High</name>");
+  REQUIRE(namePosition != std::string::npos);
+  auto const updateRatePosition = fomText.rfind(
+      "<updateRate>",
+      namePosition);
+  REQUIRE(updateRatePosition != std::string::npos);
+  fomText.replace(
+      updateRatePosition,
+      std::string("<updateRate>").size(),
+      "<updateRate noteReferences=\"Note1\">");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-update-rate-duplicate-note-" + std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile dimensionProviderWithConflictingDimension() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+      "data" / "dimension-reference-provider-fom.xml";
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const namePosition = fomText.find("<name>UmbraDimensionFixture</name>");
+  REQUIRE(namePosition != std::string::npos);
+  auto const upperBoundPosition = fomText.find("<upperBound>100</upperBound>", namePosition);
+  REQUIRE(upperBoundPosition != std::string::npos);
+  fomText.replace(
+      upperBoundPosition,
+      std::string("<upperBound>100</upperBound>").size(),
+      "<upperBound>101</upperBound>");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-dimension-duplicate-conflict-" + std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile dimensionProviderWithUniqueDimension() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+      "data" / "dimension-reference-provider-fom.xml";
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const dimensionsEnd = fomText.find("</dimensions>");
+  REQUIRE(dimensionsEnd != std::string::npos);
+  fomText.insert(
+      dimensionsEnd,
+      "        <dimension>\n"
+      "            <name>UmbraUniqueDimension</name>\n"
+      "            <inputDataTypes>\n"
+      "                <dataType>HLAcount</dataType>\n"
+      "            </inputDataTypes>\n"
+      "            <inputDataDescription>NA</inputDataDescription>\n"
+      "            <upperBound>2</upperBound>\n"
+      "            <normalization>linear (HLAcount, 1, 2)</normalization>\n"
+      "            <outputDataSemantics>Umbra dimension merge fixture</outputDataSemantics>\n"
+      "            <value>[0..2)</value>\n"
+      "        </dimension>\n");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-dimension-unique-" + std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile restaurantModuleWithConflictingDimensionNote() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const labelPosition = fomText.find("<label>Note6</label>");
+  REQUIRE(labelPosition != std::string::npos);
+  auto const semanticsStart = fomText.find("<semantics>", labelPosition);
+  REQUIRE(semanticsStart != std::string::npos);
+  auto const semanticsEnd = fomText.find("</semantics>", semanticsStart);
+  REQUIRE(semanticsEnd != std::string::npos);
+  fomText.replace(
+      semanticsStart,
+      semanticsEnd + std::string("</semantics>").size() - semanticsStart,
+      "<semantics>Conflicting dimension normalization note.</semantics>");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-dimension-duplicate-note-conflict-" + std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
 LibXml2FomModuleComposer composer() {
   return LibXml2FomModuleComposer(resourcePath("schemas/IEEE1516-FDD-2025.xsd"));
 }
@@ -149,7 +328,7 @@ FederationDefinition composedRestaurantDefinition() {
 
 }  // namespace
 
-TEST_CASE("The FDD materializer accepts the supplied MIM and base FOM", "[unit][fom][composition]") {
+TEST_CASE("The FDD materializer accepts the supplied MIM and base FOM", "[unit][fom][composition][annex-c]") {
   std::vector<PrevalidatedFomModule> modules{
       validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim, L"urn:umbra:test:mim"),
       validated(resourcePath("examples/RestaurantFOMmodule-2025.xml"), FomModuleKind::fom, L"urn:umbra:test:restaurant"),
@@ -182,6 +361,18 @@ TEST_CASE("The FDD materializer accepts the supplied MIM and base FOM", "[unit][
   REQUIRE(drinkGarnish->kind == umbra::detail::FomDataTypeKind::variant_record);
   REQUIRE(result.catalog->time().logicalTimeDataType == "HLAinteger64Time");
   REQUIRE(result.catalog->time().logicalTimeIntervalDataType == "HLAinteger64Time");
+  auto const* pauseExecution = result.catalog->synchronizationPoint("PauseExecution");
+  REQUIRE(pauseExecution != nullptr);
+  REQUIRE(pauseExecution->label == "PauseExecution");
+  REQUIRE(pauseExecution->dataType == "HLAinteger64Time");
+  REQUIRE(pauseExecution->capability == "RegisterAchieve");
+  REQUIRE(pauseExecution->semantics.find("time advance") != std::string::npos);
+  REQUIRE(result.catalog->synchronizationPoint("InitialPublish") != nullptr);
+  REQUIRE(result.catalog->synchronizationPoint("MissingSynchronizationPoint") == nullptr);
+  REQUIRE(
+      result.catalog->synchronizationPointLabels() ==
+      std::vector<std::string>{
+          "BeginTimeAdvance", "InitialPublish", "InitialUpdate", "PauseExecution"});
   // The Restaurant FOM explicitly enables the object-class and interaction
   // relevance advisories.  The two omitted advisory entries remain Disabled
   // under the 1516.2 switch-table defaults.
@@ -197,6 +388,301 @@ TEST_CASE("The FDD materializer accepts the supplied MIM and base FOM", "[unit][
   // FOM has no NRG entry, so the catalog must preserve that standard default
   // for a future federation-wide grant calculation.
   REQUIRE_FALSE(result.catalog->timeManagementSwitches().nonRegulatedGrant);
+}
+
+TEST_CASE(
+    "The FDD materializer emits a strict OMT-positive complete model",
+    "[unit][fom][composition][omt][complete-model][omt-complete-model]") {
+  std::vector<PrevalidatedFomModule> modules{
+      validated(
+          std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+              "strict-omt-complete-fom.xml",
+          FomModuleKind::fom,
+          L"urn:umbra:test:strict-omt-complete"),
+  };
+  auto result = composer().compose(modules);
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::valid);
+  REQUIRE(result.fdd);
+
+  static std::atomic_uint64_t counter{0};
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-strict-omt-complete-" + std::to_string(++counter) + ".xml");
+  ScopedTemporaryFile temporary(path);
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << result.fdd->xmlUtf8();
+  REQUIRE(output.good());
+  output.close();
+  auto const& materializedXml = result.fdd->xmlUtf8();
+  REQUIRE(materializedXml.find("Umbra Strict OMT Complete FOM Fixture") != std::string::npos);
+  REQUIRE(materializedXml.find("<type>Composed_From</type>") != std::string::npos);
+  auto countElements = [&materializedXml](std::string_view element) {
+    std::size_t count = 0;
+    std::size_t offset = 0;
+    while ((offset = materializedXml.find(element, offset)) != std::string::npos) {
+      ++count;
+      offset += element.size();
+    }
+    return count;
+  };
+  REQUIRE(countElements("<poc>") == 2);
+  REQUIRE(countElements("<reference>") == 3);
+
+  LibXml2FomValidator validator;
+  auto strict = validator.validate({
+      path,
+      resourcePath("schemas/IEEE1516-OMT-2025.xsd"),
+      FomModuleKind::fom,
+      L"urn:umbra:test:composed-fdd",
+      L"IEEE1516-OMT-2025.xsd",
+  });
+  CAPTURE(strict.diagnostics);
+  REQUIRE(strict.status == FomValidationStatus::valid);
+}
+
+TEST_CASE(
+    "The FOM composition preflight applies the Annex C.4 dimension duplicate rule",
+    "[unit][fom][composition][annex-c][dimension-merge]") {
+  auto const mim = resourcePath("mim/HLAstandardMIM-2025.xml");
+  auto const baseModule = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+      "data" / "dimension-reference-provider-fom.xml";
+  auto const conflictingModule = dimensionProviderWithConflictingDimension();
+
+  auto result = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant"),
+      validated(conflictingModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-conflicting-dimension"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("Conflicting duplicate dimension") != std::string::npos);
+  REQUIRE(result.diagnostics.find("UmbraDimensionFixture") != std::string::npos);
+
+  // Note references are remapped per module, but the referenced note content
+  // remains part of C.4 equality. A changed dimension note therefore fails
+  // before any later composition section is considered.
+  auto const conflictingNoteModule = restaurantModuleWithConflictingDimensionNote();
+  auto conflictingNote = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim-note-conflict"),
+      validated(resourcePath("examples/RestaurantFOMmodule-2025.xml"), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-note-base"),
+      validated(conflictingNoteModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-note-conflict"),
+  });
+
+  CAPTURE(conflictingNote.diagnostics);
+  REQUIRE(conflictingNote.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(conflictingNote.diagnostics.find("Conflicting duplicate dimension") !=
+          std::string::npos);
+  REQUIRE(conflictingNote.diagnostics.find("Gluten") != std::string::npos);
+
+  // Repeating an identical module exercises the equivalent-duplicate path:
+  // the same dimension definitions are ignored rather than structurally
+  // merged a second time.
+  auto equivalent = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim-equivalent"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-a"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-b"),
+  });
+
+  CAPTURE(equivalent.diagnostics);
+  REQUIRE(equivalent.status == FomCompositionStatus::valid);
+  REQUIRE(equivalent.catalog);
+  REQUIRE(equivalent.catalog->dimension("UmbraDimensionFixture") != nullptr);
+
+  // A dimension name that is not present in the first module remains a
+  // candidate for insertion into the composed dimensions table.
+  auto const uniqueModule = dimensionProviderWithUniqueDimension();
+  auto unique = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim-unique"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-base"),
+      validated(uniqueModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-unique-dimension"),
+  });
+
+  CAPTURE(unique.diagnostics);
+  REQUIRE(unique.status == FomCompositionStatus::valid);
+  REQUIRE(unique.catalog);
+  REQUIRE(unique.catalog->dimension("UmbraUniqueDimension") != nullptr);
+}
+
+TEST_CASE(
+    "The FOM composition preflight applies the Annex C.5 synchronization duplicate rule",
+    "[unit][fom][composition][annex-c][synchronization-merge]") {
+  auto const conflictingModule = restaurantModuleWithConflictingSynchronizationNote();
+  auto const baseModule = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  auto result = composer().compose({
+      validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim,
+                L"urn:umbra:test:mim"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant"),
+      validated(conflictingModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-conflicting-sync"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("Conflicting duplicate synchronization point") !=
+          std::string::npos);
+  REQUIRE(result.diagnostics.find("PauseExecution") != std::string::npos);
+
+  // Repeating an identical module exercises the adjacent Annex C.5 duplicate
+  // path: the same-label synchronization points are ignored, not merged into
+  // a second catalog row.
+  auto equivalent = composer().compose({
+      validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim,
+                L"urn:umbra:test:mim-equivalent"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-a"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-b"),
+  });
+
+  CAPTURE(equivalent.diagnostics);
+  REQUIRE(equivalent.status == FomCompositionStatus::valid);
+  REQUIRE(equivalent.catalog);
+  REQUIRE(
+      equivalent.catalog->synchronizationPointLabels() ==
+      std::vector<std::string>{
+          "BeginTimeAdvance", "InitialPublish", "InitialUpdate", "PauseExecution"});
+
+  // Note labels are remapped independently for each source module. Two
+  // otherwise identical synchronization definitions must therefore compare
+  // their referenced note content, not the generated labels.
+  auto noteEquivalent = composer().compose({
+      validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim,
+                L"urn:umbra:test:mim-note-equivalent"),
+      validated(conflictingModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-sync-note-a"),
+      validated(conflictingModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-sync-note-b"),
+  });
+
+  CAPTURE(noteEquivalent.diagnostics);
+  REQUIRE(noteEquivalent.status == FomCompositionStatus::valid);
+  REQUIRE(noteEquivalent.catalog);
+}
+
+TEST_CASE(
+    "The FOM composition preflight applies the Annex C.6 transportation duplicate rule",
+    "[unit][fom][composition][annex-c][transportation-merge]") {
+  auto const conflictingModule = mimWithConflictingTransportationNote();
+  auto const baseMim = resourcePath("mim/HLAstandardMIM-2025.xml");
+  auto const restaurant = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+
+  auto result = composer().compose({
+      validated(baseMim, FomModuleKind::mim, L"urn:umbra:test:mim"),
+      validated(conflictingModule.path(), FomModuleKind::mim,
+                L"urn:umbra:test:mim-conflicting-transport"),
+      validated(restaurant, FomModuleKind::fom, L"urn:umbra:test:restaurant"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("Conflicting duplicate transportation type") !=
+          std::string::npos);
+  REQUIRE(result.diagnostics.find("HLAreliable") != std::string::npos);
+
+  // Repeating the same MIM exercises the equivalent duplicate path: the
+  // standard transportation definitions remain single logical rows and the
+  // normal Restaurant extension still composes successfully.
+  auto equivalent = composer().compose({
+      validated(baseMim, FomModuleKind::mim, L"urn:umbra:test:mim-a"),
+      validated(baseMim, FomModuleKind::mim, L"urn:umbra:test:mim-b"),
+      validated(restaurant, FomModuleKind::fom, L"urn:umbra:test:restaurant-equivalent"),
+  });
+
+  CAPTURE(equivalent.diagnostics);
+  REQUIRE(equivalent.status == FomCompositionStatus::valid);
+  REQUIRE(equivalent.fdd);
+  REQUIRE(equivalent.fdd->xmlUtf8().find("<name>HLAreliable</name>") != std::string::npos);
+  REQUIRE(equivalent.fdd->xmlUtf8().find("<name>HLAbestEffort</name>") != std::string::npos);
+  REQUIRE(equivalent.fdd->xmlUtf8().find("<name>PriorityBestEffort</name>") !=
+          std::string::npos);
+
+  // The modified transportation row references MOM1. Repeating that module
+  // must remain equivalent even though each module receives a fresh Umbra
+  // note label during composition.
+  auto noteEquivalent = composer().compose({
+      validated(conflictingModule.path(), FomModuleKind::mim,
+                L"urn:umbra:test:mim-note-a"),
+      validated(conflictingModule.path(), FomModuleKind::mim,
+                L"urn:umbra:test:mim-note-b"),
+      validated(restaurant, FomModuleKind::fom, L"urn:umbra:test:restaurant-note-transport"),
+  });
+
+  CAPTURE(noteEquivalent.diagnostics);
+  REQUIRE(noteEquivalent.status == FomCompositionStatus::valid);
+  REQUIRE(noteEquivalent.catalog);
+}
+
+TEST_CASE(
+    "The FOM composition preflight applies the Annex C.7 update-rate duplicate rule",
+    "[unit][fom][composition][annex-c][update-rate-merge]") {
+  auto const conflictingModule = restaurantModuleWithConflictingUpdateRateNote();
+  auto const mim = resourcePath("mim/HLAstandardMIM-2025.xml");
+  auto const baseModule = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+
+  auto result = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant"),
+      validated(conflictingModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-conflicting-update-rate"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("Conflicting duplicate update rate") !=
+          std::string::npos);
+  REQUIRE(result.diagnostics.find("High") != std::string::npos);
+
+  // Repeating an identical module exercises the equivalent duplicate path;
+  // the private catalog retains one deterministic High rate value.
+  auto equivalent = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim-equivalent"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-a"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-b"),
+  });
+
+  CAPTURE(equivalent.diagnostics);
+  REQUIRE(equivalent.status == FomCompositionStatus::valid);
+  REQUIRE(equivalent.catalog);
+  auto const highRate = equivalent.catalog->updateRateValue("High");
+  REQUIRE(highRate.has_value());
+  REQUIRE(*highRate == 30.0);
+
+  // The repeated High row references Note1. Its meaning is unchanged when
+  // the source module is loaded twice, despite per-module note-label remap.
+  auto noteEquivalent = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim-update-note"),
+      validated(conflictingModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-update-note-a"),
+      validated(conflictingModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-update-note-b"),
+  });
+
+  CAPTURE(noteEquivalent.diagnostics);
+  REQUIRE(noteEquivalent.status == FomCompositionStatus::valid);
+  REQUIRE(noteEquivalent.catalog);
+}
+
+TEST_CASE(
+    "The FOM composition preflight rejects a data-type name collision across modules",
+    "[unit][fom][composition][data-types]") {
+  auto const result = composer().compose({
+      validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim,
+                L"urn:umbra:test:mim-data-type-collision"),
+      validated(
+          std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+              "data-type-name-collision-provider-fom.xml",
+          FomModuleKind::fom,
+          L"urn:umbra:test:data-type-collision"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("Data type") != std::string::npos);
+  REQUIRE(result.diagnostics.find("HLAinteger32BE") != std::string::npos);
 }
 
 TEST_CASE(
@@ -1382,7 +1868,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings",
-    "[unit][fom][composition][switches]") {
+    "[unit][fom][composition][switches][annex-c]") {
   auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
   auto mim = validated(
       resourcePath("mim/HLAstandardMIM-2025.xml"),
@@ -1442,6 +1928,45 @@ TEST_CASE(
   REQUIRE(enabledFirst.catalog->timeManagementSwitches().nonRegulatedGrant);
   REQUIRE(enabledFirst.catalog->federationSwitches().autoProvide);
   REQUIRE(enabledFirst.warnings == disabledFirst.warnings);
+}
+
+TEST_CASE(
+    "The FOM composition treats omitted switch booleans as their schema default",
+    "[unit][fom][composition][switches][annex-c][switch-defaults]") {
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto omitted = validated(
+      testData / "switch-nrg-omitted-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:nrg-omitted");
+  auto explicitFalse = validated(
+      testData / "switch-nrg-disabled-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:nrg-explicit-false");
+
+  auto materializer = composer();
+  auto omittedFirst = materializer.compose({mim, omitted, explicitFalse});
+  auto explicitFalseFirst = materializer.compose({mim, explicitFalse, omitted});
+  CAPTURE(
+      omittedFirst.diagnostics,
+      omittedFirst.warnings,
+      explicitFalseFirst.diagnostics,
+      explicitFalseFirst.warnings);
+
+  REQUIRE(omittedFirst.status == FomCompositionStatus::valid);
+  REQUIRE(explicitFalseFirst.status == FomCompositionStatus::valid);
+  REQUIRE(omittedFirst.catalog);
+  REQUIRE(explicitFalseFirst.catalog);
+  REQUIRE_FALSE(omittedFirst.catalog->timeManagementSwitches().nonRegulatedGrant);
+  REQUIRE_FALSE(explicitFalseFirst.catalog->timeManagementSwitches().nonRegulatedGrant);
+  // `switchType/@isEnabled` defaults to false in the official 2025 schema.
+  // Reordering equivalent module spellings must not create an Annex C.8
+  // warning or make the first spelling observable in the catalog.
+  REQUIRE(omittedFirst.warnings.empty());
+  REQUIRE(explicitFalseFirst.warnings.empty());
 }
 
 TEST_CASE(
@@ -2433,6 +2958,10 @@ TEST_CASE(
       testData / "time-representation-allowed-fom.xml",
       FomModuleKind::fom,
       L"urn:umbra:test:time-representation-allowed");
+  auto float64 = validated(
+      testData / "time-representation-float64-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:time-representation-float64");
   auto basicData = validated(
       testData / "time-representation-basic-data-fom.xml",
       FomModuleKind::fom,
@@ -2450,6 +2979,14 @@ TEST_CASE(
   REQUIRE(allowedResult.fdd);
   REQUIRE(allowedResult.catalog->time().logicalTimeDataType == "HLAinteger64Time");
   REQUIRE(allowedResult.catalog->time().logicalTimeIntervalDataType == "HLAinteger64Time");
+
+  auto float64Result = materializer.compose({mim, float64});
+  CAPTURE(float64Result.diagnostics);
+  REQUIRE(float64Result.status == FomCompositionStatus::valid);
+  REQUIRE(float64Result.catalog);
+  REQUIRE(float64Result.fdd);
+  REQUIRE(float64Result.catalog->time().logicalTimeDataType == "HLAfloat64Time");
+  REQUIRE(float64Result.catalog->time().logicalTimeIntervalDataType == "HLAfloat64Time");
 
   auto basicDataResult = materializer.compose({mim, basicData});
   REQUIRE(basicDataResult.status == FomCompositionStatus::inconsistent_modules);
@@ -2827,7 +3364,7 @@ TEST_CASE(
   REQUIRE(result.diagnostics.find("directedInteraction") != std::string::npos);
 }
 
-TEST_CASE("The FOM composition preflight permits equivalent duplicates and rejects a real class conflict", "[unit][fom][composition]") {
+TEST_CASE("The FOM composition preflight permits equivalent duplicates and rejects a real class conflict", "[unit][fom][composition][annex-c]") {
   auto mim = validated(
       resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim, L"urn:umbra:test:mim");
   auto base = validated(
@@ -2851,7 +3388,7 @@ TEST_CASE("The FOM composition preflight permits equivalent duplicates and rejec
   REQUIRE(conflictResult.diagnostics.find("sharing") != std::string::npos);
 }
 
-TEST_CASE("The FOM composition preflight enforces enumerated and variant-record merge invariants", "[unit][fom][composition]") {
+TEST_CASE("The FOM composition preflight enforces enumerated and variant-record merge invariants", "[unit][fom][composition][annex-c]") {
   auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
   auto materializer = composer();
 
@@ -2888,7 +3425,7 @@ TEST_CASE("The FOM composition preflight enforces enumerated and variant-record 
 
 TEST_CASE(
     "The FDD materializer remaps referenced notes and logically ORs service usage",
-    "[unit][fom][composition]") {
+    "[unit][fom][composition][annex-c]") {
   auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
   std::vector<PrevalidatedFomModule> modules{
       validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim, L"urn:umbra:test:mim"),

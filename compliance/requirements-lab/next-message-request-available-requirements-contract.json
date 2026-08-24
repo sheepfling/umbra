@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 Next Message Request Available service to source-derived clause 8.11. The embedded profile selects the earliest currently queued TSO timestamp for the recipient when it is no greater than the supplied request, records the accepted supplied request with its Table 5 LogicalTime representation before the later grant, delivers its timestamp cohort through the callback-gated Time Advance Grant path, and applies the Available form's inclusive GALT boundary. Default-source and explicit-source regional interaction companions now carry their respective region contexts through the second NMRA boundary, verifying the supplied-empty marker for the private default source and the preserved RegionHandle for an explicit source; both remain in-process HLA_EVOKED cases. A default-source timestamped attribute-update companion exercises one ordinary/default-region passel through the same NMRA boundary as part of a shared FQR/TARA/NMRA frontier and proves callback-before-grant ordering. A mixed-member regional companion exercises NMRA alongside FQR and TARA recipients in the same in-process frontier, proving the TSO callback precedes the NMRA grant. The separate bounded timestamped-save integration case exercises the exclusive save-admission boundary: an equal grant does not admit a save, while a later one does. A separate restore-control matrix snapshots one no-queued-TSO, single-federate NMRA request at direct save initiation and restores its fresh grant after Federation Restored under both callback models. Future transport input, asynchronous delivery, complete LITS/GALT coordination, Flush Queue Grant, multi-member or queued/in-transit restore, package/catalog evidence, protected review, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-next-message-request-available-selects-next-tso-target",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+      "clause_id": "clause-8.11",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::nextMessageRequestAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Available time advances use inclusive GALT and queued TSO delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries"
+      ]
+    },
+    {
+      "id": "umbra-next-message-request-available-delivers-before-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
+      "clause_id": "clause-8.11.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Available time advances use inclusive GALT and queued TSO delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants"
+      ]
+    },
+    {
+      "id": "umbra-embedded-next-message-request-available-report-preserves-supplied-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+      "clause_id": "clause-8.11",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAvailableTimeAdvance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary"
+      ]
+    }
+  ]
+}

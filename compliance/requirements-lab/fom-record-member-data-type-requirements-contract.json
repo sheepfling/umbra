@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins two bounded IEEE 1516.2-2025 FOM-composition rules: a supplied fixed-record Field Type and a supplied variant-record Alternative Type must each name a simple, enumerated, reference, fixed-record, array, or variant-record data type, not a raw basic-data representation. The completed-model preflight resolves names before applying the category predicates and preserves omitted fields and the established NA marker for incomplete DIF rows. The two immutable Requirements Lab candidates currently export broad clause-4 metadata despite their fixed-record/variant-record source context; RL-047 records that provenance issue. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-fixed-record-field-data-type-kind",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-076-l52-2",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateFixedRecordFieldAndVariantRecordAlternativeDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires table-defined data types for fixed-record fields and variant alternatives"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-record-alternative-data-type-kind",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l78-7",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateFixedRecordFieldAndVariantRecordAlternativeDataTypeKinds",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires table-defined data types for fixed-record fields and variant alternatives"
+      ]
+    }
+  ]
+}

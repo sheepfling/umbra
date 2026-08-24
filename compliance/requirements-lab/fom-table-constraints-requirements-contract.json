@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins one executable IEEE 1516.2-2025 table constraint in the private FOM composition preflight: a supplied maximum update rate must be a decimal greater than zero. DIF still permits incomplete rows, so the check applies when the value is present; the 2025 FOM XSD already enforces positive dimension upper bounds before composition. Official MIM/Restaurant modules remain valid. This is source/test traceability only, not a complete Annex C or FOM conformance result.",
+  "requirements": [
+    {
+      "id": "umbra-omt-update-rate-is-greater-than-zero",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l114-22",
+      "clause_id": "clause-6.2.12",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateUpdateRateValues",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces positive update rates"
+      ]
+    }
+  ]
+}

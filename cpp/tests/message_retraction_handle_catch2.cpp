@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/message_retraction_handle.hpp"
+#include "internal/handles/message_retraction_handle.hpp"
 
 #include <RTI/VariableLengthData.h>
 

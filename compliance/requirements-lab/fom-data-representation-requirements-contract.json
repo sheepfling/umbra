@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the bounded IEEE 1516.2-2025 FOM composition checks for data-type representation references and the two standard object-instance identifier references. The preflight rejects unresolved simple/enumerated representations, rejects basic-data or reference-data representations in an ordinary reference data type, and applies the reviewed special-instance-identifier exception with the standardized HLAunicodeString/HLAobjectInstanceHandle representations. The simple-data source wording remains under the RL-009 interpretation: the official MIM/Restaurant DIF pair uses the enumerated HLAboolean type as a simple-data representation, so simple data is checked for resolution rather than a basic-data category. The separate fom-enumerated-representation-requirements-contract.json contract pins the unambiguous 2025 basic-data predicate for enumerated representations. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-simple-data-representation-resolves",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l54-10",
+      "clause_id": "clause-6.2.15",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDataTypeRepresentationReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+      ]
+    },
+    {
+      "id": "umbra-omt-enumerated-data-representation-resolves",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l70-13",
+      "clause_id": "clause-6.2.16",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDataTypeRepresentationReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-representation-kind",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l90-17",
+      "clause_id": "clause-6.2.17",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateDataTypeRepresentationReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+      ]
+    },
+    {
+      "id": "umbra-omt-special-instance-identifier-reference-resolution",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20",
+      "clause_id": "clause-6.2.17",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateReferenceDataTypeAttributeReferences",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+      ]
+    }
+  ]
+}

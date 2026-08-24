@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 dimension lookup foundation to the exact official C++ RTIambassador declarations exported by the Requirements Lab. It verifies signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The implementation is limited to FOM-defined dimension names, upper bounds, inherited available-dimension lookup, and stable per-federation handles. Region lifecycle/range services, DDM routing, timestamped/retraction behavior, save/restore, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-get-available-dimensions-for-object-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getavailabledimensionsforobjectclass.75b6c46cce37",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual DimensionHandleSet getAvailableDimensionsForObjectClass( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": ["InvalidObjectClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getAvailableDimensionsForObjectClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-available-dimensions-for-interaction-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getavailabledimensionsforinteractionclass.48fb2be6b10f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual DimensionHandleSet getAvailableDimensionsForInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": ["InvalidInteractionClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getAvailableDimensionsForInteractionClass",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-dimension-handle",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual DimensionHandle getDimensionHandle( std::wstring const & dimensionName) = 0",
+      "exception_types": ["NameNotFound", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getDimensionHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-dimension-name",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getdimensionname.7b8202e09064",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual std::wstring getDimensionName( DimensionHandle const & dimension) = 0",
+      "exception_types": ["InvalidDimensionHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getDimensionName",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    },
+    {
+      "id": "umbra-embedded-get-dimension-upper-bound",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.getdimensionupperbound.f13eafb4053e",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual unsigned long getDimensionUpperBound( DimensionHandle const & dimension) = 0",
+      "exception_types": ["InvalidDimensionHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getDimensionUpperBound",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds"
+      ]
+    }
+  ]
+}

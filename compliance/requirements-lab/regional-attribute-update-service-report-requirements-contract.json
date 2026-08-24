@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records the bounded ordinary and timestamped regional Update Attribute Values service-report boundaries. An explicit committed object/attribute region association must not bypass the shared filesystem-or-MOM selector; sender records retain their standard §6.10 type-37/type-2/type-63/type-34 or type-31 forms, with accepted records durable before a constrained regional Reflect Attribute Values callback and failed records retaining exact exception payloads. The accepted ordinary and timestamped regional forms now have paired HLA_IMMEDIATE HLAreportServiceInvocation decoders, including the ordinary invalid-object/invalid-attribute failure matrix; the timestamped form additionally exposes the type-33 retraction return, while each callback separately conveys the source RegionHandleSet. The Requirements Lab does not provide a row-level backend/lifecycle or conditional-failure relation for this cross-cutting §11.5.1 behavior, so the evidence remains development-profile traceability.",
+  "requirements": [
+    {
+      "id": "umbra-regional-update-service-report-selects-configured-backend",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
+      ],
+      "notes": "The focused production-filesystem case proves that an accepted ordinary Update Attribute Values invocation remains on the configured joined-federate file route when an explicit committed regional object/attribute association drives recipient eligibility. It verifies serial zero, type-37 object, type-2 attribute/value map, type-63 tag, type-34 Null optional timestamp, and report-before-callback ordering; the callback separately verifies the source RegionHandleSet. Its paired HLA_IMMEDIATE case now decodes the same service type 2 report, four supplied forms, type-34 Null return, success, empty exception, and serial zero before the constrained callback. The Lab has no row-level backend/lifecycle relation, so this remains development-profile traceability rather than validation or conformance."
+    },
+    {
+      "id": "umbra-regional-update-service-report-failure-records-exception",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed regional Update Attribute Values invocations",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed ordinary regional Update Attribute Values invocations through MOM interaction"
+      ],
+      "notes": "The ordinary Update Attribute Values catch path now records failed invalid-object and invalid-attribute invocations through the same configured filesystem selector even when the known object has an explicit committed regional association. The focused filesystem matrix preserves serial-zero/one, type-37/type-2/type-63/type-34 supplied forms, Null returned arguments, false success indicators, and exact exception text; its paired HLA_IMMEDIATE matrix decodes the same fields through HLAreportServiceInvocation without reflection delivery. The Lab has no row-level conditional failure relation (RL-152), so this remains C++ development-profile evidence rather than validation or conformance."
+    },
+    {
+      "id": "umbra-timestamped-regional-update-service-report-failure-records-exception",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped regional Update Attribute Values invocations"
+      ],
+      "notes": "The timestamped Update Attribute Values catch path records invalid-object, invalid-attribute, and invalid-logical-time invocations through the configured joined-federate filesystem after an explicit committed regional object/attribute association is established. The focused matrix preserves serials zero through two, type-37/type-2/type-63/type-31 supplied forms, Null returned arguments, false success indicators, exact public exception descriptions, and no callback delivery. The Lab has no row-level conditional failure relation (RL-152), so this remains C++ development-profile evidence rather than validation or conformance; accepted timestamped regional reporting, broader regional MOM delivery, lifecycle, transport, JUnit/protected review, and conformance remain separate claims."
+    },
+    {
+      "id": "umbra-timestamped-regional-update-service-report-failure-emits-mom-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction"
+      ],
+      "notes": "The HLA_IMMEDIATE public MOM matrix delivers invalid-object, invalid-attribute, and invalid-logical-time timestamped Update Attribute Values failures after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact exception text, and serials zero through two, while no application reflection callback is claimed. The Requirements Lab has no row-level conditional failure relation (RL-152), so this is bounded C++ development-profile interaction evidence rather than validation or conformance; broader regional failure families and transport remain open."
+    },
+    {
+      "id": "umbra-timestamped-regional-update-service-report-success-emits-mom-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Update Attribute Values through MOM interaction"
+      ],
+      "notes": "The HLA_IMMEDIATE public MOM matrix delivers an accepted timestamped §6.10 Update Attribute Values invocation after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-31 supplied forms, the quoted type-33 MessageRetractionHandle return with the admitted message identity, success true, empty exception, and serial zero before the constrained regional Reflect Attribute Values callback. The callback separately verifies the source RegionHandleSet and timestamped order metadata. This is bounded C++ development-profile interaction evidence; broader regional forms, lifecycle, transport, Lab validation, and conformance remain open."
+    },
+    {
+      "id": "umbra-regional-update-service-report-success-emits-mom-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
+      ],
+      "notes": "The HLA_IMMEDIATE public MOM matrix delivers an accepted ordinary §6.10 Update Attribute Values invocation after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-34 supplied forms, the Table 5 type-34 Null return, success true, empty exception, and serial zero before the constrained regional Reflect Attribute Values callback. The callback separately verifies the source RegionHandleSet and receive-order metadata. This is bounded C++ development-profile interaction evidence; broader regional forms, lifecycle, transport, Lab validation, and conformance remain open."
+    },
+    {
+      "id": "umbra-regional-update-service-report-failure-emits-mom-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed ordinary regional Update Attribute Values invocations through MOM interaction"
+      ],
+      "notes": "The HLA_IMMEDIATE public MOM matrix delivers invalid-object and invalid-attribute ordinary §6.10 Update Attribute Values failures after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-34 supplied forms, the Table 5 type-34 Null return, false indicators, exact ObjectInstanceNotKnown and AttributeNotDefined descriptions, and serials zero and one without application reflection delivery. The Requirements Lab has no row-level conditional failure relation (RL-152), so this is bounded C++ development-profile interaction evidence rather than validation or conformance; broader regional failure families and transport remain open."
+    }
+  ]
+}

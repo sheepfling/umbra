@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the existing official C++ Create Federation Execution single-FOM surface to the bounded source-readability boundary. The focused case verifies the ErrorReadingFOM outcome for an existing non-regular designator and proves that a later valid create can use the same federation name. It does not claim every declared Create exception, complete FOM composition, package/JUnit/protected-review evidence, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "umbra-fom-source-diagnostics-create-federation-execution",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void createFederationExecution( std::wstring const & federationName, std::wstring const & fomModule, std::wstring const & logicalTimeImplementationName = L\"\") = 0",
+      "exception_types": [
+        "CouldNotCreateLogicalTimeFactory",
+        "InconsistentFOM",
+        "InvalidFOM",
+        "ErrorReadingFOM",
+        "CouldNotOpenFOM",
+        "InvalidMIM",
+        "ErrorReadingMIM",
+        "CouldNotOpenMIM",
+        "DesignatorIsHLAstandardMIM",
+        "FederationExecutionAlreadyExists",
+        "Unauthorized",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createFederationExecution",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM"
+      ]
+    }
+  ]
+}

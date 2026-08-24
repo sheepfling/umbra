@@ -19,7 +19,7 @@ from typing import Any
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 HEADER_ROOT = REPOSITORY_ROOT / "third_party" / "ieee1516.1-2025" / "include"
-DEFAULT_OUTPUT = REPOSITORY_ROOT / "compliance" / "binding-inventory.json"
+DEFAULT_OUTPUT = REPOSITORY_ROOT / "compliance" / "standards" / "binding-inventory.json"
 HEADER_DIGESTS = REPOSITORY_ROOT / "third_party" / "ieee1516.1-2025" / "header-digests.json"
 
 _CLASSES = (

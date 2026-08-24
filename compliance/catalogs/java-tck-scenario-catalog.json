@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "kind": "portable-java-tck-catalog",
+  "standard": "IEEE 1516.1-2025",
+  "document_id": "hla-1516.1-2025",
+  "source_boundary": "packages/umbra-rti-java-tck",
+  "portable_rule": "Only hla.rti1516_2025 API types may appear in Java TCK sources. JNI/C++ and provider implementation tests are separate evidence.",
+  "scenarios": [
+    {
+      "id": "java-tck.factory-discovery",
+      "category": "lifecycle",
+      "title": "Discover the standard factory, encoder factory, and ambassador",
+      "api_methods": ["RtiFactoryFactory.getRtiFactory", "RtiFactory.getEncoderFactory", "RtiFactory.getRtiAmbassador"],
+      "requirement_ids": ["req-connect-service-establishes-connection"],
+      "contract_refs": ["federation-management-preparation-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#factoryDiscovery",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.encoder-round-trip",
+      "category": "encoders",
+      "title": "Round-trip primitive encoding and reject malformed octets",
+      "api_methods": ["EncoderFactory.createHLAinteger32BE", "DataElement.decode"],
+      "requirement_ids": ["java-1516.1-encoding-primitive-round-trip", "java-1516.1-encoding-malformed-input"],
+      "contract_refs": ["basic-data-elements-requirements-contract.json", "opaque-data-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#encoderRoundTrip",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.federation-membership",
+      "category": "lifecycle",
+      "title": "Connect, create, join, report members, resign, and disconnect",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.resignFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.reportFederationExecutionMembers"],
+      "requirement_ids": ["req-federate-connect-before-rti-work", "req-connect-service-establishes-connection", "req-federate-disconnect-after-resign", "req-disconnect-service-terminates-connection"],
+      "contract_refs": ["federation-listing-requirements-contract.json", "federation-management-preparation-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#federationMembership",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.logical-time-factory",
+      "category": "time",
+      "title": "Create, classify, encode, and decode logical-time values",
+      "api_methods": ["RTIambassador.getTimeFactory", "LogicalTimeFactory.makeInitial", "LogicalTimeFactory.makeFinal", "LogicalTimeFactory.decodeInterval"],
+      "requirement_ids": ["java-1516.1-logical-time-factory-values"],
+      "contract_refs": ["reference-time-requirements-contract.json", "logical-time-encoding-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#logicalTimeFactory",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.declaration-management",
+      "category": "declarations",
+      "title": "Resolve standard class/attribute handles and publish/subscribe them",
+      "api_methods": ["RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.unsubscribeObjectClassAttributes", "RTIambassador.unpublishObjectClassAttributes"],
+      "requirement_ids": ["java-1516.1-object-class-attribute-declaration"],
+      "contract_refs": ["object-class-attribute-declaration-requirements-contract.json", "publish-object-class-attributes-requirements-contract.json", "subscribe-object-class-attributes-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#declarationManagement",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.object-management",
+      "category": "object-management",
+      "title": "Register, discover, update, and reflect an object instance",
+      "api_methods": ["RTIambassador.registerObjectInstance", "FederateAmbassador.discoverObjectInstance", "RTIambassador.updateAttributeValues", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["java-1516.1-object-registration-discovery", "java-1516.1-attribute-value-update-reflection"],
+      "contract_refs": ["object-instance-registration-requirements-contract.json", "receive-order-attribute-update-requirements-contract.json", "attribute-value-update-response-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#objectRegistrationAndReflection",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.api-surface-inventory",
+      "category": "api-surface",
+      "title": "Inventory the Java ambassador, callback, encoder, and time interfaces",
+      "api_methods": ["*"],
+      "requirement_ids": ["java-1516.1-api-surface-inventory"],
+      "contract_refs": ["api-baseline.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#apiSurfaceInventory",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.overloads-and-exceptions",
+      "category": "exceptions",
+      "title": "Exercise overload dispatch and standard exception identity",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.disconnect"],
+      "requirement_ids": ["java-1516.1-overload-dispatch", "java-1516.1-standard-exception-boundary"],
+      "contract_refs": ["federation-management-preparation-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#overloadsAndExceptions",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.malformed-inputs",
+      "category": "malformed-inputs",
+      "title": "Reject missing FOM paths and malformed encoded values",
+      "api_methods": ["RTIambassador.createFederationExecution", "DataElement.decode"],
+      "requirement_ids": ["java-1516.1-malformed-fom-input", "java-1516.1-malformed-encoded-input"],
+      "contract_refs": ["fom-source-diagnostics-requirements-contract.json", "basic-data-elements-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#malformedInputs",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.ddm",
+      "category": "ddm",
+      "title": "Regional declaration, association, filtering, and conveyed regions",
+      "api_methods": ["RTIambassador.createRegion", "RTIambassador.setRangeBounds", "RTIambassador.subscribeObjectClassAttributesWithRegions", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["java-1516.1-ddm-regional-delivery"],
+      "contract_refs": ["region-lifecycle-requirements-contract.json", "interaction-region-requirements-contract.json", "object-attribute-region-requirements-contract.json", "regional-multi-attribute-ddm-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#dataDistributionManagement",
+      "default_status": "unsupported",
+      "exclusion": "The portable scenario is capability-gated until the provider profile supplies a compatible regional FOM; Umbra-specific region tests remain in JNI/C++ suites."
+    },
+    {
+      "id": "java-tck.time-advance",
+      "category": "time",
+      "title": "Enable time roles and complete advance/grant services",
+      "api_methods": ["RTIambassador.enableTimeRegulation", "RTIambassador.enableTimeConstrained", "RTIambassador.timeAdvanceRequest", "FederateAmbassador.timeAdvanceGrant"],
+      "requirement_ids": ["java-1516.1-time-advance-and-grant"],
+      "contract_refs": ["time-advance-requirements-contract.json", "time-role-requirements-contract.json", "time-bounds-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#timeAdvanceAndGrants",
+      "default_status": "unsupported",
+      "exclusion": "Requires a provider capability profile and a time-management FOM; no provider-specific implementation class is allowed into this portable source set."
+    },
+    {
+      "id": "java-tck.save-restore",
+      "category": "save-restore",
+      "title": "Complete federation save and restore callbacks",
+      "api_methods": ["RTIambassador.requestFederationSave", "RTIambassador.federateSaveComplete", "RTIambassador.requestFederationRestore", "FederateAmbassador.federationRestored"],
+      "requirement_ids": ["java-1516.1-save-restore-lifecycle"],
+      "contract_refs": ["save-control-requirements-contract.json", "restore-control-requirements-contract.json", "save-restore-interlock-requirements-contract.json", "timed-save-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#saveAndRestore",
+      "default_status": "unsupported",
+      "exclusion": "Save/restore requires a provider-managed snapshot policy and is explicitly capability-gated; JNI/C++ persistence evidence does not masquerade as portable Java evidence."
+    },
+    {
+      "id": "java-tck.ownership",
+      "category": "ownership",
+      "title": "Query, acquire, divest, and report attribute ownership",
+      "api_methods": ["RTIambassador.queryAttributeOwnership", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.unconditionalAttributeOwnershipDivestiture", "FederateAmbassador.attributeOwnershipAcquisitionNotification"],
+      "requirement_ids": ["java-1516.1-ownership-management"],
+      "contract_refs": ["attribute-ownership-query-requirements-contract.json", "attribute-ownership-acquisition-requirements-contract.json", "unconditional-attribute-ownership-divestiture-requirements-contract.json", "ownership-assumption-research-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#ownershipManagement",
+      "default_status": "unsupported",
+      "exclusion": "Ownership scenarios need a FOM with transferable attributes and at least two federates; provider result status is explicit until that capability is declared."
+    },
+    {
+      "id": "java-tck.synchronization",
+      "category": "synchronization",
+      "title": "Register, announce, achieve, and complete a synchronization point",
+      "api_methods": ["RTIambassador.registerFederationSynchronizationPoint", "RTIambassador.synchronizationPointAchieved", "FederateAmbassador.announceSynchronizationPoint", "FederateAmbassador.federationSynchronized"],
+      "requirement_ids": ["java-1516.1-synchronization-point"],
+      "contract_refs": ["synchronization-point-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#synchronizationPoint",
+      "default_status": "unsupported",
+      "exclusion": "The scenario is multi-federate and is enabled only by a provider profile that declares synchronization support."
+    },
+    {
+      "id": "java-tck.mom",
+      "category": "mom",
+      "title": "Expose MOM/service-reporting callbacks and save-status records",
+      "api_methods": ["RTIambassador.queryFederationSaveStatus", "FederateAmbassador.federationSaveStatusResponse"],
+      "requirement_ids": ["java-1516.1-mom-service-reporting"],
+      "contract_refs": ["mom-service-reporting-requirements-contract.json", "joined-federate-mom-public-requirements-contract.json", "service-report-file-lifecycle-requirements-contract.json"],
+      "java_test": "umbra.rti.tck.RtiTckMain#momStatusReport",
+      "default_status": "unsupported",
+      "exclusion": "MOM evidence depends on the provider's MOM FOM and reporting configuration; service-reporting code remains outside the portable Java TCK until a profile enables it."
+    }
+  ],
+  "exclusions": [
+    {
+      "id": "java-tck.umbra-native-boundary",
+      "scope": "Umbra JNI/C++ implementation classes and native-only state-machine tests",
+      "status": "not applicable",
+      "reason": "The portable Java TCK may change only API/provider JARs, factory name, FOM/MIM inputs, and capability profile. Native classes and C++ tests are separate evidence."
+    },
+    {
+      "id": "java-tck.provider-internal-policy",
+      "scope": "Provider-internal transport, persistence, allocator, and authorization implementation details",
+      "status": "not applicable",
+      "reason": "Only behavior observable through hla.rti1516_2025 is portable; implementation-specific evidence remains in the provider's own compliance lane."
+    }
+  ]
+}

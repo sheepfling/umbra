@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/attribute_handle.hpp"
+#include "internal/handles/attribute_handle.hpp"
 
 #include <array>
 #include <cstring>

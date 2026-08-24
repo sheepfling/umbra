@@ -1,16 +1,16 @@
 #include <jni.h>
 
-#include "internal/umbra_rti_ambassador.hpp"
-#include "internal/reference_authorizer.hpp"
-#include "internal/attribute_handle.hpp"
-#include "internal/dimension_handle.hpp"
-#include "internal/federate_handle.hpp"
-#include "internal/interaction_class_handle.hpp"
-#include "internal/object_class_handle.hpp"
-#include "internal/object_instance_handle.hpp"
-#include "internal/parameter_handle.hpp"
-#include "internal/region_handle.hpp"
-#include "internal/transportation_type_handle.hpp"
+#include "internal/runtime/umbra_rti_ambassador.hpp"
+#include "internal/runtime/reference_authorizer.hpp"
+#include "internal/handles/attribute_handle.hpp"
+#include "internal/handles/dimension_handle.hpp"
+#include "internal/handles/federate_handle.hpp"
+#include "internal/handles/interaction_class_handle.hpp"
+#include "internal/handles/object_class_handle.hpp"
+#include "internal/handles/object_instance_handle.hpp"
+#include "internal/handles/parameter_handle.hpp"
+#include "internal/handles/region_handle.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
 
 #include <RTI/Exception.h>
 #include <RTI/NullFederateAmbassador.h>

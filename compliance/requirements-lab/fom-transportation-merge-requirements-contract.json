@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the private Annex C.6 transportation-type composition rule. Same-name transportation types are compared with the first definition: an identical duplicate is ignored, while any differing name/semantics/note sub-element fails composition. Referenced notes are compared by note content after Umbra's per-module label remapping, while omitted DIF fields may still be completed by a later row. This is source/test traceability only, not a public transport-service or conformance claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-transportation-duplicate-ignore",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l34-3",
+      "clause_id": "clause-C.6",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeTransportationTypes",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.6 transportation duplicate rule"
+      ]
+    },
+    {
+      "id": "umbra-omt-transportation-duplicate-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l38-4",
+      "clause_id": "clause-C.6",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "mergeTransportationTypes",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight applies the Annex C.6 transportation duplicate rule"
+      ]
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "internal/fdd_document.hpp"
-#include "internal/fom_catalog.hpp"
-#include "internal/libxml2_fom_composer.hpp"
-#include "internal/libxml2_fom_validator.hpp"
+#include "internal/fom/fdd_document.hpp"
+#include "internal/fom/fom_catalog.hpp"
+#include "internal/fom/libxml2_fom_composer.hpp"
+#include "internal/fom/libxml2_fom_validator.hpp"
 
 #include <array>
 #include <filesystem>

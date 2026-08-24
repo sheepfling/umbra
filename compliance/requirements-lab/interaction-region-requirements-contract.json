@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 regional interaction declaration and no-time Send Interaction With Regions slice in Umbra's opt-in, non-installable development profile. It validates owner-created committed region specifications, available-dimension context, independent regional subscription state, per-(interaction-class, region) active/passive state, strict 2025 region-set overlap, callback-entry rechecks, and the empty-region no-op rules. The focused service-report case now also proves the accepted §9.10 and §9.11 transitions append recipient-local successful-void records with type-27 InteractionClassHandle, type-43 RegionHandleSet, and the type-6 passive-indicator Boolean before the next interaction operation; paired C++ cases cover both the configured filesystem and HLA_IMMEDIATE MOM routes, including passive-indicator inversion and stable serial order. A paired ordinary Send Interaction With Regions failure matrix now records invalid interaction-class, parameter, and region inputs through both the configured filesystem and HLA_IMMEDIATE MOM routes with type-27/type-40/type-43/type-63/type-34 forms, false indicators, Null returns, exact exceptions, and no application callback. The dedicated Allow Relaxed DDM regression adds a direct-source, implementation-specific exact-boundary expansion while preserving strict overlap; RL-030 records the lack of an immutable Lab candidate for §9.1.4/§9.1.8 policy prose. Passive pairs remain subscribed and retain their region-use fence, but cannot arrange delivery; a later subscription of the same pair changes its mode. The passive-subscription definition supplies the delivery predicate, while the Lab's immutable candidate records cover the service's active/passive pair-state language. Object-instance regional registration/association, object-class attribute regional subscriptions, Request Attribute Value Update With Regions, timestamped/retraction behavior, realization/association state, broader relaxed-DDM matrices, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
+  "requirements": [
+    {
+      "id": "umbra-interaction-region-overlap-controls-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscription-adds-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l161-48",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-active-passive-pair-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l49-15",
+      "clause_id": "clause-9.10.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-passive-pair-suppresses-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l49-15",
+      "clause_id": "clause-9.10.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-resubscription-updates-pair-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l64-20",
+      "clause_id": "clause-9.10.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscription-keeps-ordinary-subscription-independent",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l170-51",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation/federation_registry.hpp",
+      "source_symbol": "FederateInteractionDeclarations",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-empty-subscription-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l182-55",
+      "clause_id": "clause-9.10",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscription-removes-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-238-l181-54",
+      "clause_id": "clause-9.11.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::removeInteractionClassRegionalSubscription",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-invalid-designator-is-rejected",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l54-15",
+      "clause_id": "clause-9.12",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-send-limits-scope",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l150-43",
+      "clause_id": "clause-9.12",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-empty-send-is-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l42-12",
+      "clause_id": "clause-9.12.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-no-overlap-suppresses-receive",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l9-1",
+      "clause_id": "clause-9.12.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscribe-file-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-unsubscribe-file-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
+      ]
+    },
+    {
+      "id": "umbra-interaction-region-subscription-service-report-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction"
+      ],
+      "notes": "The accepted §9.10/§9.11 regional interaction subscription pair is projected through HLAreportServiceInvocation to an HLA_IMMEDIATE observer. The focused C++ case decodes DDM service type 5, type-27 InteractionClassHandle and type-43 RegionHandleSet values, the type-6 passive indicator (including active=false inversion), Null returned arguments, success true, empty exception, and serials zero through two for passive subscription, active replacement, and unsubscription. The Lab has no row-level backend/lifecycle relation for this cross-cutting §11.5.1 behavior, so this remains development-profile interaction evidence rather than validation or conformance."
+    },
+    {
+      "id": "umbra-interaction-region-send-failure-service-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction"
+      ],
+      "notes": "The no-time regional Send Interaction With Regions failure matrix covers invalid interaction-class, parameter, and region designators. Filesystem and HLA_IMMEDIATE service-report routes preserve serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, Null returns, false success, exact exception text, and no application Receive Interaction callback. Requirements Lab RL-105/RL-152 provide no row-level conditional-failure/backend relation; this is development-profile traceability rather than validation or conformance."
+    },
+    {
+      "id": "umbra-interaction-region-send-success-service-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ],
+      "notes": "The accepted ordinary regional Send Interaction With Regions matrix verifies the five supplied Table 5 slots (type-27 interaction class, type-40 parameter map, type-43 source-region set, type-63 tag, and type-34 Null timestamp), a Null return, interaction-management service type 2, success true, serial zero, and delivery of the source RegionHandleSet to the constrained application callback. The configured filesystem and HLA_IMMEDIATE HLAreportServiceInvocation routes are both covered before callback admission. Requirements Lab RL-105/RL-152 provide no row-level backend/lifecycle relation for this cross-cutting §11.5.1 behavior; this is development-profile traceability rather than validation or conformance."
+    }
+  ]
+}

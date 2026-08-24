@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 Time Advance Request Available service to source-derived clause 8.9. The embedded profile retains the supplied request until the existing callback-gated Time Advance Grant path, records the accepted request with its Table 5 LogicalTime representation before that grant, delivers currently queued TSO input through the path, and uses the inclusive defined-GALT boundary required by the Available form. Default-source and explicit-source regional interaction companions now carry their respective region contexts through the same inclusive TARA boundary, verifying the supplied-empty marker for the private default source and the preserved RegionHandle for an explicit source; both remain in-process HLA_EVOKED cases. A default-source timestamped attribute-update companion exercises one ordinary/default-region passel through the same inclusive TARA boundary as part of a shared FQR/TARA/NMRA frontier and proves callback-before-grant ordering. A mixed-member regional companion exercises TARA alongside FQR and NMRA recipients in the same in-process frontier, proving the TSO callback precedes the TARA grant. A separate restore-control matrix snapshots one no-queued-TSO, single-federate TARA request at direct save initiation and restores its fresh grant after Federation Restored under both callback models. Future transport input, complete GALT/LITS coordination, Flush Queue Grant, multi-member or queued/in-transit restore, package/catalog evidence, protected review, and conformance remain outside this slice.",
+  "requirements": [
+    {
+      "id": "umbra-time-advance-request-available-requests-advance",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l110-31",
+      "clause_id": "clause-8.9",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequestAvailable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Available time advances use inclusive GALT and queued TSO delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants"
+      ]
+    },
+    {
+      "id": "umbra-time-advance-request-available-delivers-before-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49",
+      "clause_id": "clause-8.9",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Available time advances use inclusive GALT and queued TSO delivery",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants"
+      ]
+    },
+    {
+      "id": "umbra-embedded-time-advance-request-available-report-precedes-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l110-31",
+      "clause_id": "clause-8.9",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::requestAvailableTimeAdvance",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant"
+      ]
+    }
+  ]
+}

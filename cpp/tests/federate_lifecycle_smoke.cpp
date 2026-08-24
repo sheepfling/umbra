@@ -1,4 +1,4 @@
-#include "internal/federate_lifecycle.hpp"
+#include "internal/federation/federate_lifecycle.hpp"
 
 using umbra::detail::FederateLifecycle;
 using umbra::detail::FederateLifecycleEvent;

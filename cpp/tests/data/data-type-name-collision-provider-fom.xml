@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes>
+        <basicDataRepresentations>
+            <basicData>
+                <name>UmbraCollisionRepresentation</name>
+                <size>32</size>
+                <interpretation>Unsigned integer representation used only by this fixture.</interpretation>
+                <endian>Big</endian>
+                <encoding>32-bit unsigned integer.</encoding>
+            </basicData>
+        </basicDataRepresentations>
+        <simpleDataTypes>
+            <simpleData>
+                <name>HLAinteger32BE</name>
+                <representation>UmbraCollisionRepresentation</representation>
+                <semantics>Intentionally collides with the standard basic data name.</semantics>
+            </simpleData>
+        </simpleDataTypes>
+    </dataTypes>
+</objectModel>

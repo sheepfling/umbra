@@ -43,8 +43,10 @@
 build/
 Build/
 build-*/
+out/
 .build/
 .build-*/
+CMakeUserPresets.json
 
 # CMake generated files
 CMakeFiles/
@@ -68,6 +70,9 @@ vcpkg_installed/
 
 # test output & cache
 Testing/
+# Keep the organized documentation tree visible on case-insensitive filesystems.
+!docs/testing/
+!docs/testing/**
 .cache/
 
 # Python
@@ -78,6 +83,9 @@ __pycache__/
 .venv/
 dist/
 *.egg-info/
+.codex*/
+.codex*
+tmp/
 
 # Locally exported HLA Requirements Lab bundles and test evidence
 .compliance/
