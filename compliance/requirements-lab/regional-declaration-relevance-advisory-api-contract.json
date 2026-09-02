@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the four official IEEE 1516.1-2025 FederateAmbassador declaration-relevance callbacks used by Umbra's regional subscription transition. Regional declarations select the same callback surfaces as ordinary declarations; region overlap and delivery remain separate DDM behavior. The slice is development-profile API/source traceability only and does not claim package, protected-review, catalog, validation, or conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "umbra-regional-start-registration-for-object-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.startregistrationforobjectclass.186c2957a581",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void startRegistrationForObjectClass( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+      ]
+    },
+    {
+      "id": "umbra-regional-stop-registration-for-object-class",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.stopregistrationforobjectclass.a2b4ee2c8114",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void stopRegistrationForObjectClass( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+      ]
+    },
+    {
+      "id": "umbra-regional-turn-interactions-on",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.turninteractionson.fa14ab505d87",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void turnInteractionsOn( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+      ]
+    },
+    {
+      "id": "umbra-regional-turn-interactions-off",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.turninteractionsoff.ad390f395f2d",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void turnInteractionsOff( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueDeclarationAdvisories",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+      ]
+    }
+  ]
+}

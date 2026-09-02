@@ -3,6 +3,7 @@
 #include "internal/callbacks/callback_dispatcher.hpp"
 #include "internal/callbacks/callback_session.hpp"
 #include "internal/federation/embedded_transport.hpp"
+#include "internal/federation/federation_registry.hpp"
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
 #include <algorithm>
@@ -26,6 +27,28 @@ using umbra::detail::InstrumentationLayer;
 using umbra::detail::InstrumentationOperationSnapshot;
 using umbra::detail::RuntimeInstrumentation;
 using namespace std::chrono_literals;
+
+class ReentrantEvokeFederateAmbassador final : public NullFederateAmbassador {
+ public:
+  UmbraRtiAmbassador* rti = nullptr;
+  bool evokeRejected = false;
+  bool multipleRejected = false;
+
+  void reportFederationExecutions(
+      rti1516_2025::FederationExecutionInformationVector const&) override {
+    REQUIRE(rti != nullptr);
+    try {
+      static_cast<void>(rti->evokeCallback(0.0));
+    } catch (rti1516_2025::CallNotAllowedFromWithinCallback const&) {
+      evokeRejected = true;
+    }
+    try {
+      static_cast<void>(rti->evokeMultipleCallbacks(0.0, 0.0));
+    } catch (rti1516_2025::CallNotAllowedFromWithinCallback const&) {
+      multipleRejected = true;
+    }
+  }
+};
 
 InstrumentationOperationSnapshot const& operation(
     umbra::detail::RuntimeInstrumentationSnapshot const& snapshot,
@@ -72,6 +95,117 @@ TEST_CASE("The immediate callback dispatcher invokes enabled callbacks synchrono
   REQUIRE_FALSE(dispatcher.evokeOne(0ms));
 }
 
+TEST_CASE(
+    "Immediate callback delivery remains FIFO and non-concurrent across producer threads",
+    "[unit][kernel][callbacks][concurrency]") {
+  CallbackDispatcher dispatcher(CallbackDispatchModel::immediate);
+  std::mutex synchronizationMutex;
+  std::condition_variable callbackStarted;
+  std::condition_variable releaseCallback;
+  std::vector<int> order;
+  bool firstStarted = false;
+  bool secondEntered = false;
+  bool release = false;
+
+  std::thread firstProducer([&] {
+    dispatcher.submit([&] {
+      std::unique_lock lock(synchronizationMutex);
+      order.push_back(1);
+      firstStarted = true;
+      callbackStarted.notify_all();
+      releaseCallback.wait(lock, [&] { return release; });
+    });
+  });
+
+  {
+    std::unique_lock lock(synchronizationMutex);
+    REQUIRE(callbackStarted.wait_for(lock, 1s, [&] { return firstStarted; }));
+  }
+
+  std::thread secondProducer([&] {
+    dispatcher.submit([&] {
+      std::scoped_lock lock(synchronizationMutex);
+      secondEntered = true;
+      order.push_back(2);
+    });
+  });
+  secondProducer.join();
+
+  {
+    std::scoped_lock lock(synchronizationMutex);
+    REQUIRE_FALSE(secondEntered);
+  }
+
+  {
+    std::scoped_lock lock(synchronizationMutex);
+    release = true;
+  }
+  releaseCallback.notify_all();
+  firstProducer.join();
+
+  REQUIRE(order == std::vector<int>{1, 2});
+  REQUIRE(dispatcher.pendingCount() == 0);
+}
+
+TEST_CASE(
+    "A lightweight callback route still submits receive-order work",
+    "[unit][kernel][callbacks][foundation]") {
+  int submissions = 0;
+  umbra::detail::FederateCallbackRoute route;
+  route.submit = [&](umbra::detail::FederateCallbackInvocation invocation) {
+    ++submissions;
+    REQUIRE(static_cast<bool>(invocation));
+  };
+
+  route.enqueueReceiveOrder([](rti1516_2025::FederateAmbassador&) {});
+
+  REQUIRE(submissions == 1);
+}
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+TEST_CASE(
+    "Evoke services reject re-entry from an immediate federate callback",
+    "[integration][connection][callbacks][reentrancy]") {
+  UmbraRtiAmbassador rti;
+  ReentrantEvokeFederateAmbassador federate;
+
+  REQUIRE_NOTHROW(rti.connect(federate, rti1516_2025::HLA_IMMEDIATE));
+  federate.rti = &rti;
+
+  // Listing federations is a real RTI-initiated callback boundary.  The
+  // immediate model enters the callback synchronously, so this exercises the
+  // public CallNotAllowedFromWithinCallback guards without a test-only
+  // dispatcher shortcut.
+  REQUIRE_NOTHROW(rti.listFederationExecutions());
+  REQUIRE(federate.evokeRejected);
+  REQUIRE(federate.multipleRejected);
+
+  REQUIRE_NOTHROW(rti.disconnect());
+}
+#endif
+
+TEST_CASE(
+    "Immediate callback disable stops an enabled backlog at the next boundary",
+    "[unit][kernel][callbacks][enable-disable]") {
+  CallbackDispatcher dispatcher(CallbackDispatchModel::immediate);
+  std::vector<int> order;
+
+  dispatcher.setEnabled(false);
+  dispatcher.submit([&] {
+    order.push_back(1);
+    dispatcher.setEnabled(false);
+  });
+  dispatcher.submit([&] { order.push_back(2); });
+
+  dispatcher.setEnabled(true);
+  REQUIRE(order == std::vector<int>{1});
+  REQUIRE(dispatcher.pendingCount() == 1);
+
+  dispatcher.setEnabled(true);
+  REQUIRE(order == std::vector<int>{1, 2});
+  REQUIRE(dispatcher.pendingCount() == 0);
+}
+
 TEST_CASE("The evoked callback dispatcher invokes one queued callback at a time", "[unit][kernel][callbacks][foundation]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
   std::vector<int> order;
@@ -85,6 +219,69 @@ TEST_CASE("The evoked callback dispatcher invokes one queued callback at a time"
   REQUIRE(dispatcher.pendingCount() == 1);
   REQUIRE_FALSE(dispatcher.evokeOne(0ms));
   REQUIRE(order == std::vector<int>{1, 2});
+}
+
+TEST_CASE(
+    "Concurrent evokers cannot enter one FederateAmbassador at the same time",
+    "[unit][kernel][callbacks][concurrency]") {
+  CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
+  std::mutex synchronizationMutex;
+  std::condition_variable callbackStarted;
+  std::condition_variable secondEvokeStarted;
+  std::condition_variable releaseCallback;
+  std::vector<int> order;
+  bool firstStarted = false;
+  bool secondAttempted = false;
+  bool secondEntered = false;
+  bool release = false;
+
+  dispatcher.submit([&] {
+    std::unique_lock lock(synchronizationMutex);
+    order.push_back(1);
+    firstStarted = true;
+    callbackStarted.notify_all();
+    releaseCallback.wait(lock, [&] { return release; });
+  });
+  dispatcher.submit([&] {
+    std::scoped_lock lock(synchronizationMutex);
+    secondEntered = true;
+    order.push_back(2);
+  });
+
+  std::thread firstEvoker([&] { static_cast<void>(dispatcher.evokeOne(0ms)); });
+  {
+    std::unique_lock lock(synchronizationMutex);
+    REQUIRE(callbackStarted.wait_for(lock, 1s, [&] { return firstStarted; }));
+  }
+
+  std::thread secondEvoker([&] {
+    {
+      std::scoped_lock lock(synchronizationMutex);
+      secondAttempted = true;
+    }
+    secondEvokeStarted.notify_all();
+    static_cast<void>(dispatcher.evokeOne(0ms));
+  });
+  {
+    std::unique_lock lock(synchronizationMutex);
+    REQUIRE(secondEvokeStarted.wait_for(lock, 1s, [&] { return secondAttempted; }));
+  }
+  std::this_thread::sleep_for(25ms);
+  {
+    std::scoped_lock lock(synchronizationMutex);
+    REQUIRE_FALSE(secondEntered);
+  }
+
+  {
+    std::scoped_lock lock(synchronizationMutex);
+    release = true;
+  }
+  releaseCallback.notify_all();
+  firstEvoker.join();
+  secondEvoker.join();
+
+  REQUIRE(order == std::vector<int>{1, 2});
+  REQUIRE(dispatcher.pendingCount() == 0);
 }
 
 TEST_CASE("Disabling callbacks preserves pending work until callbacks are enabled", "[unit][kernel][callbacks][foundation]") {
@@ -172,6 +369,59 @@ TEST_CASE(
   bool staleInvocationRan = false;
   session.invoke([&](auto&) { staleInvocationRan = true; });
   REQUIRE_FALSE(staleInvocationRan);
+}
+
+TEST_CASE(
+    "A callback session serializes concurrent direct invocations",
+    "[unit][kernel][callbacks][concurrency]") {
+  NullFederateAmbassador federate;
+  CallbackSession session(federate);
+  std::mutex synchronizationMutex;
+  std::condition_variable callbackStarted;
+  std::condition_variable releaseCallback;
+  std::vector<int> order;
+  bool firstStarted = false;
+  bool secondEntered = false;
+  bool release = false;
+
+  std::thread firstInvocation([&] {
+    session.invoke([&](auto&) {
+      std::unique_lock lock(synchronizationMutex);
+      order.push_back(1);
+      firstStarted = true;
+      callbackStarted.notify_all();
+      releaseCallback.wait(lock, [&] { return release; });
+    });
+  });
+
+  {
+    std::unique_lock lock(synchronizationMutex);
+    REQUIRE(callbackStarted.wait_for(lock, 1s, [&] { return firstStarted; }));
+  }
+
+  std::thread secondInvocation([&] {
+    session.invoke([&](auto&) {
+      std::scoped_lock lock(synchronizationMutex);
+      secondEntered = true;
+      order.push_back(2);
+    });
+  });
+
+  std::this_thread::sleep_for(25ms);
+  {
+    std::scoped_lock lock(synchronizationMutex);
+    REQUIRE_FALSE(secondEntered);
+  }
+
+  {
+    std::scoped_lock lock(synchronizationMutex);
+    release = true;
+  }
+  releaseCallback.notify_all();
+  firstInvocation.join();
+  secondInvocation.join();
+
+  REQUIRE(order == std::vector<int>{1, 2});
 }
 
 TEST_CASE(

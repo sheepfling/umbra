@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins the official C++ timestamped Update Attribute Values and Reflect Attribute Values declarations used by Umbra's bounded non-regional timestamped attribute-update family. It also records the official Retract service because delivered passels and the restored live designator are checked at the post-delivery terminal boundary. Focused lifecycle evidence now includes an ordinary non-regional passel preserved across callback-gated Time Constrained disable/re-enable before the matching grant. Focused untimed save/restore evidence reconstructs one ordinary queued passel for a single recipient and for two independent constrained recipients, proving separate Flush Queue reflection followed by Request Retraction. A terminal-tombstone companion saves a pre-existing MessageCanNoLongerBeRetracted classification and proves a discarded post-save designator is invalid after restore. The contract deliberately keeps time-management, order-type, and object-class request/provide surfaces in their own contracts so each cross-service dependency remains auditable without treating this composite case as conformance evidence.",
+  "notes": "This contract pins the official C++ timestamped Update Attribute Values and Reflect Attribute Values declarations used by Umbra's bounded non-regional timestamped attribute-update family. It also records the official Retract service because delivered passels and the restored live designator are checked at the post-delivery terminal boundary. Focused lifecycle evidence now includes an ordinary non-regional passel preserved across callback-gated Time Constrained disable/re-enable before the matching grant, and local-delete companions that suppress a queued reflection after one receiver forgets the object while allowing later rediscovery and delivery; the three-member form proves an independent survivor still receives the original callback before its grant. A mixed non-regional companion now sends one timestamped passel to an immediate/nonconstrained member and a constrained member, then retracts before the constrained grant so only the delivered copy receives Request Retraction. A voluntary-source-resignation companion now drains one accepted passel through two independent constrained recipient ledgers after Unconditionally Divest Attributes, preserving the original producer and callback metadata before each TAR/NMR grant. Focused untimed save/restore evidence reconstructs one ordinary queued passel for a single recipient and for two independent constrained recipients, proving separate Flush Queue reflection followed by Request Retraction. The object-instance and object-class Request Attribute Value Update response companions keep the timestamped service call in explicit provider callback code and verify a real requester reflection. A terminal-tombstone companion saves a pre-existing MessageCanNoLongerBeRetracted classification and proves a discarded post-save designator is invalid after restore. The contract deliberately keeps time-management, order-type, and object-instance/object-class request/provide surfaces in their own contracts so each cross-service dependency remains auditable without treating this composite case as conformance evidence.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-timestamped-update-attribute-values",
@@ -26,11 +26,21 @@
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Update Attribute Values before reflection callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
       ]
     },
     {
@@ -46,11 +56,21 @@
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Update Attribute Values before reflection callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
       ]
     },
     {
@@ -73,9 +93,14 @@
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
       ]
     }
   ]

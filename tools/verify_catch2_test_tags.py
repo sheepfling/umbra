@@ -19,6 +19,7 @@ from typing import Any
 SCOPE_TAGS = frozenset(("unit", "integration"))
 DOMAIN_TAGS = frozenset(
     (
+        "callbacks",
         "foundation",
         "federation-management",
         "time-management",

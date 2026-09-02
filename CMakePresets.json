@@ -48,8 +48,8 @@
     },
     {
       "name": "windows-fom-services",
-      "displayName": "Windows embedded federation-management development profile",
-      "description": "Non-installable FOM-services development profile.",
+      "displayName": "Windows installable federation-management profile",
+      "description": "Installable embedded FOM-services profile with packaged resources and process endpoint configuration.",
       "inherits": "windows-fom",
       "binaryDir": "${sourceDir}/out/cmake/fom-services",
       "cacheVariables": {

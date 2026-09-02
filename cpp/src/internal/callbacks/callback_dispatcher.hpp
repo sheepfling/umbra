@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <thread>
 
 namespace umbra::detail {
 
@@ -61,6 +62,12 @@ class CallbackDispatcher final {
   };
 
   static std::chrono::milliseconds nonNegative(std::chrono::milliseconds value) noexcept;
+  // Drain an enabled immediate queue while retaining the dispatcher-level
+  // serialization lock.  A single drainer owns the queue until it becomes
+  // disabled, changes model, or empty; callbacks submitted reentrantly are
+  // therefore appended behind the current callback instead of being invoked
+  // concurrently by another producer thread.
+  void drainImmediate();
   void invoke(QueuedCallback callback, CallbackDispatchModel dispatchModel);
 
   QueuedCallback takeNextLocked();
@@ -70,8 +77,16 @@ class CallbackDispatcher final {
   std::condition_variable callbackAvailable_;
   CallbackDispatchModel model_;
   bool enabled_ = true;
+  // Protected by mutex_.  This is distinct from dispatchMutex_: it elects one
+  // immediate drainer, while dispatchMutex_ also serializes evoked callback
+  // extraction/invocation so a FederateAmbassador is never entered
+  // concurrently by this dispatcher.
+  bool dispatchingImmediate_ = false;
+  std::thread::id immediateDrainer_;
+  std::size_t immediateDrainDepth_ = 0;
   std::deque<QueuedCallback> pending_;
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;
+  std::recursive_mutex dispatchMutex_;
 };
 
 }  // namespace umbra::detail

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract selects the 2025 Requirements Lab restore-control requirements exercised by Umbra's embedded development profile. It covers an accepted restore request, all-member initiation, the normally returned request/confirmation boundary, Federate Restore Complete's true/false C++ selectors, post-save state rollback, completion/failure/abort callbacks, status reporting, and a bounded resignation/failure boundary. The HLA_EVOKED restore-resignation lane proves that a resigning participant invalidates its in-flight restore, leaves the Federation Restored failure to surviving members, and clears the departing ambassador's queued restore callbacks before the next evoke. It does not establish complete role churn, durable snapshot serialization, or delivery of stale callback work after resignation. The contract also covers eight lifetime/state regressions: restoring a saved temporal image must not let a post-save MessageRetractionHandle alias fresh post-restore traffic; must restore a pre-save live TSO interaction payload plus its recipient ledger after a post-save Retract made that record terminal; must preserve pre-save terminal interaction, timestamped-attribute, and timestamped-object-deletion tombstones as MessageCanNoLongerBeRetracted rather than invalid handles; must restore saved logical time and actual lookahead after post-save mutations; must retain a saved deferred lookahead-decrease target so the restored time window follows the same later grant behavior; must reconstitute a saved, still-pending Non-Regulated-Grant Time Advance Request with a fresh stale-work-fenced callback after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE; must reconstitute a single-member pending Flush Queue Request under both callback models so a fresh Flush Queue Grant follows Federation Restored; and must reconstitute single-federate pending TARA, NMR, and NMRA requests in both callback models so fresh Time Advance Grants follow Federation Restored. A new three-member companion restores one queued timestamped attribute passel for two constrained recipients and proves each recipient's independent Flush Queue delivery and post-delivery Request Retraction. A one-member terminal-attribute companion preserves a saved MessageCanNoLongerBeRetracted tombstone while rejecting a post-save handle discarded by restore. A one-member terminal-deletion companion also restores the released object/name state and rejects a distinct post-save deletion handle. A timed save/restore companion now retains a timestamp-eight default-source attribute passel across a timestamp-six admission boundary before restoring it for FQR reflection and Request Retraction; RL-141 records the cross-service boundary relation. The focused filesystem lane also proves the per-joined-federate report sequence continues across the restored application snapshot. It explicitly does not claim complete HLA save/restore semantics, multi-member pending/in-transit advance restoration, queued/in-transit TSO beyond these bounded cases, durable external persistence, general timed restore, general post-restore handle remapping, transport, protected review, package support, or conformance.",
+  "notes": "This contract selects the 2025 Requirements Lab restore-control requirements exercised by Umbra's embedded development profile. It covers an accepted restore request, all-member initiation, the normally returned request/confirmation boundary, Federate Restore Complete's true/false C++ selectors, post-save state rollback, completion/failure/abort callbacks, status reporting, and a bounded resignation/failure boundary. The HLA_EVOKED restore-resignation lane proves that a resigning participant invalidates its in-flight restore, leaves the Federation Restored failure to surviving members, and clears the departing ambassador's queued restore callbacks before the next evoke. It does not establish complete role churn, durable snapshot serialization, or delivery of stale callback work after resignation. The contract also covers the saved declaration allocator invariant: restoring a saved object-class subscription must restore both its declaration generation and the federation-scoped next-generation allocator, so a post-restore mutation consumes the saved next identity rather than a discarded post-save identity. It also covers eight lifetime/state regressions: restoring a saved temporal image must not let a post-save MessageRetractionHandle alias fresh post-restore traffic; must restore a pre-save live TSO interaction payload plus its recipient ledger after a post-save Retract made that record terminal; must preserve pre-save terminal interaction, timestamped-attribute, and timestamped-object-deletion tombstones as MessageCanNoLongerBeRetracted rather than invalid handles; must restore saved logical time and actual lookahead after post-save mutations; must retain a saved deferred lookahead-decrease target so the restored time window follows the same later grant behavior; must reconstitute a saved, still-pending Non-Regulated-Grant Time Advance Request with a fresh stale-work-fenced callback after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE; must reconstitute a single-member pending Flush Queue Request under both callback models so a fresh Flush Queue Grant follows Federation Restored; and must reconstitute single-federate pending TARA, NMR, and NMRA requests in both callback models so fresh Time Advance Grants follow Federation Restored. A new two-member companion also captures two pending ordinary TAR requests in one process-local image and proves independent restored grants; a three-member companion restores one queued timestamped attribute passel for two constrained recipients and proves each recipient's independent Flush Queue delivery and post-delivery Request Retraction. A one-member terminal-attribute companion preserves a saved MessageCanNoLongerBeRetracted tombstone while rejecting a post-save handle discarded by restore. A one-member terminal-deletion companion also restores the released object/name state and rejects a distinct post-save deletion handle. A timed save/restore companion now retains a timestamp-eight default-source attribute passel across a timestamp-six admission boundary before restoring it for FQR reflection and Request Retraction; RL-141 records the cross-service boundary relation. Fresh-registry filesystem companions now materialize route-free control/temporal state plus one object-name reservation, one synchronization-point ledger, one committed federation-owned region, one object-class declaration ledger, and one latest object application-value projection while rebinding only live callback routes. It explicitly does not claim complete HLA save/restore semantics, queued/in-transit TSO beyond these bounded cases, complete application-ledger process-restart recovery, general timed restore, general post-restore handle remapping, transport, protected review, package support, or conformance.",
   "requirements": [
     {
       "id": "umbra-restore-request-starts-process",
@@ -20,8 +20,15 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped object deletion classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/federation_registry_catch2.cpp::Federation restore rebinds pending time-role callbacks and fences stale work",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-role callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-constrained callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Request Federation Restore before its confirmation"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Request Federation Restore before its confirmation",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores route-free control and temporal state in a fresh registry",
+         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry",
+         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded fresh-registry restore rebinds pending TAR and deferred lookahead through public callback models"
       ]
     },
     {
@@ -35,7 +42,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reports missing labels and participant failures",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Request Federation Restore before its confirmation"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Request Federation Restore before its confirmation",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores route-free control and temporal state in a fresh registry"
       ]
     },
     {
@@ -131,9 +139,18 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/federation_registry_catch2.cpp::Federation restore rebinds pending time-role callbacks and fences stale work",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-role callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-constrained callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules saved pending time advances for multiple constrained members",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores route-free control and temporal state in a fresh registry",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry restores subscription-generation allocation with declaration state",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
       ]
     },
     {
@@ -151,7 +168,10 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules saved pending time advances for multiple constrained members",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores route-free control and temporal state in a fresh registry",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry restores subscription-generation allocation with declaration state"
       ]
     },
     {
@@ -281,6 +301,17 @@
       "notes": "The bounded three-member image restores one queued timestamped Update Attribute Values passel with two constrained recipients. Each restored recipient independently reaches Flush Queue delivery, retains the original payload and retraction metadata, and receives Request Retraction after the producer retracts the restored live designator. This is not multi-member pending/in-transit advance restoration or durable recovery."
     },
     {
+      "id": "umbra-restore-mixed-tso-family-composition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members"
+      ],
+      "notes": "The bounded four-member image composes one saved timestamped Update Attribute Values passel and one saved timestamped Send Interaction. After both post-save designators are terminalized, restore reconstitutes both families; mirror and observer independently deliver their restored copies through Flush Queue and then receive Request Retraction. This is additive composition evidence only; it does not claim durable external persistence, arbitrary post-restore handle remapping, or remote restore."
+    },
+    {
       "id": "umbra-restore-terminal-attribute-tso-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
@@ -378,6 +409,29 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
       ],
       "notes": "The bounded timed image captures a timestamp-eight target-qualified Send Directed Interaction while both members cross a timestamp-six save boundary, then restores the live directed recipient ledger and payload for Flush Queue delivery before post-delivery Request Retraction. It is a focused timed directed-interaction companion and does not claim durable or general timed restore, alternate advance modes, changed membership/ownership, transport, package/JUnit/protected-review evidence, or conformance; RL-141 records the missing cross-service save-boundary relation."
+    },
+    {
+      "id": "umbra-restore-multi-member-pending-time-advances",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules saved pending time advances for multiple constrained members"
+      ],
+      "notes": "The bounded two-member HLA_EVOKED case coordinates separate callback routes so both constrained TAR requests remain pending while the process-local save image is materialized, then proves each fresh restored grant consumes only its own generation/dispatch identity and follows Federation Restored on that route. This is development-profile traceability only; it does not claim durable, remote, timed, or queued/in-transit TSO restore."
+    },
+    {
+      "id": "umbra-restore-synchronization-point-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves synchronization-point state from the saved image",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores synchronization points in a fresh registry"
+      ],
+      "notes": "The saved image retains an announced, unachieved synchronization point; completing it after the live point is completed proves restore reconstitutes the saved synchronization ledger. The fresh-registry filesystem companion additionally proves the typed synchronization ledger survives process-local snapshot loss and a subsequent save. This is development-profile evidence only; it does not claim distributed restore or complete save/restore semantics."
     }
   ]
 }

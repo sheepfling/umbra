@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK P0 FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-09-01</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 C++ conformance tests</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This FOM contains the ordinary object, interaction, and DivestAcquire attribute declarations required by the portable TCK slice.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <attribute>
+                    <name>Value</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>On change</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable ordinary P0 attribute.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <interactionClass>
+                <name>TckInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <parameter>
+                    <name>Payload</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Portable ordinary P0 parameter.</semantics>
+                </parameter>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 handle-normalization support-services slice to the official C++ RTIambassador declarations. The embedded development profile validates connection, joined membership, and each specific invalid-handle exception; it produces stable execution-scoped point-range coordinates for federate, object-class, interaction-class, and live object-instance handles. Service-group coordinates stay inside the MIM HLAserviceGroup range. The Catch2 case proves equality preservation across joined ambassadors and the current registry keeps a departed federate designator normalizable for the still-joined peer. It does not yet create RTI-originated MOM regions, route MOM reports, prove distributed/external execution semantics, publish package evidence, produce JUnit/protected-review evidence, or claim conformance.",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 handle-normalization support-services slice to the official C++ RTIambassador declarations. The embedded development profile validates connection, joined membership, and each specific invalid-handle exception; it produces stable execution-scoped point-range coordinates for federate, object-class, interaction-class, and live object-instance handles. Service-group coordinates stay inside the MIM HLAserviceGroup range. The Catch2 cases prove equality preservation across joined ambassadors, file-report forms, and a native HLA_IMMEDIATE MOM companion for all five successful normalization services. The current registry keeps a departed federate designator normalizable for the still-joined peer. It does not yet prove distributed/external execution semantics, publish package evidence, produce JUnit/protected-review evidence, or claim conformance.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-normalize-service-group",
@@ -20,7 +20,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeServiceGroup",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
     {
@@ -38,7 +39,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeFederateHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
     {
@@ -56,7 +58,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeObjectClassHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
     {
@@ -74,7 +77,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeInteractionClassHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
     {
@@ -92,7 +96,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::normalizeObjectInstanceHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     }
   ]

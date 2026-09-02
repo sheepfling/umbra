@@ -4,6 +4,7 @@
 #include <functional>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace umbra::detail {
@@ -26,6 +27,13 @@ class UpdateRateGate final {
       bool reliable);
 
   void erase(std::string const& key);
+
+  // Remove admission history for one federation execution without touching
+  // streams belonging to other live executions.  Runtime delivery keys are
+  // namespaced by a federation prefix, so destroying one execution must not
+  // reset update-rate reduction for unrelated executions.
+  void erasePrefix(std::string_view prefix);
+
   void clear();
 
  private:

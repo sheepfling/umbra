@@ -225,6 +225,19 @@ class _JavaDataElement:
 
         if byte_wrapper is None:
             return self.toByteArray()
+        remaining = getattr(byte_wrapper, "remaining", None)
+        if callable(remaining):
+            try:
+                available = int(remaining())
+            except Exception:  # noqa: BLE001 - foreign cursor may not expose capacity cleanly
+                available = None
+            if available is not None and available < self.getEncodedLength():
+                # Do not enter a provider's native encode path with an
+                # undersized cursor.  Some JNI implementations do not return
+                # a typed Java exception for this condition.
+                raise EncoderException(
+                    "ByteWrapper does not contain enough space for this data element"
+                )
         _call_java(
             self._runtime,
             getattr(self._implementation, "encode"),
@@ -303,13 +316,37 @@ def _java_time_implementation_name(value: object, numeric: object) -> str:
     legacy = getattr(value, "implementationName", None)
     if callable(legacy):
         return str(legacy())
+    get_class = getattr(value, "getClass", None)
+    if callable(get_class):
+        try:
+            java_class = get_class()
+            simple = getattr(java_class, "getSimpleName", None)
+            class_name = str(simple() if callable(simple) else java_class)
+            if class_name and not class_name.startswith("$Proxy"):
+                if class_name == "HLAinteger64Time":
+                    return "HLAinteger64Time"
+                if class_name == "HLAfloat64Time":
+                    return "HLAfloat64Time"
+                return class_name
+        except (AttributeError, TypeError):
+            pass
     return "HLAfloat64Time" if isinstance(numeric, float) else "HLAinteger64Time"
 
 
-def _java_logical_time(runtime: JavaRuntime, value: object) -> LogicalTime:
+def _java_logical_time(
+    runtime: JavaRuntime,
+    value: object,
+    implementation_name: str | None = None,
+) -> LogicalTime:
     numeric = _java_time_value(value)
-    implementation = _java_time_implementation_name(value, numeric)
-    value_type = HLAfloat64Time if implementation == "HLAfloat64Time" else HLAinteger64Time
+    implementation = implementation_name or _java_time_implementation_name(value, numeric)
+    value_type = (
+        HLAinteger64Time
+        if implementation == "HLAinteger64Time"
+        else HLAfloat64Time
+        if implementation == "HLAfloat64Time"
+        else LogicalTime
+    )
     return value_type(
         runtime.handle_bytes(value),
         implementation,
@@ -320,16 +357,24 @@ def _java_logical_time(runtime: JavaRuntime, value: object) -> LogicalTime:
     )
 
 
-def _java_logical_interval(runtime: JavaRuntime, value: object) -> LogicalTimeInterval:
+def _java_logical_interval(
+    runtime: JavaRuntime,
+    value: object,
+    implementation_name: str | None = None,
+) -> LogicalTimeInterval:
     getter = getattr(value, "getIntervalValue", None)
     if getter is None:
         getter = getattr(value, "getInterval", None)
     if getter is None:
         getter = getattr(value, "getValue", None)
     numeric = getter() if getter is not None else None
-    implementation = _java_time_implementation_name(value, numeric)
+    implementation = implementation_name or _java_time_implementation_name(value, numeric)
     value_type = (
-        HLAfloat64Interval if implementation == "HLAfloat64Time" else HLAinteger64Interval
+        HLAinteger64Interval
+        if implementation == "HLAinteger64Time"
+        else HLAfloat64Interval
+        if implementation == "HLAfloat64Time"
+        else LogicalTimeInterval
     )
     return value_type(
         runtime.handle_bytes(value),
@@ -349,9 +394,11 @@ class _JavaLogicalTimeDataElement(_JavaDataElement, DataElement):
         self._ambassador = ambassador
 
     def getValue(self) -> LogicalTime:
+        factory = self._runtime.logical_time_factory(self._ambassador)
         return _java_logical_time(
             self._runtime,
             _call_java(self._runtime, getattr(self._implementation, "getValue")),
+            str(_call_java(self._runtime, getattr(factory, "getName"))),
         )
 
     def setValue(self, value: LogicalTime) -> _JavaLogicalTimeDataElement:
@@ -371,9 +418,11 @@ class _JavaLogicalTimeIntervalDataElement(_JavaDataElement, DataElement):
         self._ambassador = ambassador
 
     def getValue(self) -> LogicalTimeInterval:
+        factory = self._runtime.logical_time_factory(self._ambassador)
         return _java_logical_interval(
             self._runtime,
             _call_java(self._runtime, getattr(self._implementation, "getValue")),
+            str(_call_java(self._runtime, getattr(factory, "getName"))),
         )
 
     def setValue(self, value: LogicalTimeInterval) -> _JavaLogicalTimeIntervalDataElement:

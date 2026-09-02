@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the IEEE 1516.2-2025 Dimension-table naming rule: names in one dimension table shall be unique. The official DIF schema leaves this semantic constraint open so incomplete modules remain exchangeable, so Umbra checks each individually validated module before identity-based composition. Equivalent same-name definitions supplied by separate modules remain governed by Annex C.4 and are not rejected by this slice. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-dimension-name-uniqueness",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l6-1",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateUniqueDimensionNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects duplicate dimension names within one module"
+      ]
+    }
+  ]
+}

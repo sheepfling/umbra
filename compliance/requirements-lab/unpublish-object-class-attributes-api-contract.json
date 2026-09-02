@@ -25,7 +25,7 @@
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassAttributes",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form"
       ]
     }
   ]

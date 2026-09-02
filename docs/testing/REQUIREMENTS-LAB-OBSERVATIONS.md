@@ -11,7 +11,7 @@ not a claim that the Lab, IEEE source, or Umbra is non-conformant.
 - Reviewed release: `v0.1.0.a1` (`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`)
 - Umbra lock: `compliance/requirements-lab/requirements-lab.lock.json`
 - Editions exported: 2010 and 2025
-- Last reviewed: 2026-08-24
+- Last reviewed: 2026-08-26
 
 Umbra consumes only the Lab's exported portable JSON bundle. The generated
 bundle under `.compliance/` is intentionally ignored, so each observation
@@ -25,6 +25,305 @@ historical revision cited by the older observations below). Existing Umbra
 contracts remain implementation-scoped to 2025; the 2010 documents are
 included in the portable bundle and lock so their numbering remains available
 for future edition-specific contracts.
+
+### Recurrence-ledger decision — 2026-08-25
+
+The first 157 entries in this file are the immutable historical observation
+baseline; they are not reused when an old problem comes back. A go-back of a
+Requirements Lab or Umbra consumer issue after a fix was expected—including a
+finding that the issue was never actually closed—must be appended under the
+next unused `RL-###` identifier, cite the earlier observation, and record the
+current reproduction and mitigation state. This is local observation
+numbering, not a renumbering of the Lab's immutable requirement/API IDs.
+
+An unresolved old issue is still a recurrence when the workflow reaches it
+again. The absence of a Lab export change, or the fact that the original
+mitigation was incomplete, does not permit folding the new reproduction back
+into RL-001 through RL-157; it must receive the next post-157 identifier.
+
+The current audit leaves RL-172 through RL-176 as the earlier recorded
+post-RL-157 go-backs: RL-172 cites RL-156, RL-173 through RL-175 are the
+distinct resignation/lifetime consumer recurrences, and RL-176 records the
+Catch2-plan selector recurrence linked to RL-160. RL-158 through RL-171 are
+audit or coverage records, not hidden recurrences. The export-only r15 2025
+resync found no additional Lab-content recurrence; the later local plan guard
+did reproduce the RL-160 consumer go-back and consumed RL-176. RL-177 records
+the separate 2025 source-artifact tension, and RL-178 records the subsequent
+focused-lane traceability recurrence linked to RL-160/RL-176. RL-179 records
+the subsequent native Catch2 selector recurrence, so RL-180 is now the next
+available identifier for a future post-RL-157 go-back. An unchanged
+export, additive test coverage, or a local fixture/API setup correction does
+not consume the next identifier unless it reproduces a Requirements Lab or
+Umbra consumer defect.
+
+Earlier dated audit and plan notes were written while RL-177 or RL-178 was
+still available and may therefore say that one of those identifiers was
+“reserved.” Those statements are historical snapshots, not current allocation
+instructions. RL-177 now holds the separate source-artifact tension, RL-178
+holds the focused-lane traceability recurrence, and RL-179 holds the native
+selector recurrence recorded below, so RL-180 is the next unused post-RL-157
+identifier. A newly reproduced old issue must use RL-180 (or the next unused identifier), cite its earlier observation, and
+include the current reproduction and mitigation state; RL-001 through RL-157
+remain immutable and must never be reused.
+
+### 2026-08-24 re-sync audit
+
+A fresh export from the adjacent checkout at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` was compared with the existing
+ignored `.compliance/corpus-bundle.json`. The 2025 requirements, API surfaces,
+mappings, immutable IDs, clause IDs, and record ordering are unchanged. The
+fresh export did contain 32 state-machine `source_state`/`target_state` field
+changes in three 2010 Part 1.1 figures, caused by uncommitted parser/semantic
+changes in the adjacent Lab checkout; the refreshed ignored bundle now records
+those fields. No 2025 requirement-number rewrite is warranted. The 241
+checked-in `*-contract.json` files (145 requirements references, 95 API
+references, and one implementation contract), plus the API baseline, therefore
+continue to resolve without ID or clause-number edits. The older
+`4f012fb1c21367cfde67aab8498ae00e2a64c615` citations below remain historical
+observations; they are not silently relabelled as current 2025 export facts.
+The preceding lock migration had already normalized 295 exported clause IDs
+across 40 requirements contracts; this audit found no additional 2025
+clause-number drift.
+
+As a second check, the adjacent checkout's current working tree was exported
+without forcing the pinned revision and compared with the refreshed ignored
+bundle. The six document inventories still have the same requirement counts,
+immutable IDs, ordinals, clause IDs, API-surface IDs, and mapping IDs; the
+2025 Part 1.1 counts remain 1,860 requirements, 1,263 API surfaces, and 282
+mappings. This confirms that the apparent numbering concern is not a current
+2025 renumbering event. The working-tree export remains an audit artifact only
+and does not replace the pinned lock or the canonical contract baseline.
+
+The Lab checkout was not clean during this export. The exporter accepts a
+revision label but reads the working tree, so a dirty checkout can change
+derived transition metadata without changing the locked commit hash. Umbra
+records the working-tree condition and the field-level delta in RL-157 rather
+than treating the revision label alone as a content digest.
+
+A subsequent export from the same working tree (the local audit artifact
+`.compliance/corpus-bundle-resync-2026-08-24-r5-2025.json`) reproduced this
+result. `requirements_lab.py resync --edition 2025 --fail-on-diff` reports one
+changed document because of those fifteen added state-chart transitions plus
+the one API surface and one mapping; it reports no missing content and no
+renumbered records. All 241 checked-in `*-contract.json` files resolve cleanly
+against that candidate. The candidate remains non-canonical: the pinned
+`.compliance/corpus-bundle.json` and lock file are intentionally unchanged.
+
+The audit also found a duplicate local observation heading, `RL-022`. The
+temporal state-chart label observation is now `RL-155`; existing cross-
+references to the Turn Updates On and automatic-resign observations remain
+stable. The checker now exercises the duplicate-heading guard instead of
+silently accepting malformed observation numbering.
+
+The configured Debug multi-configuration CTest lane was then run by test name
+against the fresh bundle: all 235 Requirements-Lab traceability tests passed.
+Invoking CTest without `-C Debug` does not execute these tests; CTest reports
+them as `Not Run` because the generated Visual Studio test file has
+configuration-qualified entries. This is a tooling usability edge, not
+requirements drift, and future Lab refresh checks should use the explicit
+configuration (or a single-configuration generator).
+
+### 2026-08-25 re-sync audit
+
+The follow-up 2025 export (`r11`) was compared with the prior `r10` audit
+candidate at the same locked revision. `requirements_lab.py resync --edition
+2025 --fail-on-diff` reports `changed_documents: 0`: all three 2025 document
+digests, requirement/API/mapping/transition inventories, immutable IDs, and
+clause bindings are unchanged. The exported inventories remain 20 Part 1,
+1,860 Part 1.1, and 340 Part 1.2 requirements; the dirty working-tree
+overlay remains 1,264 Part 1.1 API surfaces, 283 mappings, and 297
+transitions. This is routine audit confirmation, not a new Requirements Lab
+issue and not a requirement-numbering event.
+
+The same-day r12 export was then generated directly from `../Document-Recreation`
+and compared with r11. It reports `changed_documents: 0` and identical SHA-256
+content for all three 2025 documents: 20/1,860/340 requirements, 1,264 API
+surfaces, 283 mappings, 297 transitions, and 1,894 requirement/API bindings.
+No requirement, ordinal, clause ID, API-surface ID, mapping ID, or pre-existing
+transition was added, removed, renumbered, or content-replaced. The normal
+Requirements Lab check passes against r12, so no contract or test-plan remap is
+warranted. Per the recording rules below, this unchanged expected resync does
+not consume RL-176; a future reproduced Lab/consumer defect must use that next
+post-157 identifier and cite its earlier observation.
+
+The recurrence audit also rechecked the post-RL-157 rule: RL-172 remains the
+confirmed FOM consumer-semantics recurrence linked to RL-156. RL-173 and RL-174
+are distinct object-deletion and regional-interaction lifecycle records, and
+RL-175 is the adjacent regional-attribute recurrence; none claims that the Lab
+renumbered anything. An unchanged export alone must not consume an observation
+number; RL-175 consumes one because a reproducible Umbra consumer defect was
+found while adding the new coverage. At the r12 audit point, the local Catch2
+plan contained 556 entries, all reusing current 2025 requirement and C++ API
+IDs. A later clean default-region resignation companion is recorded below as
+local coverage growth, bringing the plan to 557 entries without consuming an
+observation number.
+
+The regulation-role companion was a clean implementation slice rather than a
+new Requirements Lab complaint: an accepted queued timestamped interaction
+survived producer Disable Time Regulation and callback-gated re-enable at the
+same lookahead, then arrived once before the recipient grant. No prior issue
+was re-exposed, so that slice consumed no observation. This distinction is
+intentional: a new Catch2 plan entry is local coverage growth, while a new
+post-RL-157 observation is reserved for a reproducible Lab or consumer issue;
+the regional-resignation regressions are recorded as RL-174 and RL-175 below.
+
+The direct timestamped-directed TAR/NMR companion was likewise a clean local
+coverage slice. The r11 export still reports the same immutable requirement and
+API records, and the native runtime delivered one target-qualified timestamped
+callback before each direct TAR(7) and NMR(10) grant. No Lab or Umbra defect was
+reproduced, so this coverage addition consumed no observation.
+
+The same-day r13 export was generated directly from `../Document-Recreation` and
+compared with r12. It again reports `changed_documents: 0` at revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`, with the same 20/1,860/340
+requirements, 1,264 API surfaces, 283 mappings, 297 transitions, and 1,894
+requirement/API bindings. The new regional declaration-relevance slice reuses
+those immutable IDs and adds one local Catch2 plan entry (559 total). The
+follow-on tag-free Cancel Negotiated Attribute Ownership Divestiture MOM slice
+reuses the same immutable IDs and adds one more local plan entry (560 total);
+its lock-free HLA_IMMEDIATE report route also reproduced no Lab or
+runtime-semantics defect, so RL-176 remains unused.
+The first DDM regression pass did expose stale local test assumptions that
+regional active subscriptions do not enqueue declaration-relevance callbacks;
+the affected timing/service-report fixtures now suppress that independent
+callback stream explicitly, while the dedicated regional-advisory case keeps
+it enabled. This is an Umbra test-fixture correction, not a Lab recurrence or
+numbering event.
+
+The timestamped `Retract` public-MOM companion is likewise clean local
+coverage: the accepted designator is reported through an `HLA_IMMEDIATE`
+observer before the separate `Request Retraction` callback is evoked, with
+the official type-4 service and type-33 supplied argument. The production file
+remains unchanged while file reporting is disabled. The r13 export still
+reports unchanged 2025 identifiers, and the local Catch2 plan grows from 560
+to 561 entries; no Requirements Lab or Umbra defect was reproduced, so RL-176
+remains unused.
+
+The follow-on multiple-object-instance-name release MOM companion was also
+clean local coverage. It reuses the unchanged r13 requirement/API identifiers,
+performs an atomic §6.7 release, and delivers one type-54 `StringSet`
+`HLAreportServiceInvocation` to an HLA_IMMEDIATE observer after the registry
+mutation and outside native locks. The focused case passes 55 assertions and
+the local Catch2 plan grows from 561 to 562 entries. No Requirements Lab or
+Umbra consumer defect was reproduced; RL-176 therefore remains unused. This
+is public interaction evidence, separate from the existing private filesystem
+record case, and does not promote either lane to validation or conformance.
+
+The accepted `Cancel Attribute Ownership Acquisition` public-MOM companion was
+also a clean local slice. It emits one reliable ownership-management service
+report after the §7.15 cancellation plan and outside native locks, before the
+separately queued confirmation callback, and decodes the official type-3,
+type-37, and type-1 forms. The focused case passes 78 assertions and the local
+Catch2 plan grows from 562 to 563 entries. The r13 export remains identifier-
+stable and `requirements_lab.py check` has no changed Lab record; no Requirements
+Lab or Umbra consumer defect was reproduced, so RL-176 remains unused. This is
+public interaction evidence only, not Lab validation or conformance.
+
+The ordinary timestamped-interaction fanout companion was also a clean local
+coverage slice. It accepts one timestamp-6 interaction for two constrained
+recipients, admits independent TAR(6) and NMR(10), then resigns the producer
+with `NO_ACTION`; each recipient drains its own callback before its grant and
+retains the original producer, payload, tag, timestamp/order, and retraction
+metadata. A post-resignation `Retract` correctly stops at the official
+membership precondition (`FederateNotExecutionMember`), so this is not a Lab
+or Umbra regression. The local plan therefore grows from 552 to 553 entries
+without consuming an observation; the post-RL-157 recurrence rule remains
+unchanged.
+
+The adjacent timestamped-attribute fanout companion was likewise clean. It
+accepts one timestamp-7 `Update Attribute Values` passel for two constrained
+recipients, admits direct TAR(7) and NMR(10), resigns the producing owner with
+`UNCONDITIONALLY_DIVEST_ATTRIBUTES`, and drains both reflections independently
+before their grants with the original producer, payload, tag, timestamp/order,
+and retraction metadata. The focused Catch2 case passes 87 assertions; the
+plan grows from 553 to 554 entries with no changed Lab record and no
+observation. This is local multi-recipient evidence, not a recurrence or a
+conformance promotion.
+
+The follow-on single-recipient explicit-source regional-attribute companion was
+not clean coverage: its first callback-boundary run reproduced the same
+invocation-time regional-scope loss after the producer resigned. The runtime now
+uses the committed source-region snapshot and accepted update-region association
+only after the producer has left the live membership ledger, while preserving
+live association-replacement suppression. The focused case passes 66 assertions
+and this new post-RL-157 recurrence is recorded as RL-175, citing RL-174 rather
+than rewriting it.
+
+The adjacent default-source/default-region attribute-update companion was clean
+coverage. It keeps one timestamped `Update Attribute Values` passel queued while
+the producer resigns with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`, then uses an
+independent regulator to release the recipient. The callback precedes its
+matching grant, preserves the payload/tag/producer/timestamp/order and supplied-
+empty callback-region marker, and rejects post-resignation `Retract` with
+`FederateNotExecutionMember`. The focused case passes 63 assertions; the local
+Catch2 plan grows from 556 to 557 entries. No Requirements Lab or Umbra defect
+was reproduced, so this clean adjacent slice does not consume RL-176.
+
+The local `requirements_lab.py check` now enforces the documentation side of
+this rule: post-RL-157 identifiers must remain ascending and contiguous, any
+post-RL-157 entry using recurrence, re-exposure, reintroduction, reappearance,
+reoccurrence, or go-back language must cite an earlier `RL-###` record, and the
+duplicate-heading guard continues to protect the historical numbering. This is
+a consumer-side audit guard; it does not change the immutable Requirements Lab
+identifiers.
+
+The same audit found and corrected a local ledger-formatting defect: the RL-175
+post-157 recurrence heading used a plain hyphen instead of the canonical em dash,
+so the heading parser did not count it. RL-175 was already the correct new
+recurrence linked to RL-174; after normalization the checker recognizes all
+RL-158 through RL-175 entries in order. The checker now rejects any future
+`RL-###` heading with a non-canonical delimiter. This was a documentation/tooling
+defect, not a new Lab or Umbra runtime recurrence, so RL-176 remains reserved.
+
+The follow-up r14 export (`.tmp/corpus-bundle-resync-2026-08-25-r14-2025.json`)
+was generated directly from `../Document-Recreation` at the locked revision and
+compared with r13. The 2025 export remains unchanged: 20/1,860/340
+requirements, 1,264 API surfaces, 283 mappings, 297 transitions, and 1,894
+requirement/API bindings, with no missing, added, renumbered, or
+content-replaced records. The normal Lab checker also remains green. This is
+an expected re-sync, not a recurrence or a numbering event, so RL-176 remains
+unused. Any later go-back that reproduces a previously recorded Lab or Umbra
+consumer defect must still receive the next post-157 identifier and cite the
+earlier record under the recording rule below.
+
+The immediate r15 export (`.tmp/corpus-bundle-resync-2026-08-25-r15-2025.json`)
+was generated again from `../Document-Recreation` at the same locked revision
+and compared with r14. It reports `changed_documents: 0` with the same
+2025 inventories (20/1,860/340 requirements, 1,264 API surfaces, 283
+mappings, 297 transitions, 1,894 requirement/API bindings, and 1,410 API
+crosswalks). The scoped bundle check passes, and no requirement, ordinal,
+clause ID, API-surface ID, mapping ID, transition, or binding was added,
+removed, renumbered, or content-replaced. The recurrence audit found no new
+Lab-content reproduction beyond the already recorded post-157 go-backs RL-172
+through RL-175, so RL-176 was still reserved at this export-only checkpoint.
+The subsequent Catch2 plan guard reproduced a consumer-side go-back from
+RL-160 and is recorded below as RL-176. This r15 export remains a clean
+numbering/content re-sync, not a new Requirements Lab issue.
+
+### 2026-08-25 local slice — changed-lookahead timestamped attribute update
+
+The native C++ companion for non-regional timestamped `Update Attribute Values`
+is additive local coverage, not a Requirements Lab recurrence. It queues a
+passel at lookahead one, disables and callback-gated re-enables producer Time
+Regulation at lookahead three, verifies `Query Lookahead`, and proves the
+reflection-before-grant boundary at the timestamp-five GALT frontier with the
+original payload, tag, producer, timestamp/order, and retraction metadata. The
+focused Catch2 selector, exact 2025 requirements/API contracts, and dedicated
+CTest label all pass against the locked export. No Lab content changed and no
+old issue was re-exposed, so this slice consumes no `RL-###` identifier;
+RL-177 remains the separate source-artifact tension and RL-178 remains the
+next post-157 recurrence slot.
+
+The matching native C++ changed-lookahead Delete Object Instance companion is
+also additive local coverage. It retains one timestamped deletion across the
+producer's lookahead-one disable and lookahead-three callback-gated re-enable,
+checks `Query Lookahead`, and proves `Remove Object Instance` before the
+timestamp-five grant with the original object, tag, producer, timestamp/order,
+and retraction metadata. Its focused Catch2 selector, exact 2025
+requirements/API contracts, and dedicated CTest lane pass against the locked
+export. No Lab content changed and no prior issue was re-exposed, so this
+companion consumes no observation number; RL-178 remains the next genuine
+post-157 recurrence slot.
 
 ## How future consumers should interpret the Lab
 
@@ -738,7 +1037,7 @@ record (or add a clearly labelled 1516.2 requirements document). Extend the
 checker with an explicit cross-document reference mode rather than requiring
 consumers to duplicate a source ID under the wrong document.
 
-### RL-022 — The temporal state-chart label says “Disable Asynchronously Delivery”
+### RL-155 — The temporal state-chart label says “Disable Asynchronously Delivery”
 
 **Status:** verified generated-label typo; possible export refinement, not a
 standards defect.
@@ -5977,7 +6276,2284 @@ model/schema validity, together with their official exception outcomes. This
 would let generated tests bind the diagnostic boundary without inferring it
 from implementation-specific filesystem probes.
 
+### RL-156 — FOM P/S metadata is capability classification, not a declaration fence
+
+**Status:** verified source-semantics boundary; possible Lab refinement, not a
+standards defect or conformance finding.
+
+The 2025 IEEE 1516.2 source describes the object-class, interaction-class, and
+class-attribute `P/S` field as a capability designation. For a FOM or FOM
+module, a class is classified as Publish or Subscribe when at least one
+federate is capable of publishing or subscribing in that class context. The
+relevant exported candidates are the object-structure continuation
+`requirement-candidate-sections-semantic-clause-4a-page-040-l26-5`, the
+interaction-structure continuation
+`requirement-candidate-sections-semantic-clause-4a-page-045-l6-1`, and the
+attribute-table continuation
+`requirement-candidate-sections-semantic-clause-4b-page-050-l34-2`, with the
+same broad `clause-4` ownership in the pinned `v0.1.0.a1` bundle.
+
+**Umbra impact:** the composed catalog retains the supplied `sharing` values
+as OMT metadata. The live publication and subscription sets remain owned by
+the 1516.1 declaration-management services. Umbra must not reject a runtime
+`Publish` or `Subscribe` call merely because a FOM row says `Subscribe`,
+`Publish`, or `Neither`; doing so would invent a per-federate exception rule
+that the cited OMT text does not state. Runtime declaration tests should
+instead trace the official service preconditions and exceptions separately.
+
+**Possible Lab/tooling refinement:** export table-row capability semantics as
+a distinct relation from 1516.1 service preconditions, so generated tests can
+distinguish FOM/SOM model classification from live declaration state without
+requiring consumers to infer that distinction from source prose.
+
+### RL-157 — Export revision labels do not freeze a dirty Lab working tree
+
+**Status:** verified reproducibility/tooling boundary; possible Lab refinement,
+not a standards defect or conformance finding.
+
+The Umbra exporter passes the locked revision string through to the Lab's
+public exporter, but it does not create a detached worktree or verify that the
+Lab checkout is clean. At the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`, a fresh all-edition export from
+the current adjacent checkout changed 32 state-machine endpoint fields in
+2010 Part 1.1 figures while leaving all 2025 requirement/API/mapping IDs and
+clause IDs unchanged. The commit hash alone would not explain that bundle
+delta.
+
+**Umbra impact:** the re-sync workflow now compares the new bundle against the
+previous ignored export at field level, promotes only the fresh generated
+bundle, and checks all 239 contract files plus the API baseline (240 typed
+contracts total). It records the source checkout's dirty state in this log and
+does not rewrite 2025 contracts merely because a revision label was reused.
+The 235 Debug traceability tests remain green after the refresh.
+A subsequent same-day export to the normal ignored bundle produced the same
+2025 requirement/API/mapping records and no additional clause-number drift;
+the repository-wide reference audit resolved all 1,594 typed Lab references
+and all 243 Requirements-Lab JSON contracts parsed successfully.
+
+The requested re-sync was repeated against the current adjacent checkout on
+2026-08-24 with a fresh all-edition export. Its SHA-256 is
+`4e0160b1e2dd81ba3df4f36911735f2cb04848d3ea3f45e1652943c6a0f255c2`, exactly
+matching the ignored canonical bundle. A field-level comparison found zero
+added, removed, or changed requirement, API-surface, and mapping records in
+all six documents, including zero changes to 2025 ordinals or clause IDs.
+All 240 typed contracts resolve against that fresh export with zero findings.
+The adjacent checkout is still dirty, so this result is an audit of the
+working tree rather than a new immutable Lab release; no Umbra requirement
+references were renumbered.
+
+**Possible Lab/tooling refinement:** make the exporter refuse a dirty checkout
+unless explicitly overridden, or include a content digest and the resolved
+source commit/working-tree status in the bundle. That would make revision
+pinning reproducible for downstream consumers and distinguish committed
+renumbering from local semantic regeneration.
+
+### RL-158 — Export output-path errors are not actionable
+
+**Status:** verified workflow/usability issue; possible Lab refinement, not a
+standards or conformance finding.
+
+During the 2026-08-24 re-sync, invoking the public exporter with `--output`
+pointing at an existing directory caused a raw Python `PermissionError` when
+the exporter attempted to write the JSON bundle. The supported invocation
+requires a file path, but the command-line failure does not state that
+requirement or identify the path-kind mismatch clearly.
+
+**Umbra impact:** the re-sync was retried with an explicit `.json` file path;
+the resulting bundle matched the canonical hash and no 2025 numbering or
+clause references were changed. This did not affect the Requirements Lab
+checker or any Umbra contract.
+
+**Possible Lab/tooling refinement:** validate `--output` before export and
+return a concise usage error when it is an existing directory (or explicitly
+support directory output). The error should distinguish path-kind mistakes
+from permission failures so a downstream consumer can correct the invocation
+without reading a Python traceback.
+
+### RL-159 — Multi-member pending-advance mapping re-sync
+
+**Status:** verified traceability update; not a standards or conformance finding.
+
+The new two-member HLA_EVOKED save/restore case is mapped to the current
+2025 Requirements Lab IDs in `catch2-test-plan.json` and the restore-control
+contracts. The 12 selected C++ API-surface IDs and 15 selected requirement IDs
+all resolve against the fresh 2026-08-24 bundle; the repository-wide 243
+contract checks remain green. No 2025 ordinal or clause ID changed during this
+slice. The test evidence remains process-local development-profile evidence,
+not a conformance result.
+
+### RL-160 — Active Catch2 plan carried stale Lab references after re-sync
+
+**Status:** verified traceability/tooling defect; possible Lab/tooling
+refinement, not a standards or conformance finding.
+
+The fresh all-edition export from the adjacent Requirements Lab checkout on
+2026-08-24 was byte-for-byte identical to the pinned Umbra bundle
+(`4e0160b1e2dd81ba3df4f36911735f2cb04848d3ea3f45e1652943c6a0f255c2`). It
+contains six documents, 4,394 requirements, 2,077 API surfaces, 494 mappings,
+494 transitions, 3,505 requirement/API bindings, and 2,258 API crosswalks.
+Field-level comparison found no changed 2025 requirement ID, ordinal, clause
+ID, API ID, or mapping ID.
+
+The active `catch2-test-plan.json` nevertheless contained four requirement
+references that resolved in no document of the fresh bundle: three stale
+object-management IDs (`page-134-l21-3`, `page-134-l36-8`, and
+`page-134-l39-9`) and one stale DDM ID (`page-217-l92-30`). It also contained
+one nonexistent `createdimension` C++ API reference in four custom-transport
+scenarios and one directed-subscription API hash missing its final `8`.
+These were plan-side references, not bundle renumbering. The object-management
+references were remapped to the current Clause 6.10 service candidates
+`page-120-l83-22`, `page-120-l86-23`, and `page-120-l98-27`; the DDM reference
+was remapped to the current same-semantics `page-219-l92-30` candidate. The
+custom-transport cases now select the official `getDimensionHandle` API, which
+the C++ test actually invokes, and the directed-subscription reference now
+uses the canonical `...4c460a3c84d8` API ID.
+
+**Umbra impact:** after the remap, all 536 Catch2 plan entries resolve 460
+distinct requirement IDs and 243 distinct C++ API IDs with zero unresolved
+references. The repository contains 239 typed `*-contract.json` files plus
+the API baseline; all 240 pass the Requirements Lab checker against the fresh
+export, and all 243 Requirements-Lab JSON files parse successfully. No source
+implementation change was required.
+
+**Possible Lab/tooling refinement:** add a first-class checker for
+`catch2-test-plan.json` (including `selected_cpp_api_surface_ids`) and the
+other planning/catalog JSON artifacts. The current contract checker validates
+typed contracts but does not catch stale plan references, so a plan can appear
+green while pointing at removed requirement or API IDs.
+
+### RL-161 — Re-sync confirms plan growth, not Requirements Lab renumbering
+
+**Status:** verified traceability audit; not a standards or conformance finding.
+
+On 2026-08-24, Umbra exported the all-edition corpus again from the adjacent
+Requirements Lab checkout into an ignored working bundle. The export retained
+revision `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` and SHA-256
+`4e0160b1e2dd81ba3df4f36911735f2cb04848d3ea3f45e1652943c6a0f255c2`, exactly
+matching `.compliance/corpus-bundle.json`. All six documents still contain
+4,394 requirements, 2,077 API surfaces, 494 mappings, 494 transitions, 3,505
+requirement/API bindings, and 2,258 API crosswalks; field-level ID comparison
+found zero additions, removals, or changes, including for 2025 ordinals and
+clause IDs.
+
+The current `catch2-test-plan.json` resolves 536 entries, 463 distinct
+requirement IDs, and 243 distinct C++ API IDs with zero unresolved references.
+The increase from the 460 requirement IDs recorded in RL-160 is caused by new
+ownership and DDM test-plan entries (with the four previously stale IDs removed),
+not by a Requirements Lab numbering change. All 239 typed contracts plus the
+API baseline pass the checker against this fresh export.
+
+**Possible Lab/tooling refinement:** keep the proposed plan/catalog checker from
+RL-160 and report plan-reference counts by source revision, so new test slices
+are distinguishable from corpus renumbering in routine re-sync reports.
+
+### RL-162 — TAR/NMR timestamped-deletion slice uses current 2025 IDs
+
+**Status:** verified development-profile traceability and test evidence; not a
+standards or conformance finding.
+
+After the re-sync, the C++ lane added
+`Embedded timestamped Delete Object Instance delivers before TAR and NMR grants`.
+It queues one timestamp-7 deletion, advances one constrained recipient with
+direct `Time Advance Request(7)`, advances a second with
+`Next Message Request(10)`, and proves both `Remove Object Instance` callbacks
+precede their grants at logical time 7 while the producer completes its
+`Time Advance Request(2)`. The callback metadata assertions cover object,
+tag, producing federate, timestamp, timestamp order, and valid retraction
+designators; the producer's post-delivery `Retract` is terminal.
+
+The plan entry selects the current 2025 APIs
+`deleteObjectInstance`, `retract`, `timeAdvanceRequest`, `nextMessageRequest`,
+`removeObjectInstance`, and `timeAdvanceGrant`, plus current Clause 6 and
+Clause 8 requirement candidates. Against the fresh bundle, all 537 Catch2
+plan entries resolve 463 distinct requirement IDs and 243 distinct C++ API
+IDs. The focused Catch2 test passes 75 assertions; its existing
+FQR/TARA/NMRA sibling remains green at 95 assertions. The registered CTest
+entry passes, the time-management lane now contains 249 Catch2 tests, and the
+two timestamped-deletion contracts pass the Requirements Lab checker.
+
+This closes only the direct-TAR/NMR alternate-advance evidence slice. It does
+not promote the development profile to conformance or complete the remaining
+alternate-time, fanout, DDM, recovery, ownership/resignation, or transport
+families.
+
+### RL-163 — All-edition re-sync is blocked by an unrelated 2010 state-machine reference
+
+**Status:** verified Requirements Lab exporter defect; not a 2025 numbering or
+standards finding.
+
+On 2026-08-24, a fresh all-edition export at Lab revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` failed during semantic validation
+before writing a bundle. The Lab's state-machine validator reports that
+transition `hla-1516.1-2010:figure-14.e01` targets the unknown state
+`hla-1516.1-2010:figure-04.s01`. The source record is in the 2010 native
+state-machine corpus (`figure-14.e01`, `figure-14.tex`, line 44); the target
+belongs to the separate `figure-04` machine. This is a cross-machine endpoint
+reference, not a changed 2025 requirement, ordinal, clause, API, or mapping ID.
+
+The scoped 2025 export completed successfully and retained the same revision.
+Its three documents are byte-for-byte equal to the 2025-document projection
+of Umbra's canonical bundle: 20/1,860/340 requirements, 1,263 C++ API
+surfaces, 282 mappings, and no changed 2025 IDs or clause bindings. The
+all-edition failure therefore does not invalidate the current 2025 traceability
+baseline, but it prevents a clean six-document re-sync until the Lab corpus is
+repaired or the exporter supports excluding invalid unrelated editions.
+
+**Umbra impact:** 2025 contracts and focused-lane planning remain checked
+against the pinned canonical bundle; no Umbra references were renumbered or
+silently rewritten. The failed all-edition command and successful 2025-only
+command are retained as reproducible audit evidence for this revision.
+
+**Possible Lab/tooling refinement:** either correct the 2010 transition target
+to a state owned by `figure-14`, model an explicit cross-machine transition
+namespace if that reference is intentional, or make edition-scoped export
+validate only the selected documents. The exporter should identify the owning
+state-machine IDs in its diagnostic and return a concise corpus-data error
+instead of requiring downstream users to inspect a Pydantic traceback.
+
+### RL-164 — 2025 re-sync and complete C++ evidence remain green
+
+**Status:** verified 2025 traceability/test audit; not a standards or
+conformance finding.
+
+The scoped 2025 export from the adjacent Lab checkout completed at revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` and retained the canonical 2025
+inventories: 20 Part 1 requirements, 1,860 Part 1.1 requirements, 340 Part
+1.2 requirements, 1,263 Part 1.1 API surfaces, and 282 Part 1.1 mappings.
+The current Catch2 plan contains 537 entries selecting 460 distinct
+requirement IDs and 243 distinct C++ API-surface IDs; all resolve against the
+2025-only bundle. All 240 typed Umbra contracts (including the API baseline)
+also pass the checker with zero findings.
+
+The rebuilt official-header C++ target then passed the complete embedded
+Catch2 catalog: 770 test cases and 42,730 assertions. The focused CTest
+catalog guards for tag taxonomy and service-lane slicing also pass in the
+Debug configuration. This confirms that the requirements-numbering re-sync did
+not leave stale references or a runtime regression in the current development
+profile. It does not promote any development-profile result to conformance;
+the all-edition export remains blocked by the unrelated 2010 state-machine
+endpoint recorded in RL-163.
+
+**Possible Lab/tooling refinement:** expose an edition-scoped export and plan
+reference checker as one documented command, and make the generated CTest
+catalog state its required Visual Studio configuration. That would turn this
+repeatable audit into a less error-prone refresh gate for downstream users.
+
+### RL-165 — Timed live-deletion restore is now traced with the re-synced 2025 IDs
+
+**Status:** verified development-profile traceability and test evidence; not a
+standards or conformance finding.
+
+The next focused C++ slice adds
+`Embedded timed federation restore restores a live timestamped object deletion at the save boundary`.
+The test schedules a timestamp-six `Delete Object Instance` while a
+logical-time-four `Request Federation Save` crosses the constrained receiver
+and regulating publisher boundaries. It proves the live deletion and
+retraction ledger survive the save, the post-save designator is terminal, the
+restored removal is delivered before the Flush Queue Grant with the official
+object/tag/producer/time/order/handle fields, and post-delivery `Retract`
+reconstitutes the object and reaches the receiver through `Request Retraction`.
+
+The plan now contains 538 entries selecting 460 distinct requirement IDs and
+243 distinct C++ API-surface IDs. The new test references only current
+2025 IDs from the scoped export at Lab revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`; the timestamped object-deletion
+requirements and API contracts both resolve against the bundle. Its focused
+Catch2 lane passes all 72 assertions in one test case. This is a bounded
+development-profile recovery slice: durable persistence, general timed
+restore, other payload/advance modes, changed membership/ownership, remote
+transport, package/JUnit/protected-review evidence, and conformance remain
+open. After the focused run, the complete official-header C++ catalog also
+passes: 771 test cases and 42,802 assertions.
+
+**Possible Lab/tooling refinement:** let a plan entry declare a timed-save
+boundary and the preserved live payload/retraction ledger as structured
+evidence, rather than requiring those semantics to remain only in the free-form
+test description and notes.
+
+### RL-166 — Current re-sync confirms the numbering concern is not a 2025 renumbering
+
+**Status:** verified re-sync and traceability audit; not a standards or
+conformance finding.
+
+On 2026-08-24, Umbra exported the 2025 documents again from the adjacent
+Requirements Lab working tree at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. The fresh export contains the same
+2025 inventories as the pinned bundle: 20 Part 1 requirements, 1,860 Part
+1.1 requirements, 1,263 Part 1.1 API surfaces, 282 mappings, and 282
+transitions. A field-level comparison found zero added, removed, or changed
+2025 requirement, ordinal, clause, API-surface, mapping, or transition IDs.
+
+The active C++ Catch2 plan now resolves 539 entries, 461 distinct 2025
+requirement IDs, and 243 distinct C++ API-surface IDs with no unresolved
+references. The additional entry is Umbra's private per-module
+Dimension-table name-uniqueness preflight; it uses an existing immutable 2025
+candidate ID and does not represent a Lab renumbering. All 240 typed Umbra
+contracts pass against the fresh 2025 export. No contract or source
+renumbering was therefore necessary.
+
+For completeness, a separate 2010-only export succeeds and reports 22
+working-tree transition-field changes relative to the ignored canonical
+bundle, all in the 2010 Part 1.1 state-machine records for Figures 04 and 07;
+their immutable requirement and API IDs remain unchanged. The all-edition
+export is still blocked by the unrelated cross-machine endpoint recorded in
+RL-163. The 2010 transition-field delta is retained as audit evidence only and
+does not alter Umbra's 2025 implementation traceability.
+
+**Local mitigation implemented:** `tools/requirements_lab.py resync` now emits
+edition-scoped document content SHA-256 values and per-collection deltas. It
+normalizes only regenerated record identity/source-location fields, so a
+requirement or API ID change with identical normative content is reported as
+`renumbered`, while real content changes are reported separately as added or
+missing content. The command is read-only and does not rewrite contracts:
+
+```text
+python tools/requirements_lab.py resync \
+  --baseline .compliance/corpus-bundle.json \
+  --candidate .tmp/corpus-bundle-resync-final-2026-08-24.json \
+  --edition 2025 --fail-on-diff
+```
+
+The pinned-tag candidate comparison returns `changed_documents: 0` for all
+three edition-scoped documents. This mitigation keeps the Lab refinement
+proposal visible without treating that release export as a Lab defect.
+
+### RL-167 — Lab working-tree state additions are not 2025 requirement renumbering
+
+**Status:** verified working-tree export drift; not a standards or conformance
+finding.
+
+After the pinned-tag comparison above, a fresh 2025 export was generated from
+the adjacent Requirements Lab checkout as it currently exists on disk. The
+checkout still reports the locked release revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`, but it has uncommitted semantic
+state work. The requirement collections remain unchanged (20 Part 1 records,
+1,860 Part 1.1 records, and 340 Part 1.2 records), and no existing 2025
+requirement, API, mapping, or transition ID was renumbered or removed.
+
+The working-tree export does add one API surface
+`surface:m16.transition.joined-federate-statechart`, one mapping
+`m16.transition.joined-federate-statechart`, and fifteen joined-federate
+state-chart transitions (including save/restore and activity-permission
+events), changing the Part 1.1 totals from 1,263 to 1,264 API surfaces, 282 to
+283 mappings, and 282 to 297 transitions. These additions come from the
+working-tree semantic state artifacts, not from a change to the numbered
+requirements used by Umbra's contracts.
+
+**Umbra impact:** the pinned `.compliance/corpus-bundle.json`, lock revision,
+and checker-facing contracts remain unchanged. The fresh candidate is ignored
+and retained only as local audit material; no implementation mapping is
+silently promoted from an uncommitted Lab tree. Once the Lab publishes the
+state-chart work under a new reviewed revision, Umbra can re-export it and
+update the baseline deliberately. Until then, existing contracts continue to
+resolve against the pinned release and the numbering concern is closed for the
+2025 requirement tranche.
+
+**Possible Lab/tooling refinement:** have the export report distinguish a
+clean tagged checkout from a dirty working tree when a caller supplies a
+release revision. A revision/hash field alone is insufficient to identify the
+source state when semantic files have uncommitted additions; an explicit
+working-tree marker would prevent downstream consumers from mistaking these
+additions for a released corpus update.
+
+### RL-168 — Re-sync after the native ownership-transfer slice changes only local coverage
+
+**Status:** verified current-bundle audit; not a standards or conformance
+finding.
+
+The 2025 re-sync was repeated after adding the native C++ timestamped
+attribute-update/ownership-transfer Catch2 slice and its requirements contract.
+The current audit artifact is
+`.compliance/corpus-bundle-resync-2026-08-24-r6-2025.json`.
+The pinned release remains `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` and the
+candidate still contains 20 Part 1, 1,860 Part 1.1, and 340 Part 1.2
+requirements. Requirement IDs, clause IDs, API-surface IDs, mapping IDs, and
+their ordering remain unchanged. The only candidate delta is the previously
+recorded dirty-working-tree state-chart addition in Part 1.1 (one API surface,
+one mapping, and fifteen transitions); it is not a numbering change.
+
+The repository now has 241 checked-in `*-contract.json` files (145 requirement
+contracts, 95 API contracts, and one implementation contract), plus the API
+baseline. The active Catch2 plan has 541 entries, 461 distinct requirement
+IDs, and all 243 distinct C++ API-surface IDs. Every contract resolves against
+the candidate with zero findings. The new ownership-transfer contract reuses
+existing immutable requirement IDs; it does not introduce or rename a Lab
+requirement.
+
+**Umbra impact:** no contract, source reference, or clause-number edit was
+needed for the re-sync. The candidate remains an ignored audit artifact; the
+pinned bundle and lock remain the standards-facing baseline.
+
+**Possible Lab/tooling refinement:** include a compact plan/contract inventory
+in the re-sync report so local coverage growth is visibly separated from
+corpus ID changes.
+
+### RL-169 — Fresh 2025 re-sync confirms stable requirement numbering
+
+**Status:** verified current-bundle audit; not a standards or conformance
+finding.
+
+On 2026-08-24, Umbra exported a fresh 2025 candidate from the adjacent
+Requirements Lab checkout to
+`.compliance/corpus-bundle-resync-2026-08-24-r7-2025.json` and compared it with the
+pinned `.compliance/corpus-bundle.json`. The exporter reported the same locked
+revision, `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. Part 1, Part 1.1, and Part
+1.2 still contain 20, 1,860, and 340 requirements respectively. No requirement
+ID, API-surface ID, mapping ID, or existing transition ID was renumbered,
+removed, or content-replaced.
+
+The only reported change is the already-known dirty-working-tree state-chart
+addition in Part 1.1: one API surface, one mapping, and fifteen transitions
+(1,263→1,264 APIs, 282→283 mappings, and 282→297 transitions). The normalized
+document digest for the other two editions is unchanged. All 241 local
+`*-contract.json` files resolve against the candidate with zero findings.
+
+**Umbra impact:** no source reference, contract ID, pinned bundle, or lock-file
+edit is required. The candidate remains temporary audit evidence; the released
+2025 baseline is unchanged. The state-chart additions should be promoted only
+after the Requirements Lab publishes them from a reviewed revision.
+
+**Possible Lab/tooling refinement:** keep the export's clean/dirty checkout
+state explicit in the bundle metadata and emit the compact contract/plan
+inventory suggested in RL-168. This lets downstream users distinguish genuine
+numbering changes from uncommitted semantic additions without treating either
+as a released corpus update.
+
+### RL-170 — Follow-up 2025 re-sync confirms no new numbering drift
+
+**Status:** verified current-bundle audit; not a standards or conformance
+finding.
+
+On 2026-08-24, Umbra repeated the 2025 export as
+`.compliance/corpus-bundle-resync-2026-08-24-r8-2025.json` after the request to
+re-check the Requirements Lab numbering. The candidate still reports the
+locked revision `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` and contains 20 Part
+1, 1,860 Part 1.1, and 340 Part 1.2 requirements. Compared with the pinned
+bundle, no requirement, API-surface, mapping, or existing transition ID was
+renumbered or removed. Compared with the previous r7 audit candidate, all three
+2025 documents are unchanged (`changed_documents: 0`).
+
+The pinned-versus-candidate difference remains the known dirty working-tree
+state-chart addition in Part 1.1: one API surface, one mapping, and fifteen
+transitions (1,263→1,264 APIs, 282→283 mappings, and 282→297 transitions).
+Every local contract still resolves against the fresh candidate, and the API
+baseline check passes. No Umbra source, contract, pinned bundle, or lock-file
+edit is required for this re-sync.
+
+**Possible Lab/tooling refinement:** expose the export's source working-tree
+revision and dirty state in the re-sync summary so a consumer can distinguish a
+stable published revision from an unchanged local state-chart overlay without
+repeating a second candidate comparison.
+
+### RL-171 — Fresh 2025 re-sync still has stable requirement numbering
+
+**Status:** verified current-bundle audit; not a standards or conformance
+finding.
+
+On 2026-08-24, Umbra exported the adjacent Requirements Lab working tree again
+as `.compliance/corpus-bundle-resync-2026-08-24-r9-2025.json` using the locked
+revision `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. The fresh candidate still
+contains 20 Part 1, 1,860 Part 1.1, and 340 Part 1.2 requirements. Compared
+with the pinned bundle, the normalized requirement collections have no missing,
+added, or renumbered records; clause IDs, API-surface IDs, mapping IDs, and all
+pre-existing transition IDs likewise remain stable. The API baseline and all
+local typed contracts resolve against the candidate with zero findings.
+
+The candidate-versus-pinned difference is unchanged from RL-170: the dirty Lab
+working tree contributes one Part 1.1 API surface, one mapping, and fifteen
+state-chart transitions (1,263→1,264 APIs, 282→283 mappings, and 282→297
+transitions). Comparing r9 with r8 reports `changed_documents: 0`, confirming
+that this is not a new numbering event. No Umbra source, contract, pinned
+bundle, or lock-file edit is required; r9 remains ignored audit evidence only.
+
+**Possible Lab/tooling refinement:** include the compact pinned-versus-working-
+tree inventory and a clean/dirty source marker in the exporter output so users
+can identify this repeated state-chart overlay without retaining several
+timestamped candidate files.
+
+### RL-172 — Repeated FOM P/S declaration-fence interpretation re-exposed RL-156
+
+**Status:** verified implementation/traceability recurrence; not a 2025
+numbering change or a conformance finding.
+
+At the locked Requirements Lab revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`, the fresh 2025 r9 export still
+contains the same 20 Part 1, 1,860 Part 1.1, and 340 Part 1.2 requirement
+inventories, with no missing, added, or renumbered requirements, API surfaces,
+mappings, or pre-existing transitions. This entry is therefore a new
+post-171 recurrence log for an Umbra consumer mistake, not evidence that the
+Lab changed its numbering.
+
+The follow-up 2026-08-25 r10 export and resync against r9 report the same locked
+revision and `changed_documents: 0`, with the same 2025 requirement/API/mapping/
+transition inventories. The numbering remains stable after this recurrence;
+the r10 result is audit confirmation, not another observation.
+
+While attempting a bounded C++ declaration slice, Umbra temporarily treated
+the FOM/DIF `sharing` field as a runtime Publish/Subscribe precondition for
+ordinary, regional, and class-directed declaration services. The current
+regression corpus immediately reproduced the RL-156 boundary: the official
+Restaurant FOM declares
+`HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed` as
+`Publish`,
+yet existing regional, TSO, and DDM tests legitimately subscribe to it. The
+official MIM likewise declares RTI-owned `HLAfederate` attributes and
+`HLAreportServiceInvocation` as `Publish`, while MOM observer tests must
+subscribe. The attempted guard consequently produced early “Unknown exception”
+failures across the region/template, relaxed-DDM, regional interaction,
+timestamped regional, restore, passive-subscription, and MOM lanes. The broad
+CTest run was stopped during its early segment; this was not a Lab checker
+failure.
+
+**Umbra impact:** the guard, its homegrown FOM fixture, and its focused test
+plan entry are being removed. FOM/DIF sharing remains retained capability
+metadata only; live declaration state remains owned by the 1516.1 declaration
+services. RL-156 remains the source-semantics decision and is intentionally not
+rewritten or marked resolved a second time.
+
+**Possible Lab/tooling refinement:** make the capability-versus-runtime
+distinction machine-visible in generated requirement metadata, or add a checker
+warning when a downstream test plan selects FOM P/S candidates as
+declaration-service preconditions. This would prevent the repeated consumer
+misinterpretation without changing immutable requirement or API IDs.
+
+### RL-173 — Voluntary source resignation lacks a typed timestamped-deletion fanout relation
+
+**Status:** verified Umbra consumer regression and cross-service modeling gap;
+not a 2025 numbering change or a conformance finding.
+
+The 2026-08-25 r11 2025 export at the locked Requirements Lab revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` is unchanged: the 20/1,860/340
+requirement inventories, immutable IDs, clause IDs, API surfaces, mappings,
+and transitions remain stable. The relevant source anchors are the existing
+resignation candidate
+`requirement-candidate-content-clauses-04-federation-management-page-058-l112-33`,
+the timestamped object-delivery candidates
+`requirement-candidate-content-clauses-06-object-management-page-129-l138-39`
+and `requirement-candidate-content-clauses-06-object-management-page-131-l89-25`,
+and the time-management candidate
+`requirement-candidate-content-clauses-08-time-management-page-185-l17-5`.
+
+The new native C++ scenario
+`Embedded queued timestamped object deletion survives source resignation for
+each recipient` accepted one timestamp-7 Delete Object Instance for two
+constrained recipients, admitted TAR(7) and NMR(10), and then resigned the
+producing owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. The first run threw
+an internal error when the independent regulator released the recipients: the
+recipient-scoped temporal queue still contained the accepted deletion entries,
+but `resignLocked` had already erased the typed deletion payload,
+reconstitution record, and retraction ledger. This was a genuine Umbra
+consumer cleanup defect, not a changed Lab record.
+
+Umbra now retains the typed deletion payload and per-recipient pending ledger
+for a voluntary producer departure whenever the resign action does not delete
+objects. The common producer-departure ledger marks the source as departed,
+and each recipient consumes its own removal before its matching grant. The
+focused C++ case passes 78 assertions. The new contract entries and Catch2
+plan entry select the current 2025 IDs; the plan grows by one entry without
+renumbering any Lab record.
+
+The Lab export does not currently express the compound relation between
+voluntary resignation, typed Delete/Remove Object Instance payload retention,
+and independent per-recipient grant frontiers. This extends the cross-service
+composition concern already documented in RL-070 and RL-071; it is a new
+object-deletion lifecycle record rather than a claim that either earlier
+observation was fixed by the Lab. A useful Lab refinement would be a generated
+fanout transition that keeps the accepted payload, producer-departure marker,
+and each recipient's pending/delivered state explicit across resignation and
+TAR/NMR/FQR boundaries.
+
+### RL-174 — Voluntary source resignation loses invocation-time regional TSO scope
+
+**Status:** verified Umbra consumer recurrence in an adjacent payload family and
+cross-service modeling gap; not a 2025 numbering change or a conformance
+finding.
+
+The 2026-08-25 r11 2025 export at the locked Requirements Lab revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` remains unchanged: the 20/1,860/340
+requirement inventories, immutable IDs, clause IDs, API surfaces, mappings, and
+transitions are stable. The relevant source records are the voluntary
+resignation candidate
+`requirement-candidate-content-clauses-04-federation-management-page-058-l112-33`,
+the regional overlap and sent-region candidates
+`requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45`
+and `...page-239-l150-43`, and the timestamped callback-before-grant candidate
+`requirement-candidate-content-clauses-08-time-management-page-185-l17-5`.
+
+The new native C++ scenario
+`Embedded queued timestamped regional interaction survives source resignation`
+accepted one timestamp-6 `Send Interaction With Regions` passel for an
+overlap-qualified constrained recipient, admitted its TAR(6), resigned the
+producing federate, and then released the recipient through an independent
+regulator. The first run delivered no callback at the grant boundary even
+though the typed interaction payload and recipient queue entry were still
+present. Source resignation released the producer's live RegionHandle before
+the callback-time regional overlap check, so the queued passel was suppressed
+as if its invocation-time source region had never existed.
+
+Umbra now retains committed invocation-time `RegionSpecificationSnapshot`
+values in each queued timestamped interaction and supplies those snapshots to
+the callback-boundary regional selector after source resignation. The public
+opaque RegionHandle and sent-region metadata remain unchanged. The focused C++
+case passes 60 assertions, including callback-before-grant ordering, producer,
+payload, tag, timestamp/order, source-region metadata, and the post-resignation
+`FederateNotExecutionMember` retraction boundary. This is a real consumer
+regression adjacent to RL-173's typed-deletion retention fix, not an export or
+numbering change; RL-173 remains immutable and is cited rather than rewritten.
+
+The Lab still does not express the compound relation among voluntary producer
+departure, invocation-time regional realization, callback-time overlap, and an
+independent recipient grant frontier. A useful refinement would parameterize
+the existing regional TSO relation with a producer-lifetime boundary and an
+immutable source-region snapshot, while leaving live region mutation and
+post-departure region handles separate from the queued message's delivery
+semantics.
+
+### RL-175 — Voluntary source resignation loses invocation-time regional attribute-update scope
+
+**Status:** verified Umbra consumer recurrence in an adjacent payload family and
+cross-service modeling gap; not a 2025 numbering change or a conformance
+finding.
+
+The 2026-08-25 r11 2025 export at the locked Requirements Lab revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` remains unchanged. RL-174 recorded the
+same invocation-time regional-scope failure for timestamped regional
+interactions; this new observation is deliberately additive and does not rewrite
+RL-001...RL-174 or consume a historical requirement identifier.
+
+The new native C++ scenario
+`Embedded queued timestamped regional attribute update survives source resignation`
+accepted one timestamp-7 explicit-source regional `Update Attribute Values`
+passel for an overlap-qualified constrained recipient, admitted the recipient's
+`TAR(7)`, resigned the producing federate with
+`UNCONDITIONALLY_DIVEST_ATTRIBUTES`, and then released the recipient through an
+independent regulator. The first implementation delivered no reflection at the
+grant boundary even though the typed value and queue entry were present:
+resignation removed the producer's live region and update-region association
+before callback-time overlap evaluation.
+
+Umbra now retains the committed invocation-time `RegionSpecificationSnapshot`
+and accepted explicit source-region association in the queued passel. The
+callback-boundary selector uses those immutable overrides after source
+resignation, while the public source `RegionHandle`, producer, timestamp/order,
+tag, and retraction metadata remain intact. The focused C++ regression passes
+with callback-before-grant ordering and rejects post-resignation retraction with
+`FederateNotExecutionMember`. This is bounded development-profile evidence, not
+Lab validation, remote transport, JUnit/protected-review evidence, or a
+conformance claim; the focused Catch2 case passes 66 assertions.
+
+The Lab still does not express the compound relation among voluntary producer
+departure, invocation-time regional attribute realization, callback-time
+overlap, and an independent recipient grant frontier. A useful refinement would
+parameterize the regional timestamped-update relation with a producer-lifetime
+boundary, immutable source-region snapshot, and retained attribute association;
+the live region lifecycle should remain a separate relation. RL-174 is cited as
+the earlier recurrence rather than being edited.
+
+### 2026-08-25 local slice — Federate Resigned public MOM companion
+
+The RTI-initiated `Federate Resigned` public-MOM companion was clean local
+coverage. It reserves the final federation-management report before membership
+removal and delivers one HLA_IMMEDIATE report before the evoked
+`federateResigned` callback. The focused case decodes type 0, type-53 Reason for
+resigning (including its quoted Table 5 string value), Null return, success,
+reliable transport, invalid producer, empty exception, and serial zero. The
+local Catch2 plan grows from 563 to 564 entries; the pinned r13 export and
+canonical Lab IDs remain unchanged. No Requirements Lab or Umbra consumer
+defect was reproduced, so this slice does not consume RL-176; it is additive
+development-profile evidence only.
+
+### 2026-08-25 local slice — successful support lookup public MOM companion
+
+The accepted §10.2--§10.5 support lookup public-MOM companion was clean local
+coverage. With file reporting disabled, the native HLA_IMMEDIATE observer
+received four reliable service type-6 reports in serial order and decoded
+type-53/type-15 `FederateHandle`/`FederateName` plus type-53/type-36
+`ObjectClassHandle`/`ObjectClassName` supplied/returned forms, success, empty
+exception, unresolved RTI producer, and no regions. The local Catch2 plan
+grows from 564 to 565 entries; the pinned r13 export and canonical Lab IDs
+remain unchanged. No Requirements Lab or Umbra consumer defect was
+reproduced, so this slice does not consume RL-176; it is additive
+development-profile evidence only.
+
+### 2026-08-25 local slice — §10.6–§10.12 successful support lookup public MOM companion
+
+The accepted §10.6–§10.12 support lookup public-MOM companion was clean local
+coverage. With file reporting disabled, the native HLA_IMMEDIATE observer
+received seven reliable service type-6 reports in serial order and decoded
+type-37/type-36 object-instance/object-class forms, type-53 object and
+attribute names, type-0 `AttributeHandle` forms, and type-35 update-rate
+`Number` returns, plus success, empty exception, unresolved RTI producer, and
+no regions. The local Catch2 plan grows from 565 to 566 entries; the pinned r13
+export and canonical Lab IDs remain unchanged. No Requirements Lab or Umbra
+consumer defect was reproduced, so this slice does not consume RL-176; it is
+additive development-profile evidence only.
+
+### 2026-08-25 local slice — §10.13–§10.16 successful support lookup public MOM companion
+
+The accepted §10.13–§10.16 support lookup public-MOM companion was clean local
+coverage. With file reporting disabled, the native HLA_IMMEDIATE observer
+received four reliable service type-6 reports in serial order and decoded
+type-53/type-27 interaction-class name/handle plus type-27/type-53 or type-39
+parameter supplied/returned forms, success, empty exception, unresolved RTI
+producer, and no regions. The local Catch2 plan grows from 566 to 567 entries;
+the pinned r13 export and canonical Lab IDs remain unchanged. No Requirements
+Lab or Umbra consumer defect was reproduced, so this slice does not consume
+RL-176; it is additive development-profile evidence only.
+
+### 2026-08-25 local slice — §10.17–§10.20 successful support lookup public MOM companion
+
+The accepted §10.17–§10.20 support lookup public-MOM companion was clean local
+coverage. With file reporting disabled, the native HLA_IMMEDIATE observer
+received four reliable service type-6 reports in serial order and decoded
+type-53/type-38 order forms plus type-53/type-59 transportation forms in both
+directions, success, empty exception, unresolved RTI producer, and no regions.
+The local Catch2 plan grows from 567 to 568 entries; the pinned r13 export and
+canonical Lab IDs remain unchanged. No Requirements Lab or Umbra consumer
+defect was reproduced, so this slice does not consume RL-176; it is additive
+development-profile evidence only.
+
+### 2026-08-25 local slice — §10.21–§10.26 successful dimension/region lookup public MOM companion
+
+The accepted §10.21–§10.26 dimension and region lookup public-MOM companion was
+clean local coverage. With file reporting disabled, the native HLA_IMMEDIATE
+observer received six reliable service type-6 reports in serial order and
+decoded type-36/type-27 class handles with type-11 dimension-set returns,
+type-53/type-10 name/handle forms, the type-35 upper-bound Number, and the
+type-42/type-11 region dimension-set form, plus success, empty exception,
+unresolved RTI producer, and no regions. The local Catch2 plan grows from 568
+to 569 entries; the pinned r13 export and canonical Lab IDs remain unchanged.
+No Requirements Lab or Umbra consumer defect was reproduced, so this slice
+does not consume RL-176; it is additive development-profile evidence only.
+
+### 2026-08-25 local slice — §9.2/§10.27 DDM non-void public MOM companion
+
+The accepted Create Region/Get Range Bounds DDM non-void public-MOM companion
+was clean local coverage. With file reporting disabled, the native
+HLA_IMMEDIATE observer received two reliable service type-5 reports in serial
+order and decoded the type-11/type-42 Create Region form plus the
+type-42/type-10/type-41 Get Range Bounds form, success, empty exception,
+unresolved RTI producer, and no regions. The local Catch2 plan grows from 569
+to 570 entries; the pinned r13 export and canonical Lab IDs remain unchanged.
+No Requirements Lab or Umbra consumer defect was reproduced, so this slice
+does not consume RL-176; it is additive development-profile evidence only.
+
+### 2026-08-25 local slice — §10.29–§10.33 handle-normalization public MOM companion
+
+The accepted five-service handle-normalization public-MOM companion was clean
+local coverage. With file reporting disabled, the native HLA_IMMEDIATE observer
+received five reliable service type-6 reports in serial order and decoded the
+official type-50 ServiceGroup and type-15/type-36/type-27/type-37 supplied
+forms, type-35 Number normalized returns, success, empty exception, unresolved
+RTI producer, and no regions. The local Catch2 plan grows from 570 to 571
+entries; the pinned r13 export and canonical Lab IDs remain unchanged. No
+Requirements Lab or Umbra consumer defect was reproduced, so this slice does
+not consume RL-176; it is additive development-profile evidence only.
+
+### 2026-08-25 local slice — §6.12 timestamped Send Interaction public MOM companion
+
+The accepted timestamped Send Interaction public-MOM companion was clean local
+coverage. With file reporting disabled, the native HLA_IMMEDIATE observer
+received one reliable object-management service type-2 report before the
+queued timestamped Receive Interaction callback and decoded the official
+type-27/type-40/type-63/type-31 supplied forms, the type-34 Null return for a
+non-time-regulating sender, success, empty exception, unresolved RTI producer,
+no regions, and serial zero. The receiver then preserved the timestamp,
+receive-order metadata, parameter bytes, and tag with no retraction. The local
+Catch2 plan grows from 571 to 572 entries; the pinned r13 export and canonical
+Lab IDs remain unchanged. No Requirements Lab or Umbra consumer defect was
+reproduced, so this slice does not consume RL-176; it is additive
+development-profile evidence only.
+
+### 2026-08-25 local slice — time-regulated §6.12 Send Interaction public MOM companion
+
+The accepted time-regulated timestamped Send Interaction public-MOM companion
+was clean local coverage. After the publisher enabled time regulation and the
+receiver enabled time constraint, TSO admission assigned a valid retraction
+identity; the native HLA_IMMEDIATE observer received one reliable service
+type-2 report before the constrained callback and decoded the official
+type-27/type-40/type-63/type-31 supplied forms, the quoted type-33
+MessageRetractionHandle return, success, empty exception, unresolved RTI
+producer, no regions, and serial zero. The callback preserved timestamp,
+TIMESTAMP/TIMESTAMP order, tag, parameter bytes, and a valid retraction. The
+focused case passed 101 assertions and the local Catch2 plan grows from 572 to
+573 entries; the pinned r13 export and canonical Lab IDs remain unchanged. No
+Requirements Lab or Umbra consumer defect was reproduced, so this slice does
+not consume RL-176; it is additive development-profile evidence only.
+
+### 2026-08-25 local slice — time-regulated §6.10 Update Attribute Values public MOM companion
+
+The accepted time-regulated timestamped Update Attribute Values public-MOM
+companion was clean local coverage. After the publisher enabled time regulation
+and the receiver enabled time constraint, TSO admission assigned a valid
+retraction identity; the native HLA_IMMEDIATE observer received one reliable
+service type-2 report before the constrained Reflect Attribute Values callback
+and decoded the official type-37/type-2/type-63/type-31 supplied forms, the
+quoted type-33 MessageRetractionHandle return, success, empty exception,
+unresolved RTI producer, no regions, and serial zero. The callback preserved
+object/attribute values, tag, timestamp, TIMESTAMP/TIMESTAMP order, and a valid
+retraction. The focused case passed 106 assertions and the local Catch2 plan
+grows from 573 to 574 entries; the pinned r13 export and canonical Lab IDs
+remain unchanged. No Requirements Lab or Umbra consumer defect was reproduced,
+so this slice does not consume RL-176; it is additive development-profile
+evidence only.
+
+### 2026-08-25 local slice — time-regulated §6.14 Send Directed Interaction public MOM companion
+
+The accepted time-regulated timestamped Send Directed Interaction public-MOM
+companion was clean local coverage. After the publisher enabled time regulation
+and the target recipient enabled time constraint, TSO admission assigned a
+valid retraction identity; the native HLA_IMMEDIATE observer received one
+reliable object-management service type-2 report before the constrained
+Receive Directed Interaction callback and decoded the official
+type-27/type-37/type-40/type-63/type-31 supplied forms, the quoted type-33
+MessageRetractionHandle return, success, empty exception, unresolved RTI
+producer, no regions, and serial zero. The callback preserved target,
+timestamp/order/tag/parameter metadata and a valid retraction. The focused
+case passed 115 assertions and the local Catch2 plan grows from 574 to 575
+entries; the pinned r13 export and canonical Lab IDs remain unchanged. No
+Requirements Lab or Umbra consumer defect was reproduced, so this slice does
+not consume RL-176; it is additive development-profile evidence only.
+
+### 2026-08-25 local slice — time-regulated §6.14 Send Directed Interaction filesystem companion
+
+The accepted time-regulated timestamped Send Directed Interaction filesystem
+companion was clean local coverage of the standards-facing production store.
+After the publisher enabled time regulation and the target recipient enabled
+time constraint, TSO admission assigned a valid retraction identity; the
+configured joined-federate file received one immutable service type-2 record
+with the official type-27/type-37/type-40/type-63/type-31 supplied forms and
+quoted type-33 MessageRetractionHandle before the constrained Receive Directed
+Interaction callback. The callback preserved target, timestamp/order/tag/
+parameter metadata and valid retraction, and disabling both reporting switches
+left the file unchanged. The focused case passed 214 assertions and the local
+Catch2 plan grows from 575 to 576 entries; the pinned r13 export and canonical
+Lab IDs remain unchanged. No Requirements Lab or Umbra consumer defect was
+reproduced, so this slice does not consume RL-176; it is additive
+development-profile evidence only.
+
+### 2026-08-25 local slice — receive-order §6.12 Send Interaction public MOM companion
+
+The accepted nonregional, non-timestamped receive-order `Send Interaction`
+public-MOM companion was clean local coverage. With file reporting disabled, an
+`HLA_IMMEDIATE` observer received one reliable object-management service type-2
+`HLAreportServiceInvocation` before the receiver's queued `HLA_EVOKED`
+`Receive Interaction` callback. The focused case decoded the official
+type-27/type-40/type-63/type-34 supplied forms, the type-34 Null successful-void
+return, empty exception, unresolved RTI producer, no regions, and serial zero;
+the receiver then preserved the parameter bytes, receive-order metadata, and
+tag. The focused case passed 81 assertions and the local Catch2 plan grows from
+576 to 577 entries; the pinned r13 export and canonical Lab IDs remain
+unchanged. No Requirements Lab or Umbra consumer defect was reproduced, so this
+slice does not consume RL-176; it is additive development-profile evidence only.
+While registering its focused CTest lane, the MOM contract check also exposed
+five pre-existing local entries whose key was misspelled as singular
+`requirement_lab_requirement_id`; those keys were normalized to the contract's
+required `requirements_lab_requirement_id` spelling. This was a local contract
+formatting/tooling defect rather than a Lab export or runtime recurrence, so
+RL-176 remains unused.
+
+### 2026-08-25 local slice — directed Send Interaction public MOM exact C++ forms
+
+The existing accepted untimestamped/timestamped directed public-MOM companion
+was strengthened rather than counted as a new plan case. Its native
+`HLA_IMMEDIATE` observer now decodes the five official directed supplied forms
+for each overload (type-27 interaction class, type-37 target object, type-40
+parameter map, type-63 tag, and type-34 Null or type-31 timestamp) plus the
+successful type-34 Null return, instead of checking encoded payload sizes only.
+The focused case passes 140 assertions, and the new
+`directed-send-interaction-service-report-interaction` CTest label keeps its
+directed requirements/API and MOM checks in a bounded lane. The r14 2025
+re-sync remains identifier/content-stable, the local Catch2 plan stays at 577
+entries, and no Requirements Lab or Umbra consumer defect was reproduced, so
+RL-176 remains unused.
+
+### 2026-08-25 local slice — ordinary timestamped interaction restore fan-out
+
+The new C++-only recovery slice passed its focused
+`timestamped-interaction-restore-multi-recipient` CTest lane. It saves one
+ordinary timestamped `Send Interaction` with two constrained recipients,
+terminalizes the post-save designator, restores the saved image, delivers the
+two recipient-local queue copies independently through `Flush Queue Request`,
+and then verifies `Request Retraction` reaches both delivered recipients. The
+test also asserts callback-before-grant ordering after clearing the preceding
+save/restore lifecycle callbacks. The local Catch2 plan now contains 578
+entries. The pinned r15 2025 export is still identifier/content-stable and
+`tools/requirements_lab.py check` passes; no Lab or Umbra consumer defect was
+reproduced, so this additive development-profile slice does not consume
+RL-176.
+
+### 2026-08-25 local slice — timestamped object-deletion restore fan-out
+
+The adjacent C++ recovery slice also passed its focused
+`timestamped-object-deletion-restore-multi-recipient` CTest lane. It saves one
+queued timestamped `Delete Object Instance` with two constrained recipients,
+terminalizes the post-save designator, restores the object-reconstitution
+record and both recipient-local removal ledgers, delivers each
+`Remove Object Instance` independently through `Flush Queue Request`, and
+then verifies that one legal `Request Retraction` reconstitutes the object for
+both recipients. The local Catch2 plan now contains 579 entries. The pinned
+r15 export remains identifier/content-stable and `tools/requirements_lab.py
+check` passes; no Lab or Umbra consumer defect was reproduced, so this is
+additive development-profile evidence and does not consume RL-176.
+
+### 2026-08-25 local slice — directed-interaction restore fan-out
+
+The target-qualified directed-interaction recovery slice also passed its
+focused `timestamped-directed-interaction-restore-multi-recipient` CTest lane.
+It saves one queued timestamped `Send Directed Interaction` targeted at an
+object known by two constrained recipients, terminalizes the post-save
+designator, restores both recipient-local ledgers, delivers each directed
+callback independently through `Flush Queue Request`, and verifies the
+original designator reaches both recipients through `Request Retraction`. The
+local Catch2 plan now contains 580 entries. The pinned r15 export remains
+identifier/content-stable and `tools/requirements_lab.py check` passes; no Lab
+or Umbra consumer defect was reproduced, so this remains additive
+development-profile evidence and does not consume RL-176.
+
+### 2026-08-25 local slice — timestamped regional-interaction restore fan-out
+
+The explicit-source regional recovery slice passed its focused
+`timestamped-regional-interaction-restore-multi-recipient` CTest lane. It
+saves one overlap-qualified timestamped `Send Interaction With Regions` for
+two constrained recipients, terminalizes the post-save designator, restores
+both recipient-local ledgers, delivers each callback independently through
+`Flush Queue Request` with the original source `RegionHandleSet`, and then
+verifies that `Request Retraction` reaches both delivered recipients. The
+local Catch2 plan now contains 581 entries. The r15 export has no requirement
+renumbering or source change; the known derived statechart overlay is recorded
+in the re-sync audit below. No Requirements Lab or Umbra consumer defect was
+reproduced, so RL-176 remains reserved.
+
+### 2026-08-25 local slice — timestamped default-region attribute restore fan-out
+
+The default-source recovery companion passed its focused
+`timestamped-default-region-attribute-restore-multi-recipient` CTest lane. It
+saves one queued timestamped `Update Attribute Values` passel for two
+constrained regional subscribers, terminalizes the post-save designator,
+restores both recipient-local ledgers, delivers each reflection independently
+through `Flush Queue Request` with the supplied-empty sent-region marker, and
+then verifies `Request Retraction` reaches both recipients. The local Catch2
+plan now contains 582 entries. The r15 export remains requirement- and
+source-content stable; no Requirements Lab or Umbra consumer defect was
+reproduced, so RL-176 remains reserved. The first local run also exposed a
+test-fixture assumption that `Enable Time Regulation` would leave no callback;
+the fixture now drains that accepted callback before admitting the passel.
+This was a local harness correction, not a Lab or runtime recurrence, and does
+not consume RL-176.
+
+### 2026-08-25 local slice — timed explicit-source regional-interaction restore
+
+The focused `timestamped-regional-interaction-timed-restore` CTest lane now
+passes. It schedules a logical-time-6 save while a timestamp-8 explicit-source
+`Send Interaction With Regions` remains queued, crosses the boundary for both
+federates, terminalizes the post-save designator, restores the committed source
+`RegionHandle` and recipient ledger, then delivers through `Flush Queue Request`
+at actual time 7 with optimistic time 8 before `Request Retraction`. The local
+Catch2 plan now contains 583 entries. The initial draft used a five-unit
+lookahead with timestamp 8, which correctly made the post-save Retract illegal;
+the fixture was corrected to the one-unit lookahead required for the intended
+timed boundary. This was a local scenario setup correction, not a Requirements
+Lab or Umbra runtime recurrence, and RL-176 remains reserved.
+
+### 2026-08-25 local slice — timed explicit-source regional-attribute restore
+
+The adjacent explicit-source regional object-update case now has a timed
+save-boundary companion. The focused
+`timestamped-regional-attribute-timed-restore` CTest lane schedules save at
+logical time 6 while a timestamp-8 `Update Attribute Values` passel remains
+queued, crosses the boundary for both federates, terminalizes the post-save
+designator, restores the object/update association, source `RegionHandle`,
+recipient ledger, and retraction identity, then proves `Flush Queue Request`
+reflection at actual time 7 with optimistic time 8 before `Request Retraction`.
+The C++ target build and focused test passed; the local Catch2 plan now
+contains 584 entries. The requirements and API contracts now reference this
+test alongside the untimed explicit-source and timed default-source
+companions. The focused-tag verifier reports 818 Catch2 cases, the scoped
+2025 traceability suite remains 238/238 green, and the pinned-bundle check
+passes.
+
+This is an additive adjacent recovery slice, not a Requirements Lab or Umbra
+consumer recurrence: the pinned r15 export remains requirement- and
+source-content stable, no old RL issue was reintroduced, and RL-176 remains
+reserved. The broader durable/alternate-advance/region-mutation,
+changed-membership/ownership, transport, package, protected-review, and
+conformance matrix remains open.
+
+### 2026-08-25 local slice — timed explicit-source regional-attribute restore fan-out
+
+The focused `timestamped-regional-attribute-timed-restore-multi-recipient`
+CTest lane now passes. It schedules a logical-time-6 save while one
+timestamp-8 explicit-source `Update Attribute Values` passel is queued for two
+constrained regional recipients, crosses the boundary for both constrained
+members and the non-constrained regulator, terminalizes the post-save
+designator, restores both recipient-local ledgers and the committed source
+`RegionHandle`, and delivers each reflection independently through `Flush Queue
+Request` at actual time 7 with optimistic time 8 before `Request Retraction`
+reaches both recipients. The local Catch2 plan now contains 585 entries.
+
+The first local run exposed only a callback-phase assumption in the new test:
+the non-constrained regulator's save-initiation callback is queued after all
+constrained members cross the timed boundary. The fixture now drains the
+regulator again after the constrained members and asserts the established
+`grant` then `save-initiate` ordering. This was a local scenario-ordering
+correction, not a Requirements Lab or Umbra consumer recurrence. The r15
+export remains requirement- and source-content stable, so no new post-RL-157
+observation is consumed; RL-176 remains reserved.
+
+### 2026-08-25 r15 re-sync audit — no requirement renumbering
+
+The fresh 2025 candidate
+`.tmp/corpus-bundle-resync-2026-08-25-r15-2025.json` was compared with the
+pinned `.compliance/corpus-bundle.json` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. The Part 1, Part 1.1, and Part
+1.2 requirement collections remain 20, 1,860, and 340 records respectively.
+The re-sync reports no added, missing, renumbered, or content-replaced
+requirement, API-crosswalk, API-binding, or pre-existing transition record.
+`tools/requirements_lab.py check` passes against the candidate.
+
+The candidate still contains the known dirty-working-tree overlay in the 2025
+Part 1.1 semantic model: one derived API surface, one mapping, and fifteen
+state-chart transitions (1,263→1,264 API surfaces, 282→283 mappings, and
+282→297 transitions). Those additions have no requirement IDs and are not a
+numbering change; they remain ignored audit evidence until the adjacent Lab
+publishes them from a reviewed revision. No Umbra contract or test-plan remap
+is warranted, and RL-176 remains reserved for the next genuine post-RL-157
+Lab or consumer recurrence.
+
+### 2026-08-25 local slice — negotiated willing-to-acquire continuation
+
+The focused `negotiated-willing-to-acquire-continuation` CTest lane now
+passes. It keeps two If Available acquisition requests pending while the
+owner enters negotiated Waiting, selects the earliest request in the serial
+embedded profile, supersedes that selected WTA reservation with a regular
+acquisition, cancels the regular request before the owner callback begins, and
+then verifies that stale first-candidate work is suppressed while the retained
+second WTA candidate receives Request Divestiture Confirmation with its own
+acquisition tag. Confirm Divestiture transfers ownership and emits one normal
+Acquisition Notification to the second candidate.
+
+The first draft attempted to cancel the If Available request directly through
+`Cancel Attribute Ownership Acquisition`. The official 2025 C++ surface has no
+separate WTA-cancellation service, and the existing local contract correctly
+rejects that call as `AttributeAcquisitionWasNotRequested`. The fixture now
+uses the specified regular-acquisition supersession followed by cancellation;
+this was a local scenario/API-use correction, not a Requirements Lab or Umbra
+runtime recurrence. The local Catch2 plan now contains 586 entries, the r15
+export remains requirement- and source-content stable, and RL-176 remains
+reserved.
+
+### 2026-08-25 local slice — four-member mixed timestamped restore composition
+
+The focused `restore-mixed-tso-object-interaction-four-member` CTest lane now
+passes with 108 assertions. It saves one timestamped `Update Attribute Values`
+passel and one timestamped `Send Interaction` in a four-member embedded
+federation, terminalizes both post-save designators, restores the image, and
+delivers the restored object reflection and interaction independently through
+Flush Queue before each recipient's grant. The original payloads, tags,
+producer handles, timestamp, retraction metadata, and post-delivery Request
+Retraction callbacks are all checked.
+
+The first drafts exposed only local fixture/API-use corrections: named object
+registration requires the official preceding `Reserve Object Instance Name`
+service; save admission requires the request-before-TAR sequence and both
+regulators' callback drains; and the owner must resign with
+`CANCEL_THEN_DELETE_THEN_DIVEST` while it still owns the registered attribute.
+Those corrections did not reproduce a Requirements Lab or Umbra runtime
+defect. The r15 export remains requirement- and source-content stable, the
+local Catch2 plan advances from 586 to 587 entries, and RL-176 remains reserved.
+This slice is bounded development-profile evidence only: it does not claim
+durable persistence, remote transport, arbitrary post-restore handle remapping,
+package/JUnit/protected-review evidence, validation, or conformance.
+
+### 2026-08-25 local slice — timestamped attribute ordering and equal-timestamp cohort
+
+The focused `Embedded timestamped attribute updates preserve different-timestamp
+order for each constrained recipient` Catch2 case passes with 79 assertions.
+One publisher submits timestamp 7 before a timestamp-5 update and a second
+timestamp-5 update; two independent constrained recipients advance first to 5
+and then to 7. Each receives the complete timestamp-5 cohort before timestamp 7,
+with the equal-timestamp tie-break intentionally left unspecified, and each
+reflection precedes its matching time-advance grant. The local Catch2 plan now
+advances from 587 to 588 entries, while the pinned r15 export and canonical Lab
+IDs remain requirement- and source-content stable.
+
+The first local draft exposed only a fixture/API-use assumption: enabling Time
+Regulation legitimately queued the `TimeRegulationEnabled` callback, so the
+fixture now drains that callback before submitting the passels. This was a
+local harness correction, not a Requirements Lab or Umbra runtime recurrence;
+no post-RL-157 observation is consumed and RL-176 remains reserved. The case
+is bounded embedded development-profile evidence only. Cross-process transport
+arrival ordering, alternate advance forms, ownership/resignation churn,
+save/restore, package/JUnit/protected-review evidence, validation, and
+conformance remain open.
+
+### 2026-08-25 local slice — timestamped attribute ordering through TARA/NMRA
+
+The focused `Embedded timestamped attribute updates preserve ordering through
+available advances` Catch2 case passes with 71 assertions. It uses the same
+timestamp-7-before-two-timestamp-5 cohort shape as the TAR companion, but
+drives two independent constrained recipients through exact
+`Time Advance Request Available` and `Next Message Request Available`
+boundaries. Both alternate forms deliver the complete timestamp-5 cohort
+before timestamp 7 and preserve reflection-before-grant ordering; the
+equal-timestamp tie-break remains unspecified. The local Catch2 plan now
+advances from 588 to 589 entries, and the pinned r15 export remains
+requirement- and source-content stable.
+
+This slice exposed no Requirements Lab or Umbra runtime recurrence. RL-176
+remains reserved under the post-RL-157 rule. The evidence is bounded embedded
+development-profile coverage only; transport-arrival/cross-process ordering,
+other advance combinations, ownership/resignation, save/restore, package/JUnit,
+protected review, validation, and conformance remain open.
+While registering this companion, the checker also rejected an initially
+over-specific local `clause-8.1.5` value for the selected requirement; the
+canonical Lab field is `clause-8`. The contract now uses the exported value,
+with no bundle/source change and no new observation number consumed.
+
+### 2026-08-25 local slice — service-reporting disabled suppresses both destinations
+
+The focused `Embedded service reporting suppresses accepted services while the
+reporting switch is disabled` Catch2 case passes with 27 assertions. It uses
+the official Restaurant FOM's default-disabled `HLAserviceReporting` state,
+explicitly enables `HLAsendServiceReportsToFile`, accepts a real
+`Get Dimension Handle` lookup, and proves that the eagerly-created joined-
+federate file keeps its initial size while an eligible observer receives no
+`HLAreportServiceInvocation` interaction. The local Catch2 plan advances from
+589 to 590 entries; the MOM, support-switch, dimension-lookup, subscription,
+and receive-order API contracts now reference the same C++ selector.
+
+This slice closes only the reporting-disabled routing arm in the embedded
+development profile. The existing ordinary `Send Interaction` MOM case remains
+the interaction-selected arm. Self-switch transition ordering, generic
+return/failure forms, broader MOM families, remote transport, package/JUnit,
+protected review, validation, and conformance remain open.
+
+The first fixture draft used the all-switches-enabled extension FOM and hit an
+untyped exception when a second federate subscribed to the report interaction
+after the subject was disabled. The official Restaurant FOM plus an explicit
+file-switch enable is the stable, standards-facing fixture for this slice.
+That is a local Umbra fixture/runtime rough edge—not a Requirements Lab
+numbering or export recurrence—so no post-RL-157 observation number is
+consumed; the extension-switch topology remains a separate follow-up.
+
+The first broad `service-reporting` label run also exposed a stale precondition
+in the adjacent time-regulated directed-interaction MOM fixture: it advanced
+the sender only to logical time 2 while using lookahead 1, so GALT 3 correctly
+held the timestamp-6 delivery. The fixture now uses lookahead 5, matching its
+filesystem companion's valid admission boundary; the isolated case passes 115
+assertions and the full 294-test label is green. This is a local test-harness
+correction, not a Requirements Lab or runtime recurrence, so RL-176 remains
+reserved.
+
+### 2026-08-25 local slice — Connect aggregate-to-overload crosswalk
+
+The local `connection-implementation-contract.json` now selects the four
+official C++ `RTIambassador::connect` API-surface records under the Lab's single
+aggregate `rti.service.connect` mapping. `tools/requirements_lab.py check`
+validates that every selected ID exists, is an `RTIambassador` C++ surface, and
+is a Connect declaration; the new
+`umbra.ieee1516_2025.connection_implementation_traceability` CTest exercises
+the same guard. This resolves Umbra's local traceability gap without editing
+the immutable Lab mapping or claiming that its sidecar/catalog aggregate
+selection ambiguity is fixed. It is not a Requirements Lab or Umbra consumer
+recurrence, so RL-176 remains reserved.
+
+### 2026-08-25 local slice — default-region interaction retraction through alternate advances
+
+The focused `Embedded timestamped default-region Send Interaction retracts
+before TARA and NMRA grants` Catch2 case now passes. It queues an ordinary
+timestamped interaction from the private default source against two committed
+regional subscribers, accepts TARA(7) and NMRA(10), retracts before either
+recipient callback boundary, and proves that both alternate grants complete
+without `Receive Interaction` or `Request Retraction`. The captured NMRA
+frontier remains timestamp 8 even though the queued interaction is withdrawn;
+the producer's second Retract is classified as
+`MessageCanNoLongerBeRetracted`.
+
+During this slice the runtime exposed a separate scheduler edge: removing the
+last queued TSO passel did not re-evaluate already-pending alternate time
+advances, leaving NMRA stranded until another federation event. Umbra now
+re-evaluates pending grants after an accepted Retract. This was an Umbra
+runtime defect found by the new C++ test, not a Requirements Lab export or
+numbering recurrence; no post-RL-157 observation is consumed and RL-176
+remains reserved. The local Catch2 plan advances from 590 to 591 entries;
+the default-region, timestamped-interaction, Request Retraction, TAR/TARA,
+and NMRA contracts reference the same selector. Broader FQR, transport,
+save/restore, package/JUnit, protected review, validation, and conformance
+remain open.
+
+### 2026-08-25 local slice — Register Object Instance service-report coverage
+
+The embedded runtime had a consumer-side coverage gap rather than a Requirements
+Lab export defect: all four 2025 `Register Object Instance` overloads committed
+object state and queued discovery, but did not emit their §11.5 service-report
+records. The source-backed fix now emits ordinary and regional success forms
+after the registry transaction, plus the Null/false/exception form for an
+invalid object class, while preserving the same ordering before discovery
+callbacks. The focused native Catch2 case passes with 484 assertions and exact
+filesystem records; the plan now contains 592 entries and the pinned/r15/r16
+`check-plan` guards resolve the four official C++ overload surfaces and the
+object-management/DDM/MOM requirement candidates.
+
+This was newly implemented Umbra behavior discovered by direct use of the
+official MIM/service-report contract, not a reproduced Lab or previously logged
+consumer issue. It therefore consumes no post-RL-157 recurrence identifier;
+RL-176 remains the latest go-back and RL-177 remains reserved for a future
+reproduced recurrence. Timestamped/retraction, public MOM interaction,
+broader DDM/ownership, remote/package/JUnit, protected review, validation, and
+conformance remain open.
+
+The first broad `[service-report-file]` run after this fix exposed four stale
+fixture expectations: those cases registered their setup object while file
+reporting was enabled, so the newly correct `RegisterObjectInstance` record
+shifted the target service's serial. Each fixture now disables both reporting
+switches only around setup registration and re-enables them before the service
+under test; the lane passes all 142 cases and 17,401 assertions. This was a
+local test-harness correction caused by newly covered behavior, not a
+Requirements Lab recurrence, so it does not consume RL-177.
+
+### 2026-08-25 r16 re-sync audit — no 2025 requirement renumbering
+
+The fresh 2025 candidate
+`.tmp/corpus-bundle-resync-2026-08-25-r16-2025.json` was exported from the
+adjacent Requirements Lab at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. Comparing r16 with r15 reports
+`changed_documents: 0`; the 2025 inventories remain 20 Part 1, 1,860 Part
+1.1, and 340 Part 1.2 requirements, with no added, missing, renumbered, or
+content-replaced requirement, API-crosswalk, API-binding, mapping, or
+pre-existing transition record. `tools/requirements_lab.py check` and
+`check-plan` both pass against r16 (592 plan entries, 480 selected
+requirements, 243 C++ API surfaces).
+
+Comparing r16 with the pinned bundle still shows only the known dirty
+Part 1.1 working-tree overlay: one API surface, one mapping, and fifteen
+transitions (1,263→1,264 APIs, 282→283 mappings, and 282→297 transitions).
+These additions carry no new requirement IDs and are not a 2025 numbering
+change. RL-176 remains the latest verified post-RL-157 recurrence; RL-177 is
+still reserved for the next genuinely reproduced old-issue go-back.
+
+### 2026-08-25 r17 re-sync audit — no 2025 requirement renumbering
+
+The current-session 2025 export from `../Document-Recreation` was compared
+with the prior r12 candidate after the numbering concern was raised again.
+`requirements_lab.py resync --edition 2025` reports `changed_documents: 0`:
+Part 1 remains 20 requirements, Part 1.1 remains 1,860 requirements with
+1,264 working-tree API surfaces, 283 mappings, and 297 transitions, and Part
+1.2 remains 340 requirements. No requirement, ordinal, clause ID, API-surface
+ID, mapping ID, binding, or pre-existing transition was added, removed,
+renumbered, or content-replaced. The known pinned-versus-working-tree
+additive overlay remains the only difference from the canonical bundle.
+
+The local Catch2 plan and contract checks remain valid after the whole-class
+Unpublish Object Class Attributes service-report slice was added; its new
+coverage reuses the immutable Lab IDs and the official `unpublishObjectClass`
+API surface. This is local coverage growth, not a Lab or Umbra consumer
+recurrence. RL-176 remains the latest verified post-RL-157 go-back, and RL-177
+remains reserved for the next genuinely reproduced old issue.
+
+### 2026-08-25 local slice — whole-class Unpublish Object Class Attributes report
+
+The embedded C++ `unpublishObjectClass()` overload now emits the §5.3
+`UnpublishObjectClassAttributes` service-report record after the accepted
+whole-class registry teardown and before separately queued declaration
+advisories. Its optional attribute-set position is encoded as Table 5 type-34
+Null; the attribute-set overload remains type-1, and a supplied-empty set is
+not conflated with the whole-class form. The failed path uses the same service
+name and Null slot without introducing a memory/file fallback.
+
+The focused Catch2 case passes, the 145-test `[service-report-file]` lane and
+the 71-test `declaration-management` lane are green, and the full native
+executable passes 48,101 assertions in 827 test cases. The API/requirements
+traceability checks resolve the official whole-class C++ surface. This is new
+local coverage, not a reproduced Lab or consumer recurrence; RL-176 remains
+the latest verified post-RL-157 go-back and RL-177 remains reserved.
+
+### 2026-08-25 local slice — synchronization-point save/restore state
+
+The focused native C++ case `Embedded federation restore preserves
+synchronization-point state from the saved image` passes. It saves an announced
+but unachieved point, completes the live point after the save, restores the
+process-local image, and achieves the point again; the second
+`Federation Synchronized` callback proves the saved synchronization ledger was
+reconstituted rather than the post-save live state. The case is traced through
+the synchronization, save, and restore contracts and the Catch2 plan now has
+593 entries.
+
+This is clean new Umbra coverage, not a reproduced Requirements Lab or
+consumer issue. No historical defect was observed, no Lab export changed, and
+no recurrence identifier is consumed: RL-176 remains the latest verified
+post-RL-157 recurrence and RL-177 remains reserved for the next genuinely
+reproduced go-back.
+
+### RL-176 — Catch2 plan selector drift re-exposes RL-160
+
+**Status:** verified Umbra consumer/traceability recurrence; not a Requirements
+Lab numbering change or a conformance finding.
+
+The 2026-08-25 r15 2025 export at the locked Requirements Lab revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` retains the same 20/1,860/340
+requirement inventories and the same pre-existing requirement, API, mapping,
+and transition IDs. Its only pinned-versus-working-tree difference remains
+the already recorded dirty Part 1.1 state-chart overlay. A new local Catch2
+plan guard, added in response to the stale-plan gap recorded by RL-160,
+resolved the 591 plan entries against the complete 2025 requirement set and
+the 243 selected C++ API surfaces. It exposed two stale human-readable
+selectors: one aggregate handle-encoding name and one aggregate
+`VariableLengthData` name no longer occurred in the native C++ sources after
+those tests were split into individual Catch2 cases.
+
+Umbra corrected the plan to list the exact current selectors (semicolon-
+separated where one planning row intentionally covers a family). The guard is
+now registered as `umbra.ieee1516_2025.catch2_plan_traceability`; it checks
+supplied IDs, duplicate references, C++ API language, plan metadata, and
+whitespace-normalized selectors without editing contracts or the pinned Lab
+bundle. The pinned and r15 candidate checks both pass after this mitigation.
+
+**Possible Lab/tooling refinement:** export a structured test-selector or
+source-symbol relation for planning catalogs. Until that exists, the local
+guard remains a consumer-side stale-selector check and does not promote the
+plan to catalog or conformance evidence.
+
+### 2026-08-25 local slice — failed federate lookup service reports
+
+The embedded C++ `GetFederateHandle` and `GetFederateName` support lookups now
+append their failed service-report forms through both standards-facing sinks.
+The filesystem case and the HLA_IMMEDIATE MOM case preserve the official
+type-53/type-15 supplied arguments, type-34 Null returned argument, false
+success indicator, exact `NameNotFound`/`InvalidFederateHandle` descriptions,
+and serials zero and one before successful lookups continue at serials two and
+three. The focused cases pass, the `[service-report-file]` lane is green at
+146 tests, and the `[service-report-interaction]` lane is green at 62 tests.
+
+This was a newly observed Umbra consumer coverage omission, not a reproduced
+Requirements-Lab defect or a numbering change. It consumes no post-RL-157
+recurrence identifier: RL-176 remains the latest verified go-back and RL-177
+remains reserved for the next genuinely reproduced old issue. RL-152 still
+records the Lab's conditional failure-mapping gap, so this remains
+development-profile traceability rather than validation or conformance.
+
+### 2026-08-25 local slice — Query Attribute Ownership public MOM report
+
+The native C++ Query Attribute Ownership path already selected the public
+interaction sink after releasing its ownership-planning locks, but only the
+filesystem route had a focused report-form proof. The new HLA_IMMEDIATE
+observer case decodes service type 3, type-37/type-1 supplied arguments,
+type-34 Null return, true success, empty exception, and serial zero, then
+confirms the grouped owner/unowned callbacks follow the report. This is a local
+evidence completion, not a reproduced Requirements-Lab defect or recurrence;
+RL-176 remains the latest verified go-back and RL-177 remains reserved. It is
+development-profile C++ traceability only.
+
+### 2026-08-25 r18 re-sync audit — no 2025 requirement renumbering
+
+The current 2025 export from `../Document-Recreation` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` again reports no requirement,
+ordinal, clause ID, API-surface ID, mapping ID, binding, or pre-existing
+transition renumbering. The candidate differs from the pinned bundle only by
+the known dirty Part 1.1 working-tree overlay: one additive API surface, one
+mapping, and fifteen additive transitions. The 2025 requirement inventories
+remain 20 Part 1, 1,860 Part 1.1, and 340 Part 1.2 requirements. `check` and
+`check-plan` pass against the candidate; the local Catch2 plan contains 596
+entries, 480 selected requirements, and 243 selected C++ API surfaces.
+
+The first package-CTest invocation in the managed Windows sandbox also hit a
+Visual Studio SDK lookup permission error (`ToolLocationHelper` could not read
+the user's Microsoft SDK directory). Rerunning the identical six focused
+CTest lanes with the required build permission passed; this is an environment
+permission edge, not Lab drift or a consumer recurrence.
+
+This is an expected re-sync and not a Requirements-Lab or Umbra consumer
+recurrence. It consumes no post-RL-157 identifier: RL-176 remains the latest
+verified go-back and RL-177 remains reserved for the next genuinely reproduced
+old issue. The additive working-tree records remain audit-only until the Lab
+revision is intentionally refreshed.
+
+### 2026-08-25 local slice — installable embedded resource/dependency contract
+
+The embedded federation-management profile is now installable. The package
+exports the private LibXml2-backed validation backend as an internal target,
+declares `find_dependency(LibXml2 2.15 CONFIG)` for downstream consumers, and
+installs the reviewed IEEE 1516.2-2025 schemas, MIM, Restaurant examples,
+notice, and digest manifest. Runtime resource selection prefers the checked-in
+source tree for development and falls back to the installed reviewed payload;
+it fails deterministically if neither root is complete. The registered package
+CTest stages the install, verifies resource digests, configures a clean
+consumer, and builds/runs it successfully. A focused embedded Create-FOM case
+also remains green.
+
+This is packaging and SDK-consumability evidence, not a new Lab requirement
+mapping, service catalog, protected review, or conformance claim. No old Lab or
+Umbra consumer issue was reproduced, so no post-RL-157 recurrence identifier is
+consumed: RL-176 remains the latest verified go-back and RL-177 remains
+reserved.
+
+### 2026-08-25 r19 re-sync and recurrence audit — no new go-back
+
+The fresh candidate
+`.tmp/corpus-bundle-resync-2026-08-25-r19-2025.json` was exported directly
+from `../Document-Recreation` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. Comparing r19 with the immediately
+preceding r18 candidate reports `changed_documents: 0`: the 2025 inventories
+remain 20 Part 1, 1,860 Part 1.1, and 340 Part 1.2 requirements, with 1,264
+working-tree API surfaces, 283 mappings, and 297 transitions. Comparing r19
+with the pinned bundle still shows only the known dirty Part 1.1 additive
+overlay (one API surface, one mapping, and fifteen transitions); no requirement,
+ordinal, clause ID, API-surface ID, mapping ID, binding, or pre-existing
+transition was added, removed, renumbered, or content-replaced. The baseline
+`check` and Catch2 `check-plan` both pass (596 plan entries, 480 selected
+requirements, and 243 selected C++ API surfaces).
+
+The recurrence audit also reran the post-RL-157 boundaries that previously
+required new identifiers: the FOM sharing-metadata composition case passes 23
+assertions, the timestamped regional attribute resignation case passes 66,
+the timestamped object-deletion resignation fanout case passes 78, and the
+timestamped regional interaction resignation case passes 60. RL-176's stale
+selector guard remains green. These are clean reproductions after the recorded
+mitigations; none re-exposes an earlier Lab or Umbra consumer defect, so RL-177
+is not consumed. If any of these slices fails on a later workflow pass, that
+fresh reproduction must be appended as RL-177 (or the next unused identifier)
+and cite the earlier RL entry rather than editing RL-172 through RL-176.
+
+### 2026-08-25 local slice — independent HLAsetTiming target deadlines
+
+The embedded `HLA_IMMEDIATE` MOM scheduler now has a focused native Catch2
+vector for two simultaneous joined-federate targets. It arms one target for
+one second and another for two seconds, observes the first target's reliable
+`HLAlogicalTime`/`HLAlookahead` reflection while the second remains pending,
+then disables only the first target and confirms the second target still
+reflects. The case also checks that each reflection retains its target MOM
+object identity and the normal RTI-originated reliable callback metadata. The
+focused executable passes 41 assertions in one test case.
+
+The full native C++ Catch2 executable also passes 48,400 assertions in 831
+test cases after the slice was added.
+
+This is bounded C++ evidence for target isolation in an already implemented
+per-ambassador scheduler, not a reproduced Lab or Umbra consumer recurrence.
+The r19 candidate remains content-stable against r18, RL-176 remains the latest
+verified go-back, and RL-177 remains reserved. The broader multi-federate
+callback-ordering matrix, other periodic attributes, remote transport, and
+conformance remain open. If a later workflow pass regresses this target
+isolation or re-exposes an earlier issue, append the fresh reproduction as
+RL-177 (or the next unused identifier) and cite the earlier observation;
+do not alter the first 157 entries.
+
+### 2026-08-25 r20 re-sync and recurrence audit — no new go-back
+
+The fresh 2025 candidate
+`.tmp/corpus-bundle-resync-2026-08-25-r20-2025.json` was exported directly
+from `../Document-Recreation` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. Comparing r20 with r19 reports
+`changed_documents: 0`. The three 2025 inventories remain 20 Part 1, 1,860
+Part 1.1, and 340 Part 1.2 requirements; Part 1.1 still has 1,264 working-tree
+API surfaces, 283 mappings, and 297 transitions. Comparing r20 with the
+pinned bundle still shows only the known dirty Part 1.1 overlay: one additive
+API surface, one mapping, and fifteen transitions. No requirement, ordinal,
+clause ID, API-surface ID, mapping ID, binding, or pre-existing transition was
+added, removed, renumbered, or content-replaced.
+
+The local baseline and Catch2-plan guards pass (597 plan entries, 480 selected
+requirements, and 243 selected C++ API surfaces). The post-RL-157 regression
+boundaries also pass: the twelve queued timestamped resignation slices
+(including RL-173, RL-174, and RL-175's object-deletion, regional-interaction,
+and regional-attribute cases), the independent HLAsetTiming target slice, the
+FOM sharing-metadata composition case, and the four timestamped regional
+traceability checks. None re-exposes an earlier Lab or Umbra consumer issue;
+RL-176 remains the latest numbered post-157 recurrence and RL-177 remains
+reserved for the next genuinely reproduced go-back. If a later pass finds an
+old issue still unresolved after its expected mitigation, it must append RL-177
+(or the next unused identifier), cite the original observation, and record the
+current reproduction and mitigation rather than editing RL-001 through
+RL-157—or leaving the recurrence in an unnumbered audit note.
+
+### 2026-08-25 local slice — HLAsetTiming target isolation under both callback models
+
+The existing two-target HLAsetTiming case now runs under both official
+callback models. The HLA_IMMEDIATE branch uses the per-ambassador scheduler;
+the HLA_EVOKED branch explicitly pumps the same registry-owned deadline at the
+caller’s Evoke boundary. Each branch arms one joined-federate MOM object for
+one second and another for two seconds, observes only the first target before
+the later deadline, disables the first target, and then observes the second
+target without a replacement or cross-target cancellation. The combined
+Catch2 selector passes 82 assertions in one test case.
+
+This is clean C++ development-profile coverage of an already implemented
+callback-model boundary, not a Requirements Lab or Umbra consumer recurrence.
+The r20 export remains content-stable against r19, RL-176 remains the latest
+numbered post-RL-157 go-back, and RL-177 remains reserved for the next genuine
+reproduction. The broader periodic-attribute, callback-ordering, remote
+transport, protected-review, and conformance matrix remains open.
+
+### 2026-08-25 local slice — queued TSO keeps LITS after source resignation
+
+The new `Embedded Query LITS remains defined for a queued TSO after source
+resignation` Catch2 case exercises the official Query GALT and Query LITS
+surfaces against a real queued timestamped interaction. Before resignation,
+the source regulator's current-time-plus-lookahead candidate supplies GALT/LITS
+1 while the future message is at timestamp 5. After the source resigns with
+`NO_ACTION`, the accepted recipient-local queue remains intact: Query GALT is
+undefined and Query LITS returns 5. The focused CTest lane passes, and the two
+new Requirements-Lab contracts plus the Catch2 plan entry resolve against the
+locked r20 2025 export.
+
+This is a clean C++ development-profile traceability completion, not a
+reproduced Lab or Umbra consumer recurrence. The r20 export remains
+content-stable, RL-176 remains the latest numbered post-157 go-back, and RL-177
+remains reserved. If this boundary later fails after an expected mitigation,
+append that fresh reproduction as RL-177 (or the next unused identifier) with
+an earlier-observation citation; do not edit RL-001 through RL-157 or fold the
+failure into this unnumbered slice note.
+
+### 2026-08-25 r21 re-sync and full-suite audit — no new go-back
+
+The fresh candidate
+`.tmp/corpus-bundle-resync-2026-08-25-r21-2025.json` was exported directly
+from `../Document-Recreation` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. Comparing r21 with r20 reports
+`changed_documents: 0`: the 2025 inventories remain 20 Part 1, 1,860 Part
+1.1, and 340 Part 1.2 requirements, with 1,264 working-tree API surfaces,
+283 mappings, and 297 transitions. Every normalized collection is unchanged;
+there are no added, missing, renumbered, or content-replaced records.
+
+The complete configured Debug CTest run executed all 2025 lanes successfully.
+The only non-green entries were the intentionally out-of-scope 2010 marshal
+lane (`Not Run`) and the installed-package smoke test's managed-sandbox
+Windows SDK permission error. Re-running that identical package test with the
+required build permission passed. The Requirements Lab baseline, Catch2 plan,
+and observation-ledger checks all pass. This is an expected re-sync and an
+environment-permission resolution, not a reproduced Lab or Umbra consumer
+recurrence: RL-176 remains the latest numbered post-157 go-back and RL-177
+remains reserved. If a later pass finds an old issue still unresolved after
+its expected mitigation, append a new post-157 identifier with the earlier
+observation citation and current reproduction; never edit RL-001 through
+RL-157 or silently reuse an earlier post-157 identifier.
+
+### 2026-08-25 local slice — default-region regulation re-enable
+
+The new `Embedded timestamped default-region interaction survives
+time-regulation disable and re-enable` Catch2 case keeps one default-source
+timestamped interaction queued for a regional time-constrained recipient while
+the producer disables and callback-gated re-enables Time Regulation at the
+same lookahead. The callback arrives exactly once before the grant with the
+supplied-empty region marker, original payload/tag/producer/timestamp/order,
+and valid retraction metadata. The focused CTest selector passes after a clean
+target rebuild; the complete native 2025 Catch2 matrix then passed 833/833
+cases. The default-region, timestamped-interaction, and temporal-role contracts
+plus plan entry resolve against r21. This is clean local
+coverage, not a reproduced Requirements Lab or Umbra consumer recurrence; it
+consumes no post-RL-157 identifier. If this boundary later fails after the
+expected mitigation, append RL-177 (or the next unused identifier) with a
+citation to the earlier observation rather than editing RL-001 through
+RL-157 or folding the failure into this slice note.
+
+### 2026-08-25 r22 re-sync and recurrence audit — no new go-back
+
+The fresh 2025 candidate
+`.tmp/corpus-bundle-resync-2026-08-25-r22-2025.json` was exported directly
+from `../Document-Recreation` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. Comparing r22 with r21 reports
+`changed_documents: 0`; the 2025 inventories remain 20 Part 1, 1,860 Part
+1.1, and 340 Part 1.2 requirements, with 1,264 working-tree API surfaces,
+283 mappings, and 297 transitions. Every normalized collection is unchanged;
+there are no added, missing, renumbered, or content-replaced records.
+
+The observation ledger remains valid with 176 numbered entries and RL-176 as
+the latest post-RL-157 go-back. The Catch2 plan remains valid with 599 entries,
+485 selected requirements, and 243 selected API surfaces. This expected
+re-sync and clean recurrence audit reproduced no old issue, so it consumes no
+new identifier and RL-177 remains reserved. If a later pass finds an old issue
+still unresolved after its expected mitigation, append RL-177 (or the next
+unused identifier) with an earlier-observation citation, the current
+reproduction, and mitigation status; never edit RL-001 through RL-157 or
+silently reuse an earlier post-RL-157 identifier.
+
+### 2026-08-25 r23 re-sync and recurrence audit — no new go-back
+
+A fresh 2025 export from `../Document-Recreation` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` was compared with r22 using the
+Requirements Lab resync checker. It reports `changed_documents: 0`: the 20
+Part 1, 1,860 Part 1.1, and 340 Part 1.2 requirements, 1,264 API surfaces,
+283 mappings, 297 transitions, 1,410 API crosswalks, and 1,894 requirement/API
+bindings are unchanged. No requirement, clause, API, mapping, binding, or
+transition was added, removed, renumbered, or content-replaced.
+
+The clean export comparison and the live observation/guard checks reproduced
+no Requirements Lab or Umbra consumer go-back. This is an expected numbering
+audit, not a new observation: RL-176 remains the latest post-RL-157 recurrence
+and RL-177 remains reserved. If a later workflow pass reproduces an earlier
+issue—or finds it still unresolved after its expected mitigation—append RL-177
+(or the next unused identifier) with the earlier citation, current evidence,
+and mitigation state; do not fold it into this audit or edit RL-001 through
+RL-157.
+
+### 2026-08-25 observation-guard regression — no new go-back
+
+The new offline `tools/requirements_lab_observations_regression.py` lane runs
+the production checker against temporary ledger variants. It accepts a
+post-RL-157 “remains unresolved” reproduction only when it cites an earlier
+observation, rejects the same reproduction without a citation, rejects a
+skipped identifier, and rejects edits to the immutable RL-001..RL-157 text.
+The live ledger is unchanged and RL-177 remains reserved; this is guard
+coverage rather than a newly reproduced Lab or Umbra consumer issue.
+
+### 2026-08-25 local slice — official DIF class-member uniqueness
+
+The native 2025 validator lane now exercises the official
+`IEEE1516-DIF-2025.xsd` `xs:unique` constraints for duplicate direct
+object-class attribute names and interaction-class parameter names. Both
+schema-negative fixtures are rejected before Umbra's identity-based
+composition maps run. The focused CTest label
+`fom-member-name-uniqueness` runs the Catch2 case and its Requirements-Lab
+contract together; both pass against the locked 2025 export.
+
+This is clean schema-boundary coverage, not a reproduced Requirements Lab or
+Umbra consumer recurrence. It consumes no observation number: RL-176 remains
+the latest post-RL-157 recurrence and RL-177 remains reserved. If a later
+workflow pass re-exposes a prior issue or finds it still unresolved after its
+expected mitigation, append that fresh reproduction as RL-177 (or the next
+unused identifier) with an earlier citation, current evidence, and mitigation
+status rather than editing RL-001 through RL-157.
+
+### 2026-08-25 local slice — default-region attribute regulation re-enable
+
+The native C++ `Embedded timestamped default-region attribute update survives
+time-regulation disable and re-enable` case now covers the producer-side role
+transition that was not represented by the earlier time-constrained
+re-enable companion. A default-source/default-region timestamped passel stays
+in the regional recipient queue while Time Regulation is disabled and then
+callback-gated re-enabled at the same lookahead; the focused case preserves
+payload, tag, producer, timestamp/order, supplied-empty region metadata, and
+terminal retraction classification before the receiver's matching grant.
+The new Requirements-Lab contract and exact Catch2 plan entry resolve against
+the locked r23 2025 export; the plan now contains 601 entries. The focused
+test and contract checker pass, and no Lab or Umbra consumer defect was
+reproduced. This is additive development-profile coverage and consumes no
+observation number: RL-176 remains the latest post-RL-157 recurrence and
+RL-177 remains reserved. If this boundary later fails after the expected
+mitigation, append that reproduction as RL-177 (or the next unused identifier)
+with an earlier-observation citation, current evidence, and mitigation status;
+do not edit RL-001 through RL-157 or fold the failure into this local note.
+
+### 2026-08-25 local regression audit — lane catalog and environment follow-up
+
+The broad configured Debug CTest pass reached all 1,100 registered tests. The
+new attribute-regulation lane initially exposed one catalog wiring omission:
+because it was declared as a service lane, the focused-lane audit required a
+matching API-contract traceability check. Adding
+`timestamped-attribute-update-regulation-reenable-api-contract.json` and its
+CTest registration corrected that bookkeeping issue; the focused lane now
+passes its Catch2 case plus both requirements/API checks, and the catalog audit
+passes. The other broad-run exceptions were expected infrastructure scope: the
+2010 marshal test is intentionally not run in this 2025 tranche, and the
+installed-package smoke test hit the managed Windows SDK permission boundary;
+rerunning that same test with the required build permission passed. No Lab or
+Umbra consumer defect was reproduced. This is an unnumbered local audit and
+consumes no observation number: RL-176 remains the latest post-RL-157
+recurrence and RL-177 remains reserved. If a future pass re-exposes the lane
+catalog issue or another previously mitigated problem, append a new post-RL-157
+entry with an earlier-observation citation and current evidence; do not edit
+RL-001 through RL-157.
+
+### 2026-08-25 r24 re-sync and full-suite recurrence audit — no new go-back
+
+The fresh 2025 export
+`.tmp/corpus-bundle-resync-2026-08-25-r24-2025.json` was exported directly
+from `../Document-Recreation` at the locked revision
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`. Comparing r24 with the immediately
+preceding r23 candidate reports `changed_documents: 0`: the 20 Part 1, 1,860
+Part 1.1, and 340 Part 1.2 requirements, 1,264 API surfaces, 283 mappings,
+297 transitions, 1,410 API crosswalks, and 1,894 requirement/API bindings are
+unchanged. No requirement, ordinal, clause, API, mapping, binding, or
+transition was added, removed, renumbered, or content-replaced. Comparing the
+fresh candidate with the older pinned `.compliance/corpus-bundle.json` still
+shows only the documented additive Part 1.1 working-tree overlay (1,263 to
+1,264 API surfaces, 282 to 283 mappings, and 282 to 297 transitions); that is
+baseline lag, not a Requirements Lab numbering change.
+
+The complete configured Debug CTest run before this slice reached all 1,106
+tests. Its only non-green entries were the intentionally out-of-scope 2010
+time-marshal test (`Not Run`) and the installed-package smoke test's managed
+Windows SDK permission error (`ToolLocationHelper` could not read
+`C:\Users\peanu\AppData\Local\Microsoft SDKs`). Re-running the
+identical package test with the required build permission passed. The increase
+from 1,101 to 1,106 is the five newly registered native 2025 slices; no
+previous test was removed or relabeled. This is the same environment
+permission edge previously noted in r18/r21, not a Lab or Umbra consumer
+defect, so it consumes no observation number.
+
+The direct r23-to-r24 comparison and the post-RL-157 regression boundaries
+reproduced no old Lab or Umbra consumer issue. RL-176 remains the latest
+numbered post-RL-157 go-back; RL-177 is the separate source-artifact tension
+recorded below, not a recurrence. If a future pass reproduces an earlier issue
+or finds it still unresolved after its expected mitigation, append that fresh
+reproduction as RL-178 (or the next unused identifier) with its earlier
+citation and current evidence; do not edit RL-001 through RL-157 or hide the
+recurrence in an unnumbered audit note.
+
+### 2026-08-25 local slice — changed-lookahead regulation re-enable
+
+The native C++ `Embedded queued timestamped interaction survives
+time-regulation disable and re-enable with changed lookahead` case now covers
+the producer transition left open by the same-lookahead companions. It queues
+one timestamp-five interaction under lookahead one, disables regulation,
+callback-gated re-enables it at lookahead three, confirms the new value through
+`Query Lookahead`, and advances the producer to logical time two so the changed
+current-lookahead boundary releases the constrained recipient. The recipient
+receives exactly one callback before its grant with the original payload, tag,
+producer, timestamp/order, and valid retraction metadata; a second retract is
+classified as `MessageCanNoLongerBeRetracted`.
+
+The paired 2025 requirements/API contracts resolve against both the pinned
+bundle and the direct r24 export. The focused
+`timestamped-interaction-regulation-reenable-changed-lookahead` service lane
+runs the Catch2 case plus both traceability checks, and the focused service
+lane catalog passes; the direct selector reports 61 assertions in one test
+case. This is additive native C++ development-profile traceability, not a Lab
+or Umbra consumer recurrence, so it consumes no observation number: RL-176
+remains the latest post-RL-157 recurrence. RL-177 was reserved when this slice
+was recorded; it is consumed by the separate source-artifact entry below, not
+by this slice.
+Alternate advance forms, other timestamped families, transport, save/restore,
+package/JUnit/protected-review evidence, validation, and conformance remain
+open.
+
+### 2026-08-25 local slice — changed-lookahead regional interaction companion
+
+The native C++ `Embedded queued timestamped regional interaction survives
+time-regulation disable and re-enable with changed lookahead` case now covers
+the explicit source-region form of the same producer transition. It queues an
+overlap-qualified timestamp-five `Send Interaction With Regions` under
+lookahead one, disables regulation, callback-gated re-enables it at lookahead
+three, confirms the changed value through `Query Lookahead`, and advances the
+producer to logical time two. The constrained recipient receives exactly one
+callback before its grant, with the original source `RegionHandle` set,
+payload, tag, producer, timestamp/order, and valid retraction metadata intact.
+
+The existing regional Requirements-Lab/API contracts now reference this test,
+and the dedicated CTest service lane runs those checks together with the
+Catch2 selector. The r23-to-r24 2025 re-sync remains content-stable and the
+recurrence guard still reports RL-178 as the next available identifier. This
+is additive native C++ development-profile evidence, not a reproduced Lab or
+Umbra consumer issue; no observation number is consumed. Alternate advance
+forms, subscription mutation, ownership/resignation, save/restore, transport,
+package/JUnit/protected-review evidence, validation, and conformance remain
+open.
+
+### 2026-08-25 local slice — Clause 3.3.1 name-convention preflight
+
+The native composition preflight now checks the 2025 Clause 3.3.1 naming
+boundary using libxml2's NCName validation plus the HLA period, reserved-prefix,
+and `NA` rules. The focused Catch2 case passes 35 assertions, and the
+`fom-name-conventions` lane passes its Catch2 and direct r24 traceability tests.
+The complete FOM-labeled slice also passes all 122 tests after one ordering
+correction: the first run allowed the generic reserved-`NA` name diagnostic to
+mask the existing, more precise `UmbraNaInvalidTransportation` companion
+diagnostic. The composer now evaluates that table-specific companion rule
+before the generic name pass, preserving both validations.
+
+This was a local implementation ordering correction, not a Requirements Lab
+or historical consumer go-back. It consumes no recurrence identifier; the
+separate RL-177 entry below records only the official Restaurant source
+tension.
+
+### 2026-08-25 local tooling slice — ordinal-numbering re-sync guard
+
+The read-only `requirements_lab.py resync` report now exposes an
+`ordinal_drift` collection alongside semantic additions/removals and
+regenerated opaque IDs. This closes a bookkeeping blind spot: a Requirements
+Lab exporter can preserve a requirement's text and ID while moving its
+presentation ordinal, and that numbering change must remain visible to a
+reviewer. The new offline
+`tools/requirements_lab_resync_regression.py` guard proves ordinal-only and
+combined ID/ordinal changes are classified separately without modifying the
+pinned bundle. The optional `--fail-on-numbering-drift` switch lets a review
+gate reject only ID/ordinal movement when a deliberate working-tree export
+also contains additive semantic records.
+
+The live r23-to-r24 2025 comparison still reports `changed_documents: 0`, with
+zero requirement ordinal drift across all 1,860 Part 1.1 records (and zero
+drift in the other 2025 collections). The focused Requirements-Lab CTest label
+now passes 248/248 tests, including the new guard; the configured build
+contains 1,107 tests in total. This is an additive local traceability/tooling
+slice, not a Requirements Lab or Umbra consumer recurrence, so it consumes no
+observation number. RL-176 remains the latest numbered go-back, RL-177 is the
+separate source-artifact tension, and RL-178 is the next identifier for a
+future reproduced post-RL-157 recurrence.
+
+### 2026-08-25 local slice — Table 1 modification-date lexical form
+
+The native FOM composition preflight now enforces the exact
+`YYYY-MM-DD` presentation required for a supplied object-model
+`modificationDate`. The official DIF schema continues to own XML Schema
+calendar validity; the new check closes the narrower gap where `xs:date`
+would otherwise accept a timezone suffix such as `2025-02-10Z`. The focused
+Catch2 selector passes 15 assertions, and the paired
+`fom-modification-date` Requirements-Lab traceability test resolves against
+the pinned/direct 2025 exports.
+
+This is an additive local C++/FOM preflight slice, not a Requirements Lab or
+Umbra consumer go-back, so it consumes no recurrence identifier. RL-176
+remains the latest numbered go-back, RL-177 remains the separate Restaurant
+`NA` source tension, and RL-178 remains reserved for the next genuine
+post-RL-157 recurrence.
+
+### 2026-08-25 local full-suite audit — expected environment boundaries
+
+The configured Debug CTest run now enumerates 1,109 tests. All newly added
+2025 FOM and traceability selectors pass. The only non-green results are the
+intentionally out-of-scope 2010 time-marshal smoke test (`Not Run` because its
+optional executable was not built) and the installed-package smoke test's
+managed Windows SDK permission failure. The latter is the same environment
+boundary already recorded in the earlier audit notes; rerunning that one test
+with the required build permission passes. It is not a Requirements Lab or
+Umbra consumer regression. No old issue was re-exposed, so this audit
+consumes no post-RL-157 identifier: RL-176 remains the latest numbered
+go-back, RL-177 remains the separate source-artifact tension, and RL-178 is
+reserved for the next genuine recurrence.
+
+### RL-177 — Clause 3.3.1 `NA` reservation conflicts with the official Restaurant enumerator
+
+**Status:** verified 2025 source-artifact tension; not a Requirements Lab
+numbering change or conformance finding.
+
+The direct 2025 export
+`.tmp/corpus-bundle-resync-2026-08-25-r24-2025.json` from the adjacent Lab at
+revision `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` is content-stable against
+r23: no requirement, clause, API, mapping, binding, or transition identity
+changed. The relevant immutable 1516.2 record is
+`requirement-candidate-sections-semantic-clause-4c-page-073-l91-1`, the
+enumerator-name row used by the private name-convention contract.
+
+The reconstructed 1516.2-2025 Clause 3.3.1 page 32 says a name consisting of
+case-insensitive `na` is reserved as the non-applicable marker and cannot be a
+user-defined name. The supplied official
+`third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml`
+nevertheless declares the `Modifiable` enumerator with `<name>NA</name>` at
+line 897. The official DIF XSD accepts that value, so a literal global `NA`
+rejection would make the packaged Restaurant example fail its own official
+resource validation.
+
+Umbra's bounded 3.3.1 preflight therefore rejects `NA` for ordinary named
+declarations but preserves a narrowly scoped enumerator exception for this
+source compatibility boundary. The exception is covered by the native
+`The FOM composition preflight enforces HLA 3.3.1 XML names` case and is
+explicitly marked private traceability; it is not evidence that either the
+prose rule or the example has been resolved.
+
+**Possible Lab/artifact refinement:** publish an erratum or an explicit
+enumerator-marker exception for the Restaurant example, and expose that
+exception in the exported semantic metadata. Until an edition decision is
+made, the source conflict must remain visible here and in
+`compliance/requirements-lab/fom-name-conventions-requirements-contract.json`.
+
+### 2026-08-25 local slice — rejected HLAsetSwitches count boundary
+
+The native MOM interaction-count lane now submits an invalid
+`HLAsetSwitches` `HLAresignAction` value before any application traffic. The
+typed `RTIinternalError` is raised and the sender's direct
+`HLAinteractionsSent` value remains zero; accepted ordinary, directed,
+timestamped, and regional sends then advance the count from the normal service
+boundary. This closes a focused no-positive-result test gap in the existing
+MOM count scenario. It is additive C++ development-profile evidence, not a
+Requirements Lab or Umbra consumer recurrence, so it consumes no observation
+identifier. RL-177 remains the separate source-artifact tension and RL-178 is
+still the next unused post-RL-157 recurrence slot.
+
+### 2026-08-25 local slices — changed-lookahead attribute and deletion companions
+
+The non-regional timestamped `Update Attribute Values` and `Delete Object
+Instance` companions now cover the same producer transition independently:
+each passel is accepted at lookahead one, retained through Disable Time
+Regulation, re-enabled at lookahead three, checked through `Query Lookahead`,
+and released at timestamp five after the producer advances to logical time two.
+Each focused C++ case proves its callback before the matching grant and retains
+the original payload/object, tag, producer, timestamp/order, and retraction
+metadata. Their exact 2025 Requirements-Lab/API contracts and dedicated CTest
+lanes pass against the locked export. The configured Debug build now
+enumerates 1,115 tests; the complete `requirements-lab` label also passes.
+These are additive development-profile evidence, not Lab or Umbra consumer
+recurrences, so no observation number is consumed: RL-177 remains the separate
+source-artifact tension and RL-178 remains the next genuine post-157 go-back.
+
+### 2026-08-25 local slice — changed-lookahead directed interaction companion
+
+The non-regional timestamped directed-interaction companion covers the producer
+transition independently: a target-qualified passel is accepted at lookahead
+one, retained through Disable Time Regulation, re-enabled at lookahead three,
+checked through `Query Lookahead`, and released at timestamp five after the
+producer advances to logical time two. The focused C++ case proves the directed
+callback before the matching grant and retains the original target, tag,
+producer, timestamp/order, and retraction metadata. Its exact 2025
+Requirements-Lab/API contracts and dedicated CTest lane pass against the locked
+export. This is additive development-profile evidence, not a Lab or Umbra
+consumer recurrence, so no observation number is consumed: RL-177 remains the
+separate source-artifact tension and RL-178 remains the next genuine post-157
+go-back.
+
+While authoring the directed contract, the first local draft labeled the
+`Send Directed Interaction` anchor as clause 6.14; the locked export checker
+correctly resolved that requirement to clause 6.16, and the contract was
+corrected before the lane ran. This was a local contract-authoring mismatch,
+not a Lab content change or a recurrence, and therefore consumes no `RL-###`
+identifier.
+
+### 2026-08-25 recurrence-ledger guard tightening
+
+The observation checker and its offline regression lane now treat explicit
+“not fixed,” “not actually fixed,” and failed-mitigation wording as recurrence
+markers, in addition to the existing re-exposure/regression/unresolved forms.
+The temporary-ledger cases accept a cited post-RL-157 reproduction, reject the
+same not-fixed reproduction without an earlier citation, reject a skipped
+identifier, and reject reuse of an immutable RL-001..RL-157 identifier. The
+live ledger still has no new reproduction: the next available local identifier
+is RL-178. This guard change is workflow hardening, not a new Lab or Umbra
+consumer issue, so it consumes no observation number.
+
+### 2026-08-25 local slice — changed-lookahead regional attribute update companion
+
+The native C++ development profile now has the matching explicit-source
+regional `Update Attribute Values` changed-lookahead companion. The producer
+queues one overlap-qualified timestamped passel at lookahead one, disables
+Time Regulation, callback-gated re-enables it at lookahead three, verifies the
+new value through `Query Lookahead`, and advances to logical time two so the
+timestamp-five GALT boundary releases `Reflect Attribute Values` before the
+recipient's grant. The callback preserves the object/update payload, source
+`RegionHandle` set, tag, producer, timestamp/order, and retraction identity.
+The focused C++ test passes 64 assertions; its exact Requirements-Lab/API
+contracts and CTest label pass 3/3, and the shortened convenience target
+avoids the managed Windows MSBuild path-length boundary without changing the
+standards-facing selector.
+
+The r23-to-r24 2025 export remains unchanged (1,860 Part 1.1 requirements,
+1,264 API surfaces, and zero ordinal drift). This is additive development-
+profile evidence, not a Requirements Lab or Umbra consumer recurrence, so no
+observation number is consumed: RL-177 remains the separate source-artifact
+tension and RL-178 is the next genuine post-RL-157 recurrence slot.
+
+### 2026-08-26 r25 re-sync audit — no 2025 requirement-number drift
+
+The adjacent Requirements Lab was exported again at the pinned
+`v0.1.0.a1` revision `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` and compared
+with the previous r24 candidate. The 2025 Part 1, Part 1.1, and Part 1.2
+documents are content-stable: `changed_documents: 0`, with 20, 1,860, and 340
+requirements respectively. Part 1.1 still contains 1,264 API surfaces, 283
+mappings, 297 transitions, 1,410 API crosswalks, and 1,894
+requirement/API bindings. No requirement, API-surface, mapping, transition,
+crosswalk, binding, clause, immutable ID, or ordinal changed, so no contract or
+Catch2-plan remap is warranted.
+
+The configured Debug `requirements-lab` CTest label remains green at 259/259,
+including the plan, resync, immutable-history, and recurrence guards. The
+candidate-specific plan check also resolves all 609 active entries (506
+requirements and 243 C++ API surfaces) against the unchanged 2025 export.
+
+The observation checker still reports 177 numbered entries, latest `RL-177`,
+and next available `RL-178`. This unchanged expected re-sync is not a Lab or
+Umbra-consumer recurrence and consumes no observation identifier. If a prior
+RL-001..RL-157 issue is reproduced or is found still unresolved on a later
+workflow pass, append the next post-157 identifier and cite the earlier entry
+under the recording rule below; do not edit the historical record or treat a
+numbering concern as a renumbering event.
+
+### 2026-08-26 current-checkout r26 re-sync audit — no 2025 numbering drift
+
+The adjacent checkout has advanced to `ef10c87d911f33018470d355c0aa942b953c4119`
+since the locked `v0.1.0.a1` release. I exported its 2025 documents as the
+ignored r26 candidate and compared them with the r25 candidate. All three
+documents remain content-stable (`changed_documents: 0`): Part 1 has 20
+requirements, Part 1.1 has 1,860 requirements, 1,264 API surfaces, 283
+mappings, 297 transitions, 1,410 API crosswalks, and 1,894 requirement/API
+bindings, and Part 1.2 has 340 requirements. There are no added, missing,
+renumbered, or ordinal-drifted requirement, API, mapping, transition,
+crosswalk, binding, or clause records.
+
+The lock remains intentionally pinned to `4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`
+until the adjacent Lab publishes a reviewed release; r26 is comparison
+evidence, not a replacement canonical bundle. The candidate-specific plan,
+resynchronization, and observation guards remained green at the time of this
+audit, and the full Debug `requirements-lab` label was 259/259. No old
+Lab/Umbra consumer issue had been reproduced at that point, so the audit itself
+consumed no observation identifier. The later RL-178 entry below records the
+focused-lane recurrence found by the complete native-suite audit.
+
+### RL-178 — Focused lane omitted traceability labels for a changed-lookahead slice
+
+**Status:** verified Umbra consumer/traceability recurrence; not a Requirements
+Lab numbering change or a conformance finding.
+
+The r26 current-checkout export remains content-stable against r25: all 2025
+requirement, API-surface, mapping, transition, crosswalk, binding, clause, and
+ordinal identities are unchanged. The active Catch2 plan and both new
+changed-lookahead contracts resolved successfully. However, the complete
+native CTest run exposed a focused-lane catalog failure: the
+`timestamped-attribute-update-regulation-reenable-changed-lookahead` Catch2
+case was present, but its two Requirements-Lab/API traceability tests were not
+assigned the lane label. This was the same class of consumer-side
+traceability-selection weakness guarded by RL-160 and re-exposed by RL-176,
+although the IDs themselves were valid here.
+
+Umbra corrected the CMake label registration with an exact
+`timestamped_attribute_update_regulation_reenable_changed_lookahead_(requirements|api)_traceability`
+match. After reconfiguration, the focused catalog passed, and the lane now
+runs all three members (one Catch2 behavior case plus the Requirements-Lab and
+API-contract checks) successfully. No Lab artifact changed; the recurrence is
+therefore recorded as an Umbra consumer regression with its mitigation rather
+than folded into the unchanged r25/r26 resynchronization audit.
+
+### RL-179 — Native Catch2 source refresh dropped mapped ownership selectors
+
+**Status:** verified Umbra consumer/traceability recurrence; not a Requirements
+Lab numbering change or a conformance finding.
+
+The pinned `v0.1.0.a1` Lab export and all 2025 requirement/API identifiers were
+unchanged. On 2026-08-27 the local Catch2 plan guard reported 18 mapped plan
+entries whose ownership/MOM selectors were absent from the native C++ source
+(17 unique selectors). The corresponding contracts also failed their local
+source/test selector checks, so the issue blocked the normal focused planning
+guards even though no Lab content had drifted. This is the same class of
+consumer-side selector recurrence recorded by RL-160 and RL-176.
+
+Umbra restored the exact missing baseline Catch2 cases, removed the accidental
+duplicate selector, and kept the new public fresh-registry restore case mapped
+through the plan and its six affected API/requirements contracts. The plan
+now resolves 646 entries; all 260 Requirements Lab contracts, the plan guard,
+the roadmap index guard, the tag taxonomy guard, and the observation ledger
+pass. No Lab artifact changed. The mitigation is to keep the source-selector
+guard in the focused workflow and reconcile a source/test refresh before
+advancing the roadmap lane.
+
+### 2026-08-28 local slice — directed TSO ownership callback boundary
+
+The focused `process-restart-directed-interaction-tso-ownership-callback`
+case now passes in the native C++ lane. It saves one queued by-ownership
+directed timestamped payload, restores the directed declarations, one
+application-value target, ownership ledger, retraction ledger, and queue in a
+fresh registry, transfers the marker and implicit delete privilege before the
+old owner's callback boundary, suppresses the stale callback, completes the
+in-transit queue entry, and proves a legal Retract is terminal without a
+Request Retraction callback. This exposed and closed an Umbra admission gap:
+the restart predicate previously rejected a valid combined image containing
+directed declarations plus directed TSO/retraction/queue state even though
+each section was independently restartable. The predicate now admits only
+that narrow directed combination and continues to reject ordinary,
+attribute-update, and object-deletion TSO mixtures. The case is mapped through
+the existing selector, object, ownership, save/restore, TSO, and retraction
+requirements; the pinned Requirements Lab export did not change, so no new
+RL observation number is consumed.
+
+### 2026-08-28 local slice — directed TSO eligible by-ownership delivery/retraction
+
+The focused
+`process-restart-directed-interaction-tso-ownership-delivery-retraction` case
+now passes in the native C++ lane. It saves one queued directed timestamped
+interaction for the current by-ownership subscriber, restores the image into a
+fresh registry, proves that the owner remains eligible, delivers the payload,
+and applies a legal producer `Retract` that emits exactly one `Request
+Retraction` notification. The same file/queue/retraction identity is retained
+through the terminal save state. This is a local Umbra evidence slice using
+the pinned 2025 Lab IDs and standard mappings; the Lab export did not change,
+so no new RL observation number is consumed. The next bounded implementation
+target is a multi-recipient positive/negative timestamped fan-out case.
+
+### 2026-08-28 local slice — directed TSO multi-recipient fan-out
+
+The focused
+`process-restart-directed-interaction-tso-fanout-positive-negative` case now
+passes in the native C++ lane. It saves one directed timestamped payload with
+two recipient entries, restores both entries in a fresh registry, removes the
+directed subscription from one recipient before its callback boundary, delivers
+the still-eligible recipient, suppresses the unsubscribed recipient, and
+applies a legal producer `Retract` that emits exactly one `Request Retraction`
+for the delivered recipient. The recipient ledger preserves the distinct
+retracted and suppressed terminal states through the terminal save. This is a
+local Umbra evidence slice using the pinned 2025 Lab IDs and standard mappings;
+the Lab export did not change, so no new RL observation number is consumed.
+The latest bounded target is a non-empty directed TSO parameter projection with
+per-recipient transportation/order validation using a dedicated 2025 fixture.
+
+### 2026-08-28 local slice — directed TSO parameter projection
+
+The focused
+`process-restart-directed-interaction-tso-parameter-projection` case now passes
+in the native C++ lane. A dedicated 2025 DIF fixture defines one directed
+interaction parameter and `TimeStamp` order. The case resolves that official
+parameter handle, saves the non-empty parameter bytes and recipient projection,
+restores them in a fresh registry, verifies HLAreliable transport plus
+timestamped order metadata, and delivers the projected parameter before a
+legal producer `Retract` emits one `Request Retraction`. This is a local Umbra
+evidence slice using pinned Lab IDs and standard mappings; the Lab export did
+not change, so no new RL observation number is consumed.
+
+### 2026-08-28 local slice - ordinary regional interaction TSO/DDM restore
+
+The official 2025 C++ binding exposes `sendInteractionWithRegions` but no
+`sendDirectedInteractionWithRegions` overload. The roadmap therefore advances
+the supported ordinary regional interaction path rather than inventing a
+directed-with-regions API. The focused
+`process-restart-regional-interaction-tso-ddm` case composes the official
+Restaurant FOM's dimensioned `MainCourseServed` interaction, captures one
+committed `[2,4)` source-region snapshot and two overlap-qualified recipients,
+saves one recipient in transit and one queued, mutates and resigns the source,
+and restores into a fresh registry. It proves the saved snapshot remains
+available for callback-boundary evaluation even after a disjoint live source
+range, while both recipient queue phases and timestamped order metadata survive.
+This is a local Umbra evidence slice using pinned Lab IDs and standard mappings;
+the Lab export did not change, so no new RL observation number is consumed.
+Directed DDM remains a separate future design boundary.
+
+### 2026-08-28 local slice — public regional TSO/DDM restore and report-file identity
+
+The public C++ companion
+`public-process-restart-regional-interaction-tso-ddm` now passes in the
+development profile. It uses the configurable filesystem service-report
+directory, commits a timestamped `Send Interaction With Regions` payload at
+time 9 beyond a timed save at time 7, mutates the live source region, restores
+the saved joined federation, and verifies the original `[2,4)` bounds, queued
+payload, parameter/tag bytes, timestamped order, and sent `RegionHandle`.
+The joined federate's report pathname remains the same file and receives the
+save/restore service records; switches gate appends without replacing the
+file. This is a local Umbra evidence slice using the same pinned Lab IDs and
+standard mappings as the private regional case. The Lab export did not change,
+so no new RL observation number is consumed. The public-facade fresh-registry
+route-rebinding companion is now green as a separate bounded slice.
+
+### 2026-08-28 local slice — public fresh-registry regional TSO/DDM
+
+The public C++ fresh-registry companion
+`public-process-restart-regional-interaction-tso-ddm` now passes against a
+new `EmbeddedFederationRegistry` and the durable filesystem save store. It
+creates three public ambassadors (one publisher and two regional recipients),
+saves a timestamped interaction at time 9 across the time-7 save boundary,
+tears down the source routes, recreates the federation and callback routes,
+and verifies both recipient-specific queue entries deliver the original
+`[2,4)` invocation snapshot and payload. The source report file remains
+present while the new joined-federate lifetime receives a distinct immutable
+report path.
+
+This slice also exposed and closed a real runtime rough edge: the regional
+route-free admission previously rejected a persisted publisher
+`Change Interaction Order Type(TIMESTAMP)` entry, and the restore materializer
+did not rehydrate that order override. The predicate and state-image restore
+now admit only the single publisher TIMESTAMP override for this narrow image
+and restore it before delivery. This was an Umbra implementation defect, not a
+Requirements Lab export change; no new RL observation number is consumed.
+The exact plan entry carries the same 15 pinned Lab requirement IDs, 12
+standard clause mappings, and 29 official C++ API surfaces as the private and
+public process-local regional companions.
+
+### 2026-08-28 local slice — public fresh-registry regional attribute-update TSO/DDM
+
+The public C++ companion
+`public-process-restart-regional-attribute-update-tso-ddm` now passes through
+the same filesystem save and fresh-registry boundary. It establishes a durable
+baseline object value, queues one timestamped regional `Update Attribute
+Values` passel for two overlap-qualified recipients, saves at logical time 7,
+mutates the live source region to a disjoint range, tears down the source
+ambassadors, and restores into a new registry with new public callback routes.
+Both recipients then receive exactly one reflection with the saved `[2,4)`
+source-region snapshot, original payload/tag, timestamped order, and valid
+retraction metadata. The source report file remains present and the fresh
+joined lifetime receives a distinct immutable report path.
+
+This slice exposed a local restore-admission edge rather than a Requirements
+Lab defect: an object ledger with a live regional update association was being
+classified as route-free only by the generic application-value predicate. The
+registry now admits this narrow image only when its persisted regional passel,
+source-region snapshot, and recipient passel agree; the association remains
+live through save and is removed during teardown. The pinned Requirements Lab
+export and requirement/API IDs did not change, so no new numbered RL
+observation is consumed.
+
+### 2026-08-28 local slice — public fresh-registry timestamped object deletion
+
+The public C++ companion
+`public-process-restart-object-deletion-tso` now passes through the filesystem
+save and fresh-registry boundary. It publishes the official
+`HLAprivilegeToDeleteObject` attribute, establishes an object-value ledger,
+queues one timestamped `Delete Object Instance` for two recipients, saves at
+logical time 7, tears down the source ambassadors, and restores into a new
+registry with new callback routes. Both recipients then receive exactly one
+`Remove Object Instance` callback at timestamp 9 with the original object
+identity, tag, producing federate, timestamped order, and valid retraction.
+The source report file remains present and the fresh joined lifetime receives
+a distinct immutable path.
+
+### 2026-08-28 local slice — public fresh-registry object-deletion retraction
+
+The public C++ companion
+`public-process-restart-object-deletion-retraction` is now green without a
+Requirements Lab rescan or a new numbered observation. It saves one
+timestamped `Delete Object Instance` with two recipient ledger entries,
+recreates the public routes in a fresh registry, flushes only receiver A's
+copy, and uses the saved `MessageRetractionHandle` through the fresh owner.
+Receiver A receives one valid `Request Retraction` after its historical
+`Remove Object Instance`; receiver B receives neither stale removal nor
+retraction. The object/name reconstitution and stable filesystem report-file
+identity are checked in the same bounded lane.
+
+This is a bounded public-facade use of the existing route-free object-deletion
+invocation contract; no new Requirements Lab extraction issue or numbering
+change was observed. The pinned Lab export and its requirement/API IDs are
+unchanged, so no new numbered RL observation is consumed.
+
+### 2026-08-28 local slice — public fresh-registry directed TSO fan-out
+
+The public C++ companion
+`public-process-restart-directed-interaction-tso-fanout` is green without a
+Requirements Lab rescan. It restores one timestamped directed interaction
+through a fresh registry with two explicit directed subscribers and one neutral
+joined member retained by delayed subscription evaluation. The saved publisher
+`TIMESTAMP` order, two concrete queue entries, three recipient states, and
+filesystem report-file identities remain stable; Flush Queue delivers only the
+eligible subscriber and a fresh producer `Retract` emits one recipient-local
+`Request Retraction` while the other subscriber and neutral route stay
+suppressed.
+
+The implementation uncovered a bounded restore-admission edge: the directed
+route-free predicate rejected neutral declarations and the directed publisher's
+saved order override. The runtime now admits those two states explicitly while
+keeping ordinary interaction declarations outside this predicate. This is an
+Umbra implementation correction, not a Requirements Lab defect or recurrence;
+the pinned 2025 export and all mapped IDs remain unchanged, so no new numbered
+RL observation is consumed.
+
+### 2026-08-28 local slice — public directed TSO parameter projection
+
+The public C++ companion
+`public-process-restart-directed-interaction-tso-parameter-projection` is green
+without a Requirements Lab rescan. It composes the dedicated 2025
+one-parameter directed-interaction fixture, saves a queued non-empty parameter
+payload at a timestamped boundary, restores the declaration and parameter
+projection through a fresh registry, and verifies HLAreliable plus sent/received
+`TIMESTAMP` metadata on the official callback surface. The configured sender
+report pathname remains stable across the source and fresh joined-federate
+lifetimes. The pinned Lab export and all mapped IDs are unchanged; no new
+numbered RL observation is consumed.
+
 ## Recording rules
+
+### Post-RL-157 recurrence rule
+
+The first 157 observations are historical records and remain immutable. If a
+previously recorded Lab or consumer issue is encountered again on a new
+workflow pass after it was believed fixed—or is found to remain unresolved
+when a fix was expected—record the go-back/reoccurrence under the next unused
+`RL-###` identifier rather than editing the earlier entry or treating the
+recurrence as a numbering change. The new identifier must remain strictly
+after RL-157, link to the earlier observation, state whether the Lab export
+changed, and describe the current reproduction and mitigation status.
+This applies even when the original issue was still unresolved: the fresh
+reproduction is useful evidence that the expected fix did not hold. RL-172 is
+the first explicit example of this rule: it links back to RL-156 because the
+FOM/DIF declaration-fence interpretation was reintroduced by a downstream
+guard even though the locked 2025 Lab revision and requirement IDs were
+unchanged.
+
+An unchanged, expected re-sync is not by itself a recurrence and does not
+consume an observation number; record that result in the relevant audit entry
+or dated audit section instead. Do not reuse an old ID for a new reproduction
+after a mitigation was expected to close the issue.
 
 When Umbra finds a new issue while exporting, checking, or using the Lab, add
 an entry here with:
@@ -5988,8 +8564,31 @@ an entry here with:
 4. a clearly marked refinement proposal, if any.
 
 The local `tools/requirements_lab.py check` also verifies that every `RL-###`
-heading is unique, so renumber an entry rather than reusing an existing
-observation identifier.
+heading is unique and that a post-RL-157 recurrence cites its earlier issue,
+so renumber an entry rather than reusing an existing observation identifier or
+folding a recurrence back into the historical record.
+
+The recurrence check evaluates each numbered observation only through the next
+level-3 heading. This keeps an unnumbered local-slice note from accidentally
+providing a citation for a different numbered entry. A recurrence marker must
+cite an earlier numbered observation that actually exists; a reference to a
+missing earlier `RL-###` is a ledger error. The narrower standalone command
+`tools/requirements_lab.py check-observations` is also registered as a CTest
+lane so this boundary is checked without requiring a corpus export.
+The marker vocabulary includes explicit regression language as well as plain
+statements that an old requirement, issue, defect, problem, or finding is
+“still unresolved,” “remains unresolved,” “not fixed,” or that its expected
+fix/mitigation did not hold. This catches a go-back even when a new entry does
+not use the word “recurrence.” The checker reports the next available local
+identifier (currently RL-180); use that identifier for the next genuine
+reproduction and cite the earlier observation rather than editing it.
+
+The checker also compares the normalized RL-001..RL-157 section blocks and
+their file order with
+`compliance/requirements-lab/observations-historical-baseline.json`. A
+historical edit or reorder therefore fails the local check instead of being
+mistaken for a new post-RL-157 issue; new recurrences must be appended under
+the next unused identifier.
 
 Use **verified** only for reproducible data/checker facts. Use **possible
 refinement** for a proposed Lab change. Do not relabel an observation as a
@@ -5998,3 +8597,1708 @@ standards or conformance failure without independent evidence.
 Entries stay in this log after Umbra has a local mitigation, so a future Lab
 revision can be compared against the original decision and the relevant
 Umbra contracts can be updated deliberately.
+
+### 2026-08-28 local slice — public regular ownership-acquisition restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a pending regular Attribute Ownership
+Acquisition with its owner-side release reservation, restores it through fresh
+official callback routes, and verifies the object/attribute set, acquisition
+tag, and distinct filesystem service-report lifetimes. This is development-
+profile evidence only; it does not promote Lab validation or conformance.
+
+### 2026-08-28 local slice — public If Available ownership-acquisition restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a pending If Available acquisition for an
+owner-held attribute, restores it through fresh official callback routes, and
+verifies the requester-side unavailable callback's object/attribute set,
+acquisition tag, and distinct filesystem service-report lifetimes. This is
+development-profile evidence only; it does not promote Lab validation or
+conformance.
+
+### 2026-08-28 local slice — public negotiated owner-confirmation restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a pending regular acquisition selected by
+negotiated Attribute Ownership Divestiture, restores it through fresh official
+callback routes, and verifies the owner-side Request Divestiture Confirmation
+callback's object/attribute set and acquisition tag, the negotiated ledger, and
+distinct filesystem service-report lifetimes. This is development-profile
+evidence only; it does not promote Lab validation or conformance.
+
+### 2026-08-28 local slice — public negotiated If Available owner-confirmation restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves an If Available acquisition selected by
+negotiated Attribute Ownership Divestiture, restores the owner-side confirmation
+callback through fresh official routes, suppresses the duplicate requester WTA
+callback, and preserves the negotiated ledger and distinct filesystem
+service-report lifetimes. This is development-profile evidence only; it does
+not promote Lab validation or conformance.
+
+### 2026-08-28 local slice — public delivered negotiated owner-confirmation restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now delivers the owner-side Request Divestiture
+Confirmation before the durable save, verifies the persisted
+`confirmationDelivered` marker, restores into a fresh registry without replaying
+the callback, and completes the retained transfer through Confirm Divestiture
+with one requester acquisition notification. It also verifies distinct,
+immutable filesystem service-report identities across the two joined-federate
+lifetimes. This is development-profile evidence only; it does not promote Lab
+validation or conformance. The next bounded slice is the private mixed
+delivered negotiated-confirmation case.
+
+### 2026-08-28 local slice — public delivered negotiated If Available confirmation restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now delivers the owner-side Request Divestiture
+Confirmation for an If Available acquisition while leaving the requester WTA
+route untouched for the save boundary, verifies the persisted
+`confirmationDelivered` marker, restores into a fresh registry without replaying
+either callback, and completes the retained transfer through Confirm Divestiture
+with one requester acquisition notification. It also verifies distinct,
+immutable filesystem service-report identities across the two joined-federate
+lifetimes. This is development-profile evidence only; it does not promote Lab
+validation or conformance. The next bounded slice is the private mixed delivered
+negotiated-confirmation case.
+
+### 2026-08-28 local slice — public mixed negotiated-ownership restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves regular and If Available acquisition
+requests together behind one negotiated Attribute Ownership Divestiture,
+restores both pending confirmation routes through a fresh registry, completes
+one grouped Confirm Divestiture transfer, and preserves both immutable
+filesystem service-report lifetimes. The case uses only attributes defined by
+the selected fixture FOM (`ReliableBaseA` and `ReliableBaseB`); the earlier
+draft names `Efficiency` and `Cheerfulness` were not present in that fixture
+and were corrected before evidence was accepted. This is development-profile
+evidence only; it does not promote Lab validation or conformance.
+
+### 2026-08-28 local slice — public mixed delivered negotiated-confirmation restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now delivers both owner-side Request Divestiture
+Confirmation callbacks before the durable save while leaving the requester
+If Available route pending, verifies both `confirmationDelivered` markers in
+the filesystem image, restores into a fresh registry without replaying either
+callback, and completes one grouped Confirm Divestiture transfer with a mixed
+acquisition notification. It also verifies distinct immutable filesystem
+service-report identities across joined-federate lifetimes. This is
+development-profile evidence only; it does not promote Lab validation or
+conformance. The next bounded slice is the private asymmetric mixed
+negotiated-confirmation case.
+
+### 2026-08-28 local slice — public asymmetric mixed negotiated-confirmation restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now preserves a delivered regular owner confirmation
+without replay, reconstructs exactly one pending If Available confirmation in a
+fresh registry, completes one grouped Confirm Divestiture transfer, and keeps
+the joined-federate filesystem report identities distinct and immutable. The
+case uses the official 2025 facade and remains development-profile evidence; it
+does not promote Lab validation or conformance. The next bounded slice was the
+private reverse asymmetric mixed negotiated-confirmation case, followed by its
+public companion below.
+
+### 2026-08-28 local slice — public reverse asymmetric mixed negotiated-confirmation restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now preserves a delivered If Available owner
+confirmation without replay, reconstructs exactly one pending regular
+confirmation in a fresh registry, completes one grouped Confirm Divestiture
+transfer, and keeps the joined-federate filesystem report identities distinct
+and immutable. The callback planner orders mixed confirmations by the shared
+acquisition sequence, so the reverse request order is deterministic. This is
+development-profile evidence only; it does not promote Lab validation or
+conformance. The malformed mixed-confirmation rejection, Divestiture-If-Wanted
+notification, Confirm Divestiture notification, and ownership-cancellation
+restore gates are now green. The next bounded validation is the attribute
+transportation-type-change restore boundary; query it with the indexed
+`process-restart-attribute-transportation-type-change` lane and its exact
+Catch2 test name.
+
+### 2026-08-28 local slice — public pending attribute transportation-type-change restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves one durable application value alongside a
+pending Attribute Transportation Type Change, restores the image into a fresh
+registry, rebinds exactly one owner confirmation callback, commits
+`HLAbestEffort` at that callback boundary, and proves that a subsequent update
+uses the restored effective type. It also verifies that source and fresh joined
+federates retain distinct immutable filesystem service-report identities. This
+is development-profile evidence only; it does not promote Lab validation or
+conformance. The next bounded validation is the private interaction
+transportation-type-change restore lane; query it with
+`process-restart-interaction-transportation-type-change` and its exact Catch2
+test name.
+
+### 2026-08-28 local slice — public pending interaction transportation-type-change restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now admits the bounded two-member publication and
+ordinary-subscription declaration image, restores one pending publisher
+transportation change into a fresh registry, rebinds exactly one confirmation
+callback, commits `HLAbestEffort` at that callback boundary, and proves a
+post-restore interaction delivery uses the effective type. It also verifies
+distinct immutable filesystem service-report identities. The admission change
+is intentionally narrow: regional, directed, multiple-pending, and
+committed-override-plus-pending combinations remain outside this lane. This is
+development-profile evidence only; it does not promote Lab validation or
+conformance. The next bounded validation is the private interaction declaration
+restore lane; query it with `process-restart-interaction-declaration` and its
+exact Catch2 test name.
+
+### 2026-08-30 local slice — timestamped Send Interaction service reports
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The accepted timestamped `SendInteraction` filesystem case now passes 153
+assertions and proves the production report is durable before the queued
+`Receive Interaction` callback; disable/re-enable cycles preserve the same
+joined-federate file identity. Its public-MOM companion passes 91 assertions
+under an immediate observer, decoding the type-27/type-40/type-63/type-31
+supplied forms and the type-34 Null return. The time-regulated companion passes
+115 assertions, decodes the type-33 `MessageRetractionHandle` return, and
+verifies the timestamped callback precedes its grant. These are source-backed
+2025 C++ development-profile slices; they do not promote Lab validation or
+conformance. The broad service-report label still contains retained
+source-missing catalog entries, which remain separate from these exact green
+selectors. The next bounded slice is the indexed time-regulated timestamped
+`Update Attribute Values` MOM report.
+
+### 2026-08-28 local slice — public mixed interaction declaration restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a two-member interaction publication and
+ordinary subscription declaration image, restores it into a fresh registry,
+and proves post-restore interaction delivery while preserving distinct
+immutable filesystem service-report identities. The declaration admission is
+kept separate from pending and committed transportation overrides. This is
+development-profile evidence only; it does not promote Lab validation or
+conformance. The next bounded validation is the committed interaction
+transportation-type override restore lane; query it with
+`process-restart-interaction-transportation-type-override` and its exact Catch2
+test name.
+
+### 2026-08-28 local slice — public committed interaction transportation-type override restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now commits a publisher-scoped `HLAbestEffort`
+interaction transportation override before saving, restores a two-member
+publication/subscription image into a fresh registry, proves the effective
+transport through the public query and post-restore delivery, and confirms
+that no already-delivered confirmation callback is replayed. Source and fresh
+joined federates retain distinct immutable filesystem service-report
+identities. This is development-profile evidence only; it does not promote
+Lab validation or conformance. The next bounded validation is the private
+mixed interaction override restore lane; query it with
+`process-restart-interaction-mixed-override` and its exact Catch2 test name.
+
+### 2026-08-28 local slice — public mixed interaction transportation-type override restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a publisher-scoped committed
+`HLAbestEffort` override alongside an independent subscriber declaration,
+restores both declaration ledgers into a fresh registry, proves the override
+through the public transportation query without replaying its confirmation,
+and proves the independent subscriber through a new post-restore publication
+and delivery. Source and fresh joined federates retain distinct immutable
+filesystem service-report identities. This is development-profile evidence
+only; it does not promote Lab validation or conformance. The next bounded
+validation is the directed interaction declaration restore lane; query it with
+`process-restart-directed-interaction-declaration` and its exact Catch2 test
+name.
+
+### 2026-08-28 local slice — public directed interaction target routing restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a target object with a published marker and
+a directed publication/universal subscription pair, restores the object and
+declaration ledgers into a fresh registry, and sends a receive-order directed
+interaction to the restored target. Only the subscribed recipient receives the
+callback, with the restored object/interaction handles, producer identity,
+transport, and receive-order metadata intact. Source and fresh joined
+federates retain distinct immutable filesystem service-report identities. This
+is development-profile evidence only; it does not promote Lab validation or
+conformance. By-ownership selectors, target departure, directed DDM,
+timestamped/retraction behavior, and distributed transport remain separate
+lanes. The next bounded validation is the indexed directed interaction
+ownership-handoff lane.
+
+### 2026-08-28 local slice — public directed interaction declaration restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves one directed publication and one universal
+directed subscription for the same object-class/interaction-class pair on
+separate joined federates, restores both declaration ledgers into a fresh
+registry, and proves they serialize back through a second public durable
+round-trip. Source and fresh joined federates retain distinct immutable
+filesystem service-report identities. This is development-profile evidence
+only; it does not promote Lab validation or conformance. Directed send/target
+routing, ownership selectors, directed DDM, ordering, timestamped/retraction
+behavior, and distributed transport remain separate lanes. The next bounded
+validation is directed interaction target routing; query it with
+`process-restart-directed-interaction-routing` and its exact Catch2 test name.
+
+### 2026-08-28 local slice — public directed interaction ownership-handoff restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a target object whose application marker and
+implicit `HLAprivilegeToDeleteObject` are owned by the initial by-ownership
+subscriber, restores one directed publisher and two by-ownership subscribers
+into a fresh registry, and proves the initial owner is selected before the
+handoff. It transfers the complete registered ownership set through regular
+Attribute Ownership Acquisition and Divestiture If Wanted, then proves the
+receive-order directed route follows the new owner after the callback boundary
+and survives the public fresh-registry restore. Source and fresh joined
+federates retain distinct immutable filesystem service-report identities.
+
+The fixture deliberately transfers the implicit delete privilege as well as
+the named marker: the public object class inherits that standard attribute, so
+leaving it with the old owner would correctly keep the old subscriber eligible
+for a by-ownership directed interaction. An initial source-handle capture
+omission in the companion was corrected before accepting the green evidence.
+This remains development-profile evidence only; it does not promote Lab
+validation or conformance. The next bounded validation is the private
+directed timestamped ownership-callback lane; query it with
+`process-restart-directed-interaction-tso-ownership-callback` and its exact
+Catch2 test name.
+
+### 2026-08-28 local slice — public directed timestamped ownership-callback restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves a timestamped directed interaction admitted
+for the initial by-ownership recipient, restores the declaration/object/TSO
+ledgers into a fresh registry, transfers the marker plus implicit
+`HLAprivilegeToDeleteObject`, and crosses the old recipient's Flush Queue
+callback boundary. The public switch-support fixture persists two candidate
+recipient routes and two queue entries; the current ownership check suppresses
+the stale application callback after handoff. The producer has reached the
+strict timestamped Retract boundary by then, so `Retract` correctly reports
+`MessageCanNoLongerBeRetracted` and no Request Retraction callback is emitted.
+This remains development-profile evidence only; it does not promote Lab
+validation or conformance. The next bounded validation is the private directed
+timestamped ownership-delivery/retraction lane; query it with
+`process-restart-directed-interaction-tso-ownership-delivery-retraction` and
+its exact Catch2 test name.
+
+### 2026-08-28 local slice — public directed timestamped ownership-delivery/retraction restore
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public C++ companion now saves one timestamped directed interaction for an
+eligible by-ownership recipient, restores the declaration/object/payload/
+retraction ledgers into a fresh registry, delivers it at Flush Queue with
+timestamp/order/retraction metadata intact, and proves a legal producer
+`Retract` emits exactly one `Request Retraction` for that recipient. Source and
+fresh joined federates retain distinct immutable filesystem report identities.
+This remains development-profile evidence only; it does not promote Lab
+validation or conformance. The next bounded validation is the directed TSO
+fan-out lane; query it with
+`process-restart-directed-interaction-tso-fanout-positive-negative` and its
+exact Catch2 test name.
+
+### 2026-08-28 local slice — default-region alternate-advance retraction
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The C++ suite now has a focused default-source regional object-update case
+that queues one timestamp-8 passel for `Time Advance Request Available` and
+`Next Message Request Available`, legally retracts it before either callback,
+and proves both grant callbacks complete without stale reflection or Request
+Retraction. The case uses ordinary registration (there is no public source
+`RegionHandle`) while preserving the private full-range default realization.
+This is development-profile evidence only; it does not promote Lab validation
+or conformance. The next bounded selection should be made from the indexed
+time/save/restore queue rather than by re-reading the Requirements Lab.
+
+### 2026-08-28 local slice — Catch2 callback-queue maintenance
+
+The mixed default-region FQR/TARA/NMRA test initially asserted TARA and NMRA
+reports after draining only the FQR ambassador. That was a test-harness
+omission, not an RTI or Requirements Lab discrepancy: each ambassador owns an
+independent callback queue. The test now drains all three recipients explicitly
+before asserting their grant-boundary callbacks. Keep this as a local
+maintenance note; it does not create a new Lab issue or requirement number.
+
+### 2026-08-30 local slice — timed regional restore red edge retained
+
+The older `Embedded timed federation restore restores a live timestamped
+regional interaction at the save boundary` case remains a known one-assertion
+red edge: 39 of 40 assertions pass, but the restored report does not yet mark
+`sentRegionsSupplied` as expected. The clean default-region counterpart is
+green and is the indexed 76-assertion baseline. This is a local Umbra behavior
+gap, not evidence of Requirements Lab content or numbering drift; it remains
+outside the completion ledger and must not block the next focused plain
+Send-Interaction service-report slice.
+
+### 2026-08-30 local slice — receive-order Send Interaction filesystem report
+
+The focused `send-interaction-service-report` filesystem case now passes 145
+assertions. It records the accepted non-timestamped `SendInteraction` service
+before the separately queued `Receive Interaction` callback, preserves the
+official type-27/type-40/type-63/type-34 argument forms, and proves that
+disabling and re-enabling the reporting switches does not replace or mutate
+the joined federate's report file. The case uses the pinned 2025 requirement
+and subsection mappings; no Lab artifact or numbering changed. The next
+bounded slice is the source-missing receive-order Send Interaction MOM-
+interaction companion.
+
+### 2026-08-30 local slice — receive-order Send Interaction MOM interaction
+
+The focused `receive-order-send-interaction-service-report-interaction`
+companion now passes 85 assertions. It routes one accepted, nonregional,
+non-timestamped `SendInteraction` through the public
+`HLAreportServiceInvocation` interaction to an `HLA_IMMEDIATE` observer,
+decodes the type-27/type-40/type-63/type-34 supplied forms and successful-void
+type-34 return, and verifies that the ordinary recipient remains queued until
+its `HLA_EVOKED` boundary with the original payload, tag, reliable transport,
+producer, and null region set. The receive-order requirements and API
+contracts now resolve this exact C++ selector; no Requirements Lab artifact or
+numbering changed. The broad service-report CTest label still contains older
+source-missing selectors, so its traceability failures remain separate local
+catalog drift rather than evidence against this green behavior case. The next
+bounded slice is the source-missing timestamped Send Interaction filesystem
+report.
+
+### 2026-08-30 local slice — timestamped Update Attribute Values MOM report
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed time-regulated timestamped `Update Attribute Values` MOM companion
+is now source-backed and green at 119 Catch2 assertions under
+`HLA_EVOKED`/`HLA_IMMEDIATE`. It decodes the accepted type-2 object-management
+service report with the official type-37/type-2/type-63/type-31 supplied forms,
+the quoted type-33 `MessageRetractionHandle` return, success/empty-exception/
+serial-zero fields, and verifies the constrained reflection callback's object,
+attribute, tag, reliable transport, timestamp/order, producer, and retraction
+metadata. The immediate MOM report is observed before the constrained callback;
+the callback then precedes its matching grant. This remains
+development-profile evidence only and does not promote Lab validation or
+conformance.
+
+The focused source-state check is intentionally still non-green only for
+retained historical/source-drift entries: the current ledger reports 40 such
+errors and 52 plan cases without a C++ source location. Those are catalog
+reconciliation items, not a reason to rescan the unchanged Lab. That immediate-
+only retraction slice is now complete; the following note records its evidence
+and the next mixed-fanout lane.
+
+### 2026-08-30 local slice — immediate-only timestamped Update Attribute Values retraction
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The focused `request-retraction-attribute-update` regression is now
+source-backed and green at 69 Catch2 assertions under `HLA_EVOKED`. One
+time-regulating publisher sends reliable and best-effort timestamped attribute
+passels to a non-time-constrained recipient; both reflections preserve the
+shared valid retraction designator, timestamp/order, payload, tag, producer,
+transport, and empty-region metadata. A single `Request Retraction` callback
+then carries that same designator, and a second producer retract is correctly
+terminalized. This remains development-profile evidence only; it does not
+promote Lab validation or conformance.
+
+The next bounded slice is the source-missing mixed-fanout timestamped
+`Update Attribute Values` retraction case. Query it by the exact lane
+`request-retraction-attribute-update-mixed-fanout` and its indexed test title;
+do not widen into regional or suppressed-callback variants.
+
+### 2026-08-30 local slice — mixed-fanout timestamped Update Attribute Values retraction
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The focused `request-retraction-attribute-update-mixed-fanout` regression is now
+source-backed and green at 75 Catch2 assertions under `HLA_EVOKED`. One
+time-regulating publisher sends a qualifying timestamped attribute passel to a
+non-time-constrained recipient and a time-constrained recipient. The immediate
+recipient receives one reflection with the shared valid retraction designator;
+the constrained recipient remains queued. A legal `Retract` produces exactly
+one recipient-local `Request Retraction` for the delivered copy and removes the
+constrained pending copy, which receives only its grant. This remains
+development-profile evidence only; it does not promote Lab validation or
+conformance.
+
+The next bounded slice is the source-missing suppressed timestamped interaction
+callback case. Query the exact lane
+`request-retraction-suppressed-interaction` and its indexed test title; keep
+this callback-boundary suppression case separate from regional suppression and
+the completed mixed-fanout retraction case.
+
+### 2026-08-30 local slice — suppressed timestamped interaction callback
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The focused `request-retraction-suppressed-interaction` regression is now
+source-backed and green at 31 Catch2 assertions under `HLA_EVOKED`. A
+non-time-constrained recipient queues a qualifying timestamped interaction;
+unsubscribing before callback dispatch terminalizes that recipient without a
+`Receive Interaction` callback. A later legal `Retract` consequently emits no
+`Request Retraction`, and a second retract is rejected as already terminal.
+This remains development-profile evidence only; it does not promote Lab
+validation or conformance.
+
+The next bounded slice is the source-missing mixed regional timestamped
+attribute update case. Query the exact lane
+`timestamped-regional-attribute-update-mixed-advance` and its indexed test
+title; keep it separate from the completed callback-boundary suppression and
+regional retraction cases.
+
+### 2026-08-30 local slice — suppressed timestamped attribute callback
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The focused `request-retraction-suppressed-attribute-update` regression is now
+source-backed and green at 33 Catch2 assertions under `HLA_EVOKED`. An
+immediate recipient queues a qualifying timestamped attribute update;
+unsubscribing before callback dispatch terminalizes that recipient without a
+`Reflect Attribute Values` callback. A later legal `Retract` consequently emits
+no `Request Retraction`, and a second retract is rejected as already terminal.
+This remains development-profile evidence only; it does not promote Lab
+validation or conformance.
+
+The source build also exposed malformed, pre-existing test splices in the dirty
+Catch2 translation unit: a transport-loss attribute case contained a displaced
+save/restore fragment, the cutoff-deletion case had a truncated callback body,
+and the regional resignation helper definition was absent before its callers.
+Those localized blocks were restored from the intact repository snapshot
+without changing Requirements Lab numbering or widening the current
+implementation slice. A follow-up source comparison also caught five timed
+regional resignation matrix cases dropped by that splice; those cases were
+restored before the final rebuild. Keep this as a source-hygiene note, not as a
+new Requirements Lab issue.
+
+### 2026-08-30 local slice — mixed regional timestamped attribute advances
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The explicit-source regional mixed-advance companion is source-backed and green
+at 131 Catch2 assertions under `HLA_EVOKED`. One overlap-qualified timestamped
+attribute passel reaches the FQR, TARA, and NMRA frontiers before their grants,
+preserving the source region and callback ordering metadata.
+
+### 2026-08-30 local slice — mixed regional timestamped attribute retraction
+
+The paired negative companion is source-backed and green at 88 Catch2
+assertions under `HLA_EVOKED`. A legal pre-callback `Retract` suppresses all
+three regional reflections and Request Retraction callbacks while the FQR,
+TARA, NMRA, and producer TAR grants still complete. These remain
+development-profile evidence only; they do not promote Lab validation or
+conformance.
+
+### 2026-08-30 local slice — ordinary regional timestamped attribute TAR/NMR
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The explicit-source regional TAR/NMR companion is now source-backed and green
+at 94 Catch2 assertions under `HLA_EVOKED`. One overlap-qualified timestamped
+attribute passel is delivered to both ordinary `Time Advance Request(7)` and
+`Next Message Request(10)` recipients at the inclusive timestamp-7 frontier;
+each `Reflect Attribute Values` callback precedes its corresponding grant and
+preserves the source RegionHandle, tag, timestamp, order, and valid retraction
+metadata. This remains development-profile evidence only; it does not promote
+Lab validation or conformance.
+
+### 2026-08-30 local slice — recipient-gated regional timestamped attribute fanout
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The mixed-fanout companion is now source-backed and green at 114 Catch2
+assertions under `HLA_EVOKED`. It delivers one timestamped regional update to
+an immediate recipient and queues the overlap-qualified constrained copy, then
+proves the immediate reflection and Request Retraction remain recipient-local
+while the constrained recipient receives its later reflection before its grant.
+The callback metadata retains the invocation-time source-region set. This
+remains development-profile evidence only; it does not promote Lab validation
+or conformance.
+
+### 2026-08-30 local slice — timestamped attribute available advances
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The focused nonregional timestamped Update Attribute Values available-advance
+companion is now source-backed and green at 57 Catch2 assertions under
+`HLA_EVOKED`. It exercises TARA at the GALT boundary and NMRA at the
+next-message boundary, proving reflection-before-grant ordering and preserving
+source, time, order, retraction, and tag metadata for both callbacks. This
+remains development-profile evidence only; it does not promote Lab validation
+or conformance.
+
+### 2026-08-30 local slice — timestamped attribute Flush Queue passels
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The focused nonregional timestamped Update Attribute Values Flush Queue
+companion is now source-backed and green at 63 Catch2 assertions under
+`HLA_EVOKED`. It proves two queued passels are delivered before Flush Queue
+Grant, computes actual grant 5 from the current GALT, retains optimistic floor
+7, and admits a later grant at 7 after the regulator advances. This remains
+development-profile evidence only; it does not promote Lab validation or
+conformance.
+
+### 2026-08-30 local slice — Flush Queue future input
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed `flush-queue-future-input` companion is now source-backed and green
+at 48 Catch2 assertions under `HLA_EVOKED`. It accepts Flush Queue Request
+before the producer submits two timestamped interactions, then proves both
+future-input callbacks precede Flush Queue Grant, computes actual grant 5 from
+the current GALT, retains optimistic floor 9, and preserves interaction
+payload, tag, order, producer, and retraction metadata. This remains
+development-profile evidence only; it does not promote Lab validation or
+conformance.
+
+### 2026-08-30 local slice — terminal timestamped-deletion tombstone
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed `timestamped-deletion-tombstone` case is now source-backed and green
+at 24 Catch2 assertions under `HLA_EVOKED`. It drives a timestamped deletion to
+the strict Retract eligibility boundary, verifies the designator is classified
+as `MessageCanNoLongerBeRetracted`, and confirms that terminal deletion releases
+the retained object/name state so the same reserved name can be registered
+again. This remains development-profile evidence only; it does not promote Lab
+validation or conformance.
+
+### 2026-08-30 local slice — timestamped Delete Object Instance TAR/NMR
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed `timestamped-delete-object-instance-tar-nmr` case is now
+source-backed and green at 75 Catch2 assertions under `HLA_EVOKED`. It queues a
+time-7 timestamped removal, drives one constrained recipient through TAR(7) and
+another through NMR(10), proves each removal precedes its own grant, preserves
+the official object/tag/producer/time/order/retraction metadata, and completes
+the producer's TAR(2). This remains development-profile evidence only; it does
+not promote Lab validation or conformance.
+
+### 2026-08-30 local slice — public durable-save regional provider response
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed public durable-save regional provider-response/retraction case is
+now source-backed and green at 100 Catch2 assertions under both
+`HLA_EVOKED`/`HLA_IMMEDIATE`. It saves a timestamped regional Request Attribute
+Value Update response before constrained delivery, restores it into a fresh
+registry, and verifies the response value/tag/source-region/order/time and
+retraction identity at the matching grant. This remains development-profile
+evidence only; it does not promote Lab validation or conformance.
+
+All 773 indexed Catch2 plan entries now have explicit status; retained
+historical/source-drift rows may still lack derived source locations. The next
+bounded work is transport/conformance evidence, beginning with the indexed connection-
+loss baseline. Query `python tools/query_rti_work.py next --summary --compact`
+and keep multi-process, package/JUnit, protected-review, interoperability, and
+conformance gates separate from the development-profile behavior ledger.
+
+The indexed `[transport]` baseline was then executed directly: 32 focused Catch2
+cases and 1,375 assertions passed. This validates the current embedded transport
+behavior only; it is not multi-process interoperability or protected-review
+conformance evidence.
+
+### 2026-08-30 queryability guard — lane-scoped mapping check
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The whole-plan mapping check still reports retained historical/source-drift
+rows, so it is intentionally a reconciliation gate rather than the iteration
+gate. `query_rti_work.py check --lane <exact-tag> --compact` now validates the
+roadmap structure, 2025 requirement references, standard subsection handles,
+and the selected lane's test/source and completion-ledger records without
+blocking on unrelated unlocated history. It lists any unlocated rows in that
+lane as visible source drift; the unscoped `check` remains strict. This keeps
+the active transport/conformance slice queryable without another broad Lab
+search.
+
+### 2026-08-30 local slice — transport late-cutoff directed interaction
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed connection-lost-tso-cutoff directed-interaction companion is now
+source-backed and green at 72 Catch2 assertions under HLA_EVOKED. It proves
+that a late cutoff timestamped directed interaction reaches the constrained
+survivor before its time-6 grant, retains the official directed callback
+metadata and retraction identity, and leaves automatic DELETE_OBJECTS cleanup
+to release at the later receive-order boundary. This remains
+development-profile evidence only; it does not claim directed DDM, remote
+transport, package/JUnit, protected-review, interoperability, or conformance.
+
+### 2026-08-30 architecture slice — process transport handshake and data path
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The private process transport now opens an independently bound loopback listener,
+performs the versioned hello/hello-ack identity exchange, and sends and receives
+bounded data frames over the resulting socket connection. Its focused Catch2
+case is source-backed and green at 12 assertions under the
+`unit`/`foundation`/`transport`/`process-boundary` lane. This proves only the
+transport endpoint and framing seam; federation service dispatch, remote
+membership, installable-package behavior, JUnit/protected-review evidence,
+interoperability, Lab validation, and conformance remain open.
+
+### 2026-08-30 architecture slice — process-boundary framing
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The private transport protocol now has a versioned 12-byte envelope, bounded
+payload length, explicit hello/hello-ack identity frames, and deterministic
+malformed-frame rejection. Its Catch2 case is source-backed and green at 21
+assertions under the foundation/transport lane. This is protocol-foundation
+evidence only; it does not claim remote federation membership, service RPC,
+package/JUnit, protected review, interoperability, or conformance.
+
+### 2026-08-30 architecture slice — private transport contract
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The runtime now stores the private TransportConnection contract rather than the
+concrete embedded endpoint; the embedded implementation remains the only
+development-profile backend. This is an internal substitution seam for the
+future process-boundary implementation and does not change the public IEEE
+binding or promote embedded results to conformance.
+
+The focused [transport] lane was rerun after these three restorations: 35
+cases and 1,594 assertions passed. This is still embedded development-profile
+evidence; the separate multi-process, package/JUnit, protected-review, and
+interoperability gates remain open.
+
+### 2026-08-30 local slice — suppressed cutoff directed interaction
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The adjacent indexed connection-loss directed-interaction suppression case is
+now source-backed and green at 46 Catch2 assertions under HLA_EVOKED. It
+withdraws the directed subscription at the callback boundary, proves the
+timestamped payload is suppressed without a false delivery, preserves the
+time-6 grant, and releases automatic DELETE_OBJECTS cleanup at the later
+receive-order gate. This remains development-profile evidence only; it does
+not claim directed DDM, remote transport, package/JUnit, protected-review,
+interoperability, or conformance.
+
+### 2026-08-30 queryability guard — source-pointer refresh
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+Adding source-backed TEST_CASE blocks shifts later physical line numbers, so
+completion-ledger source locations must be refreshed from the exact test title
+after a localized insertion. The refresh found no semantic mapping changes;
+the three ledger rows whose titles are still absent remain historical/source
+drift and are visible through the strict global check.
+
+### 2026-08-30 local slice — multi-recipient cutoff attribute update
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed multi-recipient connection-loss attribute-update case is now
+source-backed and green at 101 Catch2 assertions under HLA_EVOKED. It proves
+each survivor independently receives the accepted cutoff timestamped
+reflection before its own grant, preserves the official value/tag/producer/
+order/retraction metadata, and releases each automatic DELETE_OBJECTS
+reservation only when that survivor reaches its receive-order boundary. This
+remains development-profile evidence only; it does not claim remote
+transport, package/JUnit, protected-review, interoperability, or conformance.
+
+### 2026-08-30 architecture slice — private service dispatch
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The process-boundary seam now includes a versioned private service envelope and
+a synchronous request/response dispatcher. A focused Catch2 case exchanges
+Create Federation Execution, Join Federation Execution, and Send Interaction
+operation identities over the real socket endpoint and verifies correlation,
+status, and opaque payload preservation in 22 assertions. This is still private
+foundation evidence: the operation payloads are not yet bound to
+`EmbeddedFederationRegistry`, and no public service semantics, installable
+package, JUnit/protected review, interoperability, Lab validation, or
+conformance claim is made.
+
+### 2026-08-30 architecture slice — registry-bound process service
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The private process service now binds its Create Federation Execution and Join
+Federation Execution operations to a supplied, already validated federation
+definition and binds receive-order Send/Receive Interaction to the
+`EmbeddedFederationRegistry` publication/subscription planner. Two real socket
+sessions exchange joined identities and an opaque interaction payload; the
+focused Catch2 case is source-backed and green at 22 assertions. The receiver
+queue is an internal transport projection of the registry callback route, not
+the final public `FederateAmbassador` callback bridge. Independently launched
+process evidence, installable-package behavior, JUnit/protected review,
+interoperability, Lab validation, and conformance remain open.
+
+### 2026-08-30 architecture slice — independently launched registry-bound service
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The indexed process-boundary case now launches separate server, sender, and
+receiver executables and verifies Create Federation Execution, Join Federation
+Execution, and receive-order Send/Receive Interaction over the registry-bound
+framed service. The source-backed Catch2 coordinator is green at 8 assertions,
+and the focused `[transport]` lane is green at 40 cases / 1,679 assertions.
+This is still private foundation evidence: the helper uses an internal polling
+projection rather than the official `FederateAmbassador` callback bridge, and
+does not claim installable-package behavior, JUnit/protected-review evidence,
+interoperability, Lab validation, or conformance. The next bounded slice is the
+callback bridge and reproducible installable-profile evidence; the Requirements
+Lab remains unchanged.
+
+### 2026-08-30 architecture slice — process callback bridge
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The independently launched process probe now enables the private pushed-event
+service mode: the sender's receive-order interaction is encoded as an event
+frame for the receiver instead of requiring a second polling request. The
+receiver decodes that event and delivers it through
+`ProcessFederationCallbackBridge` into the official IEEE 1516.1-2025 C++
+`FederateAmbassador::receiveInteraction` surface, retaining the shared
+immediate/evoked `CallbackDispatcher` and `CallbackSession` lifetime seam.
+The `[process-boundary]` Catch2 coordinator remains green at 5 cases / 85
+assertions, and the exact independent-process case remains green at 8
+coordinator assertions. This is still private foundation evidence: the event
+codec carries an opaque payload as the official user-supplied tag and empty
+per-parameter values, and the process helper is not yet the installable public
+RTI endpoint. The next bounded slice is public endpoint binding plus
+reproducible CTest/JUnit/configuration artifacts; the Requirements Lab remains
+unchanged.
+
+### 2026-08-30 architecture slice — private process client seam
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The independently launched probe now routes its sender and receiver through
+`ProcessFederationClient`, which owns request identities, response validation,
+unsolicited pushed-event buffering, and the handoff into the official callback
+bridge. This removes probe-specific request plumbing without promoting the
+private service payloads to a public API. The process-boundary lane remains
+green at 5 cases / 85 assertions and the independent case at 8 assertions;
+the public/installable endpoint, complete parameter-value encoding, generated
+JUnit/configuration artifacts, interoperability, and conformance remain open.
+
+### 2026-08-30 architecture slice — public process endpoint lifecycle
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The official `RtiConfiguration::rtiAddress` now accepts the narrow
+`tcp://host:port` process form and reports `addressUsed` after a real socket
+handshake. The public C++ `RTIambassador` route covers Connect, Create
+Federation Execution, Join Federation Execution, NoAction Resign, and clean
+Disconnect through the private `ProcessFederationClient`; malformed endpoint
+syntax is rejected before any socket attempt. Three source-backed Catch2
+cases add 17 assertions, bringing the focused `[process-boundary]` lane to
+8 cases / 102 assertions and `[transport]` to 43 cases / 1,696 assertions.
+The server still supplies a prevalidated definition and the process wire
+payloads remain private; message-service parity, installable packaging,
+JUnit/protected review, interoperability, Lab validation, and conformance are
+still open. The Requirements Lab remains unchanged.
+
+### 2026-08-30 architecture slice — public process Send Interaction
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public `RTIambassador::sendInteraction` route now crosses the configured
+`tcp://host:port` endpoint through the private `ProcessFederationClient`. A
+versioned private envelope preserves one official parameter handle/value pair
+and the user-supplied tag for a second process participant; the receiver
+projects that payload through the official C++ interaction callback shape. The
+focused Catch2 case is source-backed and green at 14 assertions, bringing the
+`[process-boundary]` lane to 9 cases / 116 assertions and `[transport]` to 44
+cases / 1,710 assertions. This remains private foundation evidence: public
+handle lookup, declaration, receive/evoke, timestamped/region/directed
+variants, installable packaging, JUnit/protected review, interoperability, Lab
+validation, and conformance remain open.
+
+### 2026-08-30 queryability guard — bounded active-slice pointers
+
+The roadmap index, Catch2 plan, and derived C++ source locations now expose the
+public process message slice through one exact plan ID, test title, lane tag,
+three 2025 requirement IDs, and two canonical 2025 subsection handles. The
+`work`, `test`, `lane`, `requirement`, `section`, `recent`, and lane-scoped
+`check` commands are the supported lookup path; they avoid a repository-wide or
+Requirements-Lab resynchronization. Counts in the short roadmap references are
+refreshed from the focused executable (44 transport cases / 1,710 assertions;
+9 process-boundary cases / 116 assertions).
+This paragraph is a historical snapshot; current live counts are maintained in
+`docs/planning/ROADMAP-INDEX.json` and the query-guide tail entries below.
+
+### 2026-08-30 architecture slice — public process handle lookup
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public `RTIambassador::getInteractionClassHandle` and
+`RTIambassador::getParameterHandle` routes now cross the configured
+`tcp://host:port` endpoint through the private `ProcessFederationClient` and
+resolve against the server-owned composed FOM. The parameter request carries
+the official interaction-class handle, so this slice does not invent a public
+reverse-lookup API. The focused Catch2 case is source-backed and green at 8
+assertions, bringing the `[process-boundary]` lane to 10 cases / 124 assertions
+and `[transport]` to 45 cases / 1,718 assertions. Its plan row maps the exact
+2025 support-service requirements for Get Interaction Class Handle
+(§10.13.2) and Get Parameter Handle (§10.16.1). Reverse lookup,
+declaration, receive/evoke, timestamped/region/directed variants, installable
+packaging, JUnit/protected review, interoperability, Lab validation, and
+conformance remain open. The Requirements Lab remains unchanged.
+
+### 2026-08-30 architecture slice — public process interaction declaration
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public `RTIambassador` Publish, active/passive Subscribe, Unsubscribe, and
+Unpublish interaction-class routes now cross the configured `tcp://host:port`
+endpoint through the private `ProcessFederationClient` and mutate the
+server-owned declaration registry. The focused Catch2 case is source-backed
+and green at 12 assertions, bringing the `[process-boundary]` lane to 11 cases
+/ 136 assertions and `[transport]` to 46 cases / 1,730 assertions. Its plan
+row maps the exact 2025 declaration-management requirements for Publish,
+Unpublish, Subscribe, and Unsubscribe (§5.4, §5.5, §5.10, and §5.11).
+Advisories/callbacks, receive/evoke, timestamped/region/directed variants,
+installable packaging, JUnit/protected review, interoperability, Lab
+validation, and conformance remain open. The Requirements Lab remains
+unchanged.
+
+### 2026-08-30 architecture slice — public process Receive/Evoke baseline
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public process callback bridge now carries two receive-order interactions
+from the configured endpoint into the official C++
+`FederateAmbassador::receiveInteraction` surface: one through `Evoke Callback`
+and one through `Evoke Multiple Callbacks`. The source-backed case is green at
+32 assertions; after the timestamped companion was added, the focused
+`[process-boundary]` lane is 13 cases / 196 assertions. EVOKED callback
+enable/disable gating is covered by the same process case; immediate and
+approximate-wait behavior plus the installable/reproducible evidence gate
+remain open. The Requirements Lab remains unchanged.
+
+### 2026-08-30 architecture slice — public process timestamped Receive/Evoke
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public timestamped `RTIambassador::sendInteraction` overload now carries
+the caller's official logical-time implementation name and encoded
+`LogicalTime` through the private process envelope. The server validates the
+implementation against the federation definition, and the callback bridge
+delivers the official timestamped `FederateAmbassador::receiveInteraction`
+overload through `Evoke Callback`. The exact mapped Catch2 case is green at 28
+assertions (source `cpp/tests/ieee1516_2025_connection_catch2.cpp:1163`) and
+maps 11 Lab requirement IDs to five canonical 2025 sections. The focused
+process-boundary lane is 13 cases / 196 assertions with no source drift; the
+broader transport query reports 53 plan entries (49 mapped, 48 source-located,
+and five historical source-drift rows). This is still private foundation
+evidence: no time regulation, queueing, time advances, or retraction service is
+invented at the process boundary; packaging, JUnit/protected review,
+interoperability, Lab validation, and conformance remain open. The Requirements
+Lab remains unchanged.
+
+### 2026-08-30 queryability maintenance — source-pointer drift caught locally
+
+Adding the timestamped process case shifted five earlier `TEST_CASE` line
+numbers. The lane-scoped mapping check caught the stale pointers before they
+could become silent navigation errors; the completion ledger now points to the
+derived declarations at lines 207, 312, 548, 675, 834, and 1163. This is a
+local index-maintenance issue, not a Requirements Lab recurrence, so it does
+not consume a new `RL-###` identifier. Future changes should run
+`python tools/query_rti_work.py check --lane process-boundary --summary
+--compact` immediately after inserting or moving a C++ test.
+
+### 2026-08-30 architecture slice — public process Evoke Multiple and callback gating
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The public process receive path now drains all currently available polling
+events before `Evoke Multiple Callbacks` enters the shared callback dispatcher.
+The mapped C++ case keeps the first receive-order callback on `Evoke Callback`,
+disables EVOKED callbacks before the second send, verifies that
+`Evoke Multiple Callbacks` reports pending work without invoking user code,
+then re-enables callbacks and drains the retained callback. It is green at 32
+assertions and maps the existing process interaction requirements plus the
+2025 callback clauses `10.58` and `10.60.6`; it remains private foundation
+evidence rather than conformance evidence. The focused process lane is now 13
+cases / 196 assertions. The next bounded work is the installable process
+profile and reproducible CTest/Catch2/JUnit/configuration gate. The Requirements
+Lab remains unchanged.
+
+### 2026-08-30 installable-profile gate — package smoke made self-contained
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The installable package smoke now builds every exported static runtime target
+before staging, so it no longer depends on a prior full-build target order. The
+install rules include the public `umbra/embedded_profile_configuration.hpp`
+helper and a generated `share/umbra_rti/umbra_rti-profile.json` manifest. The
+smoke validates the manifest's IEEE 1516.1-2025 provider/profile, filesystem
+service-report model, process-address contract, and the reviewed 1516.2
+resource digests before compiling a clean `find_package(umbra_rti)` consumer.
+The installed consumer also checks the official `RtiConfiguration` address and
+typed filesystem-directory construction without exposing a backend choice.
+`umbra_test_installable_package` and the `installable-package` CTest label now
+provide the bounded entry point; the installable smoke passes in the
+`windows-fom-services` profile. The focused
+`umbra_process_boundary_junit` target now emits the same 13-case process lane
+as a bounded JUnit artifact under the configured compliance directory. This is
+package/evidence plumbing only: the public
+two-process interoperability run, protected review, Lab validation, and
+conformance promotion remain open. The Requirements Lab remains unchanged.
+
+### 2026-08-30 installable-profile gate — public two-client process smoke
+
+The embedded-profile package smoke now launches the source-tree process
+fixture only as a private server and exercises the installed package from a
+clean downstream executable. Two independent official C++ RTIambassadors use
+`RtiConfiguration::rtiAddress` to Connect/Create/Join, resolve the server-owned
+Restaurant interaction class, Send a receive-order interaction, drain the
+receiver through `Evoke Multiple Callbacks`, and complete NoAction Resign.
+The `package-process` CTest label is separate from the 13-case
+`process-boundary` Catch2 lane, and the probe is never installed or presented
+as a public backend. The focused package target is green; timestamped public
+interoperability now has its own `package-process-timestamped` CTest case, while
+connection-loss recovery, protected review, and conformance promotion remain
+open. No Requirements Lab resynchronization or new numbered observation was
+needed.
+
+### 2026-08-30 installable-profile gate — timestamped public two-client smoke
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The installed public package consumer now runs a separate timestamped mode
+against the same private server fixture. It constructs an official
+`HLAinteger64Time`, sends through the public timestamped `Send Interaction`
+overload, and verifies the receiver's timestamped `FederateAmbassador` callback
+preserves the implementation name and encoded time, uses RECEIVE order, and
+does not fabricate a retraction handle. The ordinary and timestamped process
+tests remain separately queryable by CTest name and label; the result is still
+foundation evidence until connection-loss recovery and protected review are
+complete.
+
+### 2026-08-30 installable-profile gate — connection-loss recovery and bounded handles
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The installed public process consumer now has a third explicit mode,
+`umbra_rti_package_process_connection_loss_consumer`, under the
+`package-process-connection-loss` label. A private server fixture closes the
+receiver transport and removes its remote membership; the installed receiver
+observes the transport failure through `EvokeMultipleCallbacks`, receives the
+official `connectionLost` callback with a non-empty fault description, and the
+surviving sender continues with handle lookup and Send Interaction. The
+receiver is not resigned a second time after the loss, so the test exercises
+the actual lifecycle transition rather than hiding it behind cleanup.
+
+The query index now exposes the exact loss test, CTest label, target, and its
+baseline Catch2 mapping. The baseline maps five existing Lab requirements to
+`hla-1516.1-2025:clause-4.1.1`, `clause-4.4`, `clause-4`, `clause-10.44`, and
+`clause-10.45.3`. The package target, the loss-only CTest case, and the
+ordinary/timestamped/loss label set all pass; this remains installable-profile
+foundation evidence, not protected review, Lab validation, or conformance.
+
+### 2026-08-30 installable-profile gate — parameterized interaction envelope
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The installed public process consumer now has a separate
+`umbra_rti_package_process_parameterized_consumer` mode under the
+`package-process-parameterized` label. It resolves the Restaurant FOM's
+`HLAobjectRoot.Customer` class and `TimelinessOk` parameter through the public
+process endpoint, sends a non-empty value and user tag, and verifies the
+receiver callback preserves the official object/parameter handles, value
+bytes, interaction handle, producer handle, and tag. The private probe only
+supplies the process service; the client side uses the installed 2025 C++
+headers and runtime. This is a focused extension of the existing mapped
+process interaction envelope, not a Requirements-Lab recurrence or a new
+requirement number. The corresponding Catch2 support-lookup mapping now
+includes the 2025 object-class lookup requirement at clause 10.4.6. The
+parameterized package lane passes alongside the ordinary, timestamped, and
+connection-loss lanes and remains installable-profile foundation evidence
+pending protected review and conformance promotion.
+
+### 2026-08-30 queryability maintenance — service-lane catalog audit
+
+The executable CTest service-lane audit initially found ten labels that had
+Requirements-Lab/API traceability checks but no tagged Catch2 behavior case:
+object-instance provider response, two Connection Lost selector-mutation
+labels, delete failure, ordinary and timestamped regional interaction report/
+failure labels, and timestamped delete report/failure labels. These were lane
+registration mismatches, not Requirements-Lab changes or new requirement
+recurrences. They are now retained as narrow traceability-only CTest lanes and
+are excluded from the complete-service-lane catalog until each has a real
+behavior case. The audit passes for every remaining advertised service lane;
+future behavior additions should switch the corresponding registration back to
+`umbra_add_ctest_service_lane` only when a tagged Catch2 case exists.
+
+### 2026-08-30 queryability maintenance — process object-registration slice
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The process-boundary catalog now includes the exact C++ case
+`RTIambassador publishes object-class attributes and registers an object through
+a configured process endpoint`, mapped to the four 2025 requirement IDs and
+the canonical `clause-5.1.2`, `clause-5.2`, and `clause-6.8.4` subsection keys.
+The installed package has a matching
+`umbra_rti_package_process_object_registration_consumer` test under the
+`package-process-object-registration` label. It uses the official public
+object/attribute lookup, publication, and unnamed registration calls and
+resigns with `DELETE_OBJECTS` while a second federate is still joined.
+
+The initial package draft used `NO_ACTION`; the registry correctly rejected
+that action because the sender still owned the registered object's published
+attributes, and the smoke cleanup then waited on a second unserved request.
+This was a fixture/lifecycle sequencing defect, not a Requirements Lab issue;
+the explicit delete-on-resign action and bounded package lane now pass. Keep
+the rejection semantics visible when adding future multi-federate object
+registration tests rather than weakening cleanup or silently retrying a failed
+request.
+
+### 2026-08-31 queryability/protected-slice maintenance — ordinary attribute update package lane
+
+No Requirements Lab resynchronization or new numbered requirement was needed.
+The installed-profile process package now has a separate
+`umbra_rti_package_process_attribute_update_consumer` test under the
+`package-process-attribute-update` label. It uses only the installed 2025 C++
+`RTIambassador::subscribeObjectClassAttributes`,
+`RTIambassador::updateAttributeValues`, and official
+`FederateAmbassador::reflectAttributeValues` callback surfaces; the private
+source-tree fixture now supplies only the receiver's discovery state until
+that callback event receives its own process protocol projection. The callback preserves the object handle, one attribute value,
+user tag, producer identity, and a valid transportation handle.
+
+The eight installed-profile process labels (ordinary, timestamped,
+parameterized-envelope, connection-loss, object-registration, named-registration,
+ordinary attribute-update/Reflect, and directed-retraction) pass as a bounded
+CTest set. The exact test/label
+handles are recorded in `ROADMAP-INDEX.json` and emitted by
+`python tools/query_rti_work.py next --summary --compact`; this is package
+foundation evidence only, not Lab validation or conformance promotion. A
+single-callback Evoke is used for this fixture because the server intentionally
+advances to the resign phase after one receive poll; no runtime behavior is
+weakened and no Requirements Lab numbering changed.
+
+### 2026-08-31 queryability/protected-slice maintenance — package lane catalog guard
+
+No Requirements Lab resynchronization or new numbered requirement was needed.
+The clean downstream package consumer now runs
+`tools/verify_process_package_lanes.py` after configuration and before the
+process smokes. The guard reads the generated CTest JSON catalog and compares
+the eight indexed `next_process_package_*` test/label pairs in
+`ROADMAP-INDEX.json`; missing, renamed, duplicated, or unindexed package lanes
+fail the installable-package gate before execution. This is a local
+traceability/protection improvement, not a change to the Lab numbering or a
+conformance claim.
+
+### 2026-08-31 process declaration slice — ordinary object-class subscription
+
+The process service now carries ordinary `Subscribe Object Class Attributes`
+declaration state through a dedicated private operation, including normalized
+attribute handles and the FDD update-rate designator. The installed
+attribute-update consumer invokes the official public subscription API before
+the private fixture establishes discovery, so declaration transport and
+callback discovery remain separately visible. The process-boundary Catch2
+case retains the 2025 §5.8 requirement references alongside the existing
+§6.10/§6.11.1 update/reflection references. No Requirements Lab resync or new
+Lab numbering was needed for this implementation slice.
+
+### 2026-09-01 queryability maintenance — directed-retraction package lane
+
+No Requirements Lab resynchronization or new numbered requirement was needed.
+The installed-profile package now has a dedicated
+`umbra_rti_package_process_directed_retraction_consumer` test under
+`package-process-directed-retraction`. It exercises the public installed C++
+surface for a nested directed object/interaction pair, timestamped send,
+valid retraction handle, and the official directed callback. It proves both
+directions of the retraction boundary: a first message crosses Evoke before
+`Retract` and produces exactly one matching `requestRetraction` callback, while
+a second message is retracted before Evoke and produces neither a directed
+callback nor a second retraction callback. The private process probe supplies
+only the fixture and protocol endpoint; it is not presented as a second public
+API.
+
+The exact package test and label are indexed beside the process-boundary
+baseline and are checked by `tools/verify_process_package_lanes.py`. The full
+`installable-package` gate passed with all eight package lanes, so this slice
+is independently runnable evidence rather than a prose-only roadmap item.
+
+### 2026-09-01 queryability maintenance — source-pointer reconciliation
+
+The strict unscoped query check exposed stale line numbers in the append-only
+`recent_completed_slices` ledger after the large federation-management Catch2
+translation unit moved. Forty-one source locations were mechanically
+reconciled to the current `TEST_CASE` declarations from the existing plan;
+this did not rescan or modify the Requirements Lab. The remaining global
+diagnostic is limited to the known source-unlocated historical rows and their
+corresponding recent-ledger entries. Lane-scoped checks remain the iteration
+gate and now report zero pointer drift for the active process-boundary lane.
+
+### 2026-09-01 queryability maintenance — public Request Retraction callback
+
+No Requirements Lab resynchronization or new numbered requirement was needed.
+The existing `m16.transition.process-directed-interaction-callback` mapping now
+indexes the public directed-interaction case's official
+`FederateAmbassador::requestRetraction` surface, the
+`federate.callback.request-retraction` lane tag, and the
+`timestamped-retraction-after-receive` delivery mode. The focused case records
+387 Catch2 assertions at its exact `TEST_CASE` source line and covers both
+HLA_EVOKED and HLA_IMMEDIATE: Retract-before-receive suppresses the pending
+delivery, while Retract-after-receive produces exactly one legal callback with
+the original handle. This is private process-foundation evidence; it does not
+promote the process profile to time-management conformance or replace the
+installable-package negative-retraction consumer.
+
+### 2026-09-01 queryability maintenance — push-mode fixture ordering edge
+
+The first installable-package projection exposed a fixture-ordering hazard,
+not a Requirements Lab defect: subscribing to object attributes queues the
+target-discovery callback before directed traffic. In push receive-order mode,
+an early receiver `Evoke` can therefore consume discovery rather than the
+directed interaction/retraction event. The package lane now explicitly drains
+and validates discovery before sending the directed pair, and the private
+probe places receiver polls only at the public receive fences. This keeps the
+positive post-delivery and negative pre-delivery assertions deterministic,
+without adding a duplicate requirement number or triggering a Lab
+resynchronization.
+
+### 2026-09-01 queryability maintenance — Annex C.2 plan reconciliation
+
+An existing private FOM-composition Catch2 case was present in the source and
+in the Lab contract, but was absent from the checked-in Catch2 plan. The case
+`The FOM composition preflight permits equivalent duplicates and rejects a real
+class conflict` is now indexed as
+`umbra-cpp-fom-annex-c-class-conflict-composition`, with its exact source line,
+Lab requirement `requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l46-6`,
+and canonical `hla-1516.2-2025:clause-C.2` mapping. This was an append-only
+traceability repair; no runtime behavior changed, no Lab number was added, and
+the focused `annex-c` check is green.
+
+### 2026-09-01 queryability maintenance — bounded roadmap/test selection
+
+Repeated full-catalog searches were a local workflow failure: the roadmap's
+overlapping tags made it too easy to re-open the entire Catch2 plan instead of
+selecting one implementation lane. This is not a Requirements Lab numbering or
+corpus defect, so no Lab resynchronization was performed. The read-only
+`tools/query_rti_work.py queue --summary --compact` view now emits one bounded
+row per open roadmap family, an explicit state (`ready`, `complete-pointer`,
+`source-drift-only`, or `new-case-needed`), exact `work`/`focus` handles, and a
+short next action. `work` and `next` also report lane state, while `trace`,
+`requirement`, and `section` preserve the direct C++ test → Lab requirement →
+canonical IEEE 1516.1/1516.2-2025 subsection path. Family totals may overlap;
+`coverage` remains the global count. This local index is the intended resume
+surface and should be used before considering any broader catalog search.
+
+### 2026-09-01 queryability maintenance — bounded FOM declaration-management slice
+
+The next implementation slice was selected from the indexed roadmap without
+resynchronizing the unchanged Requirements Lab. IEEE 1516.1-2025 §4.5.5
+requires at least one FOM module for Create Federation Execution. The focused
+C++ case `Embedded Create Federation Execution rejects an empty FOM module set`
+now maps directly to
+`requirement-candidate-content-clauses-04-federation-management-page-053-l55-9`,
+the canonical section `hla-1516.1-2025:clause-4.5.5`, and the official Create
+Federation Execution/Create Federation Execution With MIM API surfaces. It
+passes six assertions for both rejected overloads and verifies that no partial
+federation remains.
+
+The case is built and run through the standalone target
+`umbra_fom_declaration_management_catch2`, so the exact lane remains runnable
+while the pre-existing aggregate federation-management test translation unit
+is malformed near `makeRtn)` (around line 62816). That aggregate compile issue
+is recorded as an existing checkout problem, not attributed to this slice and
+not treated as conformance evidence. Query the lane with
+`python tools/query_rti_work.py focus fom-module-management --summary --compact`
+or trace the exact case; broader FOM composition, package/JUnit, protected
+review, interoperability, Lab validation, and conformance remain open.
+
+### 2026-09-01 queryability maintenance — additional-FOM Join composition slice
+
+The next source-backed FOM slice extends the focused lane without reopening the
+Requirements Lab. `Embedded Join Federation Execution composes an additional
+FOM module for all members` exercises the official Join Federation Execution
+overload with an additional validated module. It verifies that the new object
+class becomes visible to the joining federate and an existing member, that the
+pre-existing class handle remains stable, and that the official reverse lookup
+returns the new class name. The plan maps the case to the 2025 clause-4
+requirements for FDD combination on Join and availability of supplied modules,
+with direct C++ API-surface and source-line pointers.
+
+The standalone `umbra_fom_declaration_management_catch2` target now runs two
+focused cases (24 assertions) and the exact CTest label
+`fom-module-management` is green. The malformed aggregate federation-
+management translation unit remains a separate checkout issue at `makeRtn)`
+around line 62816; this focused evidence does not promote package, protected
+review, interoperability, Lab validation, or conformance status.
+
+### 2026-09-02 queryability maintenance — lane-pointer ownership and aggregate source integrity
+
+No Requirements Lab resynchronization or new numbered requirement was needed.
+The exact trace view now includes the owning roadmap families beside each
+Catch2 case, its selected Lab requirements, and canonical 2025 subsection
+keys. Lane-scoped `check` also counts a roadmap family when the lane is carried
+by its `next_lane` pointer rather than duplicated in broad `query_tags`; this
+keeps the FOM and process-boundary work cards truthful without widening their
+test selection.
+
+While rebuilding the aggregate federation-management translation unit, the
+original malformed `makeRtn)` region was followed by additional incomplete
+multi-recipient and timed DDM helper material. The affected legacy cases remain
+visible in the plan but are not treated as executable evidence until their
+helper/source boundaries are restored; the focused FOM lane remains the
+iteration gate. This is a checkout/source-integrity issue, not a Requirements
+Lab numbering change, and it should not trigger another Lab resynchronization.
+
+### 2026-09-02 queryability maintenance — Annex C directed-interaction guards
+
+The existing source regressions `The FDD materializer surfaces the
+multiple-directed-class schema conflict` and `The FDD materializer refuses the
+supplied extension when the official FDD schema cannot represent its
+directed-interaction merge` were present in
+`cpp/tests/libxml2_fom_composer_catch2.cpp` and described by RL-081, but had no
+row in the Catch2 plan. They are now indexed as
+`umbra-cpp-fom-directed-interaction-schema-conflict-composition` (three
+assertions) and
+`umbra-cpp-fom-restaurant-extension-directed-interaction-schema-conflict`
+(two assertions), both with the exact pinned requirement
+`requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l22-5`,
+and its canonical `hla-1516.2-2025:clause-7` mapping. The `schema-conflict`
+lane is owned by `annex-c-and-reference-resolution`, so `focus`, `trace`, and
+lane-scoped `check` reach either guard without reopening the full plan.
+
+This is an append-only traceability repair. The expected rejection remains a
+guard for the supplied DIF/FDD cardinality conflict; it is not runtime selector
+coverage or a conformance claim, and no Requirements Lab resynchronization or
+new numbered requirement was performed.
+
+The two guards now also have an independently discoverable
+`umbra_fom_composer_catch2` target and exact CTest regex, because the aggregate
+`umbra_ieee1516_2025_catch2` executable includes an unrelated malformed
+federation-management translation unit. Both focused guards pass (5 Catch2
+assertions total); the source tags and plan tags are aligned so the lane can be
+run by a bounded query rather than by an aggregate build.
+
+The new read-only `query_rti_work.py unplanned --path <source-file>` view also
+exposes source `TEST_CASE` declarations that have no exact Catch2 plan row. It
+does not infer requirements or status; for the current FOM-composer file it
+reports the remaining source-only declarations as a bounded reconciliation
+queue. This closes the source-to-plan discovery gap without reopening the
+Requirements Lab.
+
+### 2026-09-02 queryability maintenance — composed data-type reference guard
+
+The source-only case `The FOM composition preflight resolves data-type
+references after the complete module set is merged` is now an explicit Catch2
+plan row: `umbra-cpp-fom-composed-data-type-reference-resolution` (eight
+assertions). Its two selected Lab candidates are the exact 2025 statements for
+documenting referenced data types (`4.14.2`) and for requiring an array Element
+Type name from a data-type table (`6.2.18`). The query trace resolves both
+requirements to canonical `hla-1516.2-2025:clause-4.14.2` and
+`hla-1516.2-2025:clause-6.2.18`, with the source line and the existing private
+composition contract visible in the same bounded record.
+
+The `reference-resolution` lane is now owned by
+`annex-c-and-reference-resolution` and has an exact
+`umbra_fom_composer_catch2` CTest handle covering its five mapped guards. The
+roadmap pointer advanced to this data-type guard before the adjacent
+reference-data-class guard became the next pointer; the source-only
+reconciliation queue for `libxml2_fom_composer_catch2.cpp` consequently drops
+from 23 to 22. This is a local plan/index repair only: no Requirements Lab
+resynchronization or new numbered requirement was performed, and the guard
+remains private
+development-profile traceability rather than FOM conformance evidence.
+
+The adjacent source-only case `The FOM composition preflight resolves
+reference-data classes after the complete module set is merged` is now indexed
+as `umbra-cpp-fom-reference-data-class-resolution` (eight assertions). Its
+exact Lab candidates map to 2025 clauses 6.2.17 and 4.14.9, and the bounded
+trace exposes both canonical subsection keys beside the source line. The
+At the previous pointer the `reference-resolution` lane had five mapped cases;
+its exact CTest handle remained independent of the malformed aggregate
+translation unit and all five tests passed. The source-to-plan queue for the
+FOM-composer file was then 21
+remaining declarations. This is another local mapping/index repair only; no
+Lab resynchronization or new numbered requirement was performed.
+
+The next source-only reference-resolution case, `The FOM composition preflight
+resolves reference-data attributes and representations`, is now indexed as
+`umbra-cpp-fom-reference-data-attribute-resolution` (eleven assertions). Its
+five selected Lab candidates resolve to 2025 clauses 6.2.17, 4.14.9, and 4.5.2;
+the exact trace keeps the referenced attribute, representation, and inherited
+attribute checks together. The lane now has six mapped cases, and its exact
+CTest handle runs all six without touching the malformed aggregate. The
+FOM-composer source-to-plan queue is now 20 remaining declarations. No Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Available Dimensions reference guard
+
+The next bounded source-only case, `The FOM composition preflight resolves
+available dimensions after the complete module set is merged`, is now indexed
+as `umbra-cpp-fom-available-dimension-reference-resolution` (nine assertions).
+Its four selected Lab candidates resolve to the exact 2025 statements for the
+DDM Available Dimensions subset (`4.7.1`), object-class and interaction-class
+table references (`6.2.5` and `6.2.6`), and top-down Annex C module merging
+(`Clause C`). The seven-case `reference-resolution` lane has an exact
+`umbra_fom_composer_catch2` handle; all seven tests pass in 4.58 seconds, and
+the lane-scoped mapping check reports 7/7 mapped, 39 assertions, and 0 source
+drift. The FOM-composer source-to-plan queue is now 19 remaining declarations.
+No Requirements Lab resynchronization or new numbered requirement was
+performed.
+
+The aggregate federation-management target also now builds after restoring the
+real `runTimedMultiRecipientRegionalResignationAfterRestore` helper from the
+existing source snapshot; the exact 11-test timed multi-recipient DDM/save-
+restore matrix passes. The restoration shifted later source line numbers, so
+the affected recent-completion pointers in `ROADMAP-INDEX.json` were refreshed
+from the derived `TEST_CASE` locations. Historical source-unlocated rows remain
+visible in the unscoped check and are not treated as executable evidence.
+
+### 2026-09-02 queryability maintenance — Transportation reference guard
+
+The next source-only reference-resolution case, `The FOM composition preflight
+resolves transportation names after the complete module set is merged`, is now
+indexed as `umbra-cpp-fom-transportation-reference-resolution` (eleven
+assertions). Its six selected Lab candidates resolve to 2025 clauses 4.11.2,
+6.2.5, 6.2.6, and Annex C; the exact trace keeps object-attribute and
+interaction-class transportation references together. The lane now has eight
+mapped cases and its source-to-plan queue is 18 remaining declarations. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+The roadmap index now carries a bounded `next_source_test_query` /
+`next_source_location` pair for the next source-only declaration. `work
+annex-c-and-reference-resolution --summary --compact` renders that queue head
+beside the mapped baseline and emits a one-case `unplanned` command; the
+mapping check verifies that the recorded title and source location still match
+the derived C++ `TEST_CASE`. This keeps source-only selection queryable without
+dumping the full reconciliation queue.
+
+### 2026-09-02 queryability maintenance — Support-switch table guard
+
+The next bounded source-only FOM-composer case, `The FDD materializer retains
+the complete 2025 support-switch table`, is now indexed as
+`umbra-cpp-fom-support-switch-table-composition-integration` (nine
+assertions). Its four selected Lab candidates resolve to the 2025 support
+switch names/settings and automatic-resign value in clauses 4.13.2, 4.13.3,
+and 6.2.13. The exact CTest title passes independently in 0.37 seconds. The
+plan total is now 818 rows; the derived source-only queue is 293 declarations
+globally and 17 in `libxml2_fom_composer_catch2.cpp`. The next queue head is
+the explicit NoAction automatic-resign setting at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:1230`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Explicit NoAction FOM guard
+
+The source-queue head `The FDD catalog preserves an explicit NoAction
+automatic-resign setting` is now indexed as
+`umbra-cpp-fom-explicit-no-action-automatic-resign-composition` (one
+assertion). The plan total is now 819 rows. Its two selected Lab candidates resolve to the FOM switch-setting
+and automatic-resign table statements in clauses 4.13.3 and 6.2.13. The
+bounded source-only queue is now 292 declarations globally and 16 in the
+FOM-composer file. Ownership of the next exact source head is now explicit in
+`fom-module-declaration-management`: `The federation registry retains
+independent interaction declarations until removal or resign` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:1251`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Interaction declaration registry guard
+
+The declaration-management source head `The federation registry retains
+independent interaction declarations until removal or resign` is now indexed
+as `umbra-cpp-federation-registry-interaction-declaration-lifecycle-unit` (34
+assertions). Its four selected Lab candidates resolve to IEEE 1516.1 clauses
+5.4, 5.5, 5.10, and 5.11 for Publish, Unpublish, Subscribe, and Unsubscribe
+declaration state. The exact FOM-composer CTest passes in 0.44 seconds. The
+plan total is now 820 rows; the source-only queue is 291 declarations
+globally and 15 in the FOM-composer file. The next exact source head remains
+owned by `fom-module-declaration-management`: `The federation registry
+retains 2025 object class attribute declarations independently` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:1383`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Object-class attribute registry guard
+
+The declaration-management source head `The federation registry retains 2025
+object class attribute declarations independently` is now indexed as
+`umbra-cpp-federation-registry-object-class-attribute-declaration-lifecycle-unit`
+(44 assertions). Its four selected Lab candidates resolve to IEEE 1516.1
+clauses 5.2, 5.3, 5.8, and 5.9.4 for Publish, Unpublish, Subscribe, and
+Unsubscribe Object Class Attributes. The exact FOM-composer CTest passes in
+0.43 seconds. The plan total is now 821 rows; the source-only queue is 290
+declarations globally and 14 in the FOM-composer file. The next exact source
+head remains owned by `fom-module-declaration-management`: `The federation
+registry allocates 2025 object identities only from current publication` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:1869`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Object-instance registration guard
+
+The declaration-management source head `The federation registry allocates 2025
+object identities only from current publication` is now indexed as
+`umbra-cpp-federation-registry-object-instance-registration-unit` (23
+assertions). Its three selected Lab candidates resolve to IEEE 1516.1 clauses
+5.1.2 and 6.8.4 for registration preconditions and object-instance identity
+allocation. The exact FOM-composer CTest passes in 0.43 seconds. The plan
+total is now 822 rows; the source-only queue is 289 declarations globally and
+13 in the FOM-composer file. The next exact source head remains owned by
+`fom-module-declaration-management`: `The federation registry releases
+undelivered 2025 discovery reservations` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:1947`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Discovery reservation guard
+
+The declaration-management source head `The federation registry releases
+undelivered 2025 discovery reservations` is now indexed as
+`umbra-cpp-federation-registry-object-instance-discovery-reservation-unit`
+(15 assertions). Its four selected Lab candidates resolve to IEEE 1516.1
+clauses 5.1.2, 6.8.4, and 6.9.3 for publication-gated registration and
+recipient-local discovery promotion. The exact FOM-composer CTest passes in
+0.43 seconds. The plan total is now 823 rows; the source-only queue is 288
+declarations globally and 12 in the FOM-composer file. The next exact source
+head remains owned by `fom-module-declaration-management`: `The federation
+registry plans 2025 interaction promotion and parameter projection` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:2024`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Interaction promotion guard
+
+The declaration-management source head `The federation registry plans 2025
+interaction promotion and parameter projection` is now indexed as
+`umbra-cpp-federation-registry-interaction-routing-promotion-unit` (42
+assertions). Its four selected Lab candidates resolve to IEEE 1516.1 clauses
+5.4, 5.10, 6.12, and 6.12.4 for interaction declaration, Send Interaction,
+and parameter projection semantics. The exact FOM-composer CTest passes in
+0.43 seconds. The plan total is now 824 rows; the source-only queue is 287
+declarations globally and 11 in the FOM-composer file. The next exact source
+head remains owned by `fom-module-declaration-management`: `The FDD materializer
+is repeatable for a fixed official module set` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:2227`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — FDD materializer repeatability guard
+
+The declaration-management source head `The FDD materializer is repeatable for
+a fixed official module set` is now indexed as
+`umbra-cpp-fom-materializer-repeatability-unit` (17 assertions). It composes
+the fixed official 2025 MIM plus Restaurant module order twice and verifies the
+same valid result, materialized FDD bytes, composed-module names, catalog
+cardinality, and key object/interaction lookups. The selected existing Lab
+candidates provide the closest FDD materialization/composition anchors in
+IEEE 1516.2 clauses 4.14.2 and C.1; the repeatability comparison itself is an
+explicit private implementation invariant and is not promoted to arbitrary
+FOM canonicalization, reordered-module equivalence, schema conformance, or
+interoperability. The exact FOM-composer CTest passes independently in 0.71
+seconds. The plan total is now 825 rows; the source-only queue is 286
+declarations globally and 10 in the FOM-composer file. The next exact source
+head remains owned by `fom-module-declaration-management`: `The FDD catalog
+retains an enabled Non-Regulated-Grant switch` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:2258`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Non-Regulated-Grant switch guard
+
+The declaration-management source head `The FDD catalog retains an enabled
+Non-Regulated-Grant switch` is now indexed as
+`umbra-cpp-fom-non-regulated-grant-switch-composition-integration` (11
+assertions). It composes the official 2025 MIM with an explicitly enabled
+Non-Regulated-Grant FOM and verifies the valid materialization plus the
+catalog's retained switch setting. Its selected Lab candidate resolves to
+IEEE 1516.2 clause 4.13.3; the runtime TAR scheduler, omitted-setting default,
+Annex C.8 duplicate handling, JUnit/protected review, and conformance remain
+separate. The exact FOM-composer CTest passes independently in 0.39 seconds.
+The plan total is now 826 rows; the source-only queue is 285 declarations
+globally and 9 in the FOM-composer file. The next exact source head remains
+owned by `fom-module-declaration-management`: `The FOM composition preflight
+retains the first duplicate switch and reports Annex C.8 warnings` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:2274`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Annex C.8 duplicate-switch guard
+
+The declaration-management source head `The FOM composition preflight retains
+the first duplicate switch and reports Annex C.8 warnings` is now indexed as
+`umbra-cpp-fom-switch-duplicate-annex-c8-composition` (35 assertions). It
+compares equivalent and non-equivalent support/advisory switch duplicates
+across module order, retains the first setting, applies the Disabled default to
+omitted advisory entries, and emits the deterministic Annex C.8 warning. The
+six selected Lab candidates resolve to IEEE 1516.2 clauses 4.13.3 and C.8;
+runtime switch mutation, complete Annex C merge behavior, JUnit/protected
+review, and conformance remain separate. The exact FOM-composer CTest passes
+independently. The plan total is now 827 rows; the source-only queue is 284
+declarations globally and 8 in the FOM-composer file. The next exact source
+head remains owned by `fom-module-declaration-management`: `The FOM composition
+treats omitted switch booleans as their schema default` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:2338`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Omitted-switch default guard
+
+The declaration-management source head `The FOM composition treats omitted
+switch booleans as their schema default` is now indexed as
+`umbra-cpp-fom-switch-defaults-composition-integration` (14 assertions). It
+composes omitted and explicit-false 2025 switch settings in both equivalent
+module orders, requires the Disabled default, and proves that no spurious
+Annex C.8 warning is emitted. Its two selected Lab candidates resolve to IEEE
+1516.2 clauses 4.13.3 and C.8; runtime switch mutation, broader Annex C merge
+behavior, JUnit/protected review, and conformance remain separate. The exact
+FOM-composer CTest passes independently. The plan total is now 828 rows; the
+source-only queue is 283 declarations globally and 7 in the FOM-composer file.
+The next exact source head remains owned by `fom-module-declaration-management`:
+`The FOM composition preflight validates time-representation data type
+categories` at `cpp/tests/libxml2_fom_composer_catch2.cpp:3444`. No Requirements
+Lab resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Time-representation category guard
+
+The declaration-management source head `The FOM composition preflight validates
+time-representation data type categories` is now indexed as
+`umbra-cpp-fom-time-representation-category-validation` (26 assertions). It
+accepts the official integer64 and float64 logical-time representations,
+rejects basic and reference data types that are not permitted for time
+representation, and preserves the exact diagnostics. Its selected Lab
+candidate resolves to IEEE 1516.2 clause 6.2.8; reference-time selection,
+runtime time coordination, JUnit/protected review, and conformance remain
+separate. The exact FOM-composer CTest passes independently. The plan total is
+now 829 rows; the source-only queue is 282 declarations globally and 6 in the
+FOM-composer file. The next exact source head remains owned by
+`fom-module-declaration-management`: `The FOM composition preflight validates
+user-supplied and synchronization tag data type categories` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:3774`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Tag datatype category guard
+
+The declaration-management source head `The FOM composition preflight validates
+user-supplied and synchronization tag data type categories` is now indexed as
+`umbra-cpp-fom-tag-data-type-category-validation` (18 assertions). It accepts a
+permitted user-supplied tag datatype, rejects a basic datatype for both
+user-supplied and synchronization tags, and preserves the exact diagnostics.
+Its two selected Lab candidates resolve to IEEE 1516.2 clauses 6.2.9 and
+6.2.10; runtime tag transport, broader composition, JUnit/protected review,
+and conformance remain separate. The exact FOM-composer CTest passes
+independently. The plan total is now 830 rows; the source-only queue is 281
+declarations globally and 5 in the FOM-composer file. The next exact source
+head remains owned by `fom-module-declaration-management`: `The FOM composition
+preflight rejects inherited attribute and parameter name overloading` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:3814`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Inherited-member name guard
+
+The declaration-management source head `The FOM composition preflight rejects
+inherited attribute and parameter name overloading` is now indexed as
+`umbra-cpp-fom-inherited-member-name-validation` (12 assertions). It rejects an
+object-class attribute and interaction-class parameter that overloads an
+inherited member name and preserves the exact diagnostics and fixture
+identities. Its two selected Lab candidates resolve to IEEE 1516.2 clauses 6.2.5
+and 6.2.6; broader hierarchy composition, runtime declaration behavior,
+JUnit/protected review, and conformance remain separate. The exact
+FOM-composer CTest passes independently. The plan total is now 831 rows; the
+source-only queue is 280 declarations globally and 4 in the FOM-composer file.
+The next exact source head remains owned by
+`fom-module-declaration-management`: `The FOM composition preflight enforces
+enumerated and variant-record merge invariants` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:3887`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Enumerated/variant merge invariants
+
+The declaration-management source head `The FOM composition preflight enforces
+enumerated and variant-record merge invariants` is now indexed as
+`umbra-cpp-fom-enumerated-variant-merge-invariants` (16 assertions). It rejects
+conflicting enumerated values, non-extendable variant-record alternatives, and
+prohibited HLAother expansion while preserving the exact diagnostics. Its two
+selected Lab candidates resolve to IEEE 1516.2 clause C.3 and clause 7;
+broader variant-record semantics, hierarchy composition, JUnit/protected
+review, and conformance remain separate. The exact FOM-composer CTest passes
+independently. The plan total is now 832 rows; the source-only queue is 279
+declarations globally and 3 in the FOM-composer file. The next exact source
+head remains owned by `fom-module-declaration-management`: `The FDD materializer
+remaps referenced notes and logically ORs service usage` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:3922`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Notes and service-usage merge
+
+The declaration-management source head `The FDD materializer remaps referenced
+notes and logically ORs service usage` is now indexed as
+`umbra-cpp-fom-notes-service-usage-merge` (16 assertions). It remaps note
+labels and logically ORs service usage while preserving both contributing note
+texts in the materialized FDD. Its two selected Lab candidates resolve to IEEE
+1516.2 clauses C.9 and C.10; broader composition, dependency packaging,
+JUnit/protected review, and conformance remain separate. The exact
+FOM-composer CTest passes independently. The plan total is now 833 rows; the
+source-only queue is 278 declarations globally and 2 in the FOM-composer file.
+The next exact source head remains owned by `fom-module-declaration-management`:
+`Reference logical-time selection defaults to HLAfloat64Time and rejects
+incompatible FDD documentation` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:3951`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Reference logical-time selection
+
+The declaration-management source head `Reference logical-time selection
+defaults to HLAfloat64Time and rejects incompatible FDD documentation` is now
+indexed as `umbra-cpp-reference-logical-time-selection` (21 assertions). It
+defaults an unconstrained catalog to HLAfloat64Time, accepts a compatible
+HLAinteger64Time selection, and rejects incompatible or unavailable
+implementations with deterministic statuses. Its three selected Lab
+candidates resolve to IEEE 1516.2 clause 4.8.3 and IEEE 1516.1 clauses 4.5.5
+and 4; public time-service behavior, broader federation preparation,
+JUnit/protected review, and conformance remain separate. The exact
+FOM-composer CTest passes independently. The plan total is now 834 rows; the
+source-only queue is 277 declarations globally and 1 in the FOM-composer file.
+The next exact source head remains owned by `fom-module-declaration-management`:
+`Federation preparation loads MIM first and emits only an FDD-backed
+reference-time definition` at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:3998`. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Federation preparation and queue exhaustion
+
+The declaration-management source head `Federation preparation loads MIM first
+and emits only an FDD-backed reference-time definition` is now indexed as
+`umbra-cpp-federation-preparation-mim-and-reference-time` (22 assertions). It
+loads the standard MIM first, materializes an FDD-backed definition, validates
+reference-time selection, and rejects invalid or incompatible additional-module
+inputs with deterministic statuses. Its three selected Lab candidates resolve
+to IEEE 1516.1 clauses 4.5.5 and 4.11.4; public federation-management behavior,
+runtime join/create services, JUnit/protected review, and conformance remain
+separate. The exact FOM-composer CTest passes independently. The plan total is
+now 835 rows; the source-only queue is 276 declarations globally and 0 in the
+FOM-composer file. The FOM-composer reconciliation queue is now exhausted;
+select the next bounded C++ service family rather than rescanning this file or
+the unchanged Requirements Lab. No Requirements Lab resynchronization or new
+numbered requirement was performed.
+
+### 2026-09-02 implementation slice — Process local-delete transport contract
+
+The process-boundary implementation now carries `local-delete-object-instance`
+through the private transport service seam. The request codec validates the
+federation, federate, and object identity; the result codec preserves every
+official `LocalObjectInstanceDeletionStatus` value; and the service handler
+returns the registry status without inventing a second vocabulary. The public
+`RTIambassador::localDeleteObjectInstance` path uses that endpoint when the
+configured process profile is active and retains the existing embedded path
+otherwise. The registry-bound integration now proves the recipient-local
+object removal (44 assertions), while the standalone codec contract provides
+9 deterministic assertions. Both plan rows map to the local-delete API
+surface and IEEE 1516.1-2025 §6.18.1; they remain private foundation evidence,
+not protected conformance evidence. The focused process lane is now 34 mapped
+cases / 1,294 focused-JUnit assertions, and the full Catch2 plan is 837 rows.
+The bounded lane check also exposed a maintenance edge in the completion
+ledger: three older source-line pointers in the same process test file had not
+moved when earlier cases were inserted, and a duplicate completion row had
+been recorded. Those ledger entries were corrected and the duplicate removed;
+this is traceability-ledger drift, not a Requirements Lab change. No
+Requirements Lab resynchronization or new numbered requirement was performed;
+the exact queries are:
+
+```powershell
+python tools/query_rti_work.py test "Private process local-delete request and result preserve the official status vocabulary" --summary --compact
+python tools/query_rti_work.py trace "Private process local-delete request and result preserve the official status vocabulary" --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+```
+
+### 2026-09-02 implementation slice — Public process receive-order Delete Object Instance
+
+The public process endpoint now carries ordinary `RTIambassador::deleteObjectInstance`
+through the private service seam. The bounded two-federate case registers and
+discovers one object, deletes it with an opaque tag, confirms that the producer
+and receiver no longer retain the object in their respective ledgers, confirms
+that the producer receives no removal callback, and verifies the receiver's
+official `removeObjectInstance` callback preserves the object, tag, and
+producing federate. It is green under the HLA_EVOKED callback model with 25
+assertions. The companion private codec case round-trips the request identity,
+tag, recipient count, and all six `ObjectInstanceDeletionStatus` values with 16
+assertions. The two rows are mapped to the pinned 2025 candidates for §§6.16,
+6.16.4, and 6.17.1; they remain development-profile foundation evidence, not
+protected conformance evidence.
+
+The focused process-boundary lane is now 37 mapped/source-located cases / 1,544
+focused-JUnit assertions, and the full C++ Catch2 plan is 839 rows. Adding the
+codec declarations and the public case shifted several existing completion-ledger
+source pointers; the bounded lane check caught and repaired those pointers
+without any Requirements Lab resynchronization or new numbered requirement.
+The exact bounded queries are:
+
+```powershell
+python tools/query_rti_work.py test "Private process Delete Object Instance request and result preserve the official status vocabulary" --summary --compact
+python tools/query_rti_work.py trace "Private process Delete Object Instance request and result preserve the official status vocabulary" --summary --compact
+python tools/query_rti_work.py test "RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py trace "RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+```
+
+### 2026-09-02 implementation slice — Public process local-delete endpoint
+
+The public two-federate process case now drives `RTIambassador::localDeleteObjectInstance`
+through the configured endpoint: one federate registers the object, the other
+discovers it and requests recipient-local deletion, and the service verifies
+the registry transition before both federates resign. The Catch2 case provides
+18 focused assertions and is indexed separately from the 9-assertion codec
+contract and 44-assertion private service integration. The focused
+process-boundary lane is now 35 mapped cases / 1,294 focused-JUnit assertions;
+the full Catch2 plan is 837 rows. No Requirements Lab resynchronization or new
+numbered requirement was performed. Query this slice directly with:
+
+```powershell
+python tools/query_rti_work.py test "RTIambassador routes Local Delete Object Instance through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py trace "RTIambassador routes Local Delete Object Instance through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+```

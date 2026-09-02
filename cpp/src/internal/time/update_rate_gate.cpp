@@ -30,6 +30,17 @@ void UpdateRateGate::erase(std::string const& key) {
   lastAdmission_.erase(key);
 }
 
+void UpdateRateGate::erasePrefix(std::string_view prefix) {
+  std::scoped_lock lock(mutex_);
+  for (auto iterator = lastAdmission_.begin(); iterator != lastAdmission_.end();) {
+    if (std::string_view{iterator->first}.starts_with(prefix)) {
+      iterator = lastAdmission_.erase(iterator);
+    } else {
+      ++iterator;
+    }
+  }
+}
+
 void UpdateRateGate::clear() {
   std::scoped_lock lock(mutex_);
   lastAdmission_.clear();

@@ -32,7 +32,11 @@ def build_jni_bridge(output_directory: Path, *, run_smoke_test: bool = False) ->
 
     cached_directory = os.environ.get("UMBRA_JNI_BRIDGE_ARTIFACT_DIRECTORY")
     if cached_directory:
-        return _artifacts(Path(cached_directory))
+        # Child-process tests pass these paths through the environment.  Keep
+        # the artifact record absolute even when the caller used a convenient
+        # repository-relative cache path; Java's native-library loader rejects
+        # a relative ``-Dumbra.rti.jni.library`` value.
+        return _artifacts(Path(cached_directory).expanduser().resolve())
 
     command = [
         "powershell",
@@ -52,13 +56,14 @@ def build_jni_bridge(output_directory: Path, *, run_smoke_test: bool = False) ->
             "JNI bridge build failed:\n"
             f"{result.stdout}\n{result.stderr}"
         )
-    return _artifacts(output_directory)
+    return _artifacts(output_directory.expanduser().resolve())
 
 
 def _artifacts(output_directory: Path) -> JniBridgeArtifacts:
+    output_directory = output_directory.expanduser().resolve()
     configured_api_jar = os.environ.get("UMBRA_JNI_JAVA_API_JAR")
     if configured_api_jar:
-        api_jar = Path(configured_api_jar)
+        api_jar = Path(configured_api_jar).expanduser().resolve()
     else:
         # The repository mock fixture is both an API declaration JAR and a
         # vendor fixture, so it carries its own ServiceLoader provider.  That

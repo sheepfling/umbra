@@ -166,7 +166,9 @@ def _call_native(
         name, separator, message = str(error).partition(": ")
         if name == "EncoderException" and encoding_error is not None:
             raise encoding_error(message if separator else name) from error
-        raise exceptionForName(name, message if separator else name) from error
+        raise exceptionForName(
+            name, message if separator else name, error
+        ) from error
 
 
 def _encoded_handle(value: object, expected_type: type[_Handle]) -> bytes:
@@ -2873,7 +2875,9 @@ class _UmbraRTIambassador(RTIambassador):
             return function(*args)
         except _native.NativeRtiError as error:
             name, separator, message = str(error).partition(": ")
-            raise exceptionForName(name, message if separator else name) from error
+            raise exceptionForName(
+                name, message if separator else name, error
+            ) from error
 
 
 class UmbraRtiFactory(RtiFactory):
@@ -2884,7 +2888,9 @@ class UmbraRtiFactory(RtiFactory):
             return _UmbraRTIambassador(_native.NativeAmbassador())
         except _native.NativeRtiError as error:
             name, separator, message = str(error).partition(": ")
-            raise exceptionForName(name, message if separator else name) from error
+            raise exceptionForName(
+                name, message if separator else name, error
+            ) from error
 
     def getEncoderFactory(self) -> EncoderFactory:
         return _NativeEncoderFactory()

@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <string>
+#include <tuple>
 #include <utility>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -91,6 +92,36 @@ TEST_CASE("The libxml2 FOM validator distinguishes missing, invalid, and DTD-bea
   });
   REQUIRE(malformed.status == FomValidationStatus::source_parse_error);
   REQUIRE_FALSE(malformed.module.has_value());
+}
+
+TEST_CASE(
+    "The official 2025 DIF schema rejects duplicate attribute and parameter names within one class",
+    "[unit][fom][xml-schema][fom-member-name-uniqueness]") {
+  LibXml2FomValidator validator;
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+
+  for (auto const& [filename, designator, marker] : {
+           std::tuple{
+               "duplicate-attribute-name-fom.xml",
+               L"urn:umbra:test:duplicate-attribute-name",
+               "attributeName"},
+           std::tuple{
+               "duplicate-parameter-name-fom.xml",
+               L"urn:umbra:test:duplicate-parameter-name",
+               "parameterName"},
+       }) {
+    auto result = validator.validate({
+        testData / filename,
+        resourcePath("schemas/IEEE1516-DIF-2025.xsd"),
+        FomModuleKind::fom,
+        designator,
+        L"IEEE1516-DIF-2025.xsd",
+    });
+    CAPTURE(filename, result.diagnostics);
+    REQUIRE(result.status == FomValidationStatus::invalid_model);
+    REQUIRE_FALSE(result.module.has_value());
+    REQUIRE(result.diagnostics.find(marker) != std::string::npos);
+  }
 }
 
 TEST_CASE(

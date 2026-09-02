@@ -25,7 +25,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     },
     {
@@ -42,7 +43,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     }
   ]

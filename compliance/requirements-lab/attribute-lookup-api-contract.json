@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable inherited-attribute lookup development slice to the exact 2025 C++ API surfaces exported by the Requirements Lab. It verifies only the official signatures, declared exception sets, adapter symbols, and real Catch2 selector. The scenario distinguishes an invalid object-class handle, an invalid attribute handle, and a valid handle not defined for the supplied class; it also preserves issued values across a compatible additional-FOM join. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only: it is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable inherited-attribute lookup development slice to the exact 2025 C++ API surfaces exported by the Requirements Lab. It verifies only the official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The functional scenario distinguishes an invalid object-class handle, an invalid attribute handle, and a valid handle not defined for the supplied class; the companion service-report scenario decodes the accepted type-36/type-53 forms through the native HLA_IMMEDIATE MOM route. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only: it is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-get-attribute-handle",
@@ -21,7 +21,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAttributeHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute lookup resolves inherited definitions in the joined federation FOM"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute lookup resolves inherited definitions in the joined federation FOM",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers object, attribute, and update-rate lookup return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes object-class attributes and registers an object through a configured process endpoint"
       ]
     },
     {
@@ -41,7 +43,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAttributeName",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute lookup resolves inherited definitions in the joined federation FOM"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute lookup resolves inherited definitions in the joined federation FOM",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers object, attribute, and update-rate lookup return arguments through MOM interaction"
       ]
     }
   ]

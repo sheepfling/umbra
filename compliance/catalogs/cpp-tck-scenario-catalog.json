@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "kind": "portable-cpp-tck-catalog",
+  "standard": "IEEE 1516.1-2025",
+  "document_id": "hla-1516.1-2025",
+  "source_boundary": "packages/hla-rti-cpp-tck",
+  "parity_catalog": "compliance/catalogs/java-tck-scenario-catalog.json",
+  "portable_rule": "C++ TCK sources may include only the official RTI API headers and the C++ standard library. Shared ordinary-service scenario IDs are reused from the Java TCK catalog. Provider selection, link inputs, compile definitions, transport endpoints, and fault-injection fixtures belong to an adapter profile.",
+  "scenarios": [
+    {
+      "id": "java-tck.overloads-and-exceptions",
+      "category": "connection",
+      "title": "Create an ambassador, control callbacks, and disconnect",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connect-disconnect",
+        "cpp-1516.1-callback-models"
+      ],
+      "contract_refs": [
+        "connection-callback-api-contract.json",
+        "connection-implementation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioConnection",
+      "runner_id": "java-tck.overloads-and-exceptions",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.federation-membership",
+      "category": "federation-management",
+      "title": "Complete federation execution create, join, query, resign, destroy, and missing-execution reporting",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.listFederationExecutions",
+        "RTIambassador.listFederationExecutionMembers",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "FederateAmbassador.reportFederationExecutions",
+        "FederateAmbassador.reportFederationExecutionMembers",
+        "FederateAmbassador.reportFederationExecutionDoesNotExist"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-federation-query-reports"
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "federation-listing-api-contract.json",
+        "federation-listing-requirements-contract.json",
+        "federation-management-preparation-requirements-contract.json",
+        "resign-action-requirements-contract.json",
+        "federate-lookup-api-contract.json",
+        "federate-lookup-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationLifecycle",
+      "runner_id": "java-tck.federation-membership",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.support-services",
+      "category": "handle-lookup",
+      "title": "Resolve and reverse public federate, object, attribute, interaction, parameter, order, and transportation handles",
+      "api_methods": [
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.getOrderType",
+        "RTIambassador.getOrderName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federate-lookup",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-attribute-lookup",
+        "cpp-1516.1-interaction-lookup",
+        "cpp-1516.1-parameter-lookup"
+      ],
+      "contract_refs": [
+        "federate-lookup-api-contract.json",
+        "federate-lookup-requirements-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "interaction-class-lookup-api-contract.json",
+        "parameter-lookup-api-contract.json",
+        "order-type-api-contract.json",
+        "transportation-type-api-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioHandleLookups",
+      "runner_id": "java-tck.support-services",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.declaration-management",
+      "category": "declaration-management",
+      "title": "Publish, subscribe, and withdraw ordinary object attributes and interactions",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-attribute-declarations",
+        "cpp-1516.1-interaction-declarations"
+      ],
+      "contract_refs": [
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "publish-interaction-class-api-contract.json",
+        "publish-interaction-class-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "subscribe-interaction-class-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDeclarations",
+      "runner_id": "java-tck.declaration-management",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.object-management",
+      "category": "object-management",
+      "title": "Register, discover, resolve identity, and named-register ordinary object instances",
+      "api_methods": [
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getKnownObjectClassHandle",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-named-object-registration"
+      ],
+      "contract_refs": [
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-instance-name-reservation-api-contract.json",
+        "object-instance-name-reservation-requirements-contract.json",
+        "object-instance-named-registration-api-contract.json",
+        "object-instance-named-registration-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioObjectManagement",
+      "runner_id": "java-tck.object-management",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.attribute-interaction",
+      "category": "interaction-management",
+      "title": "Deliver ordinary attribute updates/reflections and interactions/parameters",
+      "api_methods": [
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-interaction-parameter-delivery"
+      ],
+      "contract_refs": [
+        "attribute-value-update-request-api-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeInteraction",
+      "runner_id": "java-tck.attribute-interaction",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.ownership",
+      "category": "ownership-management",
+      "title": "Query, acquire, divest, cancel, and report ordinary attribute ownership",
+      "api_methods": [
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "FederateAmbassador.informAttributeOwnership",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.attributeIsNotOwned",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.attributeOwnershipUnavailable",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "attribute-ownership-query-api-contract.json",
+        "attribute-ownership-query-requirements-contract.json",
+        "attribute-ownership-check-api-contract.json",
+        "attribute-ownership-check-requirements-contract.json",
+        "attribute-ownership-acquisition-api-contract.json",
+        "attribute-ownership-acquisition-requirements-contract.json",
+        "attribute-ownership-acquisition-if-available-api-contract.json",
+        "attribute-ownership-acquisition-if-available-requirements-contract.json",
+        "attribute-ownership-divestiture-if-wanted-api-contract.json",
+        "attribute-ownership-divestiture-if-wanted-requirements-contract.json",
+        "negotiated-attribute-ownership-divestiture-api-contract.json",
+        "negotiated-attribute-ownership-divestiture-requirements-contract.json",
+        "unconditional-attribute-ownership-divestiture-api-contract.json",
+        "unconditional-attribute-ownership-divestiture-requirements-contract.json",
+        "ownership-assumption-research-api-contract.json",
+        "ownership-assumption-research-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnership",
+      "runner_id": "java-tck.ownership",
+      "default_status": "run"
+    },
+    {
+      "id": "cpp-tck.connection-loss-cleanup",
+      "category": "connection",
+      "title": "Report connection loss, clean up the lost member, and keep the survivor usable",
+      "api_methods": [
+        "FederateAmbassador.connectionLost",
+        "RTIambassador.disconnect",
+        "RTIambassador.sendInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup"
+      ],
+      "contract_refs": [
+        "connection-lost-api-contract.json",
+        "connection-lost-requirements-contract.json",
+        "federate-lost-report-api-contract.json",
+        "federate-lost-report-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioConnectionLoss",
+      "runner_id": "cpp-tck.connection-loss-cleanup",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required"
+    }
+  ]
+}

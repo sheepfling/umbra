@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <limits>
+#include <set>
+#include <tuple>
 #include <utility>
 
 namespace umbra::detail {
@@ -31,8 +33,13 @@ std::wstring const& TsoMessageQueue::implementationName() const noexcept {
 }
 
 bool TsoMessageQueue::configureImplementationName(std::wstring implementationName) {
-  if ((!implementationName_.empty() && implementationName_ != implementationName) ||
-      (!pending_.empty() && implementationName_ != implementationName)) {
+  // A queue may be bound exactly once before it admits temporal entries.  In
+  // particular, an initially unconfigured queue must not be rebound after an
+  // entry was accepted: allowing that path would let a HLAinteger64Time
+  // payload sit behind a HLAfloat64Time boundary (or vice versa).
+  if (!pending_.empty() ||
+      (!implementationName_.empty() && implementationName_ != implementationName) ||
+      (admittedImplementationName_ && *admittedImplementationName_ != implementationName)) {
     return false;
   }
   implementationName_ = std::move(implementationName);
@@ -86,6 +93,14 @@ TsoMessageEnqueueResult TsoMessageQueue::enqueue(
   }
   if (nextSequence_ == 0) {
     return {TsoMessageQueueStatus::invalid_message_id};
+  }
+
+  if (implementationName_.empty()) {
+    if (!admittedImplementationName_) {
+      admittedImplementationName_ = timestamp->implementationName();
+    } else if (*admittedImplementationName_ != timestamp->implementationName()) {
+      return {TsoMessageQueueStatus::logical_time_implementation_mismatch};
+    }
   }
 
   pending_.push_back({TsoQueuedMessage{
@@ -158,6 +173,89 @@ TsoMessageRetractionResult TsoMessageQueue::retractPending(std::uint64_t message
     return {TsoMessageQueueStatus::applied, removedCount};
   }
   return {TsoMessageQueueStatus::message_not_found, 0};
+}
+
+TsoMessageQueueRestoreResult TsoMessageQueue::restoreEntries(
+    std::vector<TsoQueueRestoreEntry> const& entries) {
+  std::set<std::tuple<std::uint64_t, std::uint64_t, std::uint64_t>> identities;
+  std::set<std::uint64_t> sequences;
+  std::uint64_t maximumMessageId = 0;
+  std::uint64_t maximumSequence = 0;
+  std::optional<std::wstring> admittedImplementation = admittedImplementationName_;
+
+  for (auto const& entry : entries) {
+    auto const& message = entry.message;
+    if (message.messageId == 0 || message.recipientFederateId == 0 ||
+        message.sequence == 0 || !message.timestamp ||
+        message.timestamp->isInitial() || message.timestamp->isFinal()) {
+      return {TsoMessageQueueRestoreStatus::invalid_entry, 0};
+    }
+    if (static_cast<std::uint32_t>(entry.phase) >
+        static_cast<std::uint32_t>(TsoMessageQueuePhase::delivered)) {
+      return {TsoMessageQueueRestoreStatus::invalid_phase, 0};
+    }
+    if (!timestampMatches(message.timestamp)) {
+      return {
+          TsoMessageQueueRestoreStatus::logical_time_implementation_mismatch,
+          0};
+    }
+    if (!identities.emplace(
+             message.messageId,
+             message.recipientFederateId,
+             message.sequence)
+             .second ||
+        !sequences.insert(message.sequence).second) {
+      return {TsoMessageQueueRestoreStatus::duplicate_entry, 0};
+    }
+    if (admittedImplementation.has_value() &&
+        *admittedImplementation != message.timestamp->implementationName()) {
+      return {
+          TsoMessageQueueRestoreStatus::logical_time_implementation_mismatch,
+          0};
+    }
+    if (!admittedImplementation.has_value()) {
+      admittedImplementation = message.timestamp->implementationName();
+    }
+    maximumMessageId = std::max(maximumMessageId, message.messageId);
+    maximumSequence = std::max(maximumSequence, message.sequence);
+  }
+
+  auto pending = std::vector<PendingEntry>{};
+  pending.reserve(entries.size());
+  auto delivered = std::vector<std::uint64_t>{};
+  delivered.reserve(entries.size());
+  for (auto const& entry : entries) {
+    if (entry.phase == TsoMessageQueuePhase::queued) {
+      pending.push_back({entry.message});
+    } else if (std::find(delivered.begin(), delivered.end(), entry.message.messageId) ==
+               delivered.end()) {
+      delivered.push_back(entry.message.messageId);
+    }
+  }
+
+  // Keep designators issued after the saved boundary from being reused.  The
+  // queue image carries active IDs, so also advance beyond its largest one.
+  auto const messageIdAllocationFloor = nextMessageId_;
+  std::uint64_t restoredMessageIdFloor = messageIdAllocationFloor;
+  if (maximumMessageId == std::numeric_limits<std::uint64_t>::max()) {
+    restoredMessageIdFloor = 0;
+  } else if (maximumMessageId != 0) {
+    auto const imageFloor = maximumMessageId + 1U;
+    if (restoredMessageIdFloor != 0) {
+      restoredMessageIdFloor = std::max(restoredMessageIdFloor, imageFloor);
+    }
+  }
+
+  pending_ = std::move(pending);
+  deliveredMessageIds_ = std::move(delivered);
+  admittedImplementationName_ = std::move(admittedImplementation);
+  if (maximumSequence == std::numeric_limits<std::uint64_t>::max()) {
+    nextSequence_ = 0;
+  } else if (maximumSequence != 0) {
+    nextSequence_ = maximumSequence + 1U;
+  }
+  nextMessageId_ = restoredMessageIdFloor;
+  return {TsoMessageQueueRestoreStatus::applied, entries.size()};
 }
 
 std::vector<TsoQueuedMessage> TsoMessageQueue::popEligible(

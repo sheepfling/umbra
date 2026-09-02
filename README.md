@@ -60,8 +60,8 @@ object-instance registration/discovery/deletion, and time-management services un
 operate on a private dispatcher. The default packaged profile has no federation
 event producer.
 Every other RTI service remains explicitly unavailable through
-`rti1516_2025::RTIinternalError` in that profile. An explicit, non-installable
-source-tree profile can additionally execute Create/Destroy/Join/Resign through
+`rti1516_2025::RTIinternalError` in that profile. An explicit embedded profile
+can additionally execute Create/Destroy/Join/Resign through
 the official methods after MIM-first XML/XSD validation, FDD materialization,
 and reference-time selection. It also returns a caller-owned `getTimeFactory`
 for the joined federation's selected reference implementation, resolves joined
@@ -324,9 +324,9 @@ template/range paths.
 CTest also installs and consumes the exported `umbra::rti`, `umbra::fedtime`,
 and `umbra::authorizer` targets in a clean package-smoke build.
 
-To exercise the development-only federation-management vertical slice, use a
-separate build tree. It is deliberately non-installable until libxml2 and the
-vendored resource path are part of the SDK dependency contract.
+To exercise the embedded federation-management vertical slice, use a separate
+build tree. The profile installs the reviewed 1516.2 resource payload and
+exports its LibXml2 dependency alongside the C++ SDK targets.
 
 ```powershell
 cmake -S . -B out/cmake/fom-services -G "Visual Studio 17 2022" -A x64 `
@@ -351,6 +351,18 @@ The unmodified official IEEE 1516.1-2025 C++ headers are vendored under
 by the `umbra.ieee1516_2025.headers` smoke test. They are Umbra's only public
 API baseline. The implementation provides the official `rti1516_2025` symbols
 directly.
+
+A separate bounded IEEE 1516.1-2010 / 1516e target is available as
+`umbra::rti_2010`, with the official `rti1516e` headers under
+[`third_party/ieee1516.1-2010`](third_party/ieee1516.1-2010). The native Python
+package exposes that exact target as `UmbraNative2010` through `_native_2010`,
+and [`umbra-rti-jni-2010`](packages/umbra-rti-jni-2010) binds the exact
+`hla.rti1516e` Java API through JNI. The direct route now also proves the
+official scalar/opaque and composite encoder families plus integer/float
+logical-time arithmetic; the JNI route and the remaining RTI/MOM service
+families still keep only the bounded lifecycle/null behavior and throw
+`RTIinternalError`, so those rows remain binding/ABI checkpoints rather than
+conformance claims.
 
 The immutable 2025 DIF/FDD/OMT schemas, standard MIM, and supplied example
 FOMs are also vendored under

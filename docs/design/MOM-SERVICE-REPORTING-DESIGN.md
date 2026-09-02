@@ -168,11 +168,13 @@ writer after the record, and cannot append again for a duplicate fault. It is
 not an alternate spelling or consequence of `Federate Resigned`; its
 disconnected lifecycle and remote-fault delivery remain separately scoped.
 For the RTI-initiated `FederateResigned` control, the public Java/JPype route
-is reserved while the departing member still exists, then queued with its
-prevalidated recipient projection after membership removal and before the
-`federateResigned` callback. `ConnectionLost` deliberately remains
-file/callback-only because its callback endpoint is torn down as part of the
-authoritative transport-loss transition.
+and the native C++ HLA_IMMEDIATE route are reserved while the departing member
+still exists, then queued with their prevalidated recipient projections after
+membership removal and before the `federateResigned` callback. The focused C++
+observer decodes the federation-management type-0 report, type-53 reason,
+Null return, reliable transport, and serial zero at that boundary.
+`ConnectionLost` deliberately remains file/callback-only because its callback
+endpoint is torn down as part of the authoritative transport-loss transition.
 `Federate Save
 Begun` records its accepted §4.21 transition with the explicit Table 5
 successful-void form: an empty supplied-argument list and `[null]` returned
@@ -249,6 +251,11 @@ instance designator` and type-0 `Attribute designator` as quoted
   `HLAreportServiceInvocation` with ownership-management service type 3 and a
   Null returned argument before those callbacks; the file sink remains the
   fallback when interaction reporting is not selected.
+  The focused public case uses an HLA_IMMEDIATE observer and decodes all seven
+  MOM parameters, including true success, empty exception, and serial zero;
+  this is an interaction-delivery evidence slice, not a claim that generic
+  failure/return forms, producer identity, package behavior, or conformance are
+  complete.
   The nonregional `Request Attribute Value Update` overloads record their
   accepted §6.21 invocation before any separately queued `Provide Attribute
   Value Update` callback: the instance form uses type-37 `Object instance
@@ -301,8 +308,12 @@ instance designator` and type-0 `Attribute designator` as quoted
   selected, the requester-side record is emitted through the public
   `HLAreportServiceInvocation` path before the provider callback; its DDM
   service type and type-36/type-4/type-63 supplied arguments are preserved.
-  Neither callback record is a substitute for the public sender report or a
-  broad conformance claim.
+  The regional class-request path also recognizes RTI-owned `HLAfederate`
+  objects. It filters the direct reflection against the immutable represented
+  federate point and repeats that test at an evoked callback boundary, without
+  fabricating a provider callback at the represented federate. Neither callback
+  record is a substitute for the public sender report or a broad conformance
+  claim.
   The nonregional, non-timestamped `Update Attribute Values` overload records
   its accepted §6.10 invocation before any separately queued `Reflect
   Attribute Values` callback. Its four supplied-argument slots use type-37
@@ -389,6 +400,18 @@ instance designator` and type-0 `Attribute designator` as quoted
   callback, then verifies its source `RegionHandle`, timestamp, TIMESTAMP
   order metadata, and valid retraction. Regional failure, object-update/delete,
   lifecycle, transport, and conformance families remain separate.
+  The ordinary nonregional timestamped lane now also has a paired native
+  HLA_IMMEDIATE public-MOM case. With file reporting disabled it decodes one
+  reliable service type 2 report, the type-27/type-40/type-63/type-31 supplied
+  forms, the type-34 Null return for a non-time-regulating sender, success,
+  empty exception, invalid producer, no regions, and serial zero before the
+  queued callback; the receiver then verifies timestamp/order/tag/parameter
+  metadata and the absent retraction. A paired native HLA_IMMEDIATE case now
+  enables time regulation before the same timestamped send, decodes the
+  quoted type-33 MessageRetractionHandle return after TSO admission, and
+  verifies the service report precedes the constrained callback with valid
+  retraction metadata. RL-105/RL-152 keep both cases at development
+  traceability rather than Lab validation or conformance.
   The ordinary regional `Send Interaction With Regions` overload now has a
   matching accepted-transition pair. The filesystem case records service type
   2 with type-27/type-40/type-43/type-63/type-34 supplied forms, a Null return,
@@ -442,8 +465,16 @@ instance designator` and type-0 `Attribute designator` as quoted
   shared file-or-interaction selector: its accepted five-slot report retains
   type-27/type-37/type-40/type-63/type-31 forms, and a non-time-regulating
   sender records the type-34 Null return at serial zero before the queued
-  timestamped `Receive Directed Interaction` callback. Time-regulated type-33
-  return records, directed DDM, and broader transport remain separate.
+  timestamped `Receive Directed Interaction` callback. A paired native
+  `HLA_IMMEDIATE` companion now covers the time-regulated sender: after TSO
+  admission assigns the type-33 `MessageRetractionHandle`, public service type
+  2 arrives before the constrained callback with type-27/type-37/type-40/
+  type-63/type-31 supplied forms, success/empty-exception fields, invalid
+  producer, no regions, serial zero, callback metadata, and a valid retraction.
+  The paired production-filesystem case verifies the same quoted type-33
+  return and immutable file content before the callback, including after both
+  reporting switches are disabled. Directed DDM, broader transport, and
+  conformance remain separate.
   The RTI-initiated §6.9 `Discover Object Instance` service retains the
   receiving joined federate's selected-file route with its pending discovery.
   At the callback-time eligibility recheck, and immediately before
@@ -497,6 +528,14 @@ instance designator` and type-0 `Attribute designator` as quoted
   serials zero through two. No accepted sender output is inferred from this
   failure-only lane; RL-152 keeps it at development traceability rather than
   Lab validation or conformance.
+  The accepted ordinary timestamped §6.10 `Update Attribute Values` path now
+  has a paired native HLA_IMMEDIATE public-MOM case. TSO admission assigns the
+  retraction identity before the report; the observer decodes service type 2,
+  type-37/type-2/type-63/type-31 supplied forms, the quoted type-33
+  `MessageRetractionHandle`, success/empty-exception fields, invalid producer,
+  no regions, and serial zero before the constrained reflection callback. The
+  callback retains object/attribute values, tag, timestamp/order metadata, and
+  a valid retraction. RL-105/RL-152 keep this at development traceability.
   The paired timestamped §6.12 `Send Interaction` failure matrices now cover
   the analogous TSO interaction pre-admission boundary in both sinks. Invalid
   interaction-class and parameter designators, plus a timestamp below current
@@ -534,6 +573,25 @@ instance designator` and type-0 `Attribute designator` as quoted
   callback report forms remain separate work because the multiple-name success
   callback is a composite set of names and success indicators without a
   reviewed Table 5 file-record mapping.
+  The accepted §6.7 release also has a public HLAreportServiceInvocation route:
+  the type-54 StringSet interaction is reserved only after the atomic registry
+  mutation and is submitted outside native locks, so HLA_IMMEDIATE observers
+  cannot re-enter a held service transaction. This public interaction slice is
+ independent of the private file sink and does not claim rejected-path,
+ remote, Java, or conformance evidence.
+  The four §6.8/§9.5 `Register Object Instance` overloads now use the same
+  post-transaction file route in the embedded profile. The ordinary overloads
+  record type-36 `Object class designator` and, when supplied, type-53
+  `Object instance name`; the regional overloads add the type-4
+  `Collection of attribute designator set and region designator set pairs`
+  argument. Each accepted call returns type-37 `Object instance designator`,
+  and a rejected call records the original supplied form with a Null return,
+  false success indicator, and exception text. The record is durable after the
+  registry has allocated/coadunated the instance and before queued discovery
+  callbacks are dispatched. This focused filesystem matrix is development
+  traceability only; timestamped/retraction, broader DDM and ownership
+  behavior, public MOM interaction delivery, remote transport, package/JUnit,
+  protected review, Requirements Lab validation, and conformance remain open.
   The receive-order §6.17 `Remove Object Instance` callback carries its
   recipient-local selected-file route through the queued removal. Once its
   callback-time transition succeeds, it appends before
@@ -603,7 +661,12 @@ instance designator` and type-0 `Attribute designator` as quoted
   or a separately queued `Confirm Attribute Ownership Acquisition
   Cancellation` callback. Rejected cancellations append nothing. This is only
   the existing nonregional, still-pending regular-acquisition path; in-flight
-  cancellation races remain outside the report wrapper.
+  cancellation races remain outside the report wrapper. The same accepted
+  cancellation is also emitted through the public HLA_IMMEDIATE
+  `HLAreportServiceInvocation` path after the registry plan and outside native
+  locks, so the advertised interaction precedes the confirmation callback;
+  this is development-profile evidence and does not replace the filesystem
+  report or claim validation/conformance.
   `Local Delete Object Instance` records its accepted §6.18 local-forget
   transition with type-37 `Object instance designator` as quoted exact
   `ObjectInstanceHandle::toString()` text. Its paired failure matrices now
@@ -633,7 +696,9 @@ instance designator` and type-0 `Attribute designator` as quoted
   type-36 `Object class designator` as quoted exact
   `ObjectClassHandle::toString()` text and type-1 `Optional set of attribute
   designators` as a bracketed array of quoted `AttributeHandle::toString()`
-  values. A rejected class appends no record; the successful record follows the
+  values. The official whole-class C++ overload retains that optional argument
+  position as type-34 Null; a supplied-empty set remains distinct from Null.
+  A rejected class appends no record; either successful record follows the
   registry's synchronous ownership cleanup and precedes separately queued
   declaration advisories. The Requirements Lab currently locates the coalesced
   source under §5.3.3 rather than §5.3 (RL-078).
@@ -1313,10 +1378,14 @@ periodic reflection, and deletion. The successful-update-count companion now
 official target/reference and `HLAseconds` pair, arms one target-local
 wall-clock deadline, and routes the catalog-declared periodic subset through
 the ordinary active-subscription planner at an Evoke callback boundary. For
-  `HLA_IMMEDIATE`, a private per-ambassador scheduler now claims the same
-  registry-owned deadline and invokes that route without an Evoke call; callback
-  enable/disable and lifetime still remain under the normal dispatcher/session
-  seams. The duration pair `HLAtimeGrantedTime` and `HLAtimeAdvancingTime` now
+      `HLA_IMMEDIATE`, a private per-ambassador scheduler now claims the same
+      registry-owned deadline and invokes that route without an Evoke call; callback
+      enable/disable and lifetime still remain under the normal dispatcher/session
+      seams. A focused two-target vector also proves that the scheduler retains
+      independent target-local deadlines: a one-second target can report while a
+      two-second target remains pending, and disabling the first target does not
+      cancel the second. The duration pair `HLAtimeGrantedTime` and
+      `HLAtimeAdvancingTime` now
   uses the same federation-owned state for direct known-object requests and
   consume-once periodic reflections, with official `HLAinteger32BE` HLAmsec
   encodings in both callback models. The remaining periodic/other conditional
@@ -1346,6 +1415,15 @@ designator. Generic report callbacks must retain that source distinction and
 use the ordinary discovery, reflection, subscription, and callback-time
 revalidation machinery once the remaining producer-designator rules are
 sourced.
+The non-timestamped receive-order sender now has a paired public-MOM evidence
+slice: with file reporting disabled, an `HLA_IMMEDIATE` observer receives one
+reliable type-2 `HLAreportServiceInvocation` before the receiver's queued
+`HLA_EVOKED` callback. The report retains the type-27/type-40/type-63/type-34
+Table 5 supplied forms, successful-void Null return, empty exception, no
+regions, and serial zero. This is a bounded development-profile companion to
+the production filesystem route; timestamped, regional, directed, failure,
+remote, protected-review, Lab-validation, and conformance evidence remain
+separate.
 
 The private report-routing foundation now carries an explicit RTI interaction
 source rather than passing numeric `0` through the ordinary federate-sender
@@ -1434,7 +1512,9 @@ The intended implementation order is:
    2025 source rules. Direct AVU for the first two MIM-periodic time values is
    now covered, and the bounded `HLAsetTiming` deadline pump emits the
    catalog-declared periodic subset at an Evoke boundary or through the
-   per-ambassador scheduler for `HLA_IMMEDIATE`; the remaining
+   per-ambassador scheduler for `HLA_IMMEDIATE`, with independent target-local
+   deadlines verified for two simultaneous joined-federate MOM objects under
+   both callback models; the remaining
     periodic/conditional attributes (including
     traffic/statistical values beyond the bounded deletable-object,
     successful-update-count, updated-object-count, registered-object-count,
@@ -1885,6 +1965,12 @@ Table 5 returned-argument array. Create Region uses type-11
   no row-level Table 5 ReturnArgument candidates for these private file forms
   (RL-042/RL-067/RL-076/RL-149), so this remains development-profile
   traceability rather than validation or conformance.
+  Failed `GetFederateHandle` and `GetFederateName` calls now use the same
+  selected sink: paired filesystem and HLA_IMMEDIATE matrices preserve the
+  type-53/type-15 supplied forms, Null returns, false indicators, exact
+  exception text, and contiguous serials before successful lookups continue.
+  RL-152 remains the Requirements-Lab conditional failure-mapping gap; this
+  is development-profile traceability rather than validation or conformance.
   The bounded support lane now also covers §10.13--§10.16 interaction-class
   and parameter lookups. `GetInteractionClassHandle` records type-53
   `Interaction class name` and returns type-27 `Interaction class handle`;
@@ -1939,7 +2025,7 @@ Table 5 returned-argument array. Create Region uses type-11
   success, exception text, and serials zero through five before a successful
   serial-six GetDimensionHandle. RL-152 remains the conditional failure-mapping
   gap; other failure families and conformance remain open.
-  The next bounded support lane covers §10.29--§10.33 handle normalization.
+  The bounded support lane covers §10.29--§10.33 handle normalization.
   `NormalizeServiceGroup` records type-50 `Service group indicator` and
   returns the type-35 `Normalized value` Number. The four handle services use
   the official type-15 FederateHandle, type-36 ObjectClassHandle, type-27
@@ -1949,10 +2035,13 @@ Table 5 returned-argument array. Create Region uses type-11
   `HLAnormalized*` datatype names are not Table 5 service-report argument
   types. Appends remain outside native locks and preserve the joined-federate
   file/serial sequence. The rendered source pages and exact MIM types are
-  covered by focused C++ unit/filesystem integration selectors, but the Lab
-  still exports no row-level Table 5 ReturnArgument candidates (RL-042/RL-067/
-  RL-076/RL-148), so this remains development-profile traceability rather than
-  validation or conformance.
+  covered by focused C++ unit/filesystem integration selectors. A paired native
+  HLA_IMMEDIATE observer now decodes five successful reliable type-6 reports
+  with file reporting disabled, including the same supplied/returned forms,
+  success, empty exception, unresolved RTI producer, no regions, and serials
+  zero through four. The Lab still exports no row-level Table 5 ReturnArgument
+  candidates (RL-042/RL-067/RL-076/RL-148), so this remains development-profile
+  traceability rather than validation or conformance.
   Failed §10.29--§10.33 invocations now use the same selected sink: paired
   filesystem and HLA_IMMEDIATE interaction matrices preserve the official
   type-50/type-15/type-36/type-27/type-37 supplied forms, Null returns, false
@@ -1996,8 +2085,10 @@ Table 5 returned-argument array. Create Region uses type-11
   `Unpublish Object Class Attributes` adds its type-36 `Object class
   designator` and type-1 `Optional set of attribute designators` after the
   accepted §5.3 teardown and synchronous ownership cleanup, before declaration
-  advisories are queued. The source candidates are coalesced under the Lab's
-  §5.3.3 owner, rather than §5.3 itself (RL-078).
+  advisories are queued. The official whole-class C++ overload emits type-34
+  Null in that optional position; a supplied-empty set remains distinct. The
+  source candidates are coalesced under the Lab's §5.3.3 owner, rather than
+  §5.3 itself (RL-078).
   `Subscribe Object Class Attributes` adds type-36 `Object class designator`,
   type-1 `Set of attribute designators`, type-6 `Optional passive subscription
   indicator`, and type-53 `Optional update rate designator` after the accepted

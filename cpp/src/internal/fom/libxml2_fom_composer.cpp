@@ -1,7 +1,10 @@
 #include "internal/fom/libxml2_fom_composer.hpp"
 
+#include "internal/fom/hla_names.hpp"
+
 #include "internal/fom/fdd_document.hpp"
 #include "internal/fom/fom_catalog.hpp"
+#include "internal/fom/fom_rpr_wire_encoding.hpp"
 #include "internal/fom/libxml2_fom_document.hpp"
 #include "internal/runtime/utf8_string.hpp"
 
@@ -34,10 +37,7 @@ using NodeKey = std::pair<std::string, std::string>;
 using NoteLabelMap = std::map<std::string, std::string>;
 using NoteDefinitionMap = std::map<std::string, std::string>;
 
-constexpr char kHla2025Namespace[] = "http://standards.ieee.org/IEEE1516-2025";
 constexpr char kXmlSchemaInstanceNamespace[] = "http://www.w3.org/2001/XMLSchema-instance";
-constexpr char kFddSchemaLocation[] =
-    "http://standards.ieee.org/IEEE1516-2025 IEEE1516-FDD-2025.xsd";
 
 struct SemanticNode {
   std::string localName;
@@ -781,6 +781,8 @@ bool mergeTransportationTypes(
     SemanticNode const& candidate,
     std::string const& path,
     std::string& diagnostics,
+    bool allowLegacyStandardAliases,
+    std::vector<std::string>& warnings,
     NoteDefinitionMap const& currentDefinitions,
     NoteDefinitionMap const& candidateDefinitions) {
   if (!mergeNodeFields(current, candidate, path, diagnostics)) {
@@ -805,6 +807,24 @@ bool mergeTransportationTypes(
             currentDefinitions,
             candidateDefinitions)) {
       continue;
+    }
+    if (allowLegacyStandardAliases) {
+      auto const name = candidateTransportation->identity.starts_with("name=")
+          ? candidateTransportation->identity.substr(std::string{"name="}.size())
+          : std::string{};
+      auto const currentReliable = scalarChildValue(existing->second, "reliable");
+      auto const candidateReliable = scalarChildValue(*candidateTransportation, "reliable");
+      if ((name == "HLAreliable" || name == "HLAbestEffort") &&
+          currentReliable == candidateReliable && !candidateReliable.empty()) {
+        // A number of otherwise valid 1516-2010 modules repeat the standard
+        // transport rows with abbreviated semantics. Preserve the standard
+        // MIM definition when the reliability contract agrees; this narrow
+        // compatibility rule is not used by the strict 2025 lane.
+        warnings.push_back(
+            "IEEE 1516-2010 compatibility: retained the first standard " +
+            name + " transportation definition despite abbreviated duplicate semantics.");
+        continue;
+      }
     }
     diagnostics = "Conflicting duplicate transportation type " +
                   displayNode(*candidateTransportation) + " at " +
@@ -949,6 +969,7 @@ bool mergeNode(
     std::string const& path,
     std::string& diagnostics,
     std::vector<std::string>& warnings,
+    bool allowLegacyStandardAliases = false,
     NoteDefinitionMap const& currentNoteDefinitions = {},
     NoteDefinitionMap const& candidateNoteDefinitions = {}) {
   if (current.localName == "switches") {
@@ -969,6 +990,8 @@ bool mergeNode(
         candidate,
         path,
         diagnostics,
+        allowLegacyStandardAliases,
+        warnings,
         currentNoteDefinitions,
         candidateNoteDefinitions);
   }
@@ -1008,6 +1031,7 @@ bool mergeNode(
             childPath(path, *candidateChild),
             diagnostics,
             warnings,
+            allowLegacyStandardAliases,
             currentNoteDefinitions,
             candidateNoteDefinitions)) {
       return false;
@@ -1039,6 +1063,267 @@ void walkNodes(SemanticNode const& node, std::string const& path, Function&& fun
     (void)key;
     walkNodes(child, childPath(path, child), function);
   }
+}
+
+bool asciiCaseInsensitiveEquals(std::string_view value, std::string_view expected) {
+  if (value.size() != expected.size()) {
+    return false;
+  }
+  for (std::size_t index = 0; index < value.size(); ++index) {
+    auto const left = static_cast<unsigned char>(value[index]);
+    auto const right = static_cast<unsigned char>(expected[index]);
+    if (std::tolower(left) != std::tolower(right)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool hasAsciiCaseInsensitivePrefix(std::string_view value, std::string_view prefix) {
+  if (value.size() < prefix.size()) {
+    return false;
+  }
+  return asciiCaseInsensitiveEquals(value.substr(0, prefix.size()), prefix);
+}
+
+bool isHlaNamedDeclaration(std::string_view localName) {
+  return localName == "objectClass" || localName == "interactionClass" ||
+         localName == "attribute" || localName == "parameter" ||
+         localName == "basicData" || localName == "simpleData" ||
+         localName == "enumeratedData" || localName == "referenceDataType" ||
+         localName == "arrayData" || localName == "fixedRecordData" ||
+         localName == "variantRecordData" || localName == "dimension" ||
+         localName == "transportation" || localName == "updateRate" ||
+         localName == "synchronizationPoint" || localName == "field" ||
+         localName == "alternative" || localName == "enumerator";
+}
+
+bool validateHlaNamePart(
+    std::string_view value,
+    std::string const& path,
+    std::string_view valueKind,
+    bool allowReservedHlaNames,
+    bool allowNaMarker,
+    std::string& diagnostics) {
+  if (value.empty()) {
+    diagnostics = "HLA " + std::string(valueKind) + " at " + path +
+                  " must contain a non-empty XML name.";
+    return false;
+  }
+
+  // XML NCName is the authoritative character/leading-character rule.  The
+  // HLA 3.3.1 convention is stricter than XML in two ways below (periods are
+  // reserved for qualified class paths and colons are discouraged/reserved).
+  std::string const ownedValue(value);
+  if (xmlValidateNCName(
+          reinterpret_cast<xmlChar const*>(ownedValue.c_str()),
+          0) != 0) {
+    diagnostics = "HLA " + std::string(valueKind) + " " +
+                  quoteDiagnosticString(value) + " at " + path +
+                  " is not a valid XML name under HLA 3.3.1.";
+    return false;
+  }
+  if (value.find('.') != std::string_view::npos) {
+    diagnostics = "HLA " + std::string(valueKind) + " " +
+                  quoteDiagnosticString(value) + " at " + path +
+                  " cannot contain a period; periods are reserved for qualified class names.";
+    return false;
+  }
+  if (asciiCaseInsensitiveEquals(value, "na") && !allowNaMarker) {
+    diagnostics = "HLA " + std::string(valueKind) + " " +
+                  quoteDiagnosticString(value) + " at " + path +
+                  " is reserved for the NA marker and cannot be a user-defined name.";
+    return false;
+  }
+  if (hasAsciiCaseInsensitivePrefix(value, "hla") && !allowReservedHlaNames) {
+    diagnostics = "HLA " + std::string(valueKind) + " " +
+                  quoteDiagnosticString(value) + " at " + path +
+                  " uses the reserved HLA prefix and cannot be a user-defined name.";
+    return false;
+  }
+  return true;
+}
+
+bool validateQualifiedHlaName(
+    std::string_view value,
+    std::string const& path,
+    std::string_view valueKind,
+    bool allowReservedHlaNames,
+    std::set<std::string> const* knownReservedHlaNames,
+    std::string& diagnostics) {
+  std::size_t segmentStart = 0;
+  while (segmentStart <= value.size()) {
+    auto const separator = value.find('.', segmentStart);
+    auto const segment = value.substr(
+        segmentStart,
+        separator == std::string_view::npos ? value.size() - segmentStart
+                                             : separator - segmentStart);
+    // A qualified class path may use the standard HLA root (and, for the
+    // MIM, other standard HLA identifiers), while each user-defined segment
+    // still follows the ordinary NCName restrictions.
+    bool const segmentAllowsReserved =
+        allowReservedHlaNames ||
+        (knownReservedHlaNames != nullptr && knownReservedHlaNames->contains(std::string(segment))) ||
+        segment == umbra::detail::hla::utf8::fom::object_root ||
+        segment == umbra::detail::hla::utf8::fom::interaction_root;
+    if (!validateHlaNamePart(
+            segment,
+            path,
+            valueKind,
+            segmentAllowsReserved,
+            false,
+            diagnostics)) {
+      return false;
+    }
+    if (separator == std::string_view::npos) {
+      return true;
+    }
+    segmentStart = separator + 1U;
+  }
+  return false;
+}
+
+bool validateHlaNames(
+    SemanticNode const& root,
+    FomModuleKind moduleKind,
+    std::set<std::string> const* knownReservedHlaNames,
+    std::string& diagnostics) {
+  // Individual DIF modules are intentionally allowed to carry standard HLA
+  // names that are declared by a separately supplied MIM.  The merged pass
+  // below supplies the MIM-derived set and rejects an unknown HLA-prefixed
+  // user name.  A standalone MIM is, by definition, the source of those
+  // reserved names.
+  bool const allowReservedHlaNames =
+      moduleKind == FomModuleKind::mim || knownReservedHlaNames == nullptr;
+  bool valid = true;
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const& path) {
+    if (!valid) {
+      return;
+    }
+    if (node.localName == "directedInteraction") {
+      auto const* name = firstChildNamed(node, "name");
+      if (name == nullptr) {
+        return;
+      }
+      valid = validateQualifiedHlaName(
+          name->text,
+          childPath(path, *name),
+          "directed-interaction name",
+          allowReservedHlaNames,
+          knownReservedHlaNames,
+          diagnostics);
+      return;
+    }
+    if (isHlaNamedDeclaration(node.localName)) {
+      auto const* name = firstChildNamed(node, "name");
+      if (name == nullptr) {
+        return;
+      }
+      bool const isStandardRoot =
+          name->text == umbra::detail::hla::utf8::fom::object_root ||
+          name->text == umbra::detail::hla::utf8::fom::interaction_root;
+      valid = validateHlaNamePart(
+          name->text,
+          childPath(path, *name),
+          node.localName == "field" ? "field name" : "name",
+          allowReservedHlaNames || isStandardRoot ||
+              (knownReservedHlaNames != nullptr && knownReservedHlaNames->contains(name->text)),
+          node.localName == "enumerator",
+          diagnostics);
+      return;
+    }
+    if (node.localName == "note") {
+      auto const* label = firstChildNamed(node, "label");
+      if (label == nullptr) {
+        return;
+      }
+      valid = validateHlaNamePart(
+          label->text,
+          childPath(path, *label),
+          "note label",
+          allowReservedHlaNames,
+          false,
+          diagnostics);
+    }
+  });
+  return valid;
+}
+
+// IEEE 1516.2-2025 Table 1 specifies the object-model modification date as
+// the lexical form YYYY-MM-DD.  The DIF schema intentionally uses xs:date,
+// which also admits an optional timezone suffix.  Keep the schema responsible
+// for calendar validity, but enforce the stricter OMT presentation here so a
+// schema-valid value such as 2025-02-10Z does not silently enter a composed
+// FDD.  DIF modules may be incomplete, so an omitted date remains acceptable
+// until a completed OMT/FDD supplies one.
+bool validModificationDateLexical(std::string_view value) {
+  if (value.size() != 10U || value[4] != '-' || value[7] != '-') {
+    return false;
+  }
+  for (std::size_t index = 0; index < value.size(); ++index) {
+    if (index == 4U || index == 7U) {
+      continue;
+    }
+    auto const character = static_cast<unsigned char>(value[index]);
+    if (character < static_cast<unsigned char>('0') ||
+        character > static_cast<unsigned char>('9')) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool validateModificationDate(
+    xmlNode const* modelIdentification,
+    std::string& diagnostics) {
+  if (modelIdentification == nullptr) {
+    return true;
+  }
+  std::string const value = directChildText(modelIdentification, "modificationDate");
+  if (value.empty() || validModificationDateLexical(value)) {
+    return true;
+  }
+  diagnostics = "Object-model modification date " + quoteDiagnosticString(value) +
+                " at objectModel/modelIdentification/modificationDate must use YYYY-MM-DD format.";
+  return false;
+}
+
+void collectReservedHlaNames(
+    SemanticNode const& root,
+    std::set<std::string>& reservedNames) {
+  walkNodes(root, "objectModel", [&](SemanticNode const& node, std::string const&) {
+    auto collect = [&](std::string_view value) {
+      std::size_t segmentStart = 0;
+      while (segmentStart <= value.size()) {
+        auto const separator = value.find('.', segmentStart);
+        auto const segment = value.substr(
+            segmentStart,
+            separator == std::string_view::npos ? value.size() - segmentStart
+                                                 : separator - segmentStart);
+        if (hasAsciiCaseInsensitivePrefix(segment, "hla")) {
+          reservedNames.emplace(segment);
+        }
+        if (separator == std::string_view::npos) {
+          break;
+        }
+        segmentStart = separator + 1U;
+      }
+    };
+
+    if (node.localName == "directedInteraction") {
+      if (auto const* name = firstChildNamed(node, "name"); name != nullptr) {
+        collect(name->text);
+      }
+    } else if (isHlaNamedDeclaration(node.localName)) {
+      if (auto const* name = firstChildNamed(node, "name"); name != nullptr) {
+        collect(name->text);
+      }
+    } else if (node.localName == "note") {
+      if (auto const* label = firstChildNamed(node, "label"); label != nullptr) {
+        collect(label->text);
+      }
+    }
+  });
 }
 
 DataTypeDeclarationKinds dataTypeDeclarationKinds(SemanticNode const& root) {
@@ -1692,7 +1977,7 @@ bool validateReferenceDataTypeClassReferences(SemanticNode const& root, std::str
 }
 
 bool isStandardInstanceIdentifierAttribute(std::string_view name) {
-  return name == "HLAobjectInstanceName" || name == "HLAobjectInstanceHandle";
+  return name == umbra::detail::hla::utf8::fom::object_instance_name || name == umbra::detail::hla::utf8::fom::object_instance_handle;
 }
 
 std::optional<std::string> referencedAttributeDataType(
@@ -1732,8 +2017,8 @@ bool validateReferenceDataTypeAttributeReferences(SemanticNode const& root, std:
       // semantics rather than requiring an ordinary attribute row. Preserve
       // that exception, but still enforce their standardized representations.
       std::string const expectedRepresentation =
-          referencedAttribute == "HLAobjectInstanceName" ? "HLAunicodeString"
-                                                            : "HLAobjectInstanceHandle";
+          referencedAttribute == umbra::detail::hla::utf8::fom::object_instance_name ? umbra::detail::hla::utf8::fom::unicode_string
+                                                            : umbra::detail::hla::utf8::fom::object_instance_handle;
       if (scalarChildValue(node, "representation") != expectedRepresentation) {
         diagnostics = "Reference data type " + quotedIdentityValue(node, "name=") +
                       " representation must be " + quoteDiagnosticString(expectedRepresentation) +
@@ -2039,8 +2324,8 @@ bool validateStandardRootClassHierarchies(SemanticNode const& root, std::string&
     return true;
   };
 
-  return validate("objects", "objectClass", "HLAobjectRoot", "Object") &&
-         validate("interactions", "interactionClass", "HLAinteractionRoot", "Interaction");
+  return validate("objects", "objectClass", umbra::detail::hla::utf8::fom::object_root, "Object") &&
+         validate("interactions", "interactionClass", umbra::detail::hla::utf8::fom::interaction_root, "Interaction");
 }
 
 bool validateInheritedObjectClassAttributeNames(SemanticNode const& root, std::string& diagnostics) {
@@ -2763,6 +3048,36 @@ xmlNode const* directChildElement(xmlNode const* parent, std::string_view desire
   return nullptr;
 }
 
+// IEEE 1516.2-2025 Table 14 requires dimension names to be unique within a
+// Dimension table.  The DIF schema intentionally leaves that semantic rule
+// open, and the identity-based SemanticNode map would otherwise coalesce
+// repeated rows before the rule could be checked.  Validate each source
+// module before composition so equivalent definitions supplied by separate
+// modules remain available to the Annex C.4 merge path.
+bool validateUniqueDimensionNames(xmlDoc const* document, std::string& diagnostics) {
+  xmlNode const* root = xmlDocGetRootElement(const_cast<xmlDoc*>(document));
+  xmlNode const* dimensions = directChildElement(root, "dimensions");
+  if (dimensions == nullptr) {
+    return true;
+  }
+
+  std::set<std::string> names;
+  for (xmlNode const* dimension = dimensions->children; dimension != nullptr;
+       dimension = dimension->next) {
+    if (dimension->type != XML_ELEMENT_NODE || localName(dimension) != "dimension") {
+      continue;
+    }
+    std::string const name = directChildText(dimension, "name");
+    if (name.empty() || names.insert(name).second) {
+      continue;
+    }
+    diagnostics = "Dimension name " + quoteDiagnosticString(name) +
+                  " is repeated in one module; dimension names must be unique.";
+    return false;
+  }
+  return true;
+}
+
 NoteLabelMap makeNoteLabelMap(xmlDoc const* document, std::size_t& nextLabel) {
   NoteLabelMap labels;
   xmlNode const* root = xmlDocGetRootElement(const_cast<xmlDoc*>(document));
@@ -3160,9 +3475,10 @@ bool appendSemanticNode(
     xmlNode* parent,
     xmlNs* hlaNamespace,
     SemanticNode const& semantic,
+    std::string_view expectedNamespace,
     std::string& diagnostics) {
-  if (semantic.namespaceName != kHla2025Namespace) {
-    diagnostics = "The FDD materializer does not accept an extension element outside the IEEE 1516-2025 namespace: " +
+  if (semantic.namespaceName != expectedNamespace) {
+    diagnostics = "The FDD materializer does not accept an extension element outside the selected IEEE 1516 namespace: " +
                   quoteDiagnosticString(semantic.localName) + ".";
     return false;
   }
@@ -3206,7 +3522,13 @@ bool appendSemanticNode(
                sequenceRank(semantic.localName, right->localName);
       });
   for (SemanticNode const* child : children) {
-    if (!appendSemanticNode(document, output, hlaNamespace, *child, diagnostics)) {
+    if (!appendSemanticNode(
+            document,
+            output,
+            hlaNamespace,
+            *child,
+            expectedNamespace,
+            diagnostics)) {
       return false;
     }
   }
@@ -3270,6 +3592,8 @@ FddMaterializationResult materializeFdd(
     std::optional<SemanticNode> const& serviceUtilization,
     std::optional<SemanticNode> const& notes,
     std::vector<std::string> composedFromModuleNames,
+    FomStandardEdition standardEdition,
+    std::wstring_view fddSchemaDesignator,
     std::filesystem::path const& fddSchemaPath) {
   std::unique_ptr<xmlDoc, XmlDocumentDeleter> document(xmlNewDoc(BAD_CAST "1.0"));
   if (!document) {
@@ -3288,14 +3612,17 @@ FddMaterializationResult materializeFdd(
     };
   }
   xmlDocSetRootElement(document.get(), root);
-  xmlNs* hlaNamespace = xmlNewNs(root, BAD_CAST kHla2025Namespace, nullptr);
+  std::string const hlaNamespaceName = std::string(fomNamespace(standardEdition));
+  std::string const fddSchemaLocation =
+      hlaNamespaceName + " " + utf8FromWide(std::wstring{fddSchemaDesignator});
+  xmlNs* hlaNamespace = xmlNewNs(root, BAD_CAST hlaNamespaceName.c_str(), nullptr);
   xmlNs* schemaInstanceNamespace =
       xmlNewNs(root, BAD_CAST kXmlSchemaInstanceNamespace, BAD_CAST "xsi");
   if (hlaNamespace == nullptr || schemaInstanceNamespace == nullptr) {
     return {
-        FddMaterializationStatus::validator_failure,
-        {},
-        "Cannot allocate namespaces for the composed FDD.",
+          FddMaterializationStatus::validator_failure,
+          {},
+          "Cannot allocate namespaces for the composed FDD.",
     };
   }
   xmlSetNs(root, hlaNamespace);
@@ -3303,7 +3630,7 @@ FddMaterializationResult materializeFdd(
           root,
           schemaInstanceNamespace,
           BAD_CAST "schemaLocation",
-          BAD_CAST kFddSchemaLocation) == nullptr) {
+          BAD_CAST fddSchemaLocation.c_str()) == nullptr) {
     return {
         FddMaterializationStatus::validator_failure,
         {},
@@ -3319,6 +3646,7 @@ FddMaterializationResult materializeFdd(
             root,
             hlaNamespace,
             *modelIdentification,
+            hlaNamespaceName,
             identificationDiagnostics)) {
       return {
           FddMaterializationStatus::invalid_model,
@@ -3386,7 +3714,13 @@ FddMaterializationResult materializeFdd(
 
   std::string diagnostics;
   if (serviceUtilization.has_value() &&
-      !appendSemanticNode(document.get(), root, hlaNamespace, *serviceUtilization, diagnostics)) {
+      !appendSemanticNode(
+          document.get(),
+          root,
+          hlaNamespace,
+          *serviceUtilization,
+          hlaNamespaceName,
+          diagnostics)) {
     return {FddMaterializationStatus::invalid_model, {}, std::move(diagnostics)};
   }
   std::vector<SemanticNode const*> sections;
@@ -3403,12 +3737,24 @@ FddMaterializationResult materializeFdd(
                sequenceRank("objectModel", right->localName);
       });
   for (SemanticNode const* section : sections) {
-    if (!appendSemanticNode(document.get(), root, hlaNamespace, *section, diagnostics)) {
+    if (!appendSemanticNode(
+            document.get(),
+            root,
+            hlaNamespace,
+            *section,
+            hlaNamespaceName,
+            diagnostics)) {
       return {FddMaterializationStatus::invalid_model, {}, std::move(diagnostics)};
     }
   }
   if (notes.has_value() &&
-      !appendSemanticNode(document.get(), root, hlaNamespace, *notes, diagnostics)) {
+      !appendSemanticNode(
+          document.get(),
+          root,
+          hlaNamespace,
+          *notes,
+          hlaNamespaceName,
+          diagnostics)) {
     return {FddMaterializationStatus::invalid_model, {}, std::move(diagnostics)};
   }
 
@@ -3465,6 +3811,9 @@ class FomCatalogBuilder final {
       std::vector<PrevalidatedFomModule> const& modules) {
     auto catalog = std::make_shared<FomCatalog>();
     catalog->modules_ = modules;
+    FomSourceCompatibility const sourceCompatibility = modules.empty()
+        ? FomSourceCompatibility::strict
+        : modules.front().sourceCompatibility;
 
     if (auto const* objects = firstChildNamed(root, "objects"); objects != nullptr) {
       for (auto const& [key, objectClass] : objects->children) {
@@ -3512,7 +3861,7 @@ class FomCatalogBuilder final {
       }
     }
     if (auto const* dataTypes = firstChildNamed(root, "dataTypes"); dataTypes != nullptr) {
-      appendDataTypes(*catalog, *dataTypes);
+      appendDataTypes(*catalog, *dataTypes, sourceCompatibility);
     }
     if (auto const* updateRates = firstChildNamed(root, "updateRates");
         updateRates != nullptr) {
@@ -3815,7 +4164,54 @@ class FomCatalogBuilder final {
     return FomDataTypeKind::variant_record;
   }
 
-  static void appendDataTypes(FomCatalog& catalog, SemanticNode const& dataTypes) {
+  static FomWireEncodingDescriptor wireEncoding(
+      SemanticNode const& node,
+      FomSourceCompatibility compatibility) {
+    std::string const sourceEncoding = scalarChildValue(node, "encoding");
+    if (node.localName != "basicData") {
+      if (compatibility == FomSourceCompatibility::rpr_2010) {
+        // RPR uses its custom unsigned primitive names as the representation
+        // of simple/enumerated declarations rather than as an <encoding>
+        // child. Keep that promotion in the RPR adapter; standard composition
+        // continues to see only the neutral descriptor path.
+        auto const representation = scalarChildValue(node, "representation");
+        if (rprUnsignedIntegerWireCodecAvailable(representation)) {
+          return normalizeRprUnsignedIntegerFomWireEncoding(representation);
+        }
+        return normalizeRprFomWireEncoding(sourceEncoding);
+      }
+      return normalizeFomWireEncoding(sourceEncoding, compatibility);
+    }
+
+    std::uint32_t sizeBits = 0;
+    std::string const sizeText = scalarChildValue(node, "size");
+    if (!sizeText.empty()) {
+      unsigned long const parsedSize = parseUnsignedLong(sizeText);
+      if (parsedSize <= std::numeric_limits<std::uint32_t>::max()) {
+        sizeBits = static_cast<std::uint32_t>(parsedSize);
+      }
+    }
+    FomByteOrder byteOrder = FomByteOrder::unspecified;
+    std::string const endian = scalarChildValue(node, "endian");
+    if (endian == "Big") {
+      byteOrder = FomByteOrder::big;
+    } else if (endian == "Little") {
+      byteOrder = FomByteOrder::little;
+    }
+    if (compatibility == FomSourceCompatibility::rpr_2010) {
+      return normalizeRprBasicFomWireEncoding(
+          identityValue(node, "name="),
+          sourceEncoding,
+          sizeBits,
+          byteOrder);
+    }
+    return makeBasicFomWireEncoding(sourceEncoding, sizeBits, byteOrder);
+  }
+
+  static void appendDataTypes(
+      FomCatalog& catalog,
+      SemanticNode const& dataTypes,
+      FomSourceCompatibility compatibility) {
     walkNodes(dataTypes, "dataTypes", [&](SemanticNode const& node, std::string const&) {
       if (!isDataTypeDeclaration(node.localName)) {
         return;
@@ -3828,15 +4224,52 @@ class FomCatalogBuilder final {
       if (representation.empty()) {
         representation = scalarChildValue(node, "dataType");
       }
-      catalog.dataTypes_.insert_or_assign(
-          name,
-          FomDataTypeDefinition{name, dataTypeKind(node.localName), std::move(representation)});
+      FomDataTypeDefinition definition{name, dataTypeKind(node.localName), std::move(representation)};
+      definition.wireEncoding = wireEncoding(node, compatibility);
+      if (node.localName == "arrayData") {
+        definition.elementDataType = scalarChildValue(node, "dataType");
+        definition.cardinality = scalarChildValue(node, "cardinality");
+      } else if (node.localName == "fixedRecordData") {
+        for (SemanticNode const* field : childrenInDeclarationOrder(node)) {
+          if (field->localName != "field") {
+            continue;
+          }
+          definition.fields.push_back({
+              identityValue(*field, "name="),
+              scalarChildValue(*field, "dataType"),
+              scalarChildValue(*field, "semantics"),
+          });
+        }
+      } else if (node.localName == "variantRecordData") {
+        definition.discriminantDataType = scalarChildValue(node, "dataType");
+        for (SemanticNode const* alternative : childrenInDeclarationOrder(node)) {
+          if (alternative->localName != "alternative") {
+            continue;
+          }
+          FomDataTypeDefinition::Alternative projection{
+              identityValue(*alternative, "name="),
+              {},
+              scalarChildValue(*alternative, "dataType"),
+              scalarChildValue(*alternative, "semantics"),
+          };
+          for (SemanticNode const* enumerator : childrenInDeclarationOrder(*alternative)) {
+            if (enumerator->localName == "enumerator" && !enumerator->text.empty()) {
+              projection.discriminantEnumerators.push_back(enumerator->text);
+            }
+          }
+          definition.alternatives.push_back(std::move(projection));
+        }
+      }
+      catalog.dataTypes_.insert_or_assign(name, std::move(definition));
     });
   }
 };
 
-LibXml2FomModuleComposer::LibXml2FomModuleComposer(std::filesystem::path fddSchemaPath)
-    : fddSchemaPath_(std::move(fddSchemaPath)) {}
+LibXml2FomModuleComposer::LibXml2FomModuleComposer(
+    std::filesystem::path fddSchemaPath2025,
+    std::filesystem::path fddSchemaPath2010)
+    : fddSchemaPath2025_(std::move(fddSchemaPath2025)),
+      fddSchemaPath2010_(std::move(fddSchemaPath2010)) {}
 
 FomCompositionResult LibXml2FomModuleComposer::compose(
     std::vector<PrevalidatedFomModule> const& modules) const {
@@ -3845,7 +4278,10 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   }
 
   SemanticNode merged{"objectModel", {}, {}, {}, {}, {}};
-  SemanticNode mergedNotes{"notes", kHla2025Namespace, {}, {}, {}, {}};
+  FomStandardEdition const standardEdition = modules.front().standardEdition;
+  FomSourceCompatibility const sourceCompatibility = modules.front().sourceCompatibility;
+  std::string const expectedNamespace = std::string(fomNamespace(standardEdition));
+  SemanticNode mergedNotes{"notes", expectedNamespace, {}, {}, {}, {}};
   bool haveNotes = false;
   std::optional<SemanticNode> mergedServiceUtilization;
   std::optional<SemanticNode> modelIdentification;
@@ -3855,9 +4291,22 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   moduleNames.reserve(modules.size());
   std::vector<std::string> warnings;
   std::size_t nextNoteLabel = 1;
+  std::set<std::string> reservedHlaNames;
 
   for (std::size_t moduleIndex = 0; moduleIndex < modules.size(); ++moduleIndex) {
     PrevalidatedFomModule const& module = modules[moduleIndex];
+    if (module.standardEdition != standardEdition) {
+      return {
+          FomCompositionStatus::inconsistent_modules,
+          {},
+          "FOM modules from IEEE 1516-2010 and IEEE 1516-2025 cannot be composed in one execution."};
+    }
+    if (module.sourceCompatibility != sourceCompatibility) {
+      return {
+          FomCompositionStatus::inconsistent_modules,
+          {},
+          "FOM modules with different source-compatibility profiles cannot be composed in one execution."};
+    }
     LibXml2ValidatedFomDocument parsed;
     FomValidationResult const validation = loadValidatedLibXml2FomDocument(
         {
@@ -3866,15 +4315,28 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
             module.kind,
             module.designator,
             module.schemaDesignator,
+            module.standardEdition,
+            module.sourceCompatibility,
         },
         parsed);
     if (validation.status != FomValidationStatus::valid) {
       return {statusFor(validation.status), {}, validation.diagnostics};
     }
 
+    warnings.insert(
+        warnings.end(),
+        parsed.module.warnings.begin(),
+        parsed.module.warnings.end());
+
     NoteLabelMap const noteLabels = makeNoteLabelMap(parsed.document.get(), nextNoteLabel);
     SemanticNode candidate = buildCompositionRoot(parsed.document.get(), &noteLabels);
     xmlNode const* root = xmlDocGetRootElement(parsed.document.get());
+    std::string diagnostics;
+    if (!validateModificationDate(
+            directChildElement(root, "modelIdentification"),
+            diagnostics)) {
+      return {FomCompositionStatus::inconsistent_modules, {}, std::move(diagnostics)};
+    }
     if (!modelIdentification.has_value()) {
       if (xmlNode const* identification = directChildElement(root, "modelIdentification");
           identification != nullptr) {
@@ -3885,17 +4347,28 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
     if (xmlNode const* notes = directChildElement(root, "notes"); notes != nullptr) {
       candidateNotes = buildSemanticNode(notes, &noteLabels);
     }
+    if (module.kind == FomModuleKind::mim) {
+      collectReservedHlaNames(candidate, reservedHlaNames);
+      if (candidateNotes.has_value()) {
+        collectReservedHlaNames(*candidateNotes, reservedHlaNames);
+      }
+    }
     NoteDefinitionMap const currentNoteDefinitions =
         haveNotes ? noteDefinitions(&mergedNotes) : NoteDefinitionMap{};
     NoteDefinitionMap const candidateNoteDefinitions =
         candidateNotes.has_value() ? noteDefinitions(&*candidateNotes) : NoteDefinitionMap{};
-    std::string diagnostics;
-    if (!mergeNode(
+    // Name conventions are validated after all modules have merged.  This
+    // preserves the completed-model ordering of the MIM-reserved set and
+    // lets table-specific NA companion rules report their more precise
+    // diagnostic before the generic reserved-name check.
+    if (!validateUniqueDimensionNames(parsed.document.get(), diagnostics) ||
+        !mergeNode(
             merged,
             candidate,
             "objectModel",
             diagnostics,
             warnings,
+            standardEdition == FomStandardEdition::ieee1516_2010,
             currentNoteDefinitions,
             candidateNoteDefinitions) ||
         !validateDataTypeKinds(merged, diagnostics) ||
@@ -3939,24 +4412,41 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   // references only after the complete MIM-first module set is merged, so a
   // later module can supply a type used by an earlier extension module.
   std::string referenceDiagnostics;
-  if (!validateDataTypeReferences(merged, referenceDiagnostics) ||
-      !validateObjectAttributeAndInteractionParameterDataTypeKinds(merged, referenceDiagnostics) ||
-      !validateAttributeNaCompanionFields(merged, referenceDiagnostics) ||
+  // Keep the table-specific NA companion diagnostic ahead of the generic
+  // declaration-name rule.  A transportation row named NA is intentionally
+  // used by the existing companion regression to prove that an NA-typed
+  // attribute cannot select it; the specific rule is more useful than the
+  // broader reserved-name message while both remain enforced.
+  bool const strictDataTypeTableRules =
+      standardEdition == FomStandardEdition::ieee1516_2025;
+  if (!validateAttributeNaCompanionFields(merged, referenceDiagnostics) ||
+      (standardEdition == FomStandardEdition::ieee1516_2025 &&
+       !validateHlaNames(merged, FomModuleKind::fom, &reservedHlaNames, referenceDiagnostics)) ||
+      (standardEdition == FomStandardEdition::ieee1516_2025 && haveNotes &&
+       !validateHlaNames(mergedNotes, FomModuleKind::fom, &reservedHlaNames, referenceDiagnostics)) ||
+      !validateDataTypeReferences(merged, referenceDiagnostics) ||
+      (strictDataTypeTableRules &&
+       !validateObjectAttributeAndInteractionParameterDataTypeKinds(merged, referenceDiagnostics)) ||
       !validateDynamicAttributeUpdateConditions(merged, referenceDiagnostics) ||
       !validateUnsharedAttributeValueRequirement(merged, referenceDiagnostics) ||
-      !validateArrayElementDataTypeKinds(merged, referenceDiagnostics) ||
-      !validateFixedRecordFieldAndVariantRecordAlternativeDataTypeKinds(
-          merged,
-          referenceDiagnostics) ||
-      !validateVariantRecordDiscriminantDataTypeKinds(merged, referenceDiagnostics) ||
+      (strictDataTypeTableRules &&
+       !validateArrayElementDataTypeKinds(merged, referenceDiagnostics)) ||
+      (strictDataTypeTableRules &&
+       !validateFixedRecordFieldAndVariantRecordAlternativeDataTypeKinds(
+           merged,
+           referenceDiagnostics)) ||
+      (strictDataTypeTableRules &&
+       !validateVariantRecordDiscriminantDataTypeKinds(merged, referenceDiagnostics)) ||
       !validateVariantRecordDiscriminantEnumeratorMembership(merged, referenceDiagnostics) ||
       !validateVariantRecordDiscriminantEnumeratorAssignments(merged, referenceDiagnostics) ||
-      !validateDimensionInputDataTypeKinds(merged, referenceDiagnostics) ||
+      (strictDataTypeTableRules &&
+       !validateDimensionInputDataTypeKinds(merged, referenceDiagnostics)) ||
       !validateDimensionInputDataTypeNaExclusivity(merged, referenceDiagnostics) ||
       !validateDimensionInputDataTypeDescriptions(merged, referenceDiagnostics) ||
       !validateDataTypeRepresentationReferences(merged, referenceDiagnostics) ||
-      !validateTimeRepresentationDataTypeKinds(merged, referenceDiagnostics) ||
-      !validateTagDataTypeKinds(merged, referenceDiagnostics) ||
+      (strictDataTypeTableRules &&
+       !validateTimeRepresentationDataTypeKinds(merged, referenceDiagnostics)) ||
+      (strictDataTypeTableRules && !validateTagDataTypeKinds(merged, referenceDiagnostics)) ||
       !validateReferenceDataTypeClassReferences(merged, referenceDiagnostics) ||
       !validateReferenceDataTypeAttributeReferences(merged, referenceDiagnostics) ||
       !validateDirectedInteractionReferences(merged, referenceDiagnostics) ||
@@ -3979,13 +4469,38 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   }
   std::optional<SemanticNode> const retainedNotes =
       haveNotes ? selectedNotes(mergedNotes, referencedNoteLabels) : std::nullopt;
+
+  // The first 2010 compatibility slice is intentionally catalog-only. The
+  // 2010 FDD schema describes a different materialized view from the 2025
+  // FDD (for example, class-level dimension rows are legal in legacy DIF but
+  // not in the legacy FDD). Do not silently rewrite that model merely to
+  // manufacture an FDD artifact; callers in this slice need validated class,
+  // attribute, interaction, and datatype metadata for handle/object creation.
+  // FDD serialization remains available for the complete 2025 lane and is a
+  // later, separately reviewed 2010 compatibility milestone.
+  auto catalog = FomCatalogBuilder::build(merged, revalidated);
+  if (standardEdition == FomStandardEdition::ieee1516_2010) {
+    return {
+        FomCompositionStatus::valid,
+        std::move(revalidated),
+        {},
+        std::move(catalog),
+        {},
+        std::move(warnings),
+    };
+  }
+
   FddMaterializationResult materialization = materializeFdd(
       merged,
       modelIdentification,
       mergedServiceUtilization,
       retainedNotes,
       std::move(moduleNames),
-      fddSchemaPath_);
+      standardEdition,
+      fomFddSchemaDesignator(standardEdition),
+      standardEdition == FomStandardEdition::ieee1516_2010
+          ? fddSchemaPath2010_
+          : fddSchemaPath2025_);
   if (materialization.status != FddMaterializationStatus::valid) {
     return {
         materialization.status == FddMaterializationStatus::invalid_model
@@ -3996,7 +4511,6 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
     };
   }
 
-  auto catalog = FomCatalogBuilder::build(merged, revalidated);
   return {
       FomCompositionStatus::valid,
       std::move(revalidated),

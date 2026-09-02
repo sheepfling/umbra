@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 receive-order attribute-update development slice to the exact C++ Update Attribute Values and Reflect Attribute Values surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The slice accepts only the non-timestamped overload; validates source ownership and FOM attribute definitions; groups each accepted request into FOM-transportation passels; projects each passel at the recipient's currently known class and active subscription; retains passive declaration state without arranging delivery; suppresses the sender; rechecks eligibility immediately before delivery; preserves tag, producer, and mandatory standard transportation data; and dispatches through immediate or evoked callbacks. The ordinary passive check is traced here; the regional passive check is owned by the separate object-attribute regional contract. Timestamped/retraction delivery, broader regions/DDM, update-rate reduction, ownership transfer, custom transportation implementation, FOM sharing-policy enforcement, save/restore, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 receive-order attribute-update development slice to the exact C++ Update Attribute Values and Reflect Attribute Values surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The slice accepts only the non-timestamped overload; validates source ownership and FOM attribute definitions; groups each accepted request into FOM-transportation passels; projects each passel at the recipient's currently known class and active subscription; retains passive declaration state without arranging delivery; suppresses the sender; rechecks eligibility immediately before delivery; preserves tag, producer, and mandatory standard transportation data; and dispatches through immediate or evoked callbacks. The ordinary passive check is traced here; the regional passive check is owned by the separate object-attribute regional contract. A separate fresh-registry application-value companion exercises the same official update surface as the producer of one durable opaque latest value; it does not claim callback delivery. Timestamped/retraction delivery, broader regions/DDM, update-rate reduction, ownership transfer, custom transportation implementation, FOM sharing-policy enforcement, broader save/restore, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-update-attribute-values-receive-order",
@@ -26,7 +26,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
       ]
     },
     {
@@ -43,7 +44,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
       ]
     }
   ]

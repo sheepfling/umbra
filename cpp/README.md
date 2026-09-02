@@ -1,8 +1,9 @@
 # Native C++ implementation
 
 This directory owns Umbra's C++20 implementation and its native test suite.
-The official IEEE 1516.1-2025 headers are intentionally vendored under
-[third_party/](../third_party/README.md), not recreated here.
+The official IEEE 1516.1-2025 headers and the separate IEEE 1516e-2010
+binding headers are vendored under [third_party/](../third_party/README.md),
+not recreated here.
 
 ## Layout
 
@@ -27,7 +28,12 @@ The [native test guide](tests/README.md) explains test layers, fixture
 placement, and the smallest useful test loop.
 
 The root CMake file owns targets and test registration. The principal installed
-targets are umbra::rti, umbra::fedtime, and umbra::authorizer. See the root
+targets are umbra::rti, umbra::rti_2010, umbra::fedtime, and
+umbra::authorizer. `umbra::rti_2010` is intentionally a bounded target:
+its factory creates the standards-shaped ambassador, connect/disconnect keep
+only lifecycle state, and the official basic/composite encoders and both
+reference logical-time families are implemented; every other RTI service
+throws `RTIinternalError`. See the root
 README for the ordinary build and [cmake/](../cmake/README.md) for the
 installed-package smoke path.
 

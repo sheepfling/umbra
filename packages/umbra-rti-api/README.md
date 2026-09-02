@@ -51,3 +51,28 @@ binary inputs use `BytesLike` and are copied to immutable `bytes` at provider
 boundaries. See
 [`PYTHON-RTI-CONTRACT-MAPPING.md`](../../docs/python/PYTHON-RTI-CONTRACT-MAPPING.md)
 for the Java/C++ method mapping.
+
+## IEEE 1516.1-2010 / 1516e
+
+The sibling `hla.rti1516e` namespace is an edition-specific contract based
+on the authoritative 2010 Java API inventory. It records all 172
+`RTIambassador` overloads and all 60 `FederateAmbassador` overloads, including
+generated parameter and return-type metadata, provides independent 2010
+handle/value/exception/encoding/time types, and uses the
+separate `hla.rti1516e.factories` provider-discovery group. It does not alias
+2025 objects. `RtiFactoryFactory` accepts either a vendor `rtiName()` or an
+installed transport alias such as `java-2010`; the direct
+`UmbraNative2010` provider registers in the same group. `LogicalTimeFactoryFactory`
+also discovers standard time factories through the selected 2010 provider when
+no standalone time entry point is installed. The encoder contracts mirror the official 2010 Java
+`ByteWrapper`/`DataElement`/`EncoderFactory` method names; providers own the
+actual encoding bytes.
+
+The source archive is intentionally not checked in. Regenerate the method
+surface from a locally staged IEEE archive with:
+
+```powershell
+python tools\generate_1516e_python_contract.py `
+  --java-root C:\path\to\java\src\hla\rti1516e `
+  --output packages\umbra-rti-api\src\hla\rti1516e\contracts.py
+```

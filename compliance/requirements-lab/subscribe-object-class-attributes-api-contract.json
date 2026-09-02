@@ -24,7 +24,8 @@
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     }
   ]

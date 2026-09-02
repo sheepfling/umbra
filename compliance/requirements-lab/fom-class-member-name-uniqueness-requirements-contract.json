@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-validator-not-public-evidence",
+  "notes": "This contract pins the official IEEE 1516.2-2025 DIF schema's class-member uniqueness constraints. The vendored XSD rejects repeated attribute names within one object-class element and repeated parameter names within one interaction-class element before Umbra's identity-based composition runs. Equivalent same-name declarations in separate module documents remain an Annex C composition concern; this contract does not duplicate that schema rule in application code and is private source/test traceability only.",
+  "requirements": [
+    {
+      "id": "umbra-omt-object-class-attribute-name-uniqueness",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l101-3",
+      "clause_id": "clause-4.5.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_document.cpp",
+      "source_symbol": "xmlSchemaValidateDoc",
+      "tests": [
+        "cpp/tests/libxml2_fom_validator_catch2.cpp::The official 2025 DIF schema rejects duplicate attribute and parameter names within one class"
+      ]
+    },
+    {
+      "id": "umbra-omt-interaction-class-parameter-name-uniqueness",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-053-l39-2",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_document.cpp",
+      "source_symbol": "xmlSchemaValidateDoc",
+      "tests": [
+        "cpp/tests/libxml2_fom_validator_catch2.cpp::The official 2025 DIF schema rejects duplicate attribute and parameter names within one class"
+      ]
+    }
+  ]
+}

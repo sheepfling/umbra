@@ -71,7 +71,14 @@ $requiredApiEntries = @(
     "hla/rti1516_2025/RtiFactoryFactory.class",
     "hla/rti1516_2025/RtiFactory.class",
     "hla/rti1516_2025/RTIambassador.class",
-    "hla/rti1516_2025/FederateAmbassador.class"
+    "hla/rti1516_2025/FederateAmbassador.class",
+    "hla/rti1516_2025/encoding/EncoderFactory.class",
+    "hla/rti1516_2025/time/LogicalTimeFactory.class",
+    "hla/rti1516_2025/time/LogicalTimeFactoryFactory.class",
+    "hla/rti1516_2025/time/HLAinteger64TimeFactory.class",
+    "hla/rti1516_2025/time/HLAfloat64TimeFactory.class",
+    "hla/rti1516_2025/auth/AuthorizerFactory.class",
+    "hla/rti1516_2025/auth/AuthorizerFactoryFactory.class"
 )
 $apiEntries = Get-JarEntries $apiPath
 foreach ($entry in $requiredApiEntries) {
@@ -96,9 +103,13 @@ try {
 
     $expectedDescriptors = @{
         "META-INF/services/hla.rti1516_2025.RtiFactory" =
-            "org.umbra.jni.rti1516_2025.NativeRtiFactory"
+            @("org.umbra.jni.rti1516_2025.NativeRtiFactory")
         "META-INF/services/hla.rti1516_2025.auth.AuthorizerFactory" =
-            "org.umbra.jni.rti1516_2025.NativeAuthorizerFactory"
+            @("org.umbra.jni.rti1516_2025.NativeAuthorizerFactory")
+        "META-INF/services/hla.rti1516_2025.time.LogicalTimeFactory" = @(
+            "org.umbra.jni.rti1516_2025.NativeInteger64TimeFactory",
+            "org.umbra.jni.rti1516_2025.NativeFloat64TimeFactory"
+        )
     }
     foreach ($descriptor in $expectedDescriptors.Keys) {
         $entry = $bridgeArchive.GetEntry($descriptor)
@@ -114,11 +125,23 @@ try {
         } finally {
             $reader.Dispose()
         }
-        if ($providers.Count -ne 1 -or $providers[0] -ne $expectedDescriptors[$descriptor]) {
+        $expectedProviders = @($expectedDescriptors[$descriptor])
+        if ($providers.Count -ne $expectedProviders.Count -or
+            -not [System.Linq.Enumerable]::SequenceEqual(
+                [string[]]$providers, [string[]]$expectedProviders)) {
             throw (
                 "JNI bridge ServiceLoader descriptor $descriptor must contain only " +
-                "$($expectedDescriptors[$descriptor])"
+                "$($expectedProviders -join ', ')"
             )
+        }
+    }
+    foreach ($providerClass in @(
+        "org/umbra/jni/rti1516_2025/NativeRtiFactory.class",
+        "org/umbra/jni/rti1516_2025/NativeAuthorizerFactory.class",
+        "org/umbra/jni/rti1516_2025/NativeInteger64TimeFactory.class",
+        "org/umbra/jni/rti1516_2025/NativeFloat64TimeFactory.class")) {
+        if ($bridgeEntries -notcontains $providerClass) {
+            throw "JNI bridge is missing registered provider class: $providerClass"
         }
     }
 } finally {
@@ -127,6 +150,12 @@ try {
 
 if (-not $SkipSmokeTest) {
     $classpath = $apiPath + [System.IO.Path]::PathSeparator + $bridgePath
+    & java "-Dumbra.rti.jni.library=$nativePath" `
+        -cp $classpath `
+        org.umbra.jni.rti1516_2025.StandardSurfaceSmokeTest
+    if ($LASTEXITCODE -ne 0) {
+        throw "JNI Java 2025 standard surface smoke test failed with exit code $LASTEXITCODE"
+    }
     $smokeArguments = @(
         "-Dumbra.rti.jni.library=$nativePath",
         "-cp", $classpath,
@@ -139,7 +168,7 @@ if (-not $SkipSmokeTest) {
     }
     & java @smokeArguments
     if ($LASTEXITCODE -ne 0) {
-        throw "JNI Java RTI smoke test failed with exit code $LASTEXITCODE"
+        throw "JNI Java 2025 native smoke test failed with exit code $LASTEXITCODE"
     }
 }
 
@@ -157,10 +186,13 @@ if ($RunJavaTck) {
         [System.IO.Path]::PathSeparator + $tckClassesPath
     $tckArguments = @(
         "-Dumbra.rti.jni.library=$nativePath",
-        "-Dumbra.rti.tck.fom=$tckFom",
-        "-Dumbra.rti.tck.time=$JavaTckTimeImplementation",
+        "-Dhla.rti.tck.fom=$tckFom",
+        "-Dhla.rti.tck.time=$JavaTckTimeImplementation",
+        "-Dhla.rti.tck.apiJar=$apiPath",
+        "-Dhla.rti.tck.providerJars=$bridgePath",
+        "-Dhla.rti.tck.provider=umbra-jni",
         "-cp", $tckClasspath,
-        "umbra.rti.tck.RtiTckMain"
+        "org.hla.rti.tck.RtiTckMain"
     )
     if ([string]::IsNullOrWhiteSpace($JavaTckProfilePath)) {
         $repositoryProfile = Join-Path $repositoryRoot "packages\umbra-rti-java-tck\profiles\umbra-jni.properties"
@@ -172,11 +204,14 @@ if ($RunJavaTck) {
         $tckProfile = (Resolve-Path -LiteralPath $JavaTckProfilePath -ErrorAction Stop).Path
         $tckArguments = @(
             "-Dumbra.rti.jni.library=$nativePath",
-            "-Dumbra.rti.tck.fom=$tckFom",
-            "-Dumbra.rti.tck.time=$JavaTckTimeImplementation",
-            "-Dumbra.rti.tck.capabilityProfile=$tckProfile",
+            "-Dhla.rti.tck.fom=$tckFom",
+            "-Dhla.rti.tck.time=$JavaTckTimeImplementation",
+            "-Dhla.rti.tck.apiJar=$apiPath",
+            "-Dhla.rti.tck.providerJars=$bridgePath",
+            "-Dhla.rti.tck.provider=umbra-jni",
+            "-Dhla.rti.tck.capabilityProfile=$tckProfile",
             "-cp", $tckClasspath,
-            "umbra.rti.tck.RtiTckMain"
+            "org.hla.rti.tck.RtiTckMain"
         )
     }
     & java @tckArguments
@@ -186,6 +221,10 @@ if ($RunJavaTck) {
 }
 
 $manifest = [ordered]@{
+    schemaVersion = 1
+    edition = "IEEE 1516.1-2025"
+    capabilityProfile = "bounded-jni-bridge"
+    launcher = "run.ps1"
     javaApiJar = $apiPath
     javaApiSha256 = $apiHash
     bridgeJar = (Resolve-Path -LiteralPath $bridgePath).Path

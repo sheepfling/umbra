@@ -1,8 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "hla_test_names.hpp"
+#include "internal/fom/hla_names.hpp"
+
 #include <memory>
 
 #include <RTI/RTI1516.h>
+
+namespace {
+
+namespace standard_hla = umbra::detail::hla::wide;
+namespace fixture_hla = umbra::test::hla::wide;
+
+}  // namespace
 
 TEST_CASE("IEEE 1516.1-2025 headers expose the expected API version", "[baseline][headers][unit][foundation]") {
   REQUIRE(HLA_API_MAJOR_VERSION == 2);
@@ -102,13 +112,13 @@ TEST_CASE("The binding shell profile-gates FOM and transportation lookup service
 
   REQUIRE(rti);
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-  REQUIRE_THROWS_AS(rti->getObjectClassHandle(L"HLAobjectRoot"), rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(rti->getObjectClassHandle(standard_hla::fom::object_root), rti1516_2025::NotConnected);
   REQUIRE_THROWS_AS(
-      rti->getInteractionClassHandle(L"HLAinteractionRoot"),
+      rti->getInteractionClassHandle(standard_hla::fom::interaction_root),
       rti1516_2025::NotConnected);
-  REQUIRE_THROWS_AS(rti->getAttributeHandle(objectClass, L"Name"), rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(rti->getAttributeHandle(objectClass, fixture_hla::fixture::name), rti1516_2025::NotConnected);
   REQUIRE_THROWS_AS(
-      rti->getParameterHandle(interactionClass, L"Identifier"),
+      rti->getParameterHandle(interactionClass, fixture_hla::fixture::identifier),
       rti1516_2025::NotConnected);
   REQUIRE_THROWS_AS(
       rti->getAttributeName(objectClass, attribute),
@@ -132,7 +142,7 @@ TEST_CASE("The binding shell profile-gates FOM and transportation lookup service
       rti->sendInteraction(interactionClass, parameterValues, userSuppliedTag),
       rti1516_2025::NotConnected);
   REQUIRE_THROWS_AS(
-      rti->getTransportationTypeHandle(L"HLAreliable"),
+      rti->getTransportationTypeHandle(standard_hla::mom::reliable),
       rti1516_2025::NotConnected);
   REQUIRE_THROWS_AS(
       rti->getTransportationTypeName(transportationType),
@@ -142,16 +152,16 @@ TEST_CASE("The binding shell profile-gates FOM and transportation lookup service
       rti1516_2025::NotConnected);
 #else
   REQUIRE_THROWS_AS(
-      rti->getObjectClassHandle(L"HLAobjectRoot"),
+      rti->getObjectClassHandle(standard_hla::fom::object_root),
       rti1516_2025::RTIinternalError);
   REQUIRE_THROWS_AS(
-      rti->getInteractionClassHandle(L"HLAinteractionRoot"),
+      rti->getInteractionClassHandle(standard_hla::fom::interaction_root),
       rti1516_2025::RTIinternalError);
   REQUIRE_THROWS_AS(
-      rti->getAttributeHandle(objectClass, L"Name"),
+      rti->getAttributeHandle(objectClass, fixture_hla::fixture::name),
       rti1516_2025::RTIinternalError);
   REQUIRE_THROWS_AS(
-      rti->getParameterHandle(interactionClass, L"Identifier"),
+      rti->getParameterHandle(interactionClass, fixture_hla::fixture::identifier),
       rti1516_2025::RTIinternalError);
   REQUIRE_THROWS_AS(
       rti->getAttributeName(objectClass, attribute),
@@ -175,7 +185,7 @@ TEST_CASE("The binding shell profile-gates FOM and transportation lookup service
       rti->sendInteraction(interactionClass, parameterValues, userSuppliedTag),
       rti1516_2025::RTIinternalError);
   REQUIRE_THROWS_AS(
-      rti->getTransportationTypeHandle(L"HLAreliable"),
+      rti->getTransportationTypeHandle(standard_hla::mom::reliable),
       rti1516_2025::RTIinternalError);
   REQUIRE_THROWS_AS(
       rti->getTransportationTypeName(transportationType),

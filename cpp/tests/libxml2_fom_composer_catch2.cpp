@@ -10,6 +10,7 @@
 #include "internal/fom/libxml2_fom_validator.hpp"
 #include "internal/time/reference_time_selection.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <filesystem>
 #include <fstream>
@@ -18,7 +19,9 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <system_error>
+#include <tuple>
 #include <vector>
 
 #include <RTI/time/HLAinteger64Time.h>
@@ -247,6 +250,62 @@ ScopedTemporaryFile dimensionProviderWithUniqueDimension() {
 
   auto const path = std::filesystem::temp_directory_path() /
       ("umbra-dimension-unique-" + std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile restaurantModuleWithNameReplacement(
+    std::string_view originalName,
+    std::string_view replacement,
+    std::string_view label) {
+  static std::atomic_uint64_t counter{0};
+  auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  std::string const original = "<name>" + std::string(originalName) + "</name>";
+  auto const position = fomText.find(original);
+  REQUIRE(position != std::string::npos);
+  std::string const replacementElement =
+      "<name>" + std::string(replacement) + "</name>";
+  fomText.replace(position, original.size(), replacementElement);
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-fom-name-" + std::string(label) + "-" +
+       std::to_string(++counter) + ".xml");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile restaurantModuleWithTimezoneModificationDate() {
+  static std::atomic_uint64_t counter{0};
+  auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  std::string const original =
+      "<modificationDate>2025-02-10</modificationDate>";
+  auto const position = fomText.find(original);
+  REQUIRE(position != std::string::npos);
+  fomText.replace(
+      position,
+      original.size(),
+      "<modificationDate>2025-02-10Z</modificationDate>");
+
+  auto const path = std::filesystem::temp_directory_path() /
+      ("umbra-fom-modification-date-" + std::to_string(++counter) + ".xml");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -886,8 +945,11 @@ TEST_CASE(
   REQUIRE(registry.create(L"mom-report-route", std::move(definition)).status ==
           FederationRegistryStatus::applied);
 
-  auto const subject = registry.join(L"mom-report-route", L"subject", L"subject");
-  auto const observer = registry.join(L"mom-report-route", L"observer", L"observer");
+  auto callbackRoute = [](umbra::detail::FederateCallbackInvocation) {};
+  auto const subject = registry.join(
+      L"mom-report-route", L"subject", L"subject", callbackRoute);
+  auto const observer = registry.join(
+      L"mom-report-route", L"observer", L"observer", callbackRoute);
   REQUIRE(subject.membership);
   REQUIRE(observer.membership);
   REQUIRE(registry.setServiceReportingSwitch(
@@ -1495,6 +1557,316 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "The federation registry rejects resignation route gaps atomically",
+    "[unit][kernel][federation-registry][federation-management][resign][ownership][atomicity]") {
+  umbra::detail::EmbeddedFederationRegistry registry;
+  std::wstring const federationName = L"resign-route-gap-atomicity-exercise";
+  REQUIRE(
+      registry.create(federationName, composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+
+  auto source = registry.join(federationName, L"source", L"source");
+  auto routeTime = std::make_shared<FederateTimeState>(
+      L"HLAinteger64Time",
+      std::make_shared<rti1516_2025::HLAinteger64Time>());
+  auto const callback = [](umbra::detail::FederateCallbackInvocation) {};
+  auto routedRecipient = registry.joinWithTimeState(
+      federationName,
+      std::move(routeTime),
+      L"routed-recipient",
+      L"routed-recipient",
+      callback);
+  // The legacy registry join intentionally has no callback route.  It lets
+  // this private-kernel regression exercise the same impossible delivery
+  // precondition that a failed adapter route would expose.
+  auto unroutedRecipient = registry.join(
+      federationName,
+      L"unrouted-recipient",
+      L"unrouted-recipient");
+  REQUIRE(source.membership);
+  REQUIRE(routedRecipient.membership);
+  REQUIRE(unroutedRecipient.membership);
+
+  auto const serverHandle = registry.objectClassHandleFor(
+      federationName,
+      "HLAobjectRoot.Employee.Server");
+  auto const nameHandle = registry.attributeHandleFor(
+      federationName,
+      "HLAobjectRoot.Employee.Server",
+      "Name");
+  auto const efficiencyHandle = registry.attributeHandleFor(
+      federationName,
+      "HLAobjectRoot.Employee.Server",
+      "Efficiency");
+  auto const privilegeHandle = registry.attributeHandleFor(
+      federationName,
+      "HLAobjectRoot.Employee.Server",
+      "HLAprivilegeToDeleteObject");
+  REQUIRE(serverHandle);
+  REQUIRE(nameHandle);
+  REQUIRE(efficiencyHandle);
+  REQUIRE(privilegeHandle);
+
+  // Make the lower-handle attribute eligible only for the routed member and
+  // the higher-handle attribute eligible only for the member without a route.
+  // The production implementation must discover the missing route before it
+  // clears the lower attribute's ownership.
+  auto const lowerAttribute = std::min(*nameHandle, *efficiencyHandle);
+  auto const higherAttribute = std::max(*nameHandle, *efficiencyHandle);
+  std::set<std::uint64_t> const sourceAttributes{lowerAttribute, higherAttribute};
+  REQUIRE(
+      registry.setObjectClassAttributePublication(
+          federationName,
+          source.membership->id,
+          *serverHandle,
+          sourceAttributes,
+          true) == ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(
+      registry.setObjectClassAttributePublication(
+          federationName,
+          source.membership->id,
+          *serverHandle,
+          {*privilegeHandle},
+          false) == ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(
+      registry.setObjectClassAttributePublication(
+          federationName,
+          routedRecipient.membership->id,
+          *serverHandle,
+          {lowerAttribute},
+          true) == ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(
+      registry.setObjectClassAttributePublication(
+          federationName,
+          routedRecipient.membership->id,
+          *serverHandle,
+          {*privilegeHandle},
+          false) == ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(
+      registry.setObjectClassAttributePublication(
+          federationName,
+          unroutedRecipient.membership->id,
+          *serverHandle,
+          {higherAttribute},
+          true) == ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(
+      registry.setObjectClassAttributePublication(
+          federationName,
+          unroutedRecipient.membership->id,
+          *serverHandle,
+          {*privilegeHandle},
+          false) == ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(
+      registry.setObjectClassAttributeSubscription(
+          federationName,
+          routedRecipient.membership->id,
+          *serverHandle,
+          {lowerAttribute},
+          true) == ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(
+      registry.setObjectClassAttributeSubscription(
+          federationName,
+          unroutedRecipient.membership->id,
+          *serverHandle,
+          {higherAttribute},
+          true) == ObjectClassAttributeDeclarationStatus::applied);
+
+  auto const registration = registry.registerObjectInstance(
+      federationName,
+      source.membership->id,
+      *serverHandle);
+  REQUIRE(registration.status == ObjectInstanceRegistrationStatus::applied);
+  REQUIRE(
+      registry.beginObjectInstanceDiscovery(
+          federationName,
+          routedRecipient.membership->id,
+          registration.objectInstanceHandle));
+  REQUIRE(
+      registry.beginObjectInstanceDiscovery(
+          federationName,
+          unroutedRecipient.membership->id,
+          registration.objectInstanceHandle));
+
+  auto const lowerBefore = registry.attributeOwnedByFederate(
+      federationName,
+      source.membership->id,
+      registration.objectInstanceHandle,
+      lowerAttribute);
+  auto const higherBefore = registry.attributeOwnedByFederate(
+      federationName,
+      source.membership->id,
+      registration.objectInstanceHandle,
+      higherAttribute);
+  REQUIRE(
+      lowerBefore.status ==
+      umbra::detail::AttributeOwnershipCheckStatus::applied);
+  REQUIRE(
+      higherBefore.status ==
+      umbra::detail::AttributeOwnershipCheckStatus::applied);
+  REQUIRE(lowerBefore.ownedByRequestingFederate);
+  REQUIRE(higherBefore.ownedByRequestingFederate);
+
+  auto const result = registry.resign(
+      federationName,
+      source.membership->id,
+      rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  REQUIRE(result.status == FederationRegistryStatus::invalid_request);
+
+  // No part of the source's ownership or membership transaction may have
+  // committed when the later eligible recipient lacked a delivery route.
+  auto const lowerAfter = registry.attributeOwnedByFederate(
+      federationName,
+      source.membership->id,
+      registration.objectInstanceHandle,
+      lowerAttribute);
+  auto const higherAfter = registry.attributeOwnedByFederate(
+      federationName,
+      source.membership->id,
+      registration.objectInstanceHandle,
+      higherAttribute);
+  REQUIRE(
+      lowerAfter.status ==
+      umbra::detail::AttributeOwnershipCheckStatus::applied);
+  REQUIRE(
+      higherAfter.status ==
+      umbra::detail::AttributeOwnershipCheckStatus::applied);
+  REQUIRE(lowerAfter.ownedByRequestingFederate);
+  REQUIRE(higherAfter.ownedByRequestingFederate);
+  REQUIRE(
+      registry.knownObjectInstanceFor(
+          federationName,
+          source.membership->id,
+          registration.objectInstanceHandle));
+}
+
+TEST_CASE(
+    "The federation registry restores subscription-generation allocation with declaration state",
+    "[unit][kernel][federation-registry][declaration-management][save-restore]"
+    "[object-class-declaration-state]") {
+  umbra::detail::EmbeddedFederationRegistry registry;
+  std::wstring const federationName = L"subscription-generation-restore-exercise";
+  REQUIRE(
+      registry.create(federationName, composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+
+  auto publisherTime = std::make_shared<FederateTimeState>(
+      L"HLAinteger64Time",
+      std::make_shared<rti1516_2025::HLAinteger64Time>());
+  auto subscriberTime = std::make_shared<FederateTimeState>(
+      L"HLAinteger64Time",
+      std::make_shared<rti1516_2025::HLAinteger64Time>());
+  auto const callback = [](umbra::detail::FederateCallbackInvocation) {};
+  auto publisher = registry.joinWithTimeState(
+      federationName,
+      std::move(publisherTime),
+      L"publisher",
+      L"publisher",
+      callback);
+  auto subscriber = registry.joinWithTimeState(
+      federationName,
+      std::move(subscriberTime),
+      L"subscriber",
+      L"subscriber",
+      callback);
+  REQUIRE(publisher.membership);
+  REQUIRE(subscriber.membership);
+
+  auto const server = registry.objectClassHandleFor(
+      federationName,
+      "HLAobjectRoot.Employee.Server");
+  auto const efficiency = registry.attributeHandleFor(
+      federationName,
+      "HLAobjectRoot.Employee.Server",
+      "Efficiency");
+  REQUIRE(server);
+  REQUIRE(efficiency);
+  REQUIRE(
+      registry.setObjectClassAttributeSubscription(
+          federationName,
+          subscriber.membership->id,
+          *server,
+          {*efficiency},
+          true) == ObjectClassAttributeDeclarationStatus::applied);
+
+  auto savedDeclaration = registry.objectClassAttributeDeclarationFor(
+      federationName,
+      subscriber.membership->id,
+      *server);
+  REQUIRE(savedDeclaration);
+  REQUIRE(savedDeclaration->subscriptionGeneration != 0U);
+  auto const savedGeneration = savedDeclaration->subscriptionGeneration;
+
+  REQUIRE(
+      registry.requestFederationSave(
+          federationName,
+          publisher.membership->id,
+          L"subscription-generation-baseline")
+          .status == umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(
+      registry.federateSaveBegun(federationName, publisher.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(
+      registry.federateSaveBegun(federationName, subscriber.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(
+      registry.federateSaveComplete(federationName, publisher.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  auto const saveComplete = registry.federateSaveComplete(
+      federationName,
+      subscriber.membership->id);
+  REQUIRE(saveComplete.status == umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(saveComplete.saveCompletedSuccessfully);
+
+  // This post-save mutation advances the live allocator beyond the saved
+  // boundary. Restore must rewind both the declaration and its next-id state.
+  REQUIRE(
+      registry.setObjectClassAttributeSubscription(
+          federationName,
+          subscriber.membership->id,
+          *server,
+          {*efficiency},
+          false) == ObjectClassAttributeDeclarationStatus::applied);
+
+  REQUIRE(
+      registry.requestFederationRestore(
+          federationName,
+          publisher.membership->id,
+          L"subscription-generation-baseline")
+          .status == umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(
+      registry.federateRestoreComplete(federationName, publisher.membership->id).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  auto const restoreComplete = registry.federateRestoreComplete(
+      federationName,
+      subscriber.membership->id);
+  REQUIRE(restoreComplete.status == umbra::detail::FederationRestoreControlStatus::applied);
+
+  auto restoredDeclaration = registry.objectClassAttributeDeclarationFor(
+      federationName,
+      subscriber.membership->id,
+      *server);
+  REQUIRE(restoredDeclaration);
+  REQUIRE(restoredDeclaration->subscribedAttributes.at(*efficiency));
+  REQUIRE(restoredDeclaration->subscriptionGeneration == savedGeneration);
+
+  // Reapplying the same declaration is a real mutation and must consume the
+  // next saved generation, not the post-save generation that was discarded.
+  REQUIRE(
+      registry.setObjectClassAttributeSubscription(
+          federationName,
+          subscriber.membership->id,
+          *server,
+          {*efficiency},
+          true) == ObjectClassAttributeDeclarationStatus::applied);
+  auto afterRestoreMutation = registry.objectClassAttributeDeclarationFor(
+      federationName,
+      subscriber.membership->id,
+      *server);
+  REQUIRE(afterRestoreMutation);
+  REQUIRE(afterRestoreMutation->subscriptionGeneration == savedGeneration + 1U);
+}
+
+TEST_CASE(
     "The federation registry allocates 2025 object identities only from current publication",
     "[unit][kernel][federation-registry][object-management]") {
   umbra::detail::EmbeddedFederationRegistry registry;
@@ -1658,16 +2030,35 @@ TEST_CASE(
       registry.create(federationName, composedRestaurantDefinition()).status ==
       FederationRegistryStatus::applied);
 
-  auto publisher = registry.join(federationName, L"publisher", L"publisher");
-  auto exactSubscriber = registry.join(federationName, L"subscriber", L"exact");
-  auto promotedSubscriber = registry.join(federationName, L"subscriber", L"promoted");
-  auto ancestorSubscriber = registry.join(federationName, L"subscriber", L"ancestor");
+  auto callbackRoute = [](umbra::detail::FederateCallbackInvocation) {};
+  auto publisher = registry.join(
+      federationName,
+      L"publisher",
+      L"publisher",
+      callbackRoute);
+  auto exactSubscriber = registry.join(
+      federationName,
+      L"subscriber",
+      L"exact",
+      callbackRoute);
+  auto promotedSubscriber = registry.join(
+      federationName,
+      L"subscriber",
+      L"promoted",
+      callbackRoute);
+  auto ancestorSubscriber = registry.join(
+      federationName,
+      L"subscriber",
+      L"ancestor",
+      callbackRoute);
   auto unrelatedSubscriber = registry.join(federationName, L"subscriber", L"unrelated");
+  auto routeLessSubscriber = registry.join(federationName, L"subscriber", L"route-less");
   REQUIRE(publisher.membership);
   REQUIRE(exactSubscriber.membership);
   REQUIRE(promotedSubscriber.membership);
   REQUIRE(ancestorSubscriber.membership);
   REQUIRE(unrelatedSubscriber.membership);
+  REQUIRE(routeLessSubscriber.membership);
 
   std::string const mainCourse =
       "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
@@ -1746,6 +2137,12 @@ TEST_CASE(
           unrelatedSubscriber.membership->id,
           *unrelatedHandle,
           true) == InteractionClassDeclarationStatus::applied);
+  REQUIRE(
+      registry.setInteractionClassSubscription(
+          federationName,
+          routeLessSubscriber.membership->id,
+          *mainCourseHandle,
+          true) == InteractionClassDeclarationStatus::applied);
 
   auto invalidParameter = registry.planReceiveOrderInteraction(
       federationName,
@@ -1792,6 +2189,14 @@ TEST_CASE(
   REQUIRE(sawExact);
   REQUIRE(sawPromoted);
   REQUIRE(sawAncestor);
+  REQUIRE_FALSE(
+      registry.receiveOrderInteractionRecipientFor(
+          federationName,
+          publisher.membership->id,
+          routeLessSubscriber.membership->id,
+          *mainCourseHandle,
+          sentParameters)
+          .has_value());
 
   auto deliveryProjection = registry.receiveOrderInteractionRecipientFor(
       federationName,
@@ -2810,6 +3215,96 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "The FOM composition preflight rejects duplicate dimension names within one module",
+    "[unit][fom][composition][dimension-names]") {
+  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto duplicateNames = validated(
+      testData / "duplicate-dimension-name-fom.xml",
+      FomModuleKind::fom,
+      L"urn:umbra:test:duplicate-dimension-name");
+
+  auto result = composer().compose({mim, duplicateNames});
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("UmbraDuplicateDimension") != std::string::npos);
+  REQUIRE(result.diagnostics.find("dimension names must be unique") != std::string::npos);
+}
+
+TEST_CASE(
+    "The FOM composition preflight enforces HLA 3.3.1 XML names",
+    "[unit][fom][composition][fom-name-conventions]") {
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+
+  for (auto const& [replacement, label, diagnostic] : {
+           std::tuple{"Customer.Name", "qualified-period", "cannot contain a period"},
+           std::tuple{"HLAUserCustomer", "reserved-hla", "reserved HLA prefix"},
+           std::tuple{"NA", "reserved-na", "reserved for the NA marker"},
+       }) {
+    auto invalid = restaurantModuleWithNameReplacement("Customer", replacement, label);
+    auto module = validated(
+        invalid.path(),
+        FomModuleKind::fom,
+        L"urn:umbra:test:fom-name");
+    auto result = composer().compose({mim, module});
+    CAPTURE(replacement, label, result.diagnostics);
+    REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+    REQUIRE(result.diagnostics.find(diagnostic) != std::string::npos);
+  }
+
+  // XML NCName permits the HLA-conventional hyphen and underscore characters
+  // after the first character.  The same otherwise-valid Restaurant module
+  // must continue through composition when those characters are used.
+  auto valid = restaurantModuleWithNameReplacement(
+      "Customer",
+      "Customer-2_0",
+      "allowed-punctuation");
+  auto validModule = validated(
+      valid.path(),
+      FomModuleKind::fom,
+      L"urn:umbra:test:fom-name-allowed-punctuation");
+  auto validResult = composer().compose({mim, validModule});
+  CAPTURE(validResult.diagnostics);
+  REQUIRE(validResult.status == FomCompositionStatus::valid);
+  REQUIRE(validResult.catalog);
+  REQUIRE(validResult.catalog->objectClass("HLAobjectRoot.Customer-2_0") != nullptr);
+}
+
+TEST_CASE(
+    "The FOM composition preflight enforces the YYYY-MM-DD modification-date form",
+    "[unit][fom][composition][table-constraints][model-identification]") {
+  auto mim = validated(
+      resourcePath("mim/HLAstandardMIM-2025.xml"),
+      FomModuleKind::mim,
+      L"urn:umbra:test:mim");
+  auto invalidDate = restaurantModuleWithTimezoneModificationDate();
+  auto module = validated(
+      invalidDate.path(),
+      FomModuleKind::fom,
+      L"urn:umbra:test:modification-date");
+
+  auto result = composer().compose({mim, module});
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("2025-02-10Z") != std::string::npos);
+  REQUIRE(result.diagnostics.find("YYYY-MM-DD") != std::string::npos);
+
+  auto valid = validated(
+      resourcePath("examples/RestaurantFOMmodule-2025.xml"),
+      FomModuleKind::fom,
+      L"urn:umbra:test:valid-modification-date");
+  auto validResult = composer().compose({mim, valid});
+  CAPTURE(validResult.diagnostics);
+  REQUIRE(validResult.status == FomCompositionStatus::valid);
+  REQUIRE(validResult.fdd);
+}
+
+TEST_CASE(
     "The FOM composition preflight enforces positive update rates",
     "[unit][fom][composition][table-constraints]") {
   auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
@@ -3347,7 +3842,8 @@ TEST_CASE(
 
 TEST_CASE(
     "The FDD materializer refuses the supplied extension when the official FDD schema cannot represent its directed-interaction merge",
-    "[unit][fom][composition]") {
+    "[unit][fom][composition][schema-conflict]"
+    "[directed-interaction-multiple-subscription-kinds]") {
   std::vector<PrevalidatedFomModule> modules{
       validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim, L"urn:umbra:test:mim"),
       validated(resourcePath("examples/RestaurantFOMmodule-2025.xml"), FomModuleKind::fom, L"urn:umbra:test:restaurant"),

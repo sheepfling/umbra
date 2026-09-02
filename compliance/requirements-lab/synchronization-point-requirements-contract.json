@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded embedded IEEE 1516.1-2025 federation synchronization-point slice to source-derived clause 4 records. It covers one-shot label tracking, global and explicit-set registration, callback-model-correct registration confirmation, announcement tags, late-join expansion, achievement success/failure, and completion after the synchronization set is satisfied. The focused filesystem lanes treat the C++ registration-result callbacks as the one §4.15 HLA service, and prove the §4.16 announcement and §4.18 Federation Synchronized records are durable at their individual recipients before HLA_EVOKED callbacks. The bounded direct-delivery regression verifies the registration, announcement, and completion boundaries under HLA_IMMEDIATE; the original HLA_EVOKED regression retains the late-join and duplicate-registration paths. It remains source/test traceability only: distributed transport, protected review, catalog promotion, save/restore interaction, and conformance are outside this slice.",
+  "notes": "This contract pins Umbra's bounded embedded IEEE 1516.1-2025 federation synchronization-point slice to source-derived clause 4 records. It covers one-shot label tracking, global and explicit-set registration, callback-model-correct registration confirmation, announcement tags, late-join expansion, achievement success/failure, and completion after the synchronization set is satisfied. The focused filesystem lanes treat the C++ registration-result callbacks as the one §4.15 HLA service, and prove the §4.16 announcement and §4.18 Federation Synchronized records are durable at their individual recipients before HLA_EVOKED callbacks. A fresh-registry filesystem regression now also rehydrates one tagged synchronization point and verifies it survives a subsequent save. The bounded direct-delivery regression verifies the registration, announcement, and completion boundaries under HLA_IMMEDIATE; the original HLA_EVOKED regression retains the late-join and duplicate-registration paths. It remains source/test traceability only: distributed transport, protected review, catalog promotion, broader save/restore interaction, and conformance are outside this slice.",
   "requirements": [
     {
       "id": "umbra-synchronization-point-tracked-separately",
@@ -14,7 +14,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores synchronization points in a fresh registry"
       ]
     },
     {
@@ -26,7 +27,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores synchronization points in a fresh registry"
       ]
     },
     {
@@ -37,7 +39,8 @@
       "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores synchronization points in a fresh registry"
       ]
     },
     {

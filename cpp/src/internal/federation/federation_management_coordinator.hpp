@@ -16,9 +16,21 @@ class ReferenceLogicalTimeSelector;
 // Exact local resources used by the private coordinator. The standard MIM
 // path is an RTI-owned resource; a caller's original FOM or supplied-MIM
 // designator is preserved separately in each validated descriptor.
+struct FomEditionResources final {
+  FomStandardEdition standardEdition = FomStandardEdition::ieee1516_2025;
+  std::filesystem::path standardMimPath;
+  std::filesystem::path difSchemaPath;
+  std::filesystem::path fddSchemaPath;
+  std::wstring difSchemaDesignator;
+};
+
 struct FederationManagementResources {
   std::filesystem::path standardMimPath;
   std::filesystem::path difSchemaPath;
+  // 2010 resources remain explicitly external until their provenance and
+  // redistribution terms have been reviewed. The ordinary 2025 fields above
+  // preserve the existing source-compatible construction for this profile.
+  std::optional<FomEditionResources> ieee1516_2010;
 };
 
 // These states are intentionally private. The standard-binding adapter will
@@ -66,7 +78,8 @@ class FederationManagementCoordinator final {
   [[nodiscard]] FederationPreparationResult prepareCreate(
       std::vector<std::wstring> const& fomDesignators,
       std::optional<std::wstring> const& mimDesignator,
-      std::wstring const& logicalTimeImplementationName) const;
+      std::wstring const& logicalTimeImplementationName,
+      FomStandardEdition standardEdition = FomStandardEdition::ieee1516_2025) const;
 
   [[nodiscard]] FederationPreparationResult prepareAdditionalModules(
       FederationDefinition const& existing,

@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded Local Delete Object Instance implementation to the exact official IEEE 1516.1-2025 C++ RTIambassador declaration exported by the Requirements Lab. It verifies the signature, declared exception set, adapter symbol, and real Catch2 selectors. The behavior test proves connection/membership and known-instance boundaries, FederateOwnsAttributes and OwnershipAcquisitionPending rejection, local knowledge removal, retained federation-wide object state, and rediscovery. The focused filesystem-report test proves a rejected unknown-object call appends nothing and an accepted one-argument call appends its type-37 ObjectInstanceHandle record after the local-forget transition. Timestamped/local-delete interactions, DDM, save/restore, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's bounded Local Delete Object Instance implementation to the exact official IEEE 1516.1-2025 C++ RTIambassador declaration exported by the Requirements Lab. It verifies the signature, declared exception set, adapter symbol, and real Catch2 selectors. The behavior test proves connection/membership and known-instance boundaries, FederateOwnsAttributes and OwnershipAcquisitionPending rejection, local knowledge removal, retained federation-wide object state, and rediscovery. The focused filesystem-report test proves a rejected unknown-object call appends nothing and an accepted one-argument call appends its type-37 ObjectInstanceHandle record after the local-forget transition. A timestamped companion proves the same public service suppresses a queued timestamped reflection after local knowledge is removed, while a later eligible subscription can rediscover and receive a new update. A matching timestamped object-deletion companion proves the same local-forget operation suppresses only that recipient's queued Remove Object Instance while an independent survivor still receives the removal before its grant. Broader timestamped object deletion, DDM, save/restore, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-local-delete-object-instance",
@@ -25,7 +25,10 @@
       "source_symbol": "UmbraRtiAmbassador::localDeleteObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     }
   ]

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "provenance": {
+    "purpose": "Reviewed IEEE 1516.1/1516.2-2010 downloads and the sibling Target Radar registration fixture.",
+    "source": "IEEE Standards Association downloads supplied for Umbra compatibility testing",
+    "source_urls": [
+      "https://standards.ieee.org/wp-content/uploads/import/download/1516.1-2010_downloads.zip",
+      "https://standards.ieee.org/wp-content/uploads/import/download/1516.2-2010_downloads.zip"
+    ],
+    "inspected_on": "2026-08-28",
+    "attribution": "IEEE remains the copyright holder of the standard/API-derived material; the sibling Target Radar XML is retained only as an unvendored test input.",
+    "policy": "Resources remain unvendored; the configured files must match these SHA-256 digests before the optional compatibility tests run."
+  },
+  "resources": [
+    {
+      "id": "standard_mim",
+      "paths": [
+        "1516_1-2010/HLAstandardMIM.xml",
+        "mim/HLAstandardMIM-2010.xml"
+      ],
+      "sha256": "839f092b4b3e02a1363ec4463efcb1aae7fbfdfb17778b159065f277a3f2b023",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd"
+    },
+    {
+      "id": "dif_schema",
+      "paths": [
+        "1516_2-2010/IEEE1516-DIF-2010.xsd",
+        "schemas/IEEE1516-DIF-2010.xsd"
+      ],
+      "sha256": "294e0445108aec42ac7c0ef7e2807bf4e34626ca8cd558f5fa7a8f9974bcef2a"
+    },
+    {
+      "id": "omt_schema",
+      "paths": [
+        "1516_2-2010/IEEE1516-OMT-2010.xsd",
+        "schemas/IEEE1516-OMT-2010.xsd"
+      ],
+      "sha256": "b93ecf2a23ab028e2082e81b2bd7c60464a121506e4fe750c532f3e7e172a1b6"
+    },
+    {
+      "id": "fdd_schema",
+      "paths": [
+        "1516_1-2010/IEEE1516-FDD-2010.xsd",
+        "schemas/IEEE1516-FDD-2010.xsd"
+      ],
+      "sha256": "8846b46dc0ee8ee1299c0e854e65630cf4de18375f6ce1200abd904e37f5a3c1"
+    },
+    {
+      "id": "restaurant_fom",
+      "paths": [
+        "1516_2-2010/RestaurantFOMmodule.xml",
+        "examples/RestaurantFOMmodule-2010.xml"
+      ],
+      "sha256": "48f2c2838de0fd23e62144d3dec3e376dedd82e84c9f914cc0c5cb1139bb5254",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd"
+    }
+  ],
+  "target_radar": {
+    "sha256": "919dcc2fc52dcb5179aa995fe2b445cbb31688bfef55a784bb94ebba774793b1",
+    "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+    "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd"
+  }
+}

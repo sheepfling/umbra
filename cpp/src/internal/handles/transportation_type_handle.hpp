@@ -10,8 +10,8 @@ namespace rti1516_2025::umbra_binding_detail {
 
 // Private construction and mandatory-name boundary for the official
 // TransportationTypeHandle value type. IEEE 1516.1-2025 requires every RTI to
-// support HLAreliable and HLAbestEffort; additional implementation-specific
-// transportation types remain outside this first embedded profile.
+// support HLAreliable and HLAbestEffort. Additional transportation types are
+// execution-scoped FOM declarations resolved by the composed catalog.
 TransportationTypeHandle makeTransportationTypeHandle(std::uint64_t value);
 TransportationTypeHandle decodeTransportationTypeHandle(VariableLengthData const& encodedValue);
 [[nodiscard]] std::optional<std::uint64_t> transportationTypeHandleValue(

@@ -22,10 +22,12 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -63,10 +65,12 @@
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_default_region_interaction_effectiveness",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -80,10 +84,12 @@
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_default_region_interaction_effectiveness",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -130,9 +136,11 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Flush Queue Request delivers timestamped default-region interaction context",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {

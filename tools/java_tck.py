@@ -2,14 +2,15 @@
 
 The Java runner owns behavioral execution.  This tool owns the stable
 traceability join: local TCK scenario IDs -> standard Java API signatures ->
-Requirements Lab IDs from Umbra's pinned compliance contracts -> provider
-result/evidence artifacts.  It does not import or execute a provider.
+Requirements Lab IDs from the repository's pinned compliance contracts ->
+provider result/evidence artifacts.  It does not import or execute a provider.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -140,13 +141,46 @@ def load_results(paths: list[Path]) -> list[dict[str, Any]]:
 
 def validate_sources() -> list[str]:
     findings: list[str] = []
-    source_root = ROOT / "packages" / "umbra-rti-java-tck" / "src" / "main" / "java"
+    source_root = ROOT / "packages" / "hla-rti-java-tck" / "src" / "main" / "java"
+    if not source_root.is_dir():
+        return [f"portable Java TCK source root is absent: {source_root}"]
+    import_pattern = re.compile(
+        r"^\s*import\s+(?:static\s+)?([A-Za-z0-9_.]+)(?:\.\*)?\s*;\s*$"
+    )
+    package_pattern = re.compile(r"^\s*package\s+org\.hla\.rti\.tck\s*;\s*$")
+    forbidden_tokens = (
+        "umbra",
+        "org.umbra",
+        "nativebridge",
+        "jni",
+        "jnienv",
+        "#include",
+        "c++",
+    )
     for path in source_root.rglob("*.java"):
         text = path.read_text(encoding="utf-8")
-        if "import org.umbra" in text or "import umbra." in text:
-            findings.append(f"portable Java TCK imports provider implementation: {path}")
-        if "NativeBridge" in text or "JNIEnv" in text or "#include" in text:
-            findings.append(f"portable Java TCK contains native implementation coupling: {path}")
+        if not any(package_pattern.match(line) for line in text.splitlines()):
+            findings.append(f"portable Java TCK source has a non-portable package: {path}")
+        for line_number, line in enumerate(text.splitlines(), start=1):
+            match = import_pattern.match(line)
+            if match is None:
+                continue
+            imported = match.group(1)
+            if not (
+                imported.startswith(("java.", "javax."))
+                or imported == "hla.rti1516_2025"
+                or imported.startswith("hla.rti1516_2025.")
+            ):
+                findings.append(
+                    f"portable Java TCK imports outside the JDK or standard 2025 API "
+                    f"at {path}:{line_number}: {imported}"
+                )
+        lowered = text.lower()
+        for token in forbidden_tokens:
+            if token in lowered:
+                findings.append(
+                    f"portable Java TCK contains provider-specific token {token!r}: {path}"
+                )
     return findings
 
 

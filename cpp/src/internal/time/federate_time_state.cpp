@@ -5,6 +5,7 @@
 
 #include <limits>
 #include <chrono>
+#include <stdexcept>
 #include <utility>
 
 namespace umbra::detail {
@@ -140,6 +141,79 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::currentTime(
   return currentTime_;
 }
 
+void FederateTimeState::restoreFromSnapshot(FederateTimeSnapshot const& snapshot) {
+  std::scoped_lock lock(mutex_);
+  if (snapshot.implementationName != implementationName_) {
+    throw std::logic_error(
+        "Federate time snapshot uses a different logical-time implementation.");
+  }
+  if (snapshot.nextGeneration == 0U ||
+      (snapshot.timeAdvancePending &&
+       (snapshot.pendingTimeAdvanceGeneration == 0U ||
+        snapshot.advanceMode == FederateTimeAdvanceMode::none)) ||
+      (!snapshot.timeAdvancePending &&
+       (snapshot.pendingTimeAdvanceGeneration != 0U ||
+        snapshot.advanceMode != FederateTimeAdvanceMode::none)) ||
+      snapshot.timeRegulationPending !=
+          (snapshot.pendingTimeRegulationGeneration != 0U) ||
+      snapshot.timeConstrainedPending !=
+          (snapshot.pendingTimeConstrainedGeneration != 0U)) {
+    throw std::logic_error(
+        "Federate time snapshot has inconsistent pending request state.");
+  }
+  if (snapshot.pendingModifiedLookahead && !snapshot.timeRegulating) {
+    throw std::logic_error(
+        "Federate time snapshot has a deferred lookahead without regulation.");
+  }
+
+  currentTime_ = cloneLogicalTime(snapshot.currentTime, implementationName_);
+  pendingTime_ = cloneLogicalTime(snapshot.requestedTime, implementationName_);
+  pendingAdvanceRequestTime_ =
+      cloneLogicalTime(snapshot.advanceRequestTime, implementationName_);
+  optimisticTime_ = cloneLogicalTime(snapshot.optimisticTime, implementationName_);
+  lookahead_ = cloneLogicalTimeInterval(snapshot.lookahead, implementationName_);
+  pendingLookahead_ =
+      cloneLogicalTimeInterval(snapshot.requestedLookahead, implementationName_);
+  pendingModifiedLookahead_ =
+      cloneLogicalTimeInterval(snapshot.pendingModifiedLookahead, implementationName_);
+  pendingGeneration_ = snapshot.pendingTimeAdvanceGeneration;
+  advanceMode_ = snapshot.advanceMode;
+  pendingTimeRegulationGeneration_ = snapshot.pendingTimeRegulationGeneration;
+  pendingTimeConstrainedGeneration_ = snapshot.pendingTimeConstrainedGeneration;
+  nextGeneration_ = snapshot.nextGeneration;
+  timeRegulating_ = snapshot.timeRegulating;
+  timeConstrained_ = snapshot.timeConstrained;
+  asynchronousDeliveryEnabled_ = snapshot.asynchronousDeliveryEnabled;
+  minimumTimestampIsExclusive_ = snapshot.minimumTimestampIsExclusive;
+  active_ = snapshot.active;
+  timeAdvancing_ = snapshot.timeAdvancePending;
+  momGrantedMilliseconds_ = 0U;
+  momAdvancingMilliseconds_ = 0U;
+  momStateSince_ = std::chrono::steady_clock::now();
+  deferredAsynchronousReceives_.clear();
+}
+
+std::uint64_t FederateTimeState::callbackEpoch() const noexcept {
+  std::scoped_lock lock(mutex_);
+  return callbackEpoch_;
+}
+
+bool FederateTimeState::callbackEpochMatches(std::uint64_t expected) const noexcept {
+  std::scoped_lock lock(mutex_);
+  return expected != 0U && callbackEpoch_ == expected;
+}
+
+void FederateTimeState::invalidateCallbacksForRestore() noexcept {
+  std::scoped_lock lock(mutex_);
+  if (callbackEpoch_ == std::numeric_limits<std::uint64_t>::max()) {
+    // Zero is reserved as an invalid caller-supplied epoch. Wrapping to one
+    // preserves that fence even after an artificial exhaustion test.
+    callbackEpoch_ = 1U;
+  } else {
+    ++callbackEpoch_;
+  }
+}
+
 FederateTimeSnapshot FederateTimeState::snapshot() const {
   std::scoped_lock lock(mutex_);
   return {
@@ -153,6 +227,9 @@ FederateTimeSnapshot FederateTimeState::snapshot() const {
       advanceMode_,
       pendingTimeRegulationGeneration_ != 0,
       pendingTimeConstrainedGeneration_ != 0,
+      pendingTimeRegulationGeneration_,
+      pendingTimeConstrainedGeneration_,
+      nextGeneration_,
       minimumTimestampIsExclusive_,
       currentTime_,
       optimisticTime_,
@@ -160,6 +237,7 @@ FederateTimeSnapshot FederateTimeState::snapshot() const {
       pendingAdvanceRequestTime_,
       lookahead_,
       pendingLookahead_,
+      pendingModifiedLookahead_,
   };
 }
 
@@ -245,6 +323,14 @@ FederateTimeAdvanceResult FederateTimeState::requestAdvanceImpl(
     if (*effectiveTime < *currentTime_ || *effectiveTime > *requestedTime) {
       return {FederateTimeAdvanceStatus::invalid_logical_time, 0};
     }
+    // A Flush Queue Grant may leave the federate below its optimistic
+    // logical-time floor.  The supplied request must reach that floor before
+    // any effective target is accepted as a new grant.  This matters for NMR
+    // and NMRA, whose selected queued-message timestamp can be earlier than
+    // the caller's requested boundary.
+    if (optimisticTime_ && *effectiveTime < *optimisticTime_) {
+      return {FederateTimeAdvanceStatus::logical_time_already_passed, 0};
+    }
     makesMinimumTimestampExclusive =
         timeRegulating_ && lookahead_ && lookahead_->isZero() && *requestedTime > *currentTime_;
   } catch (rti1516_2025::InvalidLogicalTime const&) {
@@ -284,6 +370,29 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
     return nullptr;
   }
 
+  // Validate every comparison that can still fail before changing the
+  // callback-gated state below.  LogicalTime is an extensibility point in the
+  // official API; a custom implementation may report InvalidLogicalTime for
+  // an otherwise name-compatible comparison.  Returning nullptr after
+  // currentTime_ or the pending-generation fields have already been mutated
+  // would strand the federate in a state with no matching grant callback.
+  bool clearsOptimisticFloor = false;
+  if (optimisticTime_) {
+    try {
+      clearsOptimisticFloor = *pendingTime_ >= *optimisticTime_;
+    } catch (rti1516_2025::Exception const&) {
+      return nullptr;
+    }
+  }
+
+  // A decreasing Modify Lookahead request is applied at the grant boundary.
+  // Compute the revised interval on a private clone first: the official
+  // LogicalTimeInterval operators are virtual and may reject a compatible-
+  // name operation.  Mutating lookahead_ before the rest of the grant is
+  // committed would leave a pending request with a partially applied
+  // lookahead if one of those operations failed.
+  std::shared_ptr<rti1516_2025::LogicalTimeInterval> revisedLookahead;
+  bool applyPendingLookahead = false;
   if (pendingModifiedLookahead_ && lookahead_ && currentTime_) {
     try {
       auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
@@ -300,10 +409,13 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
       *remaining = *lookahead_;
       *remaining -= *pendingModifiedLookahead_;
       if (*elapsed >= *remaining) {
-        lookahead_ = std::move(pendingModifiedLookahead_);
-        pendingModifiedLookahead_.reset();
+        applyPendingLookahead = true;
       } else {
-        *lookahead_ -= *elapsed;
+        revisedLookahead = cloneLogicalTimeInterval(lookahead_, implementationName_);
+        if (!revisedLookahead) {
+          return nullptr;
+        }
+        *revisedLookahead -= *elapsed;
       }
     } catch (rti1516_2025::Exception const&) {
       return nullptr;
@@ -313,13 +425,15 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
   accumulateMomTimeLocked(std::chrono::steady_clock::now());
   timeAdvancing_ = false;
   currentTime_ = std::move(pendingTime_);
-  if (optimisticTime_ && currentTime_) {
-    try {
-      if (*currentTime_ >= *optimisticTime_) {
-        optimisticTime_.reset();
-      }
-    } catch (rti1516_2025::Exception const&) {
-      return nullptr;
+  if (clearsOptimisticFloor) {
+    optimisticTime_.reset();
+  }
+  if (pendingModifiedLookahead_ && lookahead_ && currentTime_) {
+    if (applyPendingLookahead) {
+      lookahead_ = std::move(pendingModifiedLookahead_);
+      pendingModifiedLookahead_.reset();
+    } else {
+      lookahead_ = std::move(revisedLookahead);
     }
   }
   pendingAdvanceRequestTime_.reset();
@@ -350,24 +464,35 @@ FederateTimeAdvanceResult FederateTimeState::grantFlushQueue(
     return {FederateTimeAdvanceStatus::invalid_logical_time, 0};
   }
 
-  // The ordinary grant path owns the callback-gated state transition. Replace
-  // only the pending target for this Flush Queue Grant, then retain the OLT
-  // after the transition for the next request's precondition.
-  pendingTime_ = std::move(grantedTime);
-  auto const granted = grantImpl(generation);
-  if (!granted) {
+  // Resolve the optimistic-floor relation while the request is still
+  // untouched.  grantImpl performs the analogous validation for the existing
+  // floor; this one protects the newly supplied Flush Queue value from a
+  // comparison failure after the grant has committed.
+  bool clearsSuppliedOptimisticFloor = false;
+  try {
+    clearsSuppliedOptimisticFloor = *optimisticTime <= *grantedTime;
+  } catch (rti1516_2025::Exception const&) {
     return {FederateTimeAdvanceStatus::invalid_logical_time, 0};
   }
 
-  auto optimistic = std::move(optimisticTime);
-  try {
-    if (*optimistic <= *granted) {
-      optimisticTime_.reset();
-    } else {
-      optimisticTime_ = std::move(optimistic);
-    }
-  } catch (rti1516_2025::Exception const&) {
+  // The ordinary grant path owns the callback-gated state transition. Replace
+  // only the pending target for this Flush Queue Grant, then retain the OLT
+  // after the transition for the next request's precondition. Keep the prior
+  // target until grantImpl has completed its no-throw commit boundary: a
+  // failed deferred-lookahead clone must not rewrite the caller's pending
+  // request with the provisional actual grant.
+  auto previousPendingTime = std::move(pendingTime_);
+  pendingTime_ = std::move(grantedTime);
+  auto const granted = grantImpl(generation);
+  if (!granted) {
+    pendingTime_ = std::move(previousPendingTime);
     return {FederateTimeAdvanceStatus::invalid_logical_time, 0};
+  }
+
+  if (clearsSuppliedOptimisticFloor) {
+    optimisticTime_.reset();
+  } else {
+    optimisticTime_ = std::move(optimisticTime);
   }
   return {FederateTimeAdvanceStatus::applied, generation};
 }
@@ -401,9 +526,17 @@ FederateTimeEnableResult FederateTimeState::requestTimeRegulation(
 
 std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantTimeRegulation(
     std::uint64_t generation) {
+  return grantTimeRegulationIfCurrent(generation, 0U);
+}
+
+std::shared_ptr<rti1516_2025::LogicalTime const>
+FederateTimeState::grantTimeRegulationIfCurrent(
+    std::uint64_t generation,
+    std::uint64_t callbackEpoch) {
   std::scoped_lock lock(mutex_);
   if (!active_ || !currentTime_ || !pendingLookahead_ || generation == 0 ||
-      generation != pendingTimeRegulationGeneration_) {
+      generation != pendingTimeRegulationGeneration_ ||
+      (callbackEpoch != 0U && callbackEpoch != callbackEpoch_)) {
     return nullptr;
   }
 
@@ -456,9 +589,19 @@ FederateTimeModifyLookaheadStatus FederateTimeState::modifyLookahead(
   }
 
   try {
+    // A forward request made while the active lookahead was zero establishes
+    // an exclusive minimum timestamp boundary.  Increasing that lookahead
+    // removes the condition that required the epsilon; keep the boundary
+    // marker aligned with the effective interval rather than carrying the
+    // old zero-lookahead restriction into later federation bounds and TSO
+    // validation.
+    bool const requestedLookaheadIsZero = requestedLookahead->isZero();
     if (*requestedLookahead >= *lookahead_) {
       lookahead_ = std::move(requestedLookahead);
       pendingModifiedLookahead_.reset();
+      if (!requestedLookaheadIsZero) {
+        minimumTimestampIsExclusive_ = false;
+      }
     } else {
       pendingModifiedLookahead_ = std::move(requestedLookahead);
     }
@@ -492,9 +635,17 @@ FederateTimeEnableResult FederateTimeState::requestTimeConstrained() {
 
 std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantTimeConstrained(
     std::uint64_t generation) {
+  return grantTimeConstrainedIfCurrent(generation, 0U);
+}
+
+std::shared_ptr<rti1516_2025::LogicalTime const>
+FederateTimeState::grantTimeConstrainedIfCurrent(
+    std::uint64_t generation,
+    std::uint64_t callbackEpoch) {
   std::scoped_lock lock(mutex_);
   if (!active_ || !currentTime_ || pendingTimeConstrainedGeneration_ == 0 ||
-      generation == 0 || generation != pendingTimeConstrainedGeneration_) {
+      generation == 0 || generation != pendingTimeConstrainedGeneration_ ||
+      (callbackEpoch != 0U && callbackEpoch != callbackEpoch_)) {
     return nullptr;
   }
 

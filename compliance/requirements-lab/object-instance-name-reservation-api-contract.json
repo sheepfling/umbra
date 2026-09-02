@@ -61,6 +61,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records multiple object-instance name reservation arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers multiple object-instance name release through MOM",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments"
       ]
     },

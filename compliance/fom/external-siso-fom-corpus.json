@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "purpose": "Optional, unvendored SISO XML corpus used only to guard Umbra's IEEE 1516.2-2025 schema/edition boundary.",
-  "status": "development-only-cross-edition-rejection-fixtures",
+  "purpose": "Optional, unvendored SISO XML corpus used for strict 2025 cross-edition guards and explicitly selected 2010 intake/catalog checks.",
+  "status": "development-only-cross-edition-and-2010-catalog-fixtures",
   "source_boundary": {
     "acquisition": "A developer supplies the local corpus root explicitly through UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY.",
     "redistribution": "No third-party XML is copied into Umbra by this manifest or its tests.",
@@ -64,6 +64,143 @@
       "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
       "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
       "expected_2025_dif_status": "invalid_model"
+    },
+    {
+      "id": "siso-rpr-2-foundation-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Foundation_v2.0.xml",
+      "sha256": "b2638c83e63e1fadf2c733975a62ec0d1e0a8564d14cef7e606e94ee3f8eaec9",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-enumerations-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Enumerations_v2.0.xml",
+      "sha256": "3dc79fddb0516fd7ef42f37b8f63745b47af24ea2d3d94504957c7063da5334f",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "invalid_model",
+      "expected_2010_compatibility_status": "valid_after_rpr_normalization",
+      "note": "The source reference-identification value is prose rather than a value accepted by the official xs:anyURI field; the explicit RPR 2010 compatibility path normalizes it in memory and records a warning."
+    },
+    {
+      "id": "siso-rpr-2-base-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Base_v2.0.xml",
+      "sha256": "8c207ee1cd650b8e14025bfdedba12facd421ad66d11ae941bc192e730b992eb",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-physical-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Physical_v2.0.xml",
+      "sha256": "e27c97d4bd3b97d18c4c8557b2aa4953998cfafe8e86bcb1c7c794b8a517eef5",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-logistics-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Logistics_v2.0.xml",
+      "sha256": "11096d9b2437e84fc6ab46596b50f064f12100665c5f171813c308e19cad9802",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-minefield-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Minefield_v2.0.xml",
+      "sha256": "72d13110cca59387ec2b49eb4e7f0f33141216a08230184969975c933945969b",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-switches-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Switches_v2.0.xml",
+      "sha256": "ee86d2e9b0f14f57cdd54989a37817fdc03d1138f6c2052964235f039ef212d2",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-der-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-DER_v2.0.xml",
+      "sha256": "c3f1958313467f7caed0f232bfac3f02e129ec53c299a633ee5fefade7d0df43",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-warfare-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Warfare_v2.0.xml",
+      "sha256": "c75483e18809a604be1a9c0ff964398f19656137f1d60e7adb26e3d3183be4a9",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-communication-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Communication_v2.0.xml",
+      "sha256": "5eae44a3cf91b87efae360d1b754223af030c4942552b8dbf27b7f09f3cd5e1b",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-siman-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-SIMAN_v2.0.xml",
+      "sha256": "558421708c14758066bbc426526e012a3d45a2f4ed2a029ebc3587abf8896ac3",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-ua-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-UA_v2.0.xml",
+      "sha256": "7fe899a412ad42bc7e4b19e1375b447f17247776628b81f7e0772fb8c388f61b",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-aggregate-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-Aggregate_v2.0.xml",
+      "sha256": "679bfd867798f91b083d78a547f2871257e92195d08ebd31cddc368d687c8d06",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-link11-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/Link_11_11B_v1.0.xml",
+      "sha256": "44e42551e4b9aabbbb662b4016766121070a7f0174af449db16a52859649b055",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
+    },
+    {
+      "id": "siso-rpr-2-se-2010",
+      "path": "RPR FOM v2.0 Link 16 and Link 11/RPR-SE_v2.0.xml",
+      "sha256": "f6eb7f526a633235ec6732577e2880d7002a19a2f71c0eb23449a43749495e4e",
+      "xml_namespace": "http://standards.ieee.org/IEEE1516-2010",
+      "schema_location": "http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd",
+      "expected_2025_dif_status": "invalid_model",
+      "expected_2010_dif_status": "valid"
     }
   ]
 }

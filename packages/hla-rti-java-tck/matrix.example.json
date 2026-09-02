@@ -1,0 +1,20 @@
+[
+  {
+    "id": "provider-a",
+    "apiJar": "C:\\deps\\hla-1516e-2025-api.jar",
+    "providerJar": "C:\\deps\\provider-a.jar",
+    "factoryName": "Provider A",
+    "fomPath": "C:\\fom\\RestaurantFOMmodule-2025.xml",
+    "capabilityProfile": "profiles\\provider-a.properties",
+    "jvmArguments": []
+  },
+  {
+    "id": "provider-b",
+    "apiJar": "C:\\deps\\hla-1516e-2025-api.jar",
+    "providerJar": "C:\\deps\\provider-b.jar",
+    "factoryName": "Provider B",
+    "fomPath": "C:\\fom\\RestaurantFOMmodule-2025.xml",
+    "capabilityProfile": "profiles\\provider-b.properties",
+    "jvmArguments": []
+  }
+]

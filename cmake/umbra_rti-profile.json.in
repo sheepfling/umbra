@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "provider": "Umbra",
+  "standard": "IEEE 1516.1-2025",
+  "profile": "@UMBRA_PROFILE_NAME@",
+  "public_configuration": {
+    "process_endpoint": "@UMBRA_PROFILE_PROCESS_ENDPOINT@",
+    "service_report_storage": "filesystem"
+  },
+  "resources": {
+    "standard_edition": "IEEE 1516.2-2025",
+    "installed_directory": "share/umbra_rti/ieee1516.2-2025"
+  }
+}

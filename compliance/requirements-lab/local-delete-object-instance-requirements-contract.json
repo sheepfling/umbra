@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 Local Delete Object Instance service in Umbra's opt-in, non-installable development profile. The transition removes the invoking federate's known-instance state, leaves the federation-wide object and other federates' knowledge intact, and permits a later eligible rediscovery. It rejects a federate that owns instance attributes or has a pending ownership acquisition. Its focused production-filesystem regression also records the accepted one-argument service only after that local-forget transition; rejected calls append nothing. It does not claim timestamped/local-delete interactions, save/restore, resign-action disposition, DDM, remote transport, catalog evidence, validation, or conformance. The contract uses immutable candidate IDs exported by the Requirements Lab.",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 Local Delete Object Instance service in Umbra's opt-in, non-installable development profile. The transition removes the invoking federate's known-instance state, leaves the federation-wide object and other federates' knowledge intact, and permits a later eligible rediscovery. It rejects a federate that owns instance attributes or has a pending ownership acquisition. Its focused production-filesystem regression also records the accepted one-argument service only after that local-forget transition; rejected calls append nothing. A focused timestamped companion now deletes the receiver's local knowledge while a timestamped Update Attribute Values passel is queued, proves that the queued boundary grants without a stale reflection or Request Retraction, and proves later rediscovery plus a new timestamped reflection. A three-member companion proves that this suppression is recipient-local: the deleted receiver gets only its grant while an independent survivor receives the same queued reflection before its grant, and both receive a later update after rediscovery. A matching three-member timestamped object-deletion companion proves the locally forgotten recipient receives no stale Remove Object Instance callback while the independent survivor receives its removal before its grant. It does not claim timestamped object deletion beyond that callback-isolation companion, save/restore, resign-action disposition, DDM, remote transport, catalog evidence, validation, or conformance. The contract uses immutable candidate IDs exported by the Requirements Lab.",
   "requirements": [
     {
       "id": "umbra-local-delete-forgets-invoking-federate-instance",
@@ -13,7 +13,10 @@
       "source_symbol": "EmbeddedFederationRegistry::localDeleteObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -24,7 +27,10 @@
       "source_symbol": "EmbeddedFederationRegistry::localDeleteObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -34,7 +40,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::localDeleteObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection"
       ]
     }
   ]

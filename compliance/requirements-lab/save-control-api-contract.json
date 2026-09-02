@@ -22,6 +22,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves synchronization-point state from the saved image",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Federation Save timestamp overloads"
       ]
     },
@@ -56,7 +57,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves synchronization-point state from the saved image"
       ]
     },
     {
@@ -76,7 +78,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves synchronization-point state from the saved image"
       ]
     },
     {

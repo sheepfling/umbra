@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "ieee1516e-2010-artifact-manifest",
+  "standard": "IEEE 1516.1/1516.2-2010",
+  "provenance": {
+    "api_download_page": "https://standards.ieee.org/ieee/1516.1/3745/",
+    "downloads_page": "https://standards.ieee.org/downloads/",
+    "terms": "IEEE materials are retained locally for personal use; this repository stores provenance and digests, not the standards source archives."
+  },
+  "archives": [
+    {
+      "part": "1516.1",
+      "edition": "2010",
+      "url": "https://standards.ieee.org/wp-content/uploads/import/download/1516.1-2010_downloads.zip",
+      "sha256": "E6343F40B066D51B7F435C9AAE6788BE24F5D585E370D972C032AB0B503E27C1",
+      "contains": [
+        "IEEE1516-2010_C++_API.zip",
+        "IEEE1516-2010_Java_API.zip",
+        "IEEE1516-FDD-2010.xsd",
+        "HLAstandardMIM.xml",
+        "hla1516e.wsdl"
+      ]
+    },
+    {
+      "part": "1516.2",
+      "edition": "2010",
+      "url": "https://standards.ieee.org/wp-content/uploads/import/download/1516.2-2010_downloads.zip",
+      "sha256": "1FB3D77318D87F55938EC74E4BC2A1A90F3BF62AA56937850F1073C9D446BB2B",
+      "contains": [
+        "IEEE1516-DIF-2010.xsd",
+        "IEEE1516-OMT-2010.xsd",
+        "RestaurantFOMmodule.xml",
+        "RestaurantSOMmodule.xml"
+      ]
+    }
+  ],
+  "api_archives": {
+    "cpp": {
+      "sha256": "B67A1F5D26CEA2F1E19CF6874C8466B68AAA069C993C00D1F3DCDBC2F850606A",
+      "namespace": "rti1516e",
+      "rti_ambassador_pure_virtual_count": 151,
+      "federate_ambassador_pure_virtual_count": 61
+    },
+    "java": {
+      "sha256": "66485E053B6183DF2DF94E35DE7C609677F2CCAEF0830EDDE014AAD066E41890",
+      "package": "hla.rti1516e",
+      "rti_ambassador_declared_method_count": 172,
+      "federate_ambassador_declared_method_count": 60
+    }
+  },
+  "surface_inventory": {
+    "source": "tools/generate_1516e_surface_inventory.py",
+    "cpp_unique_rti_method_count": 140,
+    "java_unique_rti_method_count": 150,
+    "python_unique_rti_method_count": 150,
+    "cpp_unique_federate_callback_count": 51,
+    "java_unique_federate_callback_count": 51,
+    "python_unique_federate_callback_count": 51,
+    "java_type_counts": {
+      "root": 58,
+      "encoding": 30,
+      "exceptions": 110,
+      "time": 6
+    },
+    "cpp_rti_only": [
+      "createFederationExecutionWithMIM",
+      "decodeAttributeHandle",
+      "decodeDimensionHandle",
+      "decodeFederateHandle",
+      "decodeInteractionClassHandle",
+      "decodeMessageRetractionHandle",
+      "decodeObjectClassHandle",
+      "decodeObjectInstanceHandle",
+      "decodeParameterHandle",
+      "decodeRegionHandle",
+      "getTransportationName",
+      "getTransportationType"
+    ],
+    "java_rti_only": [
+      "getAttributeHandleFactory",
+      "getAttributeHandleSetFactory",
+      "getAttributeHandleValueMapFactory",
+      "getAttributeSetRegionSetPairListFactory",
+      "getDimensionHandleFactory",
+      "getDimensionHandleSetFactory",
+      "getFederateHandleFactory",
+      "getFederateHandleSetFactory",
+      "getHLAversion",
+      "getInteractionClassHandleFactory",
+      "getObjectClassHandleFactory",
+      "getObjectInstanceHandleFactory",
+      "getParameterHandleFactory",
+      "getParameterHandleValueMapFactory",
+      "getRegionHandleSetFactory",
+      "getTransportationTypeHandle",
+      "getTransportationTypeHandleFactory",
+      "getTransportationTypeName",
+      "subscribeInteractionClassPassively",
+      "subscribeInteractionClassPassivelyWithRegions",
+      "subscribeObjectClassAttributesPassively",
+      "subscribeObjectClassAttributesPassivelyWithRegions"
+    ],
+    "callback_name_difference_count": 0
+  },
+  "scope": {
+    "primary_goal": "surface-complete-bindable",
+    "definition": "Verify official 2010 namespaces, symbols, overload forwarding, callback carriers, exceptions, encoder/time types, provider-factory discovery, and import/load/link behavior across pure Python, JPype, direct pybind, and JNI. Service behavior beyond the bounded proof slices is capability-gated and must remain explicit unsupported rather than implied by the surface inventory.",
+    "completion_rule": "A callable standard method counts as surface-bound when its name, overload shape, callback carrier, exception mapping, and provider load/link path are present. Invocation behavior is supplementary evidence; an explicit unsupported result is not a missing surface symbol.",
+    "not_required_for_surface_goal": [
+      "complete production RTI service implementation",
+      "complete DDM, MOM, save/restore, or time-management behavior",
+      "a parsed 2010 FOM in the deterministic reference directory"
+    ]
+  },
+  "provider_boundaries": {
+    "python_2010_entry_point_group": "hla.rti1516e.factories",
+    "python_2010_entry_point_alias": "java-2010",
+    "python_2010_native_entry_point": "UmbraNative2010 / umbra._native.rti1516e:Native2010RtiFactory",
+    "python_2010_time_factory_policy": "LogicalTimeFactoryFactory honors hla.rti1516e.time_factories entries and otherwise discovers getTimeFactory/getFloat64TimeFactory from the edition-specific RTI providers.",
+    "native_2010_entry_points": [
+      "umbra::rti_2010"
+    ],
+    "jni_2010_java_packages": [
+      "org.umbra.jni.rti1516e"
+    ],
+    "policy": "The 2010 C++/pybind and JNI artifacts expose the official rti1516e/hla.rti1516e surfaces. The direct C++/pybind route owns scalar, opaque, fixed-array, variable-array, fixed-record, and variant-record encoders, both mandated integer64/float64 logical-time families, connection lifecycle, federation membership and federate identity, declaration lookup/publication, receive-order object register/discover/update/reflect callbacks, receive-order interaction publish/subscribe/send callbacks, and object-attribute ownership query/inform callbacks. Its deterministic reference directory accepts standard FOM inputs while the 2010 FOM loader remains a separate gate; remaining RTI/MOM services stay explicit unsupported gates. JNI remains a bounded connect/disconnect null bridge. The JPype adapter may also consume a caller-supplied standard 2010 Java provider."
+  },
+  "status": "surface-complete-cpp-pybind-scalar-composite-encoding-integer-float-time-federation-declaration-object-interaction-ownership-synchronization-jni-connect-slice-gated",
+  "next_gate": "Keep the 2010 symbol/factory/import/link contract green across pure Python, JPype, direct pybind, and JNI. Add DDM, time, save/restore, and MOM behavior only as optional provider capability slices; preserve explicit unsupported results and the deterministic reference-directory boundary."
+}

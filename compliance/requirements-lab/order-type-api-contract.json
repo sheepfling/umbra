@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 order-type lookup foundation to the exact C++ API surfaces exported by the Requirements Lab. The embedded profile recognizes only the two mandatory standard order names, Receive and TimeStamp; order-change services, per-instance preferred-order state, alternate time/TSO modes, save/restore, transport, packaging, protected review, and conformance remain unimplemented.",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 order-type lookup foundation to the exact C++ API surfaces exported by the Requirements Lab. The embedded profile recognizes only the two mandatory standard order names, Receive and TimeStamp; the companion HLA_IMMEDIATE case decodes the accepted type-53/type-38 service-report forms. Order-change services, per-instance preferred-order state, alternate time/TSO modes, save/restore, transport, packaging, protected review, and conformance remain unimplemented.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-get-order-type",
@@ -20,7 +20,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getOrderType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction"
       ]
     },
     {
@@ -38,7 +39,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getOrderName",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction"
       ]
     }
   ]

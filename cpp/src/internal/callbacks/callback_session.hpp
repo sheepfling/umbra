@@ -18,7 +18,9 @@ namespace rti1516_2025::umbra_binding_detail {
 // It never takes ownership of the ambassador itself. Instead, Close prevents
 // queued work from dereferencing it and waits for an external-thread callback
 // that has already started. The same callback may call Disconnect without
-// deadlocking; its final return releases the borrowed pointer.
+// deadlocking; its final return releases the borrowed pointer. Invocation
+// entry is serialized for one session, while the recursive gate preserves
+// legal same-thread callback re-entry from HLA_IMMEDIATE services.
 class CallbackSession final {
  public:
   using Invocation = std::function<void(FederateAmbassador&)>;
@@ -42,6 +44,10 @@ class CallbackSession final {
   std::size_t invocationsInFlight_ = 0;
   bool closed_ = false;
   std::shared_ptr<umbra::detail::RuntimeInstrumentation> instrumentation_;
+  // Keep one caller-owned FederateAmbassador from being entered by multiple
+  // RTI paths at once. This is recursive because an immediate callback may
+  // synchronously invoke another RTI service that delivers a nested callback.
+  mutable std::recursive_mutex invocationMutex_;
 };
 
 }  // namespace rti1516_2025::umbra_binding_detail

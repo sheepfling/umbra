@@ -20,22 +20,29 @@ For Python work, create an isolated environment before installing a package:
     .\.venv\Scripts\Activate.ps1
     python -m pip install --upgrade pip
 
-From the repository root, run the baseline native gate:
+From the repository root, run the baseline route-aware gate:
 
-    python tools/ci.py native
+    python -m tools.ci test --standard all --route cpp
 
-This is the exact command used by CI. To rerun only one stage after an initial
-run, use (for example):
+For one standard and one transport, use (for example):
 
-    python tools/ci.py native --stage test
+    python -m tools.ci test --standard 2010 --route cpp
+    python -m tools.ci test --standard 2025 --route python
 
-List profiles and preview their commands without changing anything:
+List routes and preview commands without changing anything:
 
-    python tools/ci.py --list-profiles
-    python tools/ci.py native-fom --dry-run
+    python -m tools.ci list
+    python -m tools.ci test --standard 2010 --route cpp --dry-run
+    python -m tools.ci doctor
 
-The [CI contract](docs/development/CI.md) shows the small environment contract
-for GitHub Actions, Azure DevOps, and other runners.
+Apply the repository's generated-artifact and available formatter fixes with:
+
+    python -m tools.ci fix
+    python -m tools.ci lint
+
+The [CI contract](docs/development/CI.md) shows the route matrix, external Java
+artifact inputs, safe cleanup boundary, and the small environment contract for
+GitHub Actions, Azure DevOps, and other runners.
 
 The preset uses one build job because parallel MSVC projects can contend for a
 program database on Windows. All disposable output is written below out/.

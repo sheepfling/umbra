@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 timestamped Send Directed Interaction and timestamped Receive Directed Interaction surfaces to the official C++ declarations exported by the Requirements Lab, along with the subscription declarations exercised by its selector regression. The linked Catch2 scenarios cover lower-bound validation, known-target/declaration routing, constrained-recipient queueing before the grant, timestamp/order/retraction callback fields, pending-fanout suppression, a legal Request Retraction callback for an already-delivered nonconstrained directed recipient, default-by-ownership versus universal delivery, declaration changes before a later TSO callback boundary, a queued payload surviving Time Constrained disable/re-enable with one callback before the matching grant, a live queued payload restored across an untimed save/restore boundary and delivered through Flush Queue Request before Request Retraction, target-departure suppression after a lower-timestamped Delete Object Instance removal, and source-mandated delivery through a connection-loss cutoff while the target and recipient selector remain valid. The API surface also links the paired filesystem and HLA_IMMEDIATE failure matrices for the timestamped Send Directed Interaction pre-admission boundary; those cases retain the official five supplied forms, Null/false failure results, exact exception descriptions, and serials zero through three. The DELETE_OBJECTS late-TAR regression additionally retains the target long enough to deliver its cutoff-marked directed callback before grant, then releases the automatic receive-order removal through the next eligible gate; its unsubscribe companion terminally suppresses the callback and releases that removal without pretending a callback was delivered. The direct selector source remains generically mapped (RL-028), the §5.13 continuation candidate used for stale-callback suppression is mis-owned by the Lab (RL-080), the lifecycle relation gap is recorded in RL-134, and the save/restore relation gap is recorded in RL-135. Directed DDM, alternate advance modes, complete save/restore semantics, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's bounded IEEE 1516.1-2025 timestamped Send Directed Interaction and timestamped Receive Directed Interaction surfaces to the official C++ declarations exported by the Requirements Lab, along with the subscription declarations exercised by its selector regression. The linked Catch2 scenarios cover lower-bound validation, known-target/declaration routing, constrained-recipient queueing before the grant, timestamp/order/retraction callback fields, pending-fanout suppression, a legal Request Retraction callback for an already-delivered nonconstrained directed recipient, default-by-ownership versus universal delivery, declaration changes before a later TSO callback boundary, a queued payload surviving Time Constrained disable/re-enable with one callback before the matching grant, and a voluntary-source-resignation boundary where a target owned by another joined federate remains valid while the departed producer's accepted TSO callback reaches the survivor before its grant. They also cover a live queued payload restored across an untimed save/restore boundary and delivered through Flush Queue Request before Request Retraction, target-departure suppression after a lower-timestamped Delete Object Instance removal, and source-mandated delivery through a connection-loss cutoff while the target and recipient selector remain valid. The API surface also links the paired filesystem and HLA_IMMEDIATE failure matrices for the timestamped Send Directed Interaction pre-admission boundary; those cases retain the official five supplied forms, Null/false failure results, exact exception descriptions, and serials zero through three. The DELETE_OBJECTS late-TAR regression additionally retains the target long enough to deliver its cutoff-marked directed callback before grant, then releases the automatic receive-order removal through the next eligible gate; its unsubscribe companion terminally suppresses the callback and releases that removal without pretending a callback was delivered. A direct TAR/NMR companion now proves the inclusive direct time-advance and next-message frontier for the same queued directed payload. The direct selector source remains generically mapped (RL-028), the §5.13 continuation candidate used for stale-callback suppression is mis-owned by the Lab (RL-080), the lifecycle relation gap is recorded in RL-134, and the save/restore relation gap is recorded in RL-135. Directed DDM, broader alternate advance combinations, complete save/restore semantics, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-send-directed-interaction-timestamped",
@@ -31,6 +31,9 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
@@ -40,7 +43,9 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Send Directed Interaction invocations",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped Send Directed Interaction invocations through MOM interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Send Directed Interaction before directed callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Send Directed Interaction before directed callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback"
       ]
     },
     {
@@ -57,13 +62,18 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped target departure suppresses directed delivery at the grant boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback"
       ]
     },
     {
@@ -88,8 +98,13 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback"
       ]
     },
     {
@@ -114,6 +129,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
       ]

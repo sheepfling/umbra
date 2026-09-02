@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::updateRateValueForDesignator",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded update-rate lookup exposes FDD values and the default attribute boundary"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded update-rate lookup exposes FDD values and the default attribute boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers object, attribute, and update-rate lookup return arguments through MOM interaction"
       ]
     },
     {
@@ -22,7 +23,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::updateRateValueForAttribute",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded update-rate lookup exposes FDD values and the default attribute boundary"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded update-rate lookup exposes FDD values and the default attribute boundary",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers object, attribute, and update-rate lookup return arguments through MOM interaction"
       ]
     },
     {

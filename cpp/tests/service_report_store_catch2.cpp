@@ -2,6 +2,10 @@
 
 #include "internal/observability/service_report_store.hpp"
 
+#include <RTI/NullFederateAmbassador.h>
+#include <RTI/RTI1516.h>
+#include <umbra/embedded_profile_configuration.hpp>
+
 #include <algorithm>
 #include <atomic>
 #include <filesystem>
@@ -10,6 +14,7 @@
 #include <iterator>
 #include <set>
 #include <thread>
+#include <vector>
 
 namespace {
 
@@ -19,11 +24,130 @@ std::filesystem::path temporaryDirectory() {
       ("umbra-service-report-store-" + std::to_string(++next));
 }
 
+#ifndef UMBRA_SOURCE_DIRECTORY
+#error "The service-report lifecycle test requires the Umbra source directory."
+#endif
+
+std::vector<std::filesystem::path> serviceReportFiles(
+    std::filesystem::path const& directory) {
+  std::vector<std::filesystem::path> files;
+  std::error_code error;
+  if (!std::filesystem::exists(directory, error) || error) {
+    return files;
+  }
+  for (auto const& entry : std::filesystem::directory_iterator(directory, error)) {
+    if (error) {
+      break;
+    }
+    if (entry.is_regular_file(error) && !error) {
+      files.push_back(entry.path());
+    }
+  }
+  std::sort(files.begin(), files.end());
+  return files;
+}
+
+std::string readTextFile(std::filesystem::path const& path) {
+  std::ifstream input(path, std::ios::binary);
+  REQUIRE(input.good());
+  return {
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+}
+
+std::wstring nextLifecycleFederationName() {
+  static std::atomic_uint64_t sequence{0U};
+  return L"service-report-lifecycle-" +
+      std::to_wstring(sequence.fetch_add(1U, std::memory_order_relaxed));
+}
+
 umbra::detail::JoinedFederateReportDescriptor descriptor() {
   return {L"federation / unsafe", L"observer name", 7U, 42U, L"{\"initial\":true}"};
 }
 
 }  // namespace
+
+TEST_CASE(
+    "Embedded service-report files are allocated at join and remain stable across switch cycles and rejoin",
+    "[integration][development-profile][federation-management][mom][service-reporting]"
+    "[service-report-file][service-report-store][filesystem][join-lifecycle][2025]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]") {
+  using rti1516_2025::HLA_EVOKED;
+  using rti1516_2025::NO_ACTION;
+
+  auto const directory = temporaryDirectory();
+  auto const federationName = nextLifecycleFederationName();
+  std::error_code staleDirectory;
+  std::filesystem::remove_all(directory, staleDirectory);
+  auto const fomModule =
+      std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+      "third_party" / "ieee1516.2-2025" / "resources" /
+      "examples" / "RestaurantFOMmodule-2025.xml";
+  auto configuration = umbra::embedded::makeEmbeddedRtiConfiguration(
+      umbra::embedded::ServiceReportConfiguration{directory});
+  configuration.withRtiAddress(L"in-process");
+
+  rti1516_2025::NullFederateAmbassador federate;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  REQUIRE_NOTHROW(rti->connect(federate, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName,
+      fomModule.wstring(),
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"service-report-lifecycle-federate",
+      L"lifecycle",
+      federationName));
+
+  auto const filesAtJoin = serviceReportFiles(directory);
+  REQUIRE(filesAtJoin.size() == 1U);
+  auto const reportFile = filesAtJoin.front();
+  REQUIRE(std::filesystem::absolute(reportFile).lexically_normal() ==
+          reportFile.lexically_normal());
+  auto const initialText = readTextFile(reportFile);
+  REQUIRE(initialText.find("\"HLAfederateName\":\"service-report-lifecycle-federate\"") !=
+          std::string::npos);
+
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+  REQUIRE(serviceReportFiles(directory) == filesAtJoin);
+  auto const enabledText = readTextFile(reportFile);
+  REQUIRE(enabledText.size() >= initialText.size());
+
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(false));
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(false));
+  REQUIRE(serviceReportFiles(directory) == filesAtJoin);
+  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+  REQUIRE(serviceReportFiles(directory) == filesAtJoin);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName,
+      fomModule.wstring(),
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"service-report-lifecycle-federate",
+      L"lifecycle",
+      federationName));
+  auto const filesAfterRejoin = serviceReportFiles(directory);
+  REQUIRE(filesAfterRejoin.size() == 2U);
+  REQUIRE(std::find(filesAfterRejoin.begin(), filesAfterRejoin.end(), reportFile) !=
+          filesAfterRejoin.end());
+  REQUIRE(std::any_of(
+      filesAfterRejoin.begin(),
+      filesAfterRejoin.end(),
+      [&](auto const& candidate) { return candidate != reportFile; }));
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+}
 
 TEST_CASE(
     "Filesystem service-report stores allocate stable unique files and initial records",
@@ -188,6 +312,38 @@ TEST_CASE(
   writer->append(L"{\"record\":2}");
   REQUIRE(writer->location().empty());
   REQUIRE(store.records() == std::vector<std::wstring>{L"{\"initial\":true}", L"{\"record\":2}"});
+}
+
+TEST_CASE(
+    "Memory service-report writers serialize concurrent test appends",
+    "[mom][service-report-store][service-reporting][concurrency][unit]") {
+  umbra::detail::MemoryServiceReportStore store;
+  auto writer = store.createForJoinedFederate(descriptor());
+  constexpr std::size_t recordCount = 24U;
+  std::atomic_bool mayAppend{false};
+  std::vector<std::future<void>> pending;
+  pending.reserve(recordCount);
+  for (std::size_t index = 0U; index < recordCount; ++index) {
+    pending.push_back(std::async(std::launch::async, [&writer, &mayAppend, index] {
+      while (!mayAppend.load(std::memory_order_acquire)) {
+        std::this_thread::yield();
+      }
+      writer->append(L"{\"record\":" + std::to_wstring(index) + L"}");
+    }));
+  }
+  mayAppend.store(true, std::memory_order_release);
+  for (auto& future : pending) {
+    REQUIRE_NOTHROW(future.get());
+  }
+
+  auto snapshot = store.snapshotRecords();
+  REQUIRE(snapshot.size() == recordCount + 1U);
+  REQUIRE(snapshot.front() == L"{\"initial\":true}");
+  std::set<std::wstring> observedRecords(snapshot.begin() + 1, snapshot.end());
+  REQUIRE(observedRecords.size() == recordCount);
+  for (std::size_t index = 0U; index < recordCount; ++index) {
+    REQUIRE(observedRecords.contains(L"{\"record\":" + std::to_wstring(index) + L"}"));
+  }
 }
 
 TEST_CASE(

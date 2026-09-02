@@ -141,3 +141,96 @@ TEST_CASE(
   REQUIRE(coordinator.clearDeliveredTsoMessages(1) == 1);
   REQUIRE(coordinator.tsoSnapshotFor(1).deliveredSinceLastAdvance.empty());
 }
+
+TEST_CASE(
+    "Federation time coordinator fences TSO recipients independently of time state",
+    "[unit][kernel][time-management][federation-time][tso]") {
+  FederationTimeCoordinator coordinator;
+
+  REQUIRE(
+      coordinator.registerRecipient(7).status ==
+      FederationTimeCoordinatorStatus::applied);
+  REQUIRE(
+      coordinator.registerRecipient(7).status ==
+      FederationTimeCoordinatorStatus::federate_already_registered);
+  REQUIRE_FALSE(coordinator.empty());
+  REQUIRE(coordinator.size() == 0);
+
+  auto const messageId = coordinator.allocateTsoMessageId();
+  REQUIRE(messageId != 0);
+  auto const timestamp = std::make_shared<HLAinteger64Time>(5);
+  REQUIRE(
+      coordinator.enqueueTsoMessage(messageId, 7, timestamp).status ==
+      umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(
+      coordinator.enqueueTsoMessage(
+          coordinator.allocateTsoMessageId(),
+          8,
+          timestamp).status ==
+      umbra::detail::TsoMessageQueueStatus::invalid_recipient);
+
+  auto const unknownDelivery = coordinator.beginTsoDelivery(8, HLAinteger64Time(5), true);
+  REQUIRE(
+      unknownDelivery.status ==
+      umbra::detail::FederationTsoDeliveryStatus::invalid_recipient);
+
+  REQUIRE(
+      coordinator.unregisterFederate(7).status ==
+      FederationTimeCoordinatorStatus::applied);
+  REQUIRE(coordinator.empty());
+  REQUIRE(
+      coordinator.beginTsoDelivery(7, HLAinteger64Time(5), true).status ==
+      umbra::detail::FederationTsoDeliveryStatus::invalid_recipient);
+}
+
+TEST_CASE(
+    "Federation time coordinator rehydrates route-free TSO queue phases",
+    "[unit][kernel][time-management][federation-time][tso][tso-queue-state][save-restore]") {
+  FederationTimeCoordinator coordinator;
+  REQUIRE(
+      coordinator.registerRecipient(7).status ==
+      FederationTimeCoordinatorStatus::applied);
+  REQUIRE(
+      coordinator.registerFederate(8, integerTimeState()).status ==
+      FederationTimeCoordinatorStatus::applied);
+
+  std::vector<umbra::detail::TsoQueueRestoreEntry> entries{
+      {{41U, 7U, 11U, std::make_shared<HLAinteger64Time const>(5)},
+       umbra::detail::TsoMessageQueuePhase::queued},
+      {{42U, 7U, 12U, std::make_shared<HLAinteger64Time const>(6)},
+       umbra::detail::TsoMessageQueuePhase::in_transit},
+      {{43U, 8U, 13U, std::make_shared<HLAinteger64Time const>(7)},
+       umbra::detail::TsoMessageQueuePhase::delivered},
+  };
+  auto const restored = coordinator.restoreTsoQueue(entries);
+  REQUIRE(restored.status == umbra::detail::FederationTsoQueueRestoreStatus::applied);
+  REQUIRE(restored.restoredCount == entries.size());
+
+  auto recipient = coordinator.tsoSnapshotFor(7);
+  REQUIRE(recipient.queued.size() == 1U);
+  REQUIRE(recipient.queued.front().messageId == 41U);
+  REQUIRE(recipient.inTransit.size() == 1U);
+  REQUIRE(recipient.inTransit.front().messageId == 42U);
+  REQUIRE(recipient.deliveredSinceLastAdvance.empty());
+  auto other = coordinator.tsoSnapshotFor(8);
+  REQUIRE(other.queued.empty());
+  REQUIRE(other.inTransit.empty());
+  REQUIRE(other.deliveredSinceLastAdvance.size() == 1U);
+  REQUIRE(other.deliveredSinceLastAdvance.front().messageId == 43U);
+
+  // Rehydration preserves the message-id high-water mark rather than allowing
+  // a post-restore allocation to alias an active image entry.
+  REQUIRE(coordinator.allocateTsoMessageId() == 44U);
+
+  std::vector<umbra::detail::TsoQueueRestoreEntry> invalid{
+      {{99U, 99U, 14U, std::make_shared<HLAinteger64Time const>(8)},
+       umbra::detail::TsoMessageQueuePhase::queued},
+  };
+  auto const rejected = coordinator.restoreTsoQueue(invalid);
+  REQUIRE(
+      rejected.status ==
+      umbra::detail::FederationTsoQueueRestoreStatus::invalid_recipient);
+  REQUIRE(coordinator.tsoSnapshotFor(7).queued.size() == 1U);
+  REQUIRE(coordinator.tsoSnapshotFor(7).inTransit.size() == 1U);
+  REQUIRE(coordinator.tsoSnapshotFor(8).deliveredSinceLastAdvance.size() == 1U);
+}

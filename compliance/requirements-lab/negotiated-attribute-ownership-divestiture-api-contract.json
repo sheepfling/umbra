@@ -76,7 +76,8 @@
       "source_symbol": "UmbraRtiAmbassador::cancelNegotiatedAttributeOwnershipDivestiture",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Negotiated Attribute Ownership Divestiture through MOM interaction"
       ]
     },
     {

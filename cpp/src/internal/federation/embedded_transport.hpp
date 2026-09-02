@@ -12,14 +12,30 @@
 
 namespace umbra::detail {
 
-// Private loopback transport boundary for the embedded development profile.
-// The endpoint owns connection state and reports a transport fault exactly
-// once. A future remote transport can implement the same endpoint contract
-// without changing the public IEEE binding adapter.
-class EmbeddedTransportConnection final {
+// Private transport contract used by the runtime adapter. Implementations own
+// connection state and report a transport fault exactly once. The embedded
+// loopback endpoint below is the development-profile implementation; a future
+// socket/IPC endpoint can implement this contract without changing the public
+// IEEE binding adapter.
+class TransportConnection {
  public:
   using FailureHandler = std::function<void(std::wstring)>;
   using ForcedResignationHandler = std::function<bool(std::wstring)>;
+
+  virtual ~TransportConnection() = default;
+
+  virtual void close() noexcept = 0;
+  virtual void fail(std::wstring faultDescription) = 0;
+  [[nodiscard]] virtual bool forceFederateResignation(
+      std::wstring reasonForResign) = 0;
+  [[nodiscard]] virtual bool open() const noexcept = 0;
+  [[nodiscard]] virtual void* owner() const noexcept = 0;
+};
+
+class EmbeddedTransportConnection final : public TransportConnection {
+ public:
+  using FailureHandler = TransportConnection::FailureHandler;
+  using ForcedResignationHandler = TransportConnection::ForcedResignationHandler;
 
   EmbeddedTransportConnection(
       void* owner,
@@ -30,24 +46,25 @@ class EmbeddedTransportConnection final {
   EmbeddedTransportConnection(EmbeddedTransportConnection const&) = delete;
   EmbeddedTransportConnection& operator=(EmbeddedTransportConnection const&) = delete;
 
-  ~EmbeddedTransportConnection();
+  ~EmbeddedTransportConnection() override;
 
   // Graceful endpoint shutdown suppresses the fault callback. It is used by
   // the normal Disconnect path and while the owning ambassador is destroyed.
-  void close() noexcept;
+  void close() noexcept override;
 
   // Closes the endpoint as a transport fault and invokes the handler outside
   // the endpoint mutex. Repeated faults are ignored.
-  void fail(std::wstring faultDescription);
+  void fail(std::wstring faultDescription) override;
 
   // Requests a private RTI-side membership revocation while the endpoint stays
   // connected. The handler may reject it when the owner is no longer joined.
   // This is a control-plane seam for future session/admin logic; it is not a
   // federate-invoked operation or a public Umbra API.
-  [[nodiscard]] bool forceFederateResignation(std::wstring reasonForResign);
+  [[nodiscard]] bool forceFederateResignation(
+      std::wstring reasonForResign) override;
 
-  [[nodiscard]] bool open() const noexcept;
-  [[nodiscard]] void* owner() const noexcept;
+  [[nodiscard]] bool open() const noexcept override;
+  [[nodiscard]] void* owner() const noexcept override;
 
  private:
   mutable std::mutex mutex_;
@@ -66,7 +83,7 @@ class EmbeddedTransportHub final {
  public:
   EmbeddedTransportHub() = default;
 
-  std::shared_ptr<EmbeddedTransportConnection> connect(
+  std::shared_ptr<TransportConnection> connect(
       void* owner,
       EmbeddedTransportConnection::FailureHandler failureHandler,
       EmbeddedTransportConnection::ForcedResignationHandler forcedResignationHandler,
@@ -80,7 +97,7 @@ class EmbeddedTransportHub final {
 
  private:
   mutable std::mutex mutex_;
-  std::unordered_map<void*, std::weak_ptr<EmbeddedTransportConnection>> connections_;
+  std::unordered_map<void*, std::weak_ptr<TransportConnection>> connections_;
 };
 
 EmbeddedTransportHub& embeddedTransportHub() noexcept;

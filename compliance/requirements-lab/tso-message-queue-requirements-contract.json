@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/time/tso_message_queue.cpp",
       "source_symbol": "TsoMessageQueue::enqueue",
       "tests": [
-        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue orders equal timestamps and isolates recipients"
+        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue orders equal timestamps and isolates recipients",
+        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue exposes stable global pending order and recipient cleanup"
       ]
     },
     {
@@ -23,7 +24,8 @@
       "source_symbol": "TsoMessageQueue::popEligible",
       "tests": [
         "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue orders equal timestamps and isolates recipients",
-        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue keeps an exclusive boundary separate from an inclusive grant"
+        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue keeps an exclusive boundary separate from an inclusive grant",
+        "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue exposes stable global pending order and recipient cleanup"
       ]
     },
     {

@@ -5,6 +5,20 @@ is derived from the official IEEE 1516.1-2025 Java API archive and compared to
 the current Umbra C++ implementation. A Python factory is public only after it
 can create, decode, and validate the standard Python value it returns.
 
+The independent 2010 inventory is maintained beside this 2025 table. Its
+canonical namespace is `hla.rti1516e`, its provider group is
+`hla.rti1516e.factories`, and its generated contract is sourced from the
+verified 2010 Java API archive. The 2010 JPype transport is
+`umbra._java.rti1516e.Java2010RtiFactory`; the direct
+`umbra._native.rti1516e.Native2010RtiFactory` and separate
+`packages/umbra-rti-jni-2010` artifact supply the bounded C++/pybind and JNI
+surfaces. The direct C++ route includes the reference proof slices; JNI stays
+a null connect/disconnect bridge. They are distinct transports over the same
+2010 Python contract, not second Python state models.
+The 2010 factory façade accepts either a provider's `rtiName()` or the
+installed Python entry-point alias (for example, `java-2010`), so selecting a
+transport does not require knowing the vendor's Java factory name first.
+
 ## Discovery and top-level factories
 
 | Java API factory | Python location | Native status | Python status |
@@ -21,6 +35,8 @@ can create, decode, and validate the standard Python value it returns.
 | Java 2025 RTI | `umbra._java.rti1516_2025` | Same foundation through optional JPype, with a fake-runtime contract test | A Java vendor JAR is selected at JVM start. Raw Java objects are available only through explicit provider-specific `unwrap_java_*` methods while shared Python value families are incomplete. |
 | Mock vendor reference | `umbra._java.mock_rti1516_2025` | Registered `umbra-mock-java` alias, JAR validation, and fixed Java factory selection | Demonstrates the separate-adapter pattern for a supported vendor without bundling a JAR. |
 | Umbra C++ through Java/JNI | `umbra._java.rti1516_2025.UmbraJniRtiFactory` | Registered `umbra-jni` alias in `umbra-rti-jpype`; assembles the exact IEEE API JAR, bridge JAR, and native library before using Java `ServiceLoader` | Configuration-only preset; it adds no RTI state or service behavior and requires those artifacts to be supplied externally. |
+| Java 2010 RTI | `umbra._java.rti1516e.Java2010RtiFactory` | Generic `from_jar`/`probe_jar` path over `hla.rti1516e.RtiFactoryFactory`, with a narrow modern-JDK `ServiceLoader` compatibility fallback | The generated matrix exercises all 172 RTI overloads and 60 callback overloads; byte/handle forwarding, enum, set/map, pair-list, supplemental callback conversion, provider-owned encoder/time façades, and regional object-handle identity are tested. `verify_1516e_provider_jar.py` adds a metadata-only service/provider-class/namespace preflight; real-provider behavior and complete complex-encoder/callback scenarios remain external-provider work. |
+| Umbra C++ 2010 RTI | `umbra._native.rti1516e.Native2010RtiFactory` | Direct `_native_2010` pybind module over the official `rti1516e` C++ target; connect/disconnect, bounded service slices, standard error mapping, and installed-style factory discovery are stateful | Current C++ target is intentionally bounded: encoder/time, lifecycle, declaration/object/interaction, ownership, and synchronization slices are proven; remaining RTI/MOM families are explicit capability gaps. `run-2010-tck.ps1` uses the shared Python catalog/profile and does not claim full 1516e conformance. |
 
 The Java adapter registers the transport alias `java`; it is not a claim that
 `java` is the vendor's standard `RtiFactory.rtiName()`. After Java factory
@@ -34,7 +50,7 @@ JNI adapter registers `umbra-jni` and likewise leaves the standard Java
 | --- | --- | --- | --- |
 | Encoding | `EncoderFactory`, `DataElementFactory` | Native C++ basic data elements, fixed/variable arrays, fixed records, variant records, and a C++-only extendable variant, plus Java `EncoderFactory` | Implemented for twenty-six basic elements and the provider-owned fixed/variable-array/fixed-record/variant-record contracts with typed errors; nested fixed/variable arrays, nested fixed-record alternatives, and composite discriminants cross both providers. The external Java route additionally round-trips standard handle, logical-time, and extendable-variant data elements through C++ factories. The extendable variant remains outside the provider-neutral shared Python contract |
 | Handles and collections | Attribute, dimension, federate, interaction, message-retraction, object, parameter, region, and transportation handle factories; interaction-class set, attribute/region pair-list, set/map factories | Native C++ uses its provider-owned handle decoders and standard containers; Java exposes the standard handle/set/map factories | Implemented for all Java-declared handle decoders, including `MessageRetractionHandleFactory`, `InteractionClassHandleSetFactory`, `AttributeSetRegionSetPairListFactory`, federate/dimension/region/attribute sets, and attribute/parameter maps. Python returns immutable snapshots plus mutable Java-shaped builders and `AttributeRegionAssociation(ahset, rhset)` values; C++ transport handles use Umbra's private codec because the C++ RTIambassador has no transport decode service. |
-| Logical time | `RTIambassador.getTimeFactory`, `HLAfloat64TimeFactory`, `HLAinteger64TimeFactory` in the Java-shaped surface currently verified here | Both reference C++ time factories and values are implemented; C++ `HLAlogicalTimeFactoryFactory`/`LogicalTimeFactoryFactory` are edition-specific static helpers | Provider-neutral time/interval values and factory operations are implemented through the ambassador boundary. Keep the C++ static factory helpers out of the shared API unless a matching Java service surface is verified |
+| Logical time | `RTIambassador.getTimeFactory`, `HLAfloat64TimeFactory`, `HLAinteger64TimeFactory`, and `LogicalTimeFactoryFactory` | Both reference C++ time factories and values are implemented; the Python factory façade first honors explicit time-provider entry points and otherwise discovers the standard families through each edition-specific `RtiFactory` ambassador | Provider-neutral time/interval values and factory operations are implemented through the ambassador boundary, with the Java-shaped default (empty name → `HLAfloat64Time`) preserved. The C++ static helper remains private; Python exposes only the verified Java-shaped factory surface |
 | Authorization | `AuthorizerFactory`, `AuthorizerFactoryFactory` | `HLAplainTextPassword`, the native reference `HLAauthorizer`/factory, and a static library-forwarding boundary exist | The raw Java JNI route now publishes `HLAauthorizer` through the standard `AuthorizerFactoryFactory` ServiceLoader and delegates all authorization decisions to C++; keep authorization values out of the provider-neutral shared Python contract until a canonical value/configuration model exists |
 
 The Java `RTIambassador` declares handle/set/map factory accessors while C++
@@ -60,8 +76,9 @@ native handle decoders still validate through Umbra's real C++ handle codecs.
 6. Extend the raw Java authorization route with RID-backed configuration and
    service checks when that native runtime exists; do not widen the shared
    Python contract with provider-specific credential objects.
-7. Repeat the inventory for the independent `hla.rti1516e` C++ lane; no 2010
-   provider is implied by the 2025 implementation.
+7. Continue the independent `hla.rti1516e` C++ lane one stateful family at a
+   time; no 2010 provider is implied by the 2025 implementation. The direct
+   pybind and JNI gates must remain green while each family is added.
 
 ## Rules
 
@@ -70,4 +87,4 @@ native handle decoders still validate through Umbra's real C++ handle codecs.
 - Do not return a placeholder factory. An unavailable standard factory raises
   the documented RTI exception at the provider boundary.
 - Keep provider implementation modules under `umbra._native`; only
-  `hla.rti1516e` and `hla.rti1516_2025` are public API namespaces.
+`hla.rti1516e` and `hla.rti1516_2025` are public API namespaces.

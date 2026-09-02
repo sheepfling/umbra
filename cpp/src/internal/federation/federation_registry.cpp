@@ -1,13 +1,16 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/federation/federation_state_image.hpp"
 
 #include "internal/fom/fom_catalog.hpp"
 #include "internal/fom/fdd_document.hpp"
+#include "internal/fom/hla_names.hpp"
 #include "internal/time/federation_time_bounds.hpp"
 #include "internal/time/federation_time_grant_policy.hpp"
 #include "internal/handles/handle_variable_array_encoding.hpp"
 #include "internal/runtime/utf8_string.hpp"
 
 #include <RTI/encoding/BasicDataElements.h>
+#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
 
 #include <algorithm>
 #include <atomic>
@@ -106,10 +109,10 @@ constexpr char kHlaReportServiceFileMimConditionalUpdateCondition[] =
 // The federation-object foundation deliberately keeps MIM Static attributes
 // as initial values. Conditional lifecycle values are projected from their
 // authoritative ledgers and must not be presented as stale initial values.
-constexpr char kFederationMomStaticAttributeNames[][40] = {
+constexpr char const* kFederationMomStaticAttributeNames[] = {
     "HLAfederationName",
     "HLARTIversion",
-    "HLAMIMdesignator",
+    umbra::detail::hla::utf8::mom::mim_designator,
     "HLAtimeImplementationName",
     "HLAadvisoriesUseKnownClass",
     "HLAdelaySubscriptionEvaluation",
@@ -132,7 +135,7 @@ constexpr char kFederationMomStaticAttributeDataTypes[][24] = {
 // included in the initial private snapshot under the selected 1516.1 Static
 // policy; the unmodified 1516.2 MIM's contrary Conditional field is retained
 // in the composed catalog and must not be overwritten here.
-constexpr char kJoinedFederateInitialAttributeNames[][32] = {
+constexpr char const* kJoinedFederateInitialAttributeNames[] = {
     "HLAfederateHandle",
     "HLAfederateName",
     "HLAfederateType",
@@ -241,6 +244,2270 @@ std::uint64_t nextNormalizationSeed() noexcept {
   return mixedNormalizationValue(seed);
 }
 
+// An object-instance Request Attribute Value Update is a durable application
+// request whose provider callback can be rebuilt from the request ledger and
+// current joined-federate routes. Keep the restart contract disjoint from all
+// other object callback families: one request ledger, the latest value
+// projection, and no region/lifecycle/ownership callback work.
+bool isRouteFreePendingAttributeValueUpdateObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      !object.pendingAttributeValueUpdateRequestsPresent ||
+      object.pendingAttributeValueUpdateRequests.empty() ||
+      object.deleteAccepted ||
+      object.pendingOperationCount !=
+          object.pendingAttributeValueUpdateRequests.size() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  std::uint64_t previousRequestId = 0U;
+  return std::all_of(
+      object.pendingAttributeValueUpdateRequests.begin(),
+      object.pendingAttributeValueUpdateRequests.end(),
+      [&previousRequestId](
+          FederationStateImagePendingAttributeValueUpdate const& request) {
+        if (request.requestId == 0U ||
+            request.requestId <= previousRequestId ||
+            request.requestingFederateId == 0U ||
+            request.providingFederateId == 0U ||
+            request.requestedAttributeHandles.empty() ||
+            !std::is_sorted(
+                request.requestedAttributeHandles.begin(),
+                request.requestedAttributeHandles.end()) ||
+            std::adjacent_find(
+                request.requestedAttributeHandles.begin(),
+                request.requestedAttributeHandles.end()) !=
+                request.requestedAttributeHandles.end() ||
+            request.requestedAttributeHandles.front() == 0U) {
+          return false;
+        }
+        previousRequestId = request.requestId;
+        return true;
+      });
+}
+
+// The class-designator form expands to one durable request per selected
+// object/provider group.  Its process-restart admission is intentionally
+// separate from the object-instance ledger so a class handle cannot be lost
+// at the callback-time hierarchy recheck.
+bool isRouteFreePendingAttributeValueUpdateClassObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      !object.pendingAttributeValueUpdateClassRequestsPresent ||
+      object.pendingAttributeValueUpdateClassRequests.empty() ||
+      !object.pendingAttributeValueUpdateRequests.empty() ||
+      object.deleteAccepted ||
+      object.pendingOperationCount !=
+          object.pendingAttributeValueUpdateClassRequests.size() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  std::uint64_t previousRequestId = 0U;
+  return std::all_of(
+      object.pendingAttributeValueUpdateClassRequests.begin(),
+      object.pendingAttributeValueUpdateClassRequests.end(),
+      [&previousRequestId](
+          FederationStateImagePendingAttributeValueUpdateClass const& request) {
+        if (request.requestId == 0U ||
+            request.requestId <= previousRequestId ||
+            request.requestingFederateId == 0U ||
+            request.providingFederateId == 0U ||
+            request.requestedObjectClassHandle == 0U ||
+            request.requestedAttributeHandles.empty() ||
+            !std::is_sorted(
+                request.requestedAttributeHandles.begin(),
+                request.requestedAttributeHandles.end()) ||
+            std::adjacent_find(
+                request.requestedAttributeHandles.begin(),
+                request.requestedAttributeHandles.end()) !=
+                request.requestedAttributeHandles.end() ||
+            request.requestedAttributeHandles.front() == 0U) {
+          return false;
+        }
+        previousRequestId = request.requestId;
+        return true;
+      });
+}
+
+// Regional class requests use the same expanded object/provider identity but
+// additionally retain the requester's per-attribute region designators. The
+// object's own update-region associations are part of the existing object
+// image and therefore remain eligible for this narrowly bounded DDM slice.
+bool isRouteFreePendingAttributeValueUpdateRegionalObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      !object.pendingAttributeValueUpdateRegionalRequestsPresent ||
+      object.pendingAttributeValueUpdateRegionalRequests.empty() ||
+      !object.pendingAttributeValueUpdateRequests.empty() ||
+      !object.pendingAttributeValueUpdateClassRequests.empty() ||
+      object.deleteAccepted ||
+      object.pendingOperationCount !=
+          object.pendingAttributeValueUpdateRegionalRequests.size() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  std::uint64_t previousRequestId = 0U;
+  return std::all_of(
+      object.pendingAttributeValueUpdateRegionalRequests.begin(),
+      object.pendingAttributeValueUpdateRegionalRequests.end(),
+      [&previousRequestId](
+          FederationStateImagePendingAttributeValueUpdateRegional const& request) {
+        if (request.requestId == 0U ||
+            request.requestId <= previousRequestId ||
+            request.requestingFederateId == 0U ||
+            request.providingFederateId == 0U ||
+            request.requestedObjectClassHandle == 0U ||
+            request.requestedAttributeHandles.empty() ||
+            !std::is_sorted(
+                request.requestedAttributeHandles.begin(),
+                request.requestedAttributeHandles.end()) ||
+            std::adjacent_find(
+                request.requestedAttributeHandles.begin(),
+                request.requestedAttributeHandles.end()) !=
+                request.requestedAttributeHandles.end() ||
+            request.requestedAttributeHandles.front() == 0U) {
+          return false;
+        }
+        previousRequestId = request.requestId;
+        std::uint64_t previousAttributeHandle = 0U;
+        for (auto const& [attributeHandle, regionHandles] :
+             request.requestRegionsByAttribute) {
+          if (attributeHandle == 0U || attributeHandle <= previousAttributeHandle ||
+              !std::binary_search(
+                  request.requestedAttributeHandles.begin(),
+                  request.requestedAttributeHandles.end(),
+                  attributeHandle) ||
+              regionHandles.empty() ||
+              !std::is_sorted(regionHandles.begin(), regionHandles.end()) ||
+              std::adjacent_find(regionHandles.begin(), regionHandles.end()) !=
+                  regionHandles.end() ||
+              regionHandles.front() == 0U) {
+            return false;
+          }
+          previousAttributeHandle = attributeHandle;
+        }
+        return true;
+      });
+}
+
+// A receive-order regional response is application state once the provider
+// callback has delivered it.  The object may still retain its committed
+// update-region association; that association is route-free because the
+// corresponding Region records are restored independently from the image.
+// Keep this predicate disjoint from pending request ledgers so a fresh
+// registry can admit only a delivered value, never a callback that still
+// needs the source process's route.
+bool isRouteFreeDeliveredApplicationValue(
+    FederationStateImageObject const& object) {
+  return object.attributeValuesPresent &&
+      !object.attributeValues.empty() &&
+      !object.deleteAccepted &&
+      object.pendingOperationCount == 0U &&
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() &&
+      object.pendingAttributeOwnershipAcquisitionRequests.empty() &&
+      object.pendingAttributeOwnershipAcquisitionCancellations.empty() &&
+      object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() &&
+      object.pendingConfirmDivestitureNotifications.empty() &&
+      object.pendingAttributeTransportationTypeChanges.empty() &&
+      object.pendingAttributeValueUpdateRequests.empty() &&
+      object.pendingAttributeValueUpdateClassRequests.empty() &&
+      object.pendingAttributeValueUpdateRegionalRequests.empty() &&
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() &&
+      object.ownershipAssumptionRecipientsByAttribute.empty() &&
+      object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() &&
+      object.pendingDiscoveryFederateIds.empty() &&
+      object.pendingRemovalFederateIds.empty() &&
+      object.connectionLossAutomaticRemovalFederateIds.empty() &&
+      object.deferredConnectionLossTsoRemovalFederateIds.empty() &&
+      object.pendingTimestampedRemovalFederateIds.empty() &&
+      !object.pendingTimestampedDeletionMessageId.has_value();
+}
+
+// Query Attribute Ownership is a federation-scoped callback ledger, but a
+// process-restart object can be materialized only when every pending request
+// targeting that object is represented in the route-free image. Keep this
+// predicate disjoint from the other object restart slices by requiring the
+// latest-value projection and no unrelated callback/lifecycle state.
+bool isRouteFreePendingAttributeOwnershipQueryObject(
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted || object.pendingOperationCount == 0U ||
+      !object.pendingAttributeValueUpdateRequests.empty() ||
+      !object.pendingAttributeValueUpdateClassRequests.empty() ||
+      !object.pendingAttributeValueUpdateRegionalRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+
+  std::vector<FederationStateImagePendingAttributeOwnershipQuery const*> queries;
+  for (auto const& query : image.pendingAttributeOwnershipQueries) {
+    if (query.objectInstanceHandle == object.handle) {
+      queries.push_back(&query);
+    }
+  }
+  if (queries.empty() || queries.size() != object.pendingOperationCount) {
+    return false;
+  }
+  std::uint64_t previousRequestId = 0U;
+  return std::all_of(
+      queries.begin(),
+      queries.end(),
+      [&previousRequestId](
+          FederationStateImagePendingAttributeOwnershipQuery const* query) {
+        if (query->requestId == 0U || query->requestId <= previousRequestId ||
+            query->requestingFederateId == 0U ||
+            query->objectInstanceHandle == 0U || query->reportKind > 2U ||
+            (query->reportKind == 0U && query->owningFederateId == 0U) ||
+            (query->reportKind != 0U && query->owningFederateId != 0U) ||
+            query->requestedAttributeHandles.empty() ||
+            !std::is_sorted(
+                query->requestedAttributeHandles.begin(),
+                query->requestedAttributeHandles.end()) ||
+            std::adjacent_find(
+                query->requestedAttributeHandles.begin(),
+                query->requestedAttributeHandles.end()) !=
+                query->requestedAttributeHandles.end() ||
+            query->requestedAttributeHandles.front() == 0U) {
+          return false;
+        }
+        previousRequestId = query->requestId;
+        return true;
+      });
+}
+
+// An unconditional divestiture (or forced resign action) leaves a durable
+// unowned interval in which eligible federates may be offered ownership.  The
+// callback route is process-local, while the recipient reservations and the
+// source tag are already represented in the typed image.  Admit only this
+// standalone assumption-search ledger for process restart; mixed callback
+// images remain behind their explicit restart contracts.
+std::size_t pendingOwnershipAssumptionCallbackCount(
+    FederationStateImage const& image,
+    std::uint64_t objectInstanceHandle) {
+  return static_cast<std::size_t>(std::count_if(
+      image.pendingAttributeOwnershipAssumptions.begin(),
+      image.pendingAttributeOwnershipAssumptions.end(),
+      [objectInstanceHandle](
+          FederationStateImagePendingAttributeOwnershipAssumption const& callback) {
+        return callback.objectInstanceHandle == objectInstanceHandle;
+      }));
+}
+
+bool isRouteFreePendingOwnershipAssumptionObject(
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      object.pendingOperationCount !=
+          object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.pendingAttributeValueUpdateRequests.empty() ||
+      !object.pendingAttributeValueUpdateClassRequests.empty() ||
+      !object.pendingAttributeValueUpdateRegionalRequests.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+
+  std::set<std::uint64_t> knownAttributeHandles;
+  for (auto const& attribute : object.attributes) {
+    if (attribute.handle == 0U ||
+        !knownAttributeHandles.insert(attribute.handle).second) {
+      return false;
+    }
+  }
+
+  std::set<std::uint64_t> recipientAttributes;
+  std::uint64_t previousRecipientAttribute = 0U;
+  for (auto const& assumption :
+       object.ownershipAssumptionRecipientsByAttribute) {
+    if (assumption.attributeHandle == 0U ||
+        assumption.attributeHandle <= previousRecipientAttribute ||
+        !knownAttributeHandles.contains(assumption.attributeHandle) ||
+        !std::is_sorted(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end()) ||
+        std::adjacent_find(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end()) !=
+            assumption.recipientFederateIds.end() ||
+        std::any_of(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end(),
+            [](std::uint64_t federateId) { return federateId == 0U; })) {
+      return false;
+    }
+    previousRecipientAttribute = assumption.attributeHandle;
+    recipientAttributes.insert(assumption.attributeHandle);
+  }
+
+  std::set<std::uint64_t> tagAttributes;
+  std::uint64_t previousTagAttribute = 0U;
+  for (auto const& tag : object.ownershipAssumptionUserSuppliedTagsByAttribute) {
+    if (tag.attributeHandle == 0U ||
+        tag.attributeHandle <= previousTagAttribute ||
+        !knownAttributeHandles.contains(tag.attributeHandle)) {
+      return false;
+    }
+    previousTagAttribute = tag.attributeHandle;
+    tagAttributes.insert(tag.attributeHandle);
+  }
+  if (recipientAttributes != tagAttributes) {
+    return false;
+  }
+  for (auto const attributeHandle : recipientAttributes) {
+    auto const attribute = std::find_if(
+        object.attributes.begin(),
+        object.attributes.end(),
+        [attributeHandle](FederationStateImageObjectAttribute const& candidate) {
+          return candidate.handle == attributeHandle;
+        });
+    if (attribute == object.attributes.end() ||
+        attribute->ownerFederateId != 0U ||
+        !attribute->transportationName.empty() || attribute->orderType != 0U ||
+        !attribute->updateRegionHandles.empty()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// A process-restart image may safely materialize a federate-created object
+// with one or more pending regular acquisition reservations when the image
+// contains the latest application-value ledger and no other callback-bearing
+// object state. Callback routes and queued markers are execution-local; the
+// restore boundary clears those markers and plans fresh work against the
+// current joined federates. Keep this predicate deliberately narrow until
+// each additional ownership ledger has an explicit restart rebind contract.
+bool isRouteFreePendingRegularOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionRequests.size() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  return std::all_of(
+      object.pendingAttributeOwnershipAcquisitionRequests.begin(),
+      object.pendingAttributeOwnershipAcquisitionRequests.end(),
+      [](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+        // An unavailable callback is terminal for that attribute and cannot
+        // be recreated without the original callback boundary. Notification
+        // and owner-release markers are intentionally replayed from the
+        // durable request identity instead.
+        return request.requestId != 0U &&
+            request.requestingFederateId != 0U &&
+            request.requestSequence != 0U &&
+            !request.desiredAttributeHandles.empty() &&
+            request.unavailableQueuedAttributeHandles.empty();
+      });
+}
+
+// A process-restart image may also safely materialize a federate-created
+// object with one or more pending If Available reservations.  Unlike regular
+// acquisition, Willing to Acquire has no owner-side release callback to
+// rebuild; the accepted requester callback itself is rebound after restore.
+// Keep this predicate disjoint from the regular form so a mixed callback
+// ledger cannot be admitted until it has an explicit restart contract.
+bool isRouteFreePendingIfAvailableOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  return std::all_of(
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.begin(),
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end(),
+      [](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+        return request.requestId != 0U &&
+            request.requestingFederateId != 0U &&
+            request.requestSequence != 0U &&
+            !request.desiredAttributeHandles.empty();
+      });
+}
+
+// A negotiated divestiture keeps the current owner in the waiting state while
+// one already-pending regular acquisition is selected.  The durable image
+// therefore contains the regular request plus one owner-confirmation record;
+// the queued release and confirmation flags are process-local and rebuilt
+// against the live owner/requester routes after restore.  Keep this contract
+// deliberately limited to the regular-candidate form until the corresponding
+// If Available/continuation combinations have their own restart evidence.
+bool isRouteFreePendingNegotiatedOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() != 0U ||
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionRequests.size() +
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  if (!std::all_of(
+          object.pendingAttributeOwnershipAcquisitionRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty() &&
+                request.notificationQueuedAttributeHandles.empty() &&
+                request.unavailableQueuedAttributeHandles.empty();
+          })) {
+    return false;
+  }
+  return std::all_of(
+      object.pendingNegotiatedAttributeOwnershipDivestitures.begin(),
+      object.pendingNegotiatedAttributeOwnershipDivestitures.end(),
+      [](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+        return divestiture.attributeHandle != 0U &&
+            divestiture.divestingFederateId != 0U &&
+            divestiture.acquiringFederateId != 0U &&
+            divestiture.acquisitionRequestId != 0U &&
+            !divestiture.acquiringFederateIsIfAvailable &&
+            divestiture.confirmationQueued &&
+            !divestiture.confirmationDelivered;
+      });
+}
+
+// The corresponding process-restart form for a negotiated divestiture whose
+// selected candidate entered Willing to Acquire.  Keep this disjoint from the
+// regular-candidate form above: the two request ledgers have different
+// callback/retraction semantics and must not be admitted by accident as a
+// mixed image.  The pending If Available request remains durable while the
+// owner-confirmation callback flags are rebuilt against live routes.
+bool isRouteFreePendingNegotiatedIfAvailableOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      object.pendingAttributeOwnershipAcquisitionRequests.size() != 0U ||
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  if (!std::all_of(
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty();
+          })) {
+    return false;
+  }
+  for (auto const& request :
+       object.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+    auto const requestId = request.requestId;
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              auto const divestiture = std::ranges::find_if(
+                  object.pendingNegotiatedAttributeOwnershipDivestitures,
+                  [attributeHandle](
+                      FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& candidate) {
+                    return candidate.attributeHandle == attributeHandle;
+                  });
+              return divestiture !=
+                      object.pendingNegotiatedAttributeOwnershipDivestitures.end() &&
+                  divestiture->acquiringFederateIsIfAvailable &&
+                  divestiture->acquiringFederateId == request.requestingFederateId &&
+                  divestiture->acquisitionRequestId == requestId;
+            })) {
+      return false;
+    }
+  }
+  return std::all_of(
+      object.pendingNegotiatedAttributeOwnershipDivestitures.begin(),
+      object.pendingNegotiatedAttributeOwnershipDivestitures.end(),
+      [](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+        return divestiture.attributeHandle != 0U &&
+            divestiture.divestingFederateId != 0U &&
+            divestiture.acquiringFederateId != 0U &&
+            divestiture.acquisitionRequestId != 0U &&
+            divestiture.acquiringFederateIsIfAvailable &&
+            divestiture.confirmationQueued &&
+            !divestiture.confirmationDelivered;
+      });
+}
+
+// A mixed negotiated image contains one regular acquisition request and one
+// Willing-to-Acquire request, with each selected by a separate negotiated
+// divestiture record.  Admit only the complete, route-free form: every
+// requested attribute must be represented by the matching candidate ledger so
+// restore cannot suppress an ordinary callback for an unrelated remainder.
+bool isRouteFreePendingMixedNegotiatedOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionRequests.size() +
+              object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  if (!std::all_of(
+          object.pendingAttributeOwnershipAcquisitionRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty() &&
+                request.notificationQueuedAttributeHandles.empty() &&
+                request.unavailableQueuedAttributeHandles.empty();
+          }) ||
+      !std::all_of(
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty();
+          })) {
+    return false;
+  }
+
+  auto matchingDivestiture = [&](std::uint64_t attributeHandle,
+                                 std::uint64_t requestId,
+                                 std::uint64_t requestingFederateId,
+                                 bool candidateIsIfAvailable) {
+    return std::ranges::any_of(
+        object.pendingNegotiatedAttributeOwnershipDivestitures,
+        [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+          return divestiture.attributeHandle == attributeHandle &&
+              divestiture.acquisitionRequestId == requestId &&
+              divestiture.acquiringFederateId == requestingFederateId &&
+              divestiture.acquiringFederateIsIfAvailable == candidateIsIfAvailable;
+        });
+  };
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return matchingDivestiture(
+                  attributeHandle,
+                  request.requestId,
+                  request.requestingFederateId,
+                  false);
+            })) {
+      return false;
+    }
+  }
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return matchingDivestiture(
+                  attributeHandle,
+                  request.requestId,
+                  request.requestingFederateId,
+                  true);
+            })) {
+      return false;
+    }
+  }
+
+  return std::all_of(
+      object.pendingNegotiatedAttributeOwnershipDivestitures.begin(),
+      object.pendingNegotiatedAttributeOwnershipDivestitures.end(),
+      [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+        if (divestiture.attributeHandle == 0U ||
+            divestiture.divestingFederateId == 0U ||
+            divestiture.acquiringFederateId == 0U ||
+            divestiture.acquisitionRequestId == 0U ||
+            !divestiture.confirmationQueued ||
+            divestiture.confirmationDelivered) {
+          return false;
+        }
+        if (divestiture.acquiringFederateIsIfAvailable) {
+          return std::ranges::any_of(
+              object.pendingAttributeOwnershipAcquisitionIfAvailableRequests,
+              [&](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+                return request.requestId == divestiture.acquisitionRequestId &&
+                    request.requestingFederateId == divestiture.acquiringFederateId &&
+                    std::ranges::find(
+                        request.desiredAttributeHandles,
+                        divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+              });
+        }
+        return std::ranges::any_of(
+            object.pendingAttributeOwnershipAcquisitionRequests,
+            [&](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+              return request.requestId == divestiture.acquisitionRequestId &&
+                  request.requestingFederateId == divestiture.acquiringFederateId &&
+                  std::ranges::find(
+                      request.desiredAttributeHandles,
+                      divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+            });
+      });
+}
+
+// Once Request Divestiture Confirmation has reached the owner, the old
+// process no longer owns a callback that needs rebinding.  A fresh registry
+// may therefore materialize this narrower regular-candidate image with the
+// delivered marker intact; the next public transition is Confirm Divestiture.
+// Keep the candidate set complete and route-free so a partially delivered or
+// mixed callback image cannot be mistaken for this lifecycle.
+bool isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionRequests.size() +
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  if (!std::all_of(
+          object.pendingAttributeOwnershipAcquisitionRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty() &&
+                request.notificationQueuedAttributeHandles.empty() &&
+                request.unavailableQueuedAttributeHandles.empty();
+          })) {
+    return false;
+  }
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return std::ranges::any_of(
+                  object.pendingNegotiatedAttributeOwnershipDivestitures,
+                  [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+                    return divestiture.attributeHandle == attributeHandle &&
+                        divestiture.acquiringFederateId == request.requestingFederateId &&
+                        divestiture.acquisitionRequestId == request.requestId &&
+                        !divestiture.acquiringFederateIsIfAvailable;
+                  });
+            })) {
+      return false;
+    }
+  }
+  return std::all_of(
+      object.pendingNegotiatedAttributeOwnershipDivestitures.begin(),
+      object.pendingNegotiatedAttributeOwnershipDivestitures.end(),
+      [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+        if (divestiture.attributeHandle == 0U ||
+            divestiture.divestingFederateId == 0U ||
+            divestiture.acquiringFederateId == 0U ||
+            divestiture.acquisitionRequestId == 0U ||
+            divestiture.acquiringFederateIsIfAvailable ||
+            !divestiture.confirmationQueued ||
+            !divestiture.confirmationDelivered) {
+          return false;
+        }
+        return std::ranges::any_of(
+            object.pendingAttributeOwnershipAcquisitionRequests,
+            [&](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+              return request.requestId == divestiture.acquisitionRequestId &&
+                  request.requestingFederateId == divestiture.acquiringFederateId &&
+                  std::ranges::find(
+                      request.desiredAttributeHandles,
+                      divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+            });
+      });
+}
+
+// The If Available counterpart keeps the same delivered-before-save contract,
+// but binds the durable request to the WTA acquisition ledger.  No ordinary
+// If Available callback is replayed after restore; the owner may proceed
+// directly to Confirm Divestiture.
+bool isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  if (!std::all_of(
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty();
+          })) {
+    return false;
+  }
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return std::ranges::any_of(
+                  object.pendingNegotiatedAttributeOwnershipDivestitures,
+                  [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+                    return divestiture.attributeHandle == attributeHandle &&
+                        divestiture.acquiringFederateId == request.requestingFederateId &&
+                        divestiture.acquisitionRequestId == request.requestId &&
+                        divestiture.acquiringFederateIsIfAvailable;
+                  });
+            })) {
+      return false;
+    }
+  }
+  return std::all_of(
+      object.pendingNegotiatedAttributeOwnershipDivestitures.begin(),
+      object.pendingNegotiatedAttributeOwnershipDivestitures.end(),
+      [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+        if (divestiture.attributeHandle == 0U ||
+            divestiture.divestingFederateId == 0U ||
+            divestiture.acquiringFederateId == 0U ||
+            divestiture.acquisitionRequestId == 0U ||
+            !divestiture.acquiringFederateIsIfAvailable ||
+            !divestiture.confirmationQueued ||
+            !divestiture.confirmationDelivered) {
+          return false;
+        }
+        return std::ranges::any_of(
+            object.pendingAttributeOwnershipAcquisitionIfAvailableRequests,
+            [&](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+              return request.requestId == divestiture.acquisitionRequestId &&
+                  request.requestingFederateId == divestiture.acquiringFederateId &&
+                  std::ranges::find(
+                      request.desiredAttributeHandles,
+                      divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+            });
+      });
+}
+
+// The mixed counterpart preserves a regular and a Willing-to-Acquire
+// candidate whose owner-confirmation callbacks were both delivered before the
+// save boundary.  Keep the candidate coverage complete and route-free so a
+// fresh registry does not replay either callback or accidentally admit an
+// unrelated remainder from one of the two acquisition ledgers.
+bool isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionRequests.size() +
+              object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  if (!std::all_of(
+          object.pendingAttributeOwnershipAcquisitionRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty() &&
+                request.notificationQueuedAttributeHandles.empty() &&
+                request.unavailableQueuedAttributeHandles.empty();
+          }) ||
+      !std::all_of(
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty();
+          })) {
+    return false;
+  }
+
+  auto matchingDivestiture = [&](std::uint64_t attributeHandle,
+                                 std::uint64_t requestId,
+                                 std::uint64_t requestingFederateId,
+                                 bool candidateIsIfAvailable) {
+    return std::ranges::any_of(
+        object.pendingNegotiatedAttributeOwnershipDivestitures,
+        [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+          return divestiture.attributeHandle == attributeHandle &&
+              divestiture.acquisitionRequestId == requestId &&
+              divestiture.acquiringFederateId == requestingFederateId &&
+              divestiture.acquiringFederateIsIfAvailable == candidateIsIfAvailable;
+        });
+  };
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return matchingDivestiture(
+                  attributeHandle,
+                  request.requestId,
+                  request.requestingFederateId,
+                  false);
+            })) {
+      return false;
+    }
+  }
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return matchingDivestiture(
+                  attributeHandle,
+                  request.requestId,
+                  request.requestingFederateId,
+                  true);
+            })) {
+      return false;
+    }
+  }
+
+  return std::all_of(
+      object.pendingNegotiatedAttributeOwnershipDivestitures.begin(),
+      object.pendingNegotiatedAttributeOwnershipDivestitures.end(),
+      [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+        if (divestiture.attributeHandle == 0U ||
+            divestiture.divestingFederateId == 0U ||
+            divestiture.acquiringFederateId == 0U ||
+            divestiture.acquisitionRequestId == 0U ||
+            !divestiture.confirmationQueued ||
+            !divestiture.confirmationDelivered) {
+          return false;
+        }
+        if (divestiture.acquiringFederateIsIfAvailable) {
+          return std::ranges::any_of(
+              object.pendingAttributeOwnershipAcquisitionIfAvailableRequests,
+              [&](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+                return request.requestId == divestiture.acquisitionRequestId &&
+                    request.requestingFederateId == divestiture.acquiringFederateId &&
+                    std::ranges::find(
+                        request.desiredAttributeHandles,
+                        divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+              });
+        }
+        return std::ranges::any_of(
+            object.pendingAttributeOwnershipAcquisitionRequests,
+            [&](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+              return request.requestId == divestiture.acquisitionRequestId &&
+                  request.requestingFederateId == divestiture.acquiringFederateId &&
+                  std::ranges::find(
+                      request.desiredAttributeHandles,
+                      divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+            });
+      });
+}
+
+// The asymmetric mixed form preserves one delivered confirmation alongside
+// one still-pending confirmation.  Both candidate ledgers remain durable, but
+// only the undelivered owner callback may be rebound after restore.  Require
+// at least one record on each side of that boundary so a single-candidate
+// image cannot enter this mixed admission path accidentally.
+bool isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipAcquisitionRequests.size() +
+              object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  if (!std::all_of(
+          object.pendingAttributeOwnershipAcquisitionRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty() &&
+                request.notificationQueuedAttributeHandles.empty() &&
+                request.unavailableQueuedAttributeHandles.empty();
+          }) ||
+      !std::all_of(
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.begin(),
+          object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end(),
+          [](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+            return request.requestId != 0U &&
+                request.requestingFederateId != 0U &&
+                request.requestSequence != 0U &&
+                !request.desiredAttributeHandles.empty();
+          })) {
+    return false;
+  }
+
+  auto matchingDivestiture = [&](std::uint64_t attributeHandle,
+                                 std::uint64_t requestId,
+                                 std::uint64_t requestingFederateId,
+                                 bool candidateIsIfAvailable) {
+    return std::ranges::any_of(
+        object.pendingNegotiatedAttributeOwnershipDivestitures,
+        [&](FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+          return divestiture.attributeHandle == attributeHandle &&
+              divestiture.acquisitionRequestId == requestId &&
+              divestiture.acquiringFederateId == requestingFederateId &&
+              divestiture.acquiringFederateIsIfAvailable == candidateIsIfAvailable;
+        });
+  };
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return matchingDivestiture(
+                  attributeHandle,
+                  request.requestId,
+                  request.requestingFederateId,
+                  false);
+            })) {
+      return false;
+    }
+  }
+  for (auto const& request : object.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+    if (!std::all_of(
+            request.desiredAttributeHandles.begin(),
+            request.desiredAttributeHandles.end(),
+            [&](std::uint64_t attributeHandle) {
+              return matchingDivestiture(
+                  attributeHandle,
+                  request.requestId,
+                  request.requestingFederateId,
+                  true);
+            })) {
+      return false;
+    }
+  }
+
+  bool delivered = false;
+  bool undelivered = false;
+  for (auto const& divestiture : object.pendingNegotiatedAttributeOwnershipDivestitures) {
+    if (divestiture.attributeHandle == 0U ||
+        divestiture.divestingFederateId == 0U ||
+        divestiture.acquiringFederateId == 0U ||
+        divestiture.acquisitionRequestId == 0U ||
+        !divestiture.confirmationQueued) {
+      return false;
+    }
+    if (divestiture.confirmationDelivered) {
+      delivered = true;
+    } else {
+      undelivered = true;
+    }
+    if (divestiture.acquiringFederateIsIfAvailable) {
+      if (!std::ranges::any_of(
+              object.pendingAttributeOwnershipAcquisitionIfAvailableRequests,
+              [&](FederationStateImagePendingAttributeOwnershipAcquisitionIfAvailable const& request) {
+                return request.requestId == divestiture.acquisitionRequestId &&
+                    request.requestingFederateId == divestiture.acquiringFederateId &&
+                    std::ranges::find(
+                        request.desiredAttributeHandles,
+                        divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+              })) {
+        return false;
+      }
+    } else if (!std::ranges::any_of(
+                   object.pendingAttributeOwnershipAcquisitionRequests,
+                   [&](FederationStateImagePendingAttributeOwnershipAcquisition const& request) {
+                     return request.requestId == divestiture.acquisitionRequestId &&
+                         request.requestingFederateId == divestiture.acquiringFederateId &&
+                         std::ranges::find(
+                             request.desiredAttributeHandles,
+                             divestiture.attributeHandle) != request.desiredAttributeHandles.end();
+                   })) {
+      return false;
+    }
+  }
+  return delivered && undelivered;
+}
+
+// A Divestiture If Wanted call transfers ownership synchronously, then leaves
+// one callback reservation for each eligible recipient.  The reservation is
+// route-free: its recipient and attribute set are durable, while the callback
+// closure is rebound from the fresh registry's live route.  Admit only this
+// standalone notification ledger until it is combined with another explicit
+// restart contract.
+bool isRouteFreePendingDivestitureIfWantedNotificationObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      object.pendingOperationCount !=
+          object.pendingAttributeOwnershipDivestitureIfWantedNotifications.size() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+
+  std::set<std::uint64_t> notificationIds;
+  for (auto const& notification :
+       object.pendingAttributeOwnershipDivestitureIfWantedNotifications) {
+    if (notification.notificationId == 0U ||
+        notification.receivingFederateId == 0U ||
+        notification.attributeHandles.empty() ||
+        !notificationIds.insert(notification.notificationId).second ||
+        std::any_of(
+            notification.attributeHandles.begin(),
+            notification.attributeHandles.end(),
+            [](std::uint64_t attributeHandle) {
+              return attributeHandle == 0U;
+            })) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Confirm Divestiture transfers ownership synchronously, then leaves one
+// grouped acquisition-notification reservation for each acquiring federate.
+// Keep the reservation route-free across a fresh-registry restore: the
+// recipient and exact attribute set are durable, while the callback route is
+// rebound from the live membership at notification entry.
+bool isRouteFreePendingConfirmDivestitureNotificationObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingConfirmDivestitureNotifications.empty() ||
+      object.pendingOperationCount !=
+          object.pendingConfirmDivestitureNotifications.size() ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+
+  std::set<std::uint64_t> notificationIds;
+  for (auto const& notification : object.pendingConfirmDivestitureNotifications) {
+    if (notification.notificationId == 0U ||
+        notification.receivingFederateId == 0U ||
+        notification.attributeHandles.empty() ||
+        !notificationIds.insert(notification.notificationId).second ||
+        std::any_of(
+            notification.attributeHandles.begin(),
+            notification.attributeHandles.end(),
+            [](std::uint64_t attributeHandle) {
+              return attributeHandle == 0U;
+            })) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// A post-confirmation resignation may leave two independent route-free
+// ledgers on one object: a Confirm Divestiture notification for a surviving
+// recipient and an unowned-assumption search for an attribute divested by the
+// departing recipient.  These tuples are safe to rebind together when their
+// attribute sets are disjoint.  Keep the predicate explicit rather than
+// weakening the standalone predicates, so each mixed restart contract remains
+// auditable and future ledger families cannot slip through accidentally.
+bool isRouteFreePendingConfirmDivestitureWithOwnershipAssumptionObject(
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingConfirmDivestitureNotifications.empty() ||
+      object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      object.pendingOperationCount !=
+          object.pendingConfirmDivestitureNotifications.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.pendingAttributeValueUpdateRequests.empty() ||
+      !object.pendingAttributeValueUpdateClassRequests.empty() ||
+      !object.pendingAttributeValueUpdateRegionalRequests.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+
+  std::set<std::uint64_t> knownAttributeHandles;
+  for (auto const& attribute : object.attributes) {
+    if (attribute.handle == 0U ||
+        !knownAttributeHandles.insert(attribute.handle).second) {
+      return false;
+    }
+  }
+
+  std::set<std::uint64_t> confirmedAttributes;
+  std::uint64_t previousNotificationId = 0U;
+  for (auto const& notification :
+       object.pendingConfirmDivestitureNotifications) {
+    if (notification.notificationId == 0U ||
+        notification.notificationId <= previousNotificationId ||
+        notification.receivingFederateId == 0U ||
+        notification.attributeHandles.empty() ||
+        !std::is_sorted(
+            notification.attributeHandles.begin(),
+            notification.attributeHandles.end()) ||
+        std::adjacent_find(
+            notification.attributeHandles.begin(),
+            notification.attributeHandles.end()) !=
+            notification.attributeHandles.end() ||
+        std::any_of(
+            notification.attributeHandles.begin(),
+            notification.attributeHandles.end(),
+            [&knownAttributeHandles](std::uint64_t attributeHandle) {
+              return attributeHandle == 0U ||
+                  !knownAttributeHandles.contains(attributeHandle);
+            })) {
+      return false;
+    }
+    previousNotificationId = notification.notificationId;
+    for (auto const attributeHandle : notification.attributeHandles) {
+      auto const attribute = std::find_if(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [attributeHandle](FederationStateImageObjectAttribute const& candidate) {
+            return candidate.handle == attributeHandle;
+          });
+      if (attribute == object.attributes.end() ||
+          attribute->ownerFederateId != notification.receivingFederateId ||
+          !confirmedAttributes.insert(attributeHandle).second) {
+        return false;
+      }
+    }
+  }
+
+  std::set<std::uint64_t> assumptionAttributes;
+  std::uint64_t previousAssumptionAttribute = 0U;
+  for (auto const& assumption :
+       object.ownershipAssumptionRecipientsByAttribute) {
+    if (assumption.attributeHandle == 0U ||
+        assumption.attributeHandle <= previousAssumptionAttribute ||
+        !knownAttributeHandles.contains(assumption.attributeHandle) ||
+        !std::is_sorted(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end()) ||
+        std::adjacent_find(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end()) !=
+            assumption.recipientFederateIds.end() ||
+        std::any_of(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end(),
+            [](std::uint64_t federateId) { return federateId == 0U; }) ||
+        confirmedAttributes.contains(assumption.attributeHandle)) {
+      return false;
+    }
+    previousAssumptionAttribute = assumption.attributeHandle;
+    assumptionAttributes.insert(assumption.attributeHandle);
+    auto const attribute = std::find_if(
+        object.attributes.begin(),
+        object.attributes.end(),
+        [&assumption](FederationStateImageObjectAttribute const& candidate) {
+          return candidate.handle == assumption.attributeHandle;
+        });
+    if (attribute == object.attributes.end() ||
+        attribute->ownerFederateId != 0U ||
+        !attribute->transportationName.empty() || attribute->orderType != 0U) {
+      return false;
+    }
+  }
+
+  std::set<std::uint64_t> assumptionTagAttributes;
+  std::uint64_t previousTagAttribute = 0U;
+  for (auto const& tag : object.ownershipAssumptionUserSuppliedTagsByAttribute) {
+    if (tag.attributeHandle == 0U ||
+        tag.attributeHandle <= previousTagAttribute ||
+        !knownAttributeHandles.contains(tag.attributeHandle) ||
+        confirmedAttributes.contains(tag.attributeHandle) ||
+        !assumptionTagAttributes.insert(tag.attributeHandle).second) {
+      return false;
+    }
+    previousTagAttribute = tag.attributeHandle;
+  }
+  return assumptionAttributes == assumptionTagAttributes;
+}
+
+// Cancel Attribute Ownership Acquisition keeps the original regular request
+// plus a separate cancellation reservation until the confirmation callback
+// begins.  This narrow restart contract admits exactly that pair and rebuilds
+// the requester callback from the fresh registry's live route.
+bool isRouteFreePendingOwnershipAcquisitionCancellationObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeOwnershipAcquisitionRequests.size() != 1U ||
+      object.pendingAttributeOwnershipAcquisitionCancellations.size() != 1U ||
+      object.pendingOperationCount != 2U ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+
+  auto const& request = object.pendingAttributeOwnershipAcquisitionRequests.front();
+  auto const& cancellation = object.pendingAttributeOwnershipAcquisitionCancellations.front();
+  if (request.requestId == 0U ||
+      request.requestingFederateId == 0U ||
+      request.requestSequence == 0U ||
+      request.desiredAttributeHandles.empty() ||
+      !request.unavailableQueuedAttributeHandles.empty() ||
+      cancellation.cancellationId == 0U ||
+      cancellation.requestingFederateId != request.requestingFederateId ||
+      cancellation.attributeHandles.empty()) {
+    return false;
+  }
+  return std::all_of(
+      cancellation.attributeHandles.begin(),
+      cancellation.attributeHandles.end(),
+      [&](std::uint64_t attributeHandle) {
+        return attributeHandle != 0U &&
+            std::ranges::find(
+                request.desiredAttributeHandles,
+                attributeHandle) != request.desiredAttributeHandles.end();
+      });
+}
+
+// Request Attribute Transportation Type Change retains one requester
+// callback reservation until the confirmation callback begins. The durable
+// request identity and selected type are serialized; the fresh registry
+// rebuilds only the live callback route. Admit this standalone form while
+// keeping mixed callback-bearing object images behind their explicit lanes.
+bool isRouteFreePendingAttributeTransportationTypeChangeObject(
+    FederationStateImageObject const& object) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted ||
+      object.pendingAttributeTransportationTypeChanges.size() != 1U ||
+      object.pendingOperationCount != 1U ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (std::any_of(
+          object.attributes.begin(),
+          object.attributes.end(),
+          [](FederationStateImageObjectAttribute const& attribute) {
+            return !attribute.updateRegionHandles.empty();
+          })) {
+    return false;
+  }
+  auto const& request = object.pendingAttributeTransportationTypeChanges.front();
+  if (request.requestId == 0U || request.requestingFederateId == 0U ||
+      request.attributeHandles.empty() || request.transportationName.empty()) {
+    return false;
+  }
+  return std::all_of(
+      request.attributeHandles.begin(),
+      request.attributeHandles.end(),
+      [](std::uint64_t attributeHandle) { return attributeHandle != 0U; });
+}
+
+// A timestamped Update Attribute Values passel retains the source-region
+// association that was active at invocation time.  That association is part
+// of the object ledger as well as the typed TSO payload, so a fresh-registry
+// restore must admit the object only when every saved update region can be
+// proven to belong to that same route-free payload.  Other callback-bearing
+// object ledgers remain excluded from this narrow restart boundary.
+bool isRouteFreeObjectWithTsoAttributeUpdate(
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
+  if (!object.attributeValuesPresent || object.attributeValues.empty() ||
+      object.deleteAccepted || object.pendingOperationCount != 0U ||
+      !object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+      !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+      !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+      !object.pendingConfirmDivestitureNotifications.empty() ||
+      !object.pendingAttributeTransportationTypeChanges.empty() ||
+      !object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
+      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+      !object.pendingDiscoveryFederateIds.empty() ||
+      !object.pendingRemovalFederateIds.empty() ||
+      !object.connectionLossAutomaticRemovalFederateIds.empty() ||
+      !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+      !object.pendingTimestampedRemovalFederateIds.empty() ||
+      object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+
+  bool hasAssociatedRegion = false;
+  for (auto const& savedAttribute : object.attributes) {
+    for (auto const regionHandle : savedAttribute.updateRegionHandles) {
+      hasAssociatedRegion = true;
+      if (regionHandle == 0U) {
+        return false;
+      }
+      bool matchedPayload = false;
+      for (auto const& message : image.tsoAttributeUpdateMessages) {
+        if (message.objectInstanceHandle != object.handle ||
+            message.producingFederateId != object.producingFederateId) {
+          continue;
+        }
+        bool carriesAttribute = std::any_of(
+            message.attributes.begin(),
+            message.attributes.end(),
+            [&](FederationStateImageAttributeValue const& value) {
+              return value.attributeHandle == savedAttribute.handle;
+            });
+        if (!carriesAttribute) {
+          continue;
+        }
+        bool carriesSnapshot = std::any_of(
+            message.sentRegionSnapshots.begin(),
+            message.sentRegionSnapshots.end(),
+            [regionHandle](
+                FederationStateImageInteractionRegionSnapshot const& snapshot) {
+              return snapshot.regionHandle == regionHandle;
+            });
+        if (!carriesSnapshot) {
+          continue;
+        }
+        for (auto const& recipient : message.passelsByRecipient) {
+          for (auto const& passel : recipient.passels) {
+            if (std::find(
+                    passel.sentAttributeHandles.begin(),
+                    passel.sentAttributeHandles.end(),
+                    savedAttribute.handle) != passel.sentAttributeHandles.end() &&
+                std::find(
+                    passel.sentRegionHandles.begin(),
+                    passel.sentRegionHandles.end(),
+                    regionHandle) != passel.sentRegionHandles.end()) {
+              matchedPayload = true;
+              break;
+            }
+          }
+          if (matchedPayload) {
+            break;
+          }
+        }
+        if (matchedPayload) {
+          break;
+        }
+      }
+      if (!matchedPayload) {
+        return false;
+      }
+    }
+  }
+  return hasAssociatedRegion;
+}
+
+// Interaction declaration state is federation-owned, while callback routes
+// are process-local.  The first fresh-registry slices admit one standalone
+// one or two published interaction classes (the one-class form may carry one
+// same-class subscription, one committed transportation-type override, and/or
+// one pending transportation-type change), one standalone subscription, one
+// standalone regional subscription, or one two-member directed
+// publication/subscription pair; all broader declaration combinations remain
+// behind their explicit lanes.
+bool isRouteFreeInteractionDeclarationImage(FederationStateImage const& image) {
+  if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
+      image.interactionDeclarations.size() != 1U ||
+      !image.objects.empty() ||
+      !image.tsoInteractionMessages.empty() ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      !image.tsoDirectedInteractionMessages.empty() ||
+      !image.tsoRequestRetractionRecords.empty() ||
+      !image.tsoQueueEntries.empty()) {
+    return false;
+  }
+
+  auto const& declaration = image.interactionDeclarations.front();
+  if (declaration.federateId == 0U ||
+      declaration.publishedInteractionClasses.size() > 2U ||
+      declaration.subscribedInteractionClasses.size() > 1U ||
+      declaration.regionalSubscribedInteractionClasses.size() > 1U ||
+      !declaration.publishedObjectClassDirectedInteractions.empty() ||
+      !declaration.subscribedObjectClassDirectedInteractions.empty() ||
+      declaration.interactionTransportationTypes.size() > 1U ||
+      !declaration.interactionOrderTypes.empty() ||
+      declaration.pendingInteractionTransportationTypeChanges.size() > 1U) {
+    return false;
+  }
+
+  if (declaration.publishedInteractionClasses.size() == 2U) {
+    auto const first = declaration.publishedInteractionClasses[0];
+    auto const second = declaration.publishedInteractionClasses[1];
+    return first != 0U && second > first &&
+        declaration.subscribedInteractionClasses.empty() &&
+        declaration.regionalSubscribedInteractionClasses.empty() &&
+        declaration.interactionTransportationTypes.empty() &&
+        declaration.pendingInteractionTransportationTypeChanges.empty();
+  }
+
+  auto const publishedInteractionClassHandle =
+      declaration.publishedInteractionClasses.empty()
+      ? 0U
+      : declaration.publishedInteractionClasses.front();
+  auto const subscribedInteractionClassHandle =
+      declaration.subscribedInteractionClasses.empty()
+      ? 0U
+      : declaration.subscribedInteractionClasses.front().interactionClassHandle;
+  auto const regionalInteractionClassHandle =
+      declaration.regionalSubscribedInteractionClasses.empty()
+      ? 0U
+      : declaration.regionalSubscribedInteractionClasses.front().interactionClassHandle;
+  bool const hasPublishedInteraction = publishedInteractionClassHandle != 0U;
+  bool const hasSubscribedInteraction = subscribedInteractionClassHandle != 0U;
+  bool const hasRegionalInteraction = regionalInteractionClassHandle != 0U;
+  if (!hasPublishedInteraction && !hasSubscribedInteraction && !hasRegionalInteraction) {
+    return false;
+  }
+  auto const interactionClassHandle = publishedInteractionClassHandle != 0U
+      ? publishedInteractionClassHandle
+      : subscribedInteractionClassHandle != 0U
+      ? subscribedInteractionClassHandle
+      : regionalInteractionClassHandle;
+  if (interactionClassHandle == 0U) {
+    return false;
+  }
+  if (hasPublishedInteraction && hasSubscribedInteraction &&
+      subscribedInteractionClassHandle != publishedInteractionClassHandle) {
+    return false;
+  }
+  if (hasRegionalInteraction && (hasPublishedInteraction || hasSubscribedInteraction)) {
+    return false;
+  }
+  if (hasRegionalInteraction &&
+      declaration.regionalSubscribedInteractionClasses.front().regionHandle == 0U) {
+    return false;
+  }
+  if (!declaration.interactionTransportationTypes.empty()) {
+    auto const& transportation = declaration.interactionTransportationTypes.front();
+    if (!hasPublishedInteraction || hasSubscribedInteraction || hasRegionalInteraction ||
+        transportation.interactionClassHandle != interactionClassHandle ||
+        transportation.value.empty() ||
+        !declaration.pendingInteractionTransportationTypeChanges.empty()) {
+      return false;
+    }
+  }
+  if (declaration.pendingInteractionTransportationTypeChanges.empty()) {
+    return true;
+  }
+  if (!hasPublishedInteraction || hasSubscribedInteraction || hasRegionalInteraction) {
+    return false;
+  }
+  auto const& pending =
+      declaration.pendingInteractionTransportationTypeChanges.front();
+  return pending.interactionClassHandle == interactionClassHandle &&
+      !pending.value.empty();
+}
+
+// A small multi-member companion keeps publication state independent per
+// joined federate.  Each member is restricted to one publication and no
+// callback-bearing declaration; the general interaction image remains gated
+// until its own multi-member invariants are implemented.
+bool isRouteFreeMultipleInteractionPublicationImage(FederationStateImage const& image) {
+  if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
+      image.interactionDeclarations.size() != 2U ||
+      !image.objects.empty() ||
+      !image.tsoInteractionMessages.empty() ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      !image.tsoDirectedInteractionMessages.empty() ||
+      !image.tsoRequestRetractionRecords.empty() ||
+      !image.tsoQueueEntries.empty()) {
+    return false;
+  }
+  std::uint64_t previousFederateId = 0U;
+  for (auto const& declaration : image.interactionDeclarations) {
+    if (declaration.federateId == 0U || declaration.federateId <= previousFederateId ||
+        declaration.publishedInteractionClasses.size() != 1U ||
+        !declaration.subscribedInteractionClasses.empty() ||
+        !declaration.regionalSubscribedInteractionClasses.empty() ||
+        !declaration.publishedObjectClassDirectedInteractions.empty() ||
+        !declaration.subscribedObjectClassDirectedInteractions.empty() ||
+        !declaration.interactionTransportationTypes.empty() ||
+        !declaration.interactionOrderTypes.empty() ||
+        !declaration.pendingInteractionTransportationTypeChanges.empty() ||
+        declaration.publishedInteractionClasses.front() == 0U) {
+      return false;
+    }
+    previousFederateId = declaration.federateId;
+  }
+  return true;
+}
+
+// A focused process-restart companion admits one ordinary timestamped
+// Send Interaction With Regions payload alongside its route-free declaration
+// and region ledgers.  The callback closures remain live-only; the durable
+// image carries the source-region snapshot, retraction recipients, and queue
+// phases needed to rebind those routes after a fresh registry restart.  Keep
+// this deliberately narrow so a general regional interaction matrix cannot
+// become restartable without its own explicit state-image contract.
+bool isRouteFreeRegionalTsoInteractionImage(FederationStateImage const& image) {
+  if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
+      image.interactionDeclarations.size() != 3U ||
+      image.regions.size() != 3U ||
+      image.tsoInteractionMessageCount != image.tsoInteractionMessages.size() ||
+      image.tsoInteractionMessages.size() != 1U ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      !image.tsoDirectedInteractionMessages.empty() ||
+      image.tsoRequestRetractionRecords.size() != 1U ||
+      image.tsoQueueEntries.size() != 2U ||
+      !image.objects.empty()) {
+    return false;
+  }
+
+  auto const& message = image.tsoInteractionMessages.front();
+  if (message.messageId == 0U || message.producingFederateId == 0U ||
+      message.sentInteractionClassHandle == 0U ||
+      !message.timestampEncoding.has_value() ||
+      message.sentRegionHandles.size() != 1U ||
+      message.sentRegionHandles.front() == 0U ||
+      message.sentRegionSnapshots.size() != 1U ||
+      message.sentRegionSnapshots.front().regionHandle !=
+          message.sentRegionHandles.front() ||
+      !message.sentRegionSnapshots.front().specificationCommitted ||
+      message.sentRegionSnapshots.front().dimensionHandles.empty() ||
+      message.sentRegionSnapshots.front().committedRangeBounds.size() !=
+          message.sentRegionSnapshots.front().dimensionHandles.size()) {
+    return false;
+  }
+  std::set<std::uint64_t> parameterHandles;
+  for (auto const parameterHandle : message.sentParameterHandles) {
+    if (parameterHandle == 0U || !parameterHandles.insert(parameterHandle).second) {
+      return false;
+    }
+  }
+  if (message.sentParameterHandles.size() != message.parameters.size()) {
+    return false;
+  }
+  for (auto const& parameter : message.parameters) {
+    if (parameter.parameterHandle == 0U ||
+        !parameterHandles.contains(parameter.parameterHandle)) {
+      return false;
+    }
+  }
+
+  std::set<std::uint64_t> regionalDeclarationRegions;
+  std::set<std::uint64_t> memberIds;
+  std::size_t publicationCount = 0U;
+  std::size_t regionalSubscriptionCount = 0U;
+  for (auto const& declaration : image.interactionDeclarations) {
+    if (declaration.federateId == 0U ||
+        !memberIds.insert(declaration.federateId).second ||
+        !declaration.subscribedInteractionClasses.empty() ||
+        !declaration.publishedObjectClassDirectedInteractions.empty() ||
+        !declaration.subscribedObjectClassDirectedInteractions.empty() ||
+        !declaration.interactionTransportationTypes.empty() ||
+        !declaration.pendingInteractionTransportationTypeChanges.empty()) {
+      return false;
+    }
+    bool const publishes = declaration.publishedInteractionClasses.size() == 1U &&
+        declaration.publishedInteractionClasses.front() ==
+            message.sentInteractionClassHandle &&
+        declaration.regionalSubscribedInteractionClasses.empty();
+    bool const subscribesRegion = declaration.publishedInteractionClasses.empty() &&
+        declaration.regionalSubscribedInteractionClasses.size() == 1U &&
+        declaration.regionalSubscribedInteractionClasses.front().interactionClassHandle ==
+            message.sentInteractionClassHandle &&
+        declaration.regionalSubscribedInteractionClasses.front().regionHandle != 0U &&
+        regionalDeclarationRegions.insert(
+            declaration.regionalSubscribedInteractionClasses.front().regionHandle).second;
+    if (publishes == subscribesRegion) {
+      return false;
+    }
+    // A public publisher must retain the explicit timestamped order selected
+    // before the save.  Subscribers in this narrow image have no local order
+    // override; admitting any other order/declaration combination would
+    // silently widen the route-free restart contract.
+    if (declaration.interactionOrderTypes.size() > 1U) {
+      return false;
+    }
+    if (!declaration.interactionOrderTypes.empty()) {
+      auto const& order = declaration.interactionOrderTypes.front();
+      if (!publishes || order.interactionClassHandle != message.sentInteractionClassHandle ||
+          order.orderType != static_cast<std::uint32_t>(rti1516_2025::TIMESTAMP)) {
+        return false;
+      }
+    }
+    publicationCount += publishes ? 1U : 0U;
+    regionalSubscriptionCount += subscribesRegion ? 1U : 0U;
+  }
+  if (publicationCount != 1U || regionalSubscriptionCount != 2U ||
+      regionalDeclarationRegions.size() != 2U) {
+    return false;
+  }
+
+  std::set<std::uint64_t> regionHandles;
+  for (auto const& region : image.regions) {
+    if (region.handle == 0U || region.ownerFederateId == 0U ||
+        !regionHandles.insert(region.handle).second ||
+        region.dimensionHandles.empty() || !region.specificationCommitted ||
+        region.pendingRangeBounds.size() != region.dimensionHandles.size() ||
+        region.committedRangeBounds.size() != region.dimensionHandles.size()) {
+      return false;
+    }
+  }
+  if (!regionHandles.contains(message.sentRegionHandles.front()) ||
+      !std::includes(
+          regionHandles.begin(),
+          regionHandles.end(),
+          regionalDeclarationRegions.begin(),
+          regionalDeclarationRegions.end())) {
+    return false;
+  }
+
+  auto const& retraction = image.tsoRequestRetractionRecords.front();
+  if (retraction.messageId != message.messageId ||
+      retraction.producingFederateId != message.producingFederateId ||
+      !retraction.timestampEncoding.has_value() ||
+      retraction.recipientStates.size() != image.tsoQueueEntries.size()) {
+    return false;
+  }
+  std::set<std::uint64_t> recipients;
+  for (auto const& recipient : retraction.recipientStates) {
+    if (recipient.receivingFederateId == 0U ||
+        recipient.receivingFederateId == message.producingFederateId ||
+        recipient.state > 3U ||
+        !recipients.insert(recipient.receivingFederateId).second) {
+      return false;
+    }
+  }
+  for (auto const& queueEntry : image.tsoQueueEntries) {
+    if (queueEntry.messageId != message.messageId ||
+        queueEntry.recipientFederateId == 0U ||
+        queueEntry.recipientFederateId == message.producingFederateId ||
+        queueEntry.phase > 2U ||
+        !queueEntry.timestampEncoding.has_value() ||
+        !recipients.contains(queueEntry.recipientFederateId)) {
+      return false;
+    }
+  }
+  return recipients.size() == 2U;
+}
+
+// The next mixed declaration slice keeps one publication and one ordinary
+// subscription on separate joined federates. The publisher may carry one
+// committed transportation override or one pending transportation change;
+// the latter is rebound to the current publisher route by the restore loop.
+// Regional state and order state remain outside this narrow declaration lane.
+bool isRouteFreeMixedMultipleInteractionDeclarationImage(
+    FederationStateImage const& image) {
+  if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
+      image.interactionDeclarations.size() != 2U ||
+      !image.objects.empty() ||
+      !image.tsoInteractionMessages.empty() ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      !image.tsoDirectedInteractionMessages.empty() ||
+      !image.tsoRequestRetractionRecords.empty() ||
+      !image.tsoQueueEntries.empty()) {
+    return false;
+  }
+  std::uint64_t previousFederateId = 0U;
+  bool hasPublication = false;
+  bool hasSubscription = false;
+  for (auto const& declaration : image.interactionDeclarations) {
+    if (declaration.federateId == 0U || declaration.federateId <= previousFederateId ||
+        declaration.publishedInteractionClasses.size() > 1U ||
+        declaration.subscribedInteractionClasses.size() > 1U ||
+        !declaration.regionalSubscribedInteractionClasses.empty() ||
+        !declaration.publishedObjectClassDirectedInteractions.empty() ||
+        !declaration.subscribedObjectClassDirectedInteractions.empty() ||
+        declaration.interactionTransportationTypes.size() > 1U ||
+        !declaration.interactionOrderTypes.empty() ||
+        declaration.pendingInteractionTransportationTypeChanges.size() > 1U) {
+      return false;
+    }
+    bool const publishes = declaration.publishedInteractionClasses.size() == 1U &&
+        declaration.publishedInteractionClasses.front() != 0U &&
+        declaration.subscribedInteractionClasses.empty();
+    bool const subscribes = declaration.publishedInteractionClasses.empty() &&
+        declaration.subscribedInteractionClasses.size() == 1U &&
+        declaration.subscribedInteractionClasses.front().interactionClassHandle != 0U &&
+        declaration.interactionTransportationTypes.empty();
+    if (publishes == subscribes) {
+      return false;
+    }
+    if (!declaration.interactionTransportationTypes.empty()) {
+      auto const& transportation = declaration.interactionTransportationTypes.front();
+      if (!publishes ||
+          transportation.interactionClassHandle !=
+              declaration.publishedInteractionClasses.front() ||
+          transportation.value.empty() ||
+          !declaration.pendingInteractionTransportationTypeChanges.empty()) {
+        return false;
+      }
+    }
+    if (!declaration.pendingInteractionTransportationTypeChanges.empty()) {
+      if (!publishes || declaration.interactionTransportationTypes.size() != 0U) {
+        return false;
+      }
+      auto const& pending =
+          declaration.pendingInteractionTransportationTypeChanges.front();
+      if (pending.interactionClassHandle !=
+              declaration.publishedInteractionClasses.front() ||
+          pending.value.empty()) {
+        return false;
+      }
+    }
+    hasPublication = hasPublication || publishes;
+    hasSubscription = hasSubscription || subscribes;
+    previousFederateId = declaration.federateId;
+  }
+  return hasPublication && hasSubscription;
+}
+
+// Directed interaction declarations are indexed by both the target object
+// class and the interaction class.  Keep the fresh-registry slice route-free:
+// one publisher and one or more subscribers for the same directed pair, with
+// no ordinary declaration or callback-bearing state.  Multiple subscribers
+// are needed to exercise the by-ownership handoff after restore; the publisher
+// remains unique so this admission does not imply a general declaration
+// arbitration policy.  A single route-free object plus the directed TSO
+// payload/retraction/queue sections is also admitted.  This combined form is
+// deliberately narrower than the independent declaration and payload forms:
+// ordinary interactions, attribute updates, object deletions, or an orphaned
+// retraction/queue record must not become process-restartable by accident.
+bool isRouteFreeMultipleDirectedInteractionDeclarationImage(
+    FederationStateImage const& image) {
+  bool const hasDirectedTsoPayload =
+      !image.tsoDirectedInteractionMessages.empty();
+  if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
+      image.interactionDeclarations.size() < 2U ||
+      image.objects.size() > 1U ||
+      !image.tsoInteractionMessages.empty() ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      image.tsoDirectedInteractionMessageCount !=
+          image.tsoDirectedInteractionMessages.size() ||
+      (!hasDirectedTsoPayload &&
+       (!image.tsoRequestRetractionRecords.empty() ||
+        !image.tsoQueueEntries.empty())) ||
+      (hasDirectedTsoPayload && image.objects.size() != 1U)) {
+    return false;
+  }
+
+  if (hasDirectedTsoPayload) {
+    std::map<std::uint64_t, std::set<std::uint64_t>> directedRecipients;
+    for (auto const& message : image.tsoDirectedInteractionMessages) {
+      if (message.messageId == 0U || message.producingFederateId == 0U ||
+          message.objectInstanceHandle == 0U ||
+          message.sentInteractionClassHandle == 0U ||
+          !message.timestampEncoding.has_value() || message.recipients.empty()) {
+        return false;
+      }
+      auto& recipients = directedRecipients[message.messageId];
+      for (auto const& recipient : message.recipients) {
+        if (recipient.receivingFederateId == 0U ||
+            recipient.receivingFederateId == message.producingFederateId ||
+            recipient.objectInstanceHandle != message.objectInstanceHandle ||
+            recipient.receivedInteractionClassHandle == 0U ||
+            !recipients.insert(recipient.receivingFederateId).second) {
+          return false;
+        }
+      }
+    }
+    std::set<std::uint64_t> retractionMessageIds;
+    for (auto const& record : image.tsoRequestRetractionRecords) {
+      if (record.messageId == 0U || record.producingFederateId == 0U ||
+          !directedRecipients.contains(record.messageId) ||
+          !retractionMessageIds.insert(record.messageId).second) {
+        return false;
+      }
+      std::set<std::uint64_t> recordRecipients;
+      for (auto const& recipient : record.recipientStates) {
+        if (recipient.receivingFederateId == 0U ||
+            recipient.state > 3U ||
+            !recordRecipients.insert(recipient.receivingFederateId).second ||
+            !directedRecipients.at(record.messageId).contains(
+                recipient.receivingFederateId)) {
+          return false;
+        }
+      }
+      if (recordRecipients != directedRecipients.at(record.messageId)) {
+        return false;
+      }
+    }
+    if (retractionMessageIds.size() != directedRecipients.size()) {
+      return false;
+    }
+    for (auto const& queueEntry : image.tsoQueueEntries) {
+      if (queueEntry.messageId == 0U || queueEntry.recipientFederateId == 0U ||
+          queueEntry.phase > 2U ||
+          !directedRecipients.contains(queueEntry.messageId) ||
+          !directedRecipients.at(queueEntry.messageId).contains(
+              queueEntry.recipientFederateId) ||
+          !queueEntry.timestampEncoding.has_value()) {
+        return false;
+      }
+    }
+  }
+
+  std::uint64_t previousFederateId = 0U;
+  std::optional<std::pair<std::uint64_t, std::uint64_t>> directedPair;
+  bool hasPublication = false;
+  bool hasSubscription = false;
+  for (auto const& declaration : image.interactionDeclarations) {
+    if (declaration.federateId == 0U || declaration.federateId <= previousFederateId) {
+      return false;
+    }
+    // A joined federate may be neutral for this directed pair: it has no
+    // ordinary or directed declaration, transportation override, order
+    // state, or pending declaration transition.  Keep that member in the
+    // identity/order fence, but do not make it invalidate an otherwise
+    // route-free publisher/subscriber image.  This is important when delayed
+    // subscription evaluation retains a live callback route for a member
+    // that has not subscribed to the directed interaction.
+    bool const neutral =
+        declaration.publishedInteractionClasses.empty() &&
+        declaration.subscribedInteractionClasses.empty() &&
+        declaration.regionalSubscribedInteractionClasses.empty() &&
+        declaration.publishedObjectClassDirectedInteractions.empty() &&
+        declaration.subscribedObjectClassDirectedInteractions.empty() &&
+        declaration.interactionTransportationTypes.empty() &&
+        declaration.interactionOrderTypes.empty() &&
+        declaration.pendingInteractionTransportationTypeChanges.empty();
+    if (neutral) {
+      previousFederateId = declaration.federateId;
+      continue;
+    }
+    if (!declaration.publishedInteractionClasses.empty() ||
+        !declaration.subscribedInteractionClasses.empty() ||
+        !declaration.regionalSubscribedInteractionClasses.empty() ||
+        !declaration.interactionTransportationTypes.empty() ||
+        !declaration.pendingInteractionTransportationTypeChanges.empty()) {
+      return false;
+    }
+    bool const publishes =
+        declaration.publishedObjectClassDirectedInteractions.size() == 1U &&
+        declaration.publishedObjectClassDirectedInteractions.front().objectClassHandle != 0U &&
+        declaration.publishedObjectClassDirectedInteractions.front().interactionClassHandle != 0U &&
+        declaration.subscribedObjectClassDirectedInteractions.empty();
+    bool const subscribes =
+        declaration.publishedObjectClassDirectedInteractions.empty() &&
+        declaration.subscribedObjectClassDirectedInteractions.size() == 1U &&
+        declaration.subscribedObjectClassDirectedInteractions.front().objectClassHandle != 0U &&
+        declaration.subscribedObjectClassDirectedInteractions.front().interactionClassHandle != 0U;
+    if (publishes == subscribes) {
+      return false;
+    }
+    // A timestamped directed sender records its explicit interaction order
+    // override in the saved declaration.  Preserve that narrow state while
+    // rejecting subscriber-side or multi-class order ledgers.
+    if (declaration.interactionOrderTypes.size() > 1U) {
+      return false;
+    }
+    if (!declaration.interactionOrderTypes.empty()) {
+      auto const& order = declaration.interactionOrderTypes.front();
+      if (!publishes ||
+          order.interactionClassHandle !=
+              declaration.publishedObjectClassDirectedInteractions.front().interactionClassHandle ||
+          order.orderType != static_cast<std::uint32_t>(rti1516_2025::TIMESTAMP)) {
+        return false;
+      }
+    }
+    auto const pairForDeclaration = publishes
+        ? std::pair{
+              declaration.publishedObjectClassDirectedInteractions.front().objectClassHandle,
+              declaration.publishedObjectClassDirectedInteractions.front().interactionClassHandle}
+        : std::pair{
+              declaration.subscribedObjectClassDirectedInteractions.front().objectClassHandle,
+              declaration.subscribedObjectClassDirectedInteractions.front().interactionClassHandle};
+    if (directedPair.has_value() && directedPair != pairForDeclaration) {
+      return false;
+    }
+    directedPair = pairForDeclaration;
+    if (publishes) {
+      if (hasPublication) {
+        return false;
+      }
+      hasPublication = true;
+    } else {
+      hasSubscription = true;
+    }
+    previousFederateId = declaration.federateId;
+  }
+  return hasPublication && hasSubscription && directedPair.has_value();
+}
+
 void appendPadding(std::vector<rti1516_2025::Octet>& output, std::size_t boundary) {
   auto const remainder = output.size() % boundary;
   if (remainder != 0U) {
@@ -311,6 +2578,140 @@ std::vector<std::wstring> moduleContentsForFederation(
     }
   }
   return contents;
+}
+
+template <typename LogicalValue>
+std::optional<std::string> encodedLogicalValue(
+    std::shared_ptr<LogicalValue const> const& value) {
+  if (!value) {
+    return std::nullopt;
+  }
+  auto const encoded = value->encode();
+  auto const* bytes = static_cast<unsigned char const*>(encoded.data());
+  return std::string{
+      reinterpret_cast<char const*>(bytes),
+      encoded.size()};
+}
+
+std::shared_ptr<rti1516_2025::LogicalTime const> decodeLogicalTimeEncoding(
+    std::wstring const& implementationName,
+    std::optional<std::string> const& encoding) {
+  if (!encoding) {
+    return nullptr;
+  }
+  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      implementationName);
+  if (!factory || factory->getName() != implementationName) {
+    throw std::logic_error(
+        "The saved TSO queue does not have a selected logical-time factory.");
+  }
+  rti1516_2025::VariableLengthData bytes(encoding->data(), encoding->size());
+  auto decoded = factory->decodeLogicalTime(bytes);
+  if (!decoded || decoded->implementationName() != implementationName) {
+    throw std::logic_error(
+        "The saved TSO queue contains an invalid logical-time encoding.");
+  }
+  return std::shared_ptr<rti1516_2025::LogicalTime const>{std::move(decoded)};
+}
+
+std::shared_ptr<rti1516_2025::LogicalTimeInterval const>
+decodeLogicalTimeIntervalEncoding(
+    std::wstring const& implementationName,
+    std::optional<std::string> const& encoding) {
+  if (!encoding) {
+    return nullptr;
+  }
+  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      implementationName);
+  if (!factory || factory->getName() != implementationName) {
+    throw std::logic_error(
+        "The saved temporal state does not have a selected logical-time factory.");
+  }
+  rti1516_2025::VariableLengthData bytes(encoding->data(), encoding->size());
+  auto decoded = factory->decodeLogicalTimeInterval(bytes);
+  if (!decoded || decoded->implementationName() != implementationName) {
+    throw std::logic_error(
+        "The saved temporal state contains an invalid logical-time interval encoding.");
+  }
+  return std::shared_ptr<rti1516_2025::LogicalTimeInterval const>{std::move(decoded)};
+}
+
+std::string bytesFromVariableLengthData(
+    rti1516_2025::VariableLengthData const& value) {
+  if (value.size() == 0U) {
+    return {};
+  }
+  auto const* bytes = static_cast<unsigned char const*>(value.data());
+  if (bytes == nullptr) {
+    throw std::runtime_error(
+        "A non-empty VariableLengthData value has no data in the state image.");
+  }
+  return std::string{
+      reinterpret_cast<char const*>(bytes),
+      value.size()};
+}
+
+rti1516_2025::VariableLengthData variableLengthDataFromBytes(
+    std::string const& value) {
+  if (value.empty()) {
+    return {};
+  }
+  return rti1516_2025::VariableLengthData(value.data(), value.size());
+}
+
+std::optional<rti1516_2025::OrderType> decodeSavedOrderType(
+    std::uint32_t encoded) {
+  if (encoded == static_cast<std::uint32_t>(rti1516_2025::RECEIVE)) {
+    return rti1516_2025::RECEIVE;
+  }
+  if (encoded == static_cast<std::uint32_t>(rti1516_2025::TIMESTAMP)) {
+    return rti1516_2025::TIMESTAMP;
+  }
+  return std::nullopt;
+}
+
+RegionSpecificationSnapshot decodeSavedRegionSnapshot(
+    FederationStateImageInteractionRegionSnapshot const& saved) {
+  if (saved.regionHandle == 0U || !saved.specificationCommitted ||
+      saved.dimensionHandles.size() != saved.committedRangeBounds.size()) {
+    throw std::logic_error(
+        "The saved TSO interaction contains an incomplete region snapshot.");
+  }
+
+  RegionSpecificationSnapshot result;
+  result.specificationCommitted = true;
+  for (auto const dimensionHandle : saved.dimensionHandles) {
+    if (dimensionHandle == 0U ||
+        !result.dimensionHandles.insert(dimensionHandle).second) {
+      throw std::logic_error(
+          "The saved TSO interaction contains duplicate region dimensions.");
+    }
+  }
+  for (auto const& savedRange : saved.committedRangeBounds) {
+    if (savedRange.dimensionHandle == 0U ||
+        savedRange.lowerBound > savedRange.upperBound ||
+        !result.dimensionHandles.contains(savedRange.dimensionHandle) ||
+        savedRange.lowerBound >
+            static_cast<std::uint64_t>(
+                std::numeric_limits<unsigned long>::max()) ||
+        savedRange.upperBound >
+            static_cast<std::uint64_t>(
+                std::numeric_limits<unsigned long>::max())) {
+      throw std::logic_error(
+          "The saved TSO interaction contains an invalid region range.");
+    }
+    auto const [position, inserted] = result.committedRangeBounds.emplace(
+        savedRange.dimensionHandle,
+        RegionRangeBounds{
+            static_cast<unsigned long>(savedRange.lowerBound),
+            static_cast<unsigned long>(savedRange.upperBound)});
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved TSO interaction contains duplicate region ranges.");
+    }
+  }
+  return result;
 }
 
 std::optional<std::wstring> mimModuleContentsForFederation(
@@ -461,10 +2862,14 @@ unsigned long EmbeddedFederationRegistry::normalizedHandleValue(
 }
 
 EmbeddedFederationRegistry::EmbeddedFederationRegistry(
-    std::shared_ptr<RuntimeInstrumentation> instrumentation)
+    std::shared_ptr<RuntimeInstrumentation> instrumentation,
+    std::shared_ptr<FederationSaveCommitStore> saveCommitStore)
     : instrumentation_(
           instrumentation ? std::move(instrumentation)
-                           : std::make_shared<RuntimeInstrumentation>()) {}
+                           : std::make_shared<RuntimeInstrumentation>()),
+      saveCommitStore_(
+          saveCommitStore ? std::move(saveCommitStore)
+                          : std::make_shared<MemoryFederationSaveCommitStore>()) {}
 
 RuntimeInstrumentationSnapshot
 EmbeddedFederationRegistry::runtimeInstrumentationSnapshotForTesting() const {
@@ -506,6 +2911,10 @@ FederationRegistryResult EmbeddedFederationRegistry::create(
   if (!dimensionHandles.reconcile(definition.catalog.get())) {
     return {FederationRegistryStatus::invalid_request};
   }
+  TransportationTypeHandleDirectory transportationTypeHandles;
+  if (!transportationTypeHandles.reconcile(definition.catalog.get())) {
+    return {FederationRegistryStatus::invalid_request};
+  }
   auto const objectClassHandleSnapshot =
       std::make_shared<ObjectClassHandleDirectory const>(std::move(objectClassHandles));
   auto const attributeHandleSnapshot =
@@ -516,6 +2925,9 @@ FederationRegistryResult EmbeddedFederationRegistry::create(
       std::make_shared<ParameterHandleDirectory const>(std::move(parameterHandles));
   auto const dimensionHandleSnapshot =
       std::make_shared<DimensionHandleDirectory const>(std::move(dimensionHandles));
+  auto const transportationTypeHandleSnapshot =
+      std::make_shared<TransportationTypeHandleDirectory const>(
+          std::move(transportationTypeHandles));
 
   std::scoped_lock lock(mutex_);
   if (federations_.contains(federationName)) {
@@ -547,6 +2959,7 @@ FederationRegistryResult EmbeddedFederationRegistry::create(
   federationState.interactionClassHandles = std::move(interactionClassHandleSnapshot);
   federationState.parameterHandles = std::move(parameterHandleSnapshot);
   federationState.dimensionHandles = std::move(dimensionHandleSnapshot);
+  federationState.transportationTypeHandles = std::move(transportationTypeHandleSnapshot);
   federations_.emplace(federationName, std::move(federationState));
   return {};
 }
@@ -570,7 +2983,8 @@ FederationRegistryResult EmbeddedFederationRegistry::destroy(std::wstring const&
 FederationJoinResult EmbeddedFederationRegistry::join(
     std::wstring const& federationName,
     std::wstring const& federateType,
-    std::optional<std::wstring> requestedFederateName) {
+    std::optional<std::wstring> requestedFederateName,
+    InteractionCallbackRoute interactionCallbackRoute) {
   auto instrumentationScope = beginInstrumentation("join");
   return joinImpl(
       federationName,
@@ -578,6 +2992,7 @@ FederationJoinResult EmbeddedFederationRegistry::join(
       nullptr,
       federateType,
       std::move(requestedFederateName),
+      std::move(interactionCallbackRoute),
       {},
       {});
 }
@@ -588,7 +3003,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithTimeState(
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
     InteractionCallbackRoute interactionCallbackRoute,
-    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory) {
+    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory,
+    FederationTimeRoleEnableDispatchFactory timeRoleEnableDispatchFactory) {
   auto instrumentationScope = beginInstrumentation("joinWithTimeState");
   return joinImpl(
       federationName,
@@ -597,7 +3013,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithTimeState(
       federateType,
       std::move(requestedFederateName),
       std::move(interactionCallbackRoute),
-      std::move(timeAdvanceGrantDispatchFactory));
+      std::move(timeAdvanceGrantDispatchFactory),
+      std::move(timeRoleEnableDispatchFactory));
 }
 
 FederationJoinResult EmbeddedFederationRegistry::joinWithDefinition(
@@ -613,6 +3030,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinition(
       federateType,
       std::move(requestedFederateName),
       {},
+      {},
       {});
 }
 
@@ -623,7 +3041,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinitionAndTimeState(
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
     InteractionCallbackRoute interactionCallbackRoute,
-    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory) {
+    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory,
+    FederationTimeRoleEnableDispatchFactory timeRoleEnableDispatchFactory) {
   auto instrumentationScope = beginInstrumentation("joinWithDefinitionAndTimeState");
   return joinImpl(
       federationName,
@@ -632,7 +3051,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinWithDefinitionAndTimeState(
       federateType,
       std::move(requestedFederateName),
       std::move(interactionCallbackRoute),
-      std::move(timeAdvanceGrantDispatchFactory));
+      std::move(timeAdvanceGrantDispatchFactory),
+      std::move(timeRoleEnableDispatchFactory));
 }
 
 FederationJoinResult EmbeddedFederationRegistry::joinImpl(
@@ -642,7 +3062,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     std::wstring const& federateType,
     std::optional<std::wstring> requestedFederateName,
     InteractionCallbackRoute interactionCallbackRoute,
-    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory) {
+    FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory,
+    FederationTimeRoleEnableDispatchFactory timeRoleEnableDispatchFactory) {
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -674,6 +3095,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
   std::shared_ptr<InteractionClassHandleDirectory const> replacementInteractionClassHandles;
   std::shared_ptr<ParameterHandleDirectory const> replacementParameterHandles;
   std::shared_ptr<DimensionHandleDirectory const> replacementDimensionHandles;
+  std::shared_ptr<TransportationTypeHandleDirectory const> replacementTransportationTypeHandles;
   if (replacementDefinition != nullptr) {
     ObjectClassHandleDirectory reconciled = federation->second.objectClassHandles
         ? *federation->second.objectClassHandles
@@ -719,10 +3141,22 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     }
     replacementDimensionHandles =
         std::make_shared<DimensionHandleDirectory const>(std::move(reconciledDimensions));
+
+    TransportationTypeHandleDirectory reconciledTransportationTypes =
+        federation->second.transportationTypeHandles
+        ? *federation->second.transportationTypeHandles
+        : TransportationTypeHandleDirectory{};
+    if (!reconciledTransportationTypes.reconcile(replacementDefinition->catalog.get())) {
+      return {FederationRegistryStatus::invalid_request, std::nullopt};
+    }
+    replacementTransportationTypeHandles =
+        std::make_shared<TransportationTypeHandleDirectory const>(
+            std::move(reconciledTransportationTypes));
   }
 
   bool const registersTimeState = static_cast<bool>(timeState);
-  if (timeAdvanceGrantDispatchFactory && !registersTimeState) {
+  if ((timeAdvanceGrantDispatchFactory || timeRoleEnableDispatchFactory) &&
+      !registersTimeState) {
     return {FederationRegistryStatus::invalid_request, std::nullopt};
   }
 
@@ -786,15 +3220,19 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     return {FederationRegistryStatus::federate_name_already_in_use, std::nullopt};
   }
 
-  if (registersTimeState) {
+  bool coordinatorRegistered = false;
+  {
     try {
-      auto const registered = federation->second.timeCoordinator.registerFederate(
-          membership.id,
-          std::move(timeState));
+      auto const registered = registersTimeState
+          ? federation->second.timeCoordinator.registerFederate(
+                membership.id,
+                std::move(timeState))
+          : federation->second.timeCoordinator.registerRecipient(membership.id);
       if (registered.status != FederationTimeCoordinatorStatus::applied) {
         federation->second.memberIdsByName.erase(namePosition);
         return {FederationRegistryStatus::invalid_request, std::nullopt};
       }
+      coordinatorRegistered = true;
     } catch (...) {
       federation->second.memberIdsByName.erase(namePosition);
       throw;
@@ -809,7 +3247,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
           std::move(interactionCallbackRoute));
       static_cast<void>(routePosition);
       if (!insertedRoute) {
-        if (registersTimeState) {
+        if (coordinatorRegistered) {
           static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
         }
         federation->second.memberIdsByName.erase(namePosition);
@@ -817,7 +3255,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
       }
       routeRegistered = true;
     } catch (...) {
-      if (registersTimeState) {
+      if (coordinatorRegistered) {
         static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
       }
       federation->second.memberIdsByName.erase(namePosition);
@@ -837,7 +3275,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
         if (routeRegistered) {
           federation->second.interactionCallbackRoutes.erase(membership.id);
         }
-        if (registersTimeState) {
+        if (coordinatorRegistered) {
           static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
         }
         federation->second.memberIdsByName.erase(namePosition);
@@ -848,7 +3286,44 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
       if (routeRegistered) {
         federation->second.interactionCallbackRoutes.erase(membership.id);
       }
-      if (registersTimeState) {
+      if (coordinatorRegistered) {
+        static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
+      }
+      federation->second.memberIdsByName.erase(namePosition);
+      throw;
+    }
+  }
+
+  bool timeRoleEnableDispatchFactoryRegistered = false;
+  if (timeRoleEnableDispatchFactory) {
+    try {
+      auto [factoryPosition, insertedFactory] =
+          federation->second.timeRoleEnableDispatchFactories.emplace(
+              membership.id,
+              std::move(timeRoleEnableDispatchFactory));
+      static_cast<void>(factoryPosition);
+      if (!insertedFactory) {
+        if (timeAdvanceGrantDispatchFactoryRegistered) {
+          federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
+        }
+        if (routeRegistered) {
+          federation->second.interactionCallbackRoutes.erase(membership.id);
+        }
+        if (coordinatorRegistered) {
+          static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
+        }
+        federation->second.memberIdsByName.erase(namePosition);
+        return {FederationRegistryStatus::invalid_request, std::nullopt};
+      }
+      timeRoleEnableDispatchFactoryRegistered = true;
+    } catch (...) {
+      if (timeAdvanceGrantDispatchFactoryRegistered) {
+        federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
+      }
+      if (routeRegistered) {
+        federation->second.interactionCallbackRoutes.erase(membership.id);
+      }
+      if (coordinatorRegistered) {
         static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
       }
       federation->second.memberIdsByName.erase(namePosition);
@@ -862,26 +3337,32 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
         membership);
     static_cast<void>(memberPosition);
     if (!insertedMember) {
+      if (timeRoleEnableDispatchFactoryRegistered) {
+        federation->second.timeRoleEnableDispatchFactories.erase(membership.id);
+      }
       if (timeAdvanceGrantDispatchFactoryRegistered) {
         federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
       }
       if (routeRegistered) {
         federation->second.interactionCallbackRoutes.erase(membership.id);
       }
-      if (registersTimeState) {
+      if (coordinatorRegistered) {
         static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
       }
       federation->second.memberIdsByName.erase(namePosition);
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
   } catch (...) {
+    if (timeRoleEnableDispatchFactoryRegistered) {
+      federation->second.timeRoleEnableDispatchFactories.erase(membership.id);
+    }
     if (timeAdvanceGrantDispatchFactoryRegistered) {
       federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
     }
     if (routeRegistered) {
       federation->second.interactionCallbackRoutes.erase(membership.id);
     }
-    if (registersTimeState) {
+    if (coordinatorRegistered) {
       static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
     }
     federation->second.memberIdsByName.erase(namePosition);
@@ -899,13 +3380,16 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     static_cast<void>(identityPosition);
     if (!insertedIdentity) {
       federation->second.members.erase(membership.id);
+      if (timeRoleEnableDispatchFactoryRegistered) {
+        federation->second.timeRoleEnableDispatchFactories.erase(membership.id);
+      }
       if (timeAdvanceGrantDispatchFactoryRegistered) {
         federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
       }
       if (routeRegistered) {
         federation->second.interactionCallbackRoutes.erase(membership.id);
       }
-      if (registersTimeState) {
+      if (coordinatorRegistered) {
         static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
       }
       federation->second.memberIdsByName.erase(namePosition);
@@ -913,13 +3397,16 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     }
   } catch (...) {
     federation->second.members.erase(membership.id);
+    if (timeRoleEnableDispatchFactoryRegistered) {
+      federation->second.timeRoleEnableDispatchFactories.erase(membership.id);
+    }
     if (timeAdvanceGrantDispatchFactoryRegistered) {
       federation->second.timeAdvanceGrantDispatchFactories.erase(membership.id);
     }
     if (routeRegistered) {
       federation->second.interactionCallbackRoutes.erase(membership.id);
     }
-    if (registersTimeState) {
+    if (coordinatorRegistered) {
       static_cast<void>(federation->second.timeCoordinator.unregisterFederate(membership.id));
     }
     federation->second.memberIdsByName.erase(namePosition);
@@ -938,6 +3425,9 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     swap(federation->second.interactionClassHandles, replacementInteractionClassHandles);
     swap(federation->second.parameterHandles, replacementParameterHandles);
     swap(federation->second.dimensionHandles, replacementDimensionHandles);
+    swap(
+        federation->second.transportationTypeHandles,
+        replacementTransportationTypeHandles);
   }
   nextFederateId_ = federateId + 1;
   return {FederationRegistryStatus::applied, std::move(membership)};
@@ -1105,6 +3595,7 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
   object.objectInstanceHandle = objectInstanceHandle;
   object.joinedFederateId = federateId;
   object.objectClassHandle = *objectClassHandle;
+  object.reportServiceFile = descriptor.reportServiceFile;
   object.immutableFederatePoint = {
       {*federateDimensionHandle},
       {{*federateDimensionHandle, {normalizedFederate, normalizedFederate + 1U}}},
@@ -1201,7 +3692,7 @@ EmbeddedFederationRegistry::establishFederationMomObject(
             "HLARTIversion",
             rti1516_2025::HLAunicodeString{rtiVersion}.encode()) ||
         !addInitialValue(
-            "HLAMIMdesignator",
+            umbra::detail::hla::utf8::mom::mim_designator,
             rti1516_2025::HLAunicodeString{mimDesignator}.encode()) ||
         !addInitialValue(
             "HLAtimeImplementationName",
@@ -1727,6 +4218,26 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
     deleteObjects = true;
   }
 
+  // A voluntary resignation that does not delete objects must leave an
+  // accepted timestamped deletion payload available to every recipient that
+  // still has the deletion queued.  The temporal queue is federation-owned;
+  // removing the producing federate must not make those queue entries point at
+  // a missing typed payload.  The common retraction-ledger pass below marks
+  // the producer as departed, while each recipient consumes its own pending
+  // removal at its normal timestamp boundary.
+  auto const retainPendingTimestampedDeletionForVoluntaryDeparture =
+      [&](Federation::ObjectInstance const& objectInstance) {
+        if (forcedConnectionLoss || deleteObjects ||
+            !objectInstance.pendingTimestampedDeletionMessageId.has_value()) {
+          return false;
+        }
+        auto const deletion = federation->second.tsoObjectDeletionMessages.find(
+            *objectInstance.pendingTimestampedDeletionMessageId);
+        return deletion != federation->second.tsoObjectDeletionMessages.end() &&
+            deletion->second.producingFederateId == federateId &&
+            static_cast<bool>(deletion->second.timestamp);
+      };
+
   // 4.12.3 requires the RTI to reject actions that would leave an acquisition
   // attempt unresolved.  The request maps below are the private state for
   // regular and If Available acquisition; negotiated acquisition is included
@@ -1920,6 +4431,109 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
     }
   }
 
+  // Build the complete assumption-offer set before any resignation mutation.
+  // In particular, an unconditional or combined delete/divest action must
+  // not clear an earlier attribute and then discover that a later eligible
+  // recipient has no callback route.  The returned error is an internal
+  // delivery-precondition failure, so the federation state remains atomic.
+  std::map<std::pair<std::uint64_t, std::uint64_t>, std::set<std::uint64_t>>
+      offeredAttributesByRecipient;
+  std::map<std::pair<std::uint64_t, std::uint64_t>, FederateCallbackRoute>
+      offeredCallbackRoutes;
+  auto recipientHasPendingAcquisition = [](
+                                             Federation::ObjectInstance const& instance,
+                                             std::uint64_t receivingFederateId,
+                                             std::uint64_t attributeHandle) {
+    for (auto const& [requestId, pending] :
+         instance.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+      static_cast<void>(requestId);
+      if (pending.requestingFederateId == receivingFederateId &&
+          pending.desiredAttributeHandles.contains(attributeHandle)) {
+        return true;
+      }
+    }
+    for (auto const& [requestId, pending] :
+         instance.pendingAttributeOwnershipAcquisitionRequests) {
+      static_cast<void>(requestId);
+      if (pending.requestingFederateId == receivingFederateId &&
+          pending.desiredAttributeHandles.contains(attributeHandle)) {
+        return true;
+      }
+    }
+    for (auto const& [cancellationId, cancellation] :
+         instance.pendingAttributeOwnershipAcquisitionCancellations) {
+      static_cast<void>(cancellationId);
+      if (cancellation.requestingFederateId == receivingFederateId &&
+          cancellation.attributeHandles.contains(attributeHandle)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  if (divestAttributes) {
+    for (auto const& [objectInstanceHandle, ownedAttributes] : ownedAttributesByObject) {
+      // A delete pass makes this object unavailable for assumption search;
+      // skip it while its removal route is still covered by the preflight
+      // above.  A retained deleteAccepted object is skipped by the mutation
+      // pass for the same reason.
+      if (objectsToDelete.contains(objectInstanceHandle)) {
+        continue;
+      }
+      auto const objectInstance = federation->second.objectInstances.find(objectInstanceHandle);
+      if (objectInstance == federation->second.objectInstances.end() ||
+          objectInstance->second.deleteAccepted) {
+        continue;
+      }
+
+      for (std::uint64_t const attributeHandle : ownedAttributes) {
+        for (auto const& [receivingFederateId, membership] : federation->second.members) {
+          static_cast<void>(membership);
+          if (receivingFederateId == federateId ||
+              recipientHasPendingAcquisition(
+                  objectInstance->second,
+                  receivingFederateId,
+                  attributeHandle)) {
+            continue;
+          }
+          auto const knownClass = objectInstance->second.knownObjectClassHandlesByFederate.find(
+              receivingFederateId);
+          if (knownClass == objectInstance->second.knownObjectClassHandlesByFederate.end()) {
+            continue;
+          }
+          auto const knownClassName = federation->second.objectClassHandles->nameFor(
+              knownClass->second);
+          auto const publishedAttributes = knownClassName
+              ? publishedObjectClassAttributes(
+                    federation->second,
+                    receivingFederateId,
+                    knownClass->second)
+              : std::nullopt;
+          if (!knownClassName || !publishedAttributes ||
+              !federation->second.attributeHandles->nameFor(
+                  federation->second.definition.catalog.get(),
+                  *knownClassName,
+                  attributeHandle) ||
+              !publishedAttributes->contains(attributeHandle)) {
+            continue;
+          }
+          auto const route = federation->second.interactionCallbackRoutes.find(
+              receivingFederateId);
+          if (route == federation->second.interactionCallbackRoutes.end() ||
+              !route->second) {
+            if (forcedConnectionLoss) {
+              continue;
+            }
+            return {FederationRegistryStatus::invalid_request};
+          }
+          auto const recipientKey = std::make_pair(receivingFederateId, objectInstanceHandle);
+          offeredAttributesByRecipient[recipientKey].insert(attributeHandle);
+          offeredCallbackRoutes.emplace(recipientKey, route->second);
+        }
+      }
+    }
+  }
+
   if (federation->second.saveOperation.has_value()) {
     // A resigning participant makes the control-plane save fail.  Do this
     // before removing its callback route, but do not enqueue a callback back
@@ -2008,6 +4622,35 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
     }
   }
 
+  // A queued assumption callback targeted at the resigning federate can no
+  // longer reach a live route. Drop only that recipient's pending marker;
+  // other candidates remain part of the unowned search epoch.
+  for (auto& [objectInstanceHandle, objectInstance] : federation->second.objectInstances) {
+    static_cast<void>(objectInstanceHandle);
+    for (auto pending = objectInstance.pendingAttributeOwnershipAssumptionCallbacks.begin();
+         pending != objectInstance.pendingAttributeOwnershipAssumptionCallbacks.end();) {
+      if (pending->receivingFederateId == federateId) {
+        pending = objectInstance.pendingAttributeOwnershipAssumptionCallbacks.erase(pending);
+      } else {
+        ++pending;
+      }
+    }
+  }
+
+  // Query Attribute Ownership callbacks are tied to the requesting federate
+  // and (for concrete-owner reports) to the owner identity. A resignation
+  // invalidates both relationships before the departing member route is
+  // removed; stale queued callbacks will therefore be suppressed.
+  for (auto query = federation->second.pendingAttributeOwnershipQueries.begin();
+       query != federation->second.pendingAttributeOwnershipQueries.end();) {
+    if (query->second.requestingFederateId == federateId ||
+        query->second.owningFederateId == federateId) {
+      query = federation->second.pendingAttributeOwnershipQueries.erase(query);
+    } else {
+      ++query;
+    }
+  }
+
   // Delete-privileged objects are handled before any remaining ownership is
   // divested, matching the ordering of directives 4 and 5.  The registry
   // reserves one Remove Object Instance callback per remaining known
@@ -2052,12 +4695,19 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
       }
 
       instance.pendingDiscoveryFederates.clear();
+      instance.pendingAttributeValueUpdateRequests.clear();
+      instance.pendingAttributeValueUpdateClassRequests.clear();
+      instance.pendingAttributeValueUpdateRegionalRequests.clear();
+      clearPendingAttributeOwnershipQueries(
+          federation->second,
+          objectInstanceHandle);
       instance.pendingAttributeOwnershipAcquisitionIfAvailableRequests.clear();
       instance.pendingAttributeOwnershipAcquisitionRequests.clear();
       instance.pendingAttributeOwnershipAcquisitionCancellations.clear();
       instance.pendingAttributeOwnershipDivestitureIfWantedNotifications.clear();
       instance.pendingNegotiatedAttributeOwnershipDivestitures.clear();
       instance.pendingConfirmDivestitureNotifications.clear();
+      instance.pendingAttributeOwnershipAssumptionCallbacks.clear();
       if (instance.pendingTimestampedDeletionMessageId.has_value()) {
         auto const deletionMessageId = *instance.pendingTimestampedDeletionMessageId;
         federation->second.tsoObjectDeletionMessages.erase(
@@ -2077,40 +4727,6 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   }
 
   if (divestAttributes) {
-    std::map<std::pair<std::uint64_t, std::uint64_t>, std::set<std::uint64_t>>
-        offeredAttributesByRecipient;
-
-    auto recipientHasPendingAcquisition = [](
-                                             Federation::ObjectInstance const& instance,
-                                             std::uint64_t receivingFederateId,
-                                             std::uint64_t attributeHandle) {
-      for (auto const& [requestId, pending] :
-           instance.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
-        static_cast<void>(requestId);
-        if (pending.requestingFederateId == receivingFederateId &&
-            pending.desiredAttributeHandles.contains(attributeHandle)) {
-          return true;
-        }
-      }
-      for (auto const& [requestId, pending] :
-           instance.pendingAttributeOwnershipAcquisitionRequests) {
-        static_cast<void>(requestId);
-        if (pending.requestingFederateId == receivingFederateId &&
-            pending.desiredAttributeHandles.contains(attributeHandle)) {
-          return true;
-        }
-      }
-      for (auto const& [cancellationId, cancellation] :
-           instance.pendingAttributeOwnershipAcquisitionCancellations) {
-        static_cast<void>(cancellationId);
-        if (cancellation.requestingFederateId == receivingFederateId &&
-            cancellation.attributeHandles.contains(attributeHandle)) {
-          return true;
-        }
-      }
-      return false;
-    };
-
     for (auto objectInstance = federation->second.objectInstances.begin();
          objectInstance != federation->second.objectInstances.end();) {
       auto& instance = objectInstance->second;
@@ -2138,44 +4754,6 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
       }
 
       for (std::uint64_t const attributeHandle : owned->second) {
-        for (auto const& [receivingFederateId, membership] : federation->second.members) {
-          static_cast<void>(membership);
-          if (receivingFederateId == federateId) {
-            continue;
-          }
-          auto const knownClass = instance.knownObjectClassHandlesByFederate.find(
-              receivingFederateId);
-          if (knownClass == instance.knownObjectClassHandlesByFederate.end() ||
-              recipientHasPendingAcquisition(instance, receivingFederateId, attributeHandle)) {
-            continue;
-          }
-          auto const knownClassName = federation->second.objectClassHandles->nameFor(
-              knownClass->second);
-          auto const publishedAttributes = knownClassName
-              ? publishedObjectClassAttributes(
-                    federation->second,
-                    receivingFederateId,
-                    knownClass->second)
-              : std::nullopt;
-          if (!knownClassName || !publishedAttributes ||
-              !federation->second.attributeHandles->nameFor(
-                  federation->second.definition.catalog.get(),
-                  *knownClassName,
-                  attributeHandle) ||
-              !publishedAttributes->contains(attributeHandle)) {
-            continue;
-          }
-          auto const route = federation->second.interactionCallbackRoutes.find(receivingFederateId);
-          if (route == federation->second.interactionCallbackRoutes.end() || !route->second) {
-            if (forcedConnectionLoss) {
-              continue;
-            }
-            return {FederationRegistryStatus::invalid_request};
-          }
-          offeredAttributesByRecipient[{receivingFederateId, instance.handle}].insert(
-              attributeHandle);
-        }
-
         instance.attributeOwnersByHandle.erase(attributeHandle);
         clearUpdateRegionAssociation(instance, attributeHandle);
         instance.attributeTransportationTypes.erase(attributeHandle);
@@ -2203,21 +4781,27 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
     }
 
     for (auto& [recipientKey, attributes] : offeredAttributesByRecipient) {
-      auto const route = federation->second.interactionCallbackRoutes.find(recipientKey.first);
-      if (route == federation->second.interactionCallbackRoutes.end() || !route->second) {
-        if (forcedConnectionLoss) {
-          continue;
-        }
-        return {FederationRegistryStatus::invalid_request};
+      // The callback route was captured by the preflight above while the
+      // federation lock was held.  A missing entry here is unreachable unless
+      // a future mutation violates that lock/lifetime invariant; ignore the
+      // impossible work item rather than partially failing after mutation.
+      auto const route = offeredCallbackRoutes.find(recipientKey);
+      if (route == offeredCallbackRoutes.end()) {
+        continue;
       }
       auto const instance = federation->second.objectInstances.find(recipientKey.second);
       if (instance == federation->second.objectInstances.end()) {
-        return {FederationRegistryStatus::invalid_request};
+        continue;
       }
       for (std::uint64_t const attributeHandle : attributes) {
         instance->second.ownershipAssumptionRecipientsByAttribute[attributeHandle].insert(
             recipientKey.first);
       }
+      instance->second.pendingAttributeOwnershipAssumptionCallbacks.push_back({
+          recipientKey.first,
+          attributes,
+          {},
+      });
       result.resignOwnershipAssumptions.push_back({
           recipientKey.first,
           recipientKey.second,
@@ -2230,6 +4814,7 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   static_cast<void>(federation->second.timeCoordinator.unregisterFederate(federateId));
   federation->second.pendingTimeAdvanceGrants.erase(federateId);
   federation->second.timeAdvanceGrantDispatchFactories.erase(federateId);
+  federation->second.timeRoleEnableDispatchFactories.erase(federateId);
   federation->second.interactionDeclarations.erase(federateId);
   federation->second.objectClassAttributeDeclarations.erase(federateId);
   federation->second.interactionCallbackRoutes.erase(federateId);
@@ -2277,9 +4862,12 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
     objectInstance->second.pendingTimestampedRemovalFederates.erase(federateId);
     bool const retainPendingDeletionForConnectionLoss =
         retainPendingTimestampedDeletionForConnectionLoss(objectInstance->second);
+    bool const retainPendingDeletionForVoluntaryDeparture =
+        retainPendingTimestampedDeletionForVoluntaryDeparture(objectInstance->second);
     if (objectInstance->second.producingFederateId == federateId &&
         objectInstance->second.pendingTimestampedDeletionMessageId.has_value() &&
-        !retainPendingDeletionForConnectionLoss) {
+        !retainPendingDeletionForConnectionLoss &&
+        !retainPendingDeletionForVoluntaryDeparture) {
       auto const deletionMessageId =
           *objectInstance->second.pendingTimestampedDeletionMessageId;
       federation->second.tsoObjectDeletionMessages.erase(
@@ -2476,6 +5064,7 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
           record.deliveryRequiredAfterConnectionLoss = false;
         }
       }
+      record.producerResigned = !forcedConnectionLoss;
       record.terminal = true;
       record.timestamp.reset();
     }
@@ -2523,6 +5112,9 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
         });
       }
       if (momObject->second.pendingRemovalFederateIds.empty()) {
+        clearPendingAttributeOwnershipQueries(
+            federation->second,
+            momObject->second.objectInstanceHandle);
         momObject = federation->second.rtiOwnedJoinedFederateMomObjects.erase(momObject);
       } else {
         ++momObject;
@@ -2652,6 +5244,4132 @@ void EmbeddedFederationRegistry::appendRestoreCompletionNotifications(
   }
 }
 
+FederationStateImage EmbeddedFederationRegistry::stateImageFor(
+    Federation const& federation,
+    std::wstring const& federationName) {
+  FederationStateImage image;
+  image.federationName = federationName;
+  image.logicalTimeImplementationName =
+      federation.definition.logicalTimeImplementationName;
+  image.normalizationSeed = federation.normalizationSeed;
+  image.federationSwitches =
+      (federation.autoProvideSwitch ? 1U : 0U) |
+      (federation.advisoriesUseKnownClassSwitch ? 1U << 1U : 0U) |
+      (federation.nonRegulatedGrantSwitch ? 1U << 2U : 0U) |
+      (federation.delaySubscriptionEvaluationSwitch ? 1U << 3U : 0U) |
+      (federation.allowRelaxedDDMSwitch ? 1U << 4U : 0U);
+
+  image.interactionDeclarationCount = federation.interactionDeclarations.size();
+  image.synchronizationPointCount = federation.synchronizationPoints.size();
+  image.objectClassDeclarationCount = federation.objectClassAttributeDeclarations.size();
+  image.regionCount = federation.regions.size();
+  image.objectInstanceCount = federation.objectInstances.size();
+  image.tsoInteractionMessageCount = federation.tsoInteractionMessages.size();
+  image.tsoAttributeUpdateMessageCount = federation.tsoAttributeUpdateMessages.size();
+  image.tsoObjectDeletionMessageCount = federation.tsoObjectDeletionMessages.size();
+  image.tsoDirectedInteractionMessageCount = federation.tsoDirectedInteractionMessages.size();
+
+  image.nextRegionHandle = federation.nextRegionHandle;
+  image.nextSubscriptionGeneration = federation.nextSubscriptionGeneration;
+  image.nextObjectInstanceHandle = federation.nextObjectInstanceHandle;
+  image.nextAttributeOwnershipAcquisitionIfAvailableRequestId =
+      federation.nextAttributeOwnershipAcquisitionIfAvailableRequestId;
+  image.nextAttributeOwnershipAcquisitionRequestId =
+      federation.nextAttributeOwnershipAcquisitionRequestId;
+  image.nextAttributeOwnershipAcquisitionRequestSequence =
+      federation.nextAttributeOwnershipAcquisitionRequestSequence;
+  image.nextAttributeOwnershipAcquisitionCancellationId =
+      federation.nextAttributeOwnershipAcquisitionCancellationId;
+  image.nextAttributeOwnershipDivestitureIfWantedNotificationId =
+      federation.nextAttributeOwnershipDivestitureIfWantedNotificationId;
+  image.nextConfirmDivestitureNotificationId =
+      federation.nextConfirmDivestitureNotificationId;
+  image.nextAttributeTransportationTypeChangeRequestId =
+      federation.nextAttributeTransportationTypeChangeRequestId;
+  image.nextAttributeValueUpdateRequestId =
+      federation.nextAttributeValueUpdateRequestId;
+  image.nextAttributeOwnershipQueryRequestId =
+      federation.nextAttributeOwnershipQueryRequestId;
+  image.nextTimeAdvanceGrantDispatchIdentity =
+      federation.nextTimeAdvanceGrantDispatchIdentity;
+
+  image.members.reserve(federation.members.size());
+  for (auto const& [memberId, member] : federation.members) {
+    FederationStateImageMember savedMember;
+    savedMember.id = memberId;
+    savedMember.name = member.name;
+    savedMember.type = member.type;
+    savedMember.switches =
+        (member.objectClassRelevanceAdvisorySwitch ? 1U : 0U) |
+        (member.attributeScopeAdvisorySwitch ? 1U << 1U : 0U) |
+        (member.attributeRelevanceAdvisorySwitch ? 1U << 2U : 0U) |
+        (member.interactionRelevanceAdvisorySwitch ? 1U << 3U : 0U) |
+        (member.conveyRegionDesignatorSetsSwitch ? 1U << 4U : 0U) |
+        (member.serviceReportingSwitch ? 1U << 5U : 0U) |
+        (member.exceptionReportingSwitch ? 1U << 6U : 0U) |
+        (member.sendServiceReportsToFileSwitch ? 1U << 7U : 0U);
+    savedMember.automaticResignAction =
+        static_cast<std::uint32_t>(member.automaticResignAction);
+    savedMember.momReportPeriodSeconds = member.momReportPeriodSeconds;
+    savedMember.nextMomServiceReportSerialNumber =
+        member.nextMomServiceReportSerialNumber;
+    savedMember.successfulUpdateAttributeValuesCount =
+        member.successfulUpdateAttributeValuesCount;
+    savedMember.successfulUpdateCountsByClassAndTransportation.reserve(
+        [&member] {
+          std::size_t count = 0U;
+          for (auto const& [objectClassHandle, transportationCounts] :
+               member.successfulUpdateCountsByClassAndTransportation) {
+            static_cast<void>(objectClassHandle);
+            count += transportationCounts.size();
+          }
+          return count;
+        }());
+    for (auto const& [objectClassHandle, transportationCounts] :
+         member.successfulUpdateCountsByClassAndTransportation) {
+      for (auto const& [transportationName, count] : transportationCounts) {
+        savedMember.successfulUpdateCountsByClassAndTransportation.push_back({
+            objectClassHandle,
+            transportationName,
+            count,
+        });
+      }
+    }
+    savedMember.successfullyUpdatedObjectInstanceHandles.assign(
+        member.successfullyUpdatedObjectInstanceHandles.begin(),
+        member.successfullyUpdatedObjectInstanceHandles.end());
+    savedMember.successfullyUpdatedObjectInstanceClassHandles.reserve(
+        member.successfullyUpdatedObjectInstanceClassHandles.size());
+    for (auto const& [objectInstanceHandle, objectClassHandle] :
+         member.successfullyUpdatedObjectInstanceClassHandles) {
+      savedMember.successfullyUpdatedObjectInstanceClassHandles.push_back({
+          objectInstanceHandle,
+          objectClassHandle,
+      });
+    }
+    savedMember.successfulReflectionsReceivedCount =
+        member.successfulReflectionsReceivedCount;
+    savedMember.reflectionTelemetryPresent = true;
+    savedMember.successfulObjectInstanceRegistrationsCount =
+        member.successfulObjectInstanceRegistrationsCount;
+    savedMember.successfulObjectInstanceDeletionsCount =
+        member.successfulObjectInstanceDeletionsCount;
+    savedMember.successfulObjectInstanceRemovalsCount =
+        member.successfulObjectInstanceRemovalsCount;
+    savedMember.successfulObjectInstanceDiscoveriesCount =
+        member.successfulObjectInstanceDiscoveriesCount;
+    savedMember.objectLifecycleTelemetryPresent = true;
+    savedMember.successfulReflectionCountsByClassAndTransportation.reserve(
+        [&member] {
+          std::size_t count = 0U;
+          for (auto const& [objectClassHandle, transportationCounts] :
+               member.successfulReflectionCountsByClassAndTransportation) {
+            static_cast<void>(objectClassHandle);
+            count += transportationCounts.size();
+          }
+          return count;
+        }());
+    for (auto const& [objectClassHandle, transportationCounts] :
+         member.successfulReflectionCountsByClassAndTransportation) {
+      for (auto const& [transportationName, count] : transportationCounts) {
+        savedMember.successfulReflectionCountsByClassAndTransportation.push_back({
+            objectClassHandle,
+            transportationName,
+            count,
+        });
+      }
+    }
+    savedMember.successfullyReflectedObjectInstanceHandles.assign(
+        member.successfullyReflectedObjectInstanceHandles.begin(),
+        member.successfullyReflectedObjectInstanceHandles.end());
+    savedMember.successfullyReflectedObjectInstanceClassHandles.reserve(
+        member.successfullyReflectedObjectInstanceClassHandles.size());
+    for (auto const& [objectInstanceHandle, objectClassHandle] :
+         member.successfullyReflectedObjectInstanceClassHandles) {
+      savedMember.successfullyReflectedObjectInstanceClassHandles.push_back({
+          objectInstanceHandle,
+          objectClassHandle,
+      });
+    }
+    savedMember.reflectionProjectionTelemetryPresent = true;
+    savedMember.successfulInteractionsSentCount =
+        member.successfulInteractionsSentCount;
+    savedMember.successfulDirectedInteractionsSentCount =
+        member.successfulDirectedInteractionsSentCount;
+    savedMember.successfulInteractionCountsByClassAndTransportation.reserve(
+        [&member] {
+          std::size_t count = 0U;
+          for (auto const& [interactionClassHandle, transportationCounts] :
+               member.successfulInteractionCountsByClassAndTransportation) {
+            static_cast<void>(interactionClassHandle);
+            count += transportationCounts.size();
+          }
+          return count;
+        }());
+    for (auto const& [interactionClassHandle, transportationCounts] :
+         member.successfulInteractionCountsByClassAndTransportation) {
+      for (auto const& [transportationName, count] : transportationCounts) {
+        savedMember.successfulInteractionCountsByClassAndTransportation.push_back({
+            interactionClassHandle,
+            transportationName,
+            count,
+        });
+      }
+    }
+    savedMember.successfulDirectedInteractionCountsByClassAndTransportation.reserve(
+        [&member] {
+          std::size_t count = 0U;
+          for (auto const& [interactionClassHandle, transportationCounts] :
+               member.successfulDirectedInteractionCountsByClassAndTransportation) {
+            static_cast<void>(interactionClassHandle);
+            count += transportationCounts.size();
+          }
+          return count;
+        }());
+    for (auto const& [interactionClassHandle, transportationCounts] :
+         member.successfulDirectedInteractionCountsByClassAndTransportation) {
+      for (auto const& [transportationName, count] : transportationCounts) {
+        savedMember.successfulDirectedInteractionCountsByClassAndTransportation.push_back({
+            interactionClassHandle,
+            transportationName,
+            count,
+        });
+      }
+    }
+    savedMember.interactionSendTelemetryPresent = true;
+    savedMember.successfulInteractionsReceivedCount =
+        member.successfulInteractionsReceivedCount;
+    savedMember.successfulDirectedInteractionsReceivedCount =
+        member.successfulDirectedInteractionsReceivedCount;
+    savedMember.successfulInteractionReceiptCountsByClassAndTransportation.reserve(
+        [&member] {
+          std::size_t count = 0U;
+          for (auto const& [interactionClassHandle, transportationCounts] :
+               member.successfulInteractionReceiptCountsByClassAndTransportation) {
+            static_cast<void>(interactionClassHandle);
+            count += transportationCounts.size();
+          }
+          return count;
+        }());
+    for (auto const& [interactionClassHandle, transportationCounts] :
+         member.successfulInteractionReceiptCountsByClassAndTransportation) {
+      for (auto const& [transportationName, count] : transportationCounts) {
+        savedMember.successfulInteractionReceiptCountsByClassAndTransportation.push_back({
+            interactionClassHandle,
+            transportationName,
+            count,
+        });
+      }
+    }
+    savedMember.successfulDirectedInteractionReceiptCountsByClassAndTransportation.reserve(
+        [&member] {
+          std::size_t count = 0U;
+          for (auto const& [interactionClassHandle, transportationCounts] :
+               member.successfulDirectedInteractionReceiptCountsByClassAndTransportation) {
+            static_cast<void>(interactionClassHandle);
+            count += transportationCounts.size();
+          }
+          return count;
+        }());
+    for (auto const& [interactionClassHandle, transportationCounts] :
+         member.successfulDirectedInteractionReceiptCountsByClassAndTransportation) {
+      for (auto const& [transportationName, count] : transportationCounts) {
+        savedMember.successfulDirectedInteractionReceiptCountsByClassAndTransportation.push_back({
+            interactionClassHandle,
+            transportationName,
+            count,
+        });
+      }
+    }
+    savedMember.interactionReceiptTelemetryPresent = true;
+    image.members.push_back(std::move(savedMember));
+  }
+
+  image.federateNamesById.reserve(federation.federateNamesById.size());
+  for (auto const& [federateId, federateName] : federation.federateNamesById) {
+    image.federateNamesById.emplace_back(federateId, federateName);
+  }
+  image.reservedObjectInstanceNames.reserve(
+      federation.reservedObjectInstanceNamesByFederate.size());
+  for (auto const& [objectInstanceName, federateId] :
+       federation.reservedObjectInstanceNamesByFederate) {
+    image.reservedObjectInstanceNames.push_back({
+        federateId,
+        objectInstanceName,
+    });
+  }
+  image.reservedObjectInstanceNamesPresent = true;
+
+  image.regions.reserve(federation.regions.size());
+  for (auto const& [regionHandle, region] : federation.regions) {
+    FederationStateImageRegion savedRegion;
+    savedRegion.handle = regionHandle;
+    savedRegion.ownerFederateId = region.ownerFederateId;
+    savedRegion.dimensionHandles.assign(
+        region.dimensionHandles.begin(),
+        region.dimensionHandles.end());
+    savedRegion.pendingRangeBounds.reserve(region.pendingRangeBounds.size());
+    for (auto const& [dimensionHandle, bounds] : region.pendingRangeBounds) {
+      savedRegion.pendingRangeBounds.push_back({
+          dimensionHandle,
+          static_cast<std::uint64_t>(bounds.lowerBound),
+          static_cast<std::uint64_t>(bounds.upperBound),
+      });
+    }
+    savedRegion.committedRangeBounds.reserve(region.committedRangeBounds.size());
+    for (auto const& [dimensionHandle, bounds] : region.committedRangeBounds) {
+      savedRegion.committedRangeBounds.push_back({
+          dimensionHandle,
+          static_cast<std::uint64_t>(bounds.lowerBound),
+          static_cast<std::uint64_t>(bounds.upperBound),
+      });
+    }
+    savedRegion.specificationCommitted = region.specificationCommitted;
+    savedRegion.inUse = region.inUse;
+    image.regions.push_back(std::move(savedRegion));
+  }
+  image.regionsPresent = true;
+
+  image.synchronizationPoints.reserve(federation.synchronizationPoints.size());
+  for (auto const& [label, point] : federation.synchronizationPoints) {
+    FederationStateImageSynchronizationPoint savedPoint;
+    savedPoint.label = label;
+    savedPoint.userSuppliedTag = std::string(
+        point.userSuppliedTag.begin(),
+        point.userSuppliedTag.end());
+    savedPoint.synchronizationSet.assign(
+        point.synchronizationSet.begin(),
+        point.synchronizationSet.end());
+    savedPoint.announcedFederates.assign(
+        point.announcedFederates.begin(),
+        point.announcedFederates.end());
+    savedPoint.achievedFederates.reserve(point.achievedFederates.size());
+    for (auto const& [federateId, succeeded] : point.achievedFederates) {
+      savedPoint.achievedFederates.emplace_back(federateId, succeeded);
+    }
+    image.synchronizationPoints.push_back(std::move(savedPoint));
+  }
+  image.synchronizationPointsPresent = true;
+
+  image.objectClassAttributeDeclarations.reserve(
+      federation.objectClassAttributeDeclarations.size());
+  for (auto const& [federateId, declarations] :
+       federation.objectClassAttributeDeclarations) {
+    FederationStateImageObjectClassAttributeDeclarations savedDeclarations;
+    savedDeclarations.federateId = federateId;
+    savedDeclarations.subscriptionGeneration = declarations.subscriptionGeneration;
+    savedDeclarations.classes.reserve(declarations.byObjectClass.size());
+    for (auto const& [objectClassHandle, perClass] : declarations.byObjectClass) {
+      FederationStateImageObjectClassAttributeClass savedClass;
+      savedClass.objectClassHandle = objectClassHandle;
+      savedClass.privilegeToDeleteExplicitlyUnpublished =
+          perClass.privilegeToDeleteExplicitlyUnpublished;
+      savedClass.explicitlyPublishedAttributeHandles.assign(
+          perClass.explicitlyPublishedAttributes.begin(),
+          perClass.explicitlyPublishedAttributes.end());
+      savedClass.subscribedAttributes.reserve(perClass.subscribedAttributes.size());
+      for (auto const& [attributeHandle, active] : perClass.subscribedAttributes) {
+        savedClass.subscribedAttributes.push_back({attributeHandle, active});
+      }
+      savedClass.subscribedUpdateRateDesignators.reserve(
+          perClass.subscribedUpdateRateDesignators.size());
+      for (auto const& [attributeHandle, designator] :
+           perClass.subscribedUpdateRateDesignators) {
+        savedClass.subscribedUpdateRateDesignators.push_back({
+            attributeHandle,
+            designator,
+        });
+      }
+      for (auto const& [attributeHandle, regions] :
+           perClass.regionalSubscribedAttributes) {
+        for (auto const& [regionHandle, active] : regions) {
+          savedClass.regionalSubscribedAttributes.push_back({
+              attributeHandle,
+              regionHandle,
+              active,
+          });
+        }
+      }
+      for (auto const& [attributeHandle, regions] :
+           perClass.regionalSubscribedUpdateRateDesignators) {
+        for (auto const& [regionHandle, designator] : regions) {
+          savedClass.regionalSubscribedUpdateRateDesignators.push_back({
+              attributeHandle,
+              regionHandle,
+              designator,
+          });
+        }
+      }
+      for (auto const& [attributeHandle, transportation] :
+           perClass.defaultTransportationTypes) {
+        savedClass.defaultTransportationTypes.push_back({
+            attributeHandle,
+            transportation,
+        });
+      }
+      for (auto const& [attributeHandle, order] : perClass.defaultOrderTypes) {
+        savedClass.defaultOrderTypes.push_back({
+            attributeHandle,
+            static_cast<std::uint32_t>(order),
+        });
+      }
+      savedDeclarations.classes.push_back(std::move(savedClass));
+    }
+    image.objectClassAttributeDeclarations.push_back(std::move(savedDeclarations));
+  }
+  image.objectClassAttributeDeclarationsPresent = true;
+
+  image.interactionDeclarations.reserve(federation.interactionDeclarations.size());
+  for (auto const& [federateId, declarations] : federation.interactionDeclarations) {
+    FederationStateImageInteractionDeclaration savedDeclarations;
+    savedDeclarations.federateId = federateId;
+    savedDeclarations.publishedInteractionClasses.assign(
+        declarations.publishedInteractionClasses.begin(),
+        declarations.publishedInteractionClasses.end());
+    savedDeclarations.subscribedInteractionClasses.reserve(
+        declarations.subscribedInteractionClasses.size());
+    for (auto const& [interactionClassHandle, active] :
+         declarations.subscribedInteractionClasses) {
+      savedDeclarations.subscribedInteractionClasses.push_back({
+          interactionClassHandle,
+          active,
+      });
+    }
+    for (auto const& [interactionClassHandle, regions] :
+         declarations.regionalSubscribedInteractionClasses) {
+      for (auto const& [regionHandle, active] : regions) {
+        savedDeclarations.regionalSubscribedInteractionClasses.push_back({
+            interactionClassHandle,
+            regionHandle,
+            active,
+        });
+      }
+    }
+    for (auto const& [objectClassHandle, interactionClassHandles] :
+         declarations.publishedObjectClassDirectedInteractions) {
+      for (auto const interactionClassHandle : interactionClassHandles) {
+        savedDeclarations.publishedObjectClassDirectedInteractions.push_back({
+            objectClassHandle,
+            interactionClassHandle,
+        });
+      }
+    }
+    for (auto const& [objectClassHandle, interactionClassHandles] :
+         declarations.subscribedObjectClassDirectedInteractions) {
+      for (auto const& [interactionClassHandle, active] : interactionClassHandles) {
+        savedDeclarations.subscribedObjectClassDirectedInteractions.push_back({
+            objectClassHandle,
+            interactionClassHandle,
+            active,
+        });
+      }
+    }
+    for (auto const& [interactionClassHandle, transportation] :
+         declarations.interactionTransportationTypes) {
+      savedDeclarations.interactionTransportationTypes.push_back({
+          interactionClassHandle,
+          transportation,
+      });
+    }
+    for (auto const& [interactionClassHandle, order] : declarations.interactionOrderTypes) {
+      savedDeclarations.interactionOrderTypes.push_back({
+          interactionClassHandle,
+          static_cast<std::uint32_t>(order),
+      });
+    }
+    for (auto const& [interactionClassHandle, transportation] :
+         declarations.pendingInteractionTransportationTypeChanges) {
+      savedDeclarations.pendingInteractionTransportationTypeChanges.push_back({
+          interactionClassHandle,
+          transportation,
+      });
+    }
+    image.interactionDeclarations.push_back(std::move(savedDeclarations));
+  }
+
+  image.tsoInteractionMessages.reserve(federation.tsoInteractionMessages.size());
+  for (auto const& [messageId, message] : federation.tsoInteractionMessages) {
+    FederationStateImageTsoInteractionMessage savedMessage;
+    savedMessage.messageId = messageId;
+    savedMessage.producingFederateId = message.producingFederateId;
+    savedMessage.sentInteractionClassHandle = message.sentInteractionClassHandle;
+    savedMessage.sentParameterHandles = message.sentParameterHandles;
+    savedMessage.parameters.reserve(message.parameters.size());
+    for (auto const& [parameterHandle, value] : message.parameters) {
+      savedMessage.parameters.push_back({
+          parameterHandle,
+          bytesFromVariableLengthData(value),
+      });
+    }
+    savedMessage.userSuppliedTag = bytesFromVariableLengthData(message.userSuppliedTag);
+    savedMessage.transportationName = message.transportationName;
+    savedMessage.sentRegionHandles.assign(
+        message.sentRegionHandles.begin(),
+        message.sentRegionHandles.end());
+    savedMessage.sentRegionSnapshots.reserve(message.sentRegionSnapshots.size());
+    for (auto const& [regionHandle, snapshot] : message.sentRegionSnapshots) {
+      FederationStateImageInteractionRegionSnapshot savedSnapshot;
+      savedSnapshot.regionHandle = regionHandle;
+      savedSnapshot.specificationCommitted = snapshot.specificationCommitted;
+      savedSnapshot.dimensionHandles.assign(
+          snapshot.dimensionHandles.begin(),
+          snapshot.dimensionHandles.end());
+      savedSnapshot.committedRangeBounds.reserve(snapshot.committedRangeBounds.size());
+      for (auto const& [dimensionHandle, bounds] : snapshot.committedRangeBounds) {
+        savedSnapshot.committedRangeBounds.push_back({
+            dimensionHandle,
+            static_cast<std::uint64_t>(bounds.lowerBound),
+            static_cast<std::uint64_t>(bounds.upperBound),
+        });
+      }
+      savedMessage.sentRegionSnapshots.push_back(std::move(savedSnapshot));
+    }
+    savedMessage.defaultRegionUsed = message.defaultRegionUsed;
+    savedMessage.timestampEncoding = encodedLogicalValue(message.timestamp);
+    savedMessage.sentOrderType = static_cast<std::uint32_t>(message.sentOrderType);
+    savedMessage.receivedOrderType = static_cast<std::uint32_t>(message.receivedOrderType);
+    image.tsoInteractionMessages.push_back(std::move(savedMessage));
+  }
+
+  image.tsoAttributeUpdateMessages.reserve(
+      federation.tsoAttributeUpdateMessages.size());
+  for (auto const& [messageId, message] : federation.tsoAttributeUpdateMessages) {
+    FederationStateImageTsoAttributeUpdateMessage savedMessage;
+    savedMessage.messageId = messageId;
+    savedMessage.producingFederateId = message.producingFederateId;
+    savedMessage.objectInstanceHandle = message.objectInstanceHandle;
+    savedMessage.attributes.reserve(message.attributes.size());
+    for (auto const& [attributeHandle, value] : message.attributes) {
+      savedMessage.attributes.push_back({
+          attributeHandle,
+          bytesFromVariableLengthData(value),
+      });
+    }
+    savedMessage.userSuppliedTag = bytesFromVariableLengthData(message.userSuppliedTag);
+    savedMessage.passelsByRecipient.reserve(message.passelsByRecipient.size());
+    for (auto const& [recipientFederateId, passels] : message.passelsByRecipient) {
+      FederationStateImageTsoAttributeUpdateRecipient savedRecipient;
+      savedRecipient.receivingFederateId = recipientFederateId;
+      savedRecipient.passels.reserve(passels.size());
+      for (auto const& passel : passels) {
+        FederationStateImageTsoAttributeUpdatePassel savedPassel;
+        savedPassel.transportationName = passel.transportationName;
+        savedPassel.sentAttributeHandles.assign(
+            passel.sentAttributeHandles.begin(),
+            passel.sentAttributeHandles.end());
+        savedPassel.sentRegionHandles.assign(
+            passel.sentRegionHandles.begin(),
+            passel.sentRegionHandles.end());
+        savedPassel.sentRegionSnapshots.reserve(passel.sentRegionSnapshots.size());
+        for (auto const& [regionHandle, snapshot] : passel.sentRegionSnapshots) {
+          FederationStateImageInteractionRegionSnapshot savedSnapshot;
+          savedSnapshot.regionHandle = regionHandle;
+          savedSnapshot.specificationCommitted = snapshot.specificationCommitted;
+          savedSnapshot.dimensionHandles.assign(
+              snapshot.dimensionHandles.begin(),
+              snapshot.dimensionHandles.end());
+          savedSnapshot.committedRangeBounds.reserve(snapshot.committedRangeBounds.size());
+          for (auto const& [dimensionHandle, bounds] : snapshot.committedRangeBounds) {
+            savedSnapshot.committedRangeBounds.push_back({
+                dimensionHandle,
+                static_cast<std::uint64_t>(bounds.lowerBound),
+                static_cast<std::uint64_t>(bounds.upperBound),
+            });
+          }
+          savedPassel.sentRegionSnapshots.push_back(std::move(savedSnapshot));
+        }
+        savedPassel.defaultRegionUsed = passel.defaultRegionUsed;
+        savedPassel.preferredOrderType =
+            static_cast<std::uint32_t>(passel.preferredOrderType);
+        savedRecipient.passels.push_back(std::move(savedPassel));
+      }
+      savedMessage.passelsByRecipient.push_back(std::move(savedRecipient));
+    }
+    savedMessage.sentRegionSnapshots.reserve(message.sentRegionSnapshots.size());
+    for (auto const& [regionHandle, snapshot] : message.sentRegionSnapshots) {
+      FederationStateImageInteractionRegionSnapshot savedSnapshot;
+      savedSnapshot.regionHandle = regionHandle;
+      savedSnapshot.specificationCommitted = snapshot.specificationCommitted;
+      savedSnapshot.dimensionHandles.assign(
+          snapshot.dimensionHandles.begin(),
+          snapshot.dimensionHandles.end());
+      savedSnapshot.committedRangeBounds.reserve(snapshot.committedRangeBounds.size());
+      for (auto const& [dimensionHandle, bounds] : snapshot.committedRangeBounds) {
+        savedSnapshot.committedRangeBounds.push_back({
+            dimensionHandle,
+            static_cast<std::uint64_t>(bounds.lowerBound),
+            static_cast<std::uint64_t>(bounds.upperBound),
+        });
+      }
+      savedMessage.sentRegionSnapshots.push_back(std::move(savedSnapshot));
+    }
+    savedMessage.timestampEncoding = encodedLogicalValue(message.timestamp);
+    image.tsoAttributeUpdateMessages.push_back(std::move(savedMessage));
+  }
+
+  image.tsoObjectDeletionMessages.reserve(
+      federation.tsoObjectDeletionMessages.size());
+  for (auto const& [messageId, message] : federation.tsoObjectDeletionMessages) {
+    FederationStateImageTsoObjectDeletionMessage savedMessage;
+    savedMessage.messageId = messageId;
+    savedMessage.producingFederateId = message.producingFederateId;
+    savedMessage.objectInstanceHandle = message.objectInstanceHandle;
+    savedMessage.userSuppliedTag = bytesFromVariableLengthData(message.userSuppliedTag);
+    savedMessage.recipients.reserve(message.recipients.size());
+    for (auto const& recipient : message.recipients) {
+      savedMessage.recipients.push_back({
+          recipient.receivingFederateId,
+          recipient.objectInstanceHandle,
+      });
+    }
+    savedMessage.timestampEncoding = encodedLogicalValue(message.timestamp);
+    auto const reconstitution = federation.tsoObjectDeletionReconstitutionRecords.find(
+        messageId);
+    if (reconstitution == federation.tsoObjectDeletionReconstitutionRecords.end()) {
+      throw std::logic_error(
+          "A timestamped object deletion has no invocation-time reconstitution record.");
+    }
+    auto const& invocationObject = reconstitution->second.objectInstanceAtInvocation;
+    FederationStateImageTsoObjectDeletionReconstitution savedReconstitution;
+    savedReconstitution.object.handle = invocationObject.handle;
+    savedReconstitution.object.name = invocationObject.name;
+    savedReconstitution.object.registeredObjectClassHandle =
+        invocationObject.registeredObjectClassHandle;
+    savedReconstitution.object.producingFederateId = invocationObject.producingFederateId;
+    savedReconstitution.object.deleteAccepted = invocationObject.deleteAccepted;
+    savedReconstitution.object.pendingOperationCount =
+        invocationObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+        invocationObject.pendingAttributeOwnershipAcquisitionRequests.size() +
+        invocationObject.pendingAttributeOwnershipAcquisitionCancellations.size() +
+        invocationObject.pendingAttributeOwnershipDivestitureIfWantedNotifications.size() +
+        invocationObject.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+        invocationObject.pendingConfirmDivestitureNotifications.size() +
+        invocationObject.pendingAttributeTransportationTypeChanges.size() +
+        invocationObject.pendingDiscoveryFederates.size() +
+        invocationObject.pendingRemovalFederates.size() +
+        invocationObject.connectionLossAutomaticRemovalFederates.size() +
+        invocationObject.deferredConnectionLossTsoRemovalFederates.size() +
+        invocationObject.pendingTimestampedRemovalFederates.size() +
+        invocationObject.ownershipAssumptionRecipientsByAttribute.size() +
+        invocationObject.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+        (invocationObject.pendingTimestampedDeletionMessageId.has_value() ? 1U : 0U);
+    std::set<std::uint64_t> invocationAttributeHandles;
+    for (auto const& [attributeHandle, owner] : invocationObject.attributeOwnersByHandle) {
+      static_cast<void>(owner);
+      invocationAttributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, transportation] :
+         invocationObject.attributeTransportationTypes) {
+      static_cast<void>(transportation);
+      invocationAttributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, order] : invocationObject.attributeOrderTypes) {
+      static_cast<void>(order);
+      invocationAttributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, regions] : invocationObject.updateRegionsByAttribute) {
+      static_cast<void>(regions);
+      invocationAttributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, value] : invocationObject.attributeValues) {
+      static_cast<void>(value);
+      invocationAttributeHandles.insert(attributeHandle);
+    }
+    savedReconstitution.object.attributes.reserve(invocationAttributeHandles.size());
+    for (auto const attributeHandle : invocationAttributeHandles) {
+      FederationStateImageObjectAttribute savedAttribute;
+      savedAttribute.handle = attributeHandle;
+      auto const owner = invocationObject.attributeOwnersByHandle.find(attributeHandle);
+      if (owner != invocationObject.attributeOwnersByHandle.end()) {
+        savedAttribute.ownerFederateId = owner->second;
+      }
+      auto const transportation = invocationObject.attributeTransportationTypes.find(
+          attributeHandle);
+      if (transportation != invocationObject.attributeTransportationTypes.end()) {
+        savedAttribute.transportationName = transportation->second;
+      }
+      auto const order = invocationObject.attributeOrderTypes.find(attributeHandle);
+      if (order != invocationObject.attributeOrderTypes.end()) {
+        savedAttribute.orderType = static_cast<std::uint32_t>(order->second);
+      }
+      auto const regions = invocationObject.updateRegionsByAttribute.find(attributeHandle);
+      if (regions != invocationObject.updateRegionsByAttribute.end()) {
+        savedAttribute.updateRegionHandles.assign(
+            regions->second.begin(), regions->second.end());
+      }
+      savedReconstitution.object.attributes.push_back(std::move(savedAttribute));
+    }
+    savedReconstitution.object.attributeValues.reserve(
+        invocationObject.attributeValues.size());
+    for (auto const& [attributeHandle, value] : invocationObject.attributeValues) {
+      savedReconstitution.object.attributeValues.push_back({
+          attributeHandle,
+          bytesFromVariableLengthData(value),
+      });
+    }
+    savedReconstitution.object.attributeValuesPresent = true;
+    savedReconstitution.knownObjectClassHandlesByFederate.reserve(
+        invocationObject.knownObjectClassHandlesByFederate.size());
+    for (auto const& [knownFederateId, knownObjectClassHandle] :
+         invocationObject.knownObjectClassHandlesByFederate) {
+      savedReconstitution.knownObjectClassHandlesByFederate.emplace_back(
+          knownFederateId,
+          knownObjectClassHandle);
+    }
+    savedMessage.reconstitution = std::move(savedReconstitution);
+    image.tsoObjectDeletionMessages.push_back(std::move(savedMessage));
+  }
+
+  image.tsoRequestRetractionRecords.reserve(
+      federation.tsoRequestRetractionRecords.size());
+  for (auto const& [messageId, record] : federation.tsoRequestRetractionRecords) {
+    FederationStateImageTsoRequestRetractionRecord savedRecord;
+    savedRecord.messageId = messageId;
+    savedRecord.producingFederateId = record.producingFederateId;
+    savedRecord.timestampEncoding = encodedLogicalValue(record.timestamp);
+    savedRecord.retractionApplied = record.retractionApplied;
+    savedRecord.terminal = record.terminal;
+    savedRecord.producerResigned = record.producerResigned;
+    savedRecord.deliveryRequiredAfterConnectionLoss =
+        record.deliveryRequiredAfterConnectionLoss;
+    savedRecord.recipientStates.reserve(record.recipientStates.size());
+    for (auto const& [receivingFederateId, state] : record.recipientStates) {
+      savedRecord.recipientStates.push_back({
+          receivingFederateId,
+          static_cast<std::uint32_t>(state),
+      });
+    }
+    image.tsoRequestRetractionRecords.push_back(std::move(savedRecord));
+  }
+
+  image.tsoDirectedInteractionMessages.reserve(
+      federation.tsoDirectedInteractionMessages.size());
+  for (auto const& [messageId, message] : federation.tsoDirectedInteractionMessages) {
+    FederationStateImageTsoDirectedInteractionMessage savedMessage;
+    savedMessage.messageId = messageId;
+    savedMessage.producingFederateId = message.producingFederateId;
+    savedMessage.objectInstanceHandle = message.objectInstanceHandle;
+    savedMessage.sentInteractionClassHandle = message.sentInteractionClassHandle;
+    savedMessage.sentParameterHandles = message.sentParameterHandles;
+    savedMessage.parameters.reserve(message.parameters.size());
+    for (auto const& [parameterHandle, value] : message.parameters) {
+      savedMessage.parameters.push_back({
+          parameterHandle,
+          bytesFromVariableLengthData(value),
+      });
+    }
+    savedMessage.userSuppliedTag = bytesFromVariableLengthData(message.userSuppliedTag);
+    savedMessage.transportationName = message.transportationName;
+    savedMessage.recipients.reserve(message.recipients.size());
+    for (auto const& recipient : message.recipients) {
+      FederationStateImageTsoDirectedInteractionRecipient savedRecipient;
+      savedRecipient.receivingFederateId = recipient.receivingFederateId;
+      savedRecipient.objectInstanceHandle = recipient.objectInstanceHandle;
+      savedRecipient.receivedInteractionClassHandle =
+          recipient.receivedInteractionClassHandle;
+      savedRecipient.receivedParameterHandles.assign(
+          recipient.receivedParameterHandles.begin(),
+          recipient.receivedParameterHandles.end());
+      savedMessage.recipients.push_back(std::move(savedRecipient));
+    }
+    savedMessage.timestampEncoding = encodedLogicalValue(message.timestamp);
+    savedMessage.sentOrderType = static_cast<std::uint32_t>(message.sentOrderType);
+    savedMessage.receivedOrderType = static_cast<std::uint32_t>(message.receivedOrderType);
+    image.tsoDirectedInteractionMessages.push_back(std::move(savedMessage));
+  }
+
+  auto const timeStates = federation.timeCoordinator.snapshot();
+  image.timeStates.reserve(timeStates.size());
+  image.tsoQueueEntries.reserve(
+      federation.tsoInteractionMessages.size() +
+      federation.tsoAttributeUpdateMessages.size() +
+      federation.tsoObjectDeletionMessages.size() +
+      federation.tsoDirectedInteractionMessages.size());
+  auto appendQueueEntries = [
+      &image](std::vector<TsoQueuedMessage> const& entries, std::uint32_t phase) {
+    for (auto const& entry : entries) {
+      image.tsoQueueEntries.push_back({
+          entry.messageId,
+          entry.recipientFederateId,
+          entry.sequence,
+          phase,
+          encodedLogicalValue(entry.timestamp),
+      });
+    }
+  };
+  for (auto const& registered : timeStates) {
+    auto const& state = registered.time;
+    FederationStateImageTimeState savedTime;
+    savedTime.federateId = registered.federateId;
+    savedTime.implementationName = state.implementationName;
+    savedTime.flags =
+        (state.active ? 1U : 0U) |
+        (state.timeRegulating ? 1U << 1U : 0U) |
+        (state.timeConstrained ? 1U << 2U : 0U) |
+        (state.asynchronousDeliveryEnabled ? 1U << 3U : 0U) |
+        (state.timeAdvancePending ? 1U << 4U : 0U) |
+        (state.timeRegulationPending ? 1U << 5U : 0U) |
+        (state.timeConstrainedPending ? 1U << 6U : 0U) |
+        (state.minimumTimestampIsExclusive ? 1U << 7U : 0U);
+    savedTime.pendingGeneration = state.pendingTimeAdvanceGeneration;
+    savedTime.advanceMode = static_cast<std::uint32_t>(state.advanceMode);
+    savedTime.currentTimeEncoding = encodedLogicalValue(state.currentTime);
+    savedTime.optimisticTimeEncoding = encodedLogicalValue(state.optimisticTime);
+    savedTime.requestedTimeEncoding = encodedLogicalValue(state.requestedTime);
+    savedTime.advanceRequestTimeEncoding = encodedLogicalValue(state.advanceRequestTime);
+    savedTime.lookaheadEncoding = encodedLogicalValue(state.lookahead);
+    savedTime.requestedLookaheadEncoding = encodedLogicalValue(state.requestedLookahead);
+    auto const tso = federation.timeCoordinator.tsoSnapshotFor(registered.federateId);
+    savedTime.queuedTsoCount = tso.queued.size();
+    savedTime.inTransitTsoCount = tso.inTransit.size();
+    savedTime.deliveredTsoCount = tso.deliveredSinceLastAdvance.size();
+    savedTime.pendingTimeRegulationGeneration =
+        state.pendingTimeRegulationGeneration;
+    savedTime.pendingTimeConstrainedGeneration =
+        state.pendingTimeConstrainedGeneration;
+    savedTime.nextGeneration = state.nextGeneration;
+    savedTime.pendingModifiedLookaheadEncoding =
+        encodedLogicalValue(state.pendingModifiedLookahead);
+    savedTime.applicationRequestLedgerPresent = true;
+    image.timeStates.push_back(std::move(savedTime));
+  }
+
+  // Every joined federate is a valid TSO recipient, including members that
+  // have not enabled a time-management role and therefore have no
+  // FederationStateImageTimeState record. Snapshot queue phases by member so
+  // save images retain the recipient identity for all accepted fanout.
+  for (auto const& [federateId, member] : federation.members) {
+    static_cast<void>(member);
+    auto const tso = federation.timeCoordinator.tsoSnapshotFor(federateId);
+    appendQueueEntries(tso.queued, 0U);
+    appendQueueEntries(tso.inTransit, 1U);
+    appendQueueEntries(tso.deliveredSinceLastAdvance, 2U);
+  }
+
+  image.objects.reserve(federation.objectInstances.size());
+  for (auto const& [objectHandle, object] : federation.objectInstances) {
+    FederationStateImageObject savedObject;
+    savedObject.handle = objectHandle;
+    savedObject.name = object.name;
+    savedObject.registeredObjectClassHandle = object.registeredObjectClassHandle;
+    savedObject.producingFederateId = object.producingFederateId;
+    savedObject.deleteAccepted = object.deleteAccepted;
+    savedObject.pendingOperationCount =
+        object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+        object.pendingAttributeOwnershipAcquisitionRequests.size() +
+        object.pendingAttributeOwnershipAcquisitionCancellations.size() +
+        object.pendingAttributeOwnershipDivestitureIfWantedNotifications.size() +
+        object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+        object.pendingConfirmDivestitureNotifications.size() +
+        object.pendingAttributeTransportationTypeChanges.size() +
+        object.pendingAttributeValueUpdateRequests.size() +
+        object.pendingAttributeValueUpdateClassRequests.size() +
+        object.pendingAttributeValueUpdateRegionalRequests.size() +
+        std::count_if(
+            federation.pendingAttributeOwnershipQueries.begin(),
+            federation.pendingAttributeOwnershipQueries.end(),
+            [&objectHandle](auto const& entry) {
+              return entry.second.objectInstanceHandle == objectHandle;
+            }) +
+        object.pendingDiscoveryFederates.size() +
+        object.pendingRemovalFederates.size() +
+        object.connectionLossAutomaticRemovalFederates.size() +
+        object.deferredConnectionLossTsoRemovalFederates.size() +
+        object.pendingTimestampedRemovalFederates.size() +
+        object.ownershipAssumptionRecipientsByAttribute.size() +
+        object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+        object.pendingAttributeOwnershipAssumptionCallbacks.size() +
+        (object.pendingTimestampedDeletionMessageId.has_value() ? 1U : 0U);
+
+    std::set<std::uint64_t> attributeHandles;
+    for (auto const& [attributeHandle, owner] : object.attributeOwnersByHandle) {
+      static_cast<void>(owner);
+      attributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, transportation] : object.attributeTransportationTypes) {
+      static_cast<void>(transportation);
+      attributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, order] : object.attributeOrderTypes) {
+      static_cast<void>(order);
+      attributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, regions] : object.updateRegionsByAttribute) {
+      static_cast<void>(regions);
+      attributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, value] : object.attributeValues) {
+      static_cast<void>(value);
+      attributeHandles.insert(attributeHandle);
+    }
+    savedObject.attributes.reserve(attributeHandles.size());
+    for (auto const attributeHandle : attributeHandles) {
+      FederationStateImageObjectAttribute savedAttribute;
+      savedAttribute.handle = attributeHandle;
+      auto const owner = object.attributeOwnersByHandle.find(attributeHandle);
+      if (owner != object.attributeOwnersByHandle.end()) {
+        savedAttribute.ownerFederateId = owner->second;
+      }
+      auto const transportation = object.attributeTransportationTypes.find(attributeHandle);
+      if (transportation != object.attributeTransportationTypes.end()) {
+        savedAttribute.transportationName = transportation->second;
+      }
+      auto const order = object.attributeOrderTypes.find(attributeHandle);
+      if (order != object.attributeOrderTypes.end()) {
+        savedAttribute.orderType = static_cast<std::uint32_t>(order->second);
+      }
+      auto const regions = object.updateRegionsByAttribute.find(attributeHandle);
+      if (regions != object.updateRegionsByAttribute.end()) {
+        savedAttribute.updateRegionHandles.assign(
+            regions->second.begin(), regions->second.end());
+      }
+      savedObject.attributes.push_back(std::move(savedAttribute));
+    }
+    savedObject.attributeValues.reserve(object.attributeValues.size());
+    for (auto const& [attributeHandle, value] : object.attributeValues) {
+      savedObject.attributeValues.push_back({
+          attributeHandle,
+          bytesFromVariableLengthData(value),
+      });
+    }
+    savedObject.attributeValuesPresent = true;
+    savedObject.pendingAttributeValueUpdateRequestsPresent = true;
+    savedObject.pendingAttributeValueUpdateRequests.reserve(
+        object.pendingAttributeValueUpdateRequests.size());
+    for (auto const& [requestId, request] :
+         object.pendingAttributeValueUpdateRequests) {
+      savedObject.pendingAttributeValueUpdateRequests.push_back({
+          requestId,
+          request.requestingFederateId,
+          request.providingFederateId,
+          std::vector<std::uint64_t>(
+              request.requestedAttributeHandles.begin(),
+              request.requestedAttributeHandles.end()),
+          std::string(request.userSuppliedTag.begin(),
+                      request.userSuppliedTag.end()),
+      });
+    }
+    savedObject.pendingAttributeValueUpdateClassRequestsPresent = true;
+    savedObject.pendingAttributeValueUpdateClassRequests.reserve(
+        object.pendingAttributeValueUpdateClassRequests.size());
+    for (auto const& [requestId, request] :
+         object.pendingAttributeValueUpdateClassRequests) {
+      savedObject.pendingAttributeValueUpdateClassRequests.push_back({
+          requestId,
+          request.requestingFederateId,
+          request.providingFederateId,
+          request.requestedObjectClassHandle,
+          std::vector<std::uint64_t>(
+              request.requestedAttributeHandles.begin(),
+              request.requestedAttributeHandles.end()),
+          std::string(request.userSuppliedTag.begin(),
+                      request.userSuppliedTag.end()),
+      });
+    }
+    savedObject.pendingAttributeValueUpdateRegionalRequestsPresent = true;
+    savedObject.pendingAttributeValueUpdateRegionalRequests.reserve(
+        object.pendingAttributeValueUpdateRegionalRequests.size());
+    for (auto const& [requestId, request] :
+         object.pendingAttributeValueUpdateRegionalRequests) {
+      FederationStateImagePendingAttributeValueUpdateRegional savedRequest;
+      savedRequest.requestId = requestId;
+      savedRequest.requestingFederateId = request.requestingFederateId;
+      savedRequest.providingFederateId = request.providingFederateId;
+      savedRequest.requestedObjectClassHandle = request.requestedObjectClassHandle;
+      savedRequest.requestedAttributeHandles.assign(
+          request.requestedAttributeHandles.begin(),
+          request.requestedAttributeHandles.end());
+      for (auto const& [attributeHandle, regionHandles] :
+           request.requestRegionsByAttribute) {
+        savedRequest.requestRegionsByAttribute.push_back({
+            attributeHandle,
+            std::vector<std::uint64_t>(
+                regionHandles.begin(), regionHandles.end()),
+        });
+      }
+      savedRequest.userSuppliedTag.assign(
+          request.userSuppliedTag.begin(), request.userSuppliedTag.end());
+      savedObject.pendingAttributeValueUpdateRegionalRequests.push_back(
+          std::move(savedRequest));
+    }
+    savedObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.reserve(
+        object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size());
+    for (auto const& [requestId, request] :
+         object.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+      savedObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.push_back({
+          requestId,
+          request.requestingFederateId,
+          request.requestSequence,
+          std::vector<std::uint64_t>(
+              request.desiredAttributeHandles.begin(),
+              request.desiredAttributeHandles.end()),
+          std::string(request.userSuppliedTag.begin(), request.userSuppliedTag.end()),
+      });
+    }
+    savedObject.pendingAttributeOwnershipAcquisitionRequests.reserve(
+        object.pendingAttributeOwnershipAcquisitionRequests.size());
+    for (auto const& [requestId, request] :
+         object.pendingAttributeOwnershipAcquisitionRequests) {
+      FederationStateImagePendingAttributeOwnershipAcquisition savedRequest;
+      savedRequest.requestId = requestId;
+      savedRequest.requestingFederateId = request.requestingFederateId;
+      savedRequest.requestSequence = request.requestSequence;
+      savedRequest.desiredAttributeHandles.assign(
+          request.desiredAttributeHandles.begin(),
+          request.desiredAttributeHandles.end());
+      savedRequest.notificationQueuedAttributeHandles.assign(
+          request.notificationQueuedAttributeHandles.begin(),
+          request.notificationQueuedAttributeHandles.end());
+      savedRequest.unavailableQueuedAttributeHandles.assign(
+          request.unavailableQueuedAttributeHandles.begin(),
+          request.unavailableQueuedAttributeHandles.end());
+      savedRequest.releaseCallbacksQueuedByOwningFederate.reserve(
+          request.releaseCallbacksQueuedByOwningFederate.size());
+      for (auto const& [ownerFederateId, attributes] :
+           request.releaseCallbacksQueuedByOwningFederate) {
+        savedRequest.releaseCallbacksQueuedByOwningFederate.emplace_back(
+            ownerFederateId,
+            std::vector<std::uint64_t>(attributes.begin(), attributes.end()));
+      }
+      savedRequest.userSuppliedTag =
+          std::string(request.userSuppliedTag.begin(), request.userSuppliedTag.end());
+      savedObject.pendingAttributeOwnershipAcquisitionRequests.push_back(
+          std::move(savedRequest));
+    }
+    savedObject.pendingAttributeOwnershipAcquisitionCancellations.reserve(
+        object.pendingAttributeOwnershipAcquisitionCancellations.size());
+    for (auto const& [cancellationId, cancellation] :
+         object.pendingAttributeOwnershipAcquisitionCancellations) {
+      savedObject.pendingAttributeOwnershipAcquisitionCancellations.push_back({
+          cancellationId,
+          cancellation.requestingFederateId,
+          std::vector<std::uint64_t>(
+              cancellation.attributeHandles.begin(),
+              cancellation.attributeHandles.end()),
+      });
+    }
+    savedObject.pendingAttributeOwnershipDivestitureIfWantedNotifications.reserve(
+        object.pendingAttributeOwnershipDivestitureIfWantedNotifications.size());
+    for (auto const& [notificationId, notification] :
+         object.pendingAttributeOwnershipDivestitureIfWantedNotifications) {
+      savedObject.pendingAttributeOwnershipDivestitureIfWantedNotifications.push_back({
+          notificationId,
+          notification.receivingFederateId,
+          std::vector<std::uint64_t>(
+              notification.attributeHandles.begin(),
+              notification.attributeHandles.end()),
+          std::string(
+              notification.userSuppliedTag.begin(),
+              notification.userSuppliedTag.end()),
+      });
+    }
+    savedObject.pendingConfirmDivestitureNotifications.reserve(
+        object.pendingConfirmDivestitureNotifications.size());
+    for (auto const& [notificationId, notification] :
+         object.pendingConfirmDivestitureNotifications) {
+      savedObject.pendingConfirmDivestitureNotifications.push_back({
+          notificationId,
+          notification.receivingFederateId,
+          std::vector<std::uint64_t>(
+              notification.attributeHandles.begin(),
+              notification.attributeHandles.end()),
+          std::string(
+              notification.userSuppliedTag.begin(),
+              notification.userSuppliedTag.end()),
+      });
+    }
+    savedObject.pendingAttributeTransportationTypeChanges.reserve(
+        object.pendingAttributeTransportationTypeChanges.size());
+    for (auto const& [requestId, request] :
+         object.pendingAttributeTransportationTypeChanges) {
+      savedObject.pendingAttributeTransportationTypeChanges.push_back({
+          requestId,
+          request.requestingFederateId,
+          std::vector<std::uint64_t>(
+              request.attributeHandles.begin(),
+              request.attributeHandles.end()),
+          request.transportationName,
+      });
+    }
+    savedObject.pendingNegotiatedAttributeOwnershipDivestitures.reserve(
+        object.pendingNegotiatedAttributeOwnershipDivestitures.size());
+    for (auto const& [attributeHandle, divestiture] :
+         object.pendingNegotiatedAttributeOwnershipDivestitures) {
+      savedObject.pendingNegotiatedAttributeOwnershipDivestitures.push_back({
+          attributeHandle,
+          divestiture.divestingFederateId,
+          divestiture.acquiringFederateId,
+          divestiture.acquisitionRequestId,
+          divestiture.acquiringFederateIsIfAvailable,
+          divestiture.confirmationQueued,
+          divestiture.confirmationDelivered,
+          std::string(divestiture.userSuppliedTag.begin(),
+                      divestiture.userSuppliedTag.end()),
+      });
+    }
+    savedObject.ownershipAssumptionRecipientsByAttribute.reserve(
+        object.ownershipAssumptionRecipientsByAttribute.size());
+    for (auto const& [attributeHandle, recipients] :
+         object.ownershipAssumptionRecipientsByAttribute) {
+      savedObject.ownershipAssumptionRecipientsByAttribute.push_back({
+          attributeHandle,
+          std::vector<std::uint64_t>(recipients.begin(), recipients.end()),
+      });
+    }
+    savedObject.ownershipAssumptionUserSuppliedTagsByAttribute.reserve(
+        object.ownershipAssumptionUserSuppliedTagsByAttribute.size());
+    for (auto const& [attributeHandle, tag] :
+         object.ownershipAssumptionUserSuppliedTagsByAttribute) {
+      savedObject.ownershipAssumptionUserSuppliedTagsByAttribute.push_back({
+          attributeHandle,
+          std::string(tag.begin(), tag.end()),
+      });
+    }
+    savedObject.knownObjectClassHandlesByFederate.reserve(
+        object.knownObjectClassHandlesByFederate.size());
+    for (auto const& [federateId, objectClassHandle] :
+         object.knownObjectClassHandlesByFederate) {
+      savedObject.knownObjectClassHandlesByFederate.push_back({
+          federateId,
+          objectClassHandle,
+      });
+    }
+    savedObject.pendingDiscoveryFederateIds.assign(
+        object.pendingDiscoveryFederates.begin(),
+        object.pendingDiscoveryFederates.end());
+    savedObject.pendingRemovalFederateIds.assign(
+        object.pendingRemovalFederates.begin(),
+        object.pendingRemovalFederates.end());
+    savedObject.connectionLossAutomaticRemovalFederateIds.assign(
+        object.connectionLossAutomaticRemovalFederates.begin(),
+        object.connectionLossAutomaticRemovalFederates.end());
+    savedObject.deferredConnectionLossTsoRemovalFederateIds.assign(
+        object.deferredConnectionLossTsoRemovalFederates.begin(),
+        object.deferredConnectionLossTsoRemovalFederates.end());
+    savedObject.pendingTimestampedRemovalFederateIds.assign(
+        object.pendingTimestampedRemovalFederates.begin(),
+        object.pendingTimestampedRemovalFederates.end());
+    savedObject.pendingTimestampedDeletionMessageId =
+        object.pendingTimestampedDeletionMessageId;
+    image.objects.push_back(std::move(savedObject));
+  }
+  image.pendingAttributeOwnershipAssumptionsPresent = true;
+  for (auto const& [objectInstanceHandle, object] : federation.objectInstances) {
+    for (auto const& callback : object.pendingAttributeOwnershipAssumptionCallbacks) {
+      image.pendingAttributeOwnershipAssumptions.push_back({
+          objectInstanceHandle,
+          callback.receivingFederateId,
+          std::vector<std::uint64_t>(
+              callback.attributeHandles.begin(),
+              callback.attributeHandles.end()),
+          std::string(callback.userSuppliedTag.begin(), callback.userSuppliedTag.end()),
+      });
+    }
+  }
+  image.pendingAttributeOwnershipQueriesPresent = true;
+  image.pendingAttributeOwnershipQueries.reserve(
+      federation.pendingAttributeOwnershipQueries.size());
+  for (auto const& [requestId, request] :
+       federation.pendingAttributeOwnershipQueries) {
+    image.pendingAttributeOwnershipQueries.push_back({
+        requestId,
+        request.requestingFederateId,
+        request.objectInstanceHandle,
+        static_cast<std::uint32_t>(request.reportKind),
+        request.owningFederateId,
+        std::vector<std::uint64_t>(
+            request.requestedAttributeHandles.begin(),
+            request.requestedAttributeHandles.end()),
+    });
+  }
+  return image;
+}
+
+void EmbeddedFederationRegistry::restoreControlAndTimeFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  if (image.federationName.empty()) {
+    // The federation name is checked by restore admission. Keep this branch
+    // intentionally narrow so this helper cannot be used with an unbound
+    // image by a future caller.
+    throw std::logic_error("The saved federation control image has no identity.");
+  }
+  if (image.members.size() != liveFederation.members.size()) {
+    throw std::logic_error(
+        "The saved federation control image has a different member count.");
+  }
+
+  auto decodeResignAction = [](std::uint32_t value) {
+    if (value > static_cast<std::uint32_t>(rti1516_2025::NO_ACTION)) {
+      throw std::logic_error(
+          "The saved federation control image has an invalid resign action.");
+    }
+    return static_cast<rti1516_2025::ResignAction>(value);
+  };
+  auto applySwitches = [](std::uint32_t switches,
+                          FederateMembership& member) {
+    member.objectClassRelevanceAdvisorySwitch = (switches & (1U << 0U)) != 0U;
+    member.attributeScopeAdvisorySwitch = (switches & (1U << 1U)) != 0U;
+    member.attributeRelevanceAdvisorySwitch = (switches & (1U << 2U)) != 0U;
+    member.interactionRelevanceAdvisorySwitch = (switches & (1U << 3U)) != 0U;
+    member.conveyRegionDesignatorSetsSwitch = (switches & (1U << 4U)) != 0U;
+    member.serviceReportingSwitch = (switches & (1U << 5U)) != 0U;
+    member.exceptionReportingSwitch = (switches & (1U << 6U)) != 0U;
+    member.sendServiceReportsToFileSwitch = (switches & (1U << 7U)) != 0U;
+  };
+
+  federation.normalizationSeed = image.normalizationSeed;
+  federation.autoProvideSwitch = (image.federationSwitches & (1U << 0U)) != 0U;
+  federation.advisoriesUseKnownClassSwitch =
+      (image.federationSwitches & (1U << 1U)) != 0U;
+  federation.nonRegulatedGrantSwitch =
+      (image.federationSwitches & (1U << 2U)) != 0U;
+  federation.delaySubscriptionEvaluationSwitch =
+      (image.federationSwitches & (1U << 3U)) != 0U;
+  federation.allowRelaxedDDMSwitch =
+      (image.federationSwitches & (1U << 4U)) != 0U;
+
+  for (auto const& savedMember : image.members) {
+    auto member = federation.members.find(savedMember.id);
+    auto const liveMember = liveFederation.members.find(savedMember.id);
+    if (member == federation.members.end() || liveMember == liveFederation.members.end() ||
+        member->second.name != savedMember.name ||
+        member->second.type != savedMember.type) {
+      throw std::logic_error(
+          "The saved federation control image has no matching live member.");
+    }
+    applySwitches(savedMember.switches, member->second);
+    member->second.automaticResignAction =
+        decodeResignAction(savedMember.automaticResignAction);
+    member->second.momReportPeriodSeconds = savedMember.momReportPeriodSeconds;
+    member->second.nextMomReportAt.reset();
+    member->second.nextMomServiceReportSerialNumber =
+        savedMember.nextMomServiceReportSerialNumber;
+  }
+
+  federation.federateNamesById.clear();
+  std::uint64_t previousFederateId = 0U;
+  for (auto const& [federateId, federateName] : image.federateNamesById) {
+    if (federateId == 0U || federateName.empty() || federateId <= previousFederateId) {
+      throw std::logic_error(
+          "The saved federation control image has an invalid federate-name index.");
+    }
+    federation.federateNamesById.emplace(federateId, federateName);
+    previousFederateId = federateId;
+  }
+
+  federation.nextRegionHandle = image.nextRegionHandle;
+  federation.nextSubscriptionGeneration = image.nextSubscriptionGeneration;
+  federation.nextObjectInstanceHandle = image.nextObjectInstanceHandle;
+  federation.nextAttributeOwnershipAcquisitionIfAvailableRequestId =
+      image.nextAttributeOwnershipAcquisitionIfAvailableRequestId;
+  federation.nextAttributeOwnershipAcquisitionRequestId =
+      image.nextAttributeOwnershipAcquisitionRequestId;
+  federation.nextAttributeOwnershipAcquisitionRequestSequence =
+      image.nextAttributeOwnershipAcquisitionRequestSequence;
+  federation.nextAttributeOwnershipAcquisitionCancellationId =
+      image.nextAttributeOwnershipAcquisitionCancellationId;
+  federation.nextAttributeOwnershipDivestitureIfWantedNotificationId =
+      image.nextAttributeOwnershipDivestitureIfWantedNotificationId;
+  federation.nextConfirmDivestitureNotificationId =
+      image.nextConfirmDivestitureNotificationId;
+  federation.nextAttributeTransportationTypeChangeRequestId =
+      image.nextAttributeTransportationTypeChangeRequestId;
+  federation.nextAttributeValueUpdateRequestId =
+      image.nextAttributeValueUpdateRequestId;
+  federation.nextAttributeOwnershipQueryRequestId =
+      image.nextAttributeOwnershipQueryRequestId;
+  federation.nextTimeAdvanceGrantDispatchIdentity =
+      image.nextTimeAdvanceGrantDispatchIdentity;
+
+  auto const liveTimeStates = liveFederation.timeCoordinator.snapshot();
+  if (liveTimeStates.size() != image.timeStates.size()) {
+    throw std::logic_error(
+        "The saved federation control image has a different temporal member set.");
+  }
+  for (auto const& savedTime : image.timeStates) {
+    auto const state = federation.timeCoordinator.timeStateFor(savedTime.federateId);
+    if (!state || savedTime.implementationName != image.logicalTimeImplementationName) {
+      throw std::logic_error(
+          "The saved federation control image has no matching live temporal state.");
+    }
+    if (savedTime.advanceMode >
+        static_cast<std::uint32_t>(FederateTimeAdvanceMode::flush_queue_request)) {
+      throw std::logic_error(
+          "The saved federation control image has an invalid advance mode.");
+    }
+    FederateTimeSnapshot restoredTime;
+    restoredTime.implementationName = savedTime.implementationName;
+    restoredTime.active = (savedTime.flags & (1U << 0U)) != 0U;
+    restoredTime.timeRegulating = (savedTime.flags & (1U << 1U)) != 0U;
+    restoredTime.timeConstrained = (savedTime.flags & (1U << 2U)) != 0U;
+    restoredTime.asynchronousDeliveryEnabled = (savedTime.flags & (1U << 3U)) != 0U;
+    restoredTime.timeAdvancePending = (savedTime.flags & (1U << 4U)) != 0U;
+    restoredTime.pendingTimeAdvanceGeneration = savedTime.pendingGeneration;
+    restoredTime.advanceMode = static_cast<FederateTimeAdvanceMode>(savedTime.advanceMode);
+    restoredTime.timeRegulationPending = (savedTime.flags & (1U << 5U)) != 0U;
+    restoredTime.timeConstrainedPending = (savedTime.flags & (1U << 6U)) != 0U;
+    restoredTime.pendingTimeRegulationGeneration =
+        savedTime.pendingTimeRegulationGeneration;
+    restoredTime.pendingTimeConstrainedGeneration =
+        savedTime.pendingTimeConstrainedGeneration;
+    restoredTime.nextGeneration = savedTime.nextGeneration;
+    restoredTime.minimumTimestampIsExclusive =
+        (savedTime.flags & (1U << 7U)) != 0U;
+    restoredTime.currentTime = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedTime.currentTimeEncoding);
+    restoredTime.optimisticTime = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedTime.optimisticTimeEncoding);
+    restoredTime.requestedTime = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedTime.requestedTimeEncoding);
+    restoredTime.advanceRequestTime = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedTime.advanceRequestTimeEncoding);
+    restoredTime.lookahead = decodeLogicalTimeIntervalEncoding(
+        image.logicalTimeImplementationName,
+        savedTime.lookaheadEncoding);
+    restoredTime.requestedLookahead = decodeLogicalTimeIntervalEncoding(
+        image.logicalTimeImplementationName,
+        savedTime.requestedLookaheadEncoding);
+    restoredTime.pendingModifiedLookahead = decodeLogicalTimeIntervalEncoding(
+        image.logicalTimeImplementationName,
+        savedTime.pendingModifiedLookaheadEncoding);
+    state->restoreFromSnapshot(restoredTime);
+  }
+}
+
+void EmbeddedFederationRegistry::restoreMemberInteractionReceiptTelemetryFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  for (auto const& savedMember : image.members) {
+    auto member = federation.members.find(savedMember.id);
+    if (member == federation.members.end() ||
+        !liveFederation.members.contains(savedMember.id)) {
+      throw std::logic_error(
+          "The saved member interaction-receipt telemetry has no live joined federate.");
+    }
+
+    bool const hasTypedTelemetry = savedMember.interactionReceiptTelemetryPresent ||
+        savedMember.successfulInteractionsReceivedCount != 0U ||
+        savedMember.successfulDirectedInteractionsReceivedCount != 0U ||
+        !savedMember.successfulInteractionReceiptCountsByClassAndTransportation.empty() ||
+        !savedMember.successfulDirectedInteractionReceiptCountsByClassAndTransportation.empty();
+    if (!hasTypedTelemetry) {
+      continue;
+    }
+    if (savedMember.successfulDirectedInteractionsReceivedCount >
+        savedMember.successfulInteractionsReceivedCount) {
+      throw std::logic_error(
+          "The saved directed interaction-receipt count exceeds the total count.");
+    }
+
+    std::map<std::uint64_t, std::map<std::string, std::uint64_t>> receiptCounts;
+    for (auto const& savedCount :
+         savedMember.successfulInteractionReceiptCountsByClassAndTransportation) {
+      if (savedCount.interactionClassHandle == 0U || savedCount.count == 0U ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(), savedCount.transportationName)) {
+        throw std::logic_error(
+            "The saved interaction-receipt telemetry has an invalid class or transportation.");
+      }
+      auto& count = receiptCounts[savedCount.interactionClassHandle][
+          savedCount.transportationName];
+      if (count != 0U) {
+        throw std::logic_error(
+            "The saved interaction-receipt telemetry has duplicate class/transport buckets.");
+      }
+      count = savedCount.count;
+    }
+
+    std::map<std::uint64_t, std::map<std::string, std::uint64_t>> directedCounts;
+    for (auto const& savedCount :
+         savedMember.successfulDirectedInteractionReceiptCountsByClassAndTransportation) {
+      if (savedCount.interactionClassHandle == 0U || savedCount.count == 0U ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(), savedCount.transportationName)) {
+        throw std::logic_error(
+            "The saved directed interaction-receipt telemetry has an invalid class or transportation.");
+      }
+      auto const totalClass = receiptCounts.find(savedCount.interactionClassHandle);
+      auto const total = totalClass == receiptCounts.end()
+          ? 0U
+          : totalClass->second.contains(savedCount.transportationName)
+          ? totalClass->second.at(savedCount.transportationName)
+          : 0U;
+      if (total == 0U || savedCount.count > total) {
+        throw std::logic_error(
+            "The saved directed interaction-receipt bucket is not a total-receipt subset.");
+      }
+      auto& count = directedCounts[savedCount.interactionClassHandle][
+          savedCount.transportationName];
+      if (count != 0U) {
+        throw std::logic_error(
+            "The saved directed interaction-receipt telemetry has duplicate buckets.");
+      }
+      count = savedCount.count;
+    }
+
+    member->second.successfulInteractionsReceivedCount =
+        savedMember.successfulInteractionsReceivedCount;
+    member->second.successfulDirectedInteractionsReceivedCount =
+        savedMember.successfulDirectedInteractionsReceivedCount;
+    member->second.successfulInteractionReceiptCountsByClassAndTransportation =
+        std::move(receiptCounts);
+    member->second.successfulDirectedInteractionReceiptCountsByClassAndTransportation =
+        std::move(directedCounts);
+  }
+}
+
+void EmbeddedFederationRegistry::restoreObjectInstanceNameReservationsFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  if (!image.reservedObjectInstanceNamesPresent) {
+    return;
+  }
+
+  federation.reservedObjectInstanceNamesByFederate.clear();
+  for (auto const& reservation : image.reservedObjectInstanceNames) {
+    if (reservation.federateId == 0U || reservation.objectInstanceName.empty() ||
+        !federation.members.contains(reservation.federateId) ||
+        !liveFederation.members.contains(reservation.federateId)) {
+      throw std::logic_error(
+          "The saved object-instance-name reservation has no live joined federate.");
+    }
+    if (federation.objectInstanceHandlesByName.contains(
+            reservation.objectInstanceName)) {
+      throw std::logic_error(
+          "The saved object-instance-name reservation conflicts with a registered object.");
+    }
+    auto const [position, inserted] =
+        federation.reservedObjectInstanceNamesByFederate.emplace(
+            reservation.objectInstanceName,
+            reservation.federateId);
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved object-instance-name reservations contain a duplicate name.");
+    }
+  }
+}
+
+void EmbeddedFederationRegistry::restoreRegionsFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  if (!image.regionsPresent) {
+    return;
+  }
+  if (image.regions.empty()) {
+    federation.regions.clear();
+    return;
+  }
+  if (!federation.definition.catalog || !federation.dimensionHandles) {
+    throw std::logic_error(
+        "The saved regions cannot be resolved against the restored DDM catalog.");
+  }
+
+  std::map<std::uint64_t, Federation::Region> restored;
+  auto const maximumRangeBound = static_cast<std::uint64_t>(
+      std::numeric_limits<unsigned long>::max());
+  for (auto const& savedRegion : image.regions) {
+    if (savedRegion.handle == 0U || savedRegion.ownerFederateId == 0U ||
+        !federation.members.contains(savedRegion.ownerFederateId) ||
+        !liveFederation.members.contains(savedRegion.ownerFederateId)) {
+      throw std::logic_error(
+          "The saved region has no live joined owner.");
+    }
+
+    Federation::Region region;
+    region.ownerFederateId = savedRegion.ownerFederateId;
+    for (auto const dimensionHandle : savedRegion.dimensionHandles) {
+      auto const dimensionName = federation.dimensionHandles->nameFor(dimensionHandle);
+      if (!dimensionName ||
+          federation.definition.catalog->dimension(*dimensionName) == nullptr ||
+          !region.dimensionHandles.insert(dimensionHandle).second) {
+        throw std::logic_error(
+            "The saved region references an unknown or duplicate dimension.");
+      }
+    }
+
+    auto restoreRanges = [&](std::vector<FederationStateImageRegionRange> const& ranges,
+                             std::map<std::uint64_t, RegionRangeBounds>& target,
+                             char const* field) {
+      for (auto const& savedRange : ranges) {
+        if (savedRange.dimensionHandle == 0U ||
+            !region.dimensionHandles.contains(savedRange.dimensionHandle) ||
+            savedRange.lowerBound >= savedRange.upperBound ||
+            savedRange.upperBound > maximumRangeBound) {
+          throw std::logic_error(std::string{"The saved region has an invalid "} + field +
+                                 ".");
+        }
+        auto const dimensionName = federation.dimensionHandles->nameFor(
+            savedRange.dimensionHandle);
+        auto const* dimension = dimensionName
+            ? federation.definition.catalog->dimension(*dimensionName)
+            : nullptr;
+        if (dimension == nullptr ||
+            savedRange.upperBound > static_cast<std::uint64_t>(dimension->upperBound)) {
+          throw std::logic_error(std::string{"The saved region has an out-of-range "} +
+                                 field + ".");
+        }
+        auto const [position, inserted] = target.emplace(
+            savedRange.dimensionHandle,
+            RegionRangeBounds{
+                static_cast<unsigned long>(savedRange.lowerBound),
+                static_cast<unsigned long>(savedRange.upperBound)});
+        static_cast<void>(position);
+        if (!inserted) {
+          throw std::logic_error(std::string{"The saved region has duplicate "} + field +
+                                 ".");
+        }
+      }
+    };
+    restoreRanges(
+        savedRegion.pendingRangeBounds,
+        region.pendingRangeBounds,
+        "pending range");
+    restoreRanges(
+        savedRegion.committedRangeBounds,
+        region.committedRangeBounds,
+        "committed range");
+    if (savedRegion.specificationCommitted &&
+        region.committedRangeBounds.size() != region.dimensionHandles.size()) {
+      throw std::logic_error(
+          "The saved committed region has incomplete range bounds.");
+    }
+    region.specificationCommitted = savedRegion.specificationCommitted;
+    region.inUse = savedRegion.inUse;
+
+    auto const [position, inserted] = restored.emplace(savedRegion.handle, std::move(region));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error("The saved regions contain a duplicate handle.");
+    }
+  }
+  federation.regions = std::move(restored);
+}
+
+void EmbeddedFederationRegistry::restoreSynchronizationPointsFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  if (!image.synchronizationPointsPresent) {
+    return;
+  }
+
+  std::map<std::wstring, Federation::SynchronizationPoint> restored;
+  for (auto const& savedPoint : image.synchronizationPoints) {
+    if (savedPoint.synchronizationSet.empty()) {
+      throw std::logic_error(
+          "The saved synchronization point has an empty synchronization set.");
+    }
+
+    Federation::SynchronizationPoint point;
+    point.userSuppliedTag.assign(
+        savedPoint.userSuppliedTag.begin(),
+        savedPoint.userSuppliedTag.end());
+    point.synchronizationSet.insert(
+        savedPoint.synchronizationSet.begin(),
+        savedPoint.synchronizationSet.end());
+    point.announcedFederates.insert(
+        savedPoint.announcedFederates.begin(),
+        savedPoint.announcedFederates.end());
+
+    for (auto const federateId : point.synchronizationSet) {
+      if (!federation.members.contains(federateId) ||
+          !liveFederation.members.contains(federateId)) {
+        throw std::logic_error(
+            "The saved synchronization point has no live joined participant.");
+      }
+    }
+    for (auto const federateId : point.announcedFederates) {
+      if (!point.synchronizationSet.contains(federateId)) {
+        throw std::logic_error(
+            "The saved synchronization point announces a non-member.");
+      }
+    }
+    for (auto const& [federateId, succeeded] : savedPoint.achievedFederates) {
+      if (!point.synchronizationSet.contains(federateId) ||
+          !point.announcedFederates.contains(federateId)) {
+        throw std::logic_error(
+            "The saved synchronization point has an achievement outside its announced set.");
+      }
+      auto const [position, inserted] =
+          point.achievedFederates.emplace(federateId, succeeded);
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved synchronization point contains a duplicate achievement.");
+      }
+    }
+
+    auto const [position, inserted] =
+        restored.emplace(savedPoint.label, std::move(point));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved synchronization points contain a duplicate label.");
+    }
+  }
+  federation.synchronizationPoints = std::move(restored);
+}
+
+void EmbeddedFederationRegistry::restoreObjectClassAttributeDeclarationsFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  if (!image.objectClassAttributeDeclarationsPresent) {
+    return;
+  }
+
+  federation.objectClassAttributeDeclarations.clear();
+  for (auto const& savedDeclarations : image.objectClassAttributeDeclarations) {
+    if (savedDeclarations.federateId == 0U ||
+        !federation.members.contains(savedDeclarations.federateId) ||
+        !liveFederation.members.contains(savedDeclarations.federateId)) {
+      throw std::logic_error(
+          "The saved object-class attribute declarations have no live joined federate.");
+    }
+
+    Federation::ObjectClassAttributeDeclarations declarations;
+    declarations.subscriptionGeneration = savedDeclarations.subscriptionGeneration;
+    for (auto const& savedClass : savedDeclarations.classes) {
+      if (!validObjectClass(federation, savedClass.objectClassHandle)) {
+        throw std::logic_error(
+            "The saved object-class attribute declarations reference an unknown class.");
+      }
+
+      std::set<std::uint64_t> attributeHandles;
+      attributeHandles.insert(
+          savedClass.explicitlyPublishedAttributeHandles.begin(),
+          savedClass.explicitlyPublishedAttributeHandles.end());
+      for (auto const& subscription : savedClass.subscribedAttributes) {
+        static_cast<void>(attributeHandles.insert(subscription.attributeHandle));
+      }
+      for (auto const& value : savedClass.subscribedUpdateRateDesignators) {
+        static_cast<void>(attributeHandles.insert(value.attributeHandle));
+      }
+      for (auto const& subscription : savedClass.regionalSubscribedAttributes) {
+        static_cast<void>(attributeHandles.insert(subscription.attributeHandle));
+        if (!federation.regions.contains(subscription.regionHandle)) {
+          throw std::logic_error(
+              "The saved regional object-class declaration references an unknown region.");
+        }
+      }
+      for (auto const& value : savedClass.regionalSubscribedUpdateRateDesignators) {
+        static_cast<void>(attributeHandles.insert(value.attributeHandle));
+        if (!federation.regions.contains(value.regionHandle)) {
+          throw std::logic_error(
+              "The saved regional update-rate declaration references an unknown region.");
+        }
+      }
+      for (auto const& value : savedClass.defaultTransportationTypes) {
+        static_cast<void>(attributeHandles.insert(value.attributeHandle));
+      }
+      for (auto const& value : savedClass.defaultOrderTypes) {
+        static_cast<void>(attributeHandles.insert(value.attributeHandle));
+        if (value.orderType == 0U || value.orderType > 2U) {
+          throw std::logic_error(
+              "The saved object-class declaration has an invalid order type.");
+        }
+      }
+      if (!validObjectClassAttributes(
+              federation, savedClass.objectClassHandle, attributeHandles)) {
+        throw std::logic_error(
+            "The saved object-class attribute declarations reference an unknown attribute.");
+      }
+
+      Federation::ObjectClassAttributeDeclarations::PerObjectClass perClass;
+      perClass.privilegeToDeleteExplicitlyUnpublished =
+          savedClass.privilegeToDeleteExplicitlyUnpublished;
+      perClass.explicitlyPublishedAttributes.insert(
+          savedClass.explicitlyPublishedAttributeHandles.begin(),
+          savedClass.explicitlyPublishedAttributeHandles.end());
+      for (auto const& subscription : savedClass.subscribedAttributes) {
+        auto const [position, inserted] = perClass.subscribedAttributes.emplace(
+            subscription.attributeHandle, subscription.active);
+        static_cast<void>(position);
+        if (!inserted) {
+          throw std::logic_error(
+              "The saved object-class declarations contain duplicate subscriptions.");
+        }
+      }
+      for (auto const& value : savedClass.subscribedUpdateRateDesignators) {
+        auto const [position, inserted] = perClass.subscribedUpdateRateDesignators.emplace(
+            value.attributeHandle, value.value);
+        static_cast<void>(position);
+        if (!inserted) {
+          throw std::logic_error(
+              "The saved object-class declarations contain duplicate update rates.");
+        }
+      }
+      for (auto const& subscription : savedClass.regionalSubscribedAttributes) {
+        auto& regions = perClass.regionalSubscribedAttributes[subscription.attributeHandle];
+        auto const [position, inserted] = regions.emplace(
+            subscription.regionHandle, subscription.active);
+        static_cast<void>(position);
+        if (!inserted) {
+          throw std::logic_error(
+              "The saved regional object-class declarations contain duplicate subscriptions.");
+        }
+      }
+      for (auto const& value : savedClass.regionalSubscribedUpdateRateDesignators) {
+        auto& regions =
+            perClass.regionalSubscribedUpdateRateDesignators[value.attributeHandle];
+        auto const [position, inserted] = regions.emplace(value.regionHandle, value.value);
+        static_cast<void>(position);
+        if (!inserted) {
+          throw std::logic_error(
+              "The saved regional declarations contain duplicate update rates.");
+        }
+      }
+      for (auto const& value : savedClass.defaultTransportationTypes) {
+        auto const [position, inserted] = perClass.defaultTransportationTypes.emplace(
+            value.attributeHandle, value.value);
+        static_cast<void>(position);
+        if (!inserted || value.value.empty() ||
+            !isSupportedTransportationName(
+                federation.definition.catalog.get(), value.value)) {
+          throw std::logic_error(
+              "The saved object-class declaration has an invalid default transportation.");
+        }
+      }
+      for (auto const& value : savedClass.defaultOrderTypes) {
+        auto const [position, inserted] = perClass.defaultOrderTypes.emplace(
+            value.attributeHandle,
+            static_cast<rti1516_2025::OrderType>(value.orderType));
+        static_cast<void>(position);
+        if (!inserted) {
+          throw std::logic_error(
+              "The saved object-class declarations contain duplicate default orders.");
+        }
+      }
+
+      auto const [classPosition, classInserted] = declarations.byObjectClass.emplace(
+          savedClass.objectClassHandle, std::move(perClass));
+      static_cast<void>(classPosition);
+      if (!classInserted) {
+        throw std::logic_error(
+            "The saved object-class declarations contain duplicate classes.");
+      }
+    }
+
+    auto const [position, inserted] = federation.objectClassAttributeDeclarations.emplace(
+        savedDeclarations.federateId, std::move(declarations));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved object-class declarations contain duplicate federates.");
+    }
+  }
+}
+
+void EmbeddedFederationRegistry::restoreInteractionDeclarationsFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  if (image.interactionDeclarations.empty()) {
+    return;
+  }
+  if (!isRouteFreeInteractionDeclarationImage(image) &&
+      !isRouteFreeMultipleInteractionPublicationImage(image) &&
+      !isRouteFreeMixedMultipleInteractionDeclarationImage(image) &&
+      !isRouteFreeMultipleDirectedInteractionDeclarationImage(image) &&
+      !isRouteFreeRegionalTsoInteractionImage(image)) {
+    throw std::logic_error(
+        "The saved interaction declarations are outside the route-free restore boundary.");
+  }
+
+  std::map<std::uint64_t, Federation::FederateInteractionDeclarations> restored;
+  for (auto const& savedDeclarations : image.interactionDeclarations) {
+    if (savedDeclarations.federateId == 0U ||
+        !federation.members.contains(savedDeclarations.federateId) ||
+        !liveFederation.members.contains(savedDeclarations.federateId)) {
+      throw std::logic_error(
+          "The saved interaction declarations have no live joined federate.");
+    }
+
+    std::uint64_t interactionClassHandle = 0U;
+    if (!savedDeclarations.publishedInteractionClasses.empty()) {
+      interactionClassHandle = savedDeclarations.publishedInteractionClasses.front();
+    } else if (!savedDeclarations.subscribedInteractionClasses.empty()) {
+      interactionClassHandle =
+          savedDeclarations.subscribedInteractionClasses.front().interactionClassHandle;
+    } else if (!savedDeclarations.regionalSubscribedInteractionClasses.empty()) {
+      interactionClassHandle =
+          savedDeclarations.regionalSubscribedInteractionClasses.front().interactionClassHandle;
+    } else if (!savedDeclarations.publishedObjectClassDirectedInteractions.empty()) {
+      interactionClassHandle =
+          savedDeclarations.publishedObjectClassDirectedInteractions.front().interactionClassHandle;
+    } else if (!savedDeclarations.subscribedObjectClassDirectedInteractions.empty()) {
+      interactionClassHandle =
+          savedDeclarations.subscribedObjectClassDirectedInteractions.front().interactionClassHandle;
+    }
+    if (interactionClassHandle == 0U) {
+      throw std::logic_error(
+          "The saved interaction declaration has no interaction class identity.");
+    }
+    Federation::FederateInteractionDeclarations declarations;
+    if (!savedDeclarations.publishedInteractionClasses.empty()) {
+      for (auto const publishedClassHandle :
+           savedDeclarations.publishedInteractionClasses) {
+        if (!validInteractionClass(federation, publishedClassHandle)) {
+          throw std::logic_error(
+              "The saved interaction declaration references an invalid interaction class.");
+        }
+        declarations.publishedInteractionClasses.insert(publishedClassHandle);
+      }
+    } else if (!validInteractionClass(federation, interactionClassHandle)) {
+      throw std::logic_error(
+          "The saved interaction declaration references an invalid interaction class.");
+    }
+    if (!savedDeclarations.interactionTransportationTypes.empty()) {
+      auto const& transportation =
+          savedDeclarations.interactionTransportationTypes.front();
+      if (transportation.interactionClassHandle != interactionClassHandle ||
+          !declarations.publishedInteractionClasses.contains(
+              transportation.interactionClassHandle) ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(), transportation.value)) {
+        throw std::logic_error(
+            "The saved interaction transportation override references an invalid class or type.");
+      }
+      declarations.interactionTransportationTypes.emplace(
+          transportation.interactionClassHandle,
+          transportation.value);
+    }
+    if (!savedDeclarations.interactionOrderTypes.empty()) {
+      for (auto const& order : savedDeclarations.interactionOrderTypes) {
+        bool const directedPublication = std::any_of(
+            savedDeclarations.publishedObjectClassDirectedInteractions.begin(),
+            savedDeclarations.publishedObjectClassDirectedInteractions.end(),
+            [&](FederationStateImagePublishedDirectedInteraction const& directed) {
+              return directed.interactionClassHandle == order.interactionClassHandle;
+            });
+        if (order.interactionClassHandle != interactionClassHandle ||
+            (order.orderType != static_cast<std::uint32_t>(rti1516_2025::RECEIVE) &&
+             order.orderType != static_cast<std::uint32_t>(rti1516_2025::TIMESTAMP)) ||
+            (!declarations.publishedInteractionClasses.contains(
+                 order.interactionClassHandle) &&
+             !directedPublication)) {
+          throw std::logic_error(
+              "The saved interaction order override references an invalid class or order.");
+        }
+        declarations.interactionOrderTypes.emplace(
+            order.interactionClassHandle,
+            static_cast<rti1516_2025::OrderType>(order.orderType));
+      }
+    }
+    if (!savedDeclarations.subscribedInteractionClasses.empty()) {
+      auto const& subscription =
+          savedDeclarations.subscribedInteractionClasses.front();
+      if (subscription.interactionClassHandle != interactionClassHandle) {
+        throw std::logic_error(
+            "The saved interaction subscription references an inconsistent class.");
+      }
+      declarations.subscribedInteractionClasses.emplace(
+          interactionClassHandle,
+          subscription.active);
+    }
+    if (!savedDeclarations.regionalSubscribedInteractionClasses.empty()) {
+      auto const& subscription =
+          savedDeclarations.regionalSubscribedInteractionClasses.front();
+      auto const region = federation.regions.find(subscription.regionHandle);
+      auto const availableDimensions =
+          availableInteractionDimensions(federation, interactionClassHandle);
+      if (subscription.interactionClassHandle != interactionClassHandle ||
+          region == federation.regions.end() ||
+          region->second.ownerFederateId != savedDeclarations.federateId ||
+          !region->second.specificationCommitted ||
+          region->second.committedRangeBounds.size() !=
+              region->second.dimensionHandles.size() ||
+          !availableDimensions ||
+          !std::includes(
+              availableDimensions->begin(),
+              availableDimensions->end(),
+              region->second.dimensionHandles.begin(),
+              region->second.dimensionHandles.end())) {
+        throw std::logic_error(
+            "The saved regional interaction subscription references an invalid region.");
+      }
+      declarations.regionalSubscribedInteractionClasses[interactionClassHandle].emplace(
+          subscription.regionHandle,
+          subscription.active);
+    }
+    for (auto const& directed : savedDeclarations.publishedObjectClassDirectedInteractions) {
+      if (!validDirectedInteractionForObjectClass(
+              federation,
+              directed.objectClassHandle,
+              directed.interactionClassHandle)) {
+        throw std::logic_error(
+            "The saved directed interaction publication references an invalid class pair.");
+      }
+      declarations.publishedObjectClassDirectedInteractions[directed.objectClassHandle].insert(
+          directed.interactionClassHandle);
+    }
+    for (auto const& directed : savedDeclarations.subscribedObjectClassDirectedInteractions) {
+      if (!validDirectedInteractionForObjectClass(
+              federation,
+              directed.objectClassHandle,
+              directed.interactionClassHandle)) {
+        throw std::logic_error(
+            "The saved directed interaction subscription references an invalid class pair.");
+      }
+      declarations.subscribedObjectClassDirectedInteractions[directed.objectClassHandle].emplace(
+          directed.interactionClassHandle,
+          directed.active);
+    }
+    if (!savedDeclarations.pendingInteractionTransportationTypeChanges.empty()) {
+      auto const& pending =
+          savedDeclarations.pendingInteractionTransportationTypeChanges.front();
+      if (pending.interactionClassHandle != interactionClassHandle ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(), pending.value)) {
+        throw std::logic_error(
+            "The saved interaction transportation change references an invalid class or type.");
+      }
+      declarations.pendingInteractionTransportationTypeChanges.emplace(
+          interactionClassHandle,
+          pending.value);
+    }
+    auto const [position, inserted] = restored.emplace(
+        savedDeclarations.federateId,
+        std::move(declarations));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved interaction declarations contain a duplicate federate.");
+    }
+  }
+  federation.interactionDeclarations = std::move(restored);
+}
+
+void EmbeddedFederationRegistry::restoreMemberInteractionSendTelemetryFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  for (auto const& savedMember : image.members) {
+    auto member = federation.members.find(savedMember.id);
+    if (member == federation.members.end() ||
+        !liveFederation.members.contains(savedMember.id)) {
+      throw std::logic_error(
+          "The saved member interaction-send telemetry has no live joined federate.");
+    }
+
+    bool const hasTypedTelemetry = savedMember.interactionSendTelemetryPresent ||
+        savedMember.successfulInteractionsSentCount != 0U ||
+        savedMember.successfulDirectedInteractionsSentCount != 0U ||
+        !savedMember.successfulInteractionCountsByClassAndTransportation.empty() ||
+        !savedMember.successfulDirectedInteractionCountsByClassAndTransportation.empty();
+    if (!hasTypedTelemetry) {
+      continue;
+    }
+    if (savedMember.successfulDirectedInteractionsSentCount >
+        savedMember.successfulInteractionsSentCount) {
+      throw std::logic_error(
+          "The saved directed interaction-send count exceeds the total count.");
+    }
+
+    std::map<std::uint64_t, std::map<std::string, std::uint64_t>> interactionCounts;
+    for (auto const& savedCount :
+         savedMember.successfulInteractionCountsByClassAndTransportation) {
+      if (savedCount.interactionClassHandle == 0U || savedCount.count == 0U ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(), savedCount.transportationName)) {
+        throw std::logic_error(
+            "The saved interaction-send telemetry has an invalid class or transportation.");
+      }
+      auto& count = interactionCounts[savedCount.interactionClassHandle][
+          savedCount.transportationName];
+      if (count != 0U) {
+        throw std::logic_error(
+            "The saved interaction-send telemetry has duplicate class/transport buckets.");
+      }
+      count = savedCount.count;
+    }
+
+    std::map<std::uint64_t, std::map<std::string, std::uint64_t>> directedCounts;
+    for (auto const& savedCount :
+         savedMember.successfulDirectedInteractionCountsByClassAndTransportation) {
+      if (savedCount.interactionClassHandle == 0U || savedCount.count == 0U ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(), savedCount.transportationName)) {
+        throw std::logic_error(
+            "The saved directed interaction-send telemetry has an invalid class or transportation.");
+      }
+      auto const totalClass = interactionCounts.find(savedCount.interactionClassHandle);
+      auto const total = totalClass == interactionCounts.end()
+          ? 0U
+          : totalClass->second.contains(savedCount.transportationName)
+          ? totalClass->second.at(savedCount.transportationName)
+          : 0U;
+      if (total == 0U || savedCount.count > total) {
+        throw std::logic_error(
+            "The saved directed interaction-send bucket is not a total-send subset.");
+      }
+      auto& count = directedCounts[savedCount.interactionClassHandle][
+          savedCount.transportationName];
+      if (count != 0U) {
+        throw std::logic_error(
+            "The saved directed interaction-send telemetry has duplicate buckets.");
+      }
+      count = savedCount.count;
+    }
+
+    member->second.successfulInteractionsSentCount =
+        savedMember.successfulInteractionsSentCount;
+    member->second.successfulDirectedInteractionsSentCount =
+        savedMember.successfulDirectedInteractionsSentCount;
+    member->second.successfulInteractionCountsByClassAndTransportation =
+        std::move(interactionCounts);
+    member->second.successfulDirectedInteractionCountsByClassAndTransportation =
+        std::move(directedCounts);
+  }
+}
+
+void EmbeddedFederationRegistry::restoreMemberObjectLifecycleTelemetryFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  for (auto const& savedMember : image.members) {
+    auto member = federation.members.find(savedMember.id);
+    if (member == federation.members.end() ||
+        !liveFederation.members.contains(savedMember.id)) {
+      throw std::logic_error(
+          "The saved member object-lifecycle telemetry has no live joined federate.");
+    }
+
+    // Older seven-, eleven-, and twelve-field records have no lifecycle
+    // scalars. A current sixteen-field record explicitly carries all four,
+    // including zeros, so restore never retains post-save live counters.
+    if (!savedMember.objectLifecycleTelemetryPresent &&
+        savedMember.successfulObjectInstanceRegistrationsCount == 0U &&
+        savedMember.successfulObjectInstanceDeletionsCount == 0U &&
+        savedMember.successfulObjectInstanceRemovalsCount == 0U &&
+        savedMember.successfulObjectInstanceDiscoveriesCount == 0U) {
+      continue;
+    }
+    member->second.successfulObjectInstanceRegistrationsCount =
+        savedMember.successfulObjectInstanceRegistrationsCount;
+    member->second.successfulObjectInstanceDeletionsCount =
+        savedMember.successfulObjectInstanceDeletionsCount;
+    member->second.successfulObjectInstanceRemovalsCount =
+        savedMember.successfulObjectInstanceRemovalsCount;
+    member->second.successfulObjectInstanceDiscoveriesCount =
+        savedMember.successfulObjectInstanceDiscoveriesCount;
+  }
+}
+
+void EmbeddedFederationRegistry::restoreMemberReflectionTelemetryFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  for (auto const& savedMember : image.members) {
+    auto member = federation.members.find(savedMember.id);
+    if (member == federation.members.end() ||
+        !liveFederation.members.contains(savedMember.id)) {
+      throw std::logic_error(
+          "The saved member reflection telemetry has no live joined federate.");
+    }
+
+    // Seven- and eleven-field v1 images predate the scalar reflection
+    // extension. A decoded twelve-field (or later) record explicitly carries
+    // the value, including zero, so restore does not accidentally retain
+    // post-save live state when the saved statistic was zero.
+    bool const hasScalar = savedMember.reflectionTelemetryPresent ||
+        savedMember.successfulReflectionsReceivedCount != 0U;
+    bool const hasProjection =
+        savedMember.reflectionProjectionTelemetryPresent ||
+        !savedMember.successfulReflectionCountsByClassAndTransportation.empty() ||
+        !savedMember.successfullyReflectedObjectInstanceHandles.empty() ||
+        !savedMember.successfullyReflectedObjectInstanceClassHandles.empty();
+    if (!hasScalar && !hasProjection) {
+      continue;
+    }
+    if (hasScalar) {
+      member->second.successfulReflectionsReceivedCount =
+          savedMember.successfulReflectionsReceivedCount;
+    }
+
+    if (hasProjection) {
+      std::map<std::uint64_t, std::map<std::string, std::uint64_t>> reflectionCounts;
+      for (auto const& savedCount :
+           savedMember.successfulReflectionCountsByClassAndTransportation) {
+        if (savedCount.objectClassHandle == 0U || savedCount.count == 0U ||
+            !isSupportedTransportationName(
+                federation.definition.catalog.get(), savedCount.transportationName)) {
+          throw std::logic_error(
+              "The saved member reflection telemetry has an invalid class or transportation.");
+        }
+        auto& count = reflectionCounts[savedCount.objectClassHandle][
+            savedCount.transportationName];
+        if (count != 0U) {
+          throw std::logic_error(
+              "The saved member reflection telemetry has duplicate class/transport buckets.");
+        }
+        count = savedCount.count;
+      }
+
+      std::set<std::uint64_t> reflectedObjectHandles;
+      for (auto const objectInstanceHandle :
+           savedMember.successfullyReflectedObjectInstanceHandles) {
+        if (objectInstanceHandle == 0U ||
+            !reflectedObjectHandles.insert(objectInstanceHandle).second) {
+          throw std::logic_error(
+              "The saved member reflection telemetry has duplicate object handles.");
+        }
+      }
+      std::map<std::uint64_t, std::uint64_t> reflectedObjectClasses;
+      for (auto const& savedObject :
+           savedMember.successfullyReflectedObjectInstanceClassHandles) {
+        if (savedObject.objectInstanceHandle == 0U ||
+            savedObject.objectClassHandle == 0U ||
+            !reflectedObjectHandles.contains(savedObject.objectInstanceHandle) ||
+            !reflectedObjectClasses.emplace(
+                 savedObject.objectInstanceHandle,
+                 savedObject.objectClassHandle)
+                 .second) {
+          throw std::logic_error(
+              "The saved member reflection telemetry has an invalid object-class projection.");
+        }
+      }
+
+      member->second.successfulReflectionCountsByClassAndTransportation =
+          std::move(reflectionCounts);
+      member->second.successfullyReflectedObjectInstanceHandles =
+          std::move(reflectedObjectHandles);
+      member->second.successfullyReflectedObjectInstanceClassHandles =
+          std::move(reflectedObjectClasses);
+    }
+  }
+}
+
+void EmbeddedFederationRegistry::restoreMemberUpdateTelemetryFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  for (auto const& savedMember : image.members) {
+    auto member = federation.members.find(savedMember.id);
+    if (member == federation.members.end() ||
+        !liveFederation.members.contains(savedMember.id)) {
+      throw std::logic_error(
+          "The saved member update telemetry has no live joined federate.");
+    }
+
+    // Images written before the typed telemetry extension carry no records.
+    // Keep the process-local lifetime ledger in that compatibility case; a
+    // current image with nonzero values replaces it below.
+    bool const hasTypedTelemetry =
+        savedMember.successfulUpdateAttributeValuesCount != 0U ||
+        !savedMember.successfulUpdateCountsByClassAndTransportation.empty() ||
+        !savedMember.successfullyUpdatedObjectInstanceHandles.empty() ||
+        !savedMember.successfullyUpdatedObjectInstanceClassHandles.empty();
+    if (!hasTypedTelemetry) {
+      continue;
+    }
+
+    std::map<std::uint64_t, std::map<std::string, std::uint64_t>> updateCounts;
+    for (auto const& savedCount :
+         savedMember.successfulUpdateCountsByClassAndTransportation) {
+      if (savedCount.objectClassHandle == 0U || savedCount.count == 0U ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(), savedCount.transportationName)) {
+        throw std::logic_error(
+            "The saved member update telemetry has an invalid class or transportation.");
+      }
+      auto& count = updateCounts[savedCount.objectClassHandle][
+          savedCount.transportationName];
+      if (count != 0U) {
+        throw std::logic_error(
+            "The saved member update telemetry has duplicate class/transport buckets.");
+      }
+      count = savedCount.count;
+    }
+
+    std::set<std::uint64_t> updatedObjectHandles;
+    for (auto const objectInstanceHandle :
+         savedMember.successfullyUpdatedObjectInstanceHandles) {
+      if (objectInstanceHandle == 0U ||
+          !updatedObjectHandles.insert(objectInstanceHandle).second) {
+        throw std::logic_error(
+            "The saved member update telemetry has duplicate object handles.");
+      }
+    }
+    std::map<std::uint64_t, std::uint64_t> updatedObjectClasses;
+    for (auto const& savedObject :
+         savedMember.successfullyUpdatedObjectInstanceClassHandles) {
+      if (savedObject.objectInstanceHandle == 0U ||
+          savedObject.objectClassHandle == 0U ||
+          !updatedObjectHandles.contains(savedObject.objectInstanceHandle) ||
+          !updatedObjectClasses.emplace(
+               savedObject.objectInstanceHandle,
+               savedObject.objectClassHandle)
+               .second) {
+        throw std::logic_error(
+            "The saved member update telemetry has an invalid object-class projection.");
+      }
+    }
+
+    member->second.successfulUpdateAttributeValuesCount =
+        savedMember.successfulUpdateAttributeValuesCount;
+    member->second.successfulUpdateCountsByClassAndTransportation =
+        std::move(updateCounts);
+    member->second.successfullyUpdatedObjectInstanceHandles =
+        std::move(updatedObjectHandles);
+    member->second.successfullyUpdatedObjectInstanceClassHandles =
+        std::move(updatedObjectClasses);
+  }
+}
+
+void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation,
+    bool allowProcessRestartApplicationValues) {
+  if (image.objectInstanceCount != image.objects.size()) {
+    throw std::logic_error(
+        "The saved object ownership ledger count does not match its records.");
+  }
+  bool const materializeProcessRestartObjects =
+      allowProcessRestartApplicationValues &&
+      federation.objectInstances.empty() &&
+      !image.objects.empty();
+  if (!materializeProcessRestartObjects &&
+      federation.objectInstances.size() != image.objects.size()) {
+    throw std::logic_error(
+        "The saved object ownership ledger does not match the process snapshot.");
+  }
+
+  std::map<std::uint64_t, Federation::ObjectInstance> restoredObjects;
+  std::map<std::uint64_t, Federation::PendingAttributeOwnershipQuery>
+      restoredPendingAttributeOwnershipQueries;
+  for (auto const& savedObject : image.objects) {
+    if (savedObject.handle == 0U ||
+        savedObject.registeredObjectClassHandle == 0U ||
+        savedObject.producingFederateId == 0U ||
+        !liveFederation.members.contains(savedObject.producingFederateId)) {
+      throw std::logic_error(
+          "The saved object ownership ledger has an invalid object identity.");
+    }
+
+    Federation::ObjectInstance restoredObject;
+    auto const existing = federation.objectInstances.find(savedObject.handle);
+    if (existing != federation.objectInstances.end()) {
+      // Callback routes remain live-only in v1. Preserve the live object as a
+      // base while replacing the durable identity and typed ledgers below.
+      restoredObject = existing->second;
+    } else if (!materializeProcessRestartObjects ||
+               (!isRouteFreePendingRegularOwnershipObject(savedObject) &&
+                !isRouteFreePendingIfAvailableOwnershipObject(savedObject) &&
+                !isRouteFreePendingNegotiatedOwnershipObject(savedObject) &&
+                !isRouteFreePendingNegotiatedIfAvailableOwnershipObject(savedObject) &&
+                !isRouteFreePendingMixedNegotiatedOwnershipObject(savedObject) &&
+                !isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(savedObject) &&
+                !isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(savedObject) &&
+                !isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(savedObject) &&
+                !isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(savedObject) &&
+                !isRouteFreePendingAttributeValueUpdateObject(savedObject) &&
+                !isRouteFreePendingAttributeValueUpdateClassObject(savedObject) &&
+               !isRouteFreePendingAttributeValueUpdateRegionalObject(savedObject) &&
+               !isRouteFreePendingAttributeOwnershipQueryObject(
+                   savedObject,
+                   image) &&
+                !isRouteFreePendingOwnershipAssumptionObject(savedObject, image) &&
+                !isRouteFreePendingDivestitureIfWantedNotificationObject(savedObject) &&
+                !isRouteFreePendingConfirmDivestitureNotificationObject(savedObject) &&
+                !isRouteFreePendingConfirmDivestitureWithOwnershipAssumptionObject(
+                    savedObject,
+                    image) &&
+                !isRouteFreePendingOwnershipAcquisitionCancellationObject(savedObject) &&
+                !isRouteFreePendingAttributeTransportationTypeChangeObject(savedObject) &&
+                (!isRouteFreeDeliveredApplicationValue(savedObject) &&
+                 !isRouteFreeObjectWithTsoAttributeUpdate(savedObject, image) &&
+                 (!savedObject.attributeValuesPresent ||
+                  savedObject.attributeValues.empty() ||
+                  savedObject.deleteAccepted ||
+                  savedObject.pendingOperationCount !=
+                  savedObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
+                  savedObject.pendingAttributeOwnershipAcquisitionRequests.size() +
+                  savedObject.pendingAttributeOwnershipAcquisitionCancellations.size() +
+                  savedObject.pendingAttributeOwnershipDivestitureIfWantedNotifications.size() +
+                  savedObject.pendingConfirmDivestitureNotifications.size() +
+                  savedObject.pendingAttributeTransportationTypeChanges.size() +
+                  savedObject.pendingAttributeValueUpdateRequests.size() +
+                  savedObject.pendingAttributeValueUpdateClassRequests.size() +
+                  savedObject.pendingAttributeValueUpdateRegionalRequests.size() +
+                  std::count_if(
+                      image.pendingAttributeOwnershipQueries.begin(),
+                      image.pendingAttributeOwnershipQueries.end(),
+                      [&savedObject](auto const& query) {
+                        return query.objectInstanceHandle == savedObject.handle;
+                      }) +
+                  savedObject.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+                  savedObject.ownershipAssumptionRecipientsByAttribute.size() +
+                  savedObject.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+                  pendingOwnershipAssumptionCallbackCount(image, savedObject.handle) +
+                  savedObject.pendingDiscoveryFederateIds.size() +
+                  savedObject.pendingRemovalFederateIds.size() +
+                  savedObject.connectionLossAutomaticRemovalFederateIds.size() +
+                  savedObject.deferredConnectionLossTsoRemovalFederateIds.size() +
+                  savedObject.pendingTimestampedRemovalFederateIds.size() +
+                  (savedObject.pendingTimestampedDeletionMessageId.has_value() ? 1U : 0U) ||
+                  std::any_of(
+                      savedObject.attributes.begin(),
+                      savedObject.attributes.end(),
+                      [](FederationStateImageObjectAttribute const& attribute) {
+                        return !attribute.updateRegionHandles.empty();
+                      }))))) {
+      // A process-restart image can materialize only a live object identity
+      // whose latest value ledger is present and whose callback-bearing
+      // ledgers are empty. Keep this boundary explicit instead of
+      // manufacturing an incomplete object state.
+      throw std::logic_error(
+          "The saved object ownership ledger is not a route-free application-value object.");
+    }
+    restoredObject.handle = savedObject.handle;
+    restoredObject.name = savedObject.name;
+    restoredObject.registeredObjectClassHandle =
+        savedObject.registeredObjectClassHandle;
+    restoredObject.producingFederateId = savedObject.producingFederateId;
+    restoredObject.deleteAccepted = savedObject.deleteAccepted;
+    restoredObject.attributeOwnersByHandle.clear();
+    restoredObject.attributeTransportationTypes.clear();
+    restoredObject.attributeOrderTypes.clear();
+    restoredObject.updateRegionsByAttribute.clear();
+    if (savedObject.attributeValuesPresent) {
+      restoredObject.attributeValues.clear();
+    }
+    // A legacy v1 object line has no typed reservation section. Preserve the
+    // process-local reservation map in that case; newly encoded records are
+    // authoritative and replace only this one typed ledger.
+    auto const hasTypedIfAvailableLedger =
+        !savedObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedIfAvailableLedger) {
+      restoredObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.clear();
+    }
+    auto const hasTypedRegularLedger =
+        !savedObject.pendingAttributeOwnershipAcquisitionRequests.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedRegularLedger) {
+      restoredObject.pendingAttributeOwnershipAcquisitionRequests.clear();
+    }
+    auto const hasTypedCancellationLedger =
+        !savedObject.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedCancellationLedger) {
+      restoredObject.pendingAttributeOwnershipAcquisitionCancellations.clear();
+    }
+    auto const hasTypedDivestitureIfWantedLedger =
+        !savedObject.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedDivestitureIfWantedLedger) {
+      restoredObject.pendingAttributeOwnershipDivestitureIfWantedNotifications.clear();
+    }
+    auto const hasTypedConfirmDivestitureLedger =
+        !savedObject.pendingConfirmDivestitureNotifications.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedConfirmDivestitureLedger) {
+      restoredObject.pendingConfirmDivestitureNotifications.clear();
+    }
+    auto const hasTypedTransportationChangeLedger =
+        !savedObject.pendingAttributeTransportationTypeChanges.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedTransportationChangeLedger) {
+      restoredObject.pendingAttributeTransportationTypeChanges.clear();
+    }
+    auto const hasTypedNegotiatedDivestitureLedger =
+        !savedObject.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedNegotiatedDivestitureLedger) {
+      restoredObject.pendingNegotiatedAttributeOwnershipDivestitures.clear();
+    }
+    auto const hasTypedAssumptionRecipientLedger =
+        !savedObject.ownershipAssumptionRecipientsByAttribute.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedAssumptionRecipientLedger) {
+      restoredObject.ownershipAssumptionRecipientsByAttribute.clear();
+    }
+    auto const hasTypedAssumptionTagLedger =
+        !savedObject.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedAssumptionTagLedger) {
+      restoredObject.ownershipAssumptionUserSuppliedTagsByAttribute.clear();
+    }
+    auto const hasTypedAssumptionCallbackLedger =
+        image.pendingAttributeOwnershipAssumptionsPresent ||
+        pendingOwnershipAssumptionCallbackCount(image, savedObject.handle) != 0U;
+    if (hasTypedAssumptionCallbackLedger) {
+      restoredObject.pendingAttributeOwnershipAssumptionCallbacks.clear();
+    }
+    auto const hasTypedPendingDiscoveryLedger =
+        !savedObject.pendingDiscoveryFederateIds.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedPendingDiscoveryLedger) {
+      restoredObject.pendingDiscoveryFederates.clear();
+    }
+    auto const hasTypedPendingRemovalLedger =
+        !savedObject.pendingRemovalFederateIds.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedPendingRemovalLedger) {
+      restoredObject.pendingRemovalFederates.clear();
+    }
+    auto const hasTypedConnectionLossAutomaticRemovalLedger =
+        !savedObject.connectionLossAutomaticRemovalFederateIds.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedConnectionLossAutomaticRemovalLedger) {
+      restoredObject.connectionLossAutomaticRemovalFederates.clear();
+    }
+    auto const hasTypedDeferredConnectionLossTsoRemovalLedger =
+        !savedObject.deferredConnectionLossTsoRemovalFederateIds.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedDeferredConnectionLossTsoRemovalLedger) {
+      restoredObject.deferredConnectionLossTsoRemovalFederates.clear();
+    }
+    auto const hasTypedPendingTimestampedRemovalLedger =
+        !savedObject.pendingTimestampedRemovalFederateIds.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedPendingTimestampedRemovalLedger) {
+      restoredObject.pendingTimestampedRemovalFederates.clear();
+    }
+    auto const hasTypedPendingTimestampedDeletionLedger =
+        savedObject.pendingTimestampedDeletionMessageId.has_value() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedPendingTimestampedDeletionLedger) {
+      restoredObject.pendingTimestampedDeletionMessageId.reset();
+    }
+
+    // Known-class projections are a durable object-visibility basis rather
+    // than a pending-operation fence. When a typed projection is present it
+    // replaces the live copy; an older image with no projection leaves the
+    // process-local map intact for backward compatibility.
+    if (!savedObject.knownObjectClassHandlesByFederate.empty()) {
+      restoredObject.knownObjectClassHandlesByFederate.clear();
+    }
+    std::uint64_t previousKnownFederateId = 0U;
+    for (auto const& savedKnown : savedObject.knownObjectClassHandlesByFederate) {
+      if (savedKnown.federateId == 0U ||
+          savedKnown.federateId <= previousKnownFederateId ||
+          savedKnown.objectClassHandle == 0U ||
+          !liveFederation.members.contains(savedKnown.federateId)) {
+        throw std::logic_error(
+            "The saved object visibility projection has an invalid known federate.");
+      }
+      previousKnownFederateId = savedKnown.federateId;
+      auto const [position, inserted] =
+          restoredObject.knownObjectClassHandlesByFederate.emplace(
+              savedKnown.federateId,
+              savedKnown.objectClassHandle);
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object visibility projection has duplicate known federates.");
+      }
+    }
+
+    for (auto const& savedAttribute : savedObject.attributes) {
+      if (savedAttribute.handle == 0U) {
+        throw std::logic_error(
+            "The saved object ownership ledger has an invalid attribute.");
+      }
+      if (savedAttribute.ownerFederateId != 0U) {
+        if (!liveFederation.members.contains(savedAttribute.ownerFederateId)) {
+          throw std::logic_error(
+              "The saved object ownership ledger has a departed owner.");
+        }
+        restoredObject.attributeOwnersByHandle.emplace(
+            savedAttribute.handle,
+            savedAttribute.ownerFederateId);
+      }
+      if (!savedAttribute.transportationName.empty()) {
+        restoredObject.attributeTransportationTypes.emplace(
+            savedAttribute.handle,
+            savedAttribute.transportationName);
+      }
+      if (savedAttribute.orderType != 0U) {
+        auto const order = decodeSavedOrderType(savedAttribute.orderType);
+        if (!order) {
+          throw std::logic_error(
+              "The saved object ownership ledger has an invalid order type.");
+        }
+        restoredObject.attributeOrderTypes.emplace(savedAttribute.handle, *order);
+      }
+      if (!savedAttribute.updateRegionHandles.empty()) {
+        auto& regions = restoredObject.updateRegionsByAttribute[savedAttribute.handle];
+        for (auto const regionHandle : savedAttribute.updateRegionHandles) {
+          if (regionHandle == 0U || !federation.regions.contains(regionHandle) ||
+              !regions.insert(regionHandle).second) {
+            throw std::logic_error(
+                "The saved object ownership ledger has an invalid update region.");
+          }
+        }
+      }
+    }
+
+    std::set<std::uint64_t> knownAttributeHandles;
+    for (auto const& savedAttribute : savedObject.attributes) {
+      knownAttributeHandles.insert(savedAttribute.handle);
+    }
+    if (savedObject.attributeValuesPresent) {
+      std::uint64_t previousAttributeHandle = 0U;
+      for (auto const& savedValue : savedObject.attributeValues) {
+        if (savedValue.attributeHandle == 0U ||
+            savedValue.attributeHandle <= previousAttributeHandle ||
+            !knownAttributeHandles.contains(savedValue.attributeHandle)) {
+          throw std::logic_error(
+              "The saved object application-value ledger has an invalid attribute.");
+        }
+        previousAttributeHandle = savedValue.attributeHandle;
+        restoredObject.attributeValues.emplace(
+            savedValue.attributeHandle,
+            variableLengthDataFromBytes(savedValue.value));
+      }
+    }
+    auto const hasTypedAttributeValueUpdateLedger =
+        savedObject.pendingAttributeValueUpdateRequestsPresent ||
+        !savedObject.pendingAttributeValueUpdateRequests.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedAttributeValueUpdateLedger) {
+      restoredObject.pendingAttributeValueUpdateRequests.clear();
+    }
+    for (auto const& savedRequest :
+         savedObject.pendingAttributeValueUpdateRequests) {
+      if (savedRequest.requestId == 0U ||
+          savedRequest.requestingFederateId == 0U ||
+          savedRequest.providingFederateId == 0U ||
+          savedRequest.requestingFederateId == savedRequest.providingFederateId ||
+          !liveFederation.members.contains(savedRequest.requestingFederateId) ||
+          !liveFederation.members.contains(savedRequest.providingFederateId) ||
+          savedRequest.requestedAttributeHandles.empty()) {
+        throw std::logic_error(
+            "The saved attribute value update request has an invalid member identity.");
+      }
+      Federation::ObjectInstance::PendingAttributeValueUpdateRequest request;
+      request.requestingFederateId = savedRequest.requestingFederateId;
+      request.providingFederateId = savedRequest.providingFederateId;
+      request.requestedAttributeHandles.insert(
+          savedRequest.requestedAttributeHandles.begin(),
+          savedRequest.requestedAttributeHandles.end());
+      if (request.requestedAttributeHandles.size() !=
+              savedRequest.requestedAttributeHandles.size() ||
+          request.requestedAttributeHandles.empty() ||
+          !std::all_of(
+              savedRequest.requestedAttributeHandles.begin(),
+              savedRequest.requestedAttributeHandles.end(),
+              [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                return knownAttributeHandles.contains(attributeHandle);
+              })) {
+        throw std::logic_error(
+            "The saved attribute value update request has unknown attributes.");
+      }
+      request.userSuppliedTag.assign(
+          savedRequest.userSuppliedTag.begin(),
+          savedRequest.userSuppliedTag.end());
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeValueUpdateRequests.emplace(
+              savedRequest.requestId,
+              std::move(request));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate attribute value update request IDs.");
+      }
+    }
+    auto const hasTypedAttributeValueUpdateClassLedger =
+        savedObject.pendingAttributeValueUpdateClassRequestsPresent ||
+        !savedObject.pendingAttributeValueUpdateClassRequests.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedAttributeValueUpdateClassLedger) {
+      restoredObject.pendingAttributeValueUpdateClassRequests.clear();
+    }
+    for (auto const& savedRequest :
+         savedObject.pendingAttributeValueUpdateClassRequests) {
+      if (savedRequest.requestId == 0U ||
+          savedRequest.requestingFederateId == 0U ||
+          savedRequest.providingFederateId == 0U ||
+          savedRequest.requestingFederateId == savedRequest.providingFederateId ||
+          savedRequest.requestedObjectClassHandle == 0U ||
+          !liveFederation.members.contains(savedRequest.requestingFederateId) ||
+          !liveFederation.members.contains(savedRequest.providingFederateId) ||
+          savedRequest.requestedAttributeHandles.empty() ||
+          !federation.objectClassHandles ||
+          !federation.attributeHandles ||
+          !validObjectClass(federation, savedRequest.requestedObjectClassHandle) ||
+          !validObjectClassAttributes(
+              federation,
+              savedRequest.requestedObjectClassHandle,
+              std::set<std::uint64_t>(
+                  savedRequest.requestedAttributeHandles.begin(),
+                  savedRequest.requestedAttributeHandles.end()))) {
+        throw std::logic_error(
+            "The saved object-class attribute value update request has an invalid identity.");
+      }
+      if (!objectInstanceRegisteredAtOrBelowClass(
+              federation,
+              savedObject.registeredObjectClassHandle,
+              savedRequest.requestedObjectClassHandle) ||
+          savedObject.deleteAccepted) {
+        throw std::logic_error(
+            "The saved object-class attribute value update request has an invalid object class.");
+      }
+      Federation::ObjectInstance::PendingAttributeValueUpdateClassRequest request;
+      request.requestingFederateId = savedRequest.requestingFederateId;
+      request.providingFederateId = savedRequest.providingFederateId;
+      request.requestedObjectClassHandle = savedRequest.requestedObjectClassHandle;
+      request.requestedAttributeHandles.insert(
+          savedRequest.requestedAttributeHandles.begin(),
+          savedRequest.requestedAttributeHandles.end());
+      if (request.requestedAttributeHandles.size() !=
+              savedRequest.requestedAttributeHandles.size()) {
+        throw std::logic_error(
+            "The saved object-class attribute value update request has duplicate attributes.");
+      }
+      for (auto const attributeHandle : request.requestedAttributeHandles) {
+        auto const owner = restoredObject.attributeOwnersByHandle.find(attributeHandle);
+        if (owner == restoredObject.attributeOwnersByHandle.end() ||
+            owner->second != savedRequest.providingFederateId) {
+          throw std::logic_error(
+              "The saved object-class attribute value update request has a changed owner.");
+        }
+      }
+      request.userSuppliedTag.assign(
+          savedRequest.userSuppliedTag.begin(),
+          savedRequest.userSuppliedTag.end());
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeValueUpdateClassRequests.emplace(
+              savedRequest.requestId,
+              std::move(request));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate object-class attribute value update request IDs.");
+      }
+    }
+    auto const hasTypedAttributeValueUpdateRegionalLedger =
+        savedObject.pendingAttributeValueUpdateRegionalRequestsPresent ||
+        !savedObject.pendingAttributeValueUpdateRegionalRequests.empty() ||
+        savedObject.pendingOperationCount == 0U;
+    if (hasTypedAttributeValueUpdateRegionalLedger) {
+      restoredObject.pendingAttributeValueUpdateRegionalRequests.clear();
+    }
+    for (auto const& savedRequest :
+         savedObject.pendingAttributeValueUpdateRegionalRequests) {
+      if (savedRequest.requestId == 0U ||
+          savedRequest.requestingFederateId == 0U ||
+          savedRequest.providingFederateId == 0U ||
+          savedRequest.requestingFederateId == savedRequest.providingFederateId ||
+          savedRequest.requestedObjectClassHandle == 0U ||
+          !liveFederation.members.contains(savedRequest.requestingFederateId) ||
+          !liveFederation.members.contains(savedRequest.providingFederateId) ||
+          savedRequest.requestedAttributeHandles.empty() ||
+          !federation.objectClassHandles ||
+          !federation.attributeHandles ||
+          !validObjectClass(federation, savedRequest.requestedObjectClassHandle) ||
+          !validObjectClassAttributes(
+              federation,
+              savedRequest.requestedObjectClassHandle,
+              std::set<std::uint64_t>(
+                  savedRequest.requestedAttributeHandles.begin(),
+                  savedRequest.requestedAttributeHandles.end())) ||
+          !objectInstanceRegisteredAtOrBelowClass(
+              federation,
+              savedObject.registeredObjectClassHandle,
+              savedRequest.requestedObjectClassHandle) ||
+          savedObject.deleteAccepted) {
+        throw std::logic_error(
+            "The saved regional attribute value update request has an invalid identity.");
+      }
+      Federation::ObjectInstance::PendingAttributeValueUpdateRegionalRequest request;
+      request.requestingFederateId = savedRequest.requestingFederateId;
+      request.providingFederateId = savedRequest.providingFederateId;
+      request.requestedObjectClassHandle = savedRequest.requestedObjectClassHandle;
+      request.requestedAttributeHandles.insert(
+          savedRequest.requestedAttributeHandles.begin(),
+          savedRequest.requestedAttributeHandles.end());
+      if (request.requestedAttributeHandles.size() !=
+              savedRequest.requestedAttributeHandles.size()) {
+        throw std::logic_error(
+            "The saved regional attribute value update request has duplicate attributes.");
+      }
+      std::uint64_t previousAttributeHandle = 0U;
+      for (auto const& [attributeHandle, regionHandles] :
+           savedRequest.requestRegionsByAttribute) {
+        if (attributeHandle == 0U || attributeHandle <= previousAttributeHandle ||
+            !request.requestedAttributeHandles.contains(attributeHandle) ||
+            regionHandles.empty()) {
+          throw std::logic_error(
+              "The saved regional attribute value update request has invalid region associations.");
+        }
+        previousAttributeHandle = attributeHandle;
+        auto& restoredRegions = request.requestRegionsByAttribute[attributeHandle];
+        for (auto const regionHandle : regionHandles) {
+          auto const region = federation.regions.find(regionHandle);
+          if (region == federation.regions.end() ||
+              region->second.ownerFederateId != request.requestingFederateId ||
+              !region->second.specificationCommitted ||
+              !restoredRegions.insert(regionHandle).second) {
+            throw std::logic_error(
+                "The saved regional attribute value update request references an invalid region.");
+          }
+        }
+      }
+      request.userSuppliedTag.assign(
+          savedRequest.userSuppliedTag.begin(),
+          savedRequest.userSuppliedTag.end());
+      for (auto const attributeHandle : request.requestedAttributeHandles) {
+        auto const owner = restoredObject.attributeOwnersByHandle.find(attributeHandle);
+        if (owner == restoredObject.attributeOwnersByHandle.end() ||
+            owner->second != savedRequest.providingFederateId) {
+          throw std::logic_error(
+              "The saved regional attribute value update request has a changed owner.");
+        }
+      }
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeValueUpdateRegionalRequests.emplace(
+              savedRequest.requestId,
+              std::move(request));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate regional attribute value update request IDs.");
+      }
+    }
+  for (auto const& savedRequest :
+         savedObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+      if (savedRequest.requestId == 0U ||
+          savedRequest.requestingFederateId == 0U ||
+          savedRequest.requestSequence == 0U ||
+          !liveFederation.members.contains(savedRequest.requestingFederateId)) {
+        throw std::logic_error(
+            "The saved If Available ownership reservation has an invalid requester.");
+      }
+      Federation::ObjectInstance::PendingAttributeOwnershipAcquisitionIfAvailable request;
+      request.requestingFederateId = savedRequest.requestingFederateId;
+      request.requestSequence = savedRequest.requestSequence;
+      request.desiredAttributeHandles.insert(
+          savedRequest.desiredAttributeHandles.begin(),
+          savedRequest.desiredAttributeHandles.end());
+      if (request.desiredAttributeHandles.size() !=
+              savedRequest.desiredAttributeHandles.size() ||
+          request.desiredAttributeHandles.empty() ||
+          !std::all_of(
+              savedRequest.desiredAttributeHandles.begin(),
+              savedRequest.desiredAttributeHandles.end(),
+              [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                return knownAttributeHandles.contains(attributeHandle);
+              })) {
+        throw std::logic_error(
+            "The saved If Available ownership reservation has unknown attributes.");
+      }
+      request.userSuppliedTag.assign(
+          savedRequest.userSuppliedTag.begin(),
+          savedRequest.userSuppliedTag.end());
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.emplace(
+              savedRequest.requestId,
+              std::move(request));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate request IDs.");
+      }
+    }
+
+    for (auto const& savedRequest :
+         savedObject.pendingAttributeOwnershipAcquisitionRequests) {
+      if (savedRequest.requestId == 0U ||
+          savedRequest.requestingFederateId == 0U ||
+          savedRequest.requestSequence == 0U ||
+          !liveFederation.members.contains(savedRequest.requestingFederateId)) {
+        throw std::logic_error(
+            "The saved regular ownership reservation has an invalid requester.");
+      }
+      Federation::ObjectInstance::PendingAttributeOwnershipAcquisition request;
+      request.requestingFederateId = savedRequest.requestingFederateId;
+      request.requestSequence = savedRequest.requestSequence;
+      auto restoreAttributeSet = [&knownAttributeHandles](
+                                    std::vector<std::uint64_t> const& savedHandles,
+                                    std::set<std::uint64_t>& destination,
+                                    bool requireNonEmpty,
+                                    char const* error) {
+        destination.insert(savedHandles.begin(), savedHandles.end());
+        if (destination.size() != savedHandles.size() ||
+            (requireNonEmpty && destination.empty()) ||
+            !std::all_of(
+                savedHandles.begin(),
+                savedHandles.end(),
+                [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                  return knownAttributeHandles.contains(attributeHandle);
+                })) {
+          throw std::logic_error(error);
+        }
+      };
+      restoreAttributeSet(
+          savedRequest.desiredAttributeHandles,
+          request.desiredAttributeHandles,
+          true,
+          "The saved regular ownership reservation has unknown desired attributes.");
+      restoreAttributeSet(
+          savedRequest.notificationQueuedAttributeHandles,
+          request.notificationQueuedAttributeHandles,
+          false,
+          "The saved regular ownership reservation has unknown notification attributes.");
+      restoreAttributeSet(
+          savedRequest.unavailableQueuedAttributeHandles,
+          request.unavailableQueuedAttributeHandles,
+          false,
+          "The saved regular ownership reservation has unknown unavailable attributes.");
+      for (auto const& [ownerFederateId, savedAttributes] :
+           savedRequest.releaseCallbacksQueuedByOwningFederate) {
+        if (ownerFederateId == 0U ||
+            !liveFederation.members.contains(ownerFederateId)) {
+          throw std::logic_error(
+              "The saved regular ownership reservation has an invalid release owner.");
+        }
+        std::set<std::uint64_t> attributes;
+        restoreAttributeSet(
+            savedAttributes,
+            attributes,
+            true,
+            "The saved regular ownership reservation has unknown release attributes.");
+        for (auto const attributeHandle : attributes) {
+          if (!request.desiredAttributeHandles.contains(attributeHandle)) {
+            throw std::logic_error(
+                "The saved regular ownership release attributes are outside the request.");
+          }
+        }
+        auto const [releasePosition, releaseInserted] =
+            request.releaseCallbacksQueuedByOwningFederate.emplace(
+                ownerFederateId,
+                std::move(attributes));
+        static_cast<void>(releasePosition);
+        if (!releaseInserted) {
+          throw std::logic_error(
+              "The saved regular ownership reservation has duplicate release owners.");
+        }
+      }
+      for (auto const attributeHandle : request.notificationQueuedAttributeHandles) {
+        if (!request.desiredAttributeHandles.contains(attributeHandle)) {
+          throw std::logic_error(
+              "The saved regular ownership notification attributes are outside the request.");
+        }
+      }
+      for (auto const attributeHandle : request.unavailableQueuedAttributeHandles) {
+        if (!request.desiredAttributeHandles.contains(attributeHandle)) {
+          throw std::logic_error(
+              "The saved regular ownership unavailable attributes are outside the request.");
+        }
+      }
+      if (materializeProcessRestartObjects) {
+        // The saved sets describe callback work in the old process. Keep the
+        // request identity and desired attributes, but let the post-restore
+        // planner reserve fresh notification/release callbacks against the
+        // current live routes. The admission predicate excludes an
+        // unavailable terminal callback from this replay path.
+        request.notificationQueuedAttributeHandles.clear();
+        request.unavailableQueuedAttributeHandles.clear();
+        request.releaseCallbacksQueuedByOwningFederate.clear();
+      }
+      request.userSuppliedTag.assign(
+          savedRequest.userSuppliedTag.begin(),
+          savedRequest.userSuppliedTag.end());
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeOwnershipAcquisitionRequests.emplace(
+              savedRequest.requestId,
+              std::move(request));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate regular request IDs.");
+      }
+    }
+
+    for (auto const& savedCancellation :
+         savedObject.pendingAttributeOwnershipAcquisitionCancellations) {
+      if (savedCancellation.cancellationId == 0U ||
+          savedCancellation.requestingFederateId == 0U ||
+          !liveFederation.members.contains(savedCancellation.requestingFederateId)) {
+        throw std::logic_error(
+            "The saved ownership acquisition cancellation has an invalid requester.");
+      }
+      Federation::ObjectInstance::PendingAttributeOwnershipAcquisitionCancellation cancellation;
+      cancellation.requestingFederateId = savedCancellation.requestingFederateId;
+      cancellation.attributeHandles.insert(
+          savedCancellation.attributeHandles.begin(),
+          savedCancellation.attributeHandles.end());
+      if (cancellation.attributeHandles.size() !=
+              savedCancellation.attributeHandles.size() ||
+          cancellation.attributeHandles.empty() ||
+          !std::all_of(
+              savedCancellation.attributeHandles.begin(),
+              savedCancellation.attributeHandles.end(),
+              [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                return knownAttributeHandles.contains(attributeHandle);
+              })) {
+        throw std::logic_error(
+            "The saved ownership acquisition cancellation has unknown attributes.");
+      }
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeOwnershipAcquisitionCancellations.emplace(
+              savedCancellation.cancellationId,
+              std::move(cancellation));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate cancellation IDs.");
+      }
+    }
+
+    for (auto const& savedNotification :
+         savedObject.pendingAttributeOwnershipDivestitureIfWantedNotifications) {
+      if (savedNotification.notificationId == 0U ||
+          savedNotification.receivingFederateId == 0U ||
+          !liveFederation.members.contains(savedNotification.receivingFederateId)) {
+        throw std::logic_error(
+            "The saved Divestiture If Wanted notification has an invalid recipient.");
+      }
+      Federation::ObjectInstance::PendingAttributeOwnershipDivestitureIfWantedNotification notification;
+      notification.receivingFederateId = savedNotification.receivingFederateId;
+      notification.attributeHandles.insert(
+          savedNotification.attributeHandles.begin(),
+          savedNotification.attributeHandles.end());
+      notification.userSuppliedTag.assign(
+          savedNotification.userSuppliedTag.begin(),
+          savedNotification.userSuppliedTag.end());
+      if (notification.attributeHandles.size() !=
+              savedNotification.attributeHandles.size() ||
+          notification.attributeHandles.empty() ||
+          !std::all_of(
+              savedNotification.attributeHandles.begin(),
+              savedNotification.attributeHandles.end(),
+              [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                return knownAttributeHandles.contains(attributeHandle);
+              })) {
+        throw std::logic_error(
+            "The saved Divestiture If Wanted notification has unknown attributes.");
+      }
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeOwnershipDivestitureIfWantedNotifications.emplace(
+              savedNotification.notificationId,
+              std::move(notification));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate notification IDs.");
+      }
+    }
+
+    for (auto const& savedNotification : savedObject.pendingConfirmDivestitureNotifications) {
+      if (savedNotification.notificationId == 0U ||
+          savedNotification.receivingFederateId == 0U ||
+          !liveFederation.members.contains(savedNotification.receivingFederateId)) {
+        throw std::logic_error(
+            "The saved Confirm Divestiture notification has an invalid recipient.");
+      }
+      Federation::ObjectInstance::PendingConfirmDivestitureNotification notification;
+      notification.receivingFederateId = savedNotification.receivingFederateId;
+      notification.attributeHandles.insert(
+          savedNotification.attributeHandles.begin(),
+          savedNotification.attributeHandles.end());
+      notification.userSuppliedTag.assign(
+          savedNotification.userSuppliedTag.begin(),
+          savedNotification.userSuppliedTag.end());
+      if (notification.attributeHandles.size() !=
+              savedNotification.attributeHandles.size() ||
+          notification.attributeHandles.empty() ||
+          !std::all_of(
+              savedNotification.attributeHandles.begin(),
+              savedNotification.attributeHandles.end(),
+              [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                return knownAttributeHandles.contains(attributeHandle);
+              })) {
+        throw std::logic_error(
+            "The saved Confirm Divestiture notification has unknown attributes.");
+      }
+      auto const [position, inserted] =
+          restoredObject.pendingConfirmDivestitureNotifications.emplace(
+              savedNotification.notificationId,
+              std::move(notification));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate Confirm Divestiture notification IDs.");
+      }
+    }
+
+    for (auto const& savedRequest :
+         savedObject.pendingAttributeTransportationTypeChanges) {
+      if (savedRequest.requestId == 0U ||
+          savedRequest.requestingFederateId == 0U ||
+          !liveFederation.members.contains(savedRequest.requestingFederateId) ||
+          savedRequest.attributeHandles.empty() ||
+          !isSupportedTransportationName(
+              federation.definition.catalog.get(),
+              savedRequest.transportationName)) {
+        throw std::logic_error(
+            "The saved attribute transportation-type change has an invalid requester or type.");
+      }
+      Federation::ObjectInstance::PendingAttributeTransportationTypeChange request;
+      request.requestingFederateId = savedRequest.requestingFederateId;
+      request.transportationName = savedRequest.transportationName;
+      request.attributeHandles.insert(
+          savedRequest.attributeHandles.begin(),
+          savedRequest.attributeHandles.end());
+      if (request.attributeHandles.size() !=
+              savedRequest.attributeHandles.size() ||
+          request.attributeHandles.empty() ||
+          !std::all_of(
+              savedRequest.attributeHandles.begin(),
+              savedRequest.attributeHandles.end(),
+              [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                return knownAttributeHandles.contains(attributeHandle);
+              })) {
+        throw std::logic_error(
+            "The saved attribute transportation-type change has unknown attributes.");
+      }
+      for (auto const attributeHandle : request.attributeHandles) {
+        auto const owner = restoredObject.attributeOwnersByHandle.find(attributeHandle);
+        if (owner == restoredObject.attributeOwnersByHandle.end() ||
+            owner->second != savedRequest.requestingFederateId) {
+          throw std::logic_error(
+              "The saved attribute transportation-type change has an attribute not owned by its requester.");
+        }
+      }
+      auto const [position, inserted] =
+          restoredObject.pendingAttributeTransportationTypeChanges.emplace(
+              savedRequest.requestId,
+              std::move(request));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate transportation-type change request IDs.");
+      }
+    }
+
+    for (auto const& savedDivestiture :
+         savedObject.pendingNegotiatedAttributeOwnershipDivestitures) {
+      if (savedDivestiture.attributeHandle == 0U ||
+          !knownAttributeHandles.contains(savedDivestiture.attributeHandle) ||
+          savedDivestiture.divestingFederateId == 0U ||
+          !liveFederation.members.contains(savedDivestiture.divestingFederateId)) {
+        throw std::logic_error(
+            "The saved negotiated ownership divestiture has an invalid attribute or divesting federate.");
+      }
+      auto const owner = restoredObject.attributeOwnersByHandle.find(
+          savedDivestiture.attributeHandle);
+      if (owner == restoredObject.attributeOwnersByHandle.end() ||
+          owner->second != savedDivestiture.divestingFederateId) {
+        throw std::logic_error(
+            "The saved negotiated ownership divestiture does not match the attribute owner.");
+      }
+      if ((savedDivestiture.acquiringFederateId == 0U &&
+           (savedDivestiture.acquisitionRequestId != 0U ||
+            savedDivestiture.acquiringFederateIsIfAvailable ||
+            savedDivestiture.confirmationQueued ||
+            savedDivestiture.confirmationDelivered)) ||
+          (savedDivestiture.acquiringFederateId != 0U &&
+           (savedDivestiture.acquisitionRequestId == 0U ||
+            !liveFederation.members.contains(savedDivestiture.acquiringFederateId))) ||
+          (savedDivestiture.confirmationDelivered &&
+           !savedDivestiture.confirmationQueued)) {
+        throw std::logic_error(
+            "The saved negotiated ownership divestiture has inconsistent candidate state.");
+      }
+
+      if (savedDivestiture.acquiringFederateId != 0U) {
+        bool candidateStillPending = false;
+        if (savedDivestiture.acquiringFederateIsIfAvailable) {
+          auto const candidate =
+              restoredObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.find(
+                  savedDivestiture.acquisitionRequestId);
+          candidateStillPending =
+              candidate !=
+                  restoredObject.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end() &&
+              candidate->second.requestingFederateId ==
+                  savedDivestiture.acquiringFederateId &&
+              candidate->second.desiredAttributeHandles.contains(
+                  savedDivestiture.attributeHandle);
+        } else {
+          auto const candidate =
+              restoredObject.pendingAttributeOwnershipAcquisitionRequests.find(
+                  savedDivestiture.acquisitionRequestId);
+          candidateStillPending =
+              candidate != restoredObject.pendingAttributeOwnershipAcquisitionRequests.end() &&
+              candidate->second.requestingFederateId ==
+                  savedDivestiture.acquiringFederateId &&
+              candidate->second.desiredAttributeHandles.contains(
+                  savedDivestiture.attributeHandle);
+        }
+        if (!candidateStillPending) {
+          throw std::logic_error(
+              "The saved negotiated ownership divestiture has no matching acquisition request.");
+        }
+      }
+
+      Federation::ObjectInstance::PendingNegotiatedAttributeOwnershipDivestiture divestiture;
+      divestiture.divestingFederateId = savedDivestiture.divestingFederateId;
+      divestiture.acquiringFederateId = savedDivestiture.acquiringFederateId;
+      divestiture.acquisitionRequestId = savedDivestiture.acquisitionRequestId;
+      divestiture.acquiringFederateIsIfAvailable =
+          savedDivestiture.acquiringFederateIsIfAvailable;
+      divestiture.confirmationQueued = savedDivestiture.confirmationQueued;
+      divestiture.confirmationDelivered = savedDivestiture.confirmationDelivered;
+      if (materializeProcessRestartObjects && !savedDivestiture.confirmationDelivered) {
+        // The saved flags describe a Request Divestiture Confirmation callback
+        // in the old process.  Rebuild that callback against the current
+        // owner/requester routes after restore; never replay a stale closure.
+        divestiture.confirmationQueued = false;
+        divestiture.confirmationDelivered = false;
+      } else if (materializeProcessRestartObjects && savedDivestiture.confirmationDelivered) {
+        // The callback already entered user code before the save.  Preserve
+        // the durable delivered marker so the owner can continue directly to
+        // Confirm Divestiture without receiving a duplicate confirmation.
+        divestiture.confirmationQueued = true;
+        divestiture.confirmationDelivered = true;
+      }
+      divestiture.userSuppliedTag.assign(
+          savedDivestiture.userSuppliedTag.begin(),
+          savedDivestiture.userSuppliedTag.end());
+      auto const [position, inserted] =
+          restoredObject.pendingNegotiatedAttributeOwnershipDivestitures.emplace(
+              savedDivestiture.attributeHandle,
+              std::move(divestiture));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate negotiated divestiture attributes.");
+      }
+    }
+
+    for (auto const& savedAssumption :
+         savedObject.ownershipAssumptionRecipientsByAttribute) {
+      if (savedAssumption.attributeHandle == 0U ||
+          !knownAttributeHandles.contains(savedAssumption.attributeHandle) ||
+          restoredObject.attributeOwnersByHandle.contains(
+              savedAssumption.attributeHandle)) {
+        throw std::logic_error(
+            "The saved ownership-assumption recipient ledger has an invalid attribute.");
+      }
+      std::set<std::uint64_t> recipients;
+      recipients.insert(
+          savedAssumption.recipientFederateIds.begin(),
+          savedAssumption.recipientFederateIds.end());
+      if (recipients.size() != savedAssumption.recipientFederateIds.size() ||
+          !std::all_of(
+              savedAssumption.recipientFederateIds.begin(),
+              savedAssumption.recipientFederateIds.end(),
+              [&liveFederation](std::uint64_t federateId) {
+                return federateId != 0U && liveFederation.members.contains(federateId);
+              })) {
+        throw std::logic_error(
+            "The saved ownership-assumption recipient ledger has an invalid recipient.");
+      }
+      auto const [position, inserted] =
+          restoredObject.ownershipAssumptionRecipientsByAttribute.emplace(
+              savedAssumption.attributeHandle,
+              std::move(recipients));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate assumption attributes.");
+      }
+    }
+
+    for (auto const& savedAssumption :
+         savedObject.ownershipAssumptionUserSuppliedTagsByAttribute) {
+      if (savedAssumption.attributeHandle == 0U ||
+          !knownAttributeHandles.contains(savedAssumption.attributeHandle) ||
+          restoredObject.attributeOwnersByHandle.contains(
+              savedAssumption.attributeHandle)) {
+        throw std::logic_error(
+            "The saved ownership-assumption tag ledger has an invalid attribute.");
+      }
+      auto const [position, inserted] =
+          restoredObject.ownershipAssumptionUserSuppliedTagsByAttribute.emplace(
+              savedAssumption.attributeHandle,
+              std::vector<unsigned char>(
+                  savedAssumption.userSuppliedTag.begin(),
+                  savedAssumption.userSuppliedTag.end()));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved object ownership ledger has duplicate assumption tag attributes.");
+      }
+    }
+
+    if (image.pendingAttributeOwnershipAssumptionsPresent) {
+      for (auto const& savedCallback : image.pendingAttributeOwnershipAssumptions) {
+        if (savedCallback.objectInstanceHandle != savedObject.handle) {
+          continue;
+        }
+        if (savedCallback.receivingFederateId == 0U ||
+            !liveFederation.members.contains(savedCallback.receivingFederateId) ||
+            savedCallback.attributeHandles.empty() ||
+            !std::is_sorted(
+                savedCallback.attributeHandles.begin(),
+                savedCallback.attributeHandles.end()) ||
+            std::adjacent_find(
+                savedCallback.attributeHandles.begin(),
+                savedCallback.attributeHandles.end()) !=
+                savedCallback.attributeHandles.end()) {
+          throw std::logic_error(
+              "The saved ownership-assumption callback has an invalid recipient or attribute set.");
+        }
+        PendingAttributeOwnershipAssumptionCallback callback;
+        callback.receivingFederateId = savedCallback.receivingFederateId;
+        callback.attributeHandles.insert(
+            savedCallback.attributeHandles.begin(),
+            savedCallback.attributeHandles.end());
+        if (callback.attributeHandles.size() != savedCallback.attributeHandles.size() ||
+            !std::all_of(
+                savedCallback.attributeHandles.begin(),
+                savedCallback.attributeHandles.end(),
+                [&knownAttributeHandles](std::uint64_t attributeHandle) {
+                  return knownAttributeHandles.contains(attributeHandle);
+                })) {
+          throw std::logic_error(
+              "The saved ownership-assumption callback has unknown attributes.");
+        }
+        for (auto const attributeHandle : callback.attributeHandles) {
+          auto const recipients =
+              restoredObject.ownershipAssumptionRecipientsByAttribute.find(
+                  attributeHandle);
+          auto const tag =
+              restoredObject.ownershipAssumptionUserSuppliedTagsByAttribute.find(
+                  attributeHandle);
+          if (recipients ==
+                  restoredObject.ownershipAssumptionRecipientsByAttribute.end() ||
+              !recipients->second.contains(callback.receivingFederateId) ||
+              tag == restoredObject.ownershipAssumptionUserSuppliedTagsByAttribute.end() ||
+              restoredObject.attributeOwnersByHandle.contains(attributeHandle)) {
+            throw std::logic_error(
+                "The saved ownership-assumption callback is detached from its search ledger.");
+          }
+        }
+        callback.userSuppliedTag.assign(
+            savedCallback.userSuppliedTag.begin(),
+            savedCallback.userSuppliedTag.end());
+        restoredObject.pendingAttributeOwnershipAssumptionCallbacks.push_back(
+            std::move(callback));
+      }
+    }
+
+    std::uint64_t previousPendingDiscoveryFederateId = 0U;
+    for (auto const federateId : savedObject.pendingDiscoveryFederateIds) {
+      if (federateId == 0U || federateId <= previousPendingDiscoveryFederateId ||
+          !liveFederation.members.contains(federateId) ||
+          restoredObject.knownObjectClassHandlesByFederate.contains(federateId)) {
+        throw std::logic_error(
+            "The saved object visibility projection has an invalid pending discovery federate.");
+      }
+      previousPendingDiscoveryFederateId = federateId;
+      if (!restoredObject.pendingDiscoveryFederates.insert(federateId).second) {
+        throw std::logic_error(
+            "The saved object visibility projection has duplicate pending discovery federates.");
+      }
+    }
+    std::uint64_t previousPendingRemovalFederateId = 0U;
+    for (auto const federateId : savedObject.pendingRemovalFederateIds) {
+      if (federateId == 0U || federateId <= previousPendingRemovalFederateId ||
+          !liveFederation.members.contains(federateId) ||
+          !restoredObject.knownObjectClassHandlesByFederate.contains(federateId)) {
+        throw std::logic_error(
+            "The saved object visibility projection has an invalid pending removal federate.");
+      }
+      previousPendingRemovalFederateId = federateId;
+      if (!restoredObject.pendingRemovalFederates.insert(federateId).second) {
+        throw std::logic_error(
+          "The saved object visibility projection has duplicate pending removal federates.");
+      }
+    }
+
+    std::uint64_t previousConnectionLossAutomaticRemovalFederateId = 0U;
+    for (auto const federateId :
+         savedObject.connectionLossAutomaticRemovalFederateIds) {
+      if (federateId == 0U ||
+          federateId <= previousConnectionLossAutomaticRemovalFederateId ||
+          !liveFederation.members.contains(federateId) ||
+          !restoredObject.pendingRemovalFederates.contains(federateId)) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has an invalid connection-loss automatic removal federate.");
+      }
+      previousConnectionLossAutomaticRemovalFederateId = federateId;
+      if (!restoredObject.connectionLossAutomaticRemovalFederates.insert(
+              federateId)
+               .second) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has duplicate connection-loss automatic removals.");
+      }
+    }
+    std::uint64_t previousDeferredConnectionLossTsoRemovalFederateId = 0U;
+    for (auto const federateId :
+         savedObject.deferredConnectionLossTsoRemovalFederateIds) {
+      if (federateId == 0U ||
+          federateId <= previousDeferredConnectionLossTsoRemovalFederateId ||
+          !liveFederation.members.contains(federateId) ||
+          !restoredObject.pendingRemovalFederates.contains(federateId) ||
+          !restoredObject.connectionLossAutomaticRemovalFederates.contains(
+              federateId)) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has an invalid deferred connection-loss TSO removal federate.");
+      }
+      previousDeferredConnectionLossTsoRemovalFederateId = federateId;
+      if (!restoredObject.deferredConnectionLossTsoRemovalFederates.insert(
+              federateId)
+               .second) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has duplicate deferred connection-loss TSO removals.");
+      }
+    }
+    std::uint64_t previousPendingTimestampedRemovalFederateId = 0U;
+    for (auto const federateId : savedObject.pendingTimestampedRemovalFederateIds) {
+      if (federateId == 0U ||
+          federateId <= previousPendingTimestampedRemovalFederateId ||
+          !liveFederation.members.contains(federateId)) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has an invalid pending timestamped removal federate.");
+      }
+      previousPendingTimestampedRemovalFederateId = federateId;
+      if (!restoredObject.pendingTimestampedRemovalFederates.insert(federateId)
+               .second) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has duplicate pending timestamped removals.");
+      }
+    }
+    if (savedObject.pendingTimestampedDeletionMessageId.has_value()) {
+      if (*savedObject.pendingTimestampedDeletionMessageId == 0U) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has an invalid pending timestamped deletion message.");
+      }
+      restoredObject.pendingTimestampedDeletionMessageId =
+          savedObject.pendingTimestampedDeletionMessageId;
+    } else if (!savedObject.pendingTimestampedRemovalFederateIds.empty()) {
+      throw std::logic_error(
+          "The saved object lifecycle ledger has timestamped removals without a deletion message.");
+    }
+
+    auto const [position, inserted] =
+        restoredObjects.emplace(savedObject.handle, std::move(restoredObject));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved object ownership ledger has duplicate object handles.");
+    }
+  }
+
+  if (image.pendingAttributeOwnershipQueriesPresent) {
+    for (auto const& savedQuery : image.pendingAttributeOwnershipQueries) {
+      if (savedQuery.requestId == 0U ||
+          savedQuery.requestingFederateId == 0U ||
+          savedQuery.objectInstanceHandle == 0U || savedQuery.reportKind > 2U ||
+          !liveFederation.members.contains(savedQuery.requestingFederateId) ||
+          savedQuery.requestedAttributeHandles.empty()) {
+        throw std::logic_error(
+            "The saved Attribute Ownership query has an invalid identity.");
+      }
+      if ((savedQuery.reportKind == 0U && savedQuery.owningFederateId == 0U) ||
+          (savedQuery.reportKind != 0U && savedQuery.owningFederateId != 0U)) {
+        throw std::logic_error(
+            "The saved Attribute Ownership query has an invalid owner report.");
+      }
+      Federation::PendingAttributeOwnershipQuery query;
+      query.requestingFederateId = savedQuery.requestingFederateId;
+      query.objectInstanceHandle = savedQuery.objectInstanceHandle;
+      query.reportKind = static_cast<AttributeOwnershipQueryReportKind>(
+          savedQuery.reportKind);
+      query.owningFederateId = savedQuery.owningFederateId;
+      query.requestedAttributeHandles.insert(
+          savedQuery.requestedAttributeHandles.begin(),
+          savedQuery.requestedAttributeHandles.end());
+      if (query.requestedAttributeHandles.size() !=
+              savedQuery.requestedAttributeHandles.size() ||
+          !std::is_sorted(
+              savedQuery.requestedAttributeHandles.begin(),
+              savedQuery.requestedAttributeHandles.end()) ||
+          std::adjacent_find(
+              savedQuery.requestedAttributeHandles.begin(),
+              savedQuery.requestedAttributeHandles.end()) !=
+              savedQuery.requestedAttributeHandles.end()) {
+        throw std::logic_error(
+            "The saved Attribute Ownership query has duplicate attributes.");
+      }
+      auto const object = restoredObjects.find(savedQuery.objectInstanceHandle);
+      auto const momObject = federation.rtiOwnedJoinedFederateMomObjects.find(
+          savedQuery.objectInstanceHandle);
+      if (object == restoredObjects.end() &&
+          momObject == federation.rtiOwnedJoinedFederateMomObjects.end()) {
+        throw std::logic_error(
+            "The saved Attribute Ownership query targets an unknown object.");
+      }
+      if (object != restoredObjects.end()) {
+        if (object->second.deleteAccepted || savedQuery.reportKind == 2U ||
+            !object->second.knownObjectClassHandlesByFederate.contains(
+                savedQuery.requestingFederateId)) {
+          throw std::logic_error(
+              "The saved Attribute Ownership query has an invalid object projection.");
+        }
+        std::set<std::uint64_t> knownAttributes;
+        auto const savedObjectProjection = std::find_if(
+            image.objects.begin(),
+            image.objects.end(),
+            [&savedQuery](FederationStateImageObject const& candidate) {
+              return candidate.handle == savedQuery.objectInstanceHandle;
+            });
+        if (savedObjectProjection == image.objects.end()) {
+          throw std::logic_error(
+              "The saved Attribute Ownership query has no object projection.");
+        }
+        for (auto const& attribute : savedObjectProjection->attributes) {
+          knownAttributes.insert(attribute.handle);
+        }
+        for (auto const& attribute : object->second.attributeOwnersByHandle) {
+          knownAttributes.insert(attribute.first);
+        }
+        for (auto const& attribute : object->second.attributeTransportationTypes) {
+          knownAttributes.insert(attribute.first);
+        }
+        for (auto const& attribute : object->second.attributeOrderTypes) {
+          knownAttributes.insert(attribute.first);
+        }
+        for (auto const& attribute : object->second.attributeValues) {
+          knownAttributes.insert(attribute.first);
+        }
+        for (auto const attributeHandle : query.requestedAttributeHandles) {
+          if (!knownAttributes.contains(attributeHandle)) {
+            throw std::logic_error(
+                "The saved Attribute Ownership query has an unknown attribute.");
+          }
+        }
+        if (query.reportKind == AttributeOwnershipQueryReportKind::federate &&
+            !liveFederation.members.contains(query.owningFederateId)) {
+          throw std::logic_error(
+              "The saved Attribute Ownership query has a departed owner.");
+        }
+      } else if (savedQuery.reportKind != 2U ||
+                 !momObject->second.knownFederateIds.contains(
+                     savedQuery.requestingFederateId)) {
+        throw std::logic_error(
+            "The saved RTI-owned Attribute Ownership query has an invalid projection.");
+      }
+      auto const [position, inserted] =
+          restoredPendingAttributeOwnershipQueries.emplace(
+              savedQuery.requestId,
+              std::move(query));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved federation has duplicate Attribute Ownership query IDs.");
+      }
+    }
+  }
+
+  if (image.pendingAttributeOwnershipQueriesPresent) {
+    federation.pendingAttributeOwnershipQueries =
+        std::move(restoredPendingAttributeOwnershipQueries);
+  }
+  federation.objectInstances = std::move(restoredObjects);
+  if (materializeProcessRestartObjects) {
+    federation.objectInstanceHandlesByName.clear();
+    for (auto const& [objectHandle, object] : federation.objectInstances) {
+      if (object.name.empty() ||
+          !federation.objectInstanceHandlesByName.emplace(object.name, objectHandle).second) {
+        throw std::logic_error(
+            "The saved object application-value ledger has an invalid or duplicate name.");
+      }
+    }
+  }
+}
+
+void EmbeddedFederationRegistry::restoreTsoQueueFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image) {
+  if (image.logicalTimeImplementationName !=
+      federation.definition.logicalTimeImplementationName) {
+    throw std::logic_error(
+        "The saved TSO queue uses a different logical-time implementation.");
+  }
+
+  std::vector<TsoQueueRestoreEntry> entries;
+  entries.reserve(image.tsoQueueEntries.size());
+  for (auto const& savedEntry : image.tsoQueueEntries) {
+    auto const timestamp = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedEntry.timestampEncoding);
+    if (!timestamp) {
+      throw std::logic_error(
+          "The saved TSO queue entry has no logical-time encoding.");
+    }
+    entries.push_back({
+        TsoQueuedMessage{
+            savedEntry.messageId,
+            savedEntry.recipientFederateId,
+            savedEntry.sequence,
+            timestamp},
+        static_cast<TsoMessageQueuePhase>(savedEntry.phase),
+    });
+  }
+
+  auto const restored = federation.timeCoordinator.restoreTsoQueue(entries);
+  if (restored.status != FederationTsoQueueRestoreStatus::applied ||
+      restored.restoredCount != entries.size()) {
+    throw std::logic_error(
+        "The saved TSO queue could not be rehydrated for the joined recipients.");
+  }
+}
+
+void EmbeddedFederationRegistry::restoreTsoPayloadsFromStateImage(
+    Federation& federation,
+    FederationStateImage const& image,
+    Federation const& liveFederation) {
+  if (image.logicalTimeImplementationName !=
+      federation.definition.logicalTimeImplementationName) {
+    throw std::logic_error(
+        "The saved TSO payloads use a different logical-time implementation.");
+  }
+  if (image.tsoInteractionMessageCount != image.tsoInteractionMessages.size() ||
+      image.tsoAttributeUpdateMessageCount != image.tsoAttributeUpdateMessages.size() ||
+      image.tsoObjectDeletionMessageCount != image.tsoObjectDeletionMessages.size() ||
+      image.tsoDirectedInteractionMessageCount !=
+          image.tsoDirectedInteractionMessages.size()) {
+    throw std::logic_error(
+          "The saved TSO payload counts do not match their durable sections.");
+  }
+
+  // Decode into replacement maps first.  A malformed payload or unavailable
+  // live route therefore cannot leave a partially rehydrated snapshot behind.
+  std::map<std::uint64_t, Federation::TsoRequestRetractionRecord>
+      retractionRecords;
+  for (auto const& savedRecord : image.tsoRequestRetractionRecords) {
+    if (savedRecord.messageId == 0U || savedRecord.producingFederateId == 0U ||
+        (savedRecord.retractionApplied && !savedRecord.terminal) ||
+        (!savedRecord.terminal && !savedRecord.timestampEncoding.has_value())) {
+      throw std::logic_error(
+          "The saved TSO Request Retraction record has incomplete identity or state.");
+    }
+    auto timestamp = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedRecord.timestampEncoding);
+    if (timestamp && (timestamp->isInitial() || timestamp->isFinal())) {
+      throw std::logic_error(
+          "The saved TSO Request Retraction record has an invalid timestamp.");
+    }
+    Federation::TsoRequestRetractionRecord record;
+    record.producingFederateId = savedRecord.producingFederateId;
+    record.timestamp = std::move(timestamp);
+    record.retractionApplied = savedRecord.retractionApplied;
+    record.terminal = savedRecord.terminal;
+    record.producerResigned = savedRecord.producerResigned;
+    record.deliveryRequiredAfterConnectionLoss =
+        savedRecord.deliveryRequiredAfterConnectionLoss;
+    for (auto const& savedRecipient : savedRecord.recipientStates) {
+      if (savedRecipient.receivingFederateId == 0U ||
+          savedRecipient.state > 3U) {
+        throw std::logic_error(
+            "The saved TSO Request Retraction record has an invalid recipient state.");
+      }
+      auto const [position, inserted] = record.recipientStates.emplace(
+          savedRecipient.receivingFederateId,
+          static_cast<Federation::TsoRecipientDeliveryState>(
+              savedRecipient.state));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved TSO Request Retraction record has duplicate recipients.");
+      }
+    }
+    auto const [position, inserted] = retractionRecords.emplace(
+        savedRecord.messageId,
+        std::move(record));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved TSO Request Retraction section contains duplicate message IDs.");
+    }
+  }
+
+  std::map<std::uint64_t, TsoInteractionMessage> interactions;
+  for (auto const& savedMessage : image.tsoInteractionMessages) {
+    if (savedMessage.messageId == 0U || savedMessage.producingFederateId == 0U ||
+        savedMessage.sentInteractionClassHandle == 0U ||
+        !savedMessage.timestampEncoding.has_value() ||
+        savedMessage.sentParameterHandles.size() != savedMessage.parameters.size()) {
+      throw std::logic_error(
+          "The saved TSO interaction payload has incomplete identity or parameters.");
+    }
+    auto const sentTimestamp = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedMessage.timestampEncoding);
+    if (!sentTimestamp || sentTimestamp->isInitial() || sentTimestamp->isFinal()) {
+      throw std::logic_error(
+          "The saved TSO interaction payload has an invalid timestamp.");
+    }
+    auto const sentOrder = decodeSavedOrderType(savedMessage.sentOrderType);
+    auto const receivedOrder = decodeSavedOrderType(savedMessage.receivedOrderType);
+    if (!sentOrder || !receivedOrder) {
+      throw std::logic_error(
+          "The saved TSO interaction payload has an invalid order type.");
+    }
+
+    std::set<std::uint64_t> sentParameterHandles;
+    for (auto const parameterHandle : savedMessage.sentParameterHandles) {
+      if (parameterHandle == 0U ||
+          !sentParameterHandles.insert(parameterHandle).second) {
+        throw std::logic_error(
+            "The saved TSO interaction payload has duplicate parameter handles.");
+      }
+    }
+
+    TsoInteractionMessage message;
+    message.messageId = savedMessage.messageId;
+    message.producingFederateId = savedMessage.producingFederateId;
+    message.sentInteractionClassHandle = savedMessage.sentInteractionClassHandle;
+    message.sentParameterHandles = savedMessage.sentParameterHandles;
+    message.parameters.reserve(savedMessage.parameters.size());
+    for (auto const& savedParameter : savedMessage.parameters) {
+      if (savedParameter.parameterHandle == 0U ||
+          !sentParameterHandles.contains(savedParameter.parameterHandle)) {
+        throw std::logic_error(
+            "The saved TSO interaction payload contains an unknown parameter.");
+      }
+      message.parameters.emplace_back(
+          savedParameter.parameterHandle,
+          variableLengthDataFromBytes(savedParameter.value));
+    }
+    message.userSuppliedTag =
+        variableLengthDataFromBytes(savedMessage.userSuppliedTag);
+    message.transportationName = savedMessage.transportationName;
+    message.sentRegionHandles.insert(
+        savedMessage.sentRegionHandles.begin(),
+        savedMessage.sentRegionHandles.end());
+    if (message.sentRegionHandles.size() != savedMessage.sentRegionHandles.size() ||
+        (!message.sentRegionHandles.empty() &&
+         savedMessage.sentRegionSnapshots.size() !=
+             message.sentRegionHandles.size()) ||
+        (message.sentRegionHandles.empty() &&
+         !savedMessage.sentRegionSnapshots.empty())) {
+      throw std::logic_error(
+          "The saved TSO interaction payload has inconsistent region snapshots.");
+    }
+    for (auto const& savedSnapshot : savedMessage.sentRegionSnapshots) {
+      if (!message.sentRegionHandles.contains(savedSnapshot.regionHandle)) {
+        throw std::logic_error(
+            "The saved TSO interaction payload contains an unknown region snapshot.");
+      }
+      auto const [position, inserted] = message.sentRegionSnapshots.emplace(
+          savedSnapshot.regionHandle,
+          decodeSavedRegionSnapshot(savedSnapshot));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved TSO interaction payload contains duplicate region snapshots.");
+      }
+    }
+    message.defaultRegionUsed = savedMessage.defaultRegionUsed;
+    message.timestamp = std::move(sentTimestamp);
+    message.sentOrderType = *sentOrder;
+    message.receivedOrderType = *receivedOrder;
+    auto const [position, inserted] = interactions.emplace(
+        message.messageId,
+        std::move(message));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved TSO interaction payload contains duplicate message IDs.");
+    }
+  }
+
+  std::map<std::uint64_t, TsoObjectDeletionMessage> objectDeletions;
+  std::map<std::uint64_t, Federation::TsoObjectDeletionReconstitutionRecord>
+      objectDeletionReconstitutions;
+  for (auto const& savedMessage : image.tsoObjectDeletionMessages) {
+    if (savedMessage.messageId == 0U || savedMessage.producingFederateId == 0U ||
+        savedMessage.objectInstanceHandle == 0U ||
+        !savedMessage.timestampEncoding.has_value()) {
+      throw std::logic_error(
+          "The saved TSO object-deletion payload has incomplete identity.");
+    }
+    auto const sentTimestamp = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedMessage.timestampEncoding);
+    if (!sentTimestamp || sentTimestamp->isInitial() || sentTimestamp->isFinal()) {
+      throw std::logic_error(
+          "The saved TSO object-deletion payload has an invalid timestamp.");
+    }
+
+    TsoObjectDeletionMessage message;
+    message.messageId = savedMessage.messageId;
+    message.producingFederateId = savedMessage.producingFederateId;
+    message.objectInstanceHandle = savedMessage.objectInstanceHandle;
+    message.userSuppliedTag =
+        variableLengthDataFromBytes(savedMessage.userSuppliedTag);
+    message.timestamp = std::move(sentTimestamp);
+
+    std::set<std::uint64_t> recipientIds;
+    message.recipients.reserve(savedMessage.recipients.size());
+    for (auto const& savedRecipient : savedMessage.recipients) {
+      if (savedRecipient.receivingFederateId == 0U ||
+          savedRecipient.receivingFederateId == message.producingFederateId ||
+          savedRecipient.objectInstanceHandle != message.objectInstanceHandle ||
+          !recipientIds.insert(savedRecipient.receivingFederateId).second ||
+          !liveFederation.members.contains(savedRecipient.receivingFederateId)) {
+        throw std::logic_error(
+            "The saved TSO object-deletion payload has an invalid recipient.");
+      }
+      auto const callbackRoute = liveFederation.interactionCallbackRoutes.find(
+          savedRecipient.receivingFederateId);
+      if (callbackRoute == liveFederation.interactionCallbackRoutes.end() ||
+          !callbackRoute->second) {
+        throw std::logic_error(
+            "The saved TSO object-deletion payload has no live callback route.");
+      }
+      auto const reportRoute = liveFederation.serviceReportRoutes.find(
+          savedRecipient.receivingFederateId);
+      message.recipients.push_back({
+          savedRecipient.receivingFederateId,
+          savedRecipient.objectInstanceHandle,
+          callbackRoute->second,
+          reportRoute == liveFederation.serviceReportRoutes.end()
+              ? FederateServiceReportRoute{}
+              : reportRoute->second,
+      });
+    }
+    if (!savedMessage.reconstitution.has_value()) {
+      throw std::logic_error(
+          "The saved TSO object-deletion payload has no invocation snapshot.");
+    }
+    auto const& savedReconstitution = *savedMessage.reconstitution;
+    auto const& savedObject = savedReconstitution.object;
+    if (savedObject.handle != message.objectInstanceHandle ||
+        savedObject.registeredObjectClassHandle == 0U ||
+        savedObject.producingFederateId != message.producingFederateId ||
+        savedObject.deleteAccepted || savedObject.pendingOperationCount != 0U) {
+      throw std::logic_error(
+          "The saved TSO object-deletion invocation snapshot is not rehydratable.");
+    }
+    if (!liveFederation.members.contains(savedObject.producingFederateId)) {
+      throw std::logic_error(
+          "The saved TSO object-deletion invocation producer is no longer joined.");
+    }
+    Federation::ObjectInstance restoredObject;
+    restoredObject.handle = savedObject.handle;
+    restoredObject.name = savedObject.name;
+    restoredObject.registeredObjectClassHandle = savedObject.registeredObjectClassHandle;
+    restoredObject.producingFederateId = savedObject.producingFederateId;
+    std::set<std::uint64_t> knownAttributeHandles;
+    for (auto const& savedAttribute : savedObject.attributes) {
+      if (savedAttribute.handle == 0U) {
+        throw std::logic_error(
+            "The saved TSO object-deletion invocation has an invalid attribute.");
+      }
+      if (savedAttribute.ownerFederateId != 0U) {
+        if (!liveFederation.members.contains(savedAttribute.ownerFederateId)) {
+          throw std::logic_error(
+              "The saved TSO object-deletion invocation has a departed attribute owner.");
+        }
+        restoredObject.attributeOwnersByHandle.emplace(
+            savedAttribute.handle,
+            savedAttribute.ownerFederateId);
+      }
+      if (!savedAttribute.transportationName.empty()) {
+        restoredObject.attributeTransportationTypes.emplace(
+            savedAttribute.handle,
+            savedAttribute.transportationName);
+      }
+      if (savedAttribute.orderType != 0U) {
+        auto const order = decodeSavedOrderType(savedAttribute.orderType);
+        if (!order) {
+          throw std::logic_error(
+              "The saved TSO object-deletion invocation has an invalid attribute order.");
+        }
+        restoredObject.attributeOrderTypes.emplace(savedAttribute.handle, *order);
+      }
+      if (!savedAttribute.updateRegionHandles.empty()) {
+        auto& regions = restoredObject.updateRegionsByAttribute[savedAttribute.handle];
+        for (auto const regionHandle : savedAttribute.updateRegionHandles) {
+          if (regionHandle == 0U || !federation.regions.contains(regionHandle) ||
+              !regions.insert(regionHandle).second) {
+            throw std::logic_error(
+                "The saved TSO object-deletion invocation has an invalid update region.");
+          }
+        }
+      }
+      knownAttributeHandles.insert(savedAttribute.handle);
+    }
+    if (savedObject.attributeValuesPresent) {
+      std::uint64_t previousAttributeHandle = 0U;
+      for (auto const& savedValue : savedObject.attributeValues) {
+        if (savedValue.attributeHandle == 0U ||
+            savedValue.attributeHandle <= previousAttributeHandle ||
+            !knownAttributeHandles.contains(savedValue.attributeHandle)) {
+          throw std::logic_error(
+              "The saved TSO object-deletion invocation has an invalid application value.");
+        }
+        previousAttributeHandle = savedValue.attributeHandle;
+        restoredObject.attributeValues.emplace(
+            savedValue.attributeHandle,
+            variableLengthDataFromBytes(savedValue.value));
+      }
+    }
+    std::uint64_t previousKnownFederate = 0U;
+    for (auto const& [knownFederateId, knownObjectClassHandle] :
+         savedReconstitution.knownObjectClassHandlesByFederate) {
+      if (knownFederateId == 0U || knownFederateId <= previousKnownFederate ||
+          knownObjectClassHandle == 0U ||
+          !liveFederation.members.contains(knownFederateId)) {
+        throw std::logic_error(
+            "The saved TSO object-deletion invocation has invalid known-instance state.");
+      }
+      previousKnownFederate = knownFederateId;
+      restoredObject.knownObjectClassHandlesByFederate.emplace(
+          knownFederateId,
+          knownObjectClassHandle);
+    }
+    auto const [reconstitutionPosition, reconstitutionInserted] =
+        objectDeletionReconstitutions.emplace(
+            message.messageId,
+            Federation::TsoObjectDeletionReconstitutionRecord{
+                std::move(restoredObject)});
+    static_cast<void>(reconstitutionPosition);
+    if (!reconstitutionInserted) {
+      throw std::logic_error(
+          "The saved TSO object-deletion payload has duplicate invocation snapshots.");
+    }
+    auto const [position, inserted] = objectDeletions.emplace(
+        message.messageId,
+        std::move(message));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved TSO object-deletion payload contains duplicate message IDs.");
+    }
+  }
+
+  std::map<std::uint64_t, TsoAttributeUpdateMessage> attributeUpdates;
+  for (auto const& savedMessage : image.tsoAttributeUpdateMessages) {
+    if (savedMessage.messageId == 0U || savedMessage.producingFederateId == 0U ||
+        savedMessage.objectInstanceHandle == 0U ||
+        savedMessage.attributes.empty() ||
+        !savedMessage.timestampEncoding.has_value()) {
+      throw std::logic_error(
+          "The saved TSO attribute-update payload has incomplete identity or values.");
+    }
+    auto const sentTimestamp = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedMessage.timestampEncoding);
+    if (!sentTimestamp || sentTimestamp->isInitial() || sentTimestamp->isFinal()) {
+      throw std::logic_error(
+          "The saved TSO attribute-update payload has an invalid timestamp.");
+    }
+
+    TsoAttributeUpdateMessage message;
+    message.messageId = savedMessage.messageId;
+    message.producingFederateId = savedMessage.producingFederateId;
+    message.objectInstanceHandle = savedMessage.objectInstanceHandle;
+    message.attributes.reserve(savedMessage.attributes.size());
+    std::set<std::uint64_t> attributeHandles;
+    for (auto const& savedAttribute : savedMessage.attributes) {
+      if (savedAttribute.attributeHandle == 0U ||
+          !attributeHandles.insert(savedAttribute.attributeHandle).second) {
+        throw std::logic_error(
+            "The saved TSO attribute-update payload has duplicate attributes.");
+      }
+      message.attributes.emplace_back(
+          savedAttribute.attributeHandle,
+          variableLengthDataFromBytes(savedAttribute.value));
+    }
+    message.userSuppliedTag =
+        variableLengthDataFromBytes(savedMessage.userSuppliedTag);
+
+    std::set<std::uint64_t> explicitRegionHandles;
+    for (auto const& savedRecipient : savedMessage.passelsByRecipient) {
+      if (savedRecipient.receivingFederateId == 0U ||
+          !liveFederation.members.contains(savedRecipient.receivingFederateId) ||
+          message.passelsByRecipient.contains(savedRecipient.receivingFederateId)) {
+        throw std::logic_error(
+            "The saved TSO attribute-update payload has an invalid recipient.");
+      }
+      auto& passels = message.passelsByRecipient[savedRecipient.receivingFederateId];
+      passels.reserve(savedRecipient.passels.size());
+      for (auto const& savedPassel : savedRecipient.passels) {
+        auto const preferredOrder = decodeSavedOrderType(
+            savedPassel.preferredOrderType);
+        if (!preferredOrder) {
+          throw std::logic_error(
+              "The saved TSO attribute-update passel has an invalid order type.");
+        }
+        TsoAttributeUpdatePassel passel;
+        passel.transportationName = savedPassel.transportationName;
+        passel.defaultRegionUsed = savedPassel.defaultRegionUsed;
+        passel.preferredOrderType = *preferredOrder;
+        passel.sentAttributeHandles.assign(
+            savedPassel.sentAttributeHandles.begin(),
+            savedPassel.sentAttributeHandles.end());
+        passel.sentRegionHandles.insert(
+            savedPassel.sentRegionHandles.begin(),
+            savedPassel.sentRegionHandles.end());
+        if (passel.sentAttributeHandles.size() !=
+                savedPassel.sentAttributeHandles.size() ||
+            passel.sentRegionHandles.size() !=
+                savedPassel.sentRegionHandles.size()) {
+          throw std::logic_error(
+              "The saved TSO attribute-update passel has duplicate handles.");
+        }
+        if (!std::is_sorted(
+                passel.sentAttributeHandles.begin(),
+                passel.sentAttributeHandles.end()) ||
+            std::adjacent_find(
+                passel.sentAttributeHandles.begin(),
+                passel.sentAttributeHandles.end()) !=
+                passel.sentAttributeHandles.end()) {
+          throw std::logic_error(
+              "The saved TSO attribute-update passel has unordered attributes.");
+        }
+        for (auto const attributeHandle : passel.sentAttributeHandles) {
+          if (attributeHandle == 0U || !attributeHandles.contains(attributeHandle)) {
+            throw std::logic_error(
+                "The saved TSO attribute-update passel has an unknown attribute.");
+          }
+        }
+        for (auto const regionHandle : passel.sentRegionHandles) {
+          if (regionHandle == 0U) {
+            throw std::logic_error(
+                "The saved TSO attribute-update passel has an invalid region.");
+          }
+          explicitRegionHandles.insert(regionHandle);
+        }
+        for (auto const& savedSnapshot : savedPassel.sentRegionSnapshots) {
+          if (!passel.sentRegionHandles.contains(savedSnapshot.regionHandle)) {
+            throw std::logic_error(
+                "The saved TSO attribute-update passel has an unknown region snapshot.");
+          }
+          auto const [position, inserted] = passel.sentRegionSnapshots.emplace(
+              savedSnapshot.regionHandle,
+              decodeSavedRegionSnapshot(savedSnapshot));
+          static_cast<void>(position);
+          if (!inserted) {
+            throw std::logic_error(
+                "The saved TSO attribute-update passel has duplicate region snapshots.");
+          }
+        }
+        if (passel.sentRegionSnapshots.size() != passel.sentRegionHandles.size()) {
+          throw std::logic_error(
+              "The saved TSO attribute-update passel has incomplete region snapshots.");
+        }
+        passels.push_back(std::move(passel));
+      }
+    }
+    for (auto const& savedSnapshot : savedMessage.sentRegionSnapshots) {
+      if (!explicitRegionHandles.contains(savedSnapshot.regionHandle)) {
+        throw std::logic_error(
+            "The saved TSO attribute-update message has an unknown region snapshot.");
+      }
+      auto const [position, inserted] = message.sentRegionSnapshots.emplace(
+          savedSnapshot.regionHandle,
+          decodeSavedRegionSnapshot(savedSnapshot));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved TSO attribute-update message has duplicate region snapshots.");
+      }
+    }
+    if (message.sentRegionSnapshots.size() != explicitRegionHandles.size()) {
+      throw std::logic_error(
+          "The saved TSO attribute-update message has incomplete region snapshots.");
+    }
+    message.timestamp = std::move(sentTimestamp);
+    auto const [position, inserted] = attributeUpdates.emplace(
+        savedMessage.messageId,
+        std::move(message));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved TSO attribute-update payload contains duplicate message IDs.");
+    }
+  }
+
+  std::map<std::uint64_t, TsoDirectedInteractionMessage> directedInteractions;
+  for (auto const& savedMessage : image.tsoDirectedInteractionMessages) {
+    if (savedMessage.messageId == 0U || savedMessage.producingFederateId == 0U ||
+        savedMessage.objectInstanceHandle == 0U ||
+        savedMessage.sentInteractionClassHandle == 0U ||
+        !savedMessage.timestampEncoding.has_value() ||
+        savedMessage.sentParameterHandles.size() != savedMessage.parameters.size() ||
+        savedMessage.recipients.empty()) {
+      throw std::logic_error(
+          "The saved directed TSO payload has incomplete identity or recipients.");
+    }
+    auto const sentTimestamp = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        savedMessage.timestampEncoding);
+    if (!sentTimestamp || sentTimestamp->isInitial() || sentTimestamp->isFinal()) {
+      throw std::logic_error(
+          "The saved directed TSO payload has an invalid timestamp.");
+    }
+    auto const sentOrder = decodeSavedOrderType(savedMessage.sentOrderType);
+    auto const receivedOrder = decodeSavedOrderType(savedMessage.receivedOrderType);
+    if (!sentOrder || !receivedOrder) {
+      throw std::logic_error(
+          "The saved directed TSO payload has an invalid order type.");
+    }
+
+    std::set<std::uint64_t> sentParameterHandles;
+    for (auto const parameterHandle : savedMessage.sentParameterHandles) {
+      if (parameterHandle == 0U ||
+          !sentParameterHandles.insert(parameterHandle).second) {
+        throw std::logic_error(
+            "The saved directed TSO payload has duplicate parameter handles.");
+      }
+    }
+
+    TsoDirectedInteractionMessage message;
+    message.messageId = savedMessage.messageId;
+    message.producingFederateId = savedMessage.producingFederateId;
+    message.objectInstanceHandle = savedMessage.objectInstanceHandle;
+    message.sentInteractionClassHandle = savedMessage.sentInteractionClassHandle;
+    message.sentParameterHandles = savedMessage.sentParameterHandles;
+    message.parameters.reserve(savedMessage.parameters.size());
+    for (auto const& savedParameter : savedMessage.parameters) {
+      if (savedParameter.parameterHandle == 0U ||
+          !sentParameterHandles.contains(savedParameter.parameterHandle)) {
+        throw std::logic_error(
+            "The saved directed TSO payload contains an unknown parameter.");
+      }
+      message.parameters.emplace_back(
+          savedParameter.parameterHandle,
+          variableLengthDataFromBytes(savedParameter.value));
+    }
+    message.userSuppliedTag =
+        variableLengthDataFromBytes(savedMessage.userSuppliedTag);
+    message.transportationName = savedMessage.transportationName;
+    message.timestamp = std::move(sentTimestamp);
+    message.sentOrderType = *sentOrder;
+    message.receivedOrderType = *receivedOrder;
+
+    std::set<std::uint64_t> recipientIds;
+    message.recipients.reserve(savedMessage.recipients.size());
+    for (auto const& savedRecipient : savedMessage.recipients) {
+      if (savedRecipient.receivingFederateId == 0U ||
+          savedRecipient.receivingFederateId == message.producingFederateId ||
+          savedRecipient.objectInstanceHandle == 0U ||
+          savedRecipient.receivedInteractionClassHandle == 0U ||
+          !recipientIds.insert(savedRecipient.receivingFederateId).second) {
+        throw std::logic_error(
+            "The saved directed TSO payload has an invalid recipient.");
+      }
+
+      // A recipient may have crossed its callback boundary and resigned
+      // after the send but before the save.  Its immutable accepted-send
+      // projection remains in the durable image so the retraction ledger can
+      // preserve the delivered/retracted state, but there is no live route to
+      // rebind after a fresh-registry restore.  Skip only that departed route;
+      // still-joined recipients retain their exact projected callback data.
+      if (!liveFederation.members.contains(savedRecipient.receivingFederateId)) {
+        continue;
+      }
+      auto const liveRoute = liveFederation.interactionCallbackRoutes.find(
+          savedRecipient.receivingFederateId);
+      if (liveRoute == liveFederation.interactionCallbackRoutes.end() ||
+          !liveRoute->second) {
+        throw std::logic_error(
+            "The saved directed TSO payload has no live callback route.");
+      }
+      TsoDirectedInteractionRecipient recipient;
+      recipient.receivingFederateId = savedRecipient.receivingFederateId;
+      recipient.objectInstanceHandle = savedRecipient.objectInstanceHandle;
+      recipient.receivedInteractionClassHandle =
+          savedRecipient.receivedInteractionClassHandle;
+      recipient.receivedParameterHandles.insert(
+          savedRecipient.receivedParameterHandles.begin(),
+          savedRecipient.receivedParameterHandles.end());
+      if (recipient.receivedParameterHandles.size() !=
+          savedRecipient.receivedParameterHandles.size()) {
+        throw std::logic_error(
+            "The saved directed TSO payload has duplicate recipient parameters.");
+      }
+      recipient.callbackRoute = liveRoute->second;
+      message.recipients.push_back(std::move(recipient));
+    }
+    auto const [position, inserted] = directedInteractions.emplace(
+        message.messageId,
+        std::move(message));
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The saved directed TSO payload contains duplicate message IDs.");
+    }
+  }
+
+  // The primary object ledger carries the live timestamped-deletion marker;
+  // the payload section carries the message and recipient retraction state.
+  // Bind them before replacing the execution maps so a restore cannot leave a
+  // pending removal pointing at an unrelated or already-reclaimed message.
+  for (auto const& [objectInstanceHandle, object] : federation.objectInstances) {
+    if (!object.pendingTimestampedDeletionMessageId.has_value()) {
+      if (!object.pendingTimestampedRemovalFederates.empty()) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has timestamped recipients without a deletion message.");
+      }
+      continue;
+    }
+    auto const messageId = *object.pendingTimestampedDeletionMessageId;
+    auto const deletion = objectDeletions.find(messageId);
+    if (deletion == objectDeletions.end() ||
+        deletion->second.objectInstanceHandle != objectInstanceHandle ||
+        deletion->second.producingFederateId != object.producingFederateId) {
+      throw std::logic_error(
+          "The saved object lifecycle ledger is not bound to its TSO deletion payload.");
+    }
+    auto const retraction = retractionRecords.find(messageId);
+    if (retraction == retractionRecords.end()) {
+      throw std::logic_error(
+          "The saved object lifecycle ledger has no TSO deletion retraction record.");
+    }
+    std::set<std::uint64_t> recipientIds;
+    for (auto const& recipient : deletion->second.recipients) {
+      if (!recipientIds.insert(recipient.receivingFederateId).second) {
+        throw std::logic_error(
+            "The saved TSO deletion payload has duplicate recipient identities.");
+      }
+    }
+    for (auto const receivingFederateId : object.pendingTimestampedRemovalFederates) {
+      if (!recipientIds.contains(receivingFederateId)) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has a timestamped recipient outside its payload.");
+      }
+      auto const recipientState = retraction->second.recipientStates.find(
+          receivingFederateId);
+      if (recipientState == retraction->second.recipientStates.end() ||
+          recipientState->second != Federation::TsoRecipientDeliveryState::pending) {
+        throw std::logic_error(
+            "The saved object lifecycle ledger has a timestamped recipient that is not pending.");
+      }
+    }
+  }
+  for (auto const& [messageId, deletion] : objectDeletions) {
+    auto const object = federation.objectInstances.find(
+        deletion.objectInstanceHandle);
+    if (object == federation.objectInstances.end() ||
+        object->second.pendingTimestampedDeletionMessageId != messageId) {
+      throw std::logic_error(
+          "The saved TSO deletion payload has no matching object lifecycle marker.");
+    }
+  }
+
+  federation.tsoInteractionMessages = std::move(interactions);
+  federation.tsoRequestRetractionRecords = std::move(retractionRecords);
+  federation.tsoAttributeUpdateMessages = std::move(attributeUpdates);
+  federation.tsoObjectDeletionMessages = std::move(objectDeletions);
+  federation.tsoObjectDeletionReconstitutionRecords =
+      std::move(objectDeletionReconstitutions);
+  federation.tsoDirectedInteractionMessages = std::move(directedInteractions);
+}
+
 void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
     Federation& target,
     Federation const& snapshot) {
@@ -2672,6 +9390,49 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
     liveMomServiceReportSerialNumbers.emplace(
         federateId,
         member.nextMomServiceReportSerialNumber);
+  }
+
+  // The report writer is owned by the live ambassador, not by the
+  // process-local federation snapshot.  Capture the immutable path associated
+  // with each current joined-federate MOM object so a restore cannot silently
+  // publish a snapshot with a different HLAreportServiceFile value.
+  std::map<std::uint64_t, std::wstring> liveMomServiceReportFiles;
+  for (auto const& [objectHandle, object] :
+       target.rtiOwnedJoinedFederateMomObjects) {
+    static_cast<void>(objectHandle);
+    if (object.federationExecutionObject) {
+      continue;
+    }
+    if (object.joinedFederateId == 0U || object.reportServiceFile.empty()) {
+      throw std::logic_error(
+          "A live joined-federate MOM object has no immutable service-report file.");
+    }
+    auto const [position, inserted] = liveMomServiceReportFiles.emplace(
+        object.joinedFederateId,
+        object.reportServiceFile);
+    static_cast<void>(position);
+    if (!inserted) {
+      throw std::logic_error(
+          "The live federation contains duplicate joined-federate service-report files.");
+    }
+  }
+
+  // Validate the saved image before changing any target state.  The writer
+  // remains attached to the current joined-federate lifetime, so the saved
+  // static MOM value must match that live path exactly.
+  for (auto const& [objectHandle, object] :
+       snapshot.rtiOwnedJoinedFederateMomObjects) {
+    static_cast<void>(objectHandle);
+    if (object.federationExecutionObject) {
+      continue;
+    }
+    auto const livePath = liveMomServiceReportFiles.find(object.joinedFederateId);
+    if (livePath == liveMomServiceReportFiles.end() ||
+        object.reportServiceFile.empty() ||
+        object.reportServiceFile != livePath->second) {
+      throw std::logic_error(
+          "A restored joined-federate MOM object changed its immutable service-report file.");
+    }
   }
 
   // A saved time state can remain Time Advancing after all federates have
@@ -2746,6 +9507,7 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.interactionClassHandles = snapshot.interactionClassHandles;
   target.parameterHandles = snapshot.parameterHandles;
   target.dimensionHandles = snapshot.dimensionHandles;
+  target.transportationTypeHandles = snapshot.transportationTypeHandles;
   target.members = snapshot.members;
   for (auto& [federateId, member] : target.members) {
     auto const liveSerial = liveMomServiceReportSerialNumbers.find(federateId);
@@ -2783,6 +9545,11 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.reservedObjectInstanceNamesByFederate =
       snapshot.reservedObjectInstanceNamesByFederate;
   target.nextRegionHandle = snapshot.nextRegionHandle;
+  // Subscription generations are federation state, not live callback-route
+  // state.  Restoring the allocator alongside the declaration ledger keeps
+  // the next post-restore mutation from skipping or reusing an identity that
+  // was assigned after the saved boundary.
+  target.nextSubscriptionGeneration = snapshot.nextSubscriptionGeneration;
   target.nextObjectInstanceHandle = snapshot.nextObjectInstanceHandle;
   target.nextAttributeOwnershipAcquisitionIfAvailableRequestId =
       snapshot.nextAttributeOwnershipAcquisitionIfAvailableRequestId;
@@ -2797,7 +9564,12 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.nextConfirmDivestitureNotificationId = snapshot.nextConfirmDivestitureNotificationId;
   target.nextAttributeTransportationTypeChangeRequestId =
       snapshot.nextAttributeTransportationTypeChangeRequestId;
+  target.nextAttributeValueUpdateRequestId =
+      snapshot.nextAttributeValueUpdateRequestId;
+  target.nextAttributeOwnershipQueryRequestId =
+      snapshot.nextAttributeOwnershipQueryRequestId;
   target.nextTimeAdvanceGrantDispatchIdentity = nextTimeAdvanceGrantDispatchIdentity;
+  target.pendingAttributeOwnershipQueries = snapshot.pendingAttributeOwnershipQueries;
   target.saveOperation.reset();
   target.pendingImmediateSave = snapshot.pendingImmediateSave;
   target.pendingTimedSave = snapshot.pendingTimedSave;
@@ -3622,6 +10394,18 @@ FederationSaveControlResult EmbeddedFederationRegistry::federateSaveComplete(
   }
   if (allComplete) {
     auto const snapshotLabel = federation->second.saveOperation->label;
+    FederationSaveCommitDescriptor commitDescriptor;
+    commitDescriptor.federationName = federationName;
+    commitDescriptor.label = snapshotLabel;
+    commitDescriptor.logicalTimeImplementationName =
+        federation->second.definition.logicalTimeImplementationName;
+    commitDescriptor.timed =
+        static_cast<bool>(federation->second.saveOperation->scheduledSaveTime);
+    commitDescriptor.memberFederateIds.reserve(federation->second.members.size());
+    for (auto const& [memberId, member] : federation->second.members) {
+      static_cast<void>(member);
+      commitDescriptor.memberFederateIds.push_back(memberId);
+    }
     bool snapshotStored = false;
     try {
       Federation snapshot = federation->second;
@@ -3631,6 +10415,12 @@ FederationSaveControlResult EmbeddedFederationRegistry::federateSaveComplete(
       snapshot.restoreOperation.reset();
       snapshot.pendingTimeAdvanceGrants.clear();
       snapshot.timeAdvanceGrantDispatchFactories.clear();
+      commitDescriptor.stateImage = FederationStateImageCodec::encode(
+          stateImageFor(snapshot, federationName));
+      // The durable commit envelope and its versioned state image must be
+      // accepted before Federation Saved is exposed.  Callback routes remain
+      // live-only and are deliberately not part of the persisted payload.
+      saveCommitStore_->commit(commitDescriptor);
       saveSnapshots_[federationName][snapshotLabel] = std::move(snapshot);
       snapshotStored = true;
     } catch (...) {
@@ -3813,7 +10603,10 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
     std::uint64_t federateId,
     std::uint64_t objectInstanceHandle,
     std::uint64_t registeredObjectClassHandle,
-    std::set<std::string> const& transportationNames) {
+    std::set<std::string> const& transportationNames,
+    std::vector<std::pair<
+        std::uint64_t,
+        rti1516_2025::VariableLengthData>> const* acceptedAttributeValues) {
   auto instrumentationScope = beginInstrumentation(
       "recordSuccessfulUpdateAttributeValues");
   std::scoped_lock lock(mutex_);
@@ -3824,6 +10617,37 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
   auto member = federation->second.members.find(federateId);
   if (member == federation->second.members.end()) {
     return FederationRegistryStatus::federate_not_member;
+  }
+  if (acceptedAttributeValues != nullptr) {
+    auto const objectInstance = federation->second.objectInstances.find(
+        objectInstanceHandle);
+    if (objectInstance == federation->second.objectInstances.end() ||
+        objectInstance->second.deleteAccepted) {
+      return FederationRegistryStatus::invalid_request;
+    }
+    std::set<std::uint64_t> valueHandles;
+    for (auto const& [attributeHandle, value] : *acceptedAttributeValues) {
+      static_cast<void>(value);
+      if (attributeHandle == 0U ||
+          !valueHandles.insert(attributeHandle).second) {
+        return FederationRegistryStatus::invalid_request;
+      }
+      auto const owner = objectInstance->second.attributeOwnersByHandle.find(
+          attributeHandle);
+      if (owner == objectInstance->second.attributeOwnersByHandle.end() ||
+          owner->second != federateId) {
+        return FederationRegistryStatus::invalid_request;
+      }
+    }
+  }
+  // Value validation is complete before either the telemetry counters or the
+  // application-value ledger is mutated, keeping this accepted boundary
+  // atomic for callers that retain the copied value vector.
+  if (acceptedAttributeValues != nullptr) {
+    auto& objectInstance = federation->second.objectInstances.at(objectInstanceHandle);
+    for (auto const& [attributeHandle, value] : *acceptedAttributeValues) {
+      objectInstance.attributeValues.insert_or_assign(attributeHandle, value);
+    }
   }
   if (member->second.successfulUpdateAttributeValuesCount !=
       std::numeric_limits<std::uint64_t>::max()) {
@@ -4058,6 +10882,11 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
   }
 
   auto const savedFederations = saveSnapshots_.find(federationName);
+  auto const saved = savedFederations == saveSnapshots_.end()
+      ? std::map<std::wstring, Federation>::const_iterator{}
+      : savedFederations->second.find(label);
+  bool const processLocalSnapshot =
+      savedFederations != saveSnapshots_.end() && saved != savedFederations->second.end();
 
   auto const requesterRoute = federation->second.interactionCallbackRoutes.find(
       requestingFederateId);
@@ -4079,7 +10908,228 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
       ? FederatePublicServiceReportRoute{}
       : requesterPublicReportRoute->second;
 
-  if (savedFederations == saveSnapshots_.end()) {
+  // A process-local snapshot remains the richest restore source. If it is
+  // absent (for example after a registry restart), the filesystem commit is
+  // still eligible for the bounded control/temporal materializer below.
+  Federation const& snapshot = processLocalSnapshot ? saved->second : federation->second;
+  // Restore is admitted only when the durable commit envelope still agrees
+  // with the in-process image.  The envelope is intentionally not treated as
+  // a complete state image yet, but a missing/corrupt/mismatched record must
+  // never be silently ignored by a future disk-backed restore path.
+  bool durableCommitMatches = false;
+  std::optional<FederationStateImage> durableStateImage;
+  try {
+    auto const durableCommit = saveCommitStore_->load(federationName, label);
+    if (durableCommit && durableCommit->federationName == federationName &&
+        durableCommit->label == label &&
+         durableCommit->logicalTimeImplementationName ==
+             snapshot.definition.logicalTimeImplementationName &&
+         durableCommit->memberFederateIds.size() == snapshot.members.size()) {
+      durableCommitMatches = true;
+      for (auto const& [memberId, member] : snapshot.members) {
+        static_cast<void>(member);
+        if (std::find(
+                durableCommit->memberFederateIds.begin(),
+                durableCommit->memberFederateIds.end(),
+                memberId) == durableCommit->memberFederateIds.end()) {
+          durableCommitMatches = false;
+          break;
+        }
+      }
+      if (durableCommitMatches && !durableCommit->stateImage.empty()) {
+        try {
+          auto image = FederationStateImageCodec::decode(
+              durableCommit->stateImage);
+          if (image.federationName != federationName ||
+              image.logicalTimeImplementationName !=
+                  snapshot.definition.logicalTimeImplementationName ||
+              image.members.size() != snapshot.members.size()) {
+            durableCommitMatches = false;
+          }
+          if (processLocalSnapshot && durableCommitMatches &&
+              image.normalizationSeed != snapshot.normalizationSeed) {
+            durableCommitMatches = false;
+          }
+          if (durableCommitMatches) {
+            for (std::size_t index = 0U; index < image.members.size(); ++index) {
+              auto const& imageMember = image.members[index];
+              auto const snapshotMember = snapshot.members.find(imageMember.id);
+              auto const liveMember = federation->second.members.find(imageMember.id);
+              if (snapshotMember == snapshot.members.end() ||
+                  liveMember == federation->second.members.end() ||
+                  snapshotMember->second.name != imageMember.name ||
+                  snapshotMember->second.type != imageMember.type ||
+                  liveMember->second.name != imageMember.name ||
+                  liveMember->second.type != imageMember.type) {
+                durableCommitMatches = false;
+                break;
+              }
+            }
+          }
+          if (durableCommitMatches) {
+            if (processLocalSnapshot) {
+              // Canonical re-encoding compares every v1 field (switches,
+              // section counts, allocator floors, member control state, and
+              // official encoded temporal values), not just the identity fence
+              // above. A syntactically valid but stale/tampered payload must not
+              // be accepted as the image for this in-process snapshot.
+              auto const expectedImage = FederationStateImageCodec::encode(
+                  stateImageFor(snapshot, federationName));
+              durableCommitMatches =
+                  FederationStateImageCodec::encode(image) == expectedImage;
+            } else {
+              // The restart path materializes the scalar/member/time image,
+              // route-free declaration ledgers, the bounded object
+              // application-value projection, the bounded regular, If
+              // Available, negotiated regular, negotiated If Available, and
+              // mixed negotiated and confirmation-delivered regular/If Available
+              // ownership ledgers,
+              // and the ordinary timestamped
+              // interaction, directed-interaction, and attribute-update
+              // payload/queue ledgers. A timestamped object deletion is also
+              // admitted when its invocation snapshot is explicitly bounded
+              // to the object value ledger plus the pending deletion marker;
+              // other callback-bearing application ledgers still require a
+              // live object snapshot until their route-free images have an
+              // explicit restart contract.
+              auto const hasNoObjectCallbackLedgers =
+                  [&image](FederationStateImageObject const& object) {
+                    return object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() &&
+                        object.pendingAttributeOwnershipAcquisitionRequests.empty() &&
+                        object.pendingAttributeOwnershipAcquisitionCancellations.empty() &&
+                        object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() &&
+                        object.pendingConfirmDivestitureNotifications.empty() &&
+                        object.pendingAttributeTransportationTypeChanges.empty() &&
+                        object.pendingAttributeValueUpdateRequests.empty() &&
+                        object.pendingAttributeValueUpdateClassRequests.empty() &&
+                        object.pendingAttributeValueUpdateRegionalRequests.empty() &&
+                        object.pendingNegotiatedAttributeOwnershipDivestitures.empty() &&
+                        object.ownershipAssumptionRecipientsByAttribute.empty() &&
+                        object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() &&
+                        pendingOwnershipAssumptionCallbackCount(image, object.handle) == 0U &&
+                        object.pendingDiscoveryFederateIds.empty() &&
+                        object.pendingRemovalFederateIds.empty() &&
+                        object.connectionLossAutomaticRemovalFederateIds.empty() &&
+                        object.deferredConnectionLossTsoRemovalFederateIds.empty() &&
+                        std::all_of(
+                            object.attributes.begin(),
+                            object.attributes.end(),
+                            [](FederationStateImageObjectAttribute const& attribute) {
+                              return attribute.updateRegionHandles.empty();
+                            });
+                  };
+              auto const isRouteFreeObjectApplicationValue =
+                  [&](FederationStateImageObject const& object) {
+                    return object.attributeValuesPresent &&
+                        !object.attributeValues.empty() &&
+                        !object.deleteAccepted &&
+                        object.pendingOperationCount == 0U &&
+                        hasNoObjectCallbackLedgers(object) &&
+                        object.pendingTimestampedRemovalFederateIds.empty() &&
+                        !object.pendingTimestampedDeletionMessageId.has_value();
+                  };
+              auto const hasMatchingDeletionPayload =
+                  [&](FederationStateImageObject const& object) {
+                    return object.pendingTimestampedDeletionMessageId.has_value() &&
+                        std::any_of(
+                            image.tsoObjectDeletionMessages.begin(),
+                            image.tsoObjectDeletionMessages.end(),
+                            [&](FederationStateImageTsoObjectDeletionMessage const& message) {
+                              return message.messageId ==
+                                      *object.pendingTimestampedDeletionMessageId &&
+                                  message.objectInstanceHandle == object.handle &&
+                                  message.producingFederateId == object.producingFederateId &&
+                                  message.reconstitution.has_value();
+                            });
+                  };
+              auto const isRouteFreeObjectDeletionInvocation =
+                  [&](FederationStateImageObject const& object) {
+                    return object.attributeValuesPresent &&
+                        !object.attributeValues.empty() &&
+                        !object.deleteAccepted &&
+                        !object.pendingTimestampedRemovalFederateIds.empty() &&
+                        object.pendingTimestampedDeletionMessageId.has_value() &&
+                        object.pendingOperationCount ==
+                            object.pendingTimestampedRemovalFederateIds.size() + 1U &&
+                        hasNoObjectCallbackLedgers(object) &&
+                        hasMatchingDeletionPayload(object);
+                  };
+              bool const restartableObjectLedger =
+                  !image.objects.empty() &&
+                  std::all_of(
+                      image.objects.begin(),
+                      image.objects.end(),
+                      [&](FederationStateImageObject const& object) {
+                        if (!object.pendingAttributeValueUpdateRequests.empty()) {
+                          return isRouteFreePendingAttributeValueUpdateObject(object);
+                        }
+                        if (!object.pendingAttributeValueUpdateClassRequests.empty()) {
+                          return isRouteFreePendingAttributeValueUpdateClassObject(object);
+                        }
+                        if (!object.pendingAttributeValueUpdateRegionalRequests.empty()) {
+                          return isRouteFreePendingAttributeValueUpdateRegionalObject(object);
+                        }
+                        if (isRouteFreePendingAttributeOwnershipQueryObject(object, image)) {
+                          return true;
+                        }
+                        if (isRouteFreePendingOwnershipAssumptionObject(object, image)) {
+                          return true;
+                        }
+                            return isRouteFreeDeliveredApplicationValue(object) ||
+                            isRouteFreeObjectApplicationValue(object) ||
+                            isRouteFreeObjectWithTsoAttributeUpdate(object, image) ||
+                            isRouteFreeObjectDeletionInvocation(object) ||
+                            isRouteFreePendingRegularOwnershipObject(object) ||
+                            isRouteFreePendingIfAvailableOwnershipObject(object) ||
+                            isRouteFreePendingNegotiatedOwnershipObject(object) ||
+                            isRouteFreePendingNegotiatedIfAvailableOwnershipObject(object) ||
+                            isRouteFreePendingMixedNegotiatedOwnershipObject(object) ||
+                            isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(object) ||
+                            isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(object) ||
+                            isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(object) ||
+                            isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(object) ||
+                            isRouteFreePendingDivestitureIfWantedNotificationObject(object) ||
+                            isRouteFreePendingConfirmDivestitureNotificationObject(object) ||
+                            isRouteFreePendingConfirmDivestitureWithOwnershipAssumptionObject(
+                                object,
+                                image) ||
+                            isRouteFreePendingOwnershipAcquisitionCancellationObject(object) ||
+                            isRouteFreePendingAttributeTransportationTypeChangeObject(object);
+                      });
+              bool const restartableTsoPayloadLedger =
+                  std::all_of(
+                      image.tsoObjectDeletionMessages.begin(),
+                      image.tsoObjectDeletionMessages.end(),
+                      [](FederationStateImageTsoObjectDeletionMessage const& message) {
+                        return message.reconstitution.has_value();
+                      });
+              bool const restartableInteractionLedger =
+                  image.interactionDeclarations.empty() ||
+                  isRouteFreeInteractionDeclarationImage(image) ||
+                  isRouteFreeMultipleInteractionPublicationImage(image) ||
+                  isRouteFreeMixedMultipleInteractionDeclarationImage(image) ||
+                  isRouteFreeMultipleDirectedInteractionDeclarationImage(image) ||
+                  isRouteFreeRegionalTsoInteractionImage(image);
+              durableCommitMatches =
+                  restartableInteractionLedger &&
+                  (image.objects.empty()
+                       ? image.tsoObjectDeletionMessages.empty()
+                       : restartableObjectLedger) &&
+                  restartableTsoPayloadLedger;
+            }
+            if (durableCommitMatches) {
+              durableStateImage = std::move(image);
+            }
+          }
+        } catch (...) {
+          durableCommitMatches = false;
+        }
+      }
+    }
+  } catch (...) {
+    durableCommitMatches = false;
+  }
+  if (!durableCommitMatches) {
     result.status = FederationRestoreControlStatus::snapshot_not_found;
     FederationRestoreNotification notification;
     notification.kind = FederationRestoreNotificationKind::request_failed;
@@ -4091,21 +11141,6 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     result.notifications.push_back(std::move(notification));
     return result;
   }
-  auto const saved = savedFederations->second.find(label);
-  if (saved == savedFederations->second.end()) {
-    result.status = FederationRestoreControlStatus::snapshot_not_found;
-    FederationRestoreNotification notification;
-    notification.kind = FederationRestoreNotificationKind::request_failed;
-    notification.receivingFederateId = requestingFederateId;
-    notification.label = label;
-    notification.callbackRoute = requesterRoute->second;
-    notification.serviceReportRoute = selectedRequesterReportRoute;
-    notification.publicServiceReportRoute = selectedRequesterPublicReportRoute;
-    result.notifications.push_back(std::move(notification));
-    return result;
-  }
-
-  Federation const& snapshot = saved->second;
   bool membershipMatches = snapshot.members.size() == federation->second.members.size();
   if (membershipMatches) {
     for (auto const& [federateId, member] : federation->second.members) {
@@ -4142,6 +11177,8 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
 
   Federation::RestoreOperation operation;
   operation.label = label;
+  operation.stateImage = std::move(durableStateImage);
+  operation.processLocalSnapshot = processLocalSnapshot;
   for (auto const& [federateId, member] : federation->second.members) {
     static_cast<void>(member);
     operation.statuses.emplace(federateId, rti1516_2025::FEDERATE_RESTORING);
@@ -4246,18 +11283,15 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
   }
 
   auto const label = federation->second.restoreOperation->label;
+  bool const processLocalSnapshot =
+      federation->second.restoreOperation->processLocalSnapshot;
   auto const savedFederations = saveSnapshots_.find(federationName);
-  if (savedFederations == saveSnapshots_.end()) {
-    appendRestoreCompletionNotifications(
-        federation->second,
-        false,
-        rti1516_2025::RTI_UNABLE_TO_RESTORE,
-        result.notifications);
-    federation->second.restoreOperation.reset();
-    return result;
-  }
-  auto const saved = savedFederations->second.find(label);
-  if (saved == savedFederations->second.end()) {
+  auto const saved = savedFederations == saveSnapshots_.end()
+      ? std::map<std::wstring, Federation>::const_iterator{}
+      : savedFederations->second.find(label);
+  if (processLocalSnapshot &&
+      (savedFederations == saveSnapshots_.end() ||
+       saved == savedFederations->second.end())) {
     appendRestoreCompletionNotifications(
         federation->second,
         false,
@@ -4268,7 +11302,391 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
   }
 
   try {
-    restoreFederationFromSnapshot(federation->second, saved->second);
+    auto const& restoreOperation = federation->second.restoreOperation;
+    if (!restoreOperation || !restoreOperation->stateImage) {
+      throw std::logic_error(
+          "A successful restore request has no validated durable state image.");
+    }
+    // A process-local save carries the complete private snapshot. A
+    // restarted registry instead starts from its current live membership and
+    // applies the route-free control/temporal image before the common typed
+    // rehydration helpers run.
+    Federation snapshot = processLocalSnapshot ? saved->second : federation->second;
+    if (!processLocalSnapshot) {
+      restoreControlAndTimeFromStateImage(
+          snapshot,
+          *restoreOperation->stateImage,
+          federation->second);
+    }
+    restoreMemberInteractionReceiptTelemetryFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreObjectInstanceNameReservationsFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreRegionsFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreSynchronizationPointsFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreObjectClassAttributeDeclarationsFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    if (!processLocalSnapshot) {
+      restoreInteractionDeclarationsFromStateImage(
+          snapshot,
+          *restoreOperation->stateImage,
+          federation->second);
+    }
+    restoreMemberInteractionSendTelemetryFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreMemberObjectLifecycleTelemetryFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreMemberReflectionTelemetryFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreMemberUpdateTelemetryFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreObjectOwnershipLedgersFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second,
+        !processLocalSnapshot);
+    restoreTsoPayloadsFromStateImage(
+        snapshot,
+        *restoreOperation->stateImage,
+        federation->second);
+    restoreTsoQueueFromStateImage(snapshot, *restoreOperation->stateImage);
+    restoreFederationFromSnapshot(federation->second, snapshot);
+    if (!processLocalSnapshot) {
+      // The durable image retains regular acquisition requests but not the
+      // callback closures from the process that created it. Re-plan each
+      // request now that the fresh registry owns the live membership routes.
+      for (auto& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        static_cast<void>(objectInstanceHandle);
+        auto workItems = planPendingAttributeOwnershipAcquisitionWork(
+            federation->second,
+            objectInstance);
+        result.ownershipAcquisitionWorkItems.insert(
+            result.ownershipAcquisitionWorkItems.end(),
+            std::make_move_iterator(workItems.begin()),
+            std::make_move_iterator(workItems.end()));
+      }
+      // An If Available request is an accepted requester callback, not an
+      // owner-side release reservation.  Rebind one callback work item per
+      // restored request to the current requester route; the callback will
+      // re-evaluate ownership at its normal begin boundary.
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        for (auto const& [requestId, request] :
+             objectInstance.pendingAttributeOwnershipAcquisitionIfAvailableRequests) {
+          // A negotiated divestiture that selected this If Available request
+          // owns the next callback boundary: replaying the ordinary WTA
+          // notification as well would consume the request as unavailable
+          // before the rebuilt Request Divestiture Confirmation can transfer
+          // ownership.  The bounded restart predicate admits only requests
+          // whose complete desired set is covered by this negotiated ledger.
+          bool negotiatedIfAvailableCandidate = false;
+          for (auto const& [attributeHandle, divestiture] :
+               objectInstance.pendingNegotiatedAttributeOwnershipDivestitures) {
+            if (divestiture.acquiringFederateIsIfAvailable &&
+                divestiture.acquiringFederateId == request.requestingFederateId &&
+                divestiture.acquisitionRequestId == requestId &&
+                request.desiredAttributeHandles.contains(attributeHandle)) {
+              negotiatedIfAvailableCandidate = true;
+              break;
+            }
+          }
+          if (negotiatedIfAvailableCandidate) {
+            continue;
+          }
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              request.requestingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored If Available ownership reservation has no live callback route.");
+          }
+          result.ownershipAcquisitionWorkItems.push_back({
+              AttributeOwnershipAcquisitionWorkKind::if_available_notification,
+              request.requestingFederateId,
+              request.requestingFederateId,
+              objectInstanceHandle,
+              requestId,
+              {},
+              request.userSuppliedTag,
+              true,
+              callbackRoute->second,
+          });
+        }
+      }
+      // A cancellation reservation is a separate requester callback from the
+      // regular acquisition work-item family. Rebind each durable reservation
+      // to the live requester route after restore; the callback-time registry
+      // check still owns the one-shot consume boundary.
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        for (auto const& [cancellationId, cancellation] :
+             objectInstance.pendingAttributeOwnershipAcquisitionCancellations) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              cancellation.requestingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored ownership-acquisition cancellation has no live callback route.");
+          }
+          result.ownershipAcquisitionCancellationWorkItems.push_back({
+              cancellation.requestingFederateId,
+              objectInstanceHandle,
+              cancellationId,
+              cancellation.attributeHandles,
+              callbackRoute->second,
+          });
+        }
+      }
+      // A Divestiture If Wanted transfer changes ownership synchronously, but
+      // its Acquisition Notification remains callback-gated. Rebind each
+      // durable notification to the current requester route after restore;
+      // beginAttributeOwnershipDivestitureIfWantedNotification owns the
+      // one-shot consume boundary.
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        for (auto const& [notificationId, notification] :
+             objectInstance.pendingAttributeOwnershipDivestitureIfWantedNotifications) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              notification.receivingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored Divestiture If Wanted notification has no live callback route.");
+          }
+          result.ownershipDivestitureIfWantedWorkItems.push_back({
+              notificationId,
+              notification.receivingFederateId,
+              objectInstanceHandle,
+              notification.attributeHandles,
+              notification.userSuppliedTag,
+              callbackRoute->second,
+          });
+        }
+      }
+      // Confirm Divestiture transfers ownership synchronously, but its
+      // Attribute Ownership Acquisition Notification remains callback-gated.
+      // Rebind each durable notification to the current requester route only
+      // after Federation Restored, preserving the confirming tag.
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        for (auto const& [notificationId, notification] :
+             objectInstance.pendingConfirmDivestitureNotifications) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              notification.receivingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored Confirm Divestiture notification has no live callback route.");
+          }
+          result.confirmDivestitureWorkItems.push_back({
+              notificationId,
+              notification.receivingFederateId,
+              objectInstanceHandle,
+              notification.attributeHandles,
+              notification.userSuppliedTag,
+              callbackRoute->second,
+          });
+        }
+      }
+      // An attribute transportation-type change is a separate requester
+      // callback reservation. Rebind the durable request to the live route;
+      // beginAttributeTransportationTypeChange still owns the one-shot
+      // consume/commit boundary.
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        for (auto const& [requestId, request] :
+             objectInstance.pendingAttributeTransportationTypeChanges) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              request.requestingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored attribute transportation-type change has no live callback route.");
+          }
+          result.attributeTransportationTypeChangeWorkItems.push_back({
+              request.requestingFederateId,
+              objectInstanceHandle,
+              requestId,
+              callbackRoute->second,
+          });
+        }
+      }
+      // An interaction transportation-type change is a publisher callback
+      // reservation independent of object-instance state. Rebind the saved
+      // class identity to the current publisher route; the confirmation
+      // callback owns the one-shot consume/commit boundary.
+      for (auto const& [requestingFederateId, declarations] :
+           federation->second.interactionDeclarations) {
+        for (auto const& [interactionClassHandle, transportationName] :
+             declarations.pendingInteractionTransportationTypeChanges) {
+          static_cast<void>(transportationName);
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              requestingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored interaction transportation-type change has no live callback route.");
+          }
+          result.interactionTransportationTypeChangeWorkItems.push_back({
+              requestingFederateId,
+              interactionClassHandle,
+              callbackRoute->second,
+          });
+        }
+      }
+      // Object-instance Request Attribute Value Update callbacks are the
+      // remaining route-free application-request ledger in this slice. The
+      // request record stays in the restored object until the callback route
+      // reaches its begin boundary, where the registry consumes it exactly
+      // once (including a stale/no-delivery outcome).
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        for (auto const& [requestId, request] :
+             objectInstance.pendingAttributeValueUpdateRequests) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              request.providingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored attribute value update request has no live provider callback route.");
+          }
+          auto const reportRoute = federation->second.serviceReportRoutes.find(
+              request.providingFederateId);
+          result.attributeValueUpdateProvideWorkItems.push_back({
+              requestId,
+              request.requestingFederateId,
+              request.providingFederateId,
+              objectInstanceHandle,
+              request.requestedAttributeHandles,
+              request.userSuppliedTag,
+              callbackRoute->second,
+              reportRoute == federation->second.serviceReportRoutes.end()
+                  ? FederateServiceReportRoute{}
+                  : reportRoute->second,
+          });
+        }
+        for (auto const& [requestId, request] :
+             objectInstance.pendingAttributeValueUpdateClassRequests) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              request.providingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored object-class attribute value update request has no live provider callback route.");
+          }
+          auto const reportRoute = federation->second.serviceReportRoutes.find(
+              request.providingFederateId);
+          result.attributeValueUpdateClassProvideWorkItems.push_back({
+              requestId,
+              request.requestingFederateId,
+              request.providingFederateId,
+              objectInstanceHandle,
+              request.requestedObjectClassHandle,
+              request.requestedAttributeHandles,
+              request.userSuppliedTag,
+              callbackRoute->second,
+              reportRoute == federation->second.serviceReportRoutes.end()
+                  ? FederateServiceReportRoute{}
+                  : reportRoute->second,
+          });
+        }
+        for (auto const& [requestId, request] :
+             objectInstance.pendingAttributeValueUpdateRegionalRequests) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              request.providingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored regional attribute value update request has no live provider callback route.");
+          }
+          auto const reportRoute = federation->second.serviceReportRoutes.find(
+              request.providingFederateId);
+          result.attributeValueUpdateRegionalProvideWorkItems.push_back({
+              requestId,
+              request.requestingFederateId,
+              request.providingFederateId,
+              objectInstanceHandle,
+              request.requestedObjectClassHandle,
+              request.requestedAttributeHandles,
+              request.requestRegionsByAttribute,
+              request.userSuppliedTag,
+              callbackRoute->second,
+              reportRoute == federation->second.serviceReportRoutes.end()
+                  ? FederateServiceReportRoute{}
+                  : reportRoute->second,
+          });
+        }
+      }
+      // Queued Request Attribute Ownership Assumption callbacks retain only
+      // their route-free object/recipient/attribute/tag tuple. Rebind each
+      // callback to the current recipient route after Federation Restored;
+      // attributeOwnershipAssumptionDeliveryFor consumes the tuple exactly
+      // once at callback entry and rechecks the live unowned state.
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           federation->second.objectInstances) {
+        for (auto const& pending :
+             objectInstance.pendingAttributeOwnershipAssumptionCallbacks) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              pending.receivingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A restored ownership-assumption callback has no live recipient route.");
+          }
+          result.attributeOwnershipAssumptionWorkItems.push_back({
+              pending.receivingFederateId,
+              objectInstanceHandle,
+              pending.attributeHandles,
+              callbackRoute->second,
+              pending.userSuppliedTag,
+          });
+        }
+      }
+      // Query Attribute Ownership result callbacks are a federation-scoped
+      // application-request ledger. Rebind each saved result to the current
+      // requester route only after Federation Restored, preserving the same
+      // one-shot callback boundary as the other restored request families.
+      for (auto const& [requestId, request] :
+           federation->second.pendingAttributeOwnershipQueries) {
+        auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+            request.requestingFederateId);
+        if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+            !callbackRoute->second) {
+          throw std::logic_error(
+              "A restored Attribute Ownership query has no live callback route.");
+        }
+        AttributeOwnershipQueryRecipient work;
+        work.requestId = requestId;
+        work.receivingFederateId = request.requestingFederateId;
+        work.objectInstanceHandle = request.objectInstanceHandle;
+        work.reportKind = request.reportKind;
+        work.owningFederateId = request.owningFederateId;
+        work.attributeHandles = request.requestedAttributeHandles;
+        work.callbackRoute = callbackRoute->second;
+        result.attributeOwnershipQueryWorkItems.push_back(std::move(work));
+      }
+    }
     // restoreFederationFromSnapshot clears the operation after the callback
     // work has been built, so build successful completion notifications first
     // and restore the state only after all preconditions have passed.
@@ -4311,6 +11729,12 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
   // preserving a clear restored-before-grant boundary in both callback models.
   result.timeAdvanceGrantDispatches =
       scheduleEligibleTimeAdvanceGrants(federation->second);
+  // Role-enable callbacks are likewise rebuilt only after the target time
+  // coordinator has applied the saved image. The live factory can therefore
+  // capture the target state's fresh callback epoch and stale pre-restore
+  // role work cannot consume a restored generation.
+  result.timeRoleEnableDispatches =
+      scheduleRestoredTimeRoleEnableDispatches(federation->second);
   return result;
 }
 
@@ -4907,6 +12331,7 @@ EmbeddedFederationRegistry::setFederateMomAttributeState(
     instance->second.attributeOwnersByHandle.insert_or_assign(
         attributeHandle,
         targetFederateId);
+    clearOwnershipAssumptionSearch(instance->second, attributeHandle);
     instance->second.attributeOrderTypes.insert_or_assign(
         attributeHandle,
         *orderType);
@@ -5207,15 +12632,17 @@ EmbeddedFederationRegistry::attributeRelevanceAdvisoryAttributes(
   auto const providingMember = federation->second.members.find(providingFederateId);
   if (providingMember == federation->second.members.end() ||
       !providingMember->second.attributeRelevanceAdvisorySwitch ||
-      providingFederateId == receivingFederateId ||
-      !federation->second.members.contains(receivingFederateId)) {
+      (receivingFederateId != 0 &&
+       (providingFederateId == receivingFederateId ||
+        !federation->second.members.contains(receivingFederateId)))) {
     return {};
   }
 
   auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() ||
       instance->second.deleteAccepted ||
-      !instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId)) {
+      (receivingFederateId != 0 &&
+       !instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId))) {
     return {};
   }
 
@@ -5226,11 +12653,19 @@ EmbeddedFederationRegistry::attributeRelevanceAdvisoryAttributes(
         owner->second != providingFederateId) {
       continue;
     }
-    if (objectAttributeInScope(
-            federation->second,
-            instance->second,
-            receivingFederateId,
-            attributeHandle) == expectedInScope) {
+    auto const relevant = receivingFederateId == 0
+        ? attributeRelevanceRateSnapshotForState(
+              federation->second,
+              instance->second,
+              0,
+              attributeHandle)
+              .relevant
+        : objectAttributeRelevantForAdvisory(
+              federation->second,
+              instance->second,
+              receivingFederateId,
+              attributeHandle);
+    if (relevant == expectedInScope) {
       result.insert(attributeHandle);
     }
   }
@@ -5246,13 +12681,22 @@ EmbeddedFederationRegistry::attributeRelevanceAdvisoryUpdateRateDesignatorFor(
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end() ||
-      !federation->second.members.contains(receivingFederateId)) {
+      (receivingFederateId != 0 &&
+       !federation->second.members.contains(receivingFederateId))) {
     return std::nullopt;
   }
   auto const objectInstance = federation->second.objectInstances.find(objectInstanceHandle);
   if (objectInstance == federation->second.objectInstances.end() ||
       objectInstance->second.deleteAccepted) {
     return std::nullopt;
+  }
+  if (receivingFederateId == 0) {
+    return attributeRelevanceRateSnapshotForState(
+               federation->second,
+               objectInstance->second,
+               0,
+               attributeHandle)
+        .updateRateDesignator;
   }
   return subscribedUpdateRateDesignatorForAttribute(
       federation->second,
@@ -5554,6 +12998,38 @@ FederationTsoInteractionEnqueueResult EmbeddedFederationRegistry::enqueueTsoInte
     }
   }
 
+  // A producing federate may resign before this queued interaction reaches a
+  // constrained recipient. Its public RegionHandles are then released from
+  // the live federation map, so retain the committed invocation-time specs
+  // alongside the opaque handles for callback-boundary overlap evaluation.
+  // The public timestamped regional service supplies the snapshots captured
+  // by its accepted planning pass. Do not re-read mutable live regions here:
+  // doing so would let a region mutation between planning and queue admission
+  // give immediate and TSO recipients different DDM realizations for one
+  // service invocation.
+  if (message.sentRegionHandles.empty()) {
+    message.sentRegionSnapshots.clear();
+  } else {
+    if (message.sentRegionSnapshots.size() != message.sentRegionHandles.size()) {
+      return {FederationTsoRegistryStatus::invalid_request,
+              TsoMessageQueueStatus::invalid_recipient,
+              0,
+              0};
+    }
+    for (std::uint64_t const regionHandle : message.sentRegionHandles) {
+      auto const snapshot = message.sentRegionSnapshots.find(regionHandle);
+      if (snapshot == message.sentRegionSnapshots.end() ||
+          !snapshot->second.specificationCommitted ||
+          snapshot->second.committedRangeBounds.size() !=
+              snapshot->second.dimensionHandles.size()) {
+        return {FederationTsoRegistryStatus::invalid_request,
+                TsoMessageQueueStatus::invalid_recipient,
+                0,
+                0};
+      }
+    }
+  }
+
   auto const messageId = federation->second.timeCoordinator.allocateTsoMessageId();
   if (messageId == 0) {
     return {FederationTsoRegistryStatus::invalid_request,
@@ -5685,6 +13161,47 @@ EmbeddedFederationRegistry::enqueueTsoAttributeUpdate(
               TsoMessageQueueStatus::invalid_recipient,
               0,
               0};
+    }
+  }
+
+  // A producing federate may resign before a queued regional reflection
+  // reaches a constrained recipient. Preserve every explicit source-region
+  // specification at invocation time; resignation removes both the public
+  // RegionHandle and the object's live update-region association, neither of
+  // which may erase an already accepted TSO passel's DDM scope. The public
+  // timestamped service has already captured these specifications while it
+  // planned the invocation. Re-reading the live region map here would allow a
+  // source-range mutation between planning and queue admission to give
+  // immediate and TSO recipients different DDM realizations for one call.
+  std::set<std::uint64_t> explicitRegionHandles;
+  for (auto const& [recipientFederateId, passels] : message.passelsByRecipient) {
+    static_cast<void>(recipientFederateId);
+    for (auto const& passel : passels) {
+      explicitRegionHandles.insert(
+          passel.sentRegionHandles.begin(),
+          passel.sentRegionHandles.end());
+    }
+  }
+  if (explicitRegionHandles.empty()) {
+    message.sentRegionSnapshots.clear();
+  } else {
+    if (message.sentRegionSnapshots.size() != explicitRegionHandles.size()) {
+      return {FederationTsoRegistryStatus::invalid_request,
+              TsoMessageQueueStatus::invalid_recipient,
+              0,
+              0};
+    }
+    for (std::uint64_t const regionHandle : explicitRegionHandles) {
+      auto const snapshot = message.sentRegionSnapshots.find(regionHandle);
+      if (snapshot == message.sentRegionSnapshots.end() ||
+          !snapshot->second.specificationCommitted ||
+          snapshot->second.committedRangeBounds.size() !=
+              snapshot->second.dimensionHandles.size()) {
+        return {FederationTsoRegistryStatus::invalid_request,
+                TsoMessageQueueStatus::invalid_recipient,
+                0,
+                0};
+      }
     }
   }
 
@@ -6272,7 +13789,8 @@ FederationTsoRetractionResult EmbeddedFederationRegistry::retractTsoMessageForPr
     std::wstring const& federationName,
     std::uint64_t producingFederateId,
     std::uint64_t messageId,
-    std::shared_ptr<rti1516_2025::LogicalTime const> const& retractionLowerBound) {
+    std::shared_ptr<rti1516_2025::LogicalTime const> const& retractionLowerBound,
+    bool enforceTimestampEligibility) {
   auto instrumentationScope = beginInstrumentation("retractTsoMessageForProducer");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
@@ -6285,8 +13803,11 @@ FederationTsoRetractionResult EmbeddedFederationRegistry::retractTsoMessageForPr
             {TsoMessageQueueStatus::invalid_recipient, 0}};
   }
 
-  auto timestampIsRetractable = [&retractionLowerBound](
+  auto timestampIsRetractable = [&retractionLowerBound, enforceTimestampEligibility](
                                     std::shared_ptr<rti1516_2025::LogicalTime const> const& timestamp) {
+    if (!enforceTimestampEligibility) {
+      return true;
+    }
     if (!retractionLowerBound || !timestamp) {
       return false;
     }
@@ -6545,6 +14066,7 @@ bool EmbeddedFederationRegistry::beginTsoAttributeUpdateCallback(
     return false;
   }
   recipient->second = Federation::TsoRecipientDeliveryState::delivered;
+  applyTsoAttributeUpdateValues(federation->second, messageId);
   reclaimTsoMessagePayload(federation->second, messageId);
   return true;
 }
@@ -6576,6 +14098,7 @@ bool EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed(
   // began, while releasing any lifecycle guard that only protects pending
   // object-dependent delivery.
   recipient->second = Federation::TsoRecipientDeliveryState::suppressed;
+  applyTsoAttributeUpdateValues(federation->second, messageId);
   reclaimTsoMessagePayload(federation->second, messageId);
   return true;
 }
@@ -6800,6 +14323,12 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
   if (!instance->second.deleteAccepted) {
     instance->second.deleteAccepted = true;
     instance->second.pendingDiscoveryFederates.clear();
+    instance->second.pendingAttributeValueUpdateRequests.clear();
+    instance->second.pendingAttributeValueUpdateClassRequests.clear();
+    instance->second.pendingAttributeValueUpdateRegionalRequests.clear();
+    clearPendingAttributeOwnershipQueries(
+        federation->second,
+        instance->second.handle);
     instance->second.pendingAttributeOwnershipAcquisitionIfAvailableRequests.clear();
     instance->second.pendingAttributeOwnershipAcquisitionRequests.clear();
     instance->second.pendingAttributeOwnershipAcquisitionCancellations.clear();
@@ -6954,6 +14483,73 @@ std::vector<FederationTimeGrantDispatch> EmbeddedFederationRegistry::scheduleEli
     // throws, the request remains eligible for a later re-evaluation.
     result.push_back(pending.dispatch);
     pending.dispatchQueued = true;
+  }
+  return result;
+}
+
+std::vector<FederationTimeGrantDispatch>
+EmbeddedFederationRegistry::scheduleRestoredTimeRoleEnableDispatches(
+    Federation& federation) {
+  struct PendingRoleEnable final {
+    std::uint64_t federateId = 0;
+    std::uint64_t generation = 0;
+    FederationTimeRoleEnableKind kind = FederationTimeRoleEnableKind::regulation;
+  };
+
+  std::vector<PendingRoleEnable> pending;
+  for (auto const& savedTimeState : federation.timeCoordinator.snapshot()) {
+    auto const& time = savedTimeState.time;
+    if (time.timeRegulationPending !=
+            (time.pendingTimeRegulationGeneration != 0U) ||
+        time.timeConstrainedPending !=
+            (time.pendingTimeConstrainedGeneration != 0U)) {
+      throw std::logic_error(
+          "A restored time state has inconsistent pending role-enable state.");
+    }
+    if (time.timeRegulationPending) {
+      pending.push_back({
+          savedTimeState.federateId,
+          time.pendingTimeRegulationGeneration,
+          FederationTimeRoleEnableKind::regulation,
+      });
+    }
+    if (time.timeConstrainedPending) {
+      pending.push_back({
+          savedTimeState.federateId,
+          time.pendingTimeConstrainedGeneration,
+          FederationTimeRoleEnableKind::constrained,
+      });
+    }
+  }
+
+  // The generation allocator is shared by both role requests. Sorting keeps
+  // the callback order that the requesting federate observed before save,
+  // even when regulation and constrained enables were accepted together.
+  std::sort(
+      pending.begin(),
+      pending.end(),
+      [](PendingRoleEnable const& left, PendingRoleEnable const& right) {
+        if (left.federateId != right.federateId) {
+          return left.federateId < right.federateId;
+        }
+        return left.generation < right.generation;
+      });
+
+  std::vector<FederationTimeGrantDispatch> result;
+  result.reserve(pending.size());
+  for (auto const& role : pending) {
+    auto const factory = federation.timeRoleEnableDispatchFactories.find(role.federateId);
+    if (factory == federation.timeRoleEnableDispatchFactories.end() ||
+        !factory->second) {
+      throw std::logic_error(
+          "A restored pending role-enable request has no live callback dispatcher.");
+    }
+    auto dispatch = factory->second(role.federateId, role.generation, role.kind);
+    if (!dispatch) {
+      throw std::logic_error(
+          "The embedded federation could not recreate a saved role-enable callback.");
+    }
+    result.push_back(std::move(dispatch));
   }
   return result;
 }
@@ -7367,7 +14963,10 @@ UpdateRateValueResult EmbeddedFederationRegistry::updateRateValueForAttribute(
     auto const perClass = declarations->second.byObjectClass.find(*currentClassHandle);
     if (perClass != declarations->second.byObjectClass.end()) {
       auto const ordinary = perClass->second.subscribedAttributes.find(attributeHandle);
-      if (ordinary != perClass->second.subscribedAttributes.end()) {
+      // A passive ordinary subscription is retained for later activation but
+      // does not arrange delivery and therefore must not contribute to the
+      // effective update-rate query.
+      if (ordinary != perClass->second.subscribedAttributes.end() && ordinary->second) {
         auto const designator = perClass->second.subscribedUpdateRateDesignators.find(
             attributeHandle);
         std::string const normalized = designator ==
@@ -7389,7 +14988,12 @@ UpdateRateValueResult EmbeddedFederationRegistry::updateRateValueForAttribute(
         auto const regionalDesignators =
             perClass->second.regionalSubscribedUpdateRateDesignators.find(attributeHandle);
         for (auto const& [regionHandle, active] : regional->second) {
-          static_cast<void>(active);
+          // A passive regional declaration is retained for later activation,
+          // but it does not currently arrange delivery and therefore must not
+          // contribute to the effective update-rate query.
+          if (!active) {
+            continue;
+          }
           std::string normalized = "HLAdefault";
           if (regionalDesignators !=
               perClass->second.regionalSubscribedUpdateRateDesignators.end()) {
@@ -7438,6 +15042,58 @@ std::optional<std::string> EmbeddedFederationRegistry::dimensionNameFor(
   }
   auto const name = federation->second.dimensionHandles->nameFor(dimensionHandle);
   if (!name || federation->second.definition.catalog->dimension(*name) == nullptr) {
+    return std::nullopt;
+  }
+  return name;
+}
+
+std::optional<std::uint64_t> EmbeddedFederationRegistry::transportationTypeHandleFor(
+    std::wstring const& federationName,
+    std::string const& transportationTypeName) const {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      !federation->second.transportationTypeHandles) {
+    return std::nullopt;
+  }
+
+  // The two predefined transportation names are part of the standard handle
+  // universe even when a deliberately reduced FOM omits their declaration.
+  // Every other name must be present in the execution's composed catalog.
+  bool const isPredefined = transportationTypeName == "HLAreliable" ||
+      transportationTypeName == "HLAbestEffort";
+  if (!isPredefined &&
+      (!federation->second.definition.catalog ||
+       federation->second.definition.catalog->transportationType(
+           transportationTypeName) == nullptr)) {
+    return std::nullopt;
+  }
+  return federation->second.transportationTypeHandles->handleFor(
+      transportationTypeName);
+}
+
+std::optional<std::string> EmbeddedFederationRegistry::transportationTypeNameFor(
+    std::wstring const& federationName,
+    std::uint64_t transportationTypeHandle) const {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      !federation->second.transportationTypeHandles) {
+    return std::nullopt;
+  }
+  auto const name = federation->second.transportationTypeHandles->nameFor(
+      transportationTypeHandle);
+  if (!name) {
+    return std::nullopt;
+  }
+
+  // As with name-to-handle lookup, predefined names remain available in a
+  // reduced FOM while an implementation-specific name is valid only while it
+  // belongs to the current composed execution catalog.
+  bool const isPredefined = *name == "HLAreliable" || *name == "HLAbestEffort";
+  if (!isPredefined &&
+      (!federation->second.definition.catalog ||
+       federation->second.definition.catalog->transportationType(*name) == nullptr)) {
     return std::nullopt;
   }
   return name;
@@ -7559,6 +15215,12 @@ RegionCreateResult EmbeddedFederationRegistry::createRegion(
     return {RegionServiceStatus::inconsistent_catalog};
   }
 
+  // IEEE 1516.1-2025 §9.2 specifies a set of dimension designators and does
+  // not impose a non-empty cardinality rule.  An empty set therefore remains
+  // a valid zero-dimensional region template; InvalidDimensionHandle applies
+  // to a supplied designator that cannot be resolved in this federation.  Do
+  // not import the sibling Python backend's stricter InvalidRegionContext
+  // branch into the official C++ surface.
   for (std::uint64_t const dimensionHandle : dimensionHandles) {
     auto const dimensionName = federation->second.dimensionHandles->nameFor(dimensionHandle);
     if (!dimensionName ||
@@ -7630,73 +15292,189 @@ RegionScopeChangePlan EmbeddedFederationRegistry::commitRegionModificationsWithS
         });
   }
 
-  for (std::uint64_t const regionHandle : regionHandles) {
-    auto& region = federation->second.regions.at(regionHandle);
-    region.committedRangeBounds = region.pendingRangeBounds;
-    region.specificationCommitted = true;
-  }
-
   RegionScopeChangePlan result;
   result.status = RegionServiceStatus::applied;
-  std::map<std::tuple<std::uint64_t, std::uint64_t, bool>, std::size_t> recipientPositions;
-  for (auto const& [objectInstanceHandle, objectInstance] : federation->second.objectInstances) {
-    if (objectInstance.deleteAccepted) {
-      continue;
+  // The committed region specification and the pending discovery/scope
+  // ledgers form one service transaction.  Planning can allocate while it
+  // walks the object and declaration state; if that planning throws, expose
+  // the pre-service region state rather than leaving a partially committed
+  // subset behind.  Swapping the saved maps back is non-allocating, so the
+  // rollback remains usable while unwinding an allocation failure.
+  auto rollback = [&] {
+    for (auto& [regionHandle, previous] : previousRegions) {
+      auto region = federation->second.regions.find(regionHandle);
+      if (region == federation->second.regions.end()) {
+        continue;
+      }
+      region->second.committedRangeBounds.swap(previous.committedRangeBounds);
+      region->second.specificationCommitted = previous.specificationCommitted;
     }
-    for (auto const& [receivingFederateId, knownClassHandle] :
-         objectInstance.knownObjectClassHandlesByFederate) {
-      static_cast<void>(knownClassHandle);
-      if (receivingFederateId == objectInstance.producingFederateId ||
-          !federation->second.members.contains(receivingFederateId)) {
-        continue;
+    for (auto const& discovery : result.discoveries) {
+      auto const objectInstance = federation->second.objectInstances.find(
+          discovery.objectInstanceHandle);
+      if (objectInstance != federation->second.objectInstances.end()) {
+        objectInstance->second.pendingDiscoveryFederates.erase(
+            discovery.receivingFederateId);
       }
-      auto const callbackRoute =
-          federation->second.interactionCallbackRoutes.find(receivingFederateId);
-      if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
-          !callbackRoute->second) {
-        continue;
-      }
-      for (auto const& [attributeHandle, owner] : objectInstance.attributeOwnersByHandle) {
-        static_cast<void>(owner);
-        bool const wasInScope = objectAttributeInScope(
-            federation->second,
-            objectInstance,
-            receivingFederateId,
-            attributeHandle,
-            &previousRegions);
-        bool const isInScope = objectAttributeInScope(
-            federation->second,
-            objectInstance,
-            receivingFederateId,
-            attributeHandle);
-        if (wasInScope == isInScope) {
+    }
+  };
+
+  try {
+    for (std::uint64_t const regionHandle : regionHandles) {
+      auto& region = federation->second.regions.at(regionHandle);
+      region.committedRangeBounds = region.pendingRangeBounds;
+      region.specificationCommitted = true;
+    }
+
+    // Region mutation is also a discovery boundary.  A receiver can have a
+    // retained regional subscription while an already-registered object is
+    // outside its committed source range; moving that subscription into an
+    // overlapping range must plan Discover Object Instance now.  Evaluate the
+    // prior and current candidates against the same federation state, overriding
+    // only the regions in this commit.
+    try {
+      for (auto& [objectInstanceHandle, objectInstance] : federation->second.objectInstances) {
+        static_cast<void>(objectInstanceHandle);
+        if (objectInstance.deleteAccepted) {
           continue;
         }
-        auto const key = std::make_tuple(
-            receivingFederateId,
-            objectInstanceHandle,
-            isInScope);
-        auto position = recipientPositions.find(key);
-        if (position == recipientPositions.end()) {
-          std::size_t const index = result.recipients.size();
-          result.recipients.push_back({
+        for (auto const& [receivingFederateId, membership] : federation->second.members) {
+          static_cast<void>(membership);
+          if (receivingFederateId == objectInstance.producingFederateId ||
+              objectInstance.knownObjectClassHandlesByFederate.contains(receivingFederateId) ||
+              objectInstance.pendingDiscoveryFederates.contains(receivingFederateId)) {
+            continue;
+          }
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              receivingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            continue;
+          }
+          auto const wasDiscoverable = candidateObjectInstanceDiscoveryClass(
+              federation->second,
+              objectInstance,
+              receivingFederateId,
+              &previousRegions);
+          if (wasDiscoverable) {
+            continue;
+          }
+          auto const discoveredClass = candidateObjectInstanceDiscoveryClass(
+              federation->second,
+              objectInstance,
+              receivingFederateId);
+          if (!discoveredClass) {
+            continue;
+          }
+          auto const [pending, insertedPending] =
+              objectInstance.pendingDiscoveryFederates.insert(receivingFederateId);
+          static_cast<void>(pending);
+          if (!insertedPending) {
+            continue;
+          }
+          auto const reportRoute = federation->second.serviceReportRoutes.find(
+              receivingFederateId);
+          try {
+            result.discoveries.push_back({
+                receivingFederateId,
+                objectInstance.handle,
+                *discoveredClass,
+                objectInstance.name,
+                objectInstance.producingFederateId,
+                callbackRoute->second,
+                reportRoute == federation->second.serviceReportRoutes.end()
+                    ? FederateServiceReportRoute{}
+                    : reportRoute->second,
+            });
+          } catch (...) {
+            objectInstance.pendingDiscoveryFederates.erase(receivingFederateId);
+            throw;
+          }
+        }
+      }
+    } catch (...) {
+      for (auto const& discovery : result.discoveries) {
+        auto const objectInstance = federation->second.objectInstances.find(
+            discovery.objectInstanceHandle);
+        if (objectInstance != federation->second.objectInstances.end()) {
+          objectInstance->second.pendingDiscoveryFederates.erase(
+              discovery.receivingFederateId);
+        }
+      }
+      throw;
+    }
+    std::map<std::tuple<std::uint64_t, std::uint64_t, bool>, std::size_t> recipientPositions;
+    for (auto const& [objectInstanceHandle, objectInstance] : federation->second.objectInstances) {
+      if (objectInstance.deleteAccepted) {
+        continue;
+      }
+      for (auto const& [receivingFederateId, knownClassHandle] :
+           objectInstance.knownObjectClassHandlesByFederate) {
+        static_cast<void>(knownClassHandle);
+        if (receivingFederateId == objectInstance.producingFederateId ||
+            !federation->second.members.contains(receivingFederateId)) {
+          continue;
+        }
+        auto const callbackRoute =
+            federation->second.interactionCallbackRoutes.find(receivingFederateId);
+        if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+            !callbackRoute->second) {
+          continue;
+        }
+        for (auto const& [attributeHandle, owner] : objectInstance.attributeOwnersByHandle) {
+          static_cast<void>(owner);
+          bool const wasInScope = objectAttributeInScope(
+              federation->second,
+              objectInstance,
+              receivingFederateId,
+              attributeHandle,
+              &previousRegions);
+          bool const isInScope = objectAttributeInScope(
+              federation->second,
+              objectInstance,
+              receivingFederateId,
+              attributeHandle);
+          if (wasInScope == isInScope) {
+            continue;
+          }
+          auto const key = std::make_tuple(
               receivingFederateId,
               objectInstanceHandle,
-              {},
-              isInScope,
-              callbackRoute->second,
-          });
-          recipientPositions.emplace(key, index);
-          position = recipientPositions.find(key);
+              isInScope);
+          auto position = recipientPositions.find(key);
+          if (position == recipientPositions.end()) {
+            std::size_t const index = result.recipients.size();
+            result.recipients.push_back({
+                receivingFederateId,
+                objectInstanceHandle,
+                {},
+                isInScope,
+                callbackRoute->second,
+            });
+            recipientPositions.emplace(key, index);
+            position = recipientPositions.find(key);
+          }
+          result.recipients[position->second].attributeHandles.insert(attributeHandle);
         }
-        result.recipients[position->second].attributeHandles.insert(attributeHandle);
       }
     }
+    result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
+        federation->second,
+        result.recipients);
+    auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
+        federation->second,
+        0,
+        {},
+        &previousRegions);
+    result.attributeRelevanceAdvisories.insert(
+        result.attributeRelevanceAdvisories.end(),
+        transitionAdvisories.begin(),
+        transitionAdvisories.end());
+    return result;
+  } catch (...) {
+    rollback();
+    throw;
   }
-  result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
-      federation->second,
-      result.recipients);
-  return result;
 }
 
 RegionServiceStatus EmbeddedFederationRegistry::commitRegionModifications(
@@ -8502,7 +16280,9 @@ std::optional<std::uint64_t>
 EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
     Federation const& federation,
     Federation::ObjectInstance const& objectInstance,
-    std::uint64_t receivingFederateId) {
+    std::uint64_t receivingFederateId,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const* updateRegionOverrides) {
   // Registration makes the object known to its producer. Discovery requires
   // a different joined federate to own a qualifying instance attribute, so
   // the producer cannot receive an induced Discover Object Instance callback.
@@ -8578,13 +16358,15 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
         }
         auto const regional = perClass->second.regionalSubscribedAttributes.find(
             ownedAttributeHandle);
-        auto const associated = objectInstance.updateRegionsByAttribute.find(
-            ownedAttributeHandle);
+        auto const& updateRegions = updateRegionOverrides != nullptr
+            ? *updateRegionOverrides
+            : objectInstance.updateRegionsByAttribute;
+        auto const associated = updateRegions.find(ownedAttributeHandle);
         bool const hasExplicitSubscriptionRegion =
             regional != perClass->second.regionalSubscribedAttributes.end() &&
             !regional->second.empty();
         bool const hasExplicitUpdateRegion =
-            associated != objectInstance.updateRegionsByAttribute.end() &&
+            associated != updateRegions.end() &&
             !associated->second.empty();
 
         // Ordinary declaration state uses the invisible default region only
@@ -8606,7 +16388,10 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
             continue;
           }
           if (!hasExplicitUpdateRegion) {
-            if (regionOverlapsDefault(federation, subscribedRegionHandle)) {
+            if (regionOverlapsDefault(
+                    federation,
+                    subscribedRegionHandle,
+                    regionOverrides)) {
               return currentClassHandle;
             }
             continue;
@@ -8615,7 +16400,8 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
             if (regionsOverlap(
                     federation,
                     subscribedRegionHandle,
-                    associatedRegionHandle)) {
+                    associatedRegionHandle,
+                    regionOverrides)) {
               return currentClassHandle;
             }
           }
@@ -9174,7 +16960,9 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValues(
     JoinedFederateMomObjectSnapshot const& object,
     std::uint64_t receivingFederateId,
     std::set<std::uint64_t> const& requestedAttributeHandles,
-    bool requireActiveSubscription) {
+    bool requireActiveSubscription,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const*
+        requestRegionsByAttribute) {
   if (!federation.members.contains(receivingFederateId) ||
       !object.knownFederateIds.contains(receivingFederateId) ||
       !federation.definition.catalog ||
@@ -9202,6 +16990,32 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValues(
             *objectClassName,
             attributeHandle)) {
       continue;
+    }
+    if (requestRegionsByAttribute != nullptr) {
+      auto const requestRegions = requestRegionsByAttribute->find(attributeHandle);
+      if (requestRegions == requestRegionsByAttribute->end() ||
+          requestRegions->second.empty()) {
+        // An empty region set is the regional service's explicit no-op for
+        // this attribute.  Keep it out of the direct MOM reflection just as
+        // the ordinary object-class planner does for provider solicitation.
+        continue;
+      }
+      bool overlaps = false;
+      for (std::uint64_t const requestRegionHandle : requestRegions->second) {
+        if (regionOverlapsSnapshot(
+                federation,
+                requestRegionHandle,
+                object.immutableFederatePoint)) {
+          overlaps = true;
+          break;
+        }
+      }
+      if (!overlaps) {
+        // A regional request is evaluated against the immutable private
+        // HLAfederate point at both planning and callback time.  A disjoint
+        // region must not produce a reflection or a Provide callback.
+        continue;
+      }
     }
     if (requireActiveSubscription) {
       bool active = false;
@@ -9365,12 +17179,214 @@ bool EmbeddedFederationRegistry::objectAttributeInScope(
   return false;
 }
 
+bool EmbeddedFederationRegistry::objectAttributeRelevantForAdvisory(
+    Federation const& federation,
+    Federation::ObjectInstance const& objectInstance,
+    std::uint64_t receivingFederateId,
+    std::uint64_t attributeHandle,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const* associationOverrides,
+    Federation::ObjectClassAttributeDeclarations const* declarationOverrides) {
+  // The enabled policy is exactly the normal in-scope calculation.  Keeping
+  // this delegation explicit makes the disabled-policy traversal below easy
+  // to audit against §6.1.5 without changing delivery scope itself.
+  if (federation.advisoriesUseKnownClassSwitch) {
+    return objectAttributeInScope(
+        federation,
+        objectInstance,
+        receivingFederateId,
+        attributeHandle,
+        overrides,
+        associationOverrides,
+        declarationOverrides);
+  }
+
+  if (objectInstance.deleteAccepted ||
+      objectInstance.producingFederateId == receivingFederateId ||
+      !federation.members.contains(receivingFederateId) ||
+      !federation.definition.catalog ||
+      !federation.objectClassHandles ||
+      !federation.attributeHandles) {
+    return false;
+  }
+  // An advisory still concerns a particular known object.  The disabled
+  // switch changes which class supplies subscription relevance; it does not
+  // authorize an owner-directed callback for an object the receiver has
+  // never discovered.
+  if (!objectInstance.knownObjectClassHandlesByFederate.contains(receivingFederateId)) {
+    return false;
+  }
+
+  Federation::ObjectClassAttributeDeclarations const* declarations =
+      declarationOverrides;
+  if (declarations == nullptr) {
+    auto const currentDeclarations = federation.objectClassAttributeDeclarations.find(
+        receivingFederateId);
+    if (currentDeclarations == federation.objectClassAttributeDeclarations.end()) {
+      return false;
+    }
+    declarations = &currentDeclarations->second;
+  }
+
+  auto const registeredClassName = federation.objectClassHandles->nameFor(
+      objectInstance.registeredObjectClassHandle);
+  if (!registeredClassName ||
+      federation.definition.catalog->objectClass(*registeredClassName) == nullptr) {
+    return false;
+  }
+
+  auto const& updateRegions = associationOverrides == nullptr
+      ? objectInstance.updateRegionsByAttribute
+      : *associationOverrides;
+  std::set<std::string> visited;
+  std::string currentClassName = *registeredClassName;
+  while (!currentClassName.empty() && visited.insert(currentClassName).second) {
+    auto const* currentClass = federation.definition.catalog->objectClass(currentClassName);
+    auto const currentClassHandle = federation.objectClassHandles->handleFor(currentClassName);
+    if (currentClass == nullptr || !currentClassHandle) {
+      return false;
+    }
+    if (!federation.attributeHandles->nameFor(
+            federation.definition.catalog.get(),
+            currentClassName,
+            attributeHandle)) {
+      currentClassName = currentClass->parentName;
+      continue;
+    }
+
+    auto const perClass = declarations->byObjectClass.find(*currentClassHandle);
+    if (perClass != declarations->byObjectClass.end()) {
+      auto const regional = perClass->second.regionalSubscribedAttributes.find(
+          attributeHandle);
+      auto const associated = updateRegions.find(attributeHandle);
+      bool const hasExplicitSubscriptionRegion =
+          regional != perClass->second.regionalSubscribedAttributes.end() &&
+          !regional->second.empty();
+      bool const hasExplicitUpdateRegion =
+          associated != updateRegions.end() && !associated->second.empty();
+
+      auto const ordinarySubscription = perClass->second.subscribedAttributes.find(
+          attributeHandle);
+      if (ordinarySubscription != perClass->second.subscribedAttributes.end() &&
+          ordinarySubscription->second && !hasExplicitSubscriptionRegion) {
+        return true;
+      }
+
+      if (hasExplicitSubscriptionRegion) {
+        for (auto const& [subscribedRegionHandle, active] : regional->second) {
+          if (!active) {
+            continue;
+          }
+          if (!hasExplicitUpdateRegion) {
+            if (regionOverlapsDefault(federation, subscribedRegionHandle, overrides)) {
+              return true;
+            }
+            continue;
+          }
+          for (std::uint64_t const associatedRegionHandle : associated->second) {
+            if (regionsOverlap(
+                    federation,
+                    subscribedRegionHandle,
+                    associatedRegionHandle,
+                    overrides)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    currentClassName = currentClass->parentName;
+  }
+  return false;
+}
+
+EmbeddedFederationRegistry::AttributeRelevanceRateSnapshot
+EmbeddedFederationRegistry::attributeRelevanceRateSnapshotForState(
+    Federation const& federation,
+    Federation::ObjectInstance const& objectInstance,
+    std::uint64_t declarationOverrideFederateId,
+    std::uint64_t attributeHandle,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const* associationOverrides,
+    Federation::ObjectClassAttributeDeclarations const* declarationOverrides) {
+  AttributeRelevanceRateSnapshot result;
+  bool hasUnspecifiedDefault = false;
+  std::optional<std::pair<double, std::string>> maximumExplicitRate;
+
+  for (auto const& [receivingFederateId, knownClassHandle] :
+       objectInstance.knownObjectClassHandlesByFederate) {
+    static_cast<void>(knownClassHandle);
+    if (receivingFederateId == objectInstance.producingFederateId ||
+        !federation.members.contains(receivingFederateId)) {
+      continue;
+    }
+
+    Federation::ObjectClassAttributeDeclarations const* receiverDeclarations = nullptr;
+    if (declarationOverrideFederateId == receivingFederateId &&
+        declarationOverrides != nullptr) {
+      receiverDeclarations = declarationOverrides;
+    } else {
+      auto const currentDeclarations = federation.objectClassAttributeDeclarations.find(
+          receivingFederateId);
+      if (currentDeclarations == federation.objectClassAttributeDeclarations.end()) {
+        continue;
+      }
+      receiverDeclarations = &currentDeclarations->second;
+    }
+
+    if (!objectAttributeRelevantForAdvisory(
+            federation,
+            objectInstance,
+            receivingFederateId,
+            attributeHandle,
+            regionOverrides,
+            associationOverrides,
+            receiverDeclarations)) {
+      continue;
+    }
+    result.relevant = true;
+
+    auto const designator = subscribedUpdateRateDesignatorForAttribute(
+        federation,
+        objectInstance,
+        receivingFederateId,
+        attributeHandle,
+        regionOverrides,
+        associationOverrides,
+        receiverDeclarations);
+    if (!designator) {
+      hasUnspecifiedDefault = true;
+      continue;
+    }
+    auto const value = updateRateValueForNormalizedDesignator(
+        *federation.definition.catalog,
+        *designator);
+    if (!value) {
+      continue;
+    }
+    if (!maximumExplicitRate ||
+        *value > maximumExplicitRate->first ||
+        (*value == maximumExplicitRate->first &&
+         *designator < maximumExplicitRate->second)) {
+      maximumExplicitRate = std::make_pair(*value, *designator);
+    }
+  }
+
+  if (!hasUnspecifiedDefault && maximumExplicitRate) {
+    result.updateRateDesignator = maximumExplicitRate->second;
+  }
+  return result;
+}
+
 std::optional<std::string>
 EmbeddedFederationRegistry::subscribedUpdateRateDesignatorForAttribute(
     Federation const& federation,
     Federation::ObjectInstance const& objectInstance,
     std::uint64_t receivingFederateId,
-    std::uint64_t attributeHandle) {
+    std::uint64_t attributeHandle,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const* associationOverrides,
+    Federation::ObjectClassAttributeDeclarations const* declarationOverrides) {
   if (!federation.definition.catalog ||
       !federation.objectClassHandles ||
       !federation.attributeHandles ||
@@ -9382,19 +17398,52 @@ EmbeddedFederationRegistry::subscribedUpdateRateDesignatorForAttribute(
   if (knownClass == objectInstance.knownObjectClassHandlesByFederate.end()) {
     return std::nullopt;
   }
-  auto const declarations = federation.objectClassAttributeDeclarations.find(
-      receivingFederateId);
-  if (declarations == federation.objectClassAttributeDeclarations.end()) {
-    return std::nullopt;
+  Federation::ObjectClassAttributeDeclarations const* declarations = declarationOverrides;
+  if (declarations == nullptr) {
+    auto const currentDeclarations = federation.objectClassAttributeDeclarations.find(
+        receivingFederateId);
+    if (currentDeclarations == federation.objectClassAttributeDeclarations.end()) {
+      return std::nullopt;
+    }
+    declarations = &currentDeclarations->second;
   }
 
-  // This subscription-state query intentionally considers retained active and
-  // passive declarations. The closest subscribed class wins, matching the
-  // development profile's preferred-designator rule. Regional declarations at
-  // that class are considered only when their committed subscription regions
-  // overlap the instance's update-region association.
+  // Turn Updates On carries the maximum actively subscribed rate for the
+  // attribute.  Accumulate every applicable active declaration in the
+  // receiver's class lineage; an omitted/default declaration suppresses the
+  // optional designator even when another declaration supplies an explicit
+  // rate.
+  bool hasUnspecifiedDefault = false;
+  std::optional<std::pair<double, std::string>> maximumExplicitRate;
+  auto considerDesignator = [&](std::string const& designator) {
+    if (designator.empty()) {
+      hasUnspecifiedDefault = true;
+      return;
+    }
+    auto const value = updateRateValueForNormalizedDesignator(
+        *federation.definition.catalog,
+        designator);
+    if (!value) {
+      return;
+    }
+    if (!maximumExplicitRate ||
+        *value > maximumExplicitRate->first ||
+        (*value == maximumExplicitRate->first &&
+         designator < maximumExplicitRate->second)) {
+      maximumExplicitRate = std::make_pair(*value, designator);
+    }
+  };
+
+  auto const& updateRegions = associationOverrides == nullptr
+      ? objectInstance.updateRegionsByAttribute
+      : *associationOverrides;
   std::set<std::uint64_t> visited;
-  std::uint64_t currentClassHandle = knownClass->second;
+  // Rate selection follows the same static policy as relevance itself.  With
+  // Advisories Use Known Class disabled, a subclass-only subscription remains
+  // visible even when the receiving federate knows only an ancestor.
+  std::uint64_t currentClassHandle = federation.advisoriesUseKnownClassSwitch
+      ? knownClass->second
+      : objectInstance.registeredObjectClassHandle;
   while (visited.insert(currentClassHandle).second) {
     auto const currentClassName = federation.objectClassHandles->nameFor(currentClassHandle);
     if (!currentClassName) {
@@ -9420,62 +17469,70 @@ EmbeddedFederationRegistry::subscribedUpdateRateDesignatorForAttribute(
       continue;
     }
 
-    auto const perClass = declarations->second.byObjectClass.find(currentClassHandle);
-    if (perClass != declarations->second.byObjectClass.end()) {
-      auto const regional = perClass->second.regionalSubscribedAttributes.find(attributeHandle);
-      auto const associated = objectInstance.updateRegionsByAttribute.find(attributeHandle);
+    auto const perClass = declarations->byObjectClass.find(currentClassHandle);
+    if (perClass != declarations->byObjectClass.end()) {
+      auto const regional = perClass->second.regionalSubscribedAttributes.find(
+          attributeHandle);
+      auto const associated = updateRegions.find(attributeHandle);
       bool const hasExplicitSubscriptionRegion =
           regional != perClass->second.regionalSubscribedAttributes.end() &&
           !regional->second.empty();
       bool const hasExplicitUpdateRegion =
-          associated != objectInstance.updateRegionsByAttribute.end() &&
-          !associated->second.empty();
+          associated != updateRegions.end() && !associated->second.empty();
 
-      if (perClass->second.subscribedAttributes.contains(attributeHandle) &&
-          !hasExplicitSubscriptionRegion) {
-        auto const designator = perClass->second.subscribedUpdateRateDesignators.find(
+      // An explicit regional declaration at this class shadows its ordinary
+      // declaration, matching objectAttributeInScope.  Only active entries
+      // contribute to the maximum.
+      if (!hasExplicitSubscriptionRegion) {
+        auto const ordinary = perClass->second.subscribedAttributes.find(
             attributeHandle);
-        if (designator == perClass->second.subscribedUpdateRateDesignators.end() ||
-            designator->second.empty()) {
-          return std::nullopt;
+        if (ordinary != perClass->second.subscribedAttributes.end() &&
+            ordinary->second) {
+          auto const designator = perClass->second.subscribedUpdateRateDesignators.find(
+              attributeHandle);
+          considerDesignator(
+              designator == perClass->second.subscribedUpdateRateDesignators.end()
+                  ? std::string{}
+                  : designator->second);
         }
-        return designator->second;
-      }
-
-      if (hasExplicitSubscriptionRegion) {
-        bool matchedRegion = false;
-        std::optional<std::string> explicitDesignator;
+      } else {
         auto const regionalDesignators =
-            perClass->second.regionalSubscribedUpdateRateDesignators.find(attributeHandle);
+            perClass->second.regionalSubscribedUpdateRateDesignators.find(
+                attributeHandle);
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          static_cast<void>(active);
+          if (!active) {
+            continue;
+          }
           bool overlaps = false;
           if (!hasExplicitUpdateRegion) {
-            overlaps = regionOverlapsDefault(federation, subscribedRegionHandle);
+            overlaps = regionOverlapsDefault(
+                federation,
+                subscribedRegionHandle,
+                regionOverrides);
           } else {
             for (std::uint64_t const associatedRegionHandle : associated->second) {
-              if (!regionsOverlap(federation, subscribedRegionHandle, associatedRegionHandle)) {
-                continue;
+              if (regionsOverlap(
+                      federation,
+                      subscribedRegionHandle,
+                      associatedRegionHandle,
+                      regionOverrides)) {
+                overlaps = true;
+                break;
               }
-              overlaps = true;
-              break;
             }
           }
           if (!overlaps) {
             continue;
           }
-          matchedRegion = true;
+          std::string designator;
           if (regionalDesignators !=
-                  perClass->second.regionalSubscribedUpdateRateDesignators.end()) {
-            auto const designator = regionalDesignators->second.find(subscribedRegionHandle);
-            if (designator != regionalDesignators->second.end() &&
-                !designator->second.empty() && !explicitDesignator) {
-              explicitDesignator = designator->second;
+              perClass->second.regionalSubscribedUpdateRateDesignators.end()) {
+            auto const stored = regionalDesignators->second.find(subscribedRegionHandle);
+            if (stored != regionalDesignators->second.end()) {
+              designator = stored->second;
             }
           }
-        }
-        if (matchedRegion) {
-          return explicitDesignator;
+          considerDesignator(designator);
         }
       }
     }
@@ -9490,7 +17547,11 @@ EmbeddedFederationRegistry::subscribedUpdateRateDesignatorForAttribute(
     }
     currentClassHandle = *parentHandle;
   }
-  return std::nullopt;
+
+  if (hasUnspecifiedDefault || !maximumExplicitRate) {
+    return std::nullopt;
+  }
+  return maximumExplicitRate->second;
 }
 
 std::vector<ObjectInstanceScopeChangeRecipient>
@@ -9621,7 +17682,32 @@ std::vector<AttributeRelevanceAdvisoryRecipient>
 EmbeddedFederationRegistry::attributeRelevanceAdvisoriesForScopeChanges(
     Federation const& federation,
     std::vector<ObjectInstanceScopeChangeRecipient> const& scopeChanges) {
+  // The mutation-specific transition planner below compares the complete
+  // pre/post state across all known receivers. Keeping this legacy helper
+  // empty prevents duplicate owner callbacks when another receiver already
+  // keeps an attribute relevant. `scopeChanges` remains the independent
+  // Attribute Scope lane.
+  static_cast<void>(federation);
+  static_cast<void>(scopeChanges);
+  return {};
+}
+
+std::vector<AttributeRelevanceAdvisoryRecipient>
+EmbeddedFederationRegistry::attributeRelevanceAdvisoriesForTransitions(
+    Federation const& federation,
+    std::uint64_t receivingFederateId,
+    std::set<std::uint64_t> const& attributeHandles,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* previousRegions,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const* previousAssociations,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const* currentAssociations,
+    Federation::ObjectClassAttributeDeclarations const* previousDeclarations,
+    std::optional<std::uint64_t> objectInstanceHandle) {
   std::vector<AttributeRelevanceAdvisoryRecipient> result;
+  if (receivingFederateId != 0 &&
+      !federation.members.contains(receivingFederateId)) {
+    return result;
+  }
+
   std::map<
       std::tuple<
           std::uint64_t,
@@ -9629,54 +17715,91 @@ EmbeddedFederationRegistry::attributeRelevanceAdvisoriesForScopeChanges(
           std::uint64_t,
           bool,
           std::optional<std::string>>,
-      std::size_t> recipientPositions;
-  for (auto const& change : scopeChanges) {
-    auto const instance = federation.objectInstances.find(change.objectInstanceHandle);
-    if (instance == federation.objectInstances.end() || instance->second.deleteAccepted) {
+      std::size_t>
+      recipientPositions;
+  auto appendTransition = [&](std::uint64_t instanceHandle,
+                              Federation::ObjectInstance const& objectInstance,
+                              std::uint64_t attributeHandle) {
+    if (objectInstance.deleteAccepted) {
+      return;
+    }
+    auto const owner = objectInstance.attributeOwnersByHandle.find(attributeHandle);
+    if (owner == objectInstance.attributeOwnersByHandle.end() ||
+        owner->second == 0 ||
+        !federation.members.contains(owner->second)) {
+      return;
+    }
+
+    auto const previousState = attributeRelevanceRateSnapshotForState(
+        federation,
+        objectInstance,
+        receivingFederateId,
+        attributeHandle,
+        previousRegions,
+        previousAssociations,
+        previousDeclarations);
+    auto const currentState = attributeRelevanceRateSnapshotForState(
+        federation,
+        objectInstance,
+        receivingFederateId,
+        attributeHandle,
+        nullptr,
+        currentAssociations);
+    bool const relevanceChanged = previousState.relevant != currentState.relevant;
+    bool const updateRateChanged = previousState.relevant && currentState.relevant &&
+        previousState.updateRateDesignator != currentState.updateRateDesignator;
+    // The complete pre/post comparison owns both relevance and rate
+    // transitions, including advisory-only changes that do not alter
+    // Attribute Scope.
+    if (!relevanceChanged && !updateRateChanged) {
+      return;
+    }
+
+    auto const callbackRoute = federation.interactionCallbackRoutes.find(owner->second);
+    if (callbackRoute == federation.interactionCallbackRoutes.end() ||
+        !callbackRoute->second) {
+      return;
+    }
+    auto const updateRateDesignator = currentState.relevant
+        ? currentState.updateRateDesignator
+        : std::nullopt;
+    auto const key = std::make_tuple(
+        owner->second,
+        std::uint64_t{0},
+        instanceHandle,
+        currentState.relevant,
+        updateRateDesignator);
+    auto position = recipientPositions.find(key);
+    if (position == recipientPositions.end()) {
+      std::size_t const index = result.size();
+      result.push_back({
+          owner->second,
+          std::uint64_t{0},
+          instanceHandle,
+          {},
+          currentState.relevant,
+          updateRateDesignator,
+          callbackRoute->second,
+      });
+      recipientPositions.emplace(key, index);
+      position = recipientPositions.find(key);
+    }
+    result[position->second].attributeHandles.insert(attributeHandle);
+  };
+
+  for (auto const& [instanceHandle, objectInstance] : federation.objectInstances) {
+    if (objectInstanceHandle && *objectInstanceHandle != instanceHandle) {
       continue;
     }
-    for (std::uint64_t const attributeHandle : change.attributeHandles) {
-      auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
-      if (owner == instance->second.attributeOwnersByHandle.end() ||
-          owner->second == 0 || owner->second == change.receivingFederateId ||
-          !federation.members.contains(owner->second)) {
-        continue;
+    if (attributeHandles.empty()) {
+      for (auto const& [attributeHandle, owner] : objectInstance.attributeOwnersByHandle) {
+        static_cast<void>(owner);
+        appendTransition(instanceHandle, objectInstance, attributeHandle);
       }
-      auto const callbackRoute = federation.interactionCallbackRoutes.find(owner->second);
-      if (callbackRoute == federation.interactionCallbackRoutes.end() ||
-          !callbackRoute->second) {
-        continue;
-      }
-
-      auto const updateRateDesignator = change.inScope
-          ? subscribedUpdateRateDesignatorForAttribute(
-                federation,
-                instance->second,
-                change.receivingFederateId,
-                attributeHandle)
-          : std::nullopt;
-      auto const key = std::make_tuple(
-          owner->second,
-          change.receivingFederateId,
-          change.objectInstanceHandle,
-          change.inScope,
-          updateRateDesignator);
-      auto position = recipientPositions.find(key);
-      if (position == recipientPositions.end()) {
-        std::size_t const index = result.size();
-        result.push_back({
-            owner->second,
-            change.receivingFederateId,
-            change.objectInstanceHandle,
-            {},
-            change.inScope,
-            updateRateDesignator,
-            callbackRoute->second,
-        });
-        recipientPositions.emplace(key, index);
-        position = recipientPositions.find(key);
-      }
-      result[position->second].attributeHandles.insert(attributeHandle);
+      continue;
+    }
+    for (std::uint64_t const attributeHandle : attributeHandles) {
+      appendTransition(instanceHandle, objectInstance, attributeHandle);
     }
   }
   return result;
@@ -9837,6 +17960,10 @@ void EmbeddedFederationRegistry::reclaimTsoMessagePayload(
   // message boundary, so the connection-loss-only grant exception has no
   // remaining delivery work to protect.
   record->second.deliveryRequiredAfterConnectionLoss = false;
+  // Commit a timestamped application's opaque values before retiring the
+  // heavyweight payload. The helper ignores retracted messages, making this
+  // safe for both the no-recipient path and the final recipient boundary.
+  applyTsoAttributeUpdateValues(federation, messageId);
 
   // Normal interaction/update/directed payloads are needed only until every
   // still-joined recipient has crossed its original callback boundary.  A
@@ -9875,6 +18002,29 @@ void EmbeddedFederationRegistry::reclaimTsoMessagePayload(
   }
 }
 
+void EmbeddedFederationRegistry::applyTsoAttributeUpdateValues(
+    Federation& federation,
+    std::uint64_t messageId) {
+  auto const record = federation.tsoRequestRetractionRecords.find(messageId);
+  if (record == federation.tsoRequestRetractionRecords.end() ||
+      record->second.retractionApplied) {
+    return;
+  }
+  auto const message = federation.tsoAttributeUpdateMessages.find(messageId);
+  if (message == federation.tsoAttributeUpdateMessages.end()) {
+    return;
+  }
+  auto object = federation.objectInstances.find(message->second.objectInstanceHandle);
+  if (object == federation.objectInstances.end() || object->second.deleteAccepted) {
+    return;
+  }
+  for (auto const& [attributeHandle, value] : message->second.attributes) {
+    if (attributeHandle != 0U) {
+      object->second.attributeValues.insert_or_assign(attributeHandle, value);
+    }
+  }
+}
+
 void EmbeddedFederationRegistry::reclaimTsoMessagePayloads(Federation& federation) {
   for (auto const& [messageId, record] : federation.tsoRequestRetractionRecords) {
     static_cast<void>(record);
@@ -9889,7 +18039,8 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle,
     std::vector<std::uint64_t> const& sentAttributeHandles,
-    std::set<std::uint64_t> const* sentRegionHandles) {
+    std::set<std::uint64_t> const* sentRegionHandles,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides) {
   // IEEE 1516.1-2025 excludes the federate that invoked Update Attribute
   // Values from its induced Reflect Attribute Values callbacks, independent
   // of subscription state.
@@ -9902,7 +18053,17 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
   }
 
   auto const instance = federation.objectInstances.find(objectInstanceHandle);
-  if (instance == federation.objectInstances.end()) {
+  // A receive-order Delete Object Instance commits the federation-wide
+  // deletion before each recipient's queued Remove Object Instance callback
+  // begins.  A timestamped reflection may already be in flight at that
+  // recipient's grant boundary, so do not project it through the still-known
+  // object until the removal callback has had a chance to run.  A departed
+  // producer is the deliberate exception: the connection-loss cutoff retains
+  // accepted payloads through the producer's last-known time before its
+  // automatic cleanup is delivered.
+  if (instance == federation.objectInstances.end() ||
+      (instance->second.deleteAccepted &&
+       federation.members.contains(producingFederateId))) {
     return std::nullopt;
   }
   auto const knownClass = instance->second.knownObjectClassHandlesByFederate.find(
@@ -9946,9 +18107,18 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
     bool const hasExplicitSubscriptionRegion =
         regional != perClass->second.regionalSubscribedAttributes.end() &&
         !regional->second.empty();
+    std::set<std::uint64_t> currentSentRegions;
+    bool const sourceHasResigned =
+        regionOverrides != nullptr && !federation.members.contains(producingFederateId);
     bool subscribed = ordinarySubscription != perClass->second.subscribedAttributes.end() &&
         ordinarySubscription->second && !hasExplicitSubscriptionRegion;
     if (!subscribed && hasExplicitSubscriptionRegion) {
+      // A voluntary source resignation removes the producer from the live
+      // membership/region ledgers before a queued callback is reconstructed.
+      // The invocation snapshot is valid for both that lifetime boundary and
+      // source-range mutation while the producer remains joined. The live
+      // object association is still checked below, so replacing the
+      // association suppresses a stale passel rather than retargeting it.
       if (sentRegionHandles == nullptr || sentRegionHandles->empty()) {
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
           if (active && regionOverlapsDefault(federation, subscribedRegionHandle)) {
@@ -9957,50 +18127,126 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
           }
         }
       } else {
-        auto const associated = instance->second.updateRegionsByAttribute.find(attributeHandle);
-        if (associated != instance->second.updateRegionsByAttribute.end()) {
-          std::set<std::uint64_t> currentSentRegions;
+        if (sourceHasResigned) {
+          // The producer's live object ledger is gone after resignation; use
+          // the accepted invocation-time association in that case.
+          currentSentRegions.insert(
+              sentRegionHandles->begin(),
+              sentRegionHandles->end());
+        } else {
+          auto const associated = instance->second.updateRegionsByAttribute.find(
+              attributeHandle);
+          if (associated == instance->second.updateRegionsByAttribute.end()) {
+            continue;
+          }
           for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
             if (associated->second.contains(sentRegionHandle)) {
               currentSentRegions.insert(sentRegionHandle);
             }
           }
-          for (auto const& [subscribedRegionHandle, active] : regional->second) {
-            if (!active) {
-              continue;
-            }
-            for (std::uint64_t const sentRegionHandle : currentSentRegions) {
-              if (regionsOverlap(
-                      federation,
-                      subscribedRegionHandle,
-                      sentRegionHandle)) {
-                subscribed = true;
-                break;
-              }
-            }
-            if (subscribed) {
+        }
+        for (auto const& [subscribedRegionHandle, active] : regional->second) {
+          if (!active) {
+            continue;
+          }
+          for (std::uint64_t const sentRegionHandle : currentSentRegions) {
+            if (regionsOverlap(
+                    federation,
+                    subscribedRegionHandle,
+                    sentRegionHandle,
+                    regionOverrides)) {
+              subscribed = true;
               break;
             }
+          }
+          if (subscribed) {
+            break;
           }
         }
       }
     }
     if (subscribed) {
       recipient.receivedAttributeHandles.insert(attributeHandle);
-      std::string designator = "HLAdefault";
-      if (ordinarySubscription != perClass->second.subscribedAttributes.end()) {
-        auto const rate = perClass->second.subscribedUpdateRateDesignators.find(attributeHandle);
-        if (rate != perClass->second.subscribedUpdateRateDesignators.end()) {
-          designator = rate->second;
+      // Regional subscriptions carry their own rate per subscribed region.
+      // Select only active regions that overlap this passel's source region;
+      // an active omitted/default declaration means no reduction for the
+      // projected attribute, even when another overlapping declaration names
+      // an explicit slower rate.  An ordinary declaration is considered only
+      // when no explicit regional declaration shadows it at this class.
+      bool hasUnspecifiedDefault = false;
+      std::optional<std::pair<double, std::string>> maximumExplicitRate;
+      auto considerDesignator = [&](std::string const& candidate) {
+        if (candidate.empty()) {
+          hasUnspecifiedDefault = true;
+          return;
+        }
+        auto const value = updateRateValueForNormalizedDesignator(
+            *federation.definition.catalog,
+            candidate);
+        if (!value) {
+          return;
+        }
+        if (!maximumExplicitRate ||
+            *value > maximumExplicitRate->first ||
+            (*value == maximumExplicitRate->first &&
+             candidate < maximumExplicitRate->second)) {
+          maximumExplicitRate = std::make_pair(*value, candidate);
+        }
+      };
+
+      if (!hasExplicitSubscriptionRegion) {
+        auto const rate = perClass->second.subscribedUpdateRateDesignators.find(
+            attributeHandle);
+        considerDesignator(
+            rate == perClass->second.subscribedUpdateRateDesignators.end()
+                ? std::string{}
+                : rate->second);
+      } else {
+        auto const regionalDesignators =
+            perClass->second.regionalSubscribedUpdateRateDesignators.find(
+                attributeHandle);
+        for (auto const& [subscribedRegionHandle, active] : regional->second) {
+          if (!active) {
+            continue;
+          }
+          bool overlaps = false;
+          if (sentRegionHandles == nullptr || sentRegionHandles->empty()) {
+            overlaps = regionOverlapsDefault(
+                federation,
+                subscribedRegionHandle,
+                regionOverrides);
+          } else {
+            for (std::uint64_t const sentRegionHandle : currentSentRegions) {
+              if (regionsOverlap(
+                      federation,
+                      subscribedRegionHandle,
+                      sentRegionHandle,
+                      regionOverrides)) {
+                overlaps = true;
+                break;
+              }
+            }
+          }
+          if (!overlaps) {
+            continue;
+          }
+          std::string designator;
+          if (regionalDesignators !=
+              perClass->second.regionalSubscribedUpdateRateDesignators.end()) {
+            auto const stored = regionalDesignators->second.find(subscribedRegionHandle);
+            if (stored != regionalDesignators->second.end()) {
+              designator = stored->second;
+            }
+          }
+          considerDesignator(designator);
         }
       }
-      if (auto const rate = updateRateValueForNormalizedDesignator(
-              *federation.definition.catalog, designator)) {
-        recipient.maximumUpdateRatesByAttribute[attributeHandle] = *rate;
-        recipient.maximumUpdateRate =
-            recipient.maximumUpdateRate == 0.0
-                ? *rate
-                : std::min(recipient.maximumUpdateRate, *rate);
+      // HLAdefault is represented by an absent entry.  It is the
+      // no-reduction path, not a projection-wide fallback; retaining only an
+      // all-explicit maximum keeps mixed subscriptions independent.
+      if (!hasUnspecifiedDefault && maximumExplicitRate) {
+        recipient.maximumUpdateRatesByAttribute[attributeHandle] =
+            maximumExplicitRate->first;
       }
     }
   }
@@ -10414,9 +18660,15 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
           federation.members.at(receivingFederateId).conveyRegionDesignatorSetsSwitch;
       recipient.receivedInteractionClassHandle = *currentClassHandle;
       auto const callbackRoute = federation.interactionCallbackRoutes.find(receivingFederateId);
-      if (callbackRoute != federation.interactionCallbackRoutes.end()) {
-        recipient.callbackRoute = callbackRoute->second;
+      if (callbackRoute == federation.interactionCallbackRoutes.end() ||
+          !callbackRoute->second) {
+        // An eligible subscription without a live callback endpoint cannot be
+        // delivered. Keep this planner consistent with object/attribute and
+        // ownership callback planning instead of returning a route-less
+        // recipient that the adapter can never expose to user code.
+        return std::nullopt;
       }
+      recipient.callbackRoute = callbackRoute->second;
       for (std::uint64_t const parameterHandle : sentParameterHandles) {
         // ParameterHandleDirectory resolves a parameter through the supplied
         // received class and its superclasses.  A parameter introduced below
@@ -10570,11 +18822,11 @@ EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient(
     std::vector<std::uint64_t> const& sentParameterHandles,
     bool allowMissingProducingFederate) {
   bool const producingFederateIsJoined = federation.members.contains(producingFederateId);
-  bool const retainLostProducerAcceptance =
+  bool const retainDepartedProducerAcceptance =
       allowMissingProducingFederate && !producingFederateIsJoined;
   if (producingFederateId == receivingFederateId ||
       !federation.members.contains(receivingFederateId) ||
-      (!producingFederateIsJoined && !retainLostProducerAcceptance) ||
+      (!producingFederateIsJoined && !retainDepartedProducerAcceptance) ||
       !federation.definition.catalog || !federation.objectClassHandles ||
       !federation.interactionClassHandles || !federation.parameterHandles) {
     return std::nullopt;
@@ -10582,16 +18834,15 @@ EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient(
 
   auto const instance = federation.objectInstances.find(objectInstanceHandle);
   // The normal receive-order predicate suppresses a directed interaction
-  // whose target has been deleted. For the narrow connection-loss exception,
-  // however, a marked at-or-before-cutoff timestamped interaction must retain
-  // its accepted target through its recipient's TSO boundary. The caller can
-  // set allowMissingProducingFederate only after it has revalidated that exact
-  // marked message/recipient pair, so this does not relax ordinary deletion
-  // or source-membership semantics.
+  // whose target has been deleted. For an accepted timestamped payload whose
+  // producer has departed, the target must remain valid through its recipient's
+  // TSO boundary. The caller can set allowMissingProducingFederate only after
+  // it has revalidated that exact message/recipient pair, so this does not
+  // relax ordinary deletion or unaccepted source-membership semantics.
   if (instance == federation.objectInstances.end() ||
-      (!retainLostProducerAcceptance && instance->second.deleteAccepted) ||
+      (!retainDepartedProducerAcceptance && instance->second.deleteAccepted) ||
       !instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId) ||
-      (!retainLostProducerAcceptance &&
+      (!retainDepartedProducerAcceptance &&
        !instance->second.knownObjectClassHandlesByFederate.contains(producingFederateId))) {
     return std::nullopt;
   }
@@ -10599,7 +18850,7 @@ EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient(
           federation,
           instance->second.registeredObjectClassHandle,
           sentInteractionClassHandle) ||
-      (!retainLostProducerAcceptance && !directedInteractionDeclarationApplies(
+      (!retainDepartedProducerAcceptance && !directedInteractionDeclarationApplies(
           federation,
           producingFederateId,
           instance->second.registeredObjectClassHandle,
@@ -10612,7 +18863,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient(
       receivingFederateId,
       instance->second.registeredObjectClassHandle,
       sentInteractionClassHandle);
-  if (!subscriptionIsUniversal) {
+  // The optional carries declaration presence separately from selector kind:
+  // engaged(false) is the valid by-ownership form, while disengaged means the
+  // receiving federate has no applicable directed subscription.
+  if (!subscriptionIsUniversal.has_value()) {
     return std::nullopt;
   }
   bool const ownsTargetAttribute = std::any_of(
@@ -10668,7 +18922,6 @@ InteractionClassDeclarationStatus EmbeddedFederationRegistry::setInteractionClas
   if (!validInteractionClass(federation->second, interactionClassHandle)) {
     return InteractionClassDeclarationStatus::interaction_class_not_defined;
   }
-
   auto declarations = federation->second.interactionDeclarations.find(federateId);
   if (!published) {
     if (declarations == federation->second.interactionDeclarations.end()) {
@@ -10947,7 +19200,6 @@ InteractionClassDeclarationStatus EmbeddedFederationRegistry::setInteractionClas
     return InteractionClassDeclarationStatus::
         federate_service_invocations_are_being_reported_via_mom;
   }
-
   auto declarations = federation->second.interactionDeclarations.find(federateId);
   if (!active) {
     if (declarations == federation->second.interactionDeclarations.end()) {
@@ -11246,6 +19498,27 @@ std::vector<DeclarationAdvisory> EmbeddedFederationRegistry::planDeclarationAdvi
               break;
             }
           }
+          if (!relevant) {
+            // Regional attribute subscriptions are declaration state too. A
+            // publisher cannot know the eventual object-region realization
+            // when it registers an instance, so any active regional
+            // subscription at a matching class makes the published class
+            // relevant for Start/Stop Registration advisories. Passive
+            // regional pairs remain retained without establishing relevance.
+            for (auto const& [attributeHandle, regionStates] :
+                 subscribedClass.regionalSubscribedAttributes) {
+              if (!publishedAttributes->contains(attributeHandle)) {
+                continue;
+              }
+              if (std::any_of(
+                      regionStates.begin(),
+                      regionStates.end(),
+                      [](auto const& entry) { return entry.second; })) {
+                relevant = true;
+                break;
+              }
+            }
+          }
           if (relevant) {
             break;
           }
@@ -11281,6 +19554,27 @@ std::vector<DeclarationAdvisory> EmbeddedFederationRegistry::planDeclarationAdvi
                             publishedClassHandle)) {
             relevant = true;
             break;
+          }
+        }
+        if (!relevant) {
+          // Regional interaction subscriptions participate in the same
+          // declaration-level relevance transition. Their committed region
+          // overlap is a delivery concern; the declaration advisory only
+          // tells the publisher that at least one active subscriber exists.
+          for (auto const& [subscriptionClassHandle, regionStates] :
+               subscriptions.regionalSubscribedInteractionClasses) {
+            if (!interactionClassIsSameOrAncestor(
+                    subscriptionClassHandle,
+                    publishedClassHandle)) {
+              continue;
+            }
+            if (std::any_of(
+                    regionStates.begin(),
+                    regionStates.end(),
+                    [](auto const& entry) { return entry.second; })) {
+              relevant = true;
+              break;
+            }
           }
         }
         if (relevant) {
@@ -11411,7 +19705,6 @@ EmbeddedFederationRegistry::setObjectClassAttributePublication(
   if (!validObjectClassAttributes(federation->second, objectClassHandle, attributeHandles)) {
     return {ObjectClassAttributeDeclarationStatus::attribute_not_defined};
   }
-
   auto declarations = federation->second.objectClassAttributeDeclarations.find(federateId);
   if (!published) {
     if (declarations == federation->second.objectClassAttributeDeclarations.end()) {
@@ -11577,6 +19870,12 @@ EmbeddedFederationRegistry::setObjectClassAttributePublication(
     if (declarations->second.byObjectClass.empty()) {
       federation->second.objectClassAttributeDeclarations.erase(declarations);
     }
+    // Unpublishing an owned regional attribute clears its update-region
+    // association above.  Recompute the region usage ledger before returning
+    // so a region whose last association was removed is immediately
+    // deletable, while subscriptions and unrelated associations remain
+    // protected by the in-use guard.
+    refreshRegionUsage(federation->second);
     return ObjectClassAttributeDeclarationStatus::applied;
   }
 
@@ -11653,7 +19952,6 @@ EmbeddedFederationRegistry::setObjectClassAttributeSubscriptionWithScopeChanges(
   if (!validObjectClassAttributes(federation->second, objectClassHandle, attributeHandles)) {
     return {ObjectClassAttributeDeclarationStatus::attribute_not_defined};
   }
-
   std::optional<std::string> normalizedDesignator;
   if (active) {
     if (!federation->second.definition.catalog) {
@@ -11707,6 +20005,18 @@ EmbeddedFederationRegistry::setObjectClassAttributeSubscriptionWithScopeChanges(
     result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
         federation->second,
         result.recipients);
+    auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
+        federation->second,
+        federateId,
+        attributeHandles,
+        nullptr,
+        nullptr,
+        nullptr,
+        &previousDeclarations);
+    result.attributeRelevanceAdvisories.insert(
+        result.attributeRelevanceAdvisories.end(),
+        transitionAdvisories.begin(),
+        transitionAdvisories.end());
     return result;
   }
 
@@ -11748,6 +20058,18 @@ EmbeddedFederationRegistry::setObjectClassAttributeSubscriptionWithScopeChanges(
   result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
       federation->second,
       result.recipients);
+  auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
+      federation->second,
+      federateId,
+      attributeHandles,
+      nullptr,
+      nullptr,
+      nullptr,
+      &previousDeclarations);
+  result.attributeRelevanceAdvisories.insert(
+      result.attributeRelevanceAdvisories.end(),
+      transitionAdvisories.begin(),
+      transitionAdvisories.end());
   return result;
 }
 
@@ -11803,7 +20125,6 @@ EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscriptionWithScope
   if (attributesAndRegions.empty()) {
     return {};
   }
-
   if (!federation->second.definition.catalog) {
     return {RegionalObjectClassAttributeDeclarationStatus::inconsistent_catalog};
   }
@@ -11897,6 +20218,18 @@ EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscriptionWithScope
   result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
       federation->second,
       result.recipients);
+  auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
+      federation->second,
+      federateId,
+      attributeHandles,
+      nullptr,
+      nullptr,
+      nullptr,
+      &previousDeclarations);
+  result.attributeRelevanceAdvisories.insert(
+      result.attributeRelevanceAdvisories.end(),
+      transitionAdvisories.begin(),
+      transitionAdvisories.end());
   return result;
 }
 
@@ -11970,13 +20303,17 @@ EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscriptionWithSc
   if (declarations != federation->second.objectClassAttributeDeclarations.end()) {
     auto perClass = declarations->second.byObjectClass.find(objectClassHandle);
     if (perClass != declarations->second.byObjectClass.end()) {
+      bool subscriptionChanged = false;
       for (auto const& [attributeHandle, regionHandles] : attributesAndRegions) {
         auto regional = perClass->second.regionalSubscribedAttributes.find(attributeHandle);
         if (regional == perClass->second.regionalSubscribedAttributes.end()) {
           continue;
         }
         for (std::uint64_t const regionHandle : regionHandles) {
-          regional->second.erase(regionHandle);
+          if (regional->second.erase(regionHandle) == 0U) {
+            continue;
+          }
+          subscriptionChanged = true;
           auto regionalDesignators =
               perClass->second.regionalSubscribedUpdateRateDesignators.find(attributeHandle);
           if (regionalDesignators !=
@@ -11991,6 +20328,14 @@ EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscriptionWithSc
         if (regional->second.empty()) {
           perClass->second.regionalSubscribedAttributes.erase(regional);
         }
+      }
+      // A regional declaration mutation starts a new receiver lifetime for
+      // update-rate admission.  Without a fresh generation, an immediate
+      // unsubscribe/re-subscribe could inherit the old wall-clock gate and
+      // suppress the first update in the new declaration epoch.
+      if (subscriptionChanged) {
+        declarations->second.subscriptionGeneration =
+            federation->second.nextSubscriptionGeneration++;
       }
       if (perClass->second.explicitlyPublishedAttributes.empty() &&
           perClass->second.subscribedAttributes.empty() &&
@@ -12014,6 +20359,18 @@ EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscriptionWithSc
   result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
       federation->second,
       result.recipients);
+  auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
+      federation->second,
+      federateId,
+      attributeHandles,
+      nullptr,
+      nullptr,
+      nullptr,
+      &previousDeclarations);
+  result.attributeRelevanceAdvisories.insert(
+      result.attributeRelevanceAdvisories.end(),
+      transitionAdvisories.begin(),
+      transitionAdvisories.end());
   return result;
 }
 
@@ -12055,6 +20412,7 @@ EmbeddedFederationRegistry::objectClassAttributeDeclarationFor(
       perClass->second.explicitlyPublishedAttributes,
       perClass->second.subscribedAttributes,
       perClass->second.subscribedUpdateRateDesignators,
+      declarations->second.subscriptionGeneration,
   };
 }
 
@@ -12544,6 +20902,79 @@ EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges(
     }
   }
   auto result = ObjectInstanceRegionAssociationScopePlan{};
+  // Association is also a discovery boundary.  An object registered with the
+  // private default source region can become eligible for an existing
+  // explicit regional subscription when its owner adds an overlapping update
+  // region.  Compare the old and revised association maps before swapping the
+  // committed state, and reserve each discovery in this same transaction.
+  try {
+    for (auto const& [receivingFederateId, membership] : federation->second.members) {
+      static_cast<void>(membership);
+      if (receivingFederateId == instance->second.producingFederateId ||
+          instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId) ||
+          instance->second.pendingDiscoveryFederates.contains(receivingFederateId)) {
+        continue;
+      }
+      auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+          receivingFederateId);
+      if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+          !callbackRoute->second) {
+        continue;
+      }
+      auto const wasDiscoverable = candidateObjectInstanceDiscoveryClass(
+          federation->second,
+          instance->second,
+          receivingFederateId,
+          nullptr,
+          &instance->second.updateRegionsByAttribute);
+      if (wasDiscoverable) {
+        continue;
+      }
+      auto const discoveredClass = candidateObjectInstanceDiscoveryClass(
+          federation->second,
+          instance->second,
+          receivingFederateId,
+          nullptr,
+          &revisedAssociations);
+      if (!discoveredClass) {
+        continue;
+      }
+      auto const [pending, insertedPending] =
+          instance->second.pendingDiscoveryFederates.insert(receivingFederateId);
+      static_cast<void>(pending);
+      if (!insertedPending) {
+        continue;
+      }
+      auto const reportRoute = federation->second.serviceReportRoutes.find(
+          receivingFederateId);
+      try {
+        result.discoveries.push_back({
+            receivingFederateId,
+            instance->second.handle,
+            *discoveredClass,
+            instance->second.name,
+            instance->second.producingFederateId,
+            callbackRoute->second,
+            reportRoute == federation->second.serviceReportRoutes.end()
+                ? FederateServiceReportRoute{}
+                : reportRoute->second,
+        });
+      } catch (...) {
+        instance->second.pendingDiscoveryFederates.erase(receivingFederateId);
+        throw;
+      }
+    }
+  } catch (...) {
+    for (auto const& discovery : result.discoveries) {
+      auto const objectInstance = federation->second.objectInstances.find(
+          discovery.objectInstanceHandle);
+      if (objectInstance != federation->second.objectInstances.end()) {
+        objectInstance->second.pendingDiscoveryFederates.erase(
+            discovery.receivingFederateId);
+      }
+    }
+    throw;
+  }
   result.recipients = objectInstanceScopeChangesForAssociation(
       federation->second,
       instance->second,
@@ -12552,6 +20983,19 @@ EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges(
   result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
       federation->second,
       result.recipients);
+  auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
+      federation->second,
+      0,
+      attributeHandles,
+      nullptr,
+      &instance->second.updateRegionsByAttribute,
+      &revisedAssociations,
+      nullptr,
+      objectInstanceHandle);
+  result.attributeRelevanceAdvisories.insert(
+      result.attributeRelevanceAdvisories.end(),
+      transitionAdvisories.begin(),
+      transitionAdvisories.end());
   instance->second.updateRegionsByAttribute.swap(revisedAssociations);
   refreshRegionUsage(federation->second);
   return result;
@@ -12628,6 +21072,79 @@ EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges(
     }
   }
   auto result = ObjectInstanceRegionAssociationScopePlan{};
+  // Removing an update-region association can expose the private default
+  // source realization to an existing regional subscriber.  Compare the old
+  // and revised maps before swapping the object state so an object that was
+  // previously disjoint receives the same one-time discovery reservation as
+  // the additive association path.
+  try {
+    for (auto const& [receivingFederateId, membership] : federation->second.members) {
+      static_cast<void>(membership);
+      if (receivingFederateId == instance->second.producingFederateId ||
+          instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId) ||
+          instance->second.pendingDiscoveryFederates.contains(receivingFederateId)) {
+        continue;
+      }
+      auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+          receivingFederateId);
+      if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+          !callbackRoute->second) {
+        continue;
+      }
+      auto const wasDiscoverable = candidateObjectInstanceDiscoveryClass(
+          federation->second,
+          instance->second,
+          receivingFederateId,
+          nullptr,
+          &instance->second.updateRegionsByAttribute);
+      if (wasDiscoverable) {
+        continue;
+      }
+      auto const discoveredClass = candidateObjectInstanceDiscoveryClass(
+          federation->second,
+          instance->second,
+          receivingFederateId,
+          nullptr,
+          &revisedAssociations);
+      if (!discoveredClass) {
+        continue;
+      }
+      auto const [pending, insertedPending] =
+          instance->second.pendingDiscoveryFederates.insert(receivingFederateId);
+      static_cast<void>(pending);
+      if (!insertedPending) {
+        continue;
+      }
+      auto const reportRoute = federation->second.serviceReportRoutes.find(
+          receivingFederateId);
+      try {
+        result.discoveries.push_back({
+            receivingFederateId,
+            instance->second.handle,
+            *discoveredClass,
+            instance->second.name,
+            instance->second.producingFederateId,
+            callbackRoute->second,
+            reportRoute == federation->second.serviceReportRoutes.end()
+                ? FederateServiceReportRoute{}
+                : reportRoute->second,
+        });
+      } catch (...) {
+        instance->second.pendingDiscoveryFederates.erase(receivingFederateId);
+        throw;
+      }
+    }
+  } catch (...) {
+    for (auto const& discovery : result.discoveries) {
+      auto const objectInstance = federation->second.objectInstances.find(
+          discovery.objectInstanceHandle);
+      if (objectInstance != federation->second.objectInstances.end()) {
+        objectInstance->second.pendingDiscoveryFederates.erase(
+            discovery.receivingFederateId);
+      }
+    }
+    throw;
+  }
   result.recipients = objectInstanceScopeChangesForAssociation(
       federation->second,
       instance->second,
@@ -12636,6 +21153,19 @@ EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges(
   result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
       federation->second,
       result.recipients);
+  auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
+      federation->second,
+      0,
+      attributeHandles,
+      nullptr,
+      &instance->second.updateRegionsByAttribute,
+      &revisedAssociations,
+      nullptr,
+      objectInstanceHandle);
+  result.attributeRelevanceAdvisories.insert(
+      result.attributeRelevanceAdvisories.end(),
+      transitionAdvisories.begin(),
+      transitionAdvisories.end());
   instance->second.updateRegionsByAttribute.swap(revisedAssociations);
   refreshRegionUsage(federation->second);
   return result;
@@ -12747,6 +21277,12 @@ ObjectInstanceDeletionPlan EmbeddedFederationRegistry::deleteObjectInstance(
   // becomes unknown immediately; other known federates remain known only
   // until beginObjectInstanceRemoval commits their queued callback.
   instance->second.pendingDiscoveryFederates.clear();
+  instance->second.pendingAttributeValueUpdateRequests.clear();
+  instance->second.pendingAttributeValueUpdateClassRequests.clear();
+  instance->second.pendingAttributeValueUpdateRegionalRequests.clear();
+  clearPendingAttributeOwnershipQueries(
+      federation->second,
+      instance->second.handle);
   // A receive-order deletion invalidates every pending ownership-acquisition
   // callback before it can make a deleted object appear to change owner.
   instance->second.pendingAttributeOwnershipAcquisitionIfAvailableRequests.clear();
@@ -12767,6 +21303,12 @@ ObjectInstanceDeletionPlan EmbeddedFederationRegistry::deleteObjectInstance(
     federation->second.objectInstanceHandlesByName.erase(instance->second.name);
     federation->second.objectInstances.erase(instance);
   }
+  // A receive-order deletion may purge the object immediately when no other
+  // federate has a pending removal callback.  Recompute the region usage
+  // ledger before returning so regions associated only with that object are
+  // immediately deletable, while surviving object/subscription associations
+  // remain protected by the in-use guard.
+  refreshRegionUsage(federation->second);
   return result;
 }
 
@@ -12990,6 +21532,46 @@ EmbeddedFederationRegistry::planObjectInstanceDiscoveriesForFederate(
     throw;
   }
   return result;
+}
+
+std::vector<AttributeRelevanceAdvisoryRecipient>
+EmbeddedFederationRegistry::planInitialAttributeRelevanceAdvisoriesForDiscovery(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::uint64_t objectInstanceHandle) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      !federation->second.members.contains(receivingFederateId)) {
+    return {};
+  }
+  auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end() ||
+      instance->second.deleteAccepted ||
+      !instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId)) {
+    return {};
+  }
+
+  // Registration/discovery has no prior receiver declaration or source-region
+  // association.  Supplying empty snapshots to the common transition planner
+  // keeps initial relevance separate from later mutation transitions while
+  // preserving the same rate aggregation and owner callback grouping.
+  Federation::ObjectClassAttributeDeclarations previousDeclarations;
+  std::map<std::uint64_t, std::set<std::uint64_t>> previousAssociations;
+  std::set<std::uint64_t> attributeHandles;
+  for (auto const& [attributeHandle, owner] : instance->second.attributeOwnersByHandle) {
+    static_cast<void>(owner);
+    attributeHandles.insert(attributeHandle);
+  }
+  return attributeRelevanceAdvisoriesForTransitions(
+      federation->second,
+      receivingFederateId,
+      attributeHandles,
+      nullptr,
+      &previousAssociations,
+      nullptr,
+      &previousDeclarations,
+      objectInstanceHandle);
 }
 
 std::vector<ObjectInstanceDiscoveryRecipient>
@@ -13246,6 +21828,7 @@ EmbeddedFederationRegistry::beginObjectInstanceRemoval(
     if (canPurgeDeletedObjectInstance(instance->second)) {
       federation->second.objectInstanceHandlesByName.erase(instance->second.name);
       federation->second.objectInstances.erase(instance);
+      refreshRegionUsage(federation->second);
     }
     return std::nullopt;
   }
@@ -13265,6 +21848,7 @@ EmbeddedFederationRegistry::beginObjectInstanceRemoval(
   if (canPurgeDeletedObjectInstance(instance->second)) {
     federation->second.objectInstanceHandlesByName.erase(instance->second.name);
     federation->second.objectInstances.erase(instance);
+    refreshRegionUsage(federation->second);
   }
   return result;
 }
@@ -13299,6 +21883,9 @@ EmbeddedFederationRegistry::beginJoinedFederateMomObjectRemoval(
   RemovedObjectInstanceSnapshot const result{object->second.objectInstanceHandle, 0U};
   if (object->second.knownFederateIds.empty() &&
       object->second.pendingRemovalFederateIds.empty()) {
+    clearPendingAttributeOwnershipQueries(
+        federation->second,
+        object->second.objectInstanceHandle);
     federation->second.rtiOwnedJoinedFederateMomObjects.erase(object);
   }
   return result;
@@ -13323,6 +21910,7 @@ void EmbeddedFederationRegistry::cancelObjectInstanceRemoval(
   if (canPurgeDeletedObjectInstance(instance->second)) {
     federation->second.objectInstanceHandlesByName.erase(instance->second.name);
     federation->second.objectInstances.erase(instance);
+    refreshRegionUsage(federation->second);
   }
 }
 
@@ -13452,10 +22040,34 @@ EmbeddedFederationRegistry::knownObjectInstanceFor(
     return std::nullopt;
   }
   auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
-  if (instance == federation->second.objectInstances.end()) {
+  if (instance != federation->second.objectInstances.end()) {
+    return knownObjectInstanceSnapshot(federation->second, instance->second, federateId);
+  }
+  // RTI-owned MOM objects are deliberately absent from objectInstances, but
+  // once public discovery has promoted one they are valid inputs to the
+  // support lookup services just like a federate-created instance.  Keep the
+  // known-instance check recipient-local so an undiscovered MOM handle cannot
+  // be used to infer its name or class.
+  auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject == federation->second.rtiOwnedJoinedFederateMomObjects.end() ||
+      !momObject->second.knownFederateIds.contains(federateId)) {
     return std::nullopt;
   }
-  return knownObjectInstanceSnapshot(federation->second, instance->second, federateId);
+  std::set<std::uint64_t> initialAttributeHandles;
+  for (auto const& [attributeHandle, value] : momObject->second.initialAttributeValues) {
+    static_cast<void>(value);
+    initialAttributeHandles.insert(attributeHandle);
+  }
+  return KnownObjectInstanceSnapshot{
+      momObject->second.objectInstanceHandle,
+      momObject->second.objectClassHandle,
+      momObject->second.federationExecutionObject
+          ? L"HLAfederation"
+          : L"HLAfederate-" + std::to_wstring(momObject->second.joinedFederateId),
+      0U,
+      std::move(initialAttributeHandles),
+  };
 }
 
 std::optional<KnownObjectInstanceSnapshot>
@@ -13470,14 +22082,40 @@ EmbeddedFederationRegistry::knownObjectInstanceByNameFor(
     return std::nullopt;
   }
   auto const handle = federation->second.objectInstanceHandlesByName.find(objectInstanceName);
-  if (handle == federation->second.objectInstanceHandlesByName.end()) {
-    return std::nullopt;
+  if (handle != federation->second.objectInstanceHandlesByName.end()) {
+    auto const instance = federation->second.objectInstances.find(handle->second);
+    if (instance != federation->second.objectInstances.end()) {
+      return knownObjectInstanceSnapshot(federation->second, instance->second, federateId);
+    }
   }
-  auto const instance = federation->second.objectInstances.find(handle->second);
-  if (instance == federation->second.objectInstances.end()) {
-    return std::nullopt;
+
+  // HLAfederation and HLAfederate-* are RTI-owned names.  They are not
+  // inserted into the federate-created name directory because that directory
+  // also owns reservation/collision semantics; resolve them only through the
+  // recipient's MOM known-instance ledger.
+  for (auto const& [objectInstanceHandle, object] :
+       federation->second.rtiOwnedJoinedFederateMomObjects) {
+    auto const expectedName = object.federationExecutionObject
+        ? L"HLAfederation"
+        : L"HLAfederate-" + std::to_wstring(object.joinedFederateId);
+    if (expectedName != objectInstanceName ||
+        !object.knownFederateIds.contains(federateId)) {
+      continue;
+    }
+    std::set<std::uint64_t> initialAttributeHandles;
+    for (auto const& [attributeHandle, value] : object.initialAttributeValues) {
+      static_cast<void>(value);
+      initialAttributeHandles.insert(attributeHandle);
+    }
+    return KnownObjectInstanceSnapshot{
+        objectInstanceHandle,
+        object.objectClassHandle,
+        expectedName,
+        0U,
+        std::move(initialAttributeHandles),
+    };
   }
-  return knownObjectInstanceSnapshot(federation->second, instance->second, federateId);
+  return std::nullopt;
 }
 
 AttributeValueUpdateRequestPlan EmbeddedFederationRegistry::planAutoProvideForDiscovery(
@@ -13654,6 +22292,26 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
     passel.sentAttributeHandles = passelAttributes;
     passel.sentRegionHandles = std::get<2>(passelKey);
     passel.defaultRegionUsed = std::get<3>(passelKey);
+    // The association planner admits only committed regions owned by the
+    // producing federate. Retain the exact committed realization here so an
+    // ordinary receive-order callback remains scoped to the accepted source
+    // range even if that region is mutated before callback dispatch.
+    for (std::uint64_t const regionHandle : passel.sentRegionHandles) {
+      auto const region = federation->second.regions.find(regionHandle);
+      if (region == federation->second.regions.end() ||
+          region->second.ownerFederateId != producingFederateId ||
+          !region->second.specificationCommitted ||
+          region->second.committedRangeBounds.size() !=
+              region->second.dimensionHandles.size()) {
+        return {ReceiveOrderAttributeUpdateStatus::inconsistent_catalog};
+      }
+      passel.sentRegionSnapshots.emplace(
+          regionHandle,
+          RegionSpecificationSnapshot{
+              region->second.dimensionHandles,
+              region->second.committedRangeBounds,
+              region->second.specificationCommitted});
+    }
     // §8.1.8 makes subscription evaluation a federation-wide,
     // creation-time policy. Retain every joined non-source federate with a
     // live callback route when delayed evaluation is enabled, including
@@ -13704,7 +22362,8 @@ EmbeddedFederationRegistry::receiveOrderAttributeUpdateRecipientFor(
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle,
     std::vector<std::uint64_t> const& sentAttributeHandles,
-    std::set<std::uint64_t> const* sentRegionHandles) const {
+    std::set<std::uint64_t> const* sentRegionHandles,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides) const {
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -13716,7 +22375,8 @@ EmbeddedFederationRegistry::receiveOrderAttributeUpdateRecipientFor(
       receivingFederateId,
       objectInstanceHandle,
       sentAttributeHandles,
-      sentRegionHandles);
+      sentRegionHandles,
+      regionOverrides);
 }
 
 AttributeValueUpdateRequestPlan EmbeddedFederationRegistry::planAttributeValueUpdateRequest(
@@ -13790,7 +22450,9 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdate(
     std::uint64_t requestingFederateId,
     std::uint64_t objectInstanceHandle,
     std::set<std::uint64_t> const& requestedAttributeHandles,
-    bool requireActiveSubscription) const {
+    bool requireActiveSubscription,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const*
+        requestRegionsByAttribute) const {
   std::scoped_lock lock(mutex_);
   JoinedFederateMomAttributeValueUpdatePlan result;
   auto federation = federations_.find(federationName);
@@ -13844,7 +22506,8 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdate(
       object->second,
       requestingFederateId,
       requestedAttributeHandles,
-      requireActiveSubscription);
+      requireActiveSubscription,
+      requestRegionsByAttribute);
   if (!values) {
     result.status = JoinedFederateMomAttributeValueUpdateStatus::object_instance_not_known;
     return result;
@@ -13872,7 +22535,9 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdateClass(
     std::uint64_t requestingFederateId,
     std::uint64_t objectClassHandle,
     std::set<std::uint64_t> const& requestedAttributeHandles,
-    bool requireActiveSubscription) const {
+    bool requireActiveSubscription,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const*
+        requestRegionsByAttribute) const {
   std::scoped_lock lock(mutex_);
   JoinedFederateMomAttributeValueUpdateClassPlan result;
   auto federation = federations_.find(federationName);
@@ -13909,7 +22574,8 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdateClass(
         object,
         requestingFederateId,
         requestedAttributeHandles,
-        requireActiveSubscription);
+        requireActiveSubscription,
+        requestRegionsByAttribute);
     if (!values || values->empty()) {
       continue;
     }
@@ -13987,10 +22653,52 @@ EmbeddedFederationRegistry::attributeValueUpdateProvideRecipientFor(
     std::uint64_t requestingFederateId,
     std::uint64_t providingFederateId,
     std::uint64_t objectInstanceHandle,
-    std::set<std::uint64_t> const& requestedAttributeHandles) const {
+    std::set<std::uint64_t> const& requestedAttributeHandles,
+    bool requireCurrentScope) const {
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
+    return std::nullopt;
+  }
+  if (!requireCurrentScope) {
+    return candidateAttributeValueUpdateProvideRecipient(
+        federation->second,
+        requestingFederateId,
+        providingFederateId,
+        objectInstanceHandle,
+        requestedAttributeHandles);
+  }
+
+  // Auto Provide work is planned after discovery, but HLA_IMMEDIATE and
+  // HLA_EVOKED can both leave a later provider callback on the queue while a
+  // different provider callback is executing. The federation-wide switch is
+  // therefore part of the callback-time fence: disabling it consumes queued
+  // automatic-provision work without affecting explicit Request Attribute
+  // Value Update projections (which use the non-revalidating path above).
+  if (!federation->second.autoProvideSwitch) {
+    return std::nullopt;
+  }
+
+  // Auto Provide is planned immediately after discovery but its callback can
+  // remain queued while the requester mutates a committed regional
+  // subscription. Rebuild the candidate from the current scope at callback
+  // time so stale automatic-provision work is consumed without soliciting a
+  // provider after the attribute has gone out of scope.
+  auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end()) {
+    return std::nullopt;
+  }
+  std::set<std::uint64_t> inScopeAttributes;
+  for (auto const attributeHandle : requestedAttributeHandles) {
+    if (objectAttributeInScope(
+            federation->second,
+            instance->second,
+            requestingFederateId,
+            attributeHandle)) {
+      inScopeAttributes.insert(attributeHandle);
+    }
+  }
+  if (inScopeAttributes.empty()) {
     return std::nullopt;
   }
   return candidateAttributeValueUpdateProvideRecipient(
@@ -13998,7 +22706,368 @@ EmbeddedFederationRegistry::attributeValueUpdateProvideRecipientFor(
       requestingFederateId,
       providingFederateId,
       objectInstanceHandle,
-      requestedAttributeHandles);
+      inScopeAttributes);
+}
+
+std::optional<std::uint64_t>
+EmbeddedFederationRegistry::registerAttributeValueUpdateRequest(
+    std::wstring const& federationName,
+    std::uint64_t requestingFederateId,
+    std::uint64_t providingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::set<std::uint64_t> const& requestedAttributeHandles,
+    std::vector<unsigned char> userSuppliedTag) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      requestingFederateId == 0U || providingFederateId == 0U ||
+      requestingFederateId == providingFederateId ||
+      !federation->second.members.contains(requestingFederateId) ||
+      !federation->second.members.contains(providingFederateId) ||
+      requestedAttributeHandles.empty() ||
+      !federation->second.definition.catalog ||
+      !federation->second.objectClassHandles ||
+      !federation->second.attributeHandles) {
+    return std::nullopt;
+  }
+  auto instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end() ||
+      instance->second.deleteAccepted) {
+    return std::nullopt;
+  }
+  auto knownClass = instance->second.knownObjectClassHandlesByFederate.find(
+      requestingFederateId);
+  if (knownClass == instance->second.knownObjectClassHandlesByFederate.end()) {
+    return std::nullopt;
+  }
+  auto knownClassName = federation->second.objectClassHandles->nameFor(
+      knownClass->second);
+  if (!knownClassName ||
+      federation->second.definition.catalog->objectClass(*knownClassName) == nullptr) {
+    return std::nullopt;
+  }
+  for (auto const attributeHandle : requestedAttributeHandles) {
+    auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
+    if (owner == instance->second.attributeOwnersByHandle.end() ||
+        owner->second != providingFederateId ||
+        !federation->second.attributeHandles->nameFor(
+            federation->second.definition.catalog.get(),
+            *knownClassName,
+            attributeHandle)) {
+      return std::nullopt;
+    }
+  }
+  auto& nextRequestId = federation->second.nextAttributeValueUpdateRequestId;
+  if (nextRequestId == 0U ||
+      nextRequestId == std::numeric_limits<std::uint64_t>::max()) {
+    return std::nullopt;
+  }
+  auto const requestId = nextRequestId++;
+  auto const [position, inserted] =
+      instance->second.pendingAttributeValueUpdateRequests.emplace(
+          requestId,
+          Federation::ObjectInstance::PendingAttributeValueUpdateRequest{
+              requestingFederateId,
+              providingFederateId,
+              requestedAttributeHandles,
+              std::move(userSuppliedTag),
+          });
+  static_cast<void>(position);
+  if (!inserted) {
+    return std::nullopt;
+  }
+  return requestId;
+}
+
+std::optional<AttributeValueUpdateProvideRecipient>
+EmbeddedFederationRegistry::beginAttributeValueUpdateProvideRecipientFor(
+    std::wstring const& federationName,
+    std::uint64_t requestId,
+    std::uint64_t requestingFederateId,
+    std::uint64_t providingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::set<std::uint64_t> const& requestedAttributeHandles) {
+  if (requestId == 0U) {
+    return std::nullopt;
+  }
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return std::nullopt;
+  }
+  auto instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end()) {
+    return std::nullopt;
+  }
+  auto pending = instance->second.pendingAttributeValueUpdateRequests.find(requestId);
+  if (pending == instance->second.pendingAttributeValueUpdateRequests.end()) {
+    return std::nullopt;
+  }
+  auto pendingState = std::move(pending->second);
+  instance->second.pendingAttributeValueUpdateRequests.erase(pending);
+  if (pendingState.requestingFederateId != requestingFederateId ||
+      pendingState.providingFederateId != providingFederateId ||
+      pendingState.requestedAttributeHandles != requestedAttributeHandles) {
+    return std::nullopt;
+  }
+  return candidateAttributeValueUpdateProvideRecipient(
+      federation->second,
+      pendingState.requestingFederateId,
+      pendingState.providingFederateId,
+      objectInstanceHandle,
+      pendingState.requestedAttributeHandles);
+}
+
+std::optional<std::uint64_t>
+EmbeddedFederationRegistry::registerAttributeValueUpdateClassRequest(
+    std::wstring const& federationName,
+    std::uint64_t requestingFederateId,
+    std::uint64_t providingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::uint64_t requestedObjectClassHandle,
+    std::set<std::uint64_t> const& requestedAttributeHandles,
+    std::vector<unsigned char> userSuppliedTag) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      requestingFederateId == 0U || providingFederateId == 0U ||
+      requestingFederateId == providingFederateId ||
+      objectInstanceHandle == 0U || requestedObjectClassHandle == 0U ||
+      requestedAttributeHandles.empty() ||
+      !federation->second.members.contains(requestingFederateId) ||
+      !federation->second.members.contains(providingFederateId) ||
+      !federation->second.definition.catalog ||
+      !federation->second.objectClassHandles ||
+      !federation->second.attributeHandles ||
+      !validObjectClass(federation->second, requestedObjectClassHandle) ||
+      !validObjectClassAttributes(
+          federation->second,
+          requestedObjectClassHandle,
+          requestedAttributeHandles)) {
+    return std::nullopt;
+  }
+  auto instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end() ||
+      instance->second.deleteAccepted ||
+      !objectInstanceRegisteredAtOrBelowClass(
+          federation->second,
+          instance->second.registeredObjectClassHandle,
+          requestedObjectClassHandle)) {
+    return std::nullopt;
+  }
+  auto projection = candidateAttributeValueUpdateClassProvideRecipient(
+      federation->second,
+      requestingFederateId,
+      providingFederateId,
+      objectInstanceHandle,
+      requestedObjectClassHandle,
+      requestedAttributeHandles,
+      nullptr);
+  if (!projection ||
+      projection->requestedAttributeHandles != requestedAttributeHandles) {
+    return std::nullopt;
+  }
+  auto& nextRequestId = federation->second.nextAttributeValueUpdateRequestId;
+  if (nextRequestId == 0U ||
+      nextRequestId == std::numeric_limits<std::uint64_t>::max()) {
+    return std::nullopt;
+  }
+  auto const requestId = nextRequestId++;
+  auto const [position, inserted] =
+      instance->second.pendingAttributeValueUpdateClassRequests.emplace(
+          requestId,
+          Federation::ObjectInstance::PendingAttributeValueUpdateClassRequest{
+              requestingFederateId,
+              providingFederateId,
+              requestedObjectClassHandle,
+              requestedAttributeHandles,
+              std::move(userSuppliedTag),
+          });
+  static_cast<void>(position);
+  if (!inserted) {
+    return std::nullopt;
+  }
+  return requestId;
+}
+
+std::optional<AttributeValueUpdateProvideRecipient>
+EmbeddedFederationRegistry::beginAttributeValueUpdateClassProvideRecipientFor(
+    std::wstring const& federationName,
+    std::uint64_t requestId,
+    std::uint64_t requestingFederateId,
+    std::uint64_t providingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::uint64_t requestedObjectClassHandle,
+    std::set<std::uint64_t> const& requestedAttributeHandles) {
+  if (requestId == 0U) {
+    return std::nullopt;
+  }
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return std::nullopt;
+  }
+  auto instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end()) {
+    return std::nullopt;
+  }
+  auto pending = instance->second.pendingAttributeValueUpdateClassRequests.find(
+      requestId);
+  if (pending == instance->second.pendingAttributeValueUpdateClassRequests.end()) {
+    return std::nullopt;
+  }
+  auto pendingState = std::move(pending->second);
+  instance->second.pendingAttributeValueUpdateClassRequests.erase(pending);
+  if (pendingState.requestingFederateId != requestingFederateId ||
+      pendingState.providingFederateId != providingFederateId ||
+      pendingState.requestedObjectClassHandle != requestedObjectClassHandle ||
+      pendingState.requestedAttributeHandles != requestedAttributeHandles) {
+    return std::nullopt;
+  }
+  return candidateAttributeValueUpdateClassProvideRecipient(
+      federation->second,
+      pendingState.requestingFederateId,
+      pendingState.providingFederateId,
+      objectInstanceHandle,
+      pendingState.requestedObjectClassHandle,
+      pendingState.requestedAttributeHandles,
+      nullptr);
+}
+
+std::optional<std::uint64_t>
+EmbeddedFederationRegistry::registerAttributeValueUpdateRegionalRequest(
+    std::wstring const& federationName,
+    std::uint64_t requestingFederateId,
+    std::uint64_t providingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::uint64_t requestedObjectClassHandle,
+    std::set<std::uint64_t> const& requestedAttributeHandles,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const&
+        requestRegionsByAttribute,
+    std::vector<unsigned char> userSuppliedTag) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      requestingFederateId == 0U || providingFederateId == 0U ||
+      requestingFederateId == providingFederateId ||
+      objectInstanceHandle == 0U || requestedObjectClassHandle == 0U ||
+      requestedAttributeHandles.empty() || requestRegionsByAttribute.empty() ||
+      !federation->second.members.contains(requestingFederateId) ||
+      !federation->second.members.contains(providingFederateId) ||
+      !federation->second.definition.catalog ||
+      !federation->second.objectClassHandles ||
+      !federation->second.attributeHandles ||
+      !validObjectClass(federation->second, requestedObjectClassHandle) ||
+      !validObjectClassAttributes(
+          federation->second,
+          requestedObjectClassHandle,
+          requestedAttributeHandles)) {
+    return std::nullopt;
+  }
+  for (auto const& [attributeHandle, regionHandles] : requestRegionsByAttribute) {
+    if (!requestedAttributeHandles.contains(attributeHandle) ||
+        regionHandles.empty()) {
+      return std::nullopt;
+    }
+    for (auto const regionHandle : regionHandles) {
+      auto const region = federation->second.regions.find(regionHandle);
+      if (region == federation->second.regions.end() ||
+          region->second.ownerFederateId != requestingFederateId ||
+          !region->second.specificationCommitted) {
+        return std::nullopt;
+      }
+    }
+  }
+  auto instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end() ||
+      instance->second.deleteAccepted ||
+      !objectInstanceRegisteredAtOrBelowClass(
+          federation->second,
+          instance->second.registeredObjectClassHandle,
+          requestedObjectClassHandle)) {
+    return std::nullopt;
+  }
+  auto projection = candidateAttributeValueUpdateClassProvideRecipient(
+      federation->second,
+      requestingFederateId,
+      providingFederateId,
+      objectInstanceHandle,
+      requestedObjectClassHandle,
+      requestedAttributeHandles,
+      &requestRegionsByAttribute);
+  if (!projection ||
+      projection->requestedAttributeHandles != requestedAttributeHandles) {
+    return std::nullopt;
+  }
+  auto& nextRequestId = federation->second.nextAttributeValueUpdateRequestId;
+  if (nextRequestId == 0U ||
+      nextRequestId == std::numeric_limits<std::uint64_t>::max()) {
+    return std::nullopt;
+  }
+  auto const requestId = nextRequestId++;
+  auto const [position, inserted] =
+      instance->second.pendingAttributeValueUpdateRegionalRequests.emplace(
+          requestId,
+          Federation::ObjectInstance::PendingAttributeValueUpdateRegionalRequest{
+              requestingFederateId,
+              providingFederateId,
+              requestedObjectClassHandle,
+              requestedAttributeHandles,
+              requestRegionsByAttribute,
+              std::move(userSuppliedTag),
+          });
+  static_cast<void>(position);
+  if (!inserted) {
+    return std::nullopt;
+  }
+  return requestId;
+}
+
+std::optional<AttributeValueUpdateProvideRecipient>
+EmbeddedFederationRegistry::beginAttributeValueUpdateRegionalProvideRecipientFor(
+    std::wstring const& federationName,
+    std::uint64_t requestId,
+    std::uint64_t requestingFederateId,
+    std::uint64_t providingFederateId,
+    std::uint64_t objectInstanceHandle,
+    std::uint64_t requestedObjectClassHandle,
+    std::set<std::uint64_t> const& requestedAttributeHandles,
+    std::map<std::uint64_t, std::set<std::uint64_t>> const&
+        requestRegionsByAttribute) {
+  if (requestId == 0U) {
+    return std::nullopt;
+  }
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return std::nullopt;
+  }
+  auto instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end()) {
+    return std::nullopt;
+  }
+  auto pending = instance->second.pendingAttributeValueUpdateRegionalRequests.find(
+      requestId);
+  if (pending == instance->second.pendingAttributeValueUpdateRegionalRequests.end()) {
+    return std::nullopt;
+  }
+  auto pendingState = std::move(pending->second);
+  instance->second.pendingAttributeValueUpdateRegionalRequests.erase(pending);
+  if (pendingState.requestingFederateId != requestingFederateId ||
+      pendingState.providingFederateId != providingFederateId ||
+      pendingState.requestedObjectClassHandle != requestedObjectClassHandle ||
+      pendingState.requestedAttributeHandles != requestedAttributeHandles ||
+      pendingState.requestRegionsByAttribute != requestRegionsByAttribute) {
+    return std::nullopt;
+  }
+  return candidateAttributeValueUpdateClassProvideRecipient(
+      federation->second,
+      pendingState.requestingFederateId,
+      pendingState.providingFederateId,
+      objectInstanceHandle,
+      pendingState.requestedObjectClassHandle,
+      pendingState.requestedAttributeHandles,
+      &pendingState.requestRegionsByAttribute);
 }
 
 AttributeValueUpdateClassRequestPlan
@@ -14132,7 +23201,7 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
     std::uint64_t objectInstanceHandle,
-    std::set<std::uint64_t> const& requestedAttributeHandles) const {
+    std::set<std::uint64_t> const& requestedAttributeHandles) {
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -14141,6 +23210,34 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeOwnershipQueryStatus::requesting_federate_not_member};
   }
+  auto persistRecipient =
+      [&federation](AttributeOwnershipQueryRecipient recipient)
+      -> std::optional<AttributeOwnershipQueryRecipient> {
+    auto& execution = federation->second;
+    if (execution.nextAttributeOwnershipQueryRequestId == 0U ||
+        execution.nextAttributeOwnershipQueryRequestId ==
+            std::numeric_limits<std::uint64_t>::max()) {
+      return std::nullopt;
+    }
+    auto const requestId = execution.nextAttributeOwnershipQueryRequestId;
+    Federation::PendingAttributeOwnershipQuery pending;
+    pending.requestingFederateId = recipient.receivingFederateId;
+    pending.objectInstanceHandle = recipient.objectInstanceHandle;
+    pending.reportKind = recipient.reportKind;
+    pending.owningFederateId = recipient.owningFederateId;
+    pending.requestedAttributeHandles = recipient.attributeHandles;
+    auto const [position, inserted] =
+        execution.pendingAttributeOwnershipQueries.emplace(
+            requestId,
+            std::move(pending));
+    static_cast<void>(position);
+    if (!inserted) {
+      return std::nullopt;
+    }
+    ++execution.nextAttributeOwnershipQueryRequestId;
+    recipient.requestId = requestId;
+    return recipient;
+  };
   // RTI-owned joined-federate MOM instances are not federate-created object
   // instances. Their ownership answer is nevertheless a normal standard
   // Query Attribute Ownership result, delivered to the requesting federate
@@ -14180,7 +23277,12 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
         0,
         requestedAttributeHandles);
     if (recipient) {
-      result.recipients.push_back(std::move(*recipient));
+      auto persisted = persistRecipient(std::move(*recipient));
+      if (!persisted) {
+        result.status = AttributeOwnershipQueryStatus::inconsistent_catalog;
+        return result;
+      }
+      result.recipients.push_back(std::move(*persisted));
     }
     return result;
   }
@@ -14240,7 +23342,12 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
         owningFederateId,
         ownedAttributeHandles);
     if (recipient) {
-      result.recipients.push_back(std::move(*recipient));
+      auto persisted = persistRecipient(std::move(*recipient));
+      if (!persisted) {
+        result.status = AttributeOwnershipQueryStatus::inconsistent_catalog;
+        return result;
+      }
+      result.recipients.push_back(std::move(*persisted));
     }
   }
   if (!unownedAttributes.empty()) {
@@ -14252,7 +23359,12 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
         0,
         unownedAttributes);
     if (recipient) {
-      result.recipients.push_back(std::move(*recipient));
+      auto persisted = persistRecipient(std::move(*recipient));
+      if (!persisted) {
+        result.status = AttributeOwnershipQueryStatus::inconsistent_catalog;
+        return result;
+      }
+      result.recipients.push_back(std::move(*persisted));
     }
   }
   return result;
@@ -14261,23 +23373,40 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
 std::optional<AttributeOwnershipQueryRecipient>
 EmbeddedFederationRegistry::attributeOwnershipQueryRecipientFor(
     std::wstring const& federationName,
+    std::uint64_t requestId,
     std::uint64_t requestingFederateId,
     std::uint64_t objectInstanceHandle,
     AttributeOwnershipQueryReportKind reportKind,
     std::uint64_t owningFederateId,
-    std::set<std::uint64_t> const& requestedAttributeHandles) const {
+    std::set<std::uint64_t> const& requestedAttributeHandles) {
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
     return std::nullopt;
   }
+  auto pending = federation->second.pendingAttributeOwnershipQueries.find(requestId);
+  if (pending == federation->second.pendingAttributeOwnershipQueries.end()) {
+    return std::nullopt;
+  }
+  auto const pendingRequest = pending->second;
+  federation->second.pendingAttributeOwnershipQueries.erase(pending);
+  if (pendingRequest.requestingFederateId != requestingFederateId ||
+      pendingRequest.objectInstanceHandle != objectInstanceHandle ||
+      pendingRequest.reportKind != reportKind ||
+      pendingRequest.owningFederateId != owningFederateId ||
+      pendingRequest.requestedAttributeHandles != requestedAttributeHandles) {
+    return std::nullopt;
+  }
   auto result = candidateAttributeOwnershipQueryRecipient(
       federation->second,
-      requestingFederateId,
-      objectInstanceHandle,
-      reportKind,
-      owningFederateId,
-      requestedAttributeHandles);
+      pendingRequest.requestingFederateId,
+      pendingRequest.objectInstanceHandle,
+      pendingRequest.reportKind,
+      pendingRequest.owningFederateId,
+      pendingRequest.requestedAttributeHandles);
+  if (result) {
+    result->requestId = requestId;
+  }
   return result;
 }
 
@@ -14371,6 +23500,12 @@ EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionIfAvailable(
   }
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeOwnershipAcquisitionIfAvailableStatus::requesting_federate_not_member};
+  }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes. Keep the MOM ledger separate from application
+  // objectInstances so this boundary cannot be misreported as unknown.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {AttributeOwnershipAcquisitionIfAvailableStatus::attribute_owned_by_rti};
   }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
@@ -14629,6 +23764,7 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable(
   // Willing to Acquire state for an evoked callback model.
   instance->second.attributeOwnersByHandle.swap(revisedAttributeOwners);
   for (std::uint64_t const attributeHandle : delivery.securedAttributeHandles) {
+    clearOwnershipAssumptionSearch(instance->second, attributeHandle);
     // The previous owner's non-default update-region association is not
     // inherited by the acquirer.  A later owner must explicitly create a new
     // association before regional updates can use a region again.
@@ -14699,6 +23835,11 @@ EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture(
   }
   if (!federation->second.members.contains(divestingFederateId)) {
     return {NegotiatedAttributeOwnershipDivestitureStatus::divesting_federate_not_member};
+  }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {NegotiatedAttributeOwnershipDivestitureStatus::attribute_owned_by_rti};
   }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
@@ -14817,6 +23958,18 @@ EmbeddedFederationRegistry::beginRequestDivestitureConfirmation(
     return std::nullopt;
   }
 
+  auto cancellationPending = [&](std::uint64_t attributeHandle) {
+    if (candidateIsIfAvailable) {
+      return false;
+    }
+    return std::ranges::any_of(
+        instance->second.pendingAttributeOwnershipAcquisitionCancellations,
+        [&](auto const& cancellation) {
+          return cancellation.second.requestingFederateId == acquiringFederateId &&
+                 cancellation.second.attributeHandles.contains(attributeHandle);
+        });
+  };
+
   RequestDivestitureConfirmationDelivery delivery;
   delivery.objectInstanceHandle = objectInstanceHandle;
   for (std::uint64_t const attributeHandle : scheduledAttributeHandles) {
@@ -14830,7 +23983,9 @@ EmbeddedFederationRegistry::beginRequestDivestitureConfirmation(
         divestiture->second.acquiringFederateId != acquiringFederateId ||
         divestiture->second.acquisitionRequestId != acquisitionRequestId ||
         divestiture->second.acquiringFederateIsIfAvailable != candidateIsIfAvailable ||
+        cancellationPending(attributeHandle) ||
         !divestiture->second.confirmationQueued ||
+        divestiture->second.confirmationDelivered ||
         ((candidateIsIfAvailable &&
           !ifAvailableAcquisition->second.desiredAttributeHandles.contains(attributeHandle)) ||
          (!candidateIsIfAvailable &&
@@ -14862,6 +24017,11 @@ ConfirmDivestiturePlan EmbeddedFederationRegistry::planConfirmDivestiture(
   }
   if (!federation->second.members.contains(divestingFederateId)) {
     return {ConfirmDivestitureStatus::divesting_federate_not_member};
+  }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {ConfirmDivestitureStatus::attribute_owned_by_rti};
   }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
@@ -14902,6 +24062,16 @@ ConfirmDivestiturePlan EmbeddedFederationRegistry::planConfirmDivestiture(
     }
   }
 
+  auto cancellationPending = [&](std::uint64_t requestingFederateId,
+                                 std::uint64_t attributeHandle) {
+    return std::ranges::any_of(
+        instance->second.pendingAttributeOwnershipAcquisitionCancellations,
+        [=](auto const& cancellation) {
+          return cancellation.second.requestingFederateId == requestingFederateId &&
+                 cancellation.second.attributeHandles.contains(attributeHandle);
+        });
+  };
+
   if (attributeHandles.empty()) {
     return {};
   }
@@ -14935,7 +24105,8 @@ ConfirmDivestiturePlan EmbeddedFederationRegistry::planConfirmDivestiture(
         activeAcquirer =
             regularAcquisition != instance->second.pendingAttributeOwnershipAcquisitionRequests.end() &&
             regularAcquisition->second.requestingFederateId == divestiture.acquiringFederateId &&
-            regularAcquisition->second.desiredAttributeHandles.contains(attributeHandle);
+            regularAcquisition->second.desiredAttributeHandles.contains(attributeHandle) &&
+            !cancellationPending(divestiture.acquiringFederateId, attributeHandle);
       }
     }
     if (!activeAcquirer) {
@@ -15000,6 +24171,7 @@ ConfirmDivestiturePlan EmbeddedFederationRegistry::planConfirmDivestiture(
         Federation::ObjectInstance::PendingConfirmDivestitureNotification{
             acquiringFederateId,
             confirmedAttributeHandles,
+            userSuppliedTag,
         });
     result.notifications.push_back({
         nextNotificationId,
@@ -15057,6 +24229,7 @@ ConfirmDivestiturePlan EmbeddedFederationRegistry::planConfirmDivestiture(
        attributesByAcquiringFederate) {
     for (std::uint64_t const attributeHandle : confirmedAttributeHandles) {
       instance->second.attributeOwnersByHandle.at(attributeHandle) = acquiringFederateId;
+      clearOwnershipAssumptionSearch(instance->second, attributeHandle);
       // A committed update-region association belongs to the former owner;
       // Confirm Divestiture transfers ownership without transferring that
       // association.
@@ -15179,6 +24352,11 @@ EmbeddedFederationRegistry::planCancelNegotiatedAttributeOwnershipDivestiture(
   if (!federation->second.members.contains(divestingFederateId)) {
     return {CancelNegotiatedAttributeOwnershipDivestitureStatus::divesting_federate_not_member};
   }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {CancelNegotiatedAttributeOwnershipDivestitureStatus::attribute_owned_by_rti};
+  }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
       !instance->second.knownObjectClassHandlesByFederate.contains(divestingFederateId)) {
@@ -15245,11 +24423,45 @@ bool EmbeddedFederationRegistry::isFirstPendingAttributeOwnershipAcquisition(
   return false;
 }
 
+void EmbeddedFederationRegistry::clearOwnershipAssumptionSearch(
+    Federation::ObjectInstance& instance,
+    std::uint64_t attributeHandle) {
+  instance.ownershipAssumptionRecipientsByAttribute.erase(attributeHandle);
+  instance.ownershipAssumptionUserSuppliedTagsByAttribute.erase(attributeHandle);
+  for (auto pending = instance.pendingAttributeOwnershipAssumptionCallbacks.begin();
+       pending != instance.pendingAttributeOwnershipAssumptionCallbacks.end();) {
+    pending->attributeHandles.erase(attributeHandle);
+    if (pending->attributeHandles.empty()) {
+      pending = instance.pendingAttributeOwnershipAssumptionCallbacks.erase(pending);
+    } else {
+      ++pending;
+    }
+  }
+}
+
+void EmbeddedFederationRegistry::clearPendingAttributeOwnershipQueries(
+    Federation& federation,
+    std::uint64_t objectInstanceHandle) {
+  for (auto query = federation.pendingAttributeOwnershipQueries.begin();
+       query != federation.pendingAttributeOwnershipQueries.end();) {
+    if (query->second.objectInstanceHandle == objectInstanceHandle) {
+      query = federation.pendingAttributeOwnershipQueries.erase(query);
+    } else {
+      ++query;
+    }
+  }
+}
+
 std::vector<AttributeOwnershipAcquisitionWorkItem>
 EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations(
     Federation& federation,
     Federation::ObjectInstance& instance) {
-  std::map<std::tuple<std::uint64_t, bool, std::uint64_t>, std::set<std::uint64_t>>
+  // Preserve the federation-wide acquisition request sequence when several
+  // candidate kinds are selected for one negotiated divestiture.  Regular and
+  // If Available request IDs use independent namespaces, so candidate kind
+  // remains part of the key; sequence is the cross-namespace ordering signal.
+  std::map<std::tuple<std::uint64_t, std::uint64_t, bool, std::uint64_t>,
+           std::set<std::uint64_t>>
       attributesByDivesterAndRequest;
 
   for (auto& [attributeHandle, divestiture] :
@@ -15280,7 +24492,14 @@ EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureCo
         selected = selectedRequest != instance.pendingAttributeOwnershipAcquisitionRequests.end() &&
                    selectedRequest->second.requestingFederateId ==
                        divestiture.acquiringFederateId &&
-                   selectedRequest->second.desiredAttributeHandles.contains(attributeHandle);
+                   selectedRequest->second.desiredAttributeHandles.contains(attributeHandle) &&
+                   !std::ranges::any_of(
+                       instance.pendingAttributeOwnershipAcquisitionCancellations,
+                       [&](auto const& cancellation) {
+                         return cancellation.second.requestingFederateId ==
+                                    divestiture.acquiringFederateId &&
+                                cancellation.second.attributeHandles.contains(attributeHandle);
+                       });
       }
       if (!selected || !federation.members.contains(divestiture.acquiringFederateId) ||
           !instance.knownObjectClassHandlesByFederate.contains(divestiture.acquiringFederateId)) {
@@ -15301,7 +24520,14 @@ EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureCo
                                    std::uint64_t candidateSequence,
                                    bool containsAttribute) {
         if (!containsAttribute || !federation.members.contains(candidateFederateId) ||
-            !instance.knownObjectClassHandlesByFederate.contains(candidateFederateId)) {
+            !instance.knownObjectClassHandlesByFederate.contains(candidateFederateId) ||
+            (!candidateIfAvailable &&
+             std::ranges::any_of(
+                 instance.pendingAttributeOwnershipAcquisitionCancellations,
+                 [&](auto const& cancellation) {
+                   return cancellation.second.requestingFederateId == candidateFederateId &&
+                          cancellation.second.attributeHandles.contains(attributeHandle);
+                 }))) {
           return;
         }
         if (!selected || candidateSequence < selectedSequence ||
@@ -15355,8 +24581,28 @@ EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureCo
         acquiringRoute == federation.interactionCallbackRoutes.end() || !acquiringRoute->second) {
       continue;
     }
+    std::uint64_t selectedRequestSequence = 0;
+    if (divestiture.acquiringFederateIsIfAvailable) {
+      auto const pending = instance.pendingAttributeOwnershipAcquisitionIfAvailableRequests.find(
+          divestiture.acquisitionRequestId);
+      if (pending == instance.pendingAttributeOwnershipAcquisitionIfAvailableRequests.end()) {
+        continue;
+      }
+      selectedRequestSequence = pending->second.requestSequence;
+    } else {
+      auto const pending = instance.pendingAttributeOwnershipAcquisitionRequests.find(
+          divestiture.acquisitionRequestId);
+      if (pending == instance.pendingAttributeOwnershipAcquisitionRequests.end()) {
+        continue;
+      }
+      selectedRequestSequence = pending->second.requestSequence;
+    }
+    if (selectedRequestSequence == 0) {
+      continue;
+    }
     attributesByDivesterAndRequest[
         {divestiture.divestingFederateId,
+         selectedRequestSequence,
          divestiture.acquiringFederateIsIfAvailable,
          divestiture.acquisitionRequestId}]
         .insert(attributeHandle);
@@ -15366,7 +24612,11 @@ EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureCo
   std::vector<AttributeOwnershipAcquisitionWorkItem> workItems;
   workItems.reserve(attributesByDivesterAndRequest.size());
   for (auto& [key, attributeHandles] : attributesByDivesterAndRequest) {
-    auto const [divestingFederateId, candidateIfAvailable, acquisitionRequestId] = key;
+    auto const [divestingFederateId,
+                selectedRequestSequence,
+                candidateIfAvailable,
+                acquisitionRequestId] = key;
+    static_cast<void>(selectedRequestSequence);
     std::uint64_t acquiringFederateId = 0;
     std::vector<unsigned char> userSuppliedTag;
     if (candidateIfAvailable) {
@@ -15412,6 +24662,20 @@ EmbeddedFederationRegistry::planPendingAttributeOwnershipAcquisitionWork(
     Federation::ObjectInstance& instance) {
   std::vector<AttributeOwnershipAcquisitionWorkItem> workItems;
 
+  auto cancellationPending = [&instance](
+                                 std::uint64_t requestingFederateId,
+                                 std::uint64_t attributeHandle) {
+    for (auto const& [cancellationId, cancellation] :
+         instance.pendingAttributeOwnershipAcquisitionCancellations) {
+      static_cast<void>(cancellationId);
+      if (cancellation.requestingFederateId == requestingFederateId &&
+          cancellation.attributeHandles.contains(attributeHandle)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   for (auto& [requestId, pending] : instance.pendingAttributeOwnershipAcquisitionRequests) {
     if (!federation.members.contains(pending.requestingFederateId) ||
         !instance.knownObjectClassHandlesByFederate.contains(pending.requestingFederateId)) {
@@ -15422,6 +24686,8 @@ EmbeddedFederationRegistry::planPendingAttributeOwnershipAcquisitionWork(
     for (std::uint64_t const attributeHandle : pending.desiredAttributeHandles) {
       if (instance.attributeOwnersByHandle.contains(attributeHandle) ||
           pending.notificationQueuedAttributeHandles.contains(attributeHandle) ||
+          pending.unavailableQueuedAttributeHandles.contains(attributeHandle) ||
+          cancellationPending(pending.requestingFederateId, attributeHandle) ||
           !isFirstPendingAttributeOwnershipAcquisition(instance, requestId, attributeHandle)) {
         continue;
       }
@@ -15452,7 +24718,9 @@ EmbeddedFederationRegistry::planPendingAttributeOwnershipAcquisitionWork(
       auto const owner = instance.attributeOwnersByHandle.find(attributeHandle);
       if (owner == instance.attributeOwnersByHandle.end() ||
           owner->second == pending.requestingFederateId ||
-          !federation.members.contains(owner->second)) {
+          !federation.members.contains(owner->second) ||
+          pending.unavailableQueuedAttributeHandles.contains(attributeHandle) ||
+          cancellationPending(pending.requestingFederateId, attributeHandle)) {
         continue;
       }
       // A waiting negotiated divestiture replaces the ordinary owner-side
@@ -15516,6 +24784,12 @@ EmbeddedFederationRegistry::planAttributeOwnershipAcquisition(
   }
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeOwnershipAcquisitionStatus::requesting_federate_not_member};
+  }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes. Keep the MOM ledger separate from application
+  // objectInstances so this boundary cannot be misreported as unknown.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {AttributeOwnershipAcquisitionStatus::attribute_owned_by_rti};
   }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
@@ -15649,6 +24923,7 @@ EmbeddedFederationRegistry::planAttributeOwnershipAcquisition(
               std::move(newlyRequestedAttributeHandles),
               {},
               {},
+              {},
               std::move(userSuppliedTag),
           });
   static_cast<void>(pending);
@@ -15713,6 +24988,18 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification(
       pending->second.requestingFederateId != requestingFederateId) {
     return std::nullopt;
   }
+
+  auto cancellationPending = [&](std::uint64_t attributeHandle) {
+    for (auto const& [cancellationId, cancellation] :
+         instance->second.pendingAttributeOwnershipAcquisitionCancellations) {
+      static_cast<void>(cancellationId);
+      if (cancellation.requestingFederateId == requestingFederateId &&
+          cancellation.attributeHandles.contains(attributeHandle)) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   auto erasePendingAndPlanFollowup = [&] {
     instance->second.pendingAttributeOwnershipAcquisitionRequests.erase(pending);
@@ -15789,6 +25076,13 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification(
     if (!pending->second.desiredAttributeHandles.contains(attributeHandle)) {
       continue;
     }
+    if (pending->second.unavailableQueuedAttributeHandles.contains(attributeHandle) ||
+        cancellationPending(attributeHandle)) {
+      // Cancellation was accepted before this queued notification entered
+      // user code. Leave the acquisition and cancellation reservations for
+      // the confirmation boundary; this callback is stale, not a race win.
+      continue;
+    }
     if (instance->second.pendingNegotiatedAttributeOwnershipDivestitures.contains(
             attributeHandle)) {
       // A negotiated divestiture began after this regular notification was
@@ -15810,6 +25104,7 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification(
     }
     if (owner == instance->second.attributeOwnersByHandle.end()) {
       instance->second.attributeOwnersByHandle.emplace(attributeHandle, requestingFederateId);
+      clearOwnershipAssumptionSearch(instance->second, attributeHandle);
       auto const transportationName = attributeDefaultTransportationName(
           federation->second,
           requestingFederateId,
@@ -15882,6 +25177,18 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionRelease(
     return std::nullopt;
   }
 
+  auto cancellationPending = [&](std::uint64_t attributeHandle) {
+    for (auto const& [cancellationId, cancellation] :
+         instance->second.pendingAttributeOwnershipAcquisitionCancellations) {
+      static_cast<void>(cancellationId);
+      if (cancellation.requestingFederateId == requestingFederateId &&
+          cancellation.attributeHandles.contains(attributeHandle)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   std::set<std::uint64_t> candidateAttributeHandles;
   for (std::uint64_t const attributeHandle : scheduledAttributeHandles) {
     if (!pending->second.desiredAttributeHandles.contains(attributeHandle)) {
@@ -15892,6 +25199,17 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionRelease(
     if (queuedAtOwner == pending->second.releaseCallbacksQueuedByOwningFederate.end() ||
         !queuedAtOwner->second.contains(attributeHandle)) {
       // This work item was superseded before the callback boundary.
+      continue;
+    }
+
+    if (cancellationPending(attributeHandle)) {
+      // Cancellation won before this owner-side release callback entered
+      // user code. Consume only the one-shot release reservation; the
+      // cancellation confirmation remains the terminal callback.
+      queuedAtOwner->second.erase(attributeHandle);
+      if (queuedAtOwner->second.empty()) {
+        pending->second.releaseCallbacksQueuedByOwningFederate.erase(queuedAtOwner);
+      }
       continue;
     }
 
@@ -15939,6 +25257,11 @@ EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied(
   if (!federation->second.members.contains(owningFederateId)) {
     return {AttributeOwnershipReleaseDeniedStatus::owning_federate_not_member};
   }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {AttributeOwnershipReleaseDeniedStatus::attribute_owned_by_rti};
+  }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
       !instance->second.knownObjectClassHandlesByFederate.contains(owningFederateId)) {
@@ -15977,6 +25300,7 @@ EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied(
     static_cast<void>(requestId);
     for (std::uint64_t const attributeHandle : pending.desiredAttributeHandles) {
       if (attributeHandles.contains(attributeHandle) &&
+          !pending.unavailableQueuedAttributeHandles.contains(attributeHandle) &&
           !instance->second.pendingNegotiatedAttributeOwnershipDivestitures.contains(
               attributeHandle)) {
         attributesByRequestingFederate[pending.requestingFederateId].insert(attributeHandle);
@@ -15995,6 +25319,23 @@ EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied(
     }
   }
 
+  auto consumeCancellationReservation = [&](std::uint64_t requestingFederateId,
+                                             std::uint64_t attributeHandle) {
+    for (auto cancellation =
+             instance->second.pendingAttributeOwnershipAcquisitionCancellations.begin();
+         cancellation !=
+             instance->second.pendingAttributeOwnershipAcquisitionCancellations.end();) {
+      if (cancellation->second.requestingFederateId == requestingFederateId &&
+          cancellation->second.attributeHandles.erase(attributeHandle) != 0U) {
+        if (cancellation->second.attributeHandles.empty()) {
+          instance->second.pendingAttributeOwnershipAcquisitionCancellations.erase(cancellation);
+        }
+        return;
+      }
+      ++cancellation;
+    }
+  };
+
   for (auto pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.begin();
        pending != instance->second.pendingAttributeOwnershipAcquisitionRequests.end();) {
     for (std::uint64_t const attributeHandle : attributeHandles) {
@@ -16002,7 +25343,12 @@ EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied(
               attributeHandle)) {
         continue;
       }
-      pending->second.desiredAttributeHandles.erase(attributeHandle);
+      if (!pending->second.desiredAttributeHandles.contains(attributeHandle) ||
+          pending->second.unavailableQueuedAttributeHandles.contains(attributeHandle)) {
+        continue;
+      }
+      pending->second.unavailableQueuedAttributeHandles.insert(attributeHandle);
+      consumeCancellationReservation(pending->second.requestingFederateId, attributeHandle);
       pending->second.notificationQueuedAttributeHandles.erase(attributeHandle);
       for (auto release = pending->second.releaseCallbacksQueuedByOwningFederate.begin();
            release != pending->second.releaseCallbacksQueuedByOwningFederate.end();) {
@@ -16014,11 +25360,7 @@ EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied(
         }
       }
     }
-    if (pending->second.desiredAttributeHandles.empty()) {
-      pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.erase(pending);
-    } else {
-      ++pending;
-    }
+    ++pending;
   }
 
   AttributeOwnershipReleaseDeniedPlan result;
@@ -16032,6 +25374,9 @@ EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied(
         callbackRoute->second,
     });
   }
+  result.followupWorkItems = planPendingAttributeOwnershipAcquisitionWork(
+      federation->second,
+      instance->second);
   return result;
 }
 
@@ -16049,6 +25394,11 @@ EmbeddedFederationRegistry::planUnconditionalAttributeOwnershipDivestiture(
   }
   if (!federation->second.members.contains(divestingFederateId)) {
     return {UnconditionalAttributeOwnershipDivestitureStatus::divesting_federate_not_member};
+  }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {UnconditionalAttributeOwnershipDivestitureStatus::attribute_owned_by_rti};
   }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
@@ -16188,6 +25538,11 @@ EmbeddedFederationRegistry::planUnconditionalAttributeOwnershipDivestiture(
       instance->second.ownershipAssumptionRecipientsByAttribute[attributeHandle].insert(
           recipient.receivingFederateId);
     }
+    instance->second.pendingAttributeOwnershipAssumptionCallbacks.push_back({
+        recipient.receivingFederateId,
+        recipient.attributeHandles,
+        userSuppliedTag,
+    });
   }
   for (std::uint64_t const attributeHandle : attributeHandles) {
     // Keep an empty search record when no current recipient was eligible;
@@ -16252,6 +25607,22 @@ EmbeddedFederationRegistry::attributeOwnershipAssumptionDeliveryFor(
       !federation->second.objectClassHandles ||
       !federation->second.attributeHandles) {
     return std::nullopt;
+  }
+
+  // Consume the exact queued callback identity before evaluating current
+  // eligibility. This is the one-shot begin boundary: a stale callback is
+  // still consumed, while a callback that has already entered user code is
+  // absent from the durable pending ledger and will not be replayed.
+  auto pendingCallback = std::find_if(
+      instance->second.pendingAttributeOwnershipAssumptionCallbacks.begin(),
+      instance->second.pendingAttributeOwnershipAssumptionCallbacks.end(),
+      [&](PendingAttributeOwnershipAssumptionCallback const& callback) {
+        return callback.receivingFederateId == receivingFederateId &&
+            callback.attributeHandles == scheduledAttributeHandles;
+      });
+  if (pendingCallback !=
+      instance->second.pendingAttributeOwnershipAssumptionCallbacks.end()) {
+    instance->second.pendingAttributeOwnershipAssumptionCallbacks.erase(pendingCallback);
   }
 
   auto const receivingKnownClass = instance->second.knownObjectClassHandlesByFederate.find(
@@ -16359,22 +25730,21 @@ EmbeddedFederationRegistry::attributeOwnershipAssumptionDeliveryFor(
 }
 
 std::vector<AttributeOwnershipAssumptionRecipient>
-EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate(
-    std::wstring const& federationName,
-    std::uint64_t receivingFederateId) {
-  std::scoped_lock lock(mutex_);
-  auto federation = federations_.find(federationName);
-  if (federation == federations_.end() ||
-      !federation->second.members.contains(receivingFederateId) ||
-      !federation->second.definition.catalog ||
-      !federation->second.objectClassHandles ||
-      !federation->second.attributeHandles) {
+EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederateLocked(
+    Federation& federation,
+    std::uint64_t receivingFederateId,
+    std::optional<std::uint64_t> objectInstanceFilter,
+    std::set<std::uint64_t> const* attributeFilter) {
+  if (!federation.members.contains(receivingFederateId) ||
+      !federation.definition.catalog ||
+      !federation.objectClassHandles ||
+      !federation.attributeHandles) {
     return {};
   }
 
-  auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+  auto const callbackRoute = federation.interactionCallbackRoutes.find(
       receivingFederateId);
-  if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+  if (callbackRoute == federation.interactionCallbackRoutes.end() ||
       !callbackRoute->second) {
     return {};
   }
@@ -16413,7 +25783,10 @@ EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate(
   std::map<std::uint64_t,
            std::map<std::vector<unsigned char>, std::set<std::uint64_t>>>
       offeredAttributesByObjectAndTag;
-  for (auto& [objectInstanceHandle, instance] : federation->second.objectInstances) {
+  for (auto& [objectInstanceHandle, instance] : federation.objectInstances) {
+    if (objectInstanceFilter && objectInstanceHandle != *objectInstanceFilter) {
+      continue;
+    }
     if (instance.deleteAccepted) {
       continue;
     }
@@ -16422,14 +25795,14 @@ EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate(
     if (knownClass == instance.knownObjectClassHandlesByFederate.end()) {
       continue;
     }
-    auto const knownClassName = federation->second.objectClassHandles->nameFor(
+    auto const knownClassName = federation.objectClassHandles->nameFor(
         knownClass->second);
     if (!knownClassName ||
-        federation->second.definition.catalog->objectClass(*knownClassName) == nullptr) {
+        federation.definition.catalog->objectClass(*knownClassName) == nullptr) {
       continue;
     }
     auto const publishedAttributes = publishedObjectClassAttributes(
-        federation->second,
+        federation,
         receivingFederateId,
         knownClass->second);
     if (!publishedAttributes) {
@@ -16439,6 +25812,10 @@ EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate(
     for (auto search = instance.ownershipAssumptionRecipientsByAttribute.begin();
          search != instance.ownershipAssumptionRecipientsByAttribute.end();) {
       std::uint64_t const attributeHandle = search->first;
+      if (attributeFilter && !attributeFilter->contains(attributeHandle)) {
+        ++search;
+        continue;
+      }
       auto const owner = instance.attributeOwnersByHandle.find(attributeHandle);
       if (owner != instance.attributeOwnersByHandle.end()) {
         instance.ownershipAssumptionUserSuppliedTagsByAttribute.erase(attributeHandle);
@@ -16446,8 +25823,8 @@ EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate(
         continue;
       }
       if (search->second.contains(receivingFederateId) ||
-          !federation->second.attributeHandles->nameFor(
-              federation->second.definition.catalog.get(),
+          !federation.attributeHandles->nameFor(
+              federation.definition.catalog.get(),
               *knownClassName,
               attributeHandle) ||
           !publishedAttributes->contains(attributeHandle) ||
@@ -16483,9 +25860,36 @@ EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate(
           callbackRoute->second,
           std::move(userSuppliedTag),
       });
+      auto const object = federation.objectInstances.find(objectInstanceHandle);
+      if (object != federation.objectInstances.end()) {
+        auto const& queued = result.back();
+        object->second.pendingAttributeOwnershipAssumptionCallbacks.push_back({
+            queued.receivingFederateId,
+            queued.attributeHandles,
+            queued.userSuppliedTag,
+        });
+      }
     }
   }
   return result;
+}
+
+std::vector<AttributeOwnershipAssumptionRecipient>
+EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::optional<std::uint64_t> objectInstanceFilter,
+    std::set<std::uint64_t> const* attributeFilter) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return {};
+  }
+  return planAttributeOwnershipAssumptionsForFederateLocked(
+      federation->second,
+      receivingFederateId,
+      objectInstanceFilter,
+      attributeFilter);
 }
 
 AttributeOwnershipDivestitureIfWantedPlan
@@ -16502,6 +25906,11 @@ EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted(
   }
   if (!federation->second.members.contains(divestingFederateId)) {
     return {AttributeOwnershipDivestitureIfWantedStatus::divesting_federate_not_member};
+  }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {AttributeOwnershipDivestitureIfWantedStatus::attribute_owned_by_rti};
   }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
@@ -16640,6 +26049,7 @@ EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted(
     std::uint64_t notificationId = 0;
     std::uint64_t receivingFederateId = 0;
     std::set<std::uint64_t> attributeHandles;
+    std::vector<unsigned char> userSuppliedTag;
   };
   std::vector<PreparedNotification> preparedNotifications;
   preparedNotifications.reserve(attributesByReceivingFederate.size());
@@ -16667,6 +26077,7 @@ EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted(
         notificationId,
         receivingFederateId,
         selectedAttributes,
+        userSuppliedTag,
     });
     result.notifications.push_back({
         notificationId,
@@ -16689,9 +26100,10 @@ EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted(
           instance->second.pendingAttributeOwnershipDivestitureIfWantedNotifications.try_emplace(
               prepared.notificationId,
               Federation::ObjectInstance::
-                  PendingAttributeOwnershipDivestitureIfWantedNotification{
+              PendingAttributeOwnershipDivestitureIfWantedNotification{
                       prepared.receivingFederateId,
                       std::move(prepared.attributeHandles),
+                      std::move(prepared.userSuppliedTag),
                   });
       static_cast<void>(reservation);
       if (!inserted) {
@@ -16715,10 +26127,41 @@ EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted(
   // selected acquirer. All older work addressed to the former owner is made
   // stale; requests made by other acquirers remain pending and are considered
   // after the selected acquirer's notification begins.
+  auto consumeCancellationReservation = [&](std::uint64_t requestingFederateId,
+                                             std::uint64_t attributeHandle) {
+    // Cancel Attribute Ownership Acquisition may already have accepted a
+    // cancellation while the owner-side release callback was in user code.
+    // Divestiture If Wanted is a competing terminal transfer: once it moves
+    // the attribute, the queued cancellation confirmation is stale and the
+    // resulting Acquisition Notification is the required second-form reply.
+    // Consume every matching reservation so a duplicate cancellation call
+    // cannot resurrect a confirmation for an attribute that was transferred.
+    for (auto cancellation =
+             instance->second.pendingAttributeOwnershipAcquisitionCancellations.begin();
+         cancellation !=
+             instance->second.pendingAttributeOwnershipAcquisitionCancellations.end();) {
+      if (cancellation->second.requestingFederateId == requestingFederateId) {
+        cancellation->second.attributeHandles.erase(attributeHandle);
+      }
+      if (cancellation->second.attributeHandles.empty()) {
+        cancellation = instance->second.pendingAttributeOwnershipAcquisitionCancellations.erase(
+            cancellation);
+      } else {
+        ++cancellation;
+      }
+    }
+  };
+
   for (auto const& [attributeHandle, selectedAcquirer] : selectedAcquirersByAttribute) {
     auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
     // The all-or-nothing validation above guarantees this owner record.
     owner->second = selectedAcquirer.receivingFederateId;
+    if (selectedAcquirer.kind == PendingRequestKind::regular) {
+      consumeCancellationReservation(
+          selectedAcquirer.receivingFederateId,
+          attributeHandle);
+    }
+    clearOwnershipAssumptionSearch(instance->second, attributeHandle);
     // Divestiture If Wanted transfers the attribute synchronously, but the
     // former owner's explicit update-region association still ends at the
     // ownership boundary.
@@ -16856,6 +26299,11 @@ EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation(
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeOwnershipAcquisitionCancellationStatus::requesting_federate_not_member};
   }
+  // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
+  // RTI-owned MOM attributes.
+  if (federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
+    return {AttributeOwnershipAcquisitionCancellationStatus::attribute_owned_by_rti};
+  }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||
       !instance->second.knownObjectClassHandlesByFederate.contains(requestingFederateId)) {
@@ -16945,31 +26393,10 @@ EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation(
   }
   ++federation->second.nextAttributeOwnershipAcquisitionCancellationId;
 
-  // The cancellation is accepted before its callback executes, so every
-  // queued notification or owner-release request for these attributes becomes
-  // stale. The distinct cancellation reservation retains the publication
-  // guard through the Confirm callback boundary.
-  for (auto pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.begin();
-       pending != instance->second.pendingAttributeOwnershipAcquisitionRequests.end();) {
-    for (std::uint64_t const attributeHandle : cancellationAttributes) {
-      pending->second.desiredAttributeHandles.erase(attributeHandle);
-      pending->second.notificationQueuedAttributeHandles.erase(attributeHandle);
-      for (auto release = pending->second.releaseCallbacksQueuedByOwningFederate.begin();
-           release != pending->second.releaseCallbacksQueuedByOwningFederate.end();) {
-        release->second.erase(attributeHandle);
-        if (release->second.empty()) {
-          release = pending->second.releaseCallbacksQueuedByOwningFederate.erase(release);
-        } else {
-          ++release;
-        }
-      }
-    }
-    if (pending->second.desiredAttributeHandles.empty()) {
-      pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.erase(pending);
-    } else {
-      ++pending;
-    }
-  }
+  // The cancellation is accepted before its callback executes. New work is
+  // suppressed by the cancellation reservation, while an owner-side release
+  // callback that has already entered user code may still answer with the
+  // required Attribute Ownership Unavailable race outcome.
 
   return {
       AttributeOwnershipAcquisitionCancellationStatus::applied,
@@ -17009,6 +26436,29 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation(
 
   auto consumeCancellationAndPlanFollowup = [&] {
     auto confirmedAttributeHandles = cancellation->second.attributeHandles;
+
+    for (auto pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.begin();
+         pending != instance->second.pendingAttributeOwnershipAcquisitionRequests.end();) {
+      for (std::uint64_t const attributeHandle : confirmedAttributeHandles) {
+        pending->second.desiredAttributeHandles.erase(attributeHandle);
+        pending->second.notificationQueuedAttributeHandles.erase(attributeHandle);
+        pending->second.unavailableQueuedAttributeHandles.erase(attributeHandle);
+        for (auto release = pending->second.releaseCallbacksQueuedByOwningFederate.begin();
+             release != pending->second.releaseCallbacksQueuedByOwningFederate.end();) {
+          release->second.erase(attributeHandle);
+          if (release->second.empty()) {
+            release = pending->second.releaseCallbacksQueuedByOwningFederate.erase(release);
+          } else {
+            ++release;
+          }
+        }
+      }
+      if (pending->second.desiredAttributeHandles.empty()) {
+        pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.erase(pending);
+      } else {
+        ++pending;
+      }
+    }
     instance->second.pendingAttributeOwnershipAcquisitionCancellations.erase(cancellation);
     return std::pair{
         std::move(confirmedAttributeHandles),
@@ -17045,7 +26495,7 @@ EmbeddedFederationRegistry::attributeOwnershipUnavailableRecipientFor(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle,
-    std::set<std::uint64_t> const& attributeHandles) const {
+    std::set<std::uint64_t> const& attributeHandles) {
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end() ||
@@ -17082,10 +26532,74 @@ EmbeddedFederationRegistry::attributeOwnershipUnavailableRecipientFor(
       !callbackRoute->second) {
     return std::nullopt;
   }
+
+  std::set<std::uint64_t> deliverableAttributeHandles;
+  for (auto const& [requestId, pending] :
+       instance->second.pendingAttributeOwnershipAcquisitionRequests) {
+    static_cast<void>(requestId);
+    if (pending.requestingFederateId != receivingFederateId) {
+      continue;
+    }
+    for (std::uint64_t const attributeHandle : attributeHandles) {
+      if (pending.unavailableQueuedAttributeHandles.contains(attributeHandle)) {
+        deliverableAttributeHandles.insert(attributeHandle);
+      }
+    }
+  }
+  if (deliverableAttributeHandles.empty()) {
+    return std::nullopt;
+  }
+
+  // If cancellation was requested while the owner callback was in flight,
+  // release denial is the winning terminal event. Consume the cancellation
+  // reservation so its queued confirmation becomes harmless.
+  for (auto cancellation =
+           instance->second.pendingAttributeOwnershipAcquisitionCancellations.begin();
+       cancellation !=
+           instance->second.pendingAttributeOwnershipAcquisitionCancellations.end();) {
+    if (cancellation->second.requestingFederateId == receivingFederateId) {
+      for (std::uint64_t const attributeHandle : deliverableAttributeHandles) {
+        cancellation->second.attributeHandles.erase(attributeHandle);
+      }
+    }
+    if (cancellation->second.attributeHandles.empty()) {
+      cancellation =
+          instance->second.pendingAttributeOwnershipAcquisitionCancellations.erase(cancellation);
+    } else {
+      ++cancellation;
+    }
+  }
+
+  for (auto pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.begin();
+       pending != instance->second.pendingAttributeOwnershipAcquisitionRequests.end();) {
+    if (pending->second.requestingFederateId != receivingFederateId) {
+      ++pending;
+      continue;
+    }
+    for (std::uint64_t const attributeHandle : deliverableAttributeHandles) {
+      pending->second.unavailableQueuedAttributeHandles.erase(attributeHandle);
+      pending->second.desiredAttributeHandles.erase(attributeHandle);
+      pending->second.notificationQueuedAttributeHandles.erase(attributeHandle);
+      for (auto release = pending->second.releaseCallbacksQueuedByOwningFederate.begin();
+           release != pending->second.releaseCallbacksQueuedByOwningFederate.end();) {
+        release->second.erase(attributeHandle);
+        if (release->second.empty()) {
+          release = pending->second.releaseCallbacksQueuedByOwningFederate.erase(release);
+        } else {
+          ++release;
+        }
+      }
+    }
+    if (pending->second.desiredAttributeHandles.empty()) {
+      pending = instance->second.pendingAttributeOwnershipAcquisitionRequests.erase(pending);
+    } else {
+      ++pending;
+    }
+  }
   return AttributeOwnershipUnavailableRecipient{
       receivingFederateId,
       objectInstanceHandle,
-      attributeHandles,
+      std::move(deliverableAttributeHandles),
       callbackRoute->second,
   };
 }
@@ -17188,6 +26702,12 @@ ReceiveOrderInteractionPlan EmbeddedFederationRegistry::planReceiveOrderInteract
               region->second.dimensionHandles.end())) {
         return {ReceiveOrderInteractionStatus::invalid_region_context};
       }
+      result.sentRegionSnapshots.emplace(
+          regionHandle,
+          RegionSpecificationSnapshot{
+              region->second.dimensionHandles,
+              region->second.committedRangeBounds,
+              region->second.specificationCommitted});
     }
   }
   // 8.1.8 makes subscription evaluation a federation-wide, creation-time
@@ -17238,7 +26758,8 @@ EmbeddedFederationRegistry::receiveOrderInteractionRecipientFor(
     std::uint64_t receivingFederateId,
     std::uint64_t sentInteractionClassHandle,
     std::vector<std::uint64_t> const& sentParameterHandles,
-    std::set<std::uint64_t> const* sentRegionHandles) const {
+    std::set<std::uint64_t> const* sentRegionHandles,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides) const {
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -17250,7 +26771,8 @@ EmbeddedFederationRegistry::receiveOrderInteractionRecipientFor(
       receivingFederateId,
       sentInteractionClassHandle,
       sentParameterHandles,
-      sentRegionHandles);
+      sentRegionHandles,
+      regionOverrides);
 }
 
 MomServiceReportRoutingPlan EmbeddedFederationRegistry::planMomServiceReport(
@@ -21287,6 +30809,48 @@ EmbeddedFederationRegistry::planAttributeTransportationTypeQuery(
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeTransportationTypeQueryStatus::requesting_federate_not_member};
   }
+
+  // RTI-owned MOM objects share the public object-instance handle namespace
+  // with federate-created instances, but their lifetime/visibility ledger is
+  // intentionally separate.  Query Attribute Transportation Type is still a
+  // normal object-management service for a discovered MOM object: resolve
+  // the immutable MIM declaration rather than looking for a synthetic
+  // ObjectInstance record that does not exist.
+  auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
+    if (!momObject->second.knownFederateIds.contains(requestingFederateId)) {
+      return {AttributeTransportationTypeQueryStatus::object_instance_not_known};
+    }
+    if (!momObject->second.effectiveAttributeHandles.contains(attributeHandle) ||
+        !validObjectClassAttributes(
+            federation->second,
+            momObject->second.objectClassHandle,
+            std::set<std::uint64_t>{attributeHandle})) {
+      return {AttributeTransportationTypeQueryStatus::attribute_not_defined};
+    }
+    auto const transportationName = attributeTransportationName(
+        federation->second,
+        momObject->second.objectClassHandle,
+        attributeHandle);
+    if (!transportationName) {
+      return {AttributeTransportationTypeQueryStatus::inconsistent_catalog};
+    }
+    auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+        requestingFederateId);
+    if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+        !callbackRoute->second) {
+      return {AttributeTransportationTypeQueryStatus::callback_route_missing};
+    }
+    return {
+        AttributeTransportationTypeQueryStatus::applied,
+        objectInstanceHandle,
+        attributeHandle,
+        *transportationName,
+        callbackRoute->second,
+    };
+  }
+
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() ||
       instance->second.deleteAccepted ||
@@ -21622,6 +31186,8 @@ EmbeddedFederationRegistry::planReceiveOrderDirectedInteraction(
     return {ReceiveOrderDirectedInteractionStatus::inconsistent_catalog};
   }
   result.preferredOrderType = *preferredOrderType;
+  bool const delaySubscriptionEvaluation =
+      federation->second.delaySubscriptionEvaluationSwitch;
   for (auto const& [federateId, membership] : federation->second.members) {
     static_cast<void>(membership);
     auto recipient = candidateReceiveOrderDirectedInteractionRecipient(
@@ -21633,7 +31199,30 @@ EmbeddedFederationRegistry::planReceiveOrderDirectedInteraction(
         sentParameterHandles);
     if (recipient) {
       result.recipients.push_back(std::move(*recipient));
+      continue;
     }
+    // §8.1.8 applies the federation-wide delayed subscription policy at the
+    // callback boundary.  Retain a joined non-source recipient with a live
+    // route even when its directed selector is currently absent; the normal
+    // receive-order callback rechecks target knowledge, source publication,
+    // and the ownership/universal selector immediately before user code.
+    // This is intentionally a route-only projection so a later declaration
+    // can make the accepted passel deliverable without reviving stale work
+    // after an unsubscribe or target departure.
+    if (!delaySubscriptionEvaluation || federateId == producingFederateId) {
+      continue;
+    }
+    auto const callbackRoute = federation->second.interactionCallbackRoutes.find(federateId);
+    if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+        !callbackRoute->second) {
+      continue;
+    }
+    ReceiveOrderDirectedInteractionRecipient deferredRecipient;
+    deferredRecipient.federateId = federateId;
+    deferredRecipient.objectInstanceHandle = objectInstanceHandle;
+    deferredRecipient.receivedInteractionClassHandle = sentInteractionClassHandle;
+    deferredRecipient.callbackRoute = callbackRoute->second;
+    result.recipients.push_back(std::move(deferredRecipient));
   }
   return result;
 }
@@ -21675,7 +31264,7 @@ EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor(
     return std::nullopt;
   }
 
-  bool retainLostProducerAcceptance = false;
+  bool retainDepartedProducerAcceptance = false;
   if (!federation->second.members.contains(producingFederateId)) {
     auto const message = federation->second.tsoDirectedInteractionMessages.find(messageId);
     auto const retraction = federation->second.tsoRequestRetractionRecords.find(messageId);
@@ -21693,11 +31282,12 @@ EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor(
           return candidate.receivingFederateId == receivingFederateId;
         });
     auto const recipientState = retraction->second.recipientStates.find(receivingFederateId);
-    retainLostProducerAcceptance =
+    retainDepartedProducerAcceptance =
         recipient != message->second.recipients.end() &&
         recipientState != retraction->second.recipientStates.end() &&
         recipientState->second == Federation::TsoRecipientDeliveryState::pending &&
-        retraction->second.deliveryRequiredAfterConnectionLoss;
+        (retraction->second.deliveryRequiredAfterConnectionLoss ||
+         retraction->second.producerResigned);
   }
 
   return candidateReceiveOrderDirectedInteractionRecipient(
@@ -21707,7 +31297,7 @@ EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor(
       objectInstanceHandle,
       sentInteractionClassHandle,
       sentParameterHandles,
-      retainLostProducerAcceptance);
+      retainDepartedProducerAcceptance);
 }
 
 }  // namespace umbra::detail

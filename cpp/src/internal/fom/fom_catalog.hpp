@@ -1,6 +1,7 @@
 #pragma once
 
 #include "internal/fom/fom_validation.hpp"
+#include "internal/fom/fom_wire_encoding.hpp"
 
 #include <map>
 #include <optional>
@@ -101,6 +102,29 @@ struct FomDataTypeDefinition {
   std::string name;
   FomDataTypeKind kind = FomDataTypeKind::simple;
   std::string representation;
+  // The source encoding and its neutral structural interpretation are kept
+  // together. A recognized shape is not evidence that a runtime byte codec
+  // is available; consult wireEncoding.codecStatus for that distinction.
+  FomWireEncodingDescriptor wireEncoding;
+  std::string elementDataType;
+  std::string cardinality;
+  std::string discriminantDataType;
+  struct Field {
+    std::string name;
+    std::string dataType;
+    std::string semantics;
+  };
+  struct Alternative {
+    std::string name;
+    std::vector<std::string> discriminantEnumerators;
+    std::string dataType;
+    std::string semantics;
+  };
+  // Declaration order is significant for record and variant wire layouts.
+  // Keep these projections separate from the generic encoding descriptor so
+  // future codecs can consume structure without parsing XML again.
+  std::vector<Field> fields;
+  std::vector<Alternative> alternatives;
 };
 
 struct FomTimeDefinition {

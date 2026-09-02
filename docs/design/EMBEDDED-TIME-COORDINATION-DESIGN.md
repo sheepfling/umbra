@@ -10,7 +10,7 @@ a replacement time model.
 
 ## Implemented no-TSO temporal control
 
-The non-installable `UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=ON` profile
+The embedded `UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=ON` profile
 has one `FederateTimeState` for each joined federate. It supports these
 callback-gated transitions and read-only bounds:
 

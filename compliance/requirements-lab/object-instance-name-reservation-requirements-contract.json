@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 object-instance name reservation and release services in Umbra's non-installable embedded development profile. It validates the official HLA. namespace and empty-set guards, asynchronous single and multiple reservation outcomes, atomic multiple release, resignation cleanup, and the focused filesystem successful-void reports for the single-name and StringSet multiple-name requests. Named registration consumes reservations in a later slice; save/restore, remote transport, package support, protected review, and conformance remain outside this contract.",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 object-instance name reservation and release services in Umbra's non-installable embedded development profile. It validates the official HLA. namespace and empty-set guards, asynchronous single and multiple reservation outcomes, atomic multiple release, resignation cleanup, focused filesystem successful-void reports for the single-name and StringSet multiple-name requests, and a fresh-registry filesystem restore of one federate-owned reservation. Named registration consumes reservations in a later slice; broader multiple-name process-restart recovery, remote transport, package support, protected review, and conformance remain outside this contract.",
   "requirements": [
     {
       "id": "umbra-object-name-reservation-single-validates-and-reports",
@@ -14,7 +14,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
-        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments"
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-instance-name reservations in a fresh registry"
       ]
     },
     {
@@ -37,7 +38,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
-        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments"
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-instance-name reservations in a fresh registry"
       ]
     },
     {
@@ -48,7 +50,8 @@
       "source_symbol": "EmbeddedFederationRegistry::releaseObjectInstanceName",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
-        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments"
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-instance-name reservations in a fresh registry"
       ]
     },
     {
@@ -59,7 +62,8 @@
       "source_symbol": "UmbraRtiAmbassador::releaseObjectInstanceName",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
-        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments"
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-instance-name reservations in a fresh registry"
       ]
     },
     {
@@ -125,6 +129,7 @@
       "source_symbol": "UmbraRtiAmbassador::releaseMultipleObjectInstanceNames",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 object-instance name reservation commits and reports asynchronously",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers multiple object-instance name release through MOM",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_name_service_report_arguments"
       ]
     },

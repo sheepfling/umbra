@@ -16,56 +16,50 @@ from hla.rti1516_2025 import (
     DimensionHandle,
     DimensionHandleSet,
     EncoderFactory,
-    HLAfixedArray,
-    HLAfixedRecord,
-    HLAvariantRecord,
     FederateAmbassador,
     FederateHandle,
-    FederateHandleSet,
     FederateHandleSaveStatusPair,
+    FederateHandleSet,
     FederateRestoreStatus,
     FederationExecutionInformation,
-    FederationExecutionMemberInformationSet,
     FederationExecutionMemberInformation,
-    ResignAction,
-    SaveStatus,
-    SaveFailureReason,
-    RestoreFailureReason,
-    RestoreStatus,
-    SynchronizationPointFailureReason,
-    HLAboolean,
+    FederationExecutionMemberInformationSet,
     HLAASCIIchar,
     HLAASCIIstring,
+    HLAboolean,
     HLAbyte,
+    HLAfixedArray,
+    HLAfixedRecord,
     HLAfloat32BE,
     HLAfloat32LE,
     HLAfloat64BE,
-    HLAfloat64LE,
-    HLAinteger16BE,
-    HLAinteger16LE,
-    HLAinteger64Interval,
-    HLAinteger64Time,
-    HLAinteger64TimeFactory,
     HLAfloat64Interval,
+    HLAfloat64LE,
     HLAfloat64Time,
     HLAfloat64TimeFactory,
+    HLAinteger16BE,
+    HLAinteger16LE,
     HLAinteger32BE,
     HLAinteger32LE,
     HLAinteger64BE,
+    HLAinteger64Interval,
     HLAinteger64LE,
-    HLAunsignedInteger16BE,
-    HLAunsignedInteger16LE,
-    HLAunsignedInteger32LE,
-    HLAunsignedInteger64BE,
-    HLAunsignedInteger64LE,
+    HLAinteger64Time,
+    HLAinteger64TimeFactory,
     HLAoctet,
     HLAoctetPairBE,
     HLAoctetPairLE,
     HLAopaqueData,
-    HLAvariableArray,
     HLAunicodeChar,
     HLAunicodeString,
+    HLAunsignedInteger16BE,
+    HLAunsignedInteger16LE,
     HLAunsignedInteger32BE,
+    HLAunsignedInteger32LE,
+    HLAunsignedInteger64BE,
+    HLAunsignedInteger64LE,
+    HLAvariableArray,
+    HLAvariantRecord,
     InteractionClassHandle,
     InteractionClassHandleSet,
     MessageRetractionHandle,
@@ -75,13 +69,25 @@ from hla.rti1516_2025 import (
     OrderType,
     ParameterHandle,
     ParameterHandleValueMap,
-    RTIambassador,
-    RtiFactoryFactory,
     RangeBounds,
     RegionHandle,
     RegionHandleSet,
-    TransportationTypeHandle,
+    ResignAction,
+    RestoreFailureReason,
+    RestoreStatus,
+    RTIambassador,
+    RtiFactoryFactory,
+    SaveFailureReason,
+    SaveStatus,
     ServiceGroup,
+    SynchronizationPointFailureReason,
+    TransportationTypeHandle,
+)
+from hla.rti1516_2025.encoding import (
+    DataElement,
+    DataElementFactory,
+    DecoderException,
+    EncoderException,
 )
 from hla.rti1516_2025.exceptions import (
     AlreadyConnected,
@@ -94,19 +100,23 @@ from hla.rti1516_2025.exceptions import (
     MessageCanNoLongerBeRetracted,
     ObjectInstanceNotKnown,
 )
-from hla.rti1516_2025.encoding import DecoderException, EncoderException
-from hla.rti1516_2025.encoding import DataElement, DataElementFactory
-from umbra_rti_test_support import (
-    ConnectionFoundationConformanceMixin,
-    FederationExecutionDiscoveryConformanceMixin,
-    FederationExecutionMemberDiscoveryConformanceMixin,
-    ConnectionOverloadConformanceMixin,
-    ProviderBindingParityConformanceMixin,
-)
 from umbra._native.rti1516_2025 import (
     UmbraRtiFactory,
-    _UmbraRTIambassador,
     _native,
+    _UmbraRTIambassador,
+)
+from umbra_rti_test_support import (
+    HLA_FIXTURES,
+    HLA_FOM,
+    HLA_MOM,
+    HLA_TYPES,
+    ConnectionFoundationConformanceMixin,
+    ConnectionOverloadConformanceMixin,
+    FederationExecutionDiscoveryConformanceMixin,
+    FederationExecutionMemberDiscoveryConformanceMixin,
+    ProviderBindingParityConformanceMixin,
+    iter_data_element_value_matrix,
+    iter_extendable_variant_wire_matrix,
 )
 
 
@@ -141,6 +151,17 @@ class NativeProviderTest(unittest.TestCase):
         )
         self.assertEqual(missing, [])
 
+    def test_native_encoder_factory_declares_every_contract_creator(self) -> None:
+        """The direct 2025 façade must expose every generated creator symbol."""
+
+        encoder = UmbraRtiFactory().getEncoderFactory()
+        missing = sorted(
+            name
+            for name in EncoderFactory.__abstractmethods__
+            if not callable(getattr(encoder, name, None))
+        )
+        self.assertEqual(missing, [])
+
     def test_native_facade_calls_only_exported_pybind_ambassador_methods(self) -> None:
         """Keep the Python façade and the pybind NativeAmbassador in lockstep."""
         source = (
@@ -165,9 +186,7 @@ class NativeProviderTest(unittest.TestCase):
             and node.value.attr == "_implementation"
         }
         exported = {
-            name
-            for name in dir(_native.NativeAmbassador)
-            if not name.startswith("_")
+            name for name in dir(_native.NativeAmbassador) if not name.startswith("_")
         }
         self.assertEqual(
             sorted(calls - exported),
@@ -202,7 +221,7 @@ class NativeProviderTest(unittest.TestCase):
         unicode_char = encoder.createHLAunicodeChar(0x03A9)
         pair_be = encoder.createHLAoctetPairBE(0x1234)
         pair_le = encoder.createHLAoctetPairLE(0x1234)
-        opaque = encoder.createHLAopaqueData(b"\x00\xA5\xFF")
+        opaque = encoder.createHLAopaqueData(b"\x00\xa5\xff")
         unicode = encoder.createHLAunicodeString("A😀")
         integer_factory = _Integer32ElementFactory(encoder)
         variable_array = encoder.createHLAvariableArray(integer_factory)
@@ -239,12 +258,17 @@ class NativeProviderTest(unittest.TestCase):
         self.assertIsInstance(opaque, HLAopaqueData)
         self.assertIsInstance(unicode, HLAunicodeString)
         self.assertIsInstance(variable_array, HLAvariableArray)
-        self.assertEqual(variable_array.toByteArray(), b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe")
+        self.assertEqual(
+            variable_array.toByteArray(),
+            b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe",
+        )
         self.assertEqual(variable_array.getOctetBoundary(), 4)
         self.assertEqual(variable_array.getEncodedLength(), 12)
         self.assertEqual(variable_array.size(), 2)
         self.assertEqual([element.getValue() for element in variable_array], [1, -2])
-        self.assertEqual([decoded_array.get(index).getValue() for index in range(2)], [1, -2])
+        self.assertEqual(
+            [decoded_array.get(index).getValue() for index in range(2)], [1, -2]
+        )
         with self.assertRaises(TypeError):
             variable_array.addElement(encoder.createHLAoctet(1))
         with self.assertRaises(IndexError):
@@ -268,7 +292,9 @@ class NativeProviderTest(unittest.TestCase):
         self.assertEqual(fixed_array.getOctetBoundary(), 4)
         self.assertEqual(fixed_array.size(), 2)
         self.assertEqual([element.getValue() for element in fixed_array], [1, -2])
-        self.assertEqual([decoded_fixed.get(index).getValue() for index in range(2)], [1, -2])
+        self.assertEqual(
+            [decoded_fixed.get(index).getValue() for index in range(2)], [1, -2]
+        )
         ascii_factory = type(
             "_AsciiStringFactory",
             (DataElementFactory,),
@@ -304,13 +330,15 @@ class NativeProviderTest(unittest.TestCase):
         first.setValue(99)
         middle.setValue(0x11)
         last.setValue(7)
-        record_bytes = b"\x10\x20\x30\x40\xA5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
+        record_bytes = b"\x10\x20\x30\x40\xa5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
         self.assertIsInstance(record, HLAfixedRecord)
         self.assertEqual(record.toByteArray(), record_bytes)
         self.assertEqual(record.getEncodedLength(), len(record_bytes))
         self.assertEqual(record.getOctetBoundary(), 4)
         self.assertEqual(record.size(), 3)
-        self.assertEqual([element.getValue() for element in record], [0x10203040, 0xA5, -2])
+        self.assertEqual(
+            [element.getValue() for element in record], [0x10203040, 0xA5, -2]
+        )
         decoded_record = encoder.createHLAfixedRecord()
         decoded_record.appendElement(encoder.createHLAinteger32BE())
         decoded_record.appendElement(encoder.createHLAoctet())
@@ -323,7 +351,7 @@ class NativeProviderTest(unittest.TestCase):
         record.set(1, encoder.createHLAoctet(0x5A))
         self.assertEqual(
             record.toByteArray(),
-            b"\x10\x20\x30\x40\x5A" + b"\0\0\0" + b"\xff\xff\xff\xfe",
+            b"\x10\x20\x30\x40\x5a" + b"\0\0\0" + b"\xff\xff\xff\xfe",
         )
         with self.assertRaises(TypeError):
             record.set(1, encoder.createHLAinteger32BE(1))
@@ -342,7 +370,7 @@ class NativeProviderTest(unittest.TestCase):
         outer.appendElement(nested)
         outer.appendElement(encoder.createHLAinteger32BE(-2))
         nested.set(0, encoder.createHLAinteger32BE(99))
-        nested_bytes = b"\x01\x02\x03\x04\xA5"
+        nested_bytes = b"\x01\x02\x03\x04\xa5"
         outer_bytes = nested_bytes + b"\0\0\0" + b"\xff\xff\xff\xfe"
         self.assertIsInstance(outer.get(0), HLAfixedRecord)
         self.assertEqual(outer.toByteArray(), outer_bytes)
@@ -371,7 +399,9 @@ class NativeProviderTest(unittest.TestCase):
         decoded_array_outer.appendElement(decoded_nested_array)
         decoded_array_outer.appendElement(encoder.createHLAinteger32BE())
         decoded_array_outer.decode(array_outer_bytes)
-        self.assertEqual([decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(
+            [decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12]
+        )
         self.assertEqual(decoded_array_outer.get(1).getValue(), -2)
         nested_variable_factory = type(
             "_NestedIntegerFactory",
@@ -390,12 +420,17 @@ class NativeProviderTest(unittest.TestCase):
         self.assertIsInstance(variable_outer.get(0), HLAvariableArray)
         self.assertEqual(variable_outer.toByteArray(), variable_outer_bytes)
         decoded_variable_outer = encoder.createHLAfixedRecord()
-        decoded_nested_variable = encoder.createHLAvariableArray(nested_variable_factory)
+        decoded_nested_variable = encoder.createHLAvariableArray(
+            nested_variable_factory
+        )
         decoded_variable_outer.appendElement(decoded_nested_variable)
         decoded_variable_outer.appendElement(encoder.createHLAinteger32BE())
         decoded_variable_outer.decode(variable_outer_bytes)
         self.assertEqual(decoded_variable_outer.get(0).size(), 2)
-        self.assertEqual([decoded_variable_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(
+            [decoded_variable_outer.get(0).get(i).getValue() for i in range(2)],
+            [11, -12],
+        )
         self.assertEqual(decoded_variable_outer.get(1).getValue(), -2)
         nested_variant_value = encoder.createHLAfixedRecord()
         nested_variant_value.appendElement(encoder.createHLAinteger32BE(0x01020304))
@@ -403,33 +438,47 @@ class NativeProviderTest(unittest.TestCase):
         nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
         nested_variant.setVariant(encoder.createHLAoctet(3), nested_variant_value)
         nested_variant_value.set(0, encoder.createHLAinteger32BE(99))
-        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xA5"
+        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xa5"
         self.assertIsInstance(nested_variant.getValue(), HLAfixedRecord)
         self.assertEqual(nested_variant.toByteArray(), nested_variant_bytes)
-        decoded_nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        decoded_nested_variant = encoder.createHLAvariantRecord(
+            encoder.createHLAoctet()
+        )
         decoded_nested_variant_value = encoder.createHLAfixedRecord()
         decoded_nested_variant_value.appendElement(encoder.createHLAinteger32BE())
         decoded_nested_variant_value.appendElement(encoder.createHLAoctet())
-        decoded_nested_variant.setVariant(encoder.createHLAoctet(3), decoded_nested_variant_value)
+        decoded_nested_variant.setVariant(
+            encoder.createHLAoctet(3), decoded_nested_variant_value
+        )
         decoded_nested_variant.decode(nested_variant_bytes)
-        self.assertEqual(decoded_nested_variant.getValue().get(0).getValue(), 0x01020304)
+        self.assertEqual(
+            decoded_nested_variant.getValue().get(0).getValue(), 0x01020304
+        )
         composite_discriminant = encoder.createHLAfixedRecord()
         composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
         composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
         composite_variant = encoder.createHLAvariantRecord(composite_discriminant)
-        composite_variant.setVariant(composite_discriminant, encoder.createHLAinteger32BE(7))
+        composite_variant.setVariant(
+            composite_discriminant, encoder.createHLAinteger32BE(7)
+        )
         composite_discriminant.set(0, encoder.createHLAinteger32BE(99))
-        composite_variant_bytes = b"\x01\x02\x03\x04\xA5" + b"\0\0\0" + b"\0\0\0\x07"
+        composite_variant_bytes = b"\x01\x02\x03\x04\xa5" + b"\0\0\0" + b"\0\0\0\x07"
         self.assertIsInstance(composite_variant.getDiscriminant(), HLAfixedRecord)
         self.assertEqual(composite_variant.toByteArray(), composite_variant_bytes)
         decoded_composite_discriminant = encoder.createHLAfixedRecord()
         decoded_composite_discriminant.appendElement(encoder.createHLAinteger32BE())
         decoded_composite_discriminant.appendElement(encoder.createHLAoctet())
-        decoded_composite_variant = encoder.createHLAvariantRecord(decoded_composite_discriminant)
+        decoded_composite_variant = encoder.createHLAvariantRecord(
+            decoded_composite_discriminant
+        )
         mapped_composite_discriminant = encoder.createHLAfixedRecord()
-        mapped_composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        mapped_composite_discriminant.appendElement(
+            encoder.createHLAinteger32BE(0x01020304)
+        )
         mapped_composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
-        decoded_composite_variant.setVariant(mapped_composite_discriminant, encoder.createHLAinteger32BE())
+        decoded_composite_variant.setVariant(
+            mapped_composite_discriminant, encoder.createHLAinteger32BE()
+        )
         decoded_composite_variant.decode(composite_variant_bytes)
         self.assertEqual(decoded_composite_variant.getValue().getValue(), 7)
         variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
@@ -456,8 +505,12 @@ class NativeProviderTest(unittest.TestCase):
         self.assertIsNone(variant.getValue())
         self.assertEqual(variant.toByteArray(), b"\x03")
         decoded_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
-        decoded_variant.setVariant(encoder.createHLAoctet(1), encoder.createHLAinteger32BE())
-        decoded_variant.setVariant(encoder.createHLAoctet(2), encoder.createHLAASCIIstring())
+        decoded_variant.setVariant(
+            encoder.createHLAoctet(1), encoder.createHLAinteger32BE()
+        )
+        decoded_variant.setVariant(
+            encoder.createHLAoctet(2), encoder.createHLAASCIIstring()
+        )
         decoded_variant.decode(variant_two_bytes)
         self.assertEqual(decoded_variant.getValue().getValue(), "A")  # type: ignore[union-attr]
         bad_variant_padding = bytearray(variant_two_bytes)
@@ -486,7 +539,9 @@ class NativeProviderTest(unittest.TestCase):
         with self.assertRaises(DecoderException):
             encoder.createHLAvariableArray(float_factory).decode(bad_leading)
         with self.assertRaises(DecoderException):
-            encoder.createHLAvariableArray(float_factory).decode(padded.toByteArray() + b"\0")
+            encoder.createHLAvariableArray(float_factory).decode(
+                padded.toByteArray() + b"\0"
+            )
         octet_factory = type(
             "_OctetFactory",
             (DataElementFactory,),
@@ -541,11 +596,17 @@ class NativeProviderTest(unittest.TestCase):
         self.assertEqual(integer64.getValue(), 0x0102030405060708)
         self.assertEqual(integer64le.toByteArray(), struct.pack("<q", -0x123456789AB))
         self.assertEqual(integer64le.getOctetBoundary(), 8)
-        self.assertEqual(unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210))
+        self.assertEqual(
+            unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210)
+        )
         self.assertEqual(unsigned64.getValue(), 0xFEDCBA9876543210)
-        self.assertIs(unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64)
+        self.assertIs(
+            unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64
+        )
         self.assertEqual(unsigned64.getValue(), 0xFFFFFFFFFFFFFFFF)
-        self.assertEqual(unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210))
+        self.assertEqual(
+            unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210)
+        )
         self.assertEqual(unsigned64le.getValue(), 0xFEDCBA9876543210)
         with self.assertRaises(TypeError):
             encoder.createHLAinteger16BE(True)  # type: ignore[arg-type]
@@ -609,12 +670,12 @@ class NativeProviderTest(unittest.TestCase):
         self.assertEqual(pair_le.getOctetBoundary(), 2)
         self.assertIs(pair_le.decode(b"\xab\xcd"), pair_le)
         self.assertEqual(pair_le.getValue(), 0xCDAB)
-        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xA5\xFF")
+        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xa5\xff")
         self.assertEqual(opaque.getOctetBoundary(), 4)
         self.assertEqual(opaque.getEncodedLength(), 7)
         self.assertEqual(opaque.size(), 3)
         self.assertEqual([opaque.get(index) for index in range(3)], [0, 0xA5, 0xFF])
-        self.assertEqual(opaque.getValue(), b"\x00\xA5\xFF")
+        self.assertEqual(opaque.getValue(), b"\x00\xa5\xff")
         self.assertIs(opaque.decode(b"\x00\x00\x00\x02OK"), opaque)
         self.assertEqual(opaque.getValue(), b"OK")
         source = bytearray(b"copy")
@@ -665,10 +726,53 @@ class NativeProviderTest(unittest.TestCase):
         self.assertIs(unicode.setValue("reset"), unicode)
         self.assertEqual(unicode.getValue(), "reset")
 
-    def test_native_extendable_variant_record_maps_and_skips_unknown_alternatives(self) -> None:
+    def test_native_basic_data_element_value_matrix_round_trips_through_cpp(
+        self,
+    ) -> None:
+        """Exercise the shared 2025 edge values through the C++ factory."""
+        encoder = UmbraRtiFactory().getEncoderFactory()
+        unsigned_kinds = {
+            "HLAunsignedInteger16BE",
+            "HLAunsignedInteger16LE",
+            "HLAunsignedInteger32BE",
+            "HLAunsignedInteger32LE",
+            "HLAunsignedInteger64BE",
+            "HLAunsignedInteger64LE",
+        }
+        for vector in iter_data_element_value_matrix("2025"):
+            with self.subTest(case=vector.case_id):
+                method = getattr(encoder, "create" + vector.kind)
+                element = method(vector.value)
+                encoded = bytes(element.toByteArray())
+                decoded = method()
+                decoded.decode(encoded)
+                self.assertEqual(bytes(decoded.toByteArray()), encoded)
+                actual = decoded.getValue()
+                if vector.kind in unsigned_kinds:
+                    self.assertEqual(int(actual), int(vector.value))
+                elif vector.kind.startswith("HLAfloat32"):
+                    self.assertEqual(
+                        struct.pack(">f", float(actual)),
+                        struct.pack(">f", float(vector.value)),
+                    )
+                elif vector.kind.startswith("HLAfloat64"):
+                    self.assertEqual(
+                        struct.pack(">d", float(actual)),
+                        struct.pack(">d", float(vector.value)),
+                    )
+                elif vector.kind == "HLAopaqueData":
+                    self.assertEqual(bytes(actual), bytes(vector.value))
+                else:
+                    self.assertEqual(actual, vector.value)
+
+    def test_native_extendable_variant_record_maps_and_skips_unknown_alternatives(
+        self,
+    ) -> None:
         encoder = UmbraRtiFactory().getEncoderFactory()
         if not hasattr(encoder, "createHLAextendableVariantRecord"):
-            self.skipTest("native wheel predates the provider-specific extendable variant mapping")
+            self.skipTest(
+                "native wheel predates the provider-specific extendable variant mapping"
+            )
 
         extendable = encoder.createHLAextendableVariantRecord(encoder.createHLAoctet())
         self.assertIsInstance(extendable, DataElement)
@@ -696,11 +800,16 @@ class NativeProviderTest(unittest.TestCase):
         replacement = encoder.createHLAinteger32BE(-9)
         extendable.setVariant(discriminant_one, replacement)  # type: ignore[attr-defined]
         replacement.setValue(12)
-        self.assertEqual(extendable.toByteArray(), bytes.fromhex("01 00 00 00 00 00 00 04 FF FF FF F7"))
+        self.assertEqual(
+            extendable.toByteArray(),
+            bytes.fromhex("01 00 00 00 00 00 00 04 FF FF FF F7"),
+        )
         with self.assertRaises(EncoderException):
             extendable.addVariant(discriminant_one, encoder.createHLAinteger32BE())  # type: ignore[attr-defined]
         with self.assertRaises(EncoderException):
-            extendable.setVariant(encoder.createHLAoctet(3), encoder.createHLAinteger32BE())  # type: ignore[attr-defined]
+            extendable.setVariant(
+                encoder.createHLAoctet(3), encoder.createHLAinteger32BE()
+            )  # type: ignore[attr-defined]
         with self.assertRaises(TypeError):
             extendable.setDiscriminant(encoder.createHLAinteger32BE(1))  # type: ignore[attr-defined]
         with self.assertRaises(TypeError):
@@ -731,6 +840,35 @@ class NativeProviderTest(unittest.TestCase):
             decoded.decode(bytes.fromhex("01 00 00 00 00 00 00 03 00 00 00"))
         with self.assertRaises(DecoderException):
             decoded.decode(string_bytes + b"\0")
+
+        # Keep the provider-extension vectors in the shared test-support
+        # package so a transplanted bridge can consume the same wire cases.
+        for vector in iter_extendable_variant_wire_matrix():
+            with self.subTest(vector=vector.case_id):
+                target = encoder.createHLAextendableVariantRecord(
+                    encoder.createHLAoctet()
+                )
+                target.addVariant(
+                    encoder.createHLAoctet(1), encoder.createHLAinteger32BE()
+                )
+                target.addVariant(
+                    encoder.createHLAoctet(2), encoder.createHLAASCIIstring()
+                )
+                if not vector.valid:
+                    with self.assertRaises(DecoderException):
+                        target.decode(vector.encoded)
+                    continue
+                target.decode(vector.encoded)
+                self.assertEqual(
+                    target.getDiscriminant().toByteArray(), vector.discriminant
+                )
+                value = target.getValue()
+                if vector.value is None:
+                    self.assertIsNone(value)
+                else:
+                    self.assertIsNotNone(value)
+                    self.assertEqual(value.toByteArray(), vector.value)
+                self.assertEqual(target.getEncodedLength(), vector.encoded_length)
 
     def test_native_connection_foundation(self) -> None:
         factory = UmbraRtiFactory()
@@ -790,7 +928,9 @@ class NativeProviderTest(unittest.TestCase):
         regulator.connect(regulator_callback, CallbackModel.HLA_EVOKED)
         created = joined = regulator_joined = False
         try:
-            regulator.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            regulator.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             ambassador.joinFederationExecution("time-observer", federation_name)
             joined = True
@@ -799,7 +939,7 @@ class NativeProviderTest(unittest.TestCase):
 
             factory = ambassador.getTimeFactory()
             self.assertIsInstance(factory, HLAinteger64TimeFactory)
-            self.assertEqual(factory.implementationName(), "HLAinteger64Time")
+            self.assertEqual(factory.implementationName(), HLA_TYPES.INTEGER64_TIME)
             initial = factory.makeInitial()
             final = factory.makeFinal()
             zero = factory.makeZero()
@@ -816,7 +956,8 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(interval.getInterval(), 1)
             self.assertEqual(factory.decodeLogicalTime(time.toByteArray()).getTime(), 5)
             self.assertEqual(
-                factory.decodeLogicalTimeInterval(interval.toByteArray()).getInterval(), 1
+                factory.decodeLogicalTimeInterval(interval.toByteArray()).getInterval(),
+                1,
             )
             advanced = factory.add(time, interval)
             self.assertEqual(advanced.getTime(), 6)
@@ -834,10 +975,10 @@ class NativeProviderTest(unittest.TestCase):
                 with self.assertRaises(CouldNotDecode):
                     factory.decodeLogicalTimeInterval(encoded)
             foreign_time = HLAfloat64Time(
-                struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+                struct.pack(">d", 1.0), HLA_TYPES.FLOAT64_TIME, False, False, 1.0, "1.0"
             )
             foreign_interval = HLAfloat64Interval(
-                struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+                struct.pack(">d", 1.0), HLA_TYPES.FLOAT64_TIME, False, False, 1.0, "1.0"
             )
             with self.assertRaises(InvalidLogicalTime):
                 factory.add(foreign_time, interval)
@@ -855,17 +996,23 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual([entry.getTime() for entry in callback.constrained], [0])
             regulator.enableTimeRegulation(interval)
             regulator.evokeCallback(0.0)
-            self.assertEqual([entry.getTime() for entry in regulator_callback.regulation], [0])
+            self.assertEqual(
+                [entry.getTime() for entry in regulator_callback.regulation], [0]
+            )
             self.assertEqual(regulator.queryLookahead().getInterval(), 1)
             modified_interval = factory.makeLogicalTimeInterval(2)
             regulator.modifyLookahead(modified_interval)
             self.assertEqual(regulator.queryLookahead().getInterval(), 2)
             regulator.enableAsynchronousDelivery()
             regulator.disableAsynchronousDelivery()
-            timestamp_class = regulator.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            timestamp_attribute = regulator.getAttributeHandle(timestamp_class, "Efficiency")
-            observer_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            observer_attribute = ambassador.getAttributeHandle(observer_class, "Efficiency")
+            timestamp_class = regulator.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            timestamp_attribute = regulator.getAttributeHandle(
+                timestamp_class, HLA_FIXTURES.EFFICIENCY
+            )
+            observer_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            observer_attribute = ambassador.getAttributeHandle(
+                observer_class, HLA_FIXTURES.EFFICIENCY
+            )
             ambassador.subscribeObjectClassAttributes(
                 observer_class, AttributeHandleSet([observer_attribute])
             )
@@ -882,17 +1029,19 @@ class NativeProviderTest(unittest.TestCase):
                 ambassador.evokeMultipleCallbacks(0.0, 0.0)
             self.assertTrue(callback.discoveries)
             timestamp_interaction = regulator.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             timestamp_parameter = regulator.getParameterHandle(
-                timestamp_interaction, "TemperatureOk"
+                timestamp_interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
             observer_interaction = ambassador.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             ambassador.subscribeInteractionClass(observer_interaction)
             regulator.publishInteractionClass(timestamp_interaction)
-            timestamp_region_dimension = regulator.getDimensionHandle("ServerId")
+            timestamp_region_dimension = regulator.getDimensionHandle(
+                HLA_FIXTURES.SERVER_ID
+            )
             timestamp_region = regulator.createRegion(
                 DimensionHandleSet([timestamp_region_dimension])
             )
@@ -913,12 +1062,14 @@ class NativeProviderTest(unittest.TestCase):
                 timestamp,
                 b"timestamped-interaction",
             )
-            timestamped_regional_interaction = regulator.sendInteractionWithRegionsWithTime(
-                timestamp_interaction,
-                ParameterHandleValueMap({timestamp_parameter: b"regional"}),
-                RegionHandleSet([timestamp_region]),
-                timestamp,
-                b"timestamped-regional-interaction",
+            timestamped_regional_interaction = (
+                regulator.sendInteractionWithRegionsWithTime(
+                    timestamp_interaction,
+                    ParameterHandleValueMap({timestamp_parameter: b"regional"}),
+                    RegionHandleSet([timestamp_region]),
+                    timestamp,
+                    b"timestamped-regional-interaction",
+                )
             )
             for retraction in (
                 timestamped_update,
@@ -940,8 +1091,14 @@ class NativeProviderTest(unittest.TestCase):
             self.assertIsNone(galt.time)
             self.assertFalse(lits.timeIsValid)
             self.assertIsNone(lits.time)
-            self.assertTrue(callback.reflections, (callback.reflections, callback.interactions, callback.removals))
-            self.assertTrue(callback.interactions, (callback.reflections, callback.interactions, callback.removals))
+            self.assertTrue(
+                callback.reflections,
+                (callback.reflections, callback.interactions, callback.removals),
+            )
+            self.assertTrue(
+                callback.interactions,
+                (callback.reflections, callback.interactions, callback.removals),
+            )
             self.assertEqual(callback.reflections[-1][0], timestamp_instance)
             self.assertEqual(callback.reflections[-1][6].getTime(), 5)
             self.assertEqual(callback.reflections[-1][7], OrderType.TIMESTAMP)
@@ -973,7 +1130,8 @@ class NativeProviderTest(unittest.TestCase):
                 request(factory.makeLogicalTime(value))
                 regulator.evokeCallback(0.0)
             self.assertEqual(
-                [entry.getTime() for entry in regulator_callback.grants], [5, 7, 8, 9, 10]
+                [entry.getTime() for entry in regulator_callback.grants],
+                [5, 7, 8, 9, 10],
             )
             ambassador.disableTimeConstrained()
             regulator.disableTimeRegulation()
@@ -1009,7 +1167,7 @@ class NativeProviderTest(unittest.TestCase):
         try:
             ambassador.connect(callback, CallbackModel.HLA_EVOKED)
             ambassador.createFederationExecution(
-                federation_name, str(fom_module), "HLAfloat64Time"
+                federation_name, str(fom_module), HLA_TYPES.FLOAT64_TIME
             )
             created = True
             ambassador.joinFederationExecution("floating-time", federation_name)
@@ -1040,9 +1198,12 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(
                 before_final.getTime(), math.nextafter(final_time.getTime(), 0.0)
             )
-            self.assertEqual(factory.add(before_final, epsilon).getTime(), final_time.getTime())
             self.assertEqual(
-                factory.add(smallest, epsilon).getTime(), math.nextafter(smallest.getTime(), math.inf)
+                factory.add(before_final, epsilon).getTime(), final_time.getTime()
+            )
+            self.assertEqual(
+                factory.add(smallest, epsilon).getTime(),
+                math.nextafter(smallest.getTime(), math.inf),
             )
             with self.assertRaises(IllegalTimeArithmetic):
                 factory.add(final_time, epsilon)
@@ -1078,7 +1239,9 @@ class NativeProviderTest(unittest.TestCase):
                 ambassador.destroyFederationExecution(federation_name)
             ambassador.disconnect()
 
-    def test_native_timestamped_retraction_and_flush_callbacks_cross_pybind(self) -> None:
+    def test_native_timestamped_retraction_and_flush_callbacks_cross_pybind(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.interactions: list[tuple[object, ...]] = []
@@ -1111,7 +1274,7 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             receiver.connect(receiver_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
             publisher.joinFederationExecution("timestamped-publisher", federation_name)
@@ -1120,9 +1283,11 @@ class NativeProviderTest(unittest.TestCase):
             receiver_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
+                HLA_FOM.PARAMETER_FIXTURE_CHILD
             )
-            identifier = publisher.getParameterHandle(interaction, "Identifier")
+            identifier = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.IDENTIFIER
+            )
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
             receiver.subscribeInteractionClass(interaction)
@@ -1153,7 +1318,10 @@ class NativeProviderTest(unittest.TestCase):
             publisher.retract(retraction)
             self.assertFalse(receiver.evokeCallback(0.0))
             self.assertEqual(len(receiver_callback.request_retractions), 1)
-            self.assertEqual(receiver_callback.request_retractions[0].encodedValue, retraction.encodedValue)
+            self.assertEqual(
+                receiver_callback.request_retractions[0].encodedValue,
+                retraction.encodedValue,
+            )
         finally:
             if receiver_joined:
                 receiver.resignFederationExecution(ResignAction.NO_ACTION)
@@ -1217,18 +1385,24 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             receiver.connect(receiver_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("live-retraction-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "live-retraction-publisher", federation_name
+            )
             publisher_joined = True
-            receiver.joinFederationExecution("live-retraction-receiver", federation_name)
+            receiver.joinFederationExecution(
+                "live-retraction-receiver", federation_name
+            )
             receiver_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
+                HLA_FOM.PARAMETER_FIXTURE_CHILD
             )
-            identifier = publisher.getParameterHandle(interaction, "Identifier")
+            identifier = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.IDENTIFIER
+            )
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
             receiver.subscribeInteractionClass(interaction)
@@ -1354,7 +1528,7 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             receiver.connect(receiver_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
             publisher.joinFederationExecution("tso-save-publisher", federation_name)
@@ -1363,9 +1537,11 @@ class NativeProviderTest(unittest.TestCase):
             receiver_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
+                HLA_FOM.PARAMETER_FIXTURE_CHILD
             )
-            identifier = publisher.getParameterHandle(interaction, "Identifier")
+            identifier = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.IDENTIFIER
+            )
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
             receiver.subscribeInteractionClass(interaction)
@@ -1405,9 +1581,21 @@ class NativeProviderTest(unittest.TestCase):
                 receiver.evokeMultipleCallbacks(0.0, 0.0)
 
             receiver_events = receiver_callback.events
-            receive_index = next(index for index, event in enumerate(receiver_events) if event[0] == "receive")
-            initiate_index = next(index for index, event in enumerate(receiver_events) if event[0] == "initiate")
-            grant_index = next(index for index, event in enumerate(receiver_events) if event == ("grant", 9))
+            receive_index = next(
+                index
+                for index, event in enumerate(receiver_events)
+                if event[0] == "receive"
+            )
+            initiate_index = next(
+                index
+                for index, event in enumerate(receiver_events)
+                if event[0] == "initiate"
+            )
+            grant_index = next(
+                index
+                for index, event in enumerate(receiver_events)
+                if event == ("grant", 9)
+            )
             self.assertLess(receive_index, initiate_index)
             self.assertLess(initiate_index, grant_index)
             receive_arguments = receiver_events[receive_index][1]
@@ -1486,18 +1674,22 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             receiver.connect(receiver_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("reentrant-tso-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "reentrant-tso-publisher", federation_name
+            )
             publisher_joined = True
             receiver.joinFederationExecution("reentrant-tso-receiver", federation_name)
             receiver_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild"
+                HLA_FOM.PARAMETER_FIXTURE_CHILD
             )
-            identifier = publisher.getParameterHandle(interaction, "Identifier")
+            identifier = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.IDENTIFIER
+            )
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
             receiver.subscribeInteractionClass(interaction)
@@ -1526,9 +1718,21 @@ class NativeProviderTest(unittest.TestCase):
             self.assertTrue(receiver_callback.save_accepted)
             self.assertFalse(receiver_callback.save_seen_during_receive)
             receiver_events = receiver_callback.events
-            receive_index = next(index for index, event in enumerate(receiver_events) if event[0] == "receive")
-            initiate_index = next(index for index, event in enumerate(receiver_events) if event[0] == "initiate")
-            grant_index = next(index for index, event in enumerate(receiver_events) if event == ("grant", 5))
+            receive_index = next(
+                index
+                for index, event in enumerate(receiver_events)
+                if event[0] == "receive"
+            )
+            initiate_index = next(
+                index
+                for index, event in enumerate(receiver_events)
+                if event[0] == "initiate"
+            )
+            grant_index = next(
+                index
+                for index, event in enumerate(receiver_events)
+                if event == ("grant", 5)
+            )
             self.assertLess(receive_index, initiate_index)
             self.assertLess(initiate_index, grant_index)
             receive_arguments = receiver_events[receive_index][1]
@@ -1537,7 +1741,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(receive_arguments[6].getTime(), 5)
             self.assertEqual(receive_arguments[7], OrderType.TIMESTAMP)
             self.assertTrue(receive_arguments[9].isValid())
-            self.assertIn(("initiate", "python-reentrant-tso-save"), publisher_callback.events)
+            self.assertIn(
+                ("initiate", "python-reentrant-tso-save"), publisher_callback.events
+            )
 
             publisher.federateSaveBegun()
             receiver.federateSaveBegun()
@@ -1572,13 +1778,17 @@ class NativeProviderTest(unittest.TestCase):
         ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED)
         created = joined = False
         try:
-            ambassador.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            ambassador.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             ambassador.joinFederationExecution("region-owner", federation_name)
             joined = True
-            bar_quantity = ambassador.getDimensionHandle("BarQuantity")
-            soda_flavor = ambassador.getDimensionHandle("SodaFlavor")
-            region = ambassador.createRegion(DimensionHandleSet([bar_quantity, soda_flavor]))
+            bar_quantity = ambassador.getDimensionHandle(HLA_FIXTURES.BAR_QUANTITY)
+            soda_flavor = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            region = ambassador.createRegion(
+                DimensionHandleSet([bar_quantity, soda_flavor])
+            )
             self.assertIsInstance(region, RegionHandle)
             self.assertEqual(
                 ambassador.getRegionHandleFactory().decode(region.encodedValue),
@@ -1601,12 +1811,16 @@ class NativeProviderTest(unittest.TestCase):
             ambassador.setRangeBounds(region, bar_quantity, RangeBounds(0, 10))
             ambassador.setRangeBounds(region, soda_flavor, RangeBounds(1, 3))
             self.assertEqual(
-                (ambassador.getRangeBounds(region, bar_quantity).getLowerBound(),
-                 ambassador.getRangeBounds(region, bar_quantity).getUpperBound()),
+                (
+                    ambassador.getRangeBounds(region, bar_quantity).getLowerBound(),
+                    ambassador.getRangeBounds(region, bar_quantity).getUpperBound(),
+                ),
                 (0, 10),
             )
             ambassador.commitRegionModifications(RegionHandleSet([region]))
-            self.assertEqual(ambassador.getRangeBounds(region, soda_flavor).getUpperBound(), 3)
+            self.assertEqual(
+                ambassador.getRangeBounds(region, soda_flavor).getUpperBound(), 3
+            )
             ambassador.deleteRegion(region)
             with self.assertRaises(InvalidRegion):
                 ambassador.getDimensionHandleSet(region)
@@ -1620,7 +1834,14 @@ class NativeProviderTest(unittest.TestCase):
     def test_native_regional_interaction_sends_region_designators(self) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
-                self.received: list[tuple[InteractionClassHandle, ParameterHandleValueMap, bytes, RegionHandleSet | None]] = []
+                self.received: list[
+                    tuple[
+                        InteractionClassHandle,
+                        ParameterHandleValueMap,
+                        bytes,
+                        RegionHandleSet | None,
+                    ]
+                ] = []
 
             def receiveInteraction(
                 self,
@@ -1652,17 +1873,23 @@ class NativeProviderTest(unittest.TestCase):
         subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
         created = publisher_joined = subscriber_joined = False
         try:
-            publisher.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
-            publisher_federate = publisher.joinFederationExecution("regional-publisher", federation_name)
+            publisher_federate = publisher.joinFederationExecution(
+                "regional-publisher", federation_name
+            )
             publisher_joined = True
             subscriber.joinFederationExecution("regional-subscriber", federation_name)
             subscriber_joined = True
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
-            dimension = publisher.getDimensionHandle("ServerId")
+            parameter = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher.publishInteractionClass(interaction)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 10))
@@ -1706,8 +1933,14 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.setAutomaticResignDirective(initial_resign)
             self.assertEqual(subscriber.getAutomaticResignDirective(), initial_resign)
             for getter, setter in (
-                (subscriber.getServiceReportingSwitch, subscriber.setServiceReportingSwitch),
-                (subscriber.getExceptionReportingSwitch, subscriber.setExceptionReportingSwitch),
+                (
+                    subscriber.getServiceReportingSwitch,
+                    subscriber.setServiceReportingSwitch,
+                ),
+                (
+                    subscriber.getExceptionReportingSwitch,
+                    subscriber.setExceptionReportingSwitch,
+                ),
             ):
                 initial = getter()
                 setter(not initial)
@@ -1776,37 +2009,53 @@ class NativeProviderTest(unittest.TestCase):
             overlap.connect(overlap_callback, CallbackModel.HLA_IMMEDIATE)
             disjoint.connect(disjoint_callback, CallbackModel.HLA_IMMEDIATE)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("regional-overlap-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "regional-overlap-publisher", federation_name
+            )
             publisher_joined = True
-            overlap.joinFederationExecution("regional-overlap-subscriber", federation_name)
+            overlap.joinFederationExecution(
+                "regional-overlap-subscriber", federation_name
+            )
             overlap_joined = True
-            disjoint.joinFederationExecution("regional-disjoint-subscriber", federation_name)
+            disjoint.joinFederationExecution(
+                "regional-disjoint-subscriber", federation_name
+            )
             disjoint_joined = True
 
             publisher_interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             overlap_interaction = overlap.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             disjoint_interaction = disjoint.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             publisher.publishInteractionClass(publisher_interaction)
-            publisher_dimension = publisher.getDimensionHandle("ServerId")
-            overlap_dimension = overlap.getDimensionHandle("ServerId")
-            disjoint_dimension = disjoint.getDimensionHandle("ServerId")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
+            overlap_dimension = overlap.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
+            disjoint_dimension = disjoint.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
-            overlap_region = overlap.createRegion(DimensionHandleSet([overlap_dimension]))
-            disjoint_region = disjoint.createRegion(DimensionHandleSet([disjoint_dimension]))
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
-            overlap.setRangeBounds(overlap_region, overlap_dimension, RangeBounds(5, 15))
-            disjoint.setRangeBounds(disjoint_region, disjoint_dimension, RangeBounds(11, 15))
+            overlap_region = overlap.createRegion(
+                DimensionHandleSet([overlap_dimension])
+            )
+            disjoint_region = disjoint.createRegion(
+                DimensionHandleSet([disjoint_dimension])
+            )
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 10)
+            )
+            overlap.setRangeBounds(
+                overlap_region, overlap_dimension, RangeBounds(5, 15)
+            )
+            disjoint.setRangeBounds(
+                disjoint_region, disjoint_dimension, RangeBounds(11, 15)
+            )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             overlap.commitRegionModifications(RegionHandleSet([overlap_region]))
             disjoint.commitRegionModifications(RegionHandleSet([disjoint_region]))
@@ -1869,24 +2118,32 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("interaction-reprojection-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "interaction-reprojection-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("interaction-reprojection-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "interaction-reprojection-subscriber", federation_name
+            )
             subscriber_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
+            parameter = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
             publisher.publishInteractionClass(interaction)
-            dimension = publisher.getDimensionHandle("ServerId")
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             disjoint_region = subscriber.createRegion(DimensionHandleSet([dimension]))
             overlap_region = subscriber.createRegion(DimensionHandleSet([dimension]))
-            overlap_region_two = subscriber.createRegion(DimensionHandleSet([dimension]))
+            overlap_region_two = subscriber.createRegion(
+                DimensionHandleSet([dimension])
+            )
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 5))
             subscriber.setRangeBounds(disjoint_region, dimension, RangeBounds(10, 15))
             subscriber.setRangeBounds(overlap_region, dimension, RangeBounds(2, 7))
@@ -1966,7 +2223,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_relaxed_ddm_delivers_boundary_touching_regional_interaction(self) -> None:
+    def test_native_relaxed_ddm_delivers_boundary_touching_regional_interaction(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.received: list[tuple[object, ...]] = []
@@ -2001,18 +2260,22 @@ class NativeProviderTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 [str(restaurant_fom), str(switch_fom)],
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("relaxed-ddm-publisher", federation_name)
             publisher_joined = True
-            subscriber.joinFederationExecution("relaxed-ddm-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "relaxed-ddm-subscriber", federation_name
+            )
             subscriber_joined = True
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
-            dimension = publisher.getDimensionHandle("ServerId")
+            parameter = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher.publishInteractionClass(interaction)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             subscriber_region = subscriber.createRegion(DimensionHandleSet([dimension]))
@@ -2047,7 +2310,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_relaxed_ddm_delivers_boundary_touching_regional_object_update(self) -> None:
+    def test_native_relaxed_ddm_delivers_boundary_touching_regional_object_update(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.discoveries: list[tuple[object, ...]] = []
@@ -2086,18 +2351,26 @@ class NativeProviderTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 [str(restaurant_fom), str(switch_fom)],
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("relaxed-ddm-object-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "relaxed-ddm-object-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("relaxed-ddm-object-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "relaxed-ddm-object-subscriber", federation_name
+            )
             subscriber_joined = True
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -2107,17 +2380,25 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.setRangeBounds(subscriber_region, dimension, RangeBounds(2, 4))
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
-            subscriber_pairs = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([subscriber_attribute]), RegionHandleSet([subscriber_region])
-                )
-            ])
-            publisher_pairs = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([publisher_attribute]), RegionHandleSet([publisher_region])
-                )
-            ])
-            subscriber.subscribeObjectClassAttributesWithRegions(subscriber_class, subscriber_pairs)
+            subscriber_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([subscriber_attribute]),
+                        RegionHandleSet([subscriber_region]),
+                    )
+                ]
+            )
+            publisher_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([publisher_region]),
+                    )
+                ]
+            )
+            subscriber.subscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pairs
+            )
             self.assertTrue(subscriber.getAllowRelaxedDDMSwitch())
             object_instance = publisher.registerObjectInstanceWithRegions(
                 publisher_class, publisher_pairs
@@ -2129,7 +2410,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(subscriber_callback.discoveries[-1][0], object_instance)
             publisher.updateAttributeValues(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"relaxed-object-boundary"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"relaxed-object-boundary"}
+                ),
                 b"relaxed-object-boundary-tag",
             )
             for _ in range(6):
@@ -2150,7 +2433,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_default_region_object_callbacks_convey_empty_region_set(self) -> None:
+    def test_native_default_region_object_callbacks_convey_empty_region_set(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.discoveries: list[tuple[object, ...]] = []
@@ -2184,31 +2469,44 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("default-region-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "default-region-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("default-region-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "default-region-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
             subscriber_region = subscriber.createRegion(DimensionHandleSet([dimension]))
             subscriber.setRangeBounds(subscriber_region, dimension, RangeBounds(1, 3))
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
-            subscriber_pairs = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([subscriber_attribute]), RegionHandleSet([subscriber_region])
-                )
-            ])
-            subscriber.subscribeObjectClassAttributesWithRegions(subscriber_class, subscriber_pairs)
+            subscriber_pairs = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([subscriber_attribute]),
+                        RegionHandleSet([subscriber_region]),
+                    )
+                ]
+            )
+            subscriber.subscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pairs
+            )
             subscriber.setConveyRegionDesignatorSetsSwitch(True)
             object_instance = publisher.registerObjectInstance(publisher_class)
             for _ in range(6):
@@ -2227,7 +2525,9 @@ class NativeProviderTest(unittest.TestCase):
                 subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(subscriber_callback.reflections), 1)
             receive_reflection = subscriber_callback.reflections[-1]
-            self.assertEqual(receive_reflection[1][subscriber_attribute], b"default-receive")
+            self.assertEqual(
+                receive_reflection[1][subscriber_attribute], b"default-receive"
+            )
             self.assertEqual(receive_reflection[5], RegionHandleSet())
 
             time_factory = publisher.getTimeFactory()
@@ -2249,7 +2549,9 @@ class NativeProviderTest(unittest.TestCase):
                 subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(subscriber_callback.reflections), 2)
             timed_reflection = subscriber_callback.reflections[-1]
-            self.assertEqual(timed_reflection[1][subscriber_attribute], b"default-timestamped")
+            self.assertEqual(
+                timed_reflection[1][subscriber_attribute], b"default-timestamped"
+            )
             self.assertEqual(timed_reflection[5], RegionHandleSet())
             self.assertEqual(timed_reflection[6].getTime(), 5)
         finally:
@@ -2262,7 +2564,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_regional_delayed_subscription_rechecks_at_callback_boundary(self) -> None:
+    def test_native_regional_delayed_subscription_rechecks_at_callback_boundary(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.received: list[tuple[object, ...]] = []
@@ -2316,20 +2620,26 @@ class NativeProviderTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 [str(restaurant_fom), str(switch_fom)],
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("regional-delayed-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "regional-delayed-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("regional-delayed-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "regional-delayed-subscriber", federation_name
+            )
             subscriber_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
-            publisher_dimension = publisher.getDimensionHandle("ServerId")
-            subscriber_dimension = subscriber.getDimensionHandle("ServerId")
+            parameter = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
+            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher.publishInteractionClass(interaction)
             publisher_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
@@ -2337,7 +2647,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber_region = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 2))
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 2)
+            )
             subscriber.setRangeBounds(
                 subscriber_region, subscriber_dimension, RangeBounds(3, 4)
             )
@@ -2365,7 +2677,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(
                 subscriber_callback.received[-1][1][parameter], b"delayed-regional"
             )
-            self.assertEqual(subscriber_callback.received[-1][2], b"delayed-regional-tag")
+            self.assertEqual(
+                subscriber_callback.received[-1][2], b"delayed-regional-tag"
+            )
         finally:
             if subscriber_joined:
                 subscriber.resignFederationExecution(ResignAction.NO_ACTION)
@@ -2376,7 +2690,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_regional_delayed_object_update_rechecks_at_callback_boundary(self) -> None:
+    def test_native_regional_delayed_object_update_rechecks_at_callback_boundary(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.discoveries: list[tuple[object, ...]] = []
@@ -2415,24 +2731,30 @@ class NativeProviderTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 [str(restaurant_fom), str(switch_fom)],
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("regional-delayed-object-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "regional-delayed-object-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("regional-delayed-object-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "regional-delayed-object-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
             )
-            subscriber_class = subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
             attributes = AttributeHandleSet([publisher_attribute])
             subscriber_attributes = AttributeHandleSet([subscriber_attribute])
             publisher.publishObjectClassAttributes(publisher_class, attributes)
@@ -2443,7 +2765,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber_region = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 2))
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 2)
+            )
             subscriber.setRangeBounds(
                 subscriber_region, subscriber_dimension, RangeBounds(1, 3)
             )
@@ -2494,7 +2818,9 @@ class NativeProviderTest(unittest.TestCase):
                 subscriber_callback.reflections[-1][1][subscriber_attribute],
                 b"delayed-object",
             )
-            self.assertEqual(subscriber_callback.reflections[-1][2], b"delayed-object-tag")
+            self.assertEqual(
+                subscriber_callback.reflections[-1][2], b"delayed-object-tag"
+            )
         finally:
             if subscriber_joined:
                 subscriber.resignFederationExecution(ResignAction.NO_ACTION)
@@ -2505,7 +2831,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_timestamped_regional_association_rechecks_at_callback_boundary(self) -> None:
+    def test_native_timestamped_regional_association_rechecks_at_callback_boundary(
+        self,
+    ) -> None:
         """A deferred TSO update observes the current association, not a stale route.
 
         The delayed-subscription switch retains the recipient route at send
@@ -2559,27 +2887,39 @@ class NativeProviderTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 [str(restaurant_fom), str(switch_fom)],
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("timed-association-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "timed-association-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("timed-association-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "timed-association-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             subscriber_attributes = AttributeHandleSet([subscriber_attribute])
-            publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
+            publisher.publishObjectClassAttributes(
+                publisher_class, publisher_attributes
+            )
             publisher.changeDefaultAttributeOrderType(
                 publisher_class, publisher_attributes, OrderType.TIMESTAMP
             )
 
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
             publisher_overlap_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
@@ -2614,14 +2954,17 @@ class NativeProviderTest(unittest.TestCase):
                 [
                     AttributeSetRegionSetPair(
                         publisher_attributes,
-                        RegionHandleSet([publisher_overlap_region, publisher_disjoint_region]),
+                        RegionHandleSet(
+                            [publisher_overlap_region, publisher_disjoint_region]
+                        ),
                     )
                 ]
             )
             source_overlap_region = AttributeSetRegionSetPairList(
                 [
                     AttributeSetRegionSetPair(
-                        publisher_attributes, RegionHandleSet([publisher_overlap_region])
+                        publisher_attributes,
+                        RegionHandleSet([publisher_overlap_region]),
                     )
                 ]
             )
@@ -2651,9 +2994,13 @@ class NativeProviderTest(unittest.TestCase):
             # Keep the disjoint association so this is not the standard
             # default-region fallback, then remove only the overlapping source
             # region before the recipient reaches the TSO delivery boundary.
-            publisher.unassociateRegionsForUpdates(object_instance, source_overlap_region)
+            publisher.unassociateRegionsForUpdates(
+                object_instance, source_overlap_region
+            )
             publisher.timeAdvanceRequest(first_time)
-            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(5))
+            subscriber.timeAdvanceRequest(
+                subscriber.getTimeFactory().makeLogicalTime(5)
+            )
             pump()
             self.assertEqual(subscriber_callback.reflections, [])
 
@@ -2667,7 +3014,9 @@ class NativeProviderTest(unittest.TestCase):
             )
             self.assertTrue(second_retraction.isValid())
             publisher.timeAdvanceRequest(second_time)
-            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(7))
+            subscriber.timeAdvanceRequest(
+                subscriber.getTimeFactory().makeLogicalTime(7)
+            )
             pump()
             self.assertEqual(len(subscriber_callback.reflections), 1)
             reflection = subscriber_callback.reflections[0]
@@ -2687,7 +3036,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_timestamped_regional_interaction_callback_preserves_regions(self) -> None:
+    def test_native_timestamped_regional_interaction_callback_preserves_regions(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.received: list[tuple[object, ...]] = []
@@ -2732,19 +3083,25 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("timed-regional-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "timed-regional-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("timed-regional-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "timed-regional-subscriber", federation_name
+            )
             subscriber_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
-            dimension = publisher.getDimensionHandle("ServerId")
+            parameter = publisher.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
@@ -2773,7 +3130,9 @@ class NativeProviderTest(unittest.TestCase):
             )
             self.assertTrue(retraction.isValid())
             publisher.timeAdvanceRequest(timestamp)
-            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(5))
+            subscriber.timeAdvanceRequest(
+                subscriber.getTimeFactory().makeLogicalTime(5)
+            )
             for _ in range(8):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
                 subscriber.evokeMultipleCallbacks(0.0, 0.0)
@@ -2798,7 +3157,9 @@ class NativeProviderTest(unittest.TestCase):
             publisher.disconnect()
             subscriber.disconnect()
 
-    def test_native_timestamped_regional_attribute_callback_preserves_regions(self) -> None:
+    def test_native_timestamped_regional_attribute_callback_preserves_regions(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.reflections: list[tuple[object, ...]] = []
@@ -2832,34 +3193,50 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("timed-regional-attribute-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "timed-regional-attribute-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("timed-regional-attribute-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "timed-regional-attribute-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
             publisher.changeDefaultAttributeOrderType(
-                publisher_class, AttributeHandleSet([publisher_attribute]), OrderType.TIMESTAMP
+                publisher_class,
+                AttributeHandleSet([publisher_attribute]),
+                OrderType.TIMESTAMP,
             )
 
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 2))
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle("SodaFlavor")])
+                DimensionHandleSet(
+                    [subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)]
+                )
             )
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
-            subscriber.setRangeBounds(subscriber_region, subscriber_dimension, RangeBounds(1, 3))
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
+            subscriber.setRangeBounds(
+                subscriber_region, subscriber_dimension, RangeBounds(1, 3)
+            )
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
 
             publisher_pair = AttributeSetRegionSetPairList(
@@ -2901,7 +3278,9 @@ class NativeProviderTest(unittest.TestCase):
             timestamp = publisher.getTimeFactory().makeLogicalTime(6)
             retraction = publisher.updateAttributeValuesWithTime(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"timed-regional-attribute"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"timed-regional-attribute"}
+                ),
                 timestamp,
                 b"timed-regional-attribute-tag",
             )
@@ -2909,7 +3288,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(subscriber_callback.reflections, [])
 
             publisher.timeAdvanceRequest(publisher.getTimeFactory().makeLogicalTime(2))
-            subscriber.timeAdvanceRequest(subscriber.getTimeFactory().makeLogicalTime(6))
+            subscriber.timeAdvanceRequest(
+                subscriber.getTimeFactory().makeLogicalTime(6)
+            )
             for _ in range(8):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
                 subscriber.evokeMultipleCallbacks(0.0, 0.0)
@@ -2917,7 +3298,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(len(subscriber_callback.reflections), 1)
             reflection = subscriber_callback.reflections[0]
             self.assertEqual(reflection[0], object_instance)
-            self.assertEqual(reflection[1][subscriber_attribute], b"timed-regional-attribute")
+            self.assertEqual(
+                reflection[1][subscriber_attribute], b"timed-regional-attribute"
+            )
             self.assertEqual(reflection[2], b"timed-regional-attribute-tag")
             self.assertEqual(reflection[5], RegionHandleSet([publisher_region]))
             self.assertEqual(reflection[6].getTime(), 6)
@@ -2934,7 +3317,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_timestamped_regional_attribute_mixed_fanout_honors_convey_switch(self) -> None:
+    def test_native_timestamped_regional_attribute_mixed_fanout_honors_convey_switch(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.reflections: list[tuple[object, ...]] = []
@@ -2975,7 +3360,7 @@ class NativeProviderTest(unittest.TestCase):
             receiver.connect(receiver_callback, CallbackModel.HLA_EVOKED)
             immediate.connect(immediate_callback, CallbackModel.HLA_IMMEDIATE)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
             publisher.joinFederationExecution("mixed-fanout-publisher", federation_name)
@@ -2985,47 +3370,83 @@ class NativeProviderTest(unittest.TestCase):
             immediate.joinFederationExecution("mixed-fanout-immediate", federation_name)
             immediate_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            receiver_class = receiver.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            receiver_attribute = receiver.getAttributeHandle(receiver_class, "Flavor")
-            immediate_class = immediate.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            immediate_attribute = immediate.getAttributeHandle(immediate_class, "Flavor")
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            receiver_dimension = receiver.getDimensionHandle("SodaFlavor")
-            immediate_dimension = immediate.getDimensionHandle("SodaFlavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            receiver_class = receiver.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            receiver_attribute = receiver.getAttributeHandle(
+                receiver_class, HLA_FIXTURES.FLAVOR
+            )
+            immediate_class = immediate.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            immediate_attribute = immediate.getAttributeHandle(
+                immediate_class, HLA_FIXTURES.FLAVOR
+            )
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            receiver_dimension = receiver.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            immediate_dimension = immediate.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             receiver_attributes = AttributeHandleSet([receiver_attribute])
             immediate_attributes = AttributeHandleSet([immediate_attribute])
-            publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
+            publisher.publishObjectClassAttributes(
+                publisher_class, publisher_attributes
+            )
             publisher.changeDefaultAttributeOrderType(
                 publisher_class, publisher_attributes, OrderType.TIMESTAMP
             )
 
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            receiver_region = receiver.createRegion(DimensionHandleSet([receiver_dimension]))
-            immediate_region = immediate.createRegion(DimensionHandleSet([immediate_dimension]))
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 2))
-            receiver.setRangeBounds(receiver_region, receiver_dimension, RangeBounds(1, 3))
-            immediate.setRangeBounds(immediate_region, immediate_dimension, RangeBounds(1, 3))
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            receiver_region = receiver.createRegion(
+                DimensionHandleSet([receiver_dimension])
+            )
+            immediate_region = immediate.createRegion(
+                DimensionHandleSet([immediate_dimension])
+            )
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 2)
+            )
+            receiver.setRangeBounds(
+                receiver_region, receiver_dimension, RangeBounds(1, 3)
+            )
+            immediate.setRangeBounds(
+                immediate_region, immediate_dimension, RangeBounds(1, 3)
+            )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             receiver.commitRegionModifications(RegionHandleSet([receiver_region]))
             immediate.commitRegionModifications(RegionHandleSet([immediate_region]))
 
             publisher_pairs = AttributeSetRegionSetPairList(
-                [AttributeSetRegionSetPair(publisher_attributes, RegionHandleSet([publisher_region]))]
+                [
+                    AttributeSetRegionSetPair(
+                        publisher_attributes, RegionHandleSet([publisher_region])
+                    )
+                ]
             )
             receiver_pairs = AttributeSetRegionSetPairList(
-                [AttributeSetRegionSetPair(receiver_attributes, RegionHandleSet([receiver_region]))]
+                [
+                    AttributeSetRegionSetPair(
+                        receiver_attributes, RegionHandleSet([receiver_region])
+                    )
+                ]
             )
             immediate_pairs = AttributeSetRegionSetPairList(
-                [AttributeSetRegionSetPair(immediate_attributes, RegionHandleSet([immediate_region]))]
+                [
+                    AttributeSetRegionSetPair(
+                        immediate_attributes, RegionHandleSet([immediate_region])
+                    )
+                ]
             )
             object_instance = publisher.registerObjectInstanceWithRegions(
                 publisher_class, publisher_pairs
             )
-            receiver.subscribeObjectClassAttributesWithRegions(receiver_class, receiver_pairs)
-            immediate.subscribeObjectClassAttributesWithRegions(immediate_class, immediate_pairs)
+            receiver.subscribeObjectClassAttributesWithRegions(
+                receiver_class, receiver_pairs
+            )
+            immediate.subscribeObjectClassAttributesWithRegions(
+                immediate_class, immediate_pairs
+            )
             for _ in range(4):
                 receiver.evokeCallback(0.0)
 
@@ -3094,7 +3515,9 @@ class NativeProviderTest(unittest.TestCase):
             if immediate_joined:
                 immediate.resignFederationExecution(ResignAction.NO_ACTION)
             if publisher_joined:
-                publisher.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST)
+                publisher.resignFederationExecution(
+                    ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST
+                )
             if created:
                 publisher.destroyFederationExecution(federation_name)
             receiver.disconnect()
@@ -3106,25 +3529,35 @@ class NativeProviderTest(unittest.TestCase):
         callback = FederateAmbassador()
         ambassador.connect(callback, CallbackModel.HLA_IMMEDIATE)
 
-        with self.assertRaises(AlreadyConnected):
+        with self.assertRaises(AlreadyConnected) as raised:
             ambassador.connect(callback, CallbackModel.HLA_IMMEDIATE)
+        self.assertIsNotNone(raised.exception.cause)
+        self.assertIs(raised.exception.__cause__, raised.exception.cause)
 
         ambassador.disconnect()
 
-    def test_native_federation_creation_populates_the_typed_listing_callback(self) -> None:
+    def test_native_federation_creation_populates_the_typed_listing_callback(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def reportFederationExecutions(self, report) -> None:
                 self.reports.append(report)
 
             def __init__(self) -> None:
                 self.reports = []
-                self.member_reports: list[tuple[str, FederationExecutionMemberInformationSet]] = []
+                self.member_reports: list[
+                    tuple[str, FederationExecutionMemberInformationSet]
+                ] = []
                 self.missing_federations: list[str] = []
 
-            def reportFederationExecutionMembers(self, federationExecutionName, report) -> None:
+            def reportFederationExecutionMembers(
+                self, federationExecutionName, report
+            ) -> None:
                 self.member_reports.append((federationExecutionName, report))
 
-            def reportFederationExecutionDoesNotExist(self, federationExecutionName) -> None:
+            def reportFederationExecutionDoesNotExist(
+                self, federationExecutionName
+            ) -> None:
                 self.missing_federations.append(federationExecutionName)
 
         fom_module = (
@@ -3144,13 +3577,15 @@ class NativeProviderTest(unittest.TestCase):
             ambassador.createFederationExecution(
                 federation_name,
                 str(fom_module),
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             ambassador.listFederationExecutions()
             ambassador.evokeCallback(0.0)
             self.assertIn(
-                FederationExecutionInformation(federation_name, "HLAinteger64Time"),
+                FederationExecutionInformation(
+                    federation_name, HLA_TYPES.INTEGER64_TIME
+                ),
                 callback.reports[-1],
             )
             ambassador.listFederationExecutionMembers(federation_name)
@@ -3159,9 +3594,13 @@ class NativeProviderTest(unittest.TestCase):
                 callback.member_reports,
                 [(federation_name, FederationExecutionMemberInformationSet())],
             )
-            ambassador.listFederationExecutionMembers("python-native-missing-federation")
+            ambassador.listFederationExecutionMembers(
+                "python-native-missing-federation"
+            )
             ambassador.evokeMultipleCallbacks(0.0, 0.1)
-            self.assertEqual(callback.missing_federations, ["python-native-missing-federation"])
+            self.assertEqual(
+                callback.missing_federations, ["python-native-missing-federation"]
+            )
         finally:
             if created:
                 ambassador.destroyFederationExecution(federation_name)
@@ -3196,22 +3635,34 @@ class NativeProviderTest(unittest.TestCase):
         try:
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
-            publisher.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             publisher.joinFederationExecution("directed-publisher", federation_name)
             publisher_joined = True
             subscriber.joinFederationExecution("directed-subscriber", federation_name)
             subscriber_joined = True
-            object_class = publisher.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            subscriber_object_class = subscriber.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            attribute = publisher.getAttributeHandle(object_class, "Efficiency")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_object_class, "Efficiency")
-            directed = publisher.getInteractionClassHandle("HLAinteractionRoot.ServerAction.TakeOrder")
-            directed_for_subscriber = subscriber.getInteractionClassHandle("HLAinteractionRoot.ServerAction.TakeOrder")
+            object_class = publisher.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            subscriber_object_class = subscriber.getObjectClassHandle(
+                HLA_FOM.EMPLOYEE_SERVER
+            )
+            attribute = publisher.getAttributeHandle(
+                object_class, HLA_FIXTURES.EFFICIENCY
+            )
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_object_class, HLA_FIXTURES.EFFICIENCY
+            )
+            directed = publisher.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
+            directed_for_subscriber = subscriber.getInteractionClassHandle(
+                HLA_FOM.TAKE_ORDER
+            )
             attributes = AttributeHandleSet([attribute])
             subscriber_attributes = AttributeHandleSet([subscriber_attribute])
             publisher.publishObjectClassAttributes(object_class, attributes)
-            subscriber.subscribeObjectClassAttributes(subscriber_object_class, subscriber_attributes)
+            subscriber.subscribeObjectClassAttributes(
+                subscriber_object_class, subscriber_attributes
+            )
             publisher.evokeMultipleCallbacks(0.0, 0.0)
             publisher.reserveMultipleObjectInstanceNames(
                 ObjectInstanceNameSet(["directed-batch-one", "directed-batch-two"])
@@ -3225,7 +3676,9 @@ class NativeProviderTest(unittest.TestCase):
                 ObjectInstanceNameSet(["directed-batch-one", "directed-batch-two"])
             )
             publisher.reserveObjectInstanceName("directed-server")
-            instance = publisher.registerObjectInstance(object_class, objectInstanceName="directed-server")
+            instance = publisher.registerObjectInstance(
+                object_class, objectInstanceName="directed-server"
+            )
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertTrue(subscriber_callback.directed == [])
             publisher.publishObjectClassDirectedInteractions(
@@ -3236,7 +3689,9 @@ class NativeProviderTest(unittest.TestCase):
                 InteractionClassHandleSet([directed_for_subscriber]),
                 universally=True,
             )
-            publisher.sendDirectedInteraction(directed, instance, ParameterHandleValueMap(), b"directed-tag")
+            publisher.sendDirectedInteraction(
+                directed, instance, ParameterHandleValueMap(), b"directed-tag"
+            )
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(subscriber_callback.directed), 1)
             callback = subscriber_callback.directed[0]
@@ -3246,8 +3701,12 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(callback[3], b"directed-tag")
             self.assertIsInstance(callback[4], TransportationTypeHandle)
             self.assertIsInstance(callback[5], FederateHandle)
-            publisher.unpublishObjectClassDirectedInteractions(object_class, InteractionClassHandleSet([directed]))
-            subscriber.unsubscribeObjectClassDirectedInteractions(subscriber_object_class)
+            publisher.unpublishObjectClassDirectedInteractions(
+                object_class, InteractionClassHandleSet([directed])
+            )
+            subscriber.unsubscribeObjectClassDirectedInteractions(
+                subscriber_object_class
+            )
             with self.assertRaises(FederateOwnsAttributes):
                 publisher.localDeleteObjectInstance(instance)
         finally:
@@ -3260,7 +3719,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_directed_tso_retraction_notifies_only_delivered_recipients(self) -> None:
+    def test_native_directed_tso_retraction_notifies_only_delivered_recipients(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.directed: list[tuple[object, ...]] = []
@@ -3305,12 +3766,16 @@ class NativeProviderTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 [str(object_consumer), str(interaction_provider)],
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
-            publisher.joinFederationExecution("directed-retraction-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "directed-retraction-publisher", federation_name
+            )
             publisher_joined = True
-            immediate.joinFederationExecution("directed-retraction-immediate", federation_name)
+            immediate.joinFederationExecution(
+                "directed-retraction-immediate", federation_name
+            )
             immediate_joined = True
             constrained.joinFederationExecution(
                 "directed-retraction-constrained", federation_name
@@ -3318,29 +3783,31 @@ class NativeProviderTest(unittest.TestCase):
             constrained_joined = True
 
             publisher_object_class = publisher.getObjectClassHandle(
-                "HLAobjectRoot.UmbraDirectedFixtureObject"
+                HLA_FOM.DIRECTED_FIXTURE_OBJECT
             )
             immediate_object_class = immediate.getObjectClassHandle(
-                "HLAobjectRoot.UmbraDirectedFixtureObject"
+                HLA_FOM.DIRECTED_FIXTURE_OBJECT
             )
             constrained_object_class = constrained.getObjectClassHandle(
-                "HLAobjectRoot.UmbraDirectedFixtureObject"
+                HLA_FOM.DIRECTED_FIXTURE_OBJECT
             )
-            marker = publisher.getAttributeHandle(publisher_object_class, "DirectedTargetMarker")
+            marker = publisher.getAttributeHandle(
+                publisher_object_class, HLA_FIXTURES.DIRECTED_TARGET_MARKER
+            )
             immediate_marker = immediate.getAttributeHandle(
-                immediate_object_class, "DirectedTargetMarker"
+                immediate_object_class, HLA_FIXTURES.DIRECTED_TARGET_MARKER
             )
             constrained_marker = constrained.getAttributeHandle(
-                constrained_object_class, "DirectedTargetMarker"
+                constrained_object_class, HLA_FIXTURES.DIRECTED_TARGET_MARKER
             )
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.UmbraDirectedFixtureInteraction"
+                HLA_FOM.DIRECTED_FIXTURE_INTERACTION
             )
             immediate_interaction = immediate.getInteractionClassHandle(
-                "HLAinteractionRoot.UmbraDirectedFixtureInteraction"
+                HLA_FOM.DIRECTED_FIXTURE_INTERACTION
             )
             constrained_interaction = constrained.getInteractionClassHandle(
-                "HLAinteractionRoot.UmbraDirectedFixtureInteraction"
+                HLA_FOM.DIRECTED_FIXTURE_INTERACTION
             )
             publisher.publishObjectClassAttributes(
                 publisher_object_class, AttributeHandleSet([marker])
@@ -3406,10 +3873,14 @@ class NativeProviderTest(unittest.TestCase):
                 immediate.evokeMultipleCallbacks(0.0, 0.0)
                 constrained.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(immediate_callback.retractions), 1)
-            self.assertEqual(immediate_callback.retractions[0].encodedValue, retraction.encodedValue)
+            self.assertEqual(
+                immediate_callback.retractions[0].encodedValue, retraction.encodedValue
+            )
             self.assertEqual(constrained_callback.retractions, [])
 
-            constrained.timeAdvanceRequest(constrained.getTimeFactory().makeLogicalTime(2))
+            constrained.timeAdvanceRequest(
+                constrained.getTimeFactory().makeLogicalTime(2)
+            )
             publisher.timeAdvanceRequest(publisher.getTimeFactory().makeLogicalTime(2))
             for _ in range(8):
                 constrained.evokeMultipleCallbacks(0.0, 0.0)
@@ -3454,20 +3925,30 @@ class NativeProviderTest(unittest.TestCase):
             immediate.disconnect()
             publisher.disconnect()
 
-    def test_native_join_returns_a_portable_handle_and_populates_member_reporting(self) -> None:
+    def test_native_join_returns_a_portable_handle_and_populates_member_reporting(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
-                self.member_reports: list[tuple[str, FederationExecutionMemberInformationSet]] = []
+                self.member_reports: list[
+                    tuple[str, FederationExecutionMemberInformationSet]
+                ] = []
                 self.registered: list[str] = []
                 self.announcements: list[tuple[str, bytes]] = []
 
-            def reportFederationExecutionMembers(self, federationExecutionName, report) -> None:
+            def reportFederationExecutionMembers(
+                self, federationExecutionName, report
+            ) -> None:
                 self.member_reports.append((federationExecutionName, report))
 
-            def synchronizationPointRegistrationSucceeded(self, synchronizationPointLabel) -> None:
+            def synchronizationPointRegistrationSucceeded(
+                self, synchronizationPointLabel
+            ) -> None:
                 self.registered.append(synchronizationPointLabel)
 
-            def announceSynchronizationPoint(self, synchronizationPointLabel, userSuppliedTag) -> None:
+            def announceSynchronizationPoint(
+                self, synchronizationPointLabel, userSuppliedTag
+            ) -> None:
                 self.announcements.append((synchronizationPointLabel, userSuppliedTag))
 
         fom_module = (
@@ -3484,7 +3965,9 @@ class NativeProviderTest(unittest.TestCase):
         ambassador.connect(callback, CallbackModel.HLA_EVOKED)
         created = joined = False
         try:
-            ambassador.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            ambassador.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             handle = ambassador.joinFederationExecution(
                 "observer", federation_name, federateName="python-member"
@@ -3505,10 +3988,14 @@ class NativeProviderTest(unittest.TestCase):
             )
             ambassador.resignFederationExecution(ResignAction.NO_ACTION)
             joined = False
-            unnamed_handle = ambassador.joinFederationExecution("observer", federation_name)
+            unnamed_handle = ambassador.joinFederationExecution(
+                "observer", federation_name
+            )
             joined = True
             self.assertGreater(unnamed_handle.encodedLength(), 0)
-            ambassador.registerFederationSynchronizationPoint("python-sync", b"python-tag")
+            ambassador.registerFederationSynchronizationPoint(
+                "python-sync", b"python-tag"
+            )
             ambassador.evokeMultipleCallbacks(0.0, 0.1)
             self.assertEqual(callback.registered, ["python-sync"])
             self.assertEqual(callback.announcements, [("python-sync", b"python-tag")])
@@ -3533,19 +4020,27 @@ class NativeProviderTest(unittest.TestCase):
         ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED)
         created = joined = False
         try:
-            ambassador.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            ambassador.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
-            ambassador.joinFederationExecution("observer", federation_name, federateName="observer")
+            ambassador.joinFederationExecution(
+                "observer", federation_name, federateName="observer"
+            )
             joined = True
 
-            object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
-            interaction = ambassador.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+            object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            attribute = ambassador.getAttributeHandle(
+                object_class, HLA_FIXTURES.EFFICIENCY
             )
-            parameter = ambassador.getParameterHandle(interaction, "TemperatureOk")
-            transportation = ambassador.getTransportationTypeHandle("HLAreliable")
-            dimension = ambassador.getDimensionHandle("ServerId")
+            interaction = ambassador.getInteractionClassHandle(
+                HLA_FOM.MAIN_COURSE_SERVED
+            )
+            parameter = ambassador.getParameterHandle(
+                interaction, HLA_FIXTURES.TEMPERATURE_OK
+            )
+            transportation = ambassador.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+            dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
 
             self.assertIsInstance(object_class, ObjectClassHandle)
             self.assertIsInstance(attribute, AttributeHandle)
@@ -3554,20 +4049,32 @@ class NativeProviderTest(unittest.TestCase):
             self.assertIsInstance(transportation, TransportationTypeHandle)
             self.assertIsInstance(dimension, DimensionHandle)
             self.assertNotEqual(object_class, attribute)
-            self.assertEqual(ambassador.getObjectClassName(object_class), "HLAobjectRoot.Employee.Server")
-            self.assertEqual(ambassador.getAttributeName(object_class, attribute), "Efficiency")
+            self.assertEqual(
+                ambassador.getObjectClassName(object_class), HLA_FOM.EMPLOYEE_SERVER
+            )
+            self.assertEqual(
+                ambassador.getAttributeName(object_class, attribute),
+                HLA_FIXTURES.EFFICIENCY,
+            )
             self.assertEqual(
                 ambassador.getInteractionClassName(interaction),
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
+                HLA_FOM.MAIN_COURSE_SERVED,
             )
-            self.assertEqual(ambassador.getParameterName(interaction, parameter), "TemperatureOk")
-            self.assertEqual(ambassador.getTransportationTypeName(transportation), "HLAreliable")
-            self.assertEqual(ambassador.getDimensionName(dimension), "ServerId")
+            self.assertEqual(
+                ambassador.getParameterName(interaction, parameter),
+                HLA_FIXTURES.TEMPERATURE_OK,
+            )
+            self.assertEqual(
+                ambassador.getTransportationTypeName(transportation), HLA_MOM.RELIABLE
+            )
+            self.assertEqual(
+                ambassador.getDimensionName(dimension), HLA_FIXTURES.SERVER_ID
+            )
             federate = ambassador.getFederateHandle("observer")
             self.assertEqual(ambassador.getFederateName(federate), "observer")
-            soda_class = ambassador.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            soda_dimension = ambassador.getDimensionHandle("SodaFlavor")
-            bar_dimension = ambassador.getDimensionHandle("BarQuantity")
+            soda_class = ambassador.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            soda_dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            bar_dimension = ambassador.getDimensionHandle(HLA_FIXTURES.BAR_QUANTITY)
             self.assertEqual(
                 ambassador.getAvailableDimensionsForObjectClass(soda_class),
                 DimensionHandleSet([soda_dimension, bar_dimension]),
@@ -3579,12 +4086,20 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(ambassador.getDimensionUpperBound(dimension), 20)
             self.assertEqual(ambassador.getOrderType("Receive"), OrderType.RECEIVE)
             self.assertEqual(ambassador.getOrderName(OrderType.TIMESTAMP), "TimeStamp")
-            self.assertEqual(ambassador.normalizeServiceGroup(ServiceGroup.OBJECT_MANAGEMENT), 2)
+            self.assertEqual(
+                ambassador.normalizeServiceGroup(ServiceGroup.OBJECT_MANAGEMENT), 2
+            )
             self.assertGreaterEqual(ambassador.normalizeFederateHandle(federate), 0)
-            self.assertGreaterEqual(ambassador.normalizeObjectClassHandle(object_class), 0)
-            self.assertGreaterEqual(ambassador.normalizeInteractionClassHandle(interaction), 0)
+            self.assertGreaterEqual(
+                ambassador.normalizeObjectClassHandle(object_class), 0
+            )
+            self.assertGreaterEqual(
+                ambassador.normalizeInteractionClassHandle(interaction), 0
+            )
             self.assertEqual(ambassador.getUpdateRateValue("High"), 30.0)
-            ambassador.publishObjectClassAttributes(object_class, AttributeHandleSet([attribute]))
+            ambassador.publishObjectClassAttributes(
+                object_class, AttributeHandleSet([attribute])
+            )
             ambassador.subscribeObjectClassAttributes(
                 object_class,
                 AttributeHandleSet([attribute]),
@@ -3592,15 +4107,25 @@ class NativeProviderTest(unittest.TestCase):
                 updateRateDesignator="High",
             )
             registered = ambassador.registerObjectInstance(object_class)
-            self.assertEqual(ambassador.getKnownObjectClassHandle(registered), object_class)
-            self.assertGreaterEqual(ambassador.normalizeObjectInstanceHandle(registered), 0)
-            self.assertEqual(ambassador.getUpdateRateValueForAttribute(registered, attribute), 30.0)
             self.assertEqual(
-                ambassador.getObjectClassHandleFactory().decode(object_class.encodedValue),
+                ambassador.getKnownObjectClassHandle(registered), object_class
+            )
+            self.assertGreaterEqual(
+                ambassador.normalizeObjectInstanceHandle(registered), 0
+            )
+            self.assertEqual(
+                ambassador.getUpdateRateValueForAttribute(registered, attribute), 30.0
+            )
+            self.assertEqual(
+                ambassador.getObjectClassHandleFactory().decode(
+                    object_class.encodedValue
+                ),
                 object_class,
             )
             self.assertEqual(
-                ambassador.getObjectInstanceHandleFactory().decode(registered.encodedValue),
+                ambassador.getObjectInstanceHandleFactory().decode(
+                    registered.encodedValue
+                ),
                 registered,
             )
             self.assertEqual(
@@ -3608,7 +4133,9 @@ class NativeProviderTest(unittest.TestCase):
                 attribute,
             )
             self.assertEqual(
-                ambassador.getInteractionClassHandleFactory().decode(interaction.encodedValue),
+                ambassador.getInteractionClassHandleFactory().decode(
+                    interaction.encodedValue
+                ),
                 interaction,
             )
             self.assertEqual(
@@ -3633,7 +4160,9 @@ class NativeProviderTest(unittest.TestCase):
             )
             attributes_from_factory = ambassador.getAttributeHandleSetFactory().create()
             attributes_from_factory.add(attribute)
-            values_from_factory = ambassador.getAttributeHandleValueMapFactory().create()
+            values_from_factory = (
+                ambassador.getAttributeHandleValueMapFactory().create()
+            )
             values_from_factory[attribute] = bytearray(b"factory-value")
             ambassador.updateAttributeValues(registered, values_from_factory)
             ambassador.deleteObjectInstance(registered)
@@ -3661,7 +4190,7 @@ class NativeProviderTest(unittest.TestCase):
             / "ieee1516.2-2025"
             / "resources"
             / "mim"
-            / "HLAstandardMIM-2025.xml"
+            / HLA_MOM.STANDARD_MIM_FILE
         )
         federation_name = f"python-native-overloads-{uuid4()}"
         mim_federation_name = f"python-native-mim-{uuid4()}"
@@ -3670,7 +4199,7 @@ class NativeProviderTest(unittest.TestCase):
         created = joined = mim_created = False
         try:
             ambassador.createFederationExecution(
-                federation_name, [str(fom_module)], "HLAinteger64Time"
+                federation_name, [str(fom_module)], HLA_TYPES.INTEGER64_TIME
             )
             created = True
             handle = ambassador.joinFederationExecution(
@@ -3687,7 +4216,7 @@ class NativeProviderTest(unittest.TestCase):
                 mim_federation_name,
                 [str(fom_module)],
                 str(mim_module),
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             mim_created = True
         finally:
@@ -3736,30 +4265,44 @@ class NativeProviderTest(unittest.TestCase):
         subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
         created = publisher_joined = subscriber_joined = False
         try:
-            publisher.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             publisher.joinFederationExecution("publisher", federation_name)
             publisher_joined = True
             subscriber.joinFederationExecution("subscriber", federation_name)
             subscriber_joined = True
 
-            object_class = publisher.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            attributes = AttributeHandleSet([publisher.getAttributeHandle(object_class, "Efficiency")])
-            interaction = publisher.getInteractionClassHandle("HLAinteractionRoot.ServerAction.TakeOrder")
-            subscriber_object_class = subscriber.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            object_class = publisher.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            attributes = AttributeHandleSet(
+                [publisher.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)]
+            )
+            interaction = publisher.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
+            subscriber_object_class = subscriber.getObjectClassHandle(
+                HLA_FOM.EMPLOYEE_SERVER
+            )
             subscriber_attributes = AttributeHandleSet(
-                [subscriber.getAttributeHandle(subscriber_object_class, "Efficiency")]
+                [
+                    subscriber.getAttributeHandle(
+                        subscriber_object_class, HLA_FIXTURES.EFFICIENCY
+                    )
+                ]
             )
             subscriber_interaction = subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.ServerAction.TakeOrder"
+                HLA_FOM.TAKE_ORDER
             )
 
-            subscriber.subscribeObjectClassAttributes(subscriber_object_class, subscriber_attributes)
+            subscriber.subscribeObjectClassAttributes(
+                subscriber_object_class, subscriber_attributes
+            )
             publisher.publishObjectClassAttributes(object_class, attributes)
             publisher.evokeMultipleCallbacks(0.0, 0.0)
             publisher.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(publisher_callback.start_registration, [object_class])
-            subscriber.unsubscribeObjectClassAttributes(subscriber_object_class, subscriber_attributes)
+            subscriber.unsubscribeObjectClassAttributes(
+                subscriber_object_class, subscriber_attributes
+            )
             publisher.evokeMultipleCallbacks(0.0, 0.0)
             publisher.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(publisher_callback.stop_registration, [object_class])
@@ -3775,7 +4318,10 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(publisher_callback.interactions_off, [interaction])
 
             subscriber.subscribeObjectClassAttributes(
-                subscriber_object_class, subscriber_attributes, active=False, updateRateDesignator=""
+                subscriber_object_class,
+                subscriber_attributes,
+                active=False,
+                updateRateDesignator="",
             )
             subscriber.unsubscribeObjectClass(subscriber_object_class)
             publisher.unpublishInteractionClass(interaction)
@@ -3802,7 +4348,9 @@ class NativeProviderTest(unittest.TestCase):
                 ] = []
                 self.reserved_names: list[str] = []
                 self.rejected_reservations: list[str] = []
-                self.removals: list[tuple[ObjectInstanceHandle, bytes, FederateHandle]] = []
+                self.removals: list[
+                    tuple[ObjectInstanceHandle, bytes, FederateHandle]
+                ] = []
                 self.reflections: list[
                     tuple[
                         ObjectInstanceHandle,
@@ -3829,7 +4377,9 @@ class NativeProviderTest(unittest.TestCase):
                     (objectInstance, objectClass, objectInstanceName, producingFederate)
                 )
 
-            def objectInstanceNameReservationSucceeded(self, objectInstanceName) -> None:
+            def objectInstanceNameReservationSucceeded(
+                self, objectInstanceName
+            ) -> None:
                 self.reserved_names.append(objectInstanceName)
 
             def objectInstanceNameReservationFailed(self, objectInstanceName) -> None:
@@ -3838,7 +4388,9 @@ class NativeProviderTest(unittest.TestCase):
             def removeObjectInstance(
                 self, objectInstance, userSuppliedTag, producingFederate
             ) -> None:
-                self.removals.append((objectInstance, userSuppliedTag, producingFederate))
+                self.removals.append(
+                    (objectInstance, userSuppliedTag, producingFederate)
+                )
 
             def reflectAttributeValues(
                 self,
@@ -3893,34 +4445,44 @@ class NativeProviderTest(unittest.TestCase):
         subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
         created = publisher_joined = subscriber_joined = False
         try:
-            publisher.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             publisher.joinFederationExecution("publisher", federation_name)
             publisher_joined = True
             subscriber.joinFederationExecution("subscriber", federation_name)
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
             publisher_attributes = AttributeHandleSet(
-                [publisher.getAttributeHandle(publisher_class, "Efficiency")]
+                [publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.EFFICIENCY)]
             )
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
             subscriber_attributes = AttributeHandleSet(
-                [subscriber.getAttributeHandle(subscriber_class, "Efficiency")]
+                [
+                    subscriber.getAttributeHandle(
+                        subscriber_class, HLA_FIXTURES.EFFICIENCY
+                    )
+                ]
             )
-            subscriber.subscribeObjectClassAttributes(subscriber_class, subscriber_attributes)
-            publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
+            subscriber.subscribeObjectClassAttributes(
+                subscriber_class, subscriber_attributes
+            )
+            publisher.publishObjectClassAttributes(
+                publisher_class, publisher_attributes
+            )
             publisher_interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             publisher_parameter = publisher.getParameterHandle(
-                publisher_interaction, "TemperatureOk"
+                publisher_interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
             subscriber_interaction = subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             subscriber_parameter = subscriber.getParameterHandle(
-                subscriber_interaction, "TemperatureOk"
+                subscriber_interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
             subscriber.subscribeInteractionClass(subscriber_interaction)
             publisher.publishInteractionClass(publisher_interaction)
@@ -3933,7 +4495,9 @@ class NativeProviderTest(unittest.TestCase):
             released_name = "python-reserved-then-released"
             publisher.reserveObjectInstanceName(released_name)
             publisher.evokeMultipleCallbacks(0.0, 0.0)
-            self.assertEqual(publisher_callback.reserved_names, [requested_name, released_name])
+            self.assertEqual(
+                publisher_callback.reserved_names, [requested_name, released_name]
+            )
             publisher.releaseObjectInstanceName(released_name)
             registered = publisher.registerObjectInstance(
                 publisher_class, objectInstanceName=requested_name
@@ -3947,7 +4511,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertIsInstance(registered, ObjectInstanceHandle)
             self.assertEqual(len(subscriber_callback.discoveries), 1)
-            discovered, object_class, name, producing_federate = subscriber_callback.discoveries[0]
+            discovered, object_class, name, producing_federate = (
+                subscriber_callback.discoveries[0]
+            )
             self.assertIsInstance(discovered, ObjectInstanceHandle)
             self.assertEqual(object_class, subscriber_class)
             self.assertEqual(name, registered_name)
@@ -3975,12 +4541,18 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(producer, producing_federate)
             interaction_tag = b"\x00python-interaction-tag\xff"
             parameter_values = ParameterHandleValueMap({publisher_parameter: b"\x01"})
-            publisher.sendInteraction(publisher_interaction, parameter_values, interaction_tag)
+            publisher.sendInteraction(
+                publisher_interaction, parameter_values, interaction_tag
+            )
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(subscriber_callback.interactions), 1)
-            received_interaction, received_values, received_tag, received_transport, received_producer = (
-                subscriber_callback.interactions[0]
-            )
+            (
+                received_interaction,
+                received_values,
+                received_tag,
+                received_transport,
+                received_producer,
+            ) = subscriber_callback.interactions[0]
             self.assertEqual(received_interaction, subscriber_interaction)
             self.assertEqual(received_values, {subscriber_parameter: b"\x01"})
             self.assertEqual(received_tag, interaction_tag)
@@ -4005,7 +4577,9 @@ class NativeProviderTest(unittest.TestCase):
             publisher.disconnect()
             subscriber.disconnect()
 
-    def test_native_regional_object_association_keeps_other_regions_active(self) -> None:
+    def test_native_regional_object_association_keeps_other_regions_active(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.discoveries: list[tuple[object, ...]] = []
@@ -4039,62 +4613,94 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("regional-association-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "regional-association-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("regional-association-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "regional-association-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
 
-            first_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            second_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
+            first_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            second_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
             subscriber_first_region = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
             subscriber_second_region = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
-            publisher.setRangeBounds(first_region, publisher_dimension, RangeBounds(0, 1))
-            publisher.setRangeBounds(second_region, publisher_dimension, RangeBounds(3, 4))
+            publisher.setRangeBounds(
+                first_region, publisher_dimension, RangeBounds(0, 1)
+            )
+            publisher.setRangeBounds(
+                second_region, publisher_dimension, RangeBounds(3, 4)
+            )
             subscriber.setRangeBounds(
                 subscriber_first_region, subscriber_dimension, RangeBounds(0, 1)
             )
             subscriber.setRangeBounds(
                 subscriber_second_region, subscriber_dimension, RangeBounds(3, 4)
             )
-            publisher.commitRegionModifications(RegionHandleSet([first_region, second_region]))
+            publisher.commitRegionModifications(
+                RegionHandleSet([first_region, second_region])
+            )
             subscriber.commitRegionModifications(
                 RegionHandleSet([subscriber_first_region, subscriber_second_region])
             )
 
-            first_pair = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([publisher_attribute]), RegionHandleSet([first_region])
-                )
-            ])
-            second_pair = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([publisher_attribute]), RegionHandleSet([second_region])
-                )
-            ])
-            subscriber_pair = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([subscriber_attribute]),
-                    RegionHandleSet([subscriber_first_region, subscriber_second_region]),
-                )
-            ])
-            subscriber.subscribeObjectClassAttributesWithRegions(subscriber_class, subscriber_pair)
+            first_pair = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([first_region]),
+                    )
+                ]
+            )
+            second_pair = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([second_region]),
+                    )
+                ]
+            )
+            subscriber_pair = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([subscriber_attribute]),
+                        RegionHandleSet(
+                            [subscriber_first_region, subscriber_second_region]
+                        ),
+                    )
+                ]
+            )
+            subscriber.subscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pair
+            )
             object_instance = publisher.registerObjectInstanceWithRegions(
                 publisher_class, first_pair
             )
@@ -4119,7 +4725,9 @@ class NativeProviderTest(unittest.TestCase):
             publisher.unassociateRegionsForUpdates(object_instance, first_pair)
             publisher.updateAttributeValues(
                 object_instance,
-                AttributeHandleValueMap({publisher_attribute: b"second-region-remains"}),
+                AttributeHandleValueMap(
+                    {publisher_attribute: b"second-region-remains"}
+                ),
             )
             for _ in range(8):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
@@ -4153,7 +4761,9 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.disconnect()
             publisher.disconnect()
 
-    def test_native_regional_object_association_keeps_independent_attributes_active(self) -> None:
+    def test_native_regional_object_association_keeps_independent_attributes_active(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.discoveries: list[tuple[object, ...]] = []
@@ -4176,25 +4786,42 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("independent-region-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "independent-region-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("independent-region-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "independent-region-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.RegionalThing")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.RegionalThing")
-            publisher_flavor = publisher.getAttributeHandle(publisher_class, "Flavor")
-            publisher_organic = publisher.getAttributeHandle(publisher_class, "Organic")
-            subscriber_flavor = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            subscriber_organic = subscriber.getAttributeHandle(subscriber_class, "Organic")
-            publisher.publishObjectClassAttributes(
-                publisher_class, AttributeHandleSet([publisher_flavor, publisher_organic])
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.REGIONAL_THING)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.REGIONAL_THING)
+            publisher_flavor = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
             )
-            publisher_dimension = publisher.getDimensionHandle("UmbraRegionalDimension")
-            subscriber_dimension = subscriber.getDimensionHandle("UmbraRegionalDimension")
+            publisher_organic = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.ORGANIC
+            )
+            subscriber_flavor = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_organic = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.ORGANIC
+            )
+            publisher.publishObjectClassAttributes(
+                publisher_class,
+                AttributeHandleSet([publisher_flavor, publisher_organic]),
+            )
+            publisher_dimension = publisher.getDimensionHandle(
+                HLA_FIXTURES.UMBRA_REGIONAL_DIMENSION
+            )
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.UMBRA_REGIONAL_DIMENSION
+            )
             publisher_overlap = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
@@ -4204,11 +4831,15 @@ class NativeProviderTest(unittest.TestCase):
             subscriber_overlap = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
-            publisher.setRangeBounds(publisher_overlap, publisher_dimension, RangeBounds(0, 1))
+            publisher.setRangeBounds(
+                publisher_overlap, publisher_dimension, RangeBounds(0, 1)
+            )
             publisher.setRangeBounds(
                 publisher_disjoint, publisher_dimension, RangeBounds(3, 4)
             )
-            subscriber.setRangeBounds(subscriber_overlap, subscriber_dimension, RangeBounds(0, 1))
+            subscriber.setRangeBounds(
+                subscriber_overlap, subscriber_dimension, RangeBounds(0, 1)
+            )
             publisher.commitRegionModifications(
                 RegionHandleSet([publisher_overlap, publisher_disjoint])
             )
@@ -4296,7 +4927,10 @@ class NativeProviderTest(unittest.TestCase):
             publisher.updateAttributeValues(
                 object_instance,
                 AttributeHandleValueMap(
-                    {publisher_flavor: b"flavor-disjoint", publisher_organic: b"organic-3"}
+                    {
+                        publisher_flavor: b"flavor-disjoint",
+                        publisher_organic: b"organic-3",
+                    }
                 ),
                 b"organic-only",
             )
@@ -4329,7 +4963,10 @@ class NativeProviderTest(unittest.TestCase):
             publisher.updateAttributeValues(
                 object_instance,
                 AttributeHandleValueMap(
-                    {publisher_flavor: b"flavor-default", publisher_organic: b"organic-default"}
+                    {
+                        publisher_flavor: b"flavor-default",
+                        publisher_organic: b"organic-default",
+                    }
                 ),
                 b"default-region",
             )
@@ -4398,39 +5035,55 @@ class NativeProviderTest(unittest.TestCase):
             overlap.connect(overlap_callback, CallbackModel.HLA_EVOKED)
             disjoint.connect(disjoint_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("recipient-isolation-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "recipient-isolation-publisher", federation_name
+            )
             publisher_joined = True
-            overlap.joinFederationExecution("recipient-isolation-overlap", federation_name)
+            overlap.joinFederationExecution(
+                "recipient-isolation-overlap", federation_name
+            )
             overlap_joined = True
-            disjoint.joinFederationExecution("recipient-isolation-disjoint", federation_name)
+            disjoint.joinFederationExecution(
+                "recipient-isolation-disjoint", federation_name
+            )
             disjoint_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            overlap_class = overlap.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            overlap_attribute = overlap.getAttributeHandle(overlap_class, "Flavor")
-            disjoint_class = disjoint.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            overlap_class = overlap.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            overlap_attribute = overlap.getAttributeHandle(
+                overlap_class, HLA_FIXTURES.FLAVOR
+            )
+            disjoint_class = disjoint.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            disjoint_attribute = disjoint.getAttributeHandle(
+                disjoint_class, HLA_FIXTURES.FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            overlap_dimension = overlap.getDimensionHandle("SodaFlavor")
-            disjoint_dimension = disjoint.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            overlap_dimension = overlap.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            disjoint_dimension = disjoint.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_overlap_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
             publisher_disjoint_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
-            overlap_region = overlap.createRegion(DimensionHandleSet([overlap_dimension]))
+            overlap_region = overlap.createRegion(
+                DimensionHandleSet([overlap_dimension])
+            )
             disjoint_overlap_region = disjoint.createRegion(
                 DimensionHandleSet([disjoint_dimension])
             )
-            disjoint_region = disjoint.createRegion(DimensionHandleSet([disjoint_dimension]))
+            disjoint_region = disjoint.createRegion(
+                DimensionHandleSet([disjoint_dimension])
+            )
             publisher.setRangeBounds(
                 publisher_overlap_region, publisher_dimension, RangeBounds(0, 1)
             )
@@ -4441,7 +5094,9 @@ class NativeProviderTest(unittest.TestCase):
             disjoint.setRangeBounds(
                 disjoint_overlap_region, disjoint_dimension, RangeBounds(0, 1)
             )
-            disjoint.setRangeBounds(disjoint_region, disjoint_dimension, RangeBounds(3, 4))
+            disjoint.setRangeBounds(
+                disjoint_region, disjoint_dimension, RangeBounds(3, 4)
+            )
             publisher.commitRegionModifications(
                 RegionHandleSet([publisher_overlap_region, publisher_disjoint_region])
             )
@@ -4474,7 +5129,9 @@ class NativeProviderTest(unittest.TestCase):
                     )
                 ]
             )
-            overlap.subscribeObjectClassAttributesWithRegions(overlap_class, overlap_pairs)
+            overlap.subscribeObjectClassAttributesWithRegions(
+                overlap_class, overlap_pairs
+            )
             disjoint.setAttributeScopeAdvisorySwitch(True)
             disjoint.subscribeObjectClassAttributesWithRegions(
                 disjoint_class, disjoint_overlap_pairs
@@ -4512,7 +5169,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(len(overlap_callback.out_of_scope), 0)
             self.assertEqual(len(disjoint_callback.out_of_scope), 1)
 
-            disjoint.subscribeObjectClassAttributesWithRegions(disjoint_class, disjoint_pairs)
+            disjoint.subscribeObjectClassAttributesWithRegions(
+                disjoint_class, disjoint_pairs
+            )
             pump()
             self.assertEqual(len(disjoint_callback.in_scope), 0)
 
@@ -4530,10 +5189,12 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(len(overlap_callback.reflections), 1)
             self.assertEqual(len(disjoint_callback.reflections), 1)
             self.assertEqual(
-                overlap_callback.reflections[-1][1][overlap_attribute], b"both-recipients"
+                overlap_callback.reflections[-1][1][overlap_attribute],
+                b"both-recipients",
             )
             self.assertEqual(
-                disjoint_callback.reflections[-1][1][disjoint_attribute], b"both-recipients"
+                disjoint_callback.reflections[-1][1][disjoint_attribute],
+                b"both-recipients",
             )
 
             publisher.unassociateRegionsForUpdates(object_instance, source_disjoint)
@@ -4597,32 +5258,54 @@ class NativeProviderTest(unittest.TestCase):
             publisher.connect(publisher_callback, CallbackModel.HLA_EVOKED)
             subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
             publisher.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            publisher.joinFederationExecution("regional-reprojection-publisher", federation_name)
+            publisher.joinFederationExecution(
+                "regional-reprojection-publisher", federation_name
+            )
             publisher_joined = True
-            subscriber.joinFederationExecution("regional-reprojection-subscriber", federation_name)
+            subscriber.joinFederationExecution(
+                "regional-reprojection-subscriber", federation_name
+            )
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
-            publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
-            disjoint_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
-            overlap_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(
+                HLA_FIXTURES.SODA_FLAVOR
+            )
+            publisher_region = publisher.createRegion(
+                DimensionHandleSet([publisher_dimension])
+            )
+            disjoint_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
+            overlap_region = subscriber.createRegion(
+                DimensionHandleSet([subscriber_dimension])
+            )
             overlap_region_two = subscriber.createRegion(
                 DimensionHandleSet([subscriber_dimension])
             )
-            publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 1))
-            subscriber.setRangeBounds(disjoint_region, subscriber_dimension, RangeBounds(3, 4))
-            subscriber.setRangeBounds(overlap_region, subscriber_dimension, RangeBounds(0, 2))
+            publisher.setRangeBounds(
+                publisher_region, publisher_dimension, RangeBounds(0, 1)
+            )
+            subscriber.setRangeBounds(
+                disjoint_region, subscriber_dimension, RangeBounds(3, 4)
+            )
+            subscriber.setRangeBounds(
+                overlap_region, subscriber_dimension, RangeBounds(0, 2)
+            )
             subscriber.setRangeBounds(
                 overlap_region_two, subscriber_dimension, RangeBounds(0, 2)
             )
@@ -4693,7 +5376,8 @@ class NativeProviderTest(unittest.TestCase):
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(subscriber_callback.reflections), 1)
             self.assertEqual(
-                subscriber_callback.reflections[0][1][subscriber_attribute], b"reprojected"
+                subscriber_callback.reflections[0][1][subscriber_attribute],
+                b"reprojected",
             )
             self.assertEqual(subscriber_callback.reflections[0][2], b"reprojected-tag")
 
@@ -4762,15 +5446,28 @@ class NativeProviderTest(unittest.TestCase):
                 self.interaction_transport_confirmations = []
                 self.interaction_transport_reports = []
 
-            def discoverObjectInstance(self, objectInstance, objectClass, objectInstanceName, producingFederate) -> None:
-                self.discoveries.append((objectInstance, objectClass, objectInstanceName, producingFederate))
+            def discoverObjectInstance(
+                self, objectInstance, objectClass, objectInstanceName, producingFederate
+            ) -> None:
+                self.discoveries.append(
+                    (objectInstance, objectClass, objectInstanceName, producingFederate)
+                )
 
             def reflectAttributeValues(
-                self, objectInstance, attributeValues, userSuppliedTag, transportationType, producingFederate
+                self,
+                objectInstance,
+                attributeValues,
+                userSuppliedTag,
+                transportationType,
+                producingFederate,
             ) -> None:
-                self.reflections.append((objectInstance, attributeValues, userSuppliedTag))
+                self.reflections.append(
+                    (objectInstance, attributeValues, userSuppliedTag)
+                )
 
-            def provideAttributeValueUpdate(self, objectInstance, attributes, userSuppliedTag) -> None:
+            def provideAttributeValueUpdate(
+                self, objectInstance, attributes, userSuppliedTag
+            ) -> None:
                 self.provided.append((objectInstance, attributes, userSuppliedTag))
 
             def attributesInScope(self, objectInstance, attributes) -> None:
@@ -4782,9 +5479,13 @@ class NativeProviderTest(unittest.TestCase):
             def turnUpdatesOnForObjectInstance(
                 self, objectInstance, attributes, updateRateDesignator=None
             ) -> None:
-                self.updates_on.append((objectInstance, attributes, updateRateDesignator))
+                self.updates_on.append(
+                    (objectInstance, attributes, updateRateDesignator)
+                )
 
-            def turnUpdatesOffForObjectInstance(self, objectInstance, attributes) -> None:
+            def turnUpdatesOffForObjectInstance(
+                self, objectInstance, attributes
+            ) -> None:
                 self.updates_off.append((objectInstance, attributes))
 
             def confirmAttributeTransportationTypeChange(
@@ -4832,75 +5533,123 @@ class NativeProviderTest(unittest.TestCase):
         subscriber.connect(subscriber_callback, CallbackModel.HLA_EVOKED)
         created = publisher_joined = subscriber_joined = False
         try:
-            publisher.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            publisher.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
-            publisher_federate = publisher.joinFederationExecution("regional-publisher", federation_name)
+            publisher_federate = publisher.joinFederationExecution(
+                "regional-publisher", federation_name
+            )
             publisher_joined = True
             subscriber.joinFederationExecution("regional-subscriber", federation_name)
             subscriber_joined = True
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(
+                publisher_class, HLA_FIXTURES.FLAVOR
+            )
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_attribute = subscriber.getAttributeHandle(
+                subscriber_class, HLA_FIXTURES.FLAVOR
+            )
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             subscriber_region = subscriber.createRegion(DimensionHandleSet([dimension]))
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 1))
             subscriber.setRangeBounds(subscriber_region, dimension, RangeBounds(0, 1))
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
-            publisher_pair = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([publisher_attribute]), RegionHandleSet([publisher_region])
-                )
-            ])
-            subscriber_pair = AttributeSetRegionSetPairList([
-                AttributeSetRegionSetPair(
-                    AttributeHandleSet([subscriber_attribute]), RegionHandleSet([subscriber_region])
-                )
-            ])
+            publisher_pair = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([publisher_attribute]),
+                        RegionHandleSet([publisher_region]),
+                    )
+                ]
+            )
+            subscriber_pair = AttributeSetRegionSetPairList(
+                [
+                    AttributeSetRegionSetPair(
+                        AttributeHandleSet([subscriber_attribute]),
+                        RegionHandleSet([subscriber_region]),
+                    )
+                ]
+            )
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
             subscriber.setAttributeScopeAdvisorySwitch(True)
-            subscriber.subscribeObjectClassAttributesWithRegions(subscriber_class, subscriber_pair)
-            registered = publisher.registerObjectInstanceWithRegions(publisher_class, publisher_pair)
+            subscriber.subscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pair
+            )
+            registered = publisher.registerObjectInstanceWithRegions(
+                publisher_class, publisher_pair
+            )
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(len(subscriber_callback.discoveries), 1)
             discovered = subscriber_callback.discoveries[0][0]
             self.assertIsInstance(registered, ObjectInstanceHandle)
             self.assertEqual(discovered, registered)
-            subscriber.unsubscribeObjectClassAttributesWithRegions(subscriber_class, subscriber_pair)
+            subscriber.unsubscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pair
+            )
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(subscriber_callback.out_of_scope[-1][0], registered)
-            subscriber.subscribeObjectClassAttributesWithRegions(subscriber_class, subscriber_pair)
+            subscriber.subscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pair
+            )
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(subscriber_callback.in_scope[-1][0], registered)
-            publisher.updateAttributeValues(registered, AttributeHandleValueMap({publisher_attribute: b"regional"}))
+            publisher.updateAttributeValues(
+                registered, AttributeHandleValueMap({publisher_attribute: b"regional"})
+            )
             subscriber.evokeMultipleCallbacks(0.0, 0.0)
-            self.assertEqual(subscriber_callback.reflections[0][1][subscriber_attribute], b"regional")
-            subscriber.requestAttributeValueUpdate(registered, AttributeHandleSet([subscriber_attribute]), b"instance-request")
+            self.assertEqual(
+                subscriber_callback.reflections[0][1][subscriber_attribute], b"regional"
+            )
+            subscriber.requestAttributeValueUpdate(
+                registered,
+                AttributeHandleSet([subscriber_attribute]),
+                b"instance-request",
+            )
             for _ in range(4):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(publisher_callback.provided[-1][0], registered)
-            self.assertIn(b"instance-request", [entry[2] for entry in publisher_callback.provided], publisher_callback.provided)
-            subscriber.requestAttributeValueUpdate(subscriber_class, AttributeHandleSet([subscriber_attribute]), b"class-request")
+            self.assertIn(
+                b"instance-request",
+                [entry[2] for entry in publisher_callback.provided],
+                publisher_callback.provided,
+            )
+            subscriber.requestAttributeValueUpdate(
+                subscriber_class,
+                AttributeHandleSet([subscriber_attribute]),
+                b"class-request",
+            )
             for _ in range(4):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
-            self.assertIn(b"class-request", [entry[2] for entry in publisher_callback.provided], publisher_callback.provided)
-            subscriber.requestAttributeValueUpdateWithRegions(subscriber_class, subscriber_pair, b"request")
+            self.assertIn(
+                b"class-request",
+                [entry[2] for entry in publisher_callback.provided],
+                publisher_callback.provided,
+            )
+            subscriber.requestAttributeValueUpdateWithRegions(
+                subscriber_class, subscriber_pair, b"request"
+            )
             publisher.associateRegionsForUpdates(registered, publisher_pair)
             publisher.unassociateRegionsForUpdates(registered, publisher_pair)
-            reliable = publisher.getTransportationTypeHandle("HLAreliable")
-            best_effort = publisher.getTransportationTypeHandle("HLAbestEffort")
+            reliable = publisher.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+            best_effort = publisher.getTransportationTypeHandle(HLA_MOM.BEST_EFFORT)
             publisher.changeAttributeOrderType(
-                registered, AttributeHandleSet([publisher_attribute]), OrderType.TIMESTAMP
+                registered,
+                AttributeHandleSet([publisher_attribute]),
+                OrderType.TIMESTAMP,
             )
             publisher.changeDefaultAttributeOrderType(
-                publisher_class, AttributeHandleSet([publisher_attribute]), OrderType.RECEIVE
+                publisher_class,
+                AttributeHandleSet([publisher_attribute]),
+                OrderType.RECEIVE,
             )
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             publisher.publishInteractionClass(interaction)
             publisher.changeInteractionOrderType(interaction, OrderType.RECEIVE)
@@ -4909,25 +5658,38 @@ class NativeProviderTest(unittest.TestCase):
             )
             for _ in range(4):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
-            self.assertEqual(publisher_callback.attribute_transport_confirmations[-1][0], registered)
+            self.assertEqual(
+                publisher_callback.attribute_transport_confirmations[-1][0], registered
+            )
             publisher.changeDefaultAttributeTransportationType(
                 publisher_class, AttributeHandleSet([publisher_attribute]), reliable
             )
             publisher.queryAttributeTransportationType(registered, publisher_attribute)
             for _ in range(4):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
-            self.assertEqual(publisher_callback.attribute_transport_reports[-1][2], best_effort)
-            publisher.requestInteractionTransportationTypeChange(interaction, best_effort)
+            self.assertEqual(
+                publisher_callback.attribute_transport_reports[-1][2], best_effort
+            )
+            publisher.requestInteractionTransportationTypeChange(
+                interaction, best_effort
+            )
             for _ in range(4):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
-            self.assertEqual(publisher_callback.interaction_transport_confirmations[-1][0], interaction)
+            self.assertEqual(
+                publisher_callback.interaction_transport_confirmations[-1][0],
+                interaction,
+            )
             publisher.queryInteractionTransportationType(
                 publisher_federate, interaction
             )
             for _ in range(4):
                 publisher.evokeMultipleCallbacks(0.0, 0.0)
-            self.assertEqual(publisher_callback.interaction_transport_reports[-1][1], interaction)
-            subscriber.unsubscribeObjectClassAttributesWithRegions(subscriber_class, subscriber_pair)
+            self.assertEqual(
+                publisher_callback.interaction_transport_reports[-1][1], interaction
+            )
+            subscriber.unsubscribeObjectClassAttributesWithRegions(
+                subscriber_class, subscriber_pair
+            )
             publisher.deleteObjectInstance(registered)
             publisher.deleteRegion(publisher_region)
             subscriber.deleteRegion(subscriber_region)
@@ -4946,7 +5708,9 @@ class NativeProviderTest(unittest.TestCase):
             def __init__(self) -> None:
                 self.informed = []
 
-            def informAttributeOwnership(self, objectInstance, attributes, owner) -> None:
+            def informAttributeOwnership(
+                self, objectInstance, attributes, owner
+            ) -> None:
                 self.informed.append((objectInstance, attributes, owner))
 
         fom_module = (
@@ -4963,16 +5727,24 @@ class NativeProviderTest(unittest.TestCase):
         ambassador.connect(callback, CallbackModel.HLA_EVOKED)
         created = joined = False
         try:
-            ambassador.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            ambassador.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             ambassador.joinFederationExecution("ownership-query", federation_name)
             joined = True
-            object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
-            ambassador.publishObjectClassAttributes(object_class, AttributeHandleSet([attribute]))
+            object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            attribute = ambassador.getAttributeHandle(
+                object_class, HLA_FIXTURES.EFFICIENCY
+            )
+            ambassador.publishObjectClassAttributes(
+                object_class, AttributeHandleSet([attribute])
+            )
             instance = ambassador.registerObjectInstance(object_class)
             self.assertTrue(ambassador.isAttributeOwnedByFederate(instance, attribute))
-            ambassador.queryAttributeOwnership(instance, AttributeHandleSet([attribute]))
+            ambassador.queryAttributeOwnership(
+                instance, AttributeHandleSet([attribute])
+            )
             ambassador.evokeCallback(0.0)
             self.assertEqual(len(callback.informed), 1)
             self.assertEqual(callback.informed[0][0], instance)
@@ -5018,20 +5790,28 @@ class NativeProviderTest(unittest.TestCase):
                 self.acquisitions = []
                 self.unavailable = []
 
-            def requestDivestitureConfirmation(self, objectInstance, attributes, userSuppliedTag) -> None:
-                self.divestiture_requests.append((objectInstance, attributes, userSuppliedTag))
+            def requestDivestitureConfirmation(
+                self, objectInstance, attributes, userSuppliedTag
+            ) -> None:
+                self.divestiture_requests.append(
+                    (objectInstance, attributes, userSuppliedTag)
+                )
 
             def requestAttributeOwnershipRelease(
                 self, objectInstance, attributes, userSuppliedTag
             ) -> None:
-                self.release_requests.append((objectInstance, attributes, userSuppliedTag))
+                self.release_requests.append(
+                    (objectInstance, attributes, userSuppliedTag)
+                )
 
             def attributeOwnershipAcquisitionNotification(
                 self, objectInstance, attributes, userSuppliedTag
             ) -> None:
                 self.acquisitions.append((objectInstance, attributes, userSuppliedTag))
 
-            def attributeOwnershipUnavailable(self, objectInstance, attributes, userSuppliedTag) -> None:
+            def attributeOwnershipUnavailable(
+                self, objectInstance, attributes, userSuppliedTag
+            ) -> None:
                 self.unavailable.append((objectInstance, attributes, userSuppliedTag))
 
         fom_module = (
@@ -5052,16 +5832,22 @@ class NativeProviderTest(unittest.TestCase):
         created = owner_joined = acquirer_joined = False
         object_instance = None
         try:
-            owner.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            owner.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             owner.joinFederationExecution("ownership-owner", federation_name)
             owner_joined = True
             acquirer.joinFederationExecution("ownership-acquirer", federation_name)
             acquirer_joined = True
-            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            acquirer_class = acquirer.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-            owner_attribute = owner.getAttributeHandle(owner_class, "Efficiency")
-            acquirer_attribute = acquirer.getAttributeHandle(acquirer_class, "Efficiency")
+            owner_class = owner.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            acquirer_class = acquirer.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+            owner_attribute = owner.getAttributeHandle(
+                owner_class, HLA_FIXTURES.EFFICIENCY
+            )
+            acquirer_attribute = acquirer.getAttributeHandle(
+                acquirer_class, HLA_FIXTURES.EFFICIENCY
+            )
             owner_attributes = AttributeHandleSet([owner_attribute])
             acquirer_attributes = AttributeHandleSet([acquirer_attribute])
             owner.publishObjectClassAttributes(owner_class, owner_attributes)
@@ -5091,7 +5877,9 @@ class NativeProviderTest(unittest.TestCase):
                     break
                 acquirer.evokeMultipleCallbacks(0.0, 0.0)
             self.assertEqual(acquirer_callback.acquisitions[-1][2], b"confirm")
-            self.assertFalse(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
+            self.assertFalse(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
             self.assertTrue(
                 acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute)
             )
@@ -5107,7 +5895,9 @@ class NativeProviderTest(unittest.TestCase):
                     break
                 owner.evokeMultipleCallbacks(0.0, 0.0)
             self.assertTrue(owner_callback.acquisitions)
-            self.assertTrue(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
+            self.assertTrue(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
 
             acquirer.attributeOwnershipAcquisition(
                 object_instance, acquirer_attributes, b"deny-me"
@@ -5128,10 +5918,14 @@ class NativeProviderTest(unittest.TestCase):
                 acquirer_callback.unavailable[-1],
                 (object_instance, acquirer_attributes, b"deny-tag"),
             )
-            self.assertTrue(owner.isAttributeOwnedByFederate(object_instance, owner_attribute))
+            self.assertTrue(
+                owner.isAttributeOwnedByFederate(object_instance, owner_attribute)
+            )
         finally:
             if acquirer_joined and object_instance is not None:
-                if acquirer.isAttributeOwnedByFederate(object_instance, acquirer_attribute):
+                if acquirer.isAttributeOwnedByFederate(
+                    object_instance, acquirer_attribute
+                ):
                     acquirer.unconditionalAttributeOwnershipDivestiture(
                         object_instance, acquirer_attributes, b"cleanup"
                     )
@@ -5148,24 +5942,36 @@ class NativeProviderTest(unittest.TestCase):
             acquirer.disconnect()
             owner.disconnect()
 
-    def test_native_synchronization_registration_converts_the_tag_and_callbacks(self) -> None:
+    def test_native_synchronization_registration_converts_the_tag_and_callbacks(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
                 self.registrations: list[str] = []
                 self.announcements: list[tuple[str, bytes]] = []
                 self.synchronized: list[tuple[str, FederateHandleSet]] = []
-                self.registration_failures: list[tuple[str, SynchronizationPointFailureReason]] = []
+                self.registration_failures: list[
+                    tuple[str, SynchronizationPointFailureReason]
+                ] = []
 
-            def synchronizationPointRegistrationSucceeded(self, synchronizationPointLabel) -> None:
+            def synchronizationPointRegistrationSucceeded(
+                self, synchronizationPointLabel
+            ) -> None:
                 self.registrations.append(synchronizationPointLabel)
 
-            def announceSynchronizationPoint(self, synchronizationPointLabel, userSuppliedTag) -> None:
+            def announceSynchronizationPoint(
+                self, synchronizationPointLabel, userSuppliedTag
+            ) -> None:
                 self.announcements.append((synchronizationPointLabel, userSuppliedTag))
 
-            def federationSynchronized(self, synchronizationPointLabel, failedToSyncSet) -> None:
+            def federationSynchronized(
+                self, synchronizationPointLabel, failedToSyncSet
+            ) -> None:
                 self.synchronized.append((synchronizationPointLabel, failedToSyncSet))
 
-            def synchronizationPointRegistrationFailed(self, synchronizationPointLabel, reason) -> None:
+            def synchronizationPointRegistrationFailed(
+                self, synchronizationPointLabel, reason
+            ) -> None:
                 self.registration_failures.append((synchronizationPointLabel, reason))
 
         fom_module = (
@@ -5184,7 +5990,9 @@ class NativeProviderTest(unittest.TestCase):
         ambassador.connect(callback, CallbackModel.HLA_EVOKED)
         created = joined = False
         try:
-            ambassador.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            ambassador.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
             ambassador.joinFederationExecution("observer", federation_name)
             joined = True
@@ -5197,7 +6005,12 @@ class NativeProviderTest(unittest.TestCase):
             ambassador.evokeMultipleCallbacks(0.0, 0.1)
             self.assertEqual(
                 callback.registration_failures,
-                [(label, SynchronizationPointFailureReason.SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE)],
+                [
+                    (
+                        label,
+                        SynchronizationPointFailureReason.SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE,
+                    )
+                ],
             )
             ambassador.synchronizationPointAchieved(label)
             ambassador.evokeMultipleCallbacks(0.0, 0.1)
@@ -5205,7 +6018,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(callback.synchronized[0][0], label)
             self.assertEqual(len(callback.synchronized[0][1]), 0)
             failed_label = f"{label}-failed"
-            ambassador.registerFederationSynchronizationPoint(failed_label, b"failed-tag")
+            ambassador.registerFederationSynchronizationPoint(
+                failed_label, b"failed-tag"
+            )
             ambassador.evokeMultipleCallbacks(0.0, 0.1)
             ambassador.evokeMultipleCallbacks(0.0, 0.1)
             ambassador.synchronizationPointAchieved(failed_label, successfully=False)
@@ -5213,7 +6028,9 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(callback.synchronized[-1][0], failed_label)
             self.assertIsInstance(callback.synchronized[-1][1], FederateHandleSet)
             self.assertEqual(len(callback.synchronized[-1][1]), 1)
-            self.assertGreater(next(iter(callback.synchronized[-1][1])).encodedLength(), 0)
+            self.assertGreater(
+                next(iter(callback.synchronized[-1][1])).encodedLength(), 0
+            )
         finally:
             if joined:
                 ambassador.resignFederationExecution(ResignAction.NO_ACTION)
@@ -5221,14 +6038,20 @@ class NativeProviderTest(unittest.TestCase):
                 ambassador.destroyFederationExecution(federation_name)
             ambassador.disconnect()
 
-    def test_native_query_federation_save_status_reports_typed_member_entries(self) -> None:
+    def test_native_query_federation_save_status_reports_typed_member_entries(
+        self,
+    ) -> None:
         class RecordingFederateAmbassador(FederateAmbassador):
             def __init__(self) -> None:
-                self.save_status_reports: list[tuple[FederateHandleSaveStatusPair, ...]] = []
+                self.save_status_reports: list[
+                    tuple[FederateHandleSaveStatusPair, ...]
+                ] = []
                 self.save_initiations: list[str] = []
                 self.save_completions = 0
                 self.save_failures: list[SaveFailureReason] = []
-                self.restore_status_reports: list[tuple[FederateRestoreStatus, ...]] = []
+                self.restore_status_reports: list[
+                    tuple[FederateRestoreStatus, ...]
+                ] = []
                 self.restore_accepted: list[str] = []
                 self.restore_rejected: list[str] = []
                 self.restore_begun = 0
@@ -5260,8 +6083,12 @@ class NativeProviderTest(unittest.TestCase):
             def federationRestoreBegun(self) -> None:
                 self.restore_begun += 1
 
-            def initiateFederateRestore(self, label, federateName, postRestoreFederateHandle) -> None:
-                self.restore_initiations.append((label, federateName, postRestoreFederateHandle))
+            def initiateFederateRestore(
+                self, label, federateName, postRestoreFederateHandle
+            ) -> None:
+                self.restore_initiations.append(
+                    (label, federateName, postRestoreFederateHandle)
+                )
 
             def federationRestored(self) -> None:
                 self.restore_completions += 1
@@ -5286,19 +6113,31 @@ class NativeProviderTest(unittest.TestCase):
         peer.connect(peer_callback, CallbackModel.HLA_IMMEDIATE)
         created = owner_joined = peer_joined = False
         try:
-            owner.createFederationExecution(federation_name, str(fom_module), "HLAinteger64Time")
+            owner.createFederationExecution(
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
+            )
             created = True
-            owner.joinFederationExecution("owner", federation_name, federateName="python-save-owner")
+            owner.joinFederationExecution(
+                "owner", federation_name, federateName="python-save-owner"
+            )
             owner_joined = True
-            peer.joinFederationExecution("observer", federation_name, federateName="python-save-peer")
+            peer.joinFederationExecution(
+                "observer", federation_name, federateName="python-save-peer"
+            )
             peer_joined = True
             owner.queryFederationSaveStatus()
             self.assertEqual(len(owner_callback.save_status_reports), 1)
             report = owner_callback.save_status_reports[0]
             self.assertEqual(len(report), 2)
-            self.assertTrue(all(isinstance(entry, FederateHandleSaveStatusPair) for entry in report))
-            self.assertEqual({entry.saveStatus for entry in report}, {SaveStatus.NO_SAVE_IN_PROGRESS})
-            self.assertTrue(all(entry.federateHandle.encodedLength() > 0 for entry in report))
+            self.assertTrue(
+                all(isinstance(entry, FederateHandleSaveStatusPair) for entry in report)
+            )
+            self.assertEqual(
+                {entry.saveStatus for entry in report}, {SaveStatus.NO_SAVE_IN_PROGRESS}
+            )
+            self.assertTrue(
+                all(entry.federateHandle.encodedLength() > 0 for entry in report)
+            )
             save_label = f"python-save-{uuid4()}"
             owner.requestFederationSave(save_label)
             self.assertEqual(owner_callback.save_initiations, [save_label])
@@ -5338,14 +6177,30 @@ class NativeProviderTest(unittest.TestCase):
             aborted_save_label = f"python-save-abort-{uuid4()}"
             owner.requestFederationSave(aborted_save_label)
             owner.abortFederationSave()
-            self.assertEqual(owner_callback.save_failures[-1], SaveFailureReason.SAVE_ABORTED)
-            self.assertEqual(peer_callback.save_failures[-1], SaveFailureReason.SAVE_ABORTED)
+            self.assertEqual(
+                owner_callback.save_failures[-1], SaveFailureReason.SAVE_ABORTED
+            )
+            self.assertEqual(
+                peer_callback.save_failures[-1], SaveFailureReason.SAVE_ABORTED
+            )
             owner.queryFederationRestoreStatus()
             restore_report = owner_callback.restore_status_reports[-1]
             self.assertEqual(len(restore_report), 2)
-            self.assertTrue(all(isinstance(entry, FederateRestoreStatus) for entry in restore_report))
-            self.assertEqual({entry.status for entry in restore_report}, {RestoreStatus.NO_RESTORE_IN_PROGRESS})
-            self.assertTrue(all(entry.preRestoreHandle.encodedLength() > 0 for entry in restore_report))
+            self.assertTrue(
+                all(
+                    isinstance(entry, FederateRestoreStatus) for entry in restore_report
+                )
+            )
+            self.assertEqual(
+                {entry.status for entry in restore_report},
+                {RestoreStatus.NO_RESTORE_IN_PROGRESS},
+            )
+            self.assertTrue(
+                all(
+                    entry.preRestoreHandle.encodedLength() > 0
+                    for entry in restore_report
+                )
+            )
             self.assertTrue(
                 all(
                     isinstance(entry.preRestoreHandle, FederateHandle)
@@ -5361,9 +6216,15 @@ class NativeProviderTest(unittest.TestCase):
             self.assertEqual(owner_callback.restore_begun, 1)
             self.assertEqual(peer_callback.restore_begun, 1)
             self.assertEqual(owner_callback.restore_initiations[0][0], save_label)
-            self.assertEqual(owner_callback.restore_initiations[0][1], "python-save-owner")
-            self.assertGreater(owner_callback.restore_initiations[0][2].encodedLength(), 0)
-            self.assertEqual(peer_callback.restore_initiations[0][1], "python-save-peer")
+            self.assertEqual(
+                owner_callback.restore_initiations[0][1], "python-save-owner"
+            )
+            self.assertGreater(
+                owner_callback.restore_initiations[0][2].encodedLength(), 0
+            )
+            self.assertEqual(
+                peer_callback.restore_initiations[0][1], "python-save-peer"
+            )
             owner.queryFederationRestoreStatus()
             restoring_report = owner_callback.restore_status_reports[-1]
             self.assertEqual(
@@ -5396,8 +6257,13 @@ class NativeProviderTest(unittest.TestCase):
             )
             owner.requestFederationRestore(save_label)
             owner.abortFederationRestore()
-            self.assertEqual(owner_callback.restore_failures[-1], RestoreFailureReason.RESTORE_ABORTED)
-            self.assertEqual(peer_callback.restore_failures[-1], RestoreFailureReason.RESTORE_ABORTED)
+            self.assertEqual(
+                owner_callback.restore_failures[-1],
+                RestoreFailureReason.RESTORE_ABORTED,
+            )
+            self.assertEqual(
+                peer_callback.restore_failures[-1], RestoreFailureReason.RESTORE_ABORTED
+            )
         finally:
             if peer_joined:
                 peer.resignFederationExecution(ResignAction.NO_ACTION)
@@ -5436,7 +6302,7 @@ class NativeProviderTest(unittest.TestCase):
             ambassador.connect(callback, CallbackModel.HLA_IMMEDIATE)
             connected = True
             ambassador.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
             ambassador.joinFederationExecution("timed-save-owner", federation_name)
@@ -5447,7 +6313,9 @@ class NativeProviderTest(unittest.TestCase):
                 "python-timed-save", time_factory.makeLogicalTime(1)
             )
             self.assertEqual(callback.save_initiations, [])
-            self.assertEqual(callback.timestamped_save_initiations[0][0], "python-timed-save")
+            self.assertEqual(
+                callback.timestamped_save_initiations[0][0], "python-timed-save"
+            )
             self.assertEqual(callback.timestamped_save_initiations[0][1].getTime(), 1)
         finally:
             if joined:
@@ -5492,7 +6360,7 @@ class NativeProviderTest(unittest.TestCase):
         try:
             ambassador.connect(callback, CallbackModel.HLA_EVOKED)
             ambassador.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
             ambassador.joinFederationExecution("restore-time-window", federation_name)
@@ -5575,10 +6443,12 @@ class NativeProviderTest(unittest.TestCase):
         try:
             ambassador.connect(callback, CallbackModel.HLA_EVOKED)
             ambassador.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
-            ambassador.joinFederationExecution("restore-deferred-lookahead", federation_name)
+            ambassador.joinFederationExecution(
+                "restore-deferred-lookahead", federation_name
+            )
             joined = True
             time_factory = ambassador.getTimeFactory()
             ambassador.enableTimeRegulation(time_factory.makeLogicalTimeInterval(5))
@@ -5664,7 +6534,7 @@ class NativeProviderTest(unittest.TestCase):
             owner.connect(owner_callback, CallbackModel.HLA_EVOKED)
             peer.connect(peer_callback, CallbackModel.HLA_EVOKED)
             owner.createFederationExecution(
-                federation_name, str(fom_module), "HLAinteger64Time"
+                federation_name, str(fom_module), HLA_TYPES.INTEGER64_TIME
             )
             created = True
             owner.joinFederationExecution("timed-save-owner", federation_name)
@@ -5709,7 +6579,9 @@ class NativeProviderTest(unittest.TestCase):
                 owner.evokeMultipleCallbacks(0.0, 0.0)
                 peer.evokeMultipleCallbacks(0.0, 0.0)
 
-            self.assertIn(("initiate", "python-timed-save-boundary"), owner_callback.events)
+            self.assertIn(
+                ("initiate", "python-timed-save-boundary"), owner_callback.events
+            )
             # IEEE's direct timed-save admission callback is made while the
             # constrained federate is still advancing.  The non-constrained
             # requester may receive its ordinary grant before the federation

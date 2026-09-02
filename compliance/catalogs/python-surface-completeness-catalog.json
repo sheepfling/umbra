@@ -1,0 +1,466 @@
+{
+  "schema_version": 1,
+  "kind": "python-rti-surface-completeness-catalog",
+  "description": "Structural and behavioral evidence boundaries for the edition-specific Python RTI routes.",
+  "status_vocabulary": [
+    "covered",
+    "matrix-covered",
+    "surface-bound",
+    "bounded",
+    "deferred",
+    "not-claimed"
+  ],
+  "editions": [
+    {
+      "id": "2010",
+      "standard": "IEEE 1516.1-2010",
+      "python_namespace": "hla.rti1516e",
+      "java_package": "hla.rti1516e",
+      "cpp_namespace": "rti1516e",
+      "factory_entry_point_group": "hla.rti1516e.factories",
+      "roundtrip_catalog": "compliance/catalogs/ieee1516e-2010-jni-type-roundtrip-catalog.json",
+      "api_project": {
+        "path": "packages/umbra-rti-api/pyproject.toml",
+        "name": "hla-rti-api"
+      },
+      "adapters": [
+        {
+          "id": "java-jpype",
+          "project": "packages/umbra-rti-jpype/pyproject.toml",
+          "entry_point_alias": "java-2010",
+          "entry_point": "umbra._java.rti1516e:Java2010RtiFactory",
+          "status": "surface-bound",
+          "required_tests": [
+            "packages/umbra-rti-jpype/tests/test_java_2010_provider.py",
+            "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py",
+            "packages/umbra-rti-jpype/tests/test_jpype_2010_mock_integration.py"
+          ]
+        },
+        {
+          "id": "native-pybind",
+          "project": "packages/umbra-rti-native/pyproject.toml",
+          "entry_point_alias": "UmbraNative2010",
+          "entry_point": "umbra._native.rti1516e:Native2010RtiFactory",
+          "status": "bounded",
+          "required_tests": [
+            "packages/umbra-rti-native/tests/test_native_2010.py"
+          ]
+        },
+        {
+          "id": "jni",
+          "project": "packages/umbra-rti-jni-2010",
+          "entry_point_alias": "NativeRtiFactory",
+          "entry_point": "org.umbra.jni.rti1516e.NativeRtiFactory",
+          "status": "surface-bound",
+          "required_tests": [
+            "packages/umbra-rti-jni-2010/src/main/java/org/umbra/jni/rti1516e/SurfaceSmokeTest.java",
+            "packages/umbra-rti-jni-2010/src/main/java/org/umbra/jni/rti1516e/NativeTypeRoundTripTest.java",
+            "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2025",
+      "standard": "IEEE 1516.1-2025",
+      "python_namespace": "hla.rti1516_2025",
+      "java_package": "hla.rti1516_2025",
+      "cpp_namespace": "RTI",
+      "factory_entry_point_group": "hla.rti1516_2025.factories",
+      "roundtrip_catalog": "compliance/catalogs/ieee1516-2025-jni-type-roundtrip-catalog.json",
+      "api_project": {
+        "path": "packages/umbra-rti-api/pyproject.toml",
+        "name": "hla-rti-api"
+      },
+      "adapters": [
+        {
+          "id": "java-jpype",
+          "project": "packages/umbra-rti-jpype/pyproject.toml",
+          "entry_point_alias": "java",
+          "entry_point": "umbra._java.rti1516_2025:JavaRtiFactory",
+          "status": "surface-bound",
+          "required_tests": [
+            "packages/umbra-rti-jpype/tests/test_java_provider.py",
+            "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py"
+          ]
+        },
+        {
+          "id": "umbra-jni",
+          "project": "packages/umbra-rti-jpype/pyproject.toml",
+          "entry_point_alias": "umbra-jni",
+          "entry_point": "umbra._java.rti1516_2025:UmbraJniRtiFactory",
+          "status": "surface-bound",
+          "required_tests": [
+            "packages/umbra-rti-jni/src/main/java/org/umbra/jni/rti1516_2025/StandardSurfaceSmokeTest.java",
+            "packages/umbra-rti-jpype/tests/test_umbra_jni_factory.py",
+            "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py"
+          ]
+        },
+        {
+          "id": "native-pybind",
+          "project": "packages/umbra-rti-native/pyproject.toml",
+          "entry_point_alias": "Umbra",
+          "entry_point": "umbra._native.rti1516_2025:UmbraRtiFactory",
+          "status": "bounded",
+          "required_tests": [
+            "packages/umbra-rti-native/tests/test_native.py"
+          ]
+        }
+      ]
+    }
+  ],
+  "coverage_dimensions": [
+    {
+      "id": "standard-service-contract",
+      "status": "covered",
+      "requirement_refs": [
+        "compliance/requirements-lab/connection-callback-api-contract.json",
+        "compliance/requirements-lab/get-time-factory-api-contract.json"
+      ],
+      "evidence": [
+        "packages/umbra-rti-api/tests/test_contracts.py",
+        "packages/umbra-rti-api/tests/test_2010_contracts.py",
+        "tools/verify_1516e_python_surface.py",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_encoder_facade_matches_reflected_2010_creator_surface",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_encoder_facade_forwards_composite_creator_arguments",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_2010_encoder_factory_declares_every_contract_creator",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_encoder_factory_declares_every_contract_creator",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_python_composite_creator_arguments",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_callback_overload_carriers",
+        "packages/umbra-rti-native/tests/test_native_2010.py#test_native_2010_encoder_surface_excludes_2025_extensions",
+        "packages/umbra-rti-native/tests/test_native.py#test_native_encoder_factory_declares_every_contract_creator"
+      ]
+    },
+    {
+      "id": "callback-ordering-and-member-state-space",
+      "status": "matrix-covered",
+      "requirement_refs": [
+        "compliance/requirements-lab/connection-callback-api-contract.json",
+        "compliance/requirements-lab/time-grant-policy-requirements-contract.json",
+        "compliance/requirements-lab/federation-time-coordination-tso-requirements-contract.json"
+      ],
+      "evidence": [
+        "packages/umbra-rti-jpype/tests/test_java_provider.py",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py",
+        "packages/umbra-rti-test-support/src/umbra_rti_test_support/surface_matrix.py",
+        "packages/umbra-rti-jpype/tests/test_jpype_mock_integration.py",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_mock_integration.py#test_standard_2010_multifederate_callback_matrix",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_callback_overload_carriers"
+      ]
+    },
+    {
+      "id": "time-save-restore-combinations",
+      "status": "matrix-covered",
+      "requirement_refs": [
+        "compliance/requirements-lab/time-advance-requirements-contract.json",
+        "compliance/requirements-lab/timed-save-requirements-contract.json",
+        "compliance/requirements-lab/save-restore-interlock-requirements-contract.json",
+        "compliance/requirements-lab/reference-time-requirements-contract.json"
+      ],
+      "evidence": [
+        "packages/umbra-rti-jpype/tests/test_java_provider.py",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_provider_neutral_save_restore_outcome_matrix",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_mock_integration.py#test_standard_2010_live_save_restore_outcome_matrix",
+        "packages/umbra-rti-native/tests/test_native.py",
+        "packages/umbra-rti-test-support/src/umbra_rti_test_support/wire_matrix.py",
+        "packages/umbra-rti-test-support/src/umbra_rti_test_support/save_restore_matrix.py"
+      ]
+    },
+    {
+      "id": "arithmetic-and-malformed-wire-edges",
+      "status": "covered",
+      "requirement_refs": [
+        "compliance/requirements-lab/float-time-requirements-contract.json",
+        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+        "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+      ],
+      "note": "Standard malformed decode and successful bidirectional carrier transport are covered. The live raw-Java undersized encode window is an explicit bounded gap because the current JNI fixture does not return a typed failure; Python façade preflight and fake/vendor destination matrices cover the deterministic failure path.",
+      "evidence": [
+        "packages/umbra-rti-jpype/tests/test_java_provider.py",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_python_encode_preflights_undersized_foreign_cursor",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_standard_time_factory_rejects_malformed_numeric_carriers",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_malformed_standard_data_element_matrix_maps_to_decoder_exception",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_python_encode_preflights_undersized_foreign_cursor",
+        "packages/umbra-rti-jni-2010/src/main/java/org/umbra/jni/rti1516e/NativeTypeRoundTripTest.java",
+        "packages/umbra-rti-jni/src/main/java/org/umbra/jni/rti1516_2025/StandardSurfaceSmokeTest.java",
+        "packages/umbra-rti-native/tests/test_native.py",
+        "packages/umbra-rti-native/tests/test_native_2010.py",
+        "compliance/catalogs/ieee1516e-2010-jni-type-roundtrip-catalog.json",
+        "packages/umbra-rti-test-support/src/umbra_rti_test_support/wire_matrix.py",
+        "packages/umbra-rti-test-support/src/umbra_rti_test_support/data_element_matrix.py"
+      ]
+    },
+    {
+      "id": "packaging-and-edition-reporting",
+      "status": "covered",
+      "requirement_refs": [],
+      "evidence": [
+        "tools/verify_python_surface_report.py",
+        "packages/umbra-rti-api/tests/test_python_surface_report.py#test_package_metadata_keeps_edition_groups_and_wheel_roots_isolated",
+        "packages/umbra-rti-api/tests/test_python_surface_report.py#test_public_namespaces_keep_2010_and_2025_exports_edition_scoped",
+        "compliance/catalogs/python-surface-completeness-catalog.json"
+      ]
+    },
+    {
+      "id": "provider-extension-wire-boundaries",
+      "status": "matrix-covered",
+      "requirement_refs": [
+        "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json"
+      ],
+      "evidence": [
+        "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+        "packages/umbra-rti-native/tests/test_native.py#test_native_extendable_variant_record_maps_and_skips_unknown_alternatives",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_encoder_factory_adapts_the_shared_data_element_contract",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_raw_java_extendable_variant_malformed",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_time_factory_preserves_unknown_vendor_carriers",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_ambassador_queries_preserve_unknown_vendor_time_carriers",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_2010_data_element_class_name_does_not_guess_vendor_interface",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_2010_raw_vendor_time_carriers_can_return_to_java_services",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_provider_preserves_custom_2025_time_factory_and_arithmetic",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_provider_delegates_variable_width_vendor_time_wire",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_callback_does_not_guess_vendor_time_from_class_substrings",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_encoder_preserves_custom_2025_logical_time_data_elements"
+      ],
+      "note": "The representable HLAextendableVariantRecord extension, a fixed-size unknown DataElement carrier, and provider-owned 2025 logical-time carrier are matrix-covered, including destination-window encode failures and delegated nonstandard arithmetic; external vendor-specific arithmetic and non-time wire extensions remain deferred."
+    },
+    {
+      "id": "direct-native-completeness",
+      "status": "bounded",
+      "requirement_refs": [
+        "compliance/requirements-lab/connection-implementation-contract.json"
+      ],
+      "evidence": [
+        "packages/umbra-rti-native/README.md",
+        "packages/umbra-rti-native/tests/test_native_2010.py#test_native_provider_binds_every_2010_service_and_marks_gaps_explicitly",
+        "tools/verify_1516e_provider_boundaries.py"
+      ],
+      "note": "A bound Python symbol or explicit unsupported result is not a claim that Umbra is a complete RTI implementation."
+    },
+    {
+      "id": "vendor-specific-floating-and-non-time-malformed-matrices",
+      "status": "deferred",
+      "requirement_refs": [
+        "compliance/requirements-lab/float-time-requirements-contract.json"
+      ],
+      "evidence": [
+        "docs/python/PYTHON-2010-API-COVERAGE-PLAN.md",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_runtime_preserves_unknown_vendor_time_carriers",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_time_factory_preserves_unknown_vendor_carriers",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_ambassador_queries_preserve_unknown_vendor_time_carriers",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_time_factory_delegates_variable_width_vendor_wire",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_2010_data_element_class_name_does_not_guess_vendor_interface",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_2010_raw_vendor_time_carriers_can_return_to_java_services",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_provider_preserves_custom_2025_time_factory_and_arithmetic",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_provider_delegates_variable_width_vendor_time_wire",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_callback_does_not_guess_vendor_time_from_class_substrings",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_unknown_data_element_carrier_preserves_wire_and_cursor",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_unknown_vendor_time_carrier_remains_raw_through_jni",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_logical_time_operation_surface_is_callable_through_jni",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_unknown_vendor_data_element_preserves_jni_carrier",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_unknown_vendor_data_element_preserves_carrier"
+      ]
+    }
+  ],
+  "matrix_evidence": [
+    {
+      "id": "basic-data-element-values",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/data_element_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+      ],
+      "wire_policy": "provider-owned",
+      "editions": {
+        "2010": {
+          "vector_count": 79,
+          "routes": [
+            "packages/umbra-rti-native/tests/test_native_2010.py#test_native_basic_data_element_value_matrix_round_trips_through_cpp",
+            "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_basic_data_element_value_matrix_round_trips_through_jni",
+            "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_encoder_facade_uses_real_jni_carriers"
+          ]
+        },
+        "2025": {
+          "vector_count": 103,
+          "routes": [
+            "packages/umbra-rti-native/tests/test_native.py#test_native_basic_data_element_value_matrix_round_trips_through_cpp",
+            "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_basic_data_element_value_matrix_round_trips_through_facade",
+            "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_basic_data_element_value_matrix",
+            "packages/umbra-rti-jni/src/main/java/org/umbra/jni/rti1516_2025/StandardSurfaceSmokeTest.java"
+          ]
+        }
+      },
+      "scope": "provider-owned value and byte[] round-trips plus raw-Java and Python-façade ByteWrapper cursor encode/decode where the edition exposes that overload"
+    },
+    {
+      "id": "callback-ordering-member-state-space",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/surface_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/connection-callback-api-contract.json",
+        "compliance/requirements-lab/time-grant-policy-requirements-contract.json",
+        "compliance/requirements-lab/federation-time-coordination-tso-requirements-contract.json"
+      ],
+      "vector_count": 120,
+      "routes": [
+            "packages/umbra-rti-jpype/tests/test_java_provider.py#test_provider_neutral_callback_and_save_time_state_space",
+            "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_provider_neutral_callback_and_save_overload_matrix",
+        "packages/umbra-rti-jpype/tests/test_jpype_mock_integration.py#test_provider_neutral_multi_federate_callback_and_save_matrix",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_mock_integration.py#test_standard_2010_multifederate_callback_matrix",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_callback_surface_matrix_round_trips_through_jni"
+      ]
+    },
+    {
+      "id": "callback-provenance-payload-parity",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/surface_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/connection-callback-api-contract.json",
+        "compliance/requirements-lab/federation-time-coordination-tso-requirements-contract.json"
+      ],
+      "vector_count": 5,
+      "routes": [
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_callback_proxy_preserves_shared_callback_provenance_vectors",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_callback_proxy_preserves_shared_callback_provenance_vectors",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_callback_provenance_carriers",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_callback_provenance_vectors_round_trip_through_jni"
+      ],
+      "scope": "provider-neutral discovery/value callback payload, producer, region, timing, order, and retraction transport"
+    },
+    {
+      "id": "callback-delivery-provenance-normalization",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/surface_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/connection-callback-api-contract.json",
+        "compliance/requirements-lab/federation-time-coordination-tso-requirements-contract.json"
+      ],
+      "vector_count": 10,
+      "routes": [
+        "packages/umbra-rti-api/tests/test_python_surface_report.py#test_callback_delivery_normalization_preserves_per_member_order",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_callback_delivery_normalizes_two_member_streams",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_callback_delivery_normalizes_two_2010_member_streams",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_callback_provenance_carriers",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_callback_provenance_vectors_round_trip_through_jni"
+      ],
+      "scope": "per-recipient callback sequence and semantic payload/provenance parity across provider fakes and C++-backed JNI carriers; the 2010 JNI route covers its four representable no-region vectors, while cross-recipient interleaving remains provider-defined"
+    },
+    {
+      "id": "callback-overload-carriers",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/surface_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/connection-callback-api-contract.json",
+        "compliance/requirements-lab/reference-time-requirements-contract.json"
+      ],
+      "editions": {
+        "2010": {
+          "vector_count": 120,
+          "routes": [
+            "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_callback_surface_matrix_round_trips_through_jni"
+          ]
+        },
+        "2025": {
+          "vector_count": 124,
+          "routes": [
+            "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_callback_overload_carriers"
+          ]
+        }
+      },
+      "scope": "every reflected FederateAmbassador callback overload is invoked once per integer and floating logical-time route; Java carriers are converted to provider-neutral Python values without prescribing callback scheduling or federation semantics"
+    },
+    {
+      "id": "save-restore-outcomes",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/save_restore_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/save-control-requirements-contract.json",
+        "compliance/requirements-lab/restore-control-requirements-contract.json",
+        "compliance/requirements-lab/save-restore-interlock-requirements-contract.json",
+        "compliance/requirements-lab/timed-save-requirements-contract.json"
+      ],
+      "vector_count": 720,
+      "routes": [
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_provider_neutral_save_restore_outcome_matrix",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_provider_neutral_save_restore_outcome_matrix",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_mock_integration.py#test_standard_2010_live_save_restore_outcome_matrix"
+      ]
+    },
+    {
+      "id": "logical-time-wire-and-arithmetic",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/wire_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+        "compliance/requirements-lab/float-time-requirements-contract.json",
+        "compliance/requirements-lab/reference-time-requirements-contract.json"
+      ],
+      "wire_vector_count": 16,
+      "arithmetic_vector_count": 4,
+      "routes": [
+        "packages/umbra-rti-native/tests/test_native.py",
+        "packages/umbra-rti-native/tests/test_native_2010.py#test_native_logical_time_wire_and_arithmetic_matrix_round_trips_through_cpp",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_logical_time_wire_matrix_round_trips_through_jni"
+      ]
+    },
+    {
+      "id": "provider-extension-wire",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/extendable-variant-record-requirements-contract.json",
+        "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+      ],
+      "vector_count": 15,
+      "routes": [
+        "packages/umbra-rti-native/tests/test_native.py#test_native_extendable_variant_record_maps_and_skips_unknown_alternatives",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_encoder_factory_adapts_the_shared_data_element_contract",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_raw_java_extendable_variant_malformed"
+      ],
+      "scope": "2025 provider extension only"
+    },
+    {
+      "id": "vendor-time-arithmetic-surface",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/float-time-requirements-contract.json"
+      ],
+      "vector_count": 7,
+      "routes": [
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_time_factory_preserves_unknown_vendor_carriers",
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_time_factory_preserves_vendor_arithmetic_failures",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_provider_preserves_custom_2025_time_factory_and_arithmetic",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_provider_maps_vendor_arithmetic_failures",
+        "packages/umbra-rti-jpype/tests/test_java_provider.py#test_java_provider_delegates_variable_width_vendor_time_wire",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_logical_time_operation_surface_is_callable_through_jni"
+      ],
+      "scope": "provider-owned operation shape only; no portable arithmetic result"
+    },
+    {
+      "id": "vendor-data-element-wire-surface",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+        "compliance/requirements-lab/opaque-data-requirements-contract.json"
+      ],
+      "vector_count": 4,
+      "routes": [
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_unknown_data_element_carrier_preserves_wire_and_cursor",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_unknown_vendor_data_element_preserves_jni_carrier",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_unknown_vendor_data_element_preserves_carrier"
+      ],
+      "scope": "provider-owned unknown DataElement preservation and malformed behavior in both 2010 and 2025 JNI routes"
+    },
+    {
+      "id": "vendor-data-element-encode-surface",
+      "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+      "requirement_refs": [
+        "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+        "compliance/requirements-lab/opaque-data-requirements-contract.json"
+      ],
+      "vector_count": 4,
+      "routes": [
+        "packages/umbra-rti-jpype/tests/test_java_2010_provider.py#test_unknown_data_element_carrier_preserves_wire_and_cursor",
+        "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py#test_python_unknown_vendor_data_element_preserves_jni_carrier",
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py#test_cpp_jni_java_jpype_unknown_vendor_data_element_preserves_carrier"
+      ],
+      "scope": "provider-owned DataElement.encode(ByteWrapper) destination-window and typed failure behavior"
+    }
+  ]
+}

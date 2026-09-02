@@ -1,0 +1,3631 @@
+{
+  "schema_version": 1,
+  "purpose": "Small, queryable index for the human roadmap and the next bounded implementation slices.",
+  "documents": [
+    {
+      "id": "query-card",
+      "path": "docs/planning/QUERY-CARD.md",
+      "role": "small first-read work-selection and traceability command card"
+    },
+    {
+      "id": "roadmap",
+      "path": "docs/planning/ROADMAP.md",
+      "role": "human-readable implementation and evidence roadmap"
+    },
+    {
+      "id": "query-guide",
+      "path": "docs/planning/QUERY-GUIDE.md",
+      "role": "short bounded workflow for roadmap and test traceability queries"
+    },
+    {
+      "id": "implementation-plan",
+      "path": "docs/planning/IMPLEMENTATION-PLAN.md",
+      "role": "architecture and sequencing plan"
+    },
+    {
+      "id": "cpp-test-plan",
+      "path": "compliance/requirements-lab/catch2-test-plan.json",
+      "role": "C++ Catch2 test-to-Requirements-Lab requirement mapping"
+    },
+    {
+      "id": "requirements-bundle",
+      "path": ".compliance/corpus-bundle.json",
+      "role": "pinned 2025 standard clause, subsection, and source metadata"
+    }
+  ],
+  "mapping": {
+    "current_counts": {
+      "catch2_plan_cases": 840,
+      "catch2_cases_without_lab_requirement_mapping": 94,
+      "catch2_cases_without_cpp_source_location": 63,
+      "cpp_source_cases_without_plan_row": 276,
+      "cpp_source_cases_without_plan_row_fom_composer": 0,
+      "service_report_store_lane_cases": 10,
+      "service_report_store_lane_mapped_cases": 10
+    },
+    "lane_owners": {
+      "service-report-store": "mom-after-base-services",
+      "process-boundary": "transport-and-conformance",
+      "regional-attribute-relevance": "transport-and-conformance",
+      "fom-module-management": "fom-module-declaration-management",
+      "schema-conflict": "annex-c-and-reference-resolution",
+      "annex-c": "annex-c-and-reference-resolution",
+      "reference-resolution": "annex-c-and-reference-resolution"
+    },
+    "lane_handles": {
+      "service-report-store": {
+        "catch2_target": "umbra_service_report_store_catch2",
+        "ctest_filter": "^umbra\\.service_report_store\\.catch2\\.",
+        "junit_target": "umbra_service_report_store_junit",
+        "junit_artifact": "compliance/service-report-store/service-report-store.xml"
+      },
+      "regional-attribute-relevance": {
+        "catch2_target": "umbra_attribute_relevance_advisory_catch2",
+        "ctest_filter": "^umbra\\.attribute_relevance_advisory\\.catch2\\.",
+        "junit_target": "umbra_attribute_relevance_advisory_junit",
+        "junit_artifact": "compliance/regional-attribute-relevance/regional-attribute-relevance.xml"
+      },
+      "process-boundary": {
+        "ctest_label": "process-boundary",
+        "junit_target": "umbra_process_boundary_junit",
+        "junit_artifact": "compliance/process-boundary/process-boundary.xml"
+      },
+      "fom-module-management": {
+        "catch2_target": "umbra_fom_declaration_management_catch2",
+        "ctest_filter": "^umbra\\.fom_declaration_management\\.catch2\\.",
+        "source": "cpp/tests/fom_declaration_management_catch2.cpp"
+      },
+      "schema-conflict": {
+        "catch2_target": "umbra_fom_composer_catch2",
+        "ctest_filter": "^umbra\\.fom_composer\\.catch2\\.(The FDD materializer surfaces the multiple-directed-class schema conflict|The FDD materializer refuses the supplied extension when the official FDD schema cannot represent its directed-interaction merge)$",
+        "source": "cpp/tests/libxml2_fom_composer_catch2.cpp"
+      },
+      "reference-resolution": {
+        "catch2_target": "umbra_fom_composer_catch2",
+        "ctest_filter": "^umbra\\.fom_composer\\.catch2\\.(The FOM composition preflight resolves representations and special instance identifiers|The FOM composition preflight resolves directed interactions and retains sharing metadata|The FDD materializer surfaces the multiple-directed-class schema conflict|The FOM composition preflight resolves data-type references after the complete module set is merged|The FOM composition preflight resolves reference-data classes after the complete module set is merged|The FOM composition preflight resolves reference-data attributes and representations|The FOM composition preflight resolves available dimensions after the complete module set is merged|The FOM composition preflight resolves transportation names after the complete module set is merged)$",
+        "source": "cpp/tests/libxml2_fom_composer_catch2.cpp"
+      }
+    },
+    "lane_assertion_counts": {
+      "process-boundary": 1617
+    },
+    "test_requirement_field": "selected_requirements_lab_requirement_ids",
+    "queryable_test_fields": [
+      "id",
+      "test_case",
+      "tags",
+      "assertions",
+      "callback_models",
+      "delivery_modes",
+      "callback_gate_modes",
+      "selected_cpp_api_surface_ids",
+      "lab_requirement_ids",
+      "standard_sections",
+      "source_locations",
+      "source_state",
+      "status",
+      "roadmap_items"
+    ],
+    "standard_mapping_strategy": "Each selected_requirements_lab_requirement_ids entry resolves through the pinned corpus bundle to one canonical 2025 document_id:clause_id; query test for the full requirement-to-section table, query trace for one bounded direct test-to-requirement-to-section record, or query section for every mapped test at one exact clause/subsection. The next --summary view exposes the indexed slice's canonical section keys without expanding the full plan.",
+    "first_read_strategy": "Read QUERY-CARD.md first. It is intentionally short; QUERY-GUIDE.md, ROADMAP.md, and IMPLEMENTATION-PLAN.md are deeper references and should be opened only after work/trace/check identifies the exact slice.",
+    "test_query_strategy": "Use work for the single active implementation slice, focus for one exact lane's bounded candidate/status card, an exact test_case string for one regression, trace for one exact plan/test/requirement/section/lane handle, a stable Catch2 tag for a lane, requirement/section for reverse traceability, and recent --summary --compact for the newest completion ledger entries. Do not infer work from a full-suite scan.",
+    "trace_query_strategy": "trace resolves exact plan id or TEST_CASE title first, then exact Lab or contract requirement id, exact canonical 2025 document_id:clause_id (or clause-only suffix), then an exact Catch2 lane tag. It never falls back to fuzzy search; use search explicitly for discovery. Each trace row pairs the selected requirement id with its canonical 2025 subsection and title, plus the C++ source location, API surfaces, and owning roadmap families.",
+    "focused_check_strategy": "Use check --lane <exact-tag> as the iteration-local integrity gate: roadmap structure and 2025 references remain checked globally, while test/source and completion-ledger validation is limited to the selected lane. Unlocated historical rows stay visible as source drift; unscoped check is the strict whole-plan reconciliation gate.",
+    "focused_lane_strategy": "Use focus [<exact-catch2-tag>] --summary --compact after work: it resolves the active lane, separates source-located executable candidates from implemented and source-drift rows, and prints owner, requirement/section counts, and copyable lane handles. Use --json for automation; use --limit 0 only for an intentional complete candidate list.",
+    "test_source_location_strategy": "Derived per query from TEST_CASE declarations beneath cpp/tests; grouped semicolon-separated plan entries resolve to each matching declaration. Entries marked source-missing-needs-reconciliation are retained for requirement history and surfaced by the unlocated query until their declaration is restored or the catalog entry is superseded.",
+    "source_plan_strategy": "Use unplanned --path <source-file> to list source TEST_CASE declarations with no exact Catch2 plan row; this is a bounded reconciliation queue and never infers requirements, status, or roadmap ownership.",
+    "standard_section_fields": ["document_id", "clause", "clause_id", "title", "source"],
+    "test_status_semantics": {
+      "source-missing-needs-reconciliation": "Requirement and subsection history retained, but the current checkout has no matching TEST_CASE declaration; query with unlocated before restoring or superseding the entry."
+    },
+    "next_source_state_semantics": {
+      "planned": "A future C++ TEST_CASE target with its file, lane, requirement, subsection, and API contract recorded; it is not executable evidence until the declaration and plan row exist.",
+      "unplanned-source": "A source TEST_CASE declaration exists without an exact plan row; query it with unplanned and add an explicit mapped plan row before treating it as evidence."
+    },
+    "query_commands": [
+      "python tools/query_rti_work.py status",
+      "python tools/query_rti_work.py queue --summary --compact",
+      "python tools/query_rti_work.py next",
+      "python tools/query_rti_work.py focus [<catch2-tag>]",
+      "python tools/query_rti_work.py work",
+      "python tools/query_rti_work.py work <roadmap-or-work-item-id>",
+      "python tools/query_rti_work.py next --json",
+      "python tools/query_rti_work.py check --lane <catch2-tag> --compact",
+      "python tools/query_rti_work.py check --compact",
+      "python tools/query_rti_work.py check --json",
+      "python tools/query_rti_work.py item <roadmap-item-id>",
+      "python tools/query_rti_work.py plan",
+      "python tools/query_rti_work.py coverage",
+      "python tools/query_rti_work.py coverage --lane <catch2-tag>",
+      "python tools/query_rti_work.py lane <catch2-tag> --summary",
+      "python tools/query_rti_work.py test <name-or-id>",
+      "python tools/query_rti_work.py requirement <lab-id-or-clause>",
+      "python tools/query_rti_work.py section <document-id:clause-id>",
+      "python tools/query_rti_work.py trace <exact-test-id-title-requirement-or-section>",
+      "python tools/query_rti_work.py search <any-id-tag-or-section>",
+      "python tools/query_rti_work.py unplanned --path <source-file> --summary",
+      "python tools/query_rti_work.py unmapped",
+      "python tools/query_rti_work.py unlocated",
+      "python tools/query_rti_work.py unmapped --lane <catch2-tag>",
+      "python tools/query_rti_work.py unlocated --lane <catch2-tag>",
+      "python tools/query_rti_work.py lanes --summary"
+    ],
+    "next_step_fields": [
+      "next_work_id",
+      "next_work_status",
+      "next_work_query",
+      "next_task",
+      "next_lane",
+      "next_test_role",
+      "next_test_query",
+      "next_source_state",
+      "next_source_test_query",
+      "next_source_location",
+      "next_source_lane",
+      "next_source_requirement_ids",
+      "next_source_standard_sections",
+      "next_source_api_surfaces",
+      "next_source_ctest_filter",
+      "next_ctest_filter",
+      "next_package_target",
+      "next_package_ctest_filter",
+      "next_package_manifest",
+      "next_junit_target",
+      "next_junit_artifact",
+      "next_process_probe_target",
+      "next_process_package_target",
+      "next_process_package_test",
+      "next_process_package_ctest_filter",
+      "next_process_package_timestamped_test",
+      "next_process_package_timestamped_ctest_filter",
+      "next_process_package_parameterized_test",
+      "next_process_package_parameterized_ctest_filter",
+      "next_process_package_connection_loss_test",
+      "next_process_package_connection_loss_ctest_filter",
+      "next_process_package_object_registration_test",
+      "next_process_package_object_registration_ctest_filter",
+      "next_process_package_named_registration_test",
+      "next_process_package_named_registration_ctest_filter",
+      "next_process_package_attribute_update_test",
+      "next_process_package_attribute_update_ctest_filter",
+      "next_process_package_directed_retraction_test",
+      "next_process_package_directed_retraction_ctest_filter",
+      "next_process_package_catalog_verifier",
+      "next_standard_sections",
+      "next_plan_ids",
+      "catalog_gap_plan_ids"
+    ],
+    "bounded_query_commands": [
+      "python tools/query_rti_work.py status --compact",
+      "python tools/query_rti_work.py work --summary --compact",
+      "python tools/query_rti_work.py next --compact",
+      "python tools/query_rti_work.py next --summary",
+      "python tools/query_rti_work.py focus [<catch2-tag>] --summary --compact",
+      "python tools/query_rti_work.py unplanned --path <source-file> --limit 1 --summary",
+      "python tools/query_rti_work.py next --json",
+      "python tools/query_rti_work.py check --lane <catch2-tag> --summary --compact",
+      "python tools/query_rti_work.py check --compact",
+      "python tools/query_rti_work.py check --json",
+      "python tools/query_rti_work.py test \"Embedded transport loss applies the bounded automatic NoAction forced-resign policy\" --summary --compact",
+      "python tools/query_rti_work.py test \"RTIambassador publishes object-class attributes and registers an object through a configured process endpoint\" --summary --compact",
+      "python tools/query_rti_work.py test \"RTIambassador reserves a name and registers a named object through a configured process endpoint\" --summary --compact",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R \"^umbra_rti_package_process_connection_loss_consumer$\" --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R \"^umbra_rti_package_process_object_registration_consumer$\" --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-object-registration --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R \"^umbra_rti_package_process_attribute_update_consumer$\" --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-attribute-update --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R \"^umbra_rti_package_process_parameterized_consumer$\" --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-parameterized --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R \"^umbra_rti_package_process_directed_retraction_consumer$\" --output-on-failure",
+      "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-directed-retraction --output-on-failure",
+      "python tools/query_rti_work.py test \"RTIambassador receives a process interaction through the official Evoke callback surface\" --summary --compact",
+      "python tools/query_rti_work.py test \"Private process service routes ordinary Update Attribute Values to a subscribed receiver\" --summary --compact",
+      "python tools/query_rti_work.py test \"RTIambassador routes public Update Attribute Values through a configured process endpoint\" --summary --compact",
+      "python tools/query_rti_work.py test \"RTIambassador delivers a process Update Attribute Values event through the official Reflect callback\" --summary --compact",
+      "python tools/query_rti_work.py section hla-1516.1-2025:clause-6.10 --summary --limit 20",
+      "python tools/query_rti_work.py section hla-1516.1-2025:clause-6.11.1 --summary --limit 20",
+      "python tools/query_rti_work.py trace <exact-test-id-title-requirement-or-section> --summary --compact",
+      "python tools/query_rti_work.py coverage --lane <catch2-tag> --summary --compact",
+      "python tools/query_rti_work.py lane service-report-store --summary --compact",
+      "python tools/query_rti_work.py coverage --lane service-report-store --summary --compact",
+      "python tools/query_rti_work.py check --lane service-report-store --summary --compact",
+      "ctest --test-dir <build-dir> -C Debug -R \"^umbra\\.service_report_store\\.catch2\\.\" --output-on-failure",
+      "cmake --build <build-dir> --config Debug --target umbra_service_report_store_junit",
+      "python tools/query_rti_work.py trace umbra-service-report-file-lifecycle-allocates-one-joined-federate-file --summary --compact",
+      "python tools/query_rti_work.py trace umbra-service-report-file-lifecycle-switches-gate-appends-only --summary --compact",
+      "cmake --build <build-dir> --config Debug --target umbra_attribute_relevance_advisory_catch2",
+      "ctest --test-dir <build-dir> -C Debug -R \"^umbra\\.attribute_relevance_advisory\\.catch2\\.\" --output-on-failure",
+      "cmake --build <build-dir> --config Debug --target umbra_attribute_relevance_advisory_junit",
+      "python tools/query_rti_work.py item time-save-restore --compact --limit 20",
+      "python tools/query_rti_work.py lane public-process-restart-ownership-assumption-search --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending Request Attribute Ownership Assumption through HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-ownership-acquisition-cancellation --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image restores a pending ownership-acquisition cancellation in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane process-restart-pending-attribute-value-update --compact",
+      "python tools/query_rti_work.py lane public-process-restart-pending-attribute-value-update --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-class-pending-attribute-value-update --compact",
+      "python tools/query_rti_work.py lane public-process-restart-class-pending-attribute-value-update --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-regional-pending-attribute-value-update --compact",
+      "python tools/query_rti_work.py lane public-process-restart-regional-pending-attribute-value-update --compact",
+      "python tools/query_rti_work.py lane process-restart-regional-pending-attribute-value-update-provider-departure --summary",
+      "python tools/query_rti_work.py lane public-process-restart-regional-pending-attribute-value-update-provider-departure --summary",
+      "python tools/query_rti_work.py lane public-process-restart-regional-pending-attribute-value-update-negative --summary",
+      "python tools/query_rti_work.py section hla-1516.1-2025:clause-9.13.1 --summary --limit 20",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending regional object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane tso-object-deletion-state --compact",
+      "python tools/query_rti_work.py lane timestamped-regional-attribute-update --compact",
+      "python tools/query_rti_work.py lane public-process-restart-application-value --compact",
+      "python tools/query_rti_work.py lane pending-application-request-state --compact",
+      "python tools/query_rti_work.py lane public-process-restart-pending-attribute-ownership-query --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds a pending Query Attribute Ownership callback under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-pending-attribute-ownership-query-unowned --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds a pending unowned Query Attribute Ownership callback under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-pending-rti-owned-attribute-ownership-query --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds a pending RTI-owned Query Attribute Ownership callback under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py test \"Embedded HLA_IMMEDIATE Query Attribute Ownership dispatches all 2025 report kinds\" --compact",
+      "python tools/query_rti_work.py lane process-restart-ownership-assumption-search --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image restores ownership assumption search state and continues with a newly eligible federate\" --compact",
+      "python tools/query_rti_work.py lane timestamped-regional-attribute-update --summary --limit 20",
+      "python tools/query_rti_work.py lane timestamped-object-deletion --summary --limit 20",
+      "python tools/query_rti_work.py lane association-replacement --compact",
+      "python tools/query_rti_work.py lane subscription-replacement --compact",
+      "python tools/query_rti_work.py lane changed-lookahead --compact",
+      "python tools/query_rti_work.py unlocated --summary --limit 20",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-resignation-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-live-restore-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-live-resignation-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-live-restore-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-live-resignation-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-multi-resignation-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-delete-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-if-available-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-continuation-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-confirmation-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-mixed-candidate-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-mixed-confirmation-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-mixed-pre-delivery-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-retained-regular-pre-delivery-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-retained-regular-confirmation-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-regular-candidate-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-if-available-regular-candidate-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-regular-retained-confirmation-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-negotiated-regular-retained-pre-delivery-cancel-state --compact",
+      "python tools/query_rti_work.py lane tso-regional-attribute-update-timed-resignation-matrix --summary",
+      "python tools/query_rti_work.py lane timestamped-regional-attribute-timed-restore-multi-recipient --compact",
+      "python tools/query_rti_work.py test \"Filesystem fresh-registry restore preserves one timestamped regional attribute-update payload across source-region mutation and resignation\" --compact",
+      "python tools/query_rti_work.py search \"regional timestamped\" --summary",
+      "python tools/query_rti_work.py unmapped --summary --limit 20",
+      "python tools/query_rti_work.py unmapped --lane <catch2-tag> --summary --limit 20",
+      "python tools/query_rti_work.py unlocated --lane <catch2-tag> --summary --limit 20",
+      "python tools/query_rti_work.py lanes --summary --limit 40",
+      "python tools/query_rti_work.py lane process-restart --summary",
+      "python tools/query_rti_work.py lane process-restart-interaction-transportation-type-change --compact",
+      "python tools/query_rti_work.py lane process-restart-interaction-declaration --compact",
+      "python tools/query_rti_work.py lane process-restart-directed-interaction-declaration --compact",
+      "python tools/query_rti_work.py lane process-restart-directed-interaction-routing --compact",
+      "python tools/query_rti_work.py lane process-restart-directed-interaction-ownership-handoff --compact",
+      "python tools/query_rti_work.py lane public-process-restart-directed-interaction-ownership-handoff --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore follows directed by-ownership target handoff and receive-order delivery under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-directed-interaction-tso-ownership-callback --compact",
+      "python tools/query_rti_work.py lane public-process-restart-directed-interaction-tso-ownership-callback --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore suppresses stale directed TSO callback after by-ownership handoff under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-directed-interaction-tso-ownership-delivery-retraction --compact",
+      "python tools/query_rti_work.py lane public-process-restart-directed-interaction-tso-ownership-delivery-retraction --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore delivers eligible directed TSO and issues Request Retraction under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-directed-interaction-tso-post-delivery-resignation --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-directed-interaction-tso-alternate-advances --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-directed-interaction-tso-fanout-positive-negative --compact",
+      "python tools/query_rti_work.py lane timestamped-default-region-attribute-retract-alternate-advance --compact",
+      "python tools/query_rti_work.py test \"Embedded timestamped default-region attribute updates retract before TARA and NMRA grants\" --compact",
+      "python tools/query_rti_work.py lane time-advance-request-available --summary",
+      "python tools/query_rti_work.py lane process-restart-directed-interaction-tso-parameter-projection --compact",
+      "python tools/query_rti_work.py lane process-restart-regional-interaction-tso-ddm --compact",
+      "python tools/query_rti_work.py test \"Filesystem fresh-registry restore preserves one timestamped regional interaction payload and source-region snapshot\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-regional-interaction-tso-ddm --compact",
+      "python tools/query_rti_work.py test \"Embedded public restore rehydrates queued timestamped regional interaction and preserves filesystem service-report identity\" --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds queued timestamped regional interaction and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-attribute-transportation-type-change --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending attribute transportation-type change and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-interaction-transportation-type-change --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending interaction transportation-type change and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-interaction-transportation-type-override --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore preserves committed interaction transportation-type override and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image restores a committed interaction transportation-type override in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-regional-attribute-update-tso-ddm --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds queued timestamped regional attribute update and preserves report-file lifetimes\" --compact",
+      "python tools/query_rti_work.py lane durable-save-regional-pending-attribute-value-update-response-retraction --compact",
+      "python tools/query_rti_work.py unlocated --summary --limit 20",
+      "python tools/query_rti_work.py lane durable-save-regional-pending-attribute-value-update-regular-response --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Request Attribute Value Update supports a 2025 provider response\" --compact",
+      "python tools/query_rti_work.py lane durable-save-regional-pending-attribute-value-update-regular-response-no-replay --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore does not replay a delivered receive-order regional provider response under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide solicits overlap-qualified owners and suppresses stale disjoint work\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-immediate --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide preserves synchronous discovery-before-provider ordering under HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-response --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide provider response reflects one scoped value under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-timestamped-response --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide timestamped response reflects once and exposes valid retraction under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-multi-provider --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide fans out one request across two provider owners under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-switch-mutation --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-timestamped-switch-mutation --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-switch-admission-mutation --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-timestamped-switch-admission-mutation --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane regional-automatic-provision-relaxed-ddm --compact",
+      "python tools/query_rti_work.py test \"Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-object-deletion-tso --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds queued timestamped object deletion and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-object-deletion-retraction --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore retracts delivered timestamped object deletion for one recipient under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-interaction-declaration --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rehydrates mixed interaction declaration and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-directed-interaction-tso-fanout --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds directed TSO fan-out and retracts only the delivered recipient under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-directed-interaction-tso-parameter-projection --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry parameterized directed TSO preserves parameter projection and timestamped order metadata under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-attribute-ownership-acquisition --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending regular ownership release callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-attribute-ownership-acquisition-if-available --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending If Available ownership callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-attribute-ownership-negotiated-owner-confirmation --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending negotiated owner confirmation and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-attribute-ownership-negotiated-if-available-owner-confirmation --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds pending negotiated If Available owner confirmation and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-attribute-ownership-mixed-negotiated-ownership --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore rebinds mixed negotiated ownership confirmations and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-negotiated-confirmation-delivered --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore preserves delivered negotiated owner confirmation and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-negotiated-confirmation-delivered --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image preserves delivered negotiated owner confirmation in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane process-restart-negotiated-if-available-confirmation-delivered --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image preserves delivered negotiated If Available confirmation in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-negotiated-if-available-confirmation-delivered --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore preserves delivered negotiated If Available confirmation and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-mixed-confirmation-delivered --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image preserves mixed delivered negotiated confirmations in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-mixed-confirmation-delivered --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore preserves mixed delivered negotiated confirmations and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE\" --compact",
+      "python tools/query_rti_work.py lane process-restart-negotiated-mixed-confirmation-delivered --compact",
+      "python tools/query_rti_work.py lane process-restart-asymmetric-mixed-confirmation --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image restores an asymmetric mixed negotiated confirmation in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane public-process-restart-asymmetric-mixed-confirmation --compact",
+      "python tools/query_rti_work.py test \"Embedded public fresh-registry restore preserves asymmetric mixed negotiated confirmation and report-file lifetimes\" --compact",
+      "python tools/query_rti_work.py lane process-restart-asymmetric-mixed-confirmation-reverse --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image restores the reverse asymmetric mixed negotiated confirmation in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane process-restart-attribute-ownership-negotiated-if-available-owner-confirmation --compact",
+      "python tools/query_rti_work.py test \"Filesystem state image restores pending negotiated If Available owner confirmation in a fresh registry\" --compact",
+      "python tools/query_rti_work.py lane attribute-ownership-acquisition --summary",
+      "python tools/query_rti_work.py lane tso-retraction-designator-uniqueness --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded federation restore preserves TSO retraction-designator uniqueness\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-directed-interaction-restore-multi-recipient --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded federation restore restores one queued timestamped directed interaction to multiple recipients\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-directed-interaction-restore --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded federation restore restores a saved live timestamped directed interaction\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-default-region-attribute-restore-multi-recipient --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-regional-attribute-timed-restore-multi-recipient --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-directed-interaction-subscription-kind --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded timestamped directed interactions distinguish ownership and universal subscriptions\" --summary --compact",
+      "python tools/query_rti_work.py lane directed-target-departure --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded timestamped target departure suppresses directed delivery at the grant boundary\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-directed-interaction-time-regulated-service-report-interaction --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-directed-interaction-time-regulated-service-report-file --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-directed-interaction-service-report --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting records timestamped Send Directed Interaction before directed callback\" --summary --compact",
+      "python tools/query_rti_work.py lane send-interaction-service-report --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting preserves receive-order Send Interaction arguments\" --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting delivers receive-order Send Interaction through MOM interaction\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-send-interaction-service-report --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting records timestamped Send Interaction before interaction callback\" --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting delivers timestamped Send Interaction through MOM interaction\" --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-attribute-update-time-regulated-service-report-interaction --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction\" --summary --compact",
+      "python tools/query_rti_work.py lane request-retraction-attribute-update-mixed-fanout --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction\" --summary --compact",
+      "python tools/query_rti_work.py lane request-retraction-suppressed-interaction --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded suppressed timestamped interaction callback does not request retraction\" --summary --compact",
+      "python tools/query_rti_work.py lane request-retraction-suppressed-attribute-update --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded suppressed timestamped attribute callback does not request retraction\" --summary --compact",
+      "python tools/query_rti_work.py lane timestamped-regional-attribute-update-mixed-advance --summary --compact",
+      "python tools/query_rti_work.py test \"Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants\" --summary --compact",
+      "python tools/query_rti_work.py requirement hla-1516.1-2025:clause-8.3.1 --compact"
+    ]
+  },
+  "recent_completed_slices": [
+    {
+      "plan_id": "umbra-cpp-request-retraction-attribute-update-integration",
+      "test_query": "Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
+      "lane_queries": [
+        "request-retraction-attribute-update",
+        "timestamped-attribute-update",
+        "object-management",
+        "time-management",
+        "tso",
+        "callbacks",
+        "passels",
+        "rti.service.update-attribute-values",
+        "rti.service.retract"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:94451",
+      "assertions": 69,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-attribute-update-available-advance-integration",
+      "test_query": "Embedded timestamped Update Attribute Values honors available and next-message available grants",
+      "lane_queries": [
+        "timestamped-attribute-update-available-advance",
+        "timestamped-attribute-update",
+        "object-management",
+        "time-management",
+        "time-advance-request-available",
+        "next-message-request-available",
+        "rti.service.update-attribute-values",
+        "rti.service.time-advance-request-available",
+        "rti.service.next-message-request-available",
+        "rti.service.time-advance-request",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49028",
+      "assertions": 57,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.9"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-request-retraction-attribute-update-mixed-fanout-integration",
+      "test_query": "Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction",
+      "lane_queries": [
+        "request-retraction-attribute-update-mixed-fanout",
+        "request-retraction-attribute-update",
+        "timestamped-attribute-update",
+        "object-management",
+        "time-management",
+        "tso",
+        "multi-federate-callback-ordering",
+        "mixed-recipient-time-boundary",
+        "rti.service.update-attribute-values",
+        "rti.service.retract",
+        "rti.service.time-advance-request"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:94600",
+      "assertions": 75,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-request-retraction-suppressed-interaction-integration",
+      "test_query": "Embedded suppressed timestamped interaction callback does not request retraction",
+      "lane_queries": [
+        "request-retraction-suppressed-interaction",
+        "timestamped-interaction",
+        "interaction-management",
+        "time-management",
+        "tso",
+        "retract",
+        "rti.service.send-interaction",
+        "rti.service.unsubscribe-interaction-class",
+        "rti.service.retract",
+        "federate.callback.receive-interaction",
+        "federate.callback.request-retraction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:94754",
+      "assertions": 31,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-request-retraction-suppressed-attribute-update-integration",
+      "test_query": "Embedded suppressed timestamped attribute callback does not request retraction",
+      "lane_queries": [
+        "request-retraction-suppressed-attribute-update",
+        "timestamped-attribute-update",
+        "object-management",
+        "time-management",
+        "tso",
+        "retract",
+        "rti.service.update-attribute-values",
+        "rti.service.unsubscribe-object-class-attributes",
+        "rti.service.retract",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.request-retraction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:94834",
+      "assertions": 33,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-regional-attribute-update-mixed-advance-integration",
+      "test_query": "Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+      "lane_queries": [
+        "timestamped-regional-attribute-update-mixed-advance",
+        "timestamped-regional-attribute-update",
+        "object-management",
+        "ddm",
+        "time-management",
+        "tso",
+        "multi-federate-callback-ordering",
+        "flush-queue-request",
+        "time-advance-request-available",
+        "next-message-request-available",
+        "rti.service.update-attribute-values",
+        "rti.service.set-range-bounds",
+        "rti.service.commit-region-modifications",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.set-convey-region-designator-sets-switch",
+        "rti.service.flush-queue-request",
+        "rti.service.time-advance-request-available",
+        "rti.service.next-message-request-available",
+        "rti.service.time-advance-request",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.flush-queue-grant",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49713",
+      "assertions": 131,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-8.9"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-regional-attribute-update-retract-mixed-advance-integration",
+      "test_query": "Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
+      "lane_queries": [
+        "timestamped-regional-attribute-update-retract-mixed-advance",
+        "timestamped-regional-attribute-update",
+        "object-management",
+        "ddm",
+        "time-management",
+        "tso",
+        "retract",
+        "flush-queue-request",
+        "time-advance-request-available",
+        "next-message-request-available",
+        "rti.service.update-attribute-values",
+        "rti.service.retract",
+        "rti.service.set-range-bounds",
+        "rti.service.commit-region-modifications",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.set-convey-region-designator-sets-switch",
+        "rti.service.flush-queue-request",
+        "rti.service.time-advance-request-available",
+        "rti.service.next-message-request-available",
+        "rti.service.time-advance-request",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.request-retraction",
+        "federate.callback.flush-queue-grant",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49537",
+      "assertions": 88,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-8.9"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-regional-attribute-update-tar-nmr-integration",
+      "test_query": "Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+      "lane_queries": [
+        "timestamped-regional-attribute-update-tar-nmr",
+        "timestamped-regional-attribute-update",
+        "object-management",
+        "ddm",
+        "time-management",
+        "tso",
+        "time-advance-request",
+        "next-message-request",
+        "rti.service.update-attribute-values",
+        "rti.service.set-range-bounds",
+        "rti.service.commit-region-modifications",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.time-advance-request",
+        "rti.service.next-message-request",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49381",
+      "assertions": 94,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-regional-attribute-update-integration",
+      "test_query": "Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
+      "lane_queries": [
+        "timestamped-regional-attribute-update-mixed-fanout",
+        "mixed-fanout",
+        "timestamped-regional-attribute-update",
+        "object-management",
+        "ddm",
+        "time-management",
+        "support-switches",
+        "multi-federate-callback-ordering",
+        "rti.service.update-attribute-values",
+        "rti.service.retract",
+        "rti.service.time-advance-request",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.associate-regions-for-updates",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.time-advance-grant",
+        "federate.callback.request-retraction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49148",
+      "assertions": 114,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-attribute-update-time-regulated-service-report-mom-interaction",
+      "test_query": "Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction",
+      "lane_queries": [
+        "timestamped-attribute-update-time-regulated-service-report-interaction",
+        "timestamped-attribute-update-service-report",
+        "object-management",
+        "time-management",
+        "tso",
+        "mom",
+        "service-reporting",
+        "service-report-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:94208",
+      "assertions": 119,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction",
+      "test_query": "Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction",
+      "lane_queries": [
+        "timestamped-send-interaction-time-regulated-service-report-interaction",
+        "timestamped-send-interaction-service-report-interaction",
+        "interaction-management",
+        "time-management",
+        "tso",
+        "mom",
+        "service-reporting",
+        "service-report-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:93966",
+      "assertions": 115,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-send-interaction-service-report-mom-interaction",
+      "test_query": "Embedded service reporting delivers timestamped Send Interaction through MOM interaction",
+      "lane_queries": [
+        "timestamped-send-interaction-service-report-interaction",
+        "timestamped-send-interaction-service-report",
+        "interaction-management",
+        "time-management",
+        "tso",
+        "mom",
+        "service-reporting",
+        "service-report-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:93770",
+      "assertions": 91,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-send-interaction-service-report-file-integration",
+      "test_query": "Embedded service reporting records timestamped Send Interaction before interaction callback",
+      "lane_queries": [
+        "timestamped-send-interaction-service-report",
+        "timestamped-interaction",
+        "interaction-management",
+        "time-management",
+        "tso",
+        "mom",
+        "service-report-file",
+        "service-reporting"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:93619",
+      "assertions": 153,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-send-interaction-service-report-mom-interaction",
+      "test_query": "Embedded service reporting delivers receive-order Send Interaction through MOM interaction",
+      "lane_queries": [
+        "send-interaction-service-report",
+        "receive-order-send-interaction-service-report-interaction",
+        "interaction-management",
+        "mom",
+        "service-reporting",
+        "service-report-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:93428",
+      "assertions": 85,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-send-interaction-service-report-file-integration",
+      "test_query": "Embedded service reporting preserves receive-order Send Interaction arguments",
+      "lane_queries": [
+        "send-interaction-service-report",
+        "interaction-management",
+        "mom",
+        "service-report-file",
+        "service-reporting"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:95092",
+      "assertions": 145,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timed-restore-live-tso-default-region-interaction-integration",
+      "test_query": "Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary",
+      "lane_queries": [
+        "save-restore",
+        "timed-save",
+        "interaction-management",
+        "ddm",
+        "time-management",
+        "tso",
+        "timestamped-default-region-interaction",
+        "default-region"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:64730",
+      "assertions": 76,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.20",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3",
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.1.4",
+        "hla-1516.1-2025:clause-9.1.8"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-send-directed-interaction-service-report-file-integration",
+      "test_query": "Embedded service reporting records timestamped Send Directed Interaction before directed callback",
+      "lane_queries": [
+        "timestamped-directed-interaction-service-report",
+        "timestamped-directed-interaction",
+        "directed",
+        "time-management",
+        "tso",
+        "mom",
+        "service-report-file"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:94926",
+      "assertions": 163,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-send-directed-interaction-service-report-file-integration",
+      "test_query": "Embedded service reporting preserves receive-order Send Directed Interaction arguments",
+      "lane_queries": [
+        "send-directed-interaction-service-report",
+        "directed",
+        "mom",
+        "service-report-file",
+        "service-reporting",
+        "interaction-management"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:95223",
+      "assertions": 158,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.14",
+        "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.15.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-file",
+      "test_query": "Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
+      "lane_queries": [
+        "timestamped-directed-interaction-time-regulated-service-report-file",
+        "timestamped-directed-interaction",
+        "directed",
+        "time-management",
+        "tso",
+        "mom",
+        "service-report-file"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:93225",
+      "assertions": 236,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-durable-save-regional-pending-attribute-value-update-regular-response-no-replay-integration",
+      "test_query": "Embedded public fresh-registry restore does not replay a delivered receive-order regional provider response under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "public-durable-save-regional-pending-attribute-value-update-regular-response-no-replay",
+        "durable-save-regional-pending-attribute-value-update-regular-response-no-replay"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:91960",
+      "assertions": 187,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21.1",
+        "hla-1516.1-2025:clause-4.22",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.13.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-object-class-request-provider-response-integration",
+      "test_query": "Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "object-class-request-provider-response",
+        "tso",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4127",
+      "assertions": 97,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-6.21.5",
+        "hla-1516.1-2025:clause-6.22",
+        "hla-1516.1-2025:clause-8.14.3",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.25.3",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-connection-lost-tso-cutoff-object-deletion-automatic-delete-integration",
+      "test_query": "Embedded transport loss preserves a cutoff timestamped deletion across automatic delete cleanup",
+      "lane_queries": [
+        "connection-lost-tso-cutoff",
+        "automatic-resign-delete"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:64889",
+      "assertions": 53,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.17.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-connection-lost-tso-cutoff-object-deletion-multi-recipient-integration",
+      "test_query": "Embedded transport loss drains a cutoff timestamped deletion to each pending survivor",
+      "lane_queries": [
+        "connection-lost-tso-cutoff",
+        "automatic-resign-delete",
+        "multi-recipient"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:64388",
+      "assertions": 77,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.17.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-local-delete-isolates-timestamped-attribute-deliveries-integration",
+      "test_query": "Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+      "lane_queries": [
+        "local-delete-object-instance",
+        "multi-federate-callback-ordering",
+        "timestamped-attribute-update"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:60143",
+      "assertions": 86,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-6.18.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-local-delete-isolates-timestamped-object-removals-integration",
+      "test_query": "Embedded local deletion isolates queued timestamped object removals per recipient",
+      "lane_queries": [
+        "local-delete-object-instance",
+        "multi-federate-callback-ordering",
+        "timestamped-object-deletion"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59999",
+      "assertions": 60,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1",
+        "hla-1516.1-2025:clause-6.18.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-regional-automatic-provision-integration",
+      "test_query": "Embedded regional Auto Provide solicits overlap-qualified owners and suppresses stale disjoint work",
+      "lane_queries": [
+        "regional-automatic-provision",
+        "auto-provide-regional"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52965",
+      "assertions": 45,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-regional-automatic-provision-immediate-integration",
+      "test_query": "Embedded regional Auto Provide preserves synchronous discovery-before-provider ordering under HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-immediate",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53138",
+      "assertions": 42,
+      "callback_models": ["HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-regional-automatic-provision-response-integration",
+      "test_query": "Embedded regional Auto Provide provider response reflects one scoped value under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-response",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53281",
+      "assertions": 96,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+  {
+    "plan_id": "umbra-cpp-public-regional-automatic-provision-timestamped-response-integration",
+      "test_query": "Embedded regional Auto Provide timestamped response reflects once and exposes valid retraction under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-timestamped-response",
+        "timestamped-regional-attribute-update",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53472",
+      "assertions": 134,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.14.3",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.25.3",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-9.1.8",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-public-regional-automatic-provision-timestamped-switch-mutation-integration",
+    "test_query": "Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+    "lane_queries": [
+      "regional-automatic-provision-timestamped-switch-mutation",
+      "auto-provide-regional",
+      "timestamped-regional-attribute-update",
+      "tso",
+      "callback-immediate"
+    ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54272",
+    "assertions": 206,
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-1",
+      "hla-1516.1-2025:clause-4.32",
+      "hla-1516.1-2025:clause-6.1.10",
+      "hla-1516.1-2025:clause-6.10",
+      "hla-1516.1-2025:clause-6.10.5",
+      "hla-1516.1-2025:clause-6.11.1",
+      "hla-1516.1-2025:clause-8.1.6",
+      "hla-1516.1-2025:clause-8.14.3",
+      "hla-1516.1-2025:clause-8.2",
+      "hla-1516.1-2025:clause-8.25.3",
+      "hla-1516.1-2025:clause-8.3.1",
+      "hla-1516.1-2025:clause-8.5.5",
+      "hla-1516.1-2025:clause-8.6.3",
+      "hla-1516.1-2025:clause-8.8.3",
+      "hla-1516.1-2025:clause-9.1.8",
+      "hla-1516.1-2025:clause-9.13.1",
+      "hla-1516.1-2025:clause-11.5",
+      "hla-1516.1-2025:clause-11.5.2"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-public-regional-automatic-provision-multi-provider-integration",
+      "test_query": "Embedded regional Auto Provide fans out one request across two provider owners under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-multi-provider",
+        "auto-provide-regional",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54577",
+      "assertions": 196,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-7.1.2.1",
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-7.4",
+        "hla-1516.1-2025:clause-7.7.3",
+        "hla-1516.1-2025:clause-7.9.1",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-public-regional-automatic-provision-switch-mutation-integration",
+    "test_query": "Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+    "lane_queries": [
+      "regional-automatic-provision-switch-mutation",
+      "auto-provide-regional",
+      "callback-immediate"
+    ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54954",
+    "assertions": 224,
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-1",
+      "hla-1516.1-2025:clause-4.32",
+      "hla-1516.1-2025:clause-6.1.10",
+      "hla-1516.1-2025:clause-6.10",
+      "hla-1516.1-2025:clause-6.10.5",
+      "hla-1516.1-2025:clause-6.11.1",
+      "hla-1516.1-2025:clause-7.1.2.1",
+      "hla-1516.1-2025:clause-7.2",
+      "hla-1516.1-2025:clause-7.4",
+      "hla-1516.1-2025:clause-7.7.3",
+      "hla-1516.1-2025:clause-7.9.1",
+      "hla-1516.1-2025:clause-9.13.1",
+      "hla-1516.1-2025:clause-11.5",
+      "hla-1516.1-2025:clause-11.5.2"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+    {
+      "plan_id": "umbra-cpp-public-regional-automatic-provision-switch-admission-mutation-integration",
+      "test_query": "Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-switch-admission-mutation",
+        "auto-provide-regional",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53721",
+      "assertions": 114,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-regional-automatic-provision-timestamped-switch-admission-mutation-integration",
+      "test_query": "Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-timestamped-switch-admission-mutation",
+        "auto-provide-regional",
+        "timestamped-regional-attribute-update",
+        "tso",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53936",
+      "assertions": 177,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.14.3",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.25.3",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-9.1.8",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-regional-automatic-provision-relaxed-ddm-integration",
+      "test_query": "Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-relaxed-ddm",
+        "auto-provide-regional",
+        "allow-relaxed-ddm",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55358",
+      "assertions": 240,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.1.4",
+        "hla-1516.1-2025:clause-9.1.8",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-10.55.1"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-regional-automatic-provision-multi-source-region-integration",
+      "test_query": "Embedded regional Auto Provide separates independent source regions and provider callbacks under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "regional-automatic-provision-multi-source-region",
+        "auto-provide-regional",
+        "callback-immediate"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55638",
+      "assertions": 144,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.1.10",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-restore-tso-retraction-designator-uniqueness-integration",
+      "test_query": "Embedded federation restore preserves TSO retraction-designator uniqueness",
+      "lane_queries": [
+        "tso-retraction-designator-uniqueness",
+        "tso-retraction-ledger-state",
+        "save-restore",
+        "directed"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:66164",
+      "assertions": 71,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.22.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-restore-live-tso-directed-interaction-multi-recipient-integration",
+      "test_query": "Embedded federation restore restores one queued timestamped directed interaction to multiple recipients",
+      "lane_queries": [
+        "timestamped-directed-interaction-restore-multi-recipient",
+        "tso-directed-interaction-state",
+        "tso-queue-state",
+        "tso-retraction-ledger-state",
+        "save-restore",
+        "directed"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:66378",
+      "assertions": 116,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21.1",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-restore-live-tso-directed-interaction-integration",
+      "test_query": "Embedded federation restore restores a saved live timestamped directed interaction",
+      "lane_queries": [
+        "timestamped-directed-interaction-restore",
+        "tso-directed-interaction-state",
+        "tso-queue-state",
+        "tso-retraction-ledger-state",
+        "save-restore",
+        "directed"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:65957",
+      "assertions": 74,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21.1",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-restore-live-tso-default-region-attribute-update-multi-recipient-integration",
+      "test_query": "Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients",
+      "lane_queries": [
+        "timestamped-default-region-attribute-restore-multi-recipient",
+        "timestamped-default-region-attribute-update",
+        "default-region",
+        "mixed-fanout",
+        "tso-queue-state",
+        "tso-retraction-ledger-state",
+        "save-restore"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1173",
+      "assertions": 123,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21.1",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3",
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.1.8",
+        "hla-1516.1-2025:clause-9.6"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timed-restore-live-tso-explicit-regional-attribute-update-multi-recipient-integration",
+      "test_query": "Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients",
+      "lane_queries": [
+        "timestamped-regional-attribute-timed-restore-multi-recipient",
+        "timestamped-regional-attribute-update",
+        "explicit-source",
+        "mixed-fanout",
+        "timed-save",
+        "tso-queue-state",
+        "tso-retraction-ledger-state",
+        "save-restore"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:64750",
+      "assertions": 147,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.20",
+        "hla-1516.1-2025:clause-4.21.1",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-directed-interaction-subscription-kind-integration",
+      "test_query": "Embedded timestamped directed interactions distinguish ownership and universal subscriptions",
+      "lane_queries": [
+        "timestamped-directed-interaction-subscription-kind",
+        "timestamped-directed-interaction",
+        "directed",
+        "ownership",
+        "time-management",
+        "tso"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2249",
+      "assertions": 117,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-5.13",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-directed-target-departure-integration",
+      "test_query": "Embedded timestamped target departure suppresses directed delivery at the grant boundary",
+      "lane_queries": [
+        "directed-target-departure",
+        "timestamped-directed-interaction",
+        "directed",
+        "time-management",
+        "tso",
+        "object-management"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:92618",
+      "assertions": 121,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-mom-interaction",
+      "test_query": "Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+      "lane_queries": [
+        "timestamped-directed-interaction-time-regulated-service-report-interaction",
+        "timestamped-directed-interaction",
+        "directed",
+        "time-management",
+        "tso",
+        "mom",
+        "service-reporting"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:92776",
+      "assertions": 124,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-attribute-update-flush-queue-integration",
+      "test_query": "Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+      "lane_queries": [
+        "timestamped-attribute-update-flush-queue",
+        "timestamped-attribute-update",
+        "object-management",
+        "time-management",
+        "flush-queue-request",
+        "tso",
+        "rti.service.update-attribute-values",
+        "rti.service.flush-queue-request",
+        "rti.service.time-advance-request",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.flush-queue-grant",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48900",
+      "assertions": 63,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-flush-queue-future-input-integration",
+      "test_query": "Embedded Flush Queue Request admits TSO input queued after submission",
+      "lane_queries": [
+        "flush-queue-future-input",
+        "flush-queue-request",
+        "future-input",
+        "tso",
+        "interaction-management",
+        "time-management",
+        "rti.service.flush-queue-request",
+        "rti.service.send-interaction",
+        "federate.callback.receive-interaction",
+        "federate.callback.flush-queue-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48800",
+      "assertions": 48,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-terminal-timestamped-deletion-tombstone-integration",
+      "test_query": "Embedded terminal timestamped deletion tombstone releases its object name",
+      "lane_queries": [
+        "timestamped-deletion-tombstone",
+        "tombstone",
+        "object-management",
+        "time-management",
+        "tso",
+        "rti.service.delete-object-instance",
+        "rti.service.retract",
+        "rti.service.time-advance-request",
+        "rti.service.reserve-object-instance-name"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:60331",
+      "assertions": 24,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-8.22.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-timestamped-delete-object-instance-tar-nmr-integration",
+      "test_query": "Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
+      "lane_queries": [
+        "timestamped-delete-object-instance-tar-nmr",
+        "timestamped-object-deletion",
+        "object-management",
+        "time-management",
+        "tso",
+        "time-advance-request",
+        "next-message-request",
+        "rti.service.delete-object-instance",
+        "rti.service.time-advance-request",
+        "rti.service.next-message-request",
+        "federate.callback.remove-object-instance",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:9841",
+      "assertions": 75,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1",
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-public-durable-save-regional-pending-attribute-value-update-response-retraction-integration",
+      "test_query": "Embedded public fresh-registry restore rebinds a timestamped regional provider response and retraction",
+      "lane_queries": [
+        "public-durable-save-regional-pending-attribute-value-update-response-retraction",
+        "durable-save-regional-pending-attribute-value-update-response-retraction",
+        "durable-save",
+        "process-restart",
+        "save-restore",
+        "filesystem",
+        "federation-management",
+        "object-management",
+        "ddm",
+        "time-management",
+        "tso",
+        "tso-attribute-update-state",
+        "tso-regional-attribute-update-state"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15513",
+      "assertions": 100,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21.1",
+        "hla-1516.1-2025:clause-4.22",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.14.3",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3",
+        "hla-1516.1-2025:clause-8.25.3",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-9.1.8",
+        "hla-1516.1-2025:clause-9.13.1",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-connection-lost-tso-cutoff-directed-interaction-automatic-delete-late-tar-integration",
+      "test_query": "Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
+      "lane_queries": [
+        "transport",
+        "interaction-management",
+        "directed",
+        "time-management",
+        "timestamped-directed-interaction",
+        "connection-lost-tso-cutoff",
+        "rti.service.connection-lost",
+        "rti.service.send-directed-interaction",
+        "rti.service.time-advance-request",
+        "rti.service.set-automatic-resign-directive",
+        "federate.callback.connection-lost",
+        "federate.callback.receive-directed-interaction",
+        "federate.callback.remove-object-instance",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63915",
+      "assertions": 72,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-connection-lost-tso-cutoff-directed-interaction-automatic-delete-suppressed-callback-integration",
+      "test_query": "Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
+      "lane_queries": [
+        "transport",
+        "interaction-management",
+        "directed",
+        "time-management",
+        "timestamped-directed-interaction",
+        "connection-lost-tso-cutoff",
+        "rti.service.connection-lost",
+        "rti.service.send-directed-interaction",
+        "rti.service.unsubscribe-object-class-directed-interactions",
+        "rti.service.time-advance-request",
+        "rti.service.set-automatic-resign-directive",
+        "federate.callback.connection-lost",
+        "federate.callback.receive-directed-interaction",
+        "federate.callback.remove-object-instance",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63293",
+      "assertions": 46,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-connection-lost-tso-cutoff-attribute-update-automatic-delete-multi-recipient-integration",
+      "test_query": "Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
+      "lane_queries": [
+        "transport",
+        "object-management",
+        "time-management",
+        "timestamped-attribute-update",
+        "connection-lost-tso-cutoff",
+        "rti.service.connection-lost",
+        "rti.service.update-attribute-values",
+        "rti.service.time-advance-request",
+        "rti.service.set-automatic-resign-directive",
+        "federate.callback.connection-lost",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.remove-object-instance",
+        "federate.callback.time-advance-grant"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:64694",
+      "assertions": 101,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6"
+      ],
+      "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-transport-protocol-framing-unit",
+      "test_query": "Private transport framing round-trips identities and rejects malformed process-boundary frames",
+      "lane_queries": [
+        "transport",
+        "process-boundary",
+        "transport-contract"
+      ],
+      "source_location": "cpp/tests/transport_protocol_catch2.cpp:24",
+      "assertions": 21,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-transport-handshake-and-frame-unit",
+      "test_query": "Private process transport exchanges framed data after endpoint handshake",
+      "lane_queries": [
+        "transport",
+        "process-boundary",
+        "transport-contract"
+      ],
+      "source_location": "cpp/tests/process_transport_catch2.cpp:23",
+      "assertions": 12,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-service-dispatch-unit",
+      "test_query": "Private process service dispatch correlates federation operations over framed data",
+      "lane_queries": [
+        "transport",
+        "process-boundary",
+        "service-dispatch",
+        "transport-contract"
+      ],
+      "source_location": "cpp/tests/process_transport_service_catch2.cpp:25",
+      "assertions": 22,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-federation-service-registry-binding-integration",
+      "test_query": "Private process service binds create join and receive-order interaction to the federation registry",
+      "lane_queries": [
+        "transport",
+        "process-boundary",
+        "service-dispatch",
+        "registry-binding",
+        "transport-contract",
+        "interaction-management"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:117",
+      "assertions": 22,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.12.4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-federation-service-independent-process-integration",
+      "test_query": "Private registry-bound service exchanges federation traffic across independently launched processes",
+      "lane_queries": [
+        "transport",
+        "process-boundary",
+        "service-dispatch",
+        "registry-binding",
+        "transport-contract",
+        "interaction-management"
+      ],
+      "source_location": "cpp/tests/process_federation_service_process_catch2.cpp:38",
+      "assertions": 8,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.12.4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-federation-lifecycle-integration",
+      "test_query": "RTIambassador routes public Create, Join, and Resign through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "federation-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:251",
+      "assertions": 7,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.2",
+        "hla-1516.1-2025:clause-4.5.5",
+        "hla-1516.1-2025:clause-4.11.4",
+        "hla-1516.1-2025:clause-4.12"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-send-interaction-integration",
+      "test_query": "RTIambassador routes public Send Interaction through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "interaction-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1064",
+      "assertions": 14,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.12.4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-handle-lookup-integration",
+      "test_query": "RTIambassador resolves interaction and parameter handles through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "federation-management",
+        "interaction-management",
+        "rti.service.get-object-class-handle",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "transport",
+        "process-boundary",
+        "public-endpoint"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1300",
+      "assertions": 9,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.4.6",
+        "hla-1516.1-2025:clause-10.13.2",
+        "hla-1516.1-2025:clause-10.16.1"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-interaction-declaration-integration",
+      "test_query": "RTIambassador routes ordinary interaction declarations through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "federation-management",
+        "interaction-management",
+        "declaration-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1802",
+      "assertions": 12,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.4",
+        "hla-1516.1-2025:clause-5.5",
+        "hla-1516.1-2025:clause-5.10",
+        "hla-1516.1-2025:clause-5.11"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-directed-interaction-integration",
+      "test_query": "RTIambassador routes a directed interaction through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "federation-management",
+        "interaction-management",
+    "object-management",
+    "directed-interaction",
+    "timestamped-directed-interaction",
+    "directed-routing",
+        "transport",
+        "process-boundary",
+        "public-endpoint"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1442",
+      "assertions": 22,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.1",
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.14",
+        "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.15.1",
+        "hla-1516.1-2025:clause-6.8.4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-receive-evoke-integration",
+      "test_query": "RTIambassador receives a process interaction through the official Evoke callback surface",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "interaction-management",
+        "callbacks",
+        "callback-controls",
+        "transport",
+        "process-boundary",
+        "public-endpoint"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1961",
+      "assertions": 32,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-10.58",
+        "hla-1516.1-2025:clause-10.60.6"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-timestamped-receive-evoke-integration",
+      "test_query": "RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "interaction-management",
+        "time-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2290",
+      "assertions": 28,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-10.60.6"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-object-registration-integration",
+      "test_query": "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "declaration-management",
+        "object-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "rti.service.get-object-class-handle",
+        "rti.service.get-attribute-handle",
+        "rti.service.publish-object-class-attributes",
+        "rti.service.register-object-instance"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:341",
+      "assertions": 10,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.2",
+        "hla-1516.1-2025:clause-5.2",
+        "hla-1516.1-2025:clause-6.8.4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-named-object-registration-integration",
+      "test_query": "RTIambassador reserves a name and registers a named object through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "declaration-management",
+        "object-management",
+        "callbacks",
+        "callback-controls",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "rti.service.reserve-object-instance-name",
+        "rti.service.register-object-instance",
+        "federate.callback.object-instance-name-reservation-succeeded",
+        "error-mapping",
+        "rti.exception.object-instance-name-in-use",
+        "rti.exception.illegal-name"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:845",
+      "assertions": 18,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.2",
+        "hla-1516.1-2025:clause-6.2",
+        "hla-1516.1-2025:clause-6.3",
+        "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.9.3"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-federation-service-update-attribute-values-integration",
+      "test_query": "Private process service routes ordinary Update Attribute Values to a subscribed receiver",
+      "lane_queries": [
+        "unit",
+        "foundation",
+        "transport",
+        "process-boundary",
+        "service-dispatch",
+        "registry-binding",
+        "transport-contract",
+        "object-management",
+        "rti.service.update-attribute-values",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:307",
+      "assertions": 44,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-update-attribute-values-integration",
+      "test_query": "RTIambassador routes public Update Attribute Values through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "object-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "rti.service.update-attribute-values"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2617",
+      "assertions": 10,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-update-attribute-values-reflect-integration",
+      "test_query": "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "object-management",
+        "callbacks",
+        "callback-controls",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "rti.service.update-attribute-values",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2787",
+      "assertions": 23,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-regional-registration-integration",
+      "test_query": "RTIambassador projects the 2025 region lifecycle and regional registration through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.get-dimension-handle",
+        "rti.service.get-dimension-upper-bound",
+        "rti.service.create-region",
+        "rti.service.get-dimension-handle-set",
+        "rti.service.set-range-bounds",
+        "rti.service.get-range-bounds",
+        "rti.service.commit-region-modifications",
+        "rti.service.register-object-instance-with-regions"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3155",
+      "assertions": 17,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.2",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.5"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-regional-subscription-update-integration",
+      "test_query": "RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.update-attribute-values",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3300",
+      "assertions": 33,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.5"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-timestamped-regional-update-integration",
+      "test_query": "RTIambassador preserves a timestamped regional update through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "time-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.update-attribute-values",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3711",
+      "assertions": 43,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.5"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-regional-unsubscribe-integration",
+      "test_query": "RTIambassador removes a regional subscription through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.unsubscribe-object-class-attributes-with-regions",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.associate-regions-for-updates",
+        "rti.service.unassociate-regions-for-updates",
+        "rti.service.update-attribute-values",
+        "rti.service.set-attribute-scope-advisory-switch",
+        "rti.service.get-attribute-scope-advisory-switch",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.attributes-in-scope",
+        "federate.callback.attributes-out-of-scope"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:4199",
+      "assertions": 56,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6",
+        "hla-1516.1-2025:clause-9.8",
+        "hla-1516.1-2025:clause-9.9.3",
+        "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-6.19",
+        "hla-1516.1-2025:clause-6.20",
+        "hla-1516.1-2025:clause-9.7.5",
+        "hla-1516.1-2025:clause-10.38.4",
+        "hla-1516.1-2025:clause-10.39.6"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-disjoint-regional-update-integration",
+      "test_query": "RTIambassador suppresses a disjoint regional update through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "disjoint-regions",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.update-attribute-values",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:4737",
+      "assertions": 25,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6",
+        "hla-1516.1-2025:clause-9.8"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-attribute-relevance-advisory-transport",
+      "test_query": "Private process service projects owner-directed Attribute Relevance Advisory events",
+      "lane_queries": [
+        "unit",
+        "foundation",
+        "object-management",
+        "data-distribution-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "2025",
+        "rti.service.get-attribute-relevance-advisory-switch",
+        "rti.service.set-attribute-relevance-advisory-switch",
+        "rti.service.publish-object-class-attributes",
+        "rti.service.register-object-instance",
+        "rti.service.subscribe-object-class-attributes",
+        "rti.service.unsubscribe-object-class-attributes",
+        "federate.callback.turn-updates-on-for-object-instance",
+        "federate.callback.turn-updates-off-for-object-instance"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:669",
+      "assertions": 62,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.23",
+        "hla-1516.1-2025:clause-6.24",
+        "hla-1516.1-2025:clause-10.37.1"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
+      "test_query": "RTIambassador delivers Attribute Relevance Advisory callbacks through a configured process endpoint under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "object-management",
+        "data-distribution-management",
+        "callbacks",
+        "callback-immediate",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.get-attribute-relevance-advisory-switch",
+        "rti.service.set-attribute-relevance-advisory-switch",
+        "rti.service.publish-object-class-attributes",
+        "rti.service.register-object-instance",
+        "rti.service.subscribe-object-class-attributes",
+        "rti.service.unsubscribe-object-class-attributes",
+        "federate.callback.turn-updates-on-for-object-instance",
+        "federate.callback.turn-updates-off-for-object-instance"
+      ],
+    "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6350",
+      "assertions": 74,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.23",
+        "hla-1516.1-2025:clause-6.24",
+        "hla-1516.1-2025:clause-10.37.1"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-attribute-relevance-advisory-switch-suppression",
+      "test_query": "Private process callback bridge suppresses a queued Attribute Relevance Advisory after switch disable",
+      "lane_queries": [
+        "unit",
+        "foundation",
+        "object-management",
+        "data-distribution-management",
+        "callbacks",
+        "callback-suppression",
+        "transport",
+        "process-boundary",
+        "2025",
+        "rti.service.set-attribute-relevance-advisory-switch",
+        "federate.callback.turn-updates-on-for-object-instance"
+      ],
+      "source_location": "cpp/tests/process_federation_callback_bridge_catch2.cpp:14",
+      "assertions": 9,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.23",
+        "hla-1516.1-2025:clause-6.24",
+        "hla-1516.1-2025:clause-10.37.1"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-regional-attribute-relevance-advisory-public-transition",
+      "test_query": "RTIambassador delivers regional Attribute Relevance Advisory transitions through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "regional-attribute-relevance",
+        "2025",
+        "rti.service.get-attribute-relevance-advisory-switch",
+        "rti.service.set-attribute-relevance-advisory-switch",
+        "rti.service.create-region",
+        "rti.service.commit-region-modifications",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.associate-regions-for-updates",
+        "rti.service.unassociate-regions-for-updates",
+        "federate.callback.turn-updates-on-for-object-instance",
+        "federate.callback.turn-updates-off-for-object-instance"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:8058",
+      "assertions": 90,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.23",
+        "hla-1516.1-2025:clause-6.24",
+        "hla-1516.1-2025:clause-10.37.1"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-regional-attribute-relevance-advisory-public-subscription-transition",
+      "test_query": "RTIambassador delivers regional Attribute Relevance Advisory subscription transitions through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "regional-attribute-relevance",
+        "regional-subscription-transition",
+        "2025",
+        "rti.service.get-attribute-relevance-advisory-switch",
+        "rti.service.set-attribute-relevance-advisory-switch",
+        "rti.service.create-region",
+        "rti.service.commit-region-modifications",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.unsubscribe-object-class-attributes-with-regions",
+        "rti.service.publish-object-class-attributes",
+        "rti.service.register-object-instance-with-regions",
+        "federate.callback.turn-updates-on-for-object-instance",
+        "federate.callback.turn-updates-off-for-object-instance"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:7653",
+      "assertions": 82,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.23",
+        "hla-1516.1-2025:clause-6.24",
+        "hla-1516.1-2025:clause-10.37.1"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+  {
+    "plan_id": "umbra-cpp-process-regional-attribute-relevance-advisory-public-initial-discovery",
+      "test_query": "RTIambassador delivers an initial regional Attribute Relevance Advisory after discovery through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "regional-attribute-relevance",
+        "regional-registration-initial-advisory",
+        "2025",
+        "rti.service.get-attribute-relevance-advisory-switch",
+        "rti.service.set-attribute-relevance-advisory-switch",
+        "rti.service.create-region",
+        "rti.service.commit-region-modifications",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.register-object-instance-with-regions",
+        "federate.callback.discover-object-instance",
+        "federate.callback.turn-updates-on-for-object-instance"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:8465",
+      "assertions": 64,
+      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.23",
+        "hla-1516.1-2025:clause-6.24",
+        "hla-1516.1-2025:clause-10.37.1"
+      ],
+    "status": "implemented-public-foundation-not-conformance-evidence"
+  },
+  {
+    "plan_id": "umbra-cpp-attribute-relevance-advisory-rate-reissue-integration",
+    "test_query": "Embedded attribute relevance advisories reissue turn-on when the active update rate changes",
+    "lane_queries": [
+      "integration",
+      "development-profile",
+      "federation-management",
+      "object-management",
+      "callbacks",
+      "2025",
+      "rti.service.subscribe-object-class-attributes",
+      "federate.callback.turn-updates-on-for-object-instance",
+      "federate.callback.turn-updates-off-for-object-instance"
+    ],
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43534",
+    "assertions": 49,
+    "callback_models": [
+      "HLA_EVOKED"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-6.23",
+      "hla-1516.1-2025:clause-6.24"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-regional-attribute-relevance-advisory-rate-designator-integration",
+    "test_query": "Embedded regional attribute relevance advisories retain explicit update-rate designators",
+    "lane_queries": [
+      "integration",
+      "development-profile",
+      "federation-management",
+      "object-management",
+      "data-distribution-management",
+      "ddm",
+      "callbacks",
+      "regional-attribute-relevance",
+      "regional-update-rate-designator",
+      "2025",
+      "rti.service.get-attribute-relevance-advisory-switch",
+      "rti.service.subscribe-object-class-attributes-with-regions",
+      "rti.service.register-object-instance-with-regions",
+      "rti.service.associate-regions-for-updates",
+      "rti.service.unassociate-regions-for-updates",
+      "federate.callback.turn-updates-on-for-object-instance",
+      "federate.callback.turn-updates-off-for-object-instance"
+    ],
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43651",
+    "assertions": 50,
+    "callback_models": [
+      "HLA_EVOKED"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-6.23",
+      "hla-1516.1-2025:clause-6.24",
+      "hla-1516.1-2025:clause-10.37.1"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-process-attribute-relevance-advisory-rate-reissue-public",
+    "test_query": "RTIambassador reissues Attribute Relevance Advisory callbacks when the active update rate changes through a configured process endpoint",
+    "lane_queries": [
+      "integration",
+      "foundation",
+      "object-management",
+      "data-distribution-management",
+      "callbacks",
+      "callback-immediate",
+      "transport",
+      "process-boundary",
+      "public-endpoint",
+      "attribute-relevance-advisory",
+      "update-rate-reissue",
+      "2025",
+      "rti.service.get-attribute-relevance-advisory-switch",
+      "rti.service.set-attribute-relevance-advisory-switch",
+      "rti.service.publish-object-class-attributes",
+      "rti.service.register-object-instance",
+      "rti.service.subscribe-object-class-attributes",
+      "rti.service.unsubscribe-object-class-attributes",
+      "federate.callback.discover-object-instance",
+      "federate.callback.turn-updates-on-for-object-instance",
+      "federate.callback.turn-updates-off-for-object-instance"
+    ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:8806",
+    "assertions": 112,
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-6.23",
+      "hla-1516.1-2025:clause-6.24"
+    ],
+    "status": "implemented-public-foundation-not-conformance-evidence"
+  },
+  {
+    "plan_id": "umbra-cpp-process-regional-attribute-relevance-advisory-rate-designator-public",
+    "test_query": "RTIambassador preserves an explicit regional Attribute Relevance Advisory update-rate designator across configured process endpoint transitions",
+    "lane_queries": [
+      "integration",
+      "foundation",
+      "data-distribution-management",
+      "object-management",
+      "ddm",
+      "callbacks",
+      "callback-immediate",
+      "transport",
+      "process-boundary",
+      "public-endpoint",
+      "regional-attribute-relevance",
+      "regional-update-rate-designator",
+      "2025",
+      "rti.service.get-attribute-relevance-advisory-switch",
+      "rti.service.set-attribute-relevance-advisory-switch",
+      "rti.service.create-region",
+      "rti.service.commit-region-modifications",
+      "rti.service.subscribe-object-class-attributes-with-regions",
+      "rti.service.register-object-instance-with-regions",
+      "rti.service.associate-regions-for-updates",
+      "rti.service.unassociate-regions-for-updates",
+      "federate.callback.discover-object-instance",
+      "federate.callback.turn-updates-on-for-object-instance",
+      "federate.callback.turn-updates-off-for-object-instance"
+    ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5082",
+    "assertions": 96,
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-6.23",
+      "hla-1516.1-2025:clause-6.24",
+      "hla-1516.1-2025:clause-10.37.1"
+    ],
+    "status": "implemented-public-foundation-not-conformance-evidence"
+  },
+  {
+    "plan_id": "umbra-cpp-regional-attribute-relevance-advisory-callback-entry-recheck",
+    "test_query": "Embedded regional attribute relevance advisories recheck callbacks after an active-rate and scope transition under HLA_EVOKED and HLA_IMMEDIATE",
+    "lane_queries": [
+      "integration",
+      "development-profile",
+      "federation-management",
+      "object-management",
+      "data-distribution-management",
+      "ddm",
+      "callbacks",
+      "callback-immediate",
+      "callback-suppression",
+      "regional-attribute-relevance",
+      "update-rate-reissue",
+      "2025",
+      "rti.service.get-attribute-relevance-advisory-switch",
+      "rti.service.subscribe-object-class-attributes-with-regions",
+      "rti.service.register-object-instance-with-regions",
+      "rti.service.associate-regions-for-updates",
+      "rti.service.unassociate-regions-for-updates",
+      "federate.callback.turn-updates-on-for-object-instance",
+      "federate.callback.turn-updates-off-for-object-instance"
+    ],
+    "source_location": "cpp/tests/attribute_relevance_advisory_catch2.cpp:120",
+    "assertions": 84,
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-6.23",
+      "hla-1516.1-2025:clause-6.24",
+      "hla-1516.1-2025:clause-10.37.1"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-service-report-file-join-lifecycle-integration",
+    "test_query": "Embedded service-report files are allocated at join and remain stable across switch cycles and rejoin",
+    "lane_queries": [
+      "integration",
+      "development-profile",
+      "federation-management",
+      "mom",
+      "service-reporting",
+      "service-report-file",
+      "service-report-store",
+      "filesystem",
+      "join-lifecycle",
+      "2025",
+      "rti.service.set-service-reporting-switch",
+      "rti.service.set-send-service-reports-to-file-switch"
+    ],
+    "source_location": "cpp/tests/service_report_store_catch2.cpp:70",
+    "assertions": 28,
+    "callback_models": [
+      "HLA_EVOKED"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-11.5",
+      "hla-1516.1-2025:clause-11.5.2"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-process-endpoint-directed-interaction-callback-integration",
+    "test_query": "RTIambassador delivers a directed interaction through the official Evoke callback surface",
+    "lane_queries": [
+      "integration",
+      "foundation",
+      "federation-management",
+      "interaction-management",
+      "object-management",
+      "directed-interaction",
+      "timestamped-directed-interaction",
+      "timestamped-directed-retraction",
+      "retract",
+      "directed-routing",
+      "callbacks",
+      "callback-controls",
+      "callback-gating",
+      "callback-immediate",
+      "transport",
+      "process-boundary",
+      "public-endpoint",
+      "process-event.request-retraction",
+      "federate.callback.request-retraction"
+    ],
+    "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5517",
+    "assertions": 387,
+    "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+    "delivery_modes": [
+      "receive-order",
+      "timestamped-receive-order",
+      "callback-disabled-queued-receive-order",
+      "timestamped-retraction-before-receive",
+      "timestamped-retraction-after-receive"
+    ],
+    "callback_gate_modes": ["enabled", "disabled-queued-reenabled"],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-5.1.1",
+      "hla-1516.1-2025:clause-5.1.4",
+      "hla-1516.1-2025:clause-5.1.5",
+      "hla-1516.1-2025:clause-5.12",
+      "hla-1516.1-2025:clause-6.1.2",
+      "hla-1516.1-2025:clause-6.8.4",
+      "hla-1516.1-2025:clause-6.14",
+      "hla-1516.1-2025:clause-6.14.3",
+      "hla-1516.1-2025:clause-6.15.1",
+      "hla-1516.1-2025:clause-6.13",
+      "hla-1516.1-2025:clause-8.22.3",
+      "hla-1516.1-2025:clause-8.23.3"
+    ],
+    "status": "implemented-private-foundation-not-conformance-evidence"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-available-dimension-reference-resolution",
+    "test_query": "The FOM composition preflight resolves available dimensions after the complete module set is merged",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "reference-resolution",
+      "ddm",
+      "available-dimensions"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3064",
+    "assertions": 9,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.7.1",
+      "hla-1516.2-2025:clause-6.2.5",
+      "hla-1516.2-2025:clause-6.2.6",
+      "hla-1516.2-2025:clause-C"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-transportation-reference-resolution",
+    "test_query": "The FOM composition preflight resolves transportation names after the complete module set is merged",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "reference-resolution",
+      "transportation"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3399",
+    "assertions": 11,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.11.2",
+      "hla-1516.2-2025:clause-6.2.5",
+      "hla-1516.2-2025:clause-6.2.6",
+      "hla-1516.2-2025:clause-C"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-support-switch-table-composition-integration",
+    "test_query": "The FDD materializer retains the complete 2025 support-switch table",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "switches",
+      "support-switches"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1203",
+    "assertions": 9,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.13.2",
+      "hla-1516.2-2025:clause-4.13.3",
+      "hla-1516.2-2025:clause-6.2.13"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-explicit-no-action-automatic-resign-composition",
+    "test_query": "The FDD catalog preserves an explicit NoAction automatic-resign setting",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "switches",
+      "support-switches",
+      "automatic-resign-no-action"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1230",
+    "assertions": 1,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.13.3",
+      "hla-1516.2-2025:clause-6.2.13"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-federation-registry-interaction-declaration-lifecycle-unit",
+    "test_query": "The federation registry retains independent interaction declarations until removal or resign",
+    "lane_queries": [
+      "unit",
+      "kernel",
+      "federation-registry",
+      "declaration-management",
+      "interaction-management",
+      "interaction-declaration-state"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1251",
+    "assertions": 34,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-5.4",
+      "hla-1516.1-2025:clause-5.5",
+      "hla-1516.1-2025:clause-5.10",
+      "hla-1516.1-2025:clause-5.11"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-federation-registry-object-class-attribute-declaration-lifecycle-unit",
+    "test_query": "The federation registry retains 2025 object class attribute declarations independently",
+    "lane_queries": [
+      "unit",
+      "kernel",
+      "federation-registry",
+      "declaration-management",
+      "object-management",
+      "object-class-declaration-state"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1383",
+    "assertions": 44,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-5.2",
+      "hla-1516.1-2025:clause-5.3",
+      "hla-1516.1-2025:clause-5.8",
+      "hla-1516.1-2025:clause-5.9.4"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-federation-registry-object-instance-registration-unit",
+    "test_query": "The federation registry allocates 2025 object identities only from current publication",
+    "lane_queries": [
+      "unit",
+      "kernel",
+      "federation-registry",
+      "object-management",
+      "object-instance-registration",
+      "object-instance-state"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1869",
+    "assertions": 23,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-5.1.2",
+      "hla-1516.1-2025:clause-6.8.4"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-federation-registry-object-instance-discovery-reservation-unit",
+    "test_query": "The federation registry releases undelivered 2025 discovery reservations",
+    "lane_queries": [
+      "unit",
+      "kernel",
+      "federation-registry",
+      "object-management",
+      "callbacks",
+      "object-instance-discovery",
+      "discovery-reservation"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1947",
+    "assertions": 15,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-5.1.2",
+      "hla-1516.1-2025:clause-6.8.4",
+      "hla-1516.1-2025:clause-6.9.3"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-federation-registry-interaction-routing-promotion-unit",
+    "test_query": "The federation registry plans 2025 interaction promotion and parameter projection",
+    "lane_queries": [
+      "unit",
+      "kernel",
+      "federation-registry",
+      "interaction-routing",
+      "interaction-management",
+      "interaction-declaration-state",
+      "interaction-parameter-projection"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2024",
+    "assertions": 42,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-5.4",
+      "hla-1516.1-2025:clause-5.10",
+      "hla-1516.1-2025:clause-6.12",
+      "hla-1516.1-2025:clause-6.12.4"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-materializer-repeatability-unit",
+    "test_query": "The FDD materializer is repeatable for a fixed official module set",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "determinism",
+      "materializer"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2227",
+    "assertions": 17,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.14.2",
+      "hla-1516.2-2025:clause-C.1"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-non-regulated-grant-switch-composition-integration",
+    "test_query": "The FDD catalog retains an enabled Non-Regulated-Grant switch",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "time-management",
+      "non-regulated-grant"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2258",
+    "assertions": 11,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.13.3"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-switch-duplicate-annex-c8-composition",
+    "test_query": "The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "switches",
+      "annex-c"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2274",
+    "assertions": 35,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.13.3",
+      "hla-1516.2-2025:clause-C.8"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-switch-defaults-composition-integration",
+    "test_query": "The FOM composition treats omitted switch booleans as their schema default",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "switches",
+      "annex-c",
+      "switch-defaults"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2338",
+    "assertions": 14,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.13.3",
+      "hla-1516.2-2025:clause-C.8"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-time-representation-category-validation",
+    "test_query": "The FOM composition preflight validates time-representation data type categories",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "time-representation"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3444",
+    "assertions": 26,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-6.2.8"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-tag-data-type-category-validation",
+    "test_query": "The FOM composition preflight validates user-supplied and synchronization tag data type categories",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "tag-data-type"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3774",
+    "assertions": 18,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-6.2.9",
+      "hla-1516.2-2025:clause-6.2.10"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-inherited-member-name-validation",
+    "test_query": "The FOM composition preflight rejects inherited attribute and parameter name overloading",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "inheritance"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3814",
+    "assertions": 12,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-6.2.5",
+      "hla-1516.2-2025:clause-6.2.6"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-enumerated-variant-merge-invariants",
+    "test_query": "The FOM composition preflight enforces enumerated and variant-record merge invariants",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "annex-c"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3887",
+    "assertions": 16,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-C.3",
+      "hla-1516.2-2025:clause-7"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-fom-notes-service-usage-merge",
+    "test_query": "The FDD materializer remaps referenced notes and logically ORs service usage",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "composition",
+      "annex-c"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3922",
+    "assertions": 16,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-C.9",
+      "hla-1516.2-2025:clause-C.10"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-reference-logical-time-selection",
+    "test_query": "Reference logical-time selection defaults to HLAfloat64Time and rejects incompatible FDD documentation",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "time"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3951",
+    "assertions": 21,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.2-2025:clause-4.8.3",
+      "hla-1516.1-2025:clause-4.5.5",
+      "hla-1516.1-2025:clause-4"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-federation-preparation-mim-and-reference-time",
+    "test_query": "Federation preparation loads MIM first and emits only an FDD-backed reference-time definition",
+    "lane_queries": [
+      "unit",
+      "fom",
+      "federation-management"
+    ],
+    "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:3998",
+    "assertions": 22,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-4.5.5",
+      "hla-1516.1-2025:clause-4.11.4"
+    ],
+    "status": "implemented-in-noninstallable-development-profile"
+  },
+  {
+    "plan_id": "umbra-cpp-process-local-delete-codec-contract",
+    "test_query": "Private process local-delete request and result preserve the official status vocabulary",
+    "lane_queries": [
+      "unit",
+      "foundation",
+      "transport",
+      "process-boundary",
+      "object-management",
+      "local-delete-object-instance",
+      "transport-contract",
+      "2025"
+    ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:1094",
+    "assertions": 9,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-6.18.1"
+    ],
+    "status": "implemented-private-foundation-not-conformance-evidence"
+  },
+  {
+    "plan_id": "umbra-cpp-process-endpoint-local-delete-object-instance-integration",
+    "test_query": "RTIambassador routes Local Delete Object Instance through a configured process endpoint",
+    "lane_queries": [
+      "integration",
+      "foundation",
+      "object-management",
+      "transport",
+      "process-boundary",
+      "public-endpoint",
+      "local-delete-object-instance"
+    ],
+    "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:506",
+    "assertions": 18,
+    "callback_models": [],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-6.18.1"
+    ],
+    "status": "implemented-private-foundation-not-conformance-evidence"
+  },
+    {
+      "plan_id": "umbra-cpp-process-delete-object-instance-codec-contract",
+      "test_query": "Private process Delete Object Instance request and result preserve the official status vocabulary",
+      "lane_queries": [
+        "unit",
+        "foundation",
+        "transport",
+        "process-boundary",
+        "object-management",
+        "delete-object-instance",
+        "transport-contract",
+        "2025"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:1128",
+      "assertions": 25,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-delete-object-instance-integration",
+      "test_query": "RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "object-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "delete-object-instance",
+        "rti.service.delete-object-instance",
+        "federate.callback.remove-object-instance"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6808",
+      "assertions": 25,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-timestamped-delete-object-instance-integration",
+      "test_query": "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "object-management",
+        "time-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "timestamped-delete-object-instance",
+        "rti.service.delete-object-instance",
+        "federate.callback.remove-object-instance"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:7194",
+      "assertions": 64,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1",
+        "hla-1516.1-2025:clause-8.1.5"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    }
+  ],
+  "items": [
+    {
+      "id": "multi-federate-callback-ordering",
+      "status": "open",
+      "kind": "runtime",
+      "priority": 2,
+      "title": "Expand multi-federate callback ordering beyond the existing per-survivor cases",
+      "roadmap_anchor": "Expand multi-federate callback ordering beyond the new per-survivor",
+      "query_tags": ["multi-federate-callback-ordering"],
+      "next_action": "The enumerated callback-ordering variants are covered by the 58-test focused lane; keep this item open for newly identified evidence only and do not rescan. The durable-save lane now owns the versioned control/temporal state-image core; implementation focus moves to application-ledger serialization and disk-backed rehydration."
+    },
+    {
+      "id": "fom-module-declaration-management",
+      "status": "open",
+      "kind": "runtime",
+      "priority": 3,
+      "title": "Complete FOM module management and declaration management beyond the current foundation",
+      "roadmap_anchor": "Complete FOM module management and declaration management beyond the",
+      "query_tags": ["fom", "declaration-management"],
+      "next_action": "The FOM-composer source reconciliation queue is exhausted: all discovered declarations in that file now have explicit plan rows and exact source pointers. Keep the completed private composition/preparation evidence queryable, then select the next bounded C++ service family or add one deliberately mapped source case without rescanning the unchanged Requirements Lab.",
+      "next_lane": "fom-module-management",
+      "next_test_role": "baseline",
+      "next_test_query": "Embedded Create Federation Execution rejects an empty FOM module set",
+      "next_source_test_query": null,
+      "next_source_location": null,
+      "next_ctest_filter": "[fom-module-management]",
+      "next_plan_ids": ["umbra-cpp-fom-empty-module-set-create-integration"],
+      "next_standard_sections": ["hla-1516.1-2025:clause-4.5.5"]
+    },
+    {
+      "id": "object-ddm-ownership",
+      "status": "open",
+      "kind": "runtime",
+      "priority": 4,
+      "title": "Complete object lifecycle, updates, ownership, interaction, and data distribution management",
+      "roadmap_anchor": "Complete object lifecycle/updates/ownership, interaction, and data",
+      "query_tags": ["object-management", "ownership-management", "interaction-management", "ddm", "region-state", "application-value-state"],
+      "next_action": "The typed region-state lane now preserves federation-owned region specifications through save/restore; choose the next missing C++ service family from the mapped lanes and preserve independent object, ownership, interaction, and DDM state boundaries."
+    },
+    {
+      "id": "time-save-restore",
+      "status": "open",
+      "kind": "runtime",
+      "priority": 1,
+      "title": "Complete time management, ownership management, and save/restore",
+      "roadmap_anchor": "Time management, ownership management, and save/restore.",
+       "current_focus": "The bounded 2025 C++ spine has explicit indexed status across all 840 Requirements-Lab Catch2 plan entries. Recent slices retain exact TEST_CASE pointers, assertion counts, callback models, lane tags, requirement IDs, and canonical sections. The public process endpoint now covers Connect/Create/Join/NoAction Resign, server-owned lookup, receive-order interaction/declaration, object publication/registration, subscription/discovery, ordinary and timestamped regional Update/Reflect delivery, reciprocal regional Attributes Out Of Scope/Attributes In Scope transitions, additive source-region association/unassociation transitions, disjoint-region suppression, and the 2025 dimension/region lifecycle through the private ProcessFederationClient seam. The focused process-boundary lane is 38 executable cases / 1617 focused-JUnit assertions; the local-delete codec adds 9 direct assertions, the private registry integration records 44, the public local-delete endpoint integration records 18, the Delete Object Instance codec records 25, the public Delete Object Instance endpoint integration records 25, and the public timestamped Delete Object Instance endpoint integration records 64 under HLA_EVOKED and HLA_IMMEDIATE; each slice records its source line, requirements, and 2025 clause mapping. The private m24 process service projection and public m25 configured-endpoint Attribute Relevance Advisory callback bridge are green under both HLA_EVOKED and HLA_IMMEDIATE dispatcher paths, m26 covers callback-entry suppression of a stale evoked advisory after switch disable, m27 covers public regional association transitions under both callback models, m28 covers public regional subscription removal and restoration under both callback models, m29 covers the initial regional registration/discovery advisory under both callback models, m31 covers active update-rate reissue, and m32 covers regional explicit-rate retention, m33 covers public active-rate reissue, and m34 covers public regional explicit-rate retention, m35 covers embedded regional callback-entry rechecking under both callback models, and the directed-interaction callback slice covers ordinary, timestamped, callback-disabled queued, timestamped-retraction-before-receive, and timestamped-retraction-after-receive delivery through the public process endpoint, including exactly one legal official Request Retraction callback after delivery under both HLA_EVOKED and HLA_IMMEDIATE. The eight installed-profile package lanes and catalog guard remain green, including the dedicated public directed-interaction/retraction consumer. The complete installable-package gate and retained package/JUnit evidence are green; the next bounded task is to implement the indexed HLA_IMMEDIATE companion for timestamped regional Update Attribute Values without rescanning the unchanged Requirements Lab. Use queue, work, next, recent, lane, test, requirement, section, trace, unlocated, unmapped, and unplanned queries; do not rescan the unchanged Requirements Lab.",
+      "next_work_id": "transport-and-conformance",
+      "next_work_status": "in-progress",
+        "next_work_query": "The focused process-boundary C++ spine is green at 38 mapped/source-located cases and 1,617 indexed focused-JUnit assertions. Query the exact completed timestamped Delete Object Instance endpoint slice with `python tools/query_rti_work.py trace \"RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint\" --summary --compact`. The next source-backed task is the planned HLA_IMMEDIATE companion for the timestamped regional Update Attribute Values endpoint emitted by `next --summary --compact`; keep package evidence, protected review, interoperability, and conformance promotion separate, and do not rescan the unchanged Requirements Lab.",
+        "next_task": "Keep the eight installed-profile process smoke lanes and exact CTest/JUnit/Requirements-Lab mappings protected; m27 proves public regional association transitions, m28 proves public regional subscription removal/restoration, m29 proves the initial regional registration/discovery advisory, m31 proves active-rate reissue, m32 proves regional explicit-rate retention, m33 proves public active-rate reissue, m34 proves public regional explicit-rate retention, m35 proves embedded regional callback-entry rechecking under both callback models, and the directed-interaction slice now proves ordinary, timestamped, callback-disabled queued, timestamped-retraction-before-receive, and timestamped-retraction-after-receive delivery through the public endpoint, including exactly one legal official Request Retraction callback after delivery under both HLA_EVOKED and HLA_IMMEDIATE. The installed-package directed/retraction consumer is green and independently addressable as `umbra_rti_package_process_directed_retraction_consumer` / `package-process-directed-retraction`. Keep the focused process-boundary JUnit and package lanes protected; select the next source-backed C++ service family from the indexed roadmap, keeping protected review, interoperability, and conformance promotion separate.",
+      "next_lane": "process-boundary",
+      "next_test_role": "baseline",
+       "next_test_query": "RTIambassador delivers a directed interaction through the official Evoke callback surface",
+        "next_source_state": "planned",
+        "next_source_test_query": "RTIambassador preserves a timestamped regional update through a configured process endpoint under HLA_IMMEDIATE",
+      "next_source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp",
+      "next_source_lane": "process-boundary",
+        "next_source_requirement_ids": [
+          "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+          "requirement-candidate-content-clauses-06-object-management-page-121-l36-10",
+          "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+          "requirement-candidate-content-clauses-06-object-management-page-122-l103-31",
+          "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l39-9",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l162-43",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l158-43",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l164-45"
+        ],
+        "next_source_standard_sections": [
+          "hla-1516.1-2025:clause-6.10",
+          "hla-1516.1-2025:clause-6.10.5",
+          "hla-1516.1-2025:clause-6.11.1",
+          "hla-1516.1-2025:clause-8.1.5",
+          "hla-1516.1-2025:clause-9.3",
+          "hla-1516.1-2025:clause-9.5"
+        ],
+        "next_source_api_surfaces": [
+          "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+          "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+          "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+          "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+          "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+          "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+          "api.2025.cpp.rtiambassador.updateattributevalues.7f3fa1308884",
+          "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+          "api.2025.cpp.federateambassador.reflectattributevalues.0a0162364e89"
+        ],
+      "next_source_ctest_filter": "[process-boundary]",
+      "next_ctest_filter": "[process-boundary]",
+      "next_package_target": "umbra_test_installable_package",
+      "next_package_ctest_filter": "installable-package",
+      "next_package_manifest": "share/umbra_rti/umbra_rti-profile.json",
+      "next_junit_target": "umbra_process_boundary_junit",
+      "next_junit_artifact": "compliance/process-boundary/process-boundary.xml",
+      "next_process_probe_target": "umbra_process_federation_service_probe",
+      "next_process_package_target": "umbra_rti_package_process_smoke",
+      "next_process_package_test": "umbra_rti_package_process_consumer",
+      "next_process_package_ctest_filter": "package-process",
+      "next_process_package_timestamped_test": "umbra_rti_package_process_timestamped_consumer",
+      "next_process_package_timestamped_ctest_filter": "package-process-timestamped",
+      "next_process_package_parameterized_test": "umbra_rti_package_process_parameterized_consumer",
+      "next_process_package_parameterized_ctest_filter": "package-process-parameterized",
+      "next_process_package_connection_loss_test": "umbra_rti_package_process_connection_loss_consumer",
+      "next_process_package_connection_loss_ctest_filter": "package-process-connection-loss",
+       "next_process_package_object_registration_test": "umbra_rti_package_process_object_registration_consumer",
+       "next_process_package_object_registration_ctest_filter": "package-process-object-registration",
+       "next_process_package_named_registration_test": "umbra_rti_package_process_named_registration_consumer",
+       "next_process_package_named_registration_ctest_filter": "package-process-named-registration",
+       "next_process_package_attribute_update_test": "umbra_rti_package_process_attribute_update_consumer",
+       "next_process_package_attribute_update_ctest_filter": "package-process-attribute-update",
+       "next_process_package_directed_retraction_test": "umbra_rti_package_process_directed_retraction_consumer",
+       "next_process_package_directed_retraction_ctest_filter": "package-process-directed-retraction",
+       "next_process_package_catalog_verifier": "tools/verify_process_package_lanes.py",
+       "next_standard_sections": [
+         "hla-1516.1-2025:clause-6.10",
+         "hla-1516.1-2025:clause-6.11.1",
+         "hla-1516.1-2025:clause-6.1.2",
+         "hla-1516.1-2025:clause-6.19",
+         "hla-1516.1-2025:clause-6.20",
+         "hla-1516.1-2025:clause-6.23",
+         "hla-1516.1-2025:clause-6.24",
+         "hla-1516.1-2025:clause-6.13",
+         "hla-1516.1-2025:clause-6.14",
+         "hla-1516.1-2025:clause-6.14.3",
+         "hla-1516.1-2025:clause-6.15.1",
+         "hla-1516.1-2025:clause-8.22.3",
+         "hla-1516.1-2025:clause-9.3",
+         "hla-1516.1-2025:clause-9.5",
+         "hla-1516.1-2025:clause-9.6",
+         "hla-1516.1-2025:clause-9.7.5",
+         "hla-1516.1-2025:clause-9.8",
+         "hla-1516.1-2025:clause-9.9.3",
+         "hla-1516.1-2025:clause-10.37.1",
+         "hla-1516.1-2025:clause-10.38.4",
+         "hla-1516.1-2025:clause-10.39.6"
+       ],
+       "next_plan_ids": [
+         "umbra-cpp-process-endpoint-disjoint-regional-update-integration",
+         "umbra-cpp-process-endpoint-regional-unsubscribe-integration",
+         "umbra-cpp-process-endpoint-timestamped-regional-update-integration",
+         "umbra-cpp-process-endpoint-regional-subscription-update-integration",
+         "umbra-cpp-process-endpoint-regional-registration-integration",
+         "umbra-cpp-process-endpoint-object-registration-integration",
+         "umbra-cpp-process-endpoint-named-object-registration-integration",
+         "umbra-cpp-process-endpoint-update-attribute-values-integration",
+        "umbra-cpp-process-endpoint-update-attribute-values-reflect-integration",
+        "umbra-cpp-process-attribute-relevance-advisory-transport",
+         "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
+         "umbra-cpp-process-attribute-relevance-advisory-switch-suppression",
+         "umbra-cpp-process-regional-attribute-relevance-advisory-public-transition",
+         "umbra-cpp-process-regional-attribute-relevance-advisory-public-subscription-transition",
+        "umbra-cpp-process-regional-attribute-relevance-advisory-public-initial-discovery",
+        "umbra-cpp-attribute-relevance-advisory-rate-reissue-integration",
+        "umbra-cpp-regional-attribute-relevance-advisory-rate-designator-integration",
+        "umbra-cpp-process-attribute-relevance-advisory-rate-reissue-public",
+        "umbra-cpp-process-regional-attribute-relevance-advisory-rate-designator-public",
+        "umbra-cpp-regional-attribute-relevance-advisory-callback-entry-recheck",
+        "umbra-cpp-process-endpoint-directed-interaction-callback-integration"
+      ],
+      "catalog_gap_plan_ids": [],
+      "query_tags": ["time-management", "save-restore", "process-restart", "process-restart-ownership-assumption-search", "ownership-assumption-research", "process-restart-mixed-confirmation-delivered", "process-restart-negotiated-mixed-confirmation-delivered", "process-restart-asymmetric-mixed-confirmation", "process-restart-asymmetric-mixed-confirmation-reverse", "process-restart-divestiture-if-wanted", "process-restart-confirm-divestiture", "process-restart-confirm-divestiture-fanout", "public-process-restart-confirm-divestiture-fanout", "process-restart-confirm-divestiture-mixed-fanout", "public-process-restart-confirm-divestiture-mixed-fanout", "process-restart-confirm-divestiture-resignation", "public-process-restart-confirm-divestiture-resignation", "process-restart-confirm-divestiture-post-confirmation-resignation", "public-process-restart-confirm-divestiture-post-confirmation-resignation", "multi-survivor-post-confirmation-fanout", "request-attribute-ownership-assumption", "eligible-ownership-assumption-post-confirmation-fanout", "process-restart-ownership-acquisition-cancellation", "process-restart-negotiated-confirmation-delivered", "process-restart-negotiated-if-available-confirmation-delivered", "process-restart-attribute-transportation-type-change", "public-process-restart-attribute-transportation-type-change", "process-restart-interaction-transportation-type-change", "process-restart-interaction-declaration", "process-restart-interaction-transportation-type-override", "public-process-restart-interaction-transportation-type-override", "process-restart-interaction-mixed-override", "public-process-restart-interaction-mixed-override", "process-restart-directed-interaction-declaration", "process-restart-directed-interaction-routing", "process-restart-directed-interaction-ownership-handoff", "process-restart-directed-interaction-tso-ownership-callback", "process-restart-directed-interaction-tso-ownership-delivery-retraction", "public-process-restart-directed-interaction-tso-ownership-delivery-retraction", "public-process-restart-directed-interaction-tso-post-delivery-resignation", "process-restart-directed-interaction-tso-fanout-positive-negative", "process-restart-directed-interaction-tso-parameter-projection", "process-restart-pending-attribute-value-update", "public-process-restart-pending-attribute-value-update", "process-restart-class-pending-attribute-value-update", "public-process-restart-class-pending-attribute-value-update", "process-restart-regional-pending-attribute-value-update", "process-restart-regional-pending-attribute-value-update-negative", "process-restart-regional-pending-attribute-value-update-provider-departure", "public-process-restart-regional-pending-attribute-value-update", "public-process-restart-regional-pending-attribute-value-update-negative", "public-process-restart-regional-pending-attribute-value-update-provider-departure", "durable-save-regional-pending-attribute-value-update-response-retraction", "public-durable-save-regional-pending-attribute-value-update-response-retraction", "durable-save-regional-pending-attribute-value-update-regular-response", "process-restart-regional-interaction-tso-ddm", "interaction-declaration-state", "interaction-transportation-type-change", "interaction-state", "tso-interaction-message-state", "tso-directed-interaction-state", "tso-attribute-update-state", "tso-object-deletion-state", "tso-regional-attribute-update-state", "tso-regional-attribute-update-resignation-state", "tso-regional-attribute-update-live-restore-state", "tso-regional-attribute-update-live-resignation-state", "tso-regional-attribute-update-timed-live-restore-state", "tso-regional-attribute-update-timed-live-resignation-state", "tso-regional-attribute-update-timed-multi-resignation-state", "tso-regional-attribute-update-timed-delete-state", "tso-regional-attribute-update-timed-cancel-state", "tso-regional-attribute-update-timed-no-action-state", "tso-regional-attribute-update-timed-if-available-state", "tso-regional-attribute-update-timed-negotiated-state", "tso-regional-attribute-update-timed-negotiated-continuation-state", "tso-regional-attribute-update-timed-negotiated-mixed-candidate-state", "tso-regional-attribute-update-timed-negotiated-regular-candidate-state", "tso-regional-attribute-update-timed-negotiated-if-available-regular-candidate-state", "tso-regional-attribute-update-timed-negotiated-confirmation-cancel-state", "tso-regional-attribute-update-timed-negotiated-mixed-confirmation-cancel-state", "tso-regional-attribute-update-timed-negotiated-mixed-pre-delivery-cancel-state", "tso-regional-attribute-update-timed-negotiated-retained-regular-pre-delivery-cancel-state", "tso-regional-attribute-update-timed-negotiated-regular-retained-confirmation-cancel-state", "tso-regional-attribute-update-timed-negotiated-regular-retained-pre-delivery-cancel-state", "tso-regional-attribute-update-timed-resignation-matrix", "tso-retraction-ledger-state", "ownership-ledger-state", "attribute-transportation-type-change", "transportation-management", "attribute-ownership-acquisition", "attribute-ownership-acquisition-cancellation", "attribute-ownership-acquisition-if-available", "public-process-restart-attribute-ownership-acquisition", "public-process-restart-attribute-ownership-negotiated-owner-confirmation", "public-process-restart-attribute-ownership-mixed-negotiated-ownership", "public-process-restart-negotiated-confirmation-delivered", "public-process-restart-negotiated-if-available-confirmation-delivered", "public-process-restart-mixed-confirmation-delivered", "public-process-restart-asymmetric-mixed-confirmation", "public-process-restart-asymmetric-mixed-confirmation-reverse", "process-restart-attribute-ownership-negotiated-owner-confirmation", "process-restart-attribute-ownership-negotiated-if-available-owner-confirmation", "attribute-ownership-divestiture-if-wanted", "confirm-divestiture", "negotiated-attribute-ownership-divestiture", "object-visibility-state", "object-lifecycle-state", "membership-update-state", "membership-reflection-state", "membership-lifecycle-state", "membership-interaction-send-state", "object-name-reservation-state", "synchronization-state", "region-state", "application-value-state", "public-process-restart-application-value", "pending-application-request-state", "pending-attribute-ownership-query", "public-process-restart-pending-attribute-ownership-query", "public-process-restart-pending-attribute-ownership-query-unowned", "public-process-restart-pending-rti-owned-attribute-ownership-query", "pending-attribute-ownership-query-unowned", "pending-attribute-ownership-query-rti-owned", "tso-payload-state", "tso-queue-state", "auto-provide", "auto-provide-regional", "regional-automatic-provision", "regional-automatic-provision-immediate", "regional-automatic-provision-response", "regional-automatic-provision-timestamped-response", "regional-automatic-provision-multi-provider", "regional-automatic-provision-multi-source-region", "regional-automatic-provision-relaxed-ddm", "allow-relaxed-ddm", "regional-automatic-provision-switch-mutation", "regional-automatic-provision-timestamped-switch-mutation", "regional-automatic-provision-switch-admission-mutation", "regional-automatic-provision-timestamped-switch-admission-mutation", "timestamped-directed-interaction-restore-multi-recipient", "timestamped-directed-interaction-restore", "timestamped-default-region-attribute-restore-multi-recipient", "timestamped-regional-attribute-timed-restore-multi-recipient", "timestamped-directed-interaction-subscription-kind", "timestamped-directed-interaction-time-regulated-service-report-file", "timestamped-directed-interaction-service-report", "send-directed-interaction-service-report", "send-interaction-service-report"],
+      "next_action": "All 840 Requirements-Lab Catch2 plan entries retain explicit status; source-unlocated historical rows remain separate from executable evidence. The process endpoint now carries the completed timestamped Delete Object Instance foundation slice with exact source, requirement, section, API, and assertion mappings. The focused process-boundary gate reports 38 executable cases / 1,617 indexed focused-JUnit assertions, and the next source-backed task is the planned HLA_IMMEDIATE companion for timestamped regional Update Attribute Values shown by `next --summary --compact`. Keep package evidence, protected review, interoperability, and conformance promotion separate; do not rescan the unchanged Requirements Lab."
+    },
+    {
+      "id": "mom-after-base-services",
+      "status": "open",
+      "kind": "runtime",
+      "priority": 5,
+      "title": "Complete MOM services after the corresponding base service behavior is stable",
+      "roadmap_anchor": "MOM services after the corresponding base service behavior is stable.",
+      "query_tags": ["mom", "service-reporting", "service-report-store"],
+      "next_action": "Add MOM behavior only alongside a stable underlying C++ service and retain its exact service-report and standard-clause mapping."
+    },
+    {
+      "id": "transport-and-conformance",
+      "status": "open",
+      "kind": "architecture-and-evidence",
+      "priority": 6,
+      "title": "Complete embedded and remote transports, interoperability, and independently reviewed conformance evidence",
+      "roadmap_anchor": "Embedded and remote transports, multi-process interoperability, and",
+      "query_tags": [
+        "transport",
+        "process-boundary",
+        "regional-attribute-relevance",
+        "directed-interaction",
+        "timestamped-directed-interaction",
+        "timestamped-directed-retraction",
+        "retract",
+        "callback-gating"
+      ],
+      "next_action": "The private process endpoint, framing, service-dispatch, registry-bound Create/Join/receive-order interaction, independently launched server/sender/receiver baselines, public RtiConfiguration process Connect/Create/Join/NoAction Resign/Send Interaction/handle-lookup/declaration/ordinary and timestamped Receive/Evoke/Evoke Multiple/callback-gating/Connection Lost/object-publication/unnamed and named object-registration/duplicate-name and illegal-name exception mapping/ordinary Subscribe Object Class Attributes/automatic Discover Object Instance/ordinary and timestamped regional Update Attribute Values/Reflect Attribute Values/regional Unsubscribe suppression/2025 dimension-region lifecycle/regional registration/disjoint suppression, private owner-directed Attribute Relevance Advisory projection, public configured-endpoint Attribute Relevance Advisory callbacks under HLA_EVOKED and HLA_IMMEDIATE, private callback-entry suppression after switch disable, public regional association transitions, public regional subscription removal/restoration, public initial regional registration/discovery advisory delivery under both callback models, embedded active-rate reissue and regional explicit-rate retention, public active-rate reissue and regional explicit-rate retention, embedded regional callback-entry rechecking, and public ordinary/timestamped/callback-gated HLA_EVOKED/HLA_IMMEDIATE directed-interaction discovery/delivery plus timestamped Retract-before-receive suppression and post-delivery Request Retraction are green. The eight ordinary, timestamped, parameterized, connection-loss, object-registration, named-registration, ordinary attribute-update/Reflect, and directed-interaction/retraction two-client installed-package smokes remain green, and the complete installable-package gate has passed. Protect the CTest/JUnit/configuration/Requirements-Lab mapping artifacts while selecting the next source-backed C++ service family; the remaining package, protected-review, interoperability, and conformance work stays explicitly separate. Do not promote embedded fault-hook or private helper results as conformance."
+    },
+    {
+      "id": "annex-c-and-reference-resolution",
+      "status": "open",
+      "kind": "foundation",
+      "priority": 7,
+      "title": "Complete remaining Annex C and table-specific reference-resolution rules",
+      "roadmap_anchor": "Complete remaining Annex C, table-specific reference-resolution",
+      "query_tags": ["annex-c", "fom", "schema-conflict", "reference-resolution"],
+      "next_action": "The directed-interaction schema-conflict guard and the seven prior reference-resolution guards are complete and independently runnable. The transportation-name reference guard is now the bounded baseline; use its exact trace and lane handles for this foundation slice. Further source reconciliation belongs to the FOM module/declaration-management owner; do not widen the runtime boundary or rescan the unchanged Requirements Lab.",
+      "next_lane": "reference-resolution",
+      "next_test_role": "baseline",
+      "next_test_query": "The FOM composition preflight resolves transportation names after the complete module set is merged",
+      "next_plan_ids": ["umbra-cpp-fom-transportation-reference-resolution"],
+      "next_standard_sections": ["hla-1516.2-2025:clause-4.11.2", "hla-1516.2-2025:clause-6.2.5", "hla-1516.2-2025:clause-6.2.6", "hla-1516.2-2025:clause-C"]
+    },
+    {
+      "id": "disconnect-protected-review",
+      "status": "open",
+      "kind": "evidence",
+      "priority": 8,
+      "title": "Obtain protected review acceptance for the raw Disconnect evidence",
+      "roadmap_anchor": "Obtain protected review acceptance for the raw Disconnect evidence",
+      "query_tags": ["rti.service.disconnect"],
+      "next_action": "Submit the existing raw Disconnect sidecar for protected review; do not promote it to verified status before acceptance."
+    }
+  ]
+}

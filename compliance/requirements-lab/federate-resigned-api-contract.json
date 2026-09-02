@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-embedded-control-traceability-not-conformance-evidence",
-  "notes": "This contract selects the exact IEEE 1516.1-2025 C++ FederateAmbassador::federateResigned callback. Its focused filesystem test proves the RTI-initiated §4.13 service record is durable before this callback. It intentionally does not select the Lab's erroneous contextual Connection Lost crosswalk row; RL-025 records that issue. The private embedded control seam remains test-only and source/API traceability only, not a public force-resign API, remote administration mechanism, package claim, protected-review result, or conformance evidence.",
+  "notes": "This contract selects the exact IEEE 1516.1-2025 C++ FederateAmbassador::federateResigned callback. Its focused filesystem and native HLA_IMMEDIATE observer tests prove the RTI-initiated §4.13 service report is durable or delivered before this callback. It intentionally does not select the Lab's erroneous contextual Connection Lost crosswalk row; RL-025 records that issue. The private embedded control seam remains test-only and source/API traceability only, not a public force-resign API, remote administration mechanism, package claim, protected-review result, or conformance evidence.",
   "api_surfaces": [
     {
       "id": "umbra-federate-resigned-cpp-callback",
@@ -18,7 +18,8 @@
       "source_symbol": "UmbraRtiAmbassador::handleEmbeddedMembershipLoss",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI control forces the official federate-resigned transition",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federate Resigned before its callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federate Resigned before its callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Federate Resigned through MOM interaction"
       ]
     }
   ]

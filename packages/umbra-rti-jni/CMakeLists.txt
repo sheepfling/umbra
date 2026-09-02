@@ -4,9 +4,10 @@ project(umbra_rti_jni LANGUAGES CXX)
 
 find_package(JNI REQUIRED)
 
-# This is intentionally an integration-test bridge.  It builds the exact C++
-# checkout in the same embedded profile as the pybind development provider,
-# rather than claiming a stable binary SDK ABI.
+# This is a bounded provider bridge.  It builds the exact C++ checkout in the
+# same embedded profile as the pybind development provider; the product
+# wrapper supplies the Java/API/native staging boundary, but neither target
+# claims a stable binary SDK ABI or full RTI conformance.
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR ON CACHE BOOL "" FORCE)
 set(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT ON CACHE BOOL "" FORCE)

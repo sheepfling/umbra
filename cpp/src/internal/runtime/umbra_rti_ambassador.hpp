@@ -9,6 +9,7 @@
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "internal/federation/embedded_transport.hpp"
 #include "internal/federation/federation_registry.hpp"
+#include "internal/federation/process_federation_client.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
 #endif
 #include "internal/federation/federate_lifecycle.hpp"
@@ -797,11 +798,24 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       std::vector<umbra::detail::MomServiceArgument> const& suppliedArguments) const;
 
   void handleEmbeddedTransportFailure(std::wstring faultDescription);
+  // Process sockets report EOF/transport errors through the same lifecycle
+  // callback contract as the embedded transport, but the process service owns
+  // membership state remotely.  This handler therefore finalizes the local
+  // ambassador state and queues the official Connection Lost callback without
+  // consulting the process-local registry.
+  void handleProcessTransportFailure(std::wstring faultDescription);
   [[nodiscard]] bool handleEmbeddedFederateResignation(
       std::wstring reasonForResign);
   [[nodiscard]] bool handleEmbeddedMembershipLoss(
       EmbeddedMembershipLossKind kind,
       std::wstring reason);
+
+  // Pull one queued process-boundary receive-order event into the shared
+  // official callback dispatcher before an Evoke service drains it.  The
+  // process slice keeps this seam private; the public API remains the
+  // standard Evoke/EvokeMultiple callback surface.
+  void pumpProcessReceiveOrder(bool drainAll = false);
+  void pumpProcessAttributeUpdates(bool drainAll = false);
 
   // HLA_IMMEDIATE has no caller-side Evoke boundary. The scheduler claims
   // due RTI-owned periodic MOM work on a private thread, while the ordinary
@@ -827,17 +841,34 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   std::unique_ptr<umbra::detail::ServiceReportStore> serviceReportStore_;
   ServiceReportConnectionSnapshot serviceReportConnection_;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-  std::shared_ptr<umbra::detail::EmbeddedTransportConnection>
-      transportConnection_;
+  std::shared_ptr<umbra::detail::TransportConnection> transportConnection_;
+  // A configured tcp:// address selects the private process-boundary client.
+  // The public RTI surface owns this lifetime, while the protocol and service
+  // payloads remain internal until their standards mapping is complete.
+  std::unique_ptr<umbra::detail::ProcessFederationClient>
+      processFederationClient_;
+  bool processEndpointActive_ = false;
   std::unique_ptr<umbra::detail::ServiceReportStore>
       injectedServiceReportStoreForTesting_;
   bool activeServiceReportStoreIsTestOnly_ = false;
   std::optional<JoinedServiceReportState> joinedServiceReport_;
   std::optional<std::wstring> joinedFederationName_;
   std::optional<std::uint64_t> joinedFederateId_;
+  umbra::detail::FomStandardEdition fomStandardEdition_ =
+      umbra::detail::FomStandardEdition::ieee1516_2025;
   std::shared_ptr<umbra::detail::FederateTimeState> federateTimeState_;
   std::jthread periodicMomScheduler_;
 #endif
 };
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+// Non-installed test seam used to model a process restart around the public
+// RTIambassador surface. Callers must have disconnected all ambassadors that
+// use the current registry before replacing it, and should restore the
+// returned registry after the scoped test completes.
+[[nodiscard]] std::shared_ptr<umbra::detail::EmbeddedFederationRegistry>
+replaceEmbeddedFederationRegistryForTesting(
+    std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> replacement);
+#endif
 
 }  // namespace rti1516_2025::umbra_binding_detail

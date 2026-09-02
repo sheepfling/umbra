@@ -102,9 +102,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setFederateMomReportPeriod",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives joined-federate periodic values"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives joined-federate periodic values",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming schedules multiple joined-federate targets independently"
       ],
-      "notes": "The official HLAstandardMIM defines HLAsetTiming.HLAreportPeriod as HLAseconds represented by HLAinteger32BE and targets a joined federate through HLAfederateReference. This bounded slice validates the signed wire value, rejects negative periods without state mutation, stores one target-local wall-clock deadline, disables on zero, and claims the MIM-declared Periodic attribute handles through the ordinary active-subscription reflection planner at an Evoke callback boundary. The bounded MOM projection now supplies HLAlogicalTime/HLAlookahead, HLAGALT/HLALITS, and HLATSOlength when those Periodic attributes are actively subscribed; remaining periodic/conditional attributes, public MOM producer mapping, and conformance evidence remain open."
+      "notes": "The official HLAstandardMIM defines HLAsetTiming.HLAreportPeriod as HLAseconds represented by HLAinteger32BE and targets a joined federate through HLAfederateReference. This bounded slice validates the signed wire value, rejects negative periods without state mutation, stores one target-local wall-clock deadline, disables on zero, and claims the MIM-declared Periodic attribute handles through the ordinary active-subscription reflection planner at an Evoke callback boundary. A companion two-target vector now exercises both HLA_EVOKED and HLA_IMMEDIATE callback models: each proves that deadlines are independently associated with each joined-federate object and that disabling one target does not cancel the other target's pending update. The bounded MOM projection now supplies HLAlogicalTime/HLAlookahead, HLAGALT/HLALITS, and HLATSOlength when those Periodic attributes are actively subscribed; remaining periodic/conditional attributes, public MOM producer mapping, and conformance evidence remain open."
     },
     {
       "id": "umbra-joined-federate-mom-hla-set-timing-immediate-scheduler",
@@ -113,9 +114,10 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::periodicMomSchedulerLoop",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives HLA_IMMEDIATE periodic values without Evoke"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming drives HLA_IMMEDIATE periodic values without Evoke",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetTiming schedules multiple joined-federate targets independently"
       ],
-      "notes": "The embedded profile's HLA_IMMEDIATE callback model now runs a private per-ambassador scheduler that claims the same registry-owned HLAsetTiming deadline and invokes the ordinary active-subscription reflection route without an Evoke call. The focused case uses a thread-safe observer, verifies a periodic HLAlogicalTime/HLAlookahead reflection after one second, and verifies that HLAreportPeriod=0 stops later reflections. The scheduler is an embedded development-profile implementation detail; remaining periodic/conditional attributes, remote transport, producer mapping, and conformance remain open."
+      "notes": "The embedded profile's HLA_IMMEDIATE callback model now runs a private per-ambassador scheduler that claims the same registry-owned HLAsetTiming deadline and invokes the ordinary active-subscription reflection route without an Evoke call. The focused cases use a thread-safe observer, verify a periodic HLAlogicalTime/HLAlookahead reflection after one second, verify that HLAreportPeriod=0 stops later reflections, and prove two target-local deadlines remain independent when one target is disabled. The companion now also drives the caller-gated HLA_EVOKED path against the same registry planner; both models retain target identity and reliable RTI-originated callback metadata. The scheduler is an embedded development-profile implementation detail; remaining periodic/conditional attributes, remote transport, producer mapping, and conformance remain open."
     },
     {
       "id": "umbra-joined-federate-mom-galt-lits-periodic-values",
@@ -329,6 +331,17 @@
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_federation_mom_membership_updates"
       ],
       "notes": "The execution-scoped HLAmanager.HLAfederation object exposes HLAfederatesInFederation as the official nested HLAvariableArray<HLAfederateReference> representation, encoded from the authoritative live membership map. The native and Java/JPype cases prove a direct current-value request for one member and conditional reflections at the 1-to-2-to-1 Join/Resign boundaries. The pinned Lab export supplies only the generic §11.4.1 MOM candidate, so this remains development-profile traceability rather than Lab validation or conformance evidence."
+    },
+    {
+      "id": "umbra-federation-mom-static-configuration-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::establishFederationMomObject",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation MOM exposes static configuration values"
+      ],
+      "notes": "The execution-scoped HLAmanager.HLAfederation object exposes the eight required static configuration values through the ordinary public discovery/reflection route: federation name, RTI version, MIM designator, time implementation, and the four composed-federation switch values. The native case composes the official Restaurant FOM with focused switch modules, decodes each official HLAunicodeString or HLAswitch representation, and verifies reliable RTI-originated initial reflection. The pinned Lab export supplies only the generic §11.4.1 MOM candidate and no row-level static-value relation, so this remains development-profile traceability rather than Lab validation or conformance evidence."
     },
     {
       "id": "umbra-joined-federate-mom-reflected-object-count-periodic-value",

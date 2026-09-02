@@ -12,14 +12,19 @@ namespace umbra::detail {
 class LibXml2FomModuleComposer final : public FomModuleComposer {
  public:
   // A materializer validates its synthesized output against the separately
-  // vendored relaxed FDD schema, never against the input DIF schema.
-  explicit LibXml2FomModuleComposer(std::filesystem::path fddSchemaPath);
+  // selected FDD schema for the model edition, never against the input DIF
+  // schema. The 2010 path is optional so existing 2025-only builds retain
+  // their current resource contract.
+  explicit LibXml2FomModuleComposer(
+      std::filesystem::path fddSchemaPath2025,
+      std::filesystem::path fddSchemaPath2010 = {});
 
   [[nodiscard]] FomCompositionResult compose(
       std::vector<PrevalidatedFomModule> const& modules) const override;
 
  private:
-  std::filesystem::path fddSchemaPath_;
+  std::filesystem::path fddSchemaPath2025_;
+  std::filesystem::path fddSchemaPath2010_;
 };
 
 }  // namespace umbra::detail

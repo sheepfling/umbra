@@ -1,5 +1,6 @@
-"""Reserved IEEE 1516.1-2010 (HLA Evolved) Python API namespace.
+"""IEEE 1516.1-2010 (HLA Evolved) provider-neutral Python API."""
 
-The C++ implementation currently targets 2025 only. This namespace preserves
-the Java API layout without claiming that an IEEE 1516e provider is available.
-"""
+from __future__ import annotations
+
+from .public import *
+from .public import __all__

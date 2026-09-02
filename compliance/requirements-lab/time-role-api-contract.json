@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable embedded temporal-role development slice to exact C++ API surfaces exported by the Requirements Lab. It records regulation/constrained enable and disable services, Query Lookahead, and the two completion callbacks. The traced regressions include default-region and explicit-source regional timestamped interactions plus an explicit-source regional timestamped object update that remain queued across Time Constrained disable/re-enable and a normal-interaction case that exercises Disable Time Regulation, callback-gated re-enable, and the second Time Regulation Enabled callback while a separate Request Retraction contract records the bounded live-designator lifetime. The Lab exports no higher-level implementation mapping for these surfaces, so this checks only declaration, declared exception set, source symbol, and Catch2 selector agreement. It is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded temporal-role development slice to exact C++ API surfaces exported by the Requirements Lab. It records regulation/constrained enable and disable services, Query Lookahead, and the two completion callbacks. The traced regressions include default-region and explicit-source regional timestamped interactions plus an explicit-source regional timestamped object update that remain queued across Time Constrained disable/re-enable, a normal-interaction case that exercises Disable Time Regulation and callback-gated re-enable while preserving a live retraction designator, and a companion that delivers an already queued TSO interaction exactly once after the regulation role is disabled and re-enabled at the same lookahead. The Lab exports no higher-level implementation mapping for these surfaces, so this checks only declaration, declared exception set, source symbol, and Catch2 selector agreement. It is not a catalog, JUnit result, protected-review result, production package claim, or conformance claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-enable-time-regulation",
@@ -18,6 +18,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
@@ -38,6 +39,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services"
       ]
     },
@@ -54,6 +56,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
@@ -77,6 +80,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
@@ -111,7 +115,8 @@
       "source_symbol": "timeRegulationEnabled",
      "tests": [
        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
@@ -130,6 +135,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",

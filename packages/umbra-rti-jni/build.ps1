@@ -111,6 +111,10 @@ try {
             "org.umbra.jni.rti1516_2025.NativeRtiFactory"
         "META-INF/services/hla.rti1516_2025.auth.AuthorizerFactory" =
             "org.umbra.jni.rti1516_2025.NativeAuthorizerFactory"
+        "META-INF/services/hla.rti1516_2025.time.LogicalTimeFactory" = @(
+            "org.umbra.jni.rti1516_2025.NativeInteger64TimeFactory",
+            "org.umbra.jni.rti1516_2025.NativeFloat64TimeFactory"
+        )
     }
     foreach ($descriptor in $expectedServiceDescriptors.Keys) {
         $entry = $bridgeArchive.GetEntry($descriptor)
@@ -126,10 +130,13 @@ try {
         } finally {
             $reader.Dispose()
         }
-        if ($providers.Count -ne 1 -or $providers[0] -ne $expectedServiceDescriptors[$descriptor]) {
+        $expectedProviders = @($expectedServiceDescriptors[$descriptor])
+        if ($providers.Count -ne $expectedProviders.Count -or
+            -not [System.Linq.Enumerable]::SequenceEqual(
+                [string[]]$providers, [string[]]$expectedProviders)) {
             throw (
                 "JNI bridge ServiceLoader descriptor $descriptor must contain only " +
-                "$($expectedServiceDescriptors[$descriptor])"
+                "$($expectedProviders -join ', ')"
             )
         }
     }
@@ -139,6 +146,12 @@ try {
 
 if ($RunSmokeTest) {
     $classpath = "$apiJarPath$([System.IO.Path]::PathSeparator)$jarPath"
+    & java "-Dumbra.rti.jni.library=$nativeLibraryPath" `
+        -cp $classpath `
+        org.umbra.jni.rti1516_2025.StandardSurfaceSmokeTest
+    if ($LASTEXITCODE -ne 0) {
+        throw "JNI Java 2025 standard surface smoke test failed with exit code $LASTEXITCODE"
+    }
     $smokeArguments = @(
         "-Dumbra.rti.jni.library=$nativeLibraryPath",
         "-cp", $classpath,
@@ -150,7 +163,7 @@ if ($RunSmokeTest) {
     }
     & java @smokeArguments
     if ($LASTEXITCODE -ne 0) {
-        throw "JNI Java RTI smoke test failed with exit code $LASTEXITCODE"
+        throw "JNI Java 2025 native smoke test failed with exit code $LASTEXITCODE"
     }
 }
 

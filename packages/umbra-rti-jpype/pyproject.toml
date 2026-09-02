@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "umbra-rti-jpype"
 version = "0.1.0"
-description = "Optional JPype provider for Java IEEE 1516.1-2025 RTIs"
+description = "Optional JPype providers for Java IEEE 1516.1-2010 and 2025 RTIs"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Umbra contributors" }]
@@ -23,6 +23,9 @@ test = ["umbra-rti-test-support==0.1.0"]
 [project.entry-points."hla.rti1516_2025.factories"]
 java = "umbra._java.rti1516_2025:JavaRtiFactory"
 umbra-jni = "umbra._java.rti1516_2025:UmbraJniRtiFactory"
+
+[project.entry-points."hla.rti1516e.factories"]
+java-2010 = "umbra._java.rti1516e:Java2010RtiFactory"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/umbra"]

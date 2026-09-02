@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Umbra Regional Ownership Fanout Fixture</name>
+        <type>FOM</type>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>UmbraRegionalOwnershipFanout</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>UmbraRegionX</dimension>
+                </dimensions>
+                <attribute>
+                    <name>ProviderAValue</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Regional value retained by provider A.</semantics>
+                </attribute>
+                <attribute>
+                    <name>ProviderBValue</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Regional value transferred to provider B.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <dimensions>
+        <dimension>
+            <name>UmbraRegionX</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Fixture X coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Fixture X normalization.</normalization>
+            <outputDataSemantics>Fixture X coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+    </dimensions>
+    <switches>
+        <autoProvide isEnabled="true"/>
+    </switches>
+</objectModel>

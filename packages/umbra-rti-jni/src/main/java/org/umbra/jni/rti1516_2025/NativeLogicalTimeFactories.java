@@ -53,23 +53,54 @@ public final class NativeLogicalTimeFactories {
 
    public static LogicalTimeFactory forName(String factoryName, long nativeHandle) {
       if ("HLAinteger64Time".equals(factoryName)) {
-         return factory(nativeHandle, false);
+         return factory(nativeHandle, false, true);
       }
       if ("HLAfloat64Time".equals(factoryName)) {
-         return factory(nativeHandle, true);
+         return factory(nativeHandle, true, true);
       }
       throw new IllegalArgumentException("Unsupported C++ logical-time factory: " + factoryName);
    }
 
-   private static LogicalTimeFactory factory(long nativeHandle, boolean floatingPoint) {
+   /**
+    * Build the exact time-factory shape used by the standard ServiceLoader.
+    *
+    * <p>This path is deliberately standalone: a top-level logical-time
+    * provider is discovered before an RTI ambassador has joined a federation,
+    * so it uses the Java value carrier for construction and decoding.  Once an
+    * ambassador has selected a C++ time factory, {@link #forName(String, long)}
+    * continues to use the native codec path.</p>
+    */
+   public static LogicalTimeFactory<?, ?> forServiceLoader(String factoryName) {
+      if ("HLAinteger64Time".equals(factoryName)) {
+         return factory(0L, false, false);
+      }
+      if ("HLAfloat64Time".equals(factoryName)) {
+         return factory(0L, true, false);
+      }
+      throw new IllegalArgumentException("Unsupported standard logical-time factory: " + factoryName);
+   }
+
+   private static LogicalTimeFactory factory(
+      long nativeHandle, boolean floatingPoint, boolean includeCompatibilityRoot) {
       Class<?> creators = floatingPoint ? FloatFactorySurface.class : IntegerFactorySurface.class;
       return (LogicalTimeFactory) Proxy.newProxyInstance(
          LogicalTimeFactory.class.getClassLoader(),
-         factoryInterfaces(creators),
-         new Factory(nativeHandle, floatingPoint));
+         factoryInterfaces(creators, floatingPoint, includeCompatibilityRoot),
+         new Factory(nativeHandle, floatingPoint, includeCompatibilityRoot));
    }
 
-   private static Class<?>[] factoryInterfaces(Class<?> creators) {
+   private static Class<?>[] factoryInterfaces(
+      Class<?> creators, boolean floatingPoint, boolean includeCompatibilityRoot) {
+      if (!includeCompatibilityRoot) {
+         String factoryName = floatingPoint
+            ? "hla.rti1516_2025.time.HLAfloat64TimeFactory"
+            : "hla.rti1516_2025.time.HLAinteger64TimeFactory";
+         Class<?> exact = optionalClass(factoryName);
+         if (exact == null) {
+            throw new IllegalStateException("Standard logical-time factory is unavailable: " + factoryName);
+         }
+         return new Class<?>[] { exact };
+      }
       Class<?> root = optionalClass("hla.rti1516_2025.LogicalTimeFactory");
       if (root == null) {
          return new Class<?>[] { LogicalTimeFactory.class, creators };
@@ -77,7 +108,19 @@ public final class NativeLogicalTimeFactories {
       return new Class<?>[] { LogicalTimeFactory.class, root, creators };
    }
 
-   private static Class<?>[] carrierInterfaces(boolean time, Class<?> surface) {
+   private static Class<?>[] carrierInterfaces(
+      boolean time, boolean floatingPoint, Class<?> surface, boolean includeCompatibilityRoot) {
+      if (!includeCompatibilityRoot) {
+         String valueName = "hla.rti1516_2025.time." +
+            (floatingPoint
+               ? (time ? "HLAfloat64Time" : "HLAfloat64Interval")
+               : (time ? "HLAinteger64Time" : "HLAinteger64Interval"));
+         Class<?> exact = optionalClass(valueName);
+         if (exact == null) {
+            throw new IllegalStateException("Standard logical-time value is unavailable: " + valueName);
+         }
+         return new Class<?>[] { exact };
+      }
       Class<?> standard = time ? LogicalTime.class : LogicalTimeInterval.class;
       Class<?> root = optionalClass(
          "hla.rti1516_2025." + (time ? "LogicalTime" : "LogicalTimeInterval"));
@@ -93,13 +136,36 @@ public final class NativeLogicalTimeFactories {
       }
    }
 
+   /** Invoke a provider delegate without tying this bridge to one API revision's checked exception type. */
+   static Object invokeProvider(
+      Object delegate, String methodName, Class<?>[] parameterTypes, Object... arguments) {
+      try {
+         return delegate.getClass().getMethod(methodName, parameterTypes).invoke(delegate, arguments);
+      } catch (java.lang.reflect.InvocationTargetException error) {
+         Throwable cause = error.getCause() == null ? error : error.getCause();
+         if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+         if (cause instanceof Error) throw (Error) cause;
+         return NativeLogicalTimeFactories.<RuntimeException, Object>rethrow(cause);
+      } catch (ReflectiveOperationException error) {
+         throw new IllegalStateException(
+            "Logical-time provider delegate is missing " + methodName, error);
+      }
+   }
+
+   @SuppressWarnings("unchecked")
+   private static <T extends Throwable, R> R rethrow(Throwable error) throws T {
+      throw (T) error;
+   }
+
    private static final class Factory implements InvocationHandler {
       private final long nativeHandle;
       private final boolean floatingPoint;
+      private final boolean includeCompatibilityRoot;
 
-      Factory(long nativeHandle, boolean floatingPoint) {
+      Factory(long nativeHandle, boolean floatingPoint, boolean includeCompatibilityRoot) {
          this.nativeHandle = nativeHandle;
          this.floatingPoint = floatingPoint;
+         this.includeCompatibilityRoot = includeCompatibilityRoot;
       }
 
       @Override public Object invoke(Object proxy, Method method, Object[] arguments) {
@@ -147,35 +213,53 @@ public final class NativeLogicalTimeFactories {
       }
 
       private Object makeIntegerTimeValue(long value) {
+         if (nativeHandle == 0L) return new Carrier(0L, true, value, false).proxy();
          return new Carrier(nativeHandle, true,
-            decodeLong(NativeBridge.nativeMakeIntegerLogicalTime(nativeHandle, value))).proxy();
+            decodeLong(NativeBridge.nativeMakeIntegerLogicalTime(nativeHandle, value)), true).proxy();
       }
 
       private Object makeFloatTimeValue(double value) {
+         if (nativeHandle == 0L) return new Carrier(0L, true, value, false).proxy();
          return new Carrier(nativeHandle, true,
-            decodeDouble(NativeBridge.nativeMakeFloatLogicalTime(nativeHandle, value))).proxy();
+            decodeDouble(NativeBridge.nativeMakeFloatLogicalTime(nativeHandle, value)), true).proxy();
       }
 
       private Object makeIntegerIntervalValue(long value) {
+         if (nativeHandle == 0L) return new Carrier(0L, false, value, false).proxy();
          return new Carrier(nativeHandle, false,
-            decodeLong(NativeBridge.nativeMakeIntegerLogicalTimeInterval(nativeHandle, value))).proxy();
+            decodeLong(NativeBridge.nativeMakeIntegerLogicalTimeInterval(nativeHandle, value)), true).proxy();
       }
 
       private Object makeFloatIntervalValue(double value) {
+         if (nativeHandle == 0L) return new Carrier(0L, false, value, false).proxy();
          return new Carrier(nativeHandle, false,
-            decodeDouble(NativeBridge.nativeMakeFloatLogicalTimeInterval(nativeHandle, value))).proxy();
+            decodeDouble(NativeBridge.nativeMakeFloatLogicalTimeInterval(nativeHandle, value)), true).proxy();
       }
 
       private Object decodeTimeValue(byte[] encoded, int offset) {
+         if (nativeHandle == 0L) {
+            verifyEncoding(encoded, offset);
+            ByteBuffer buffer = ByteBuffer.wrap(encoded, offset, Long.BYTES);
+            return floatingPoint
+               ? new Carrier(0L, true, buffer.getDouble(), false).proxy()
+               : new Carrier(0L, true, buffer.getLong(), false).proxy();
+         }
          byte[] result = nativeDecode(nativeHandle, encoded, offset, false);
-         if (floatingPoint) return new Carrier(nativeHandle, true, decodeDouble(result)).proxy();
-         return new Carrier(nativeHandle, true, decodeLong(result)).proxy();
+         if (floatingPoint) return new Carrier(nativeHandle, true, decodeDouble(result), true).proxy();
+         return new Carrier(nativeHandle, true, decodeLong(result), true).proxy();
       }
 
       private Object decodeIntervalValue(byte[] encoded, int offset) {
+         if (nativeHandle == 0L) {
+            verifyEncoding(encoded, offset);
+            ByteBuffer buffer = ByteBuffer.wrap(encoded, offset, Long.BYTES);
+            return floatingPoint
+               ? new Carrier(0L, false, buffer.getDouble(), false).proxy()
+               : new Carrier(0L, false, buffer.getLong(), false).proxy();
+         }
          byte[] result = nativeDecode(nativeHandle, encoded, offset, true);
-         if (floatingPoint) return new Carrier(nativeHandle, false, decodeDouble(result)).proxy();
-         return new Carrier(nativeHandle, false, decodeLong(result)).proxy();
+         if (floatingPoint) return new Carrier(nativeHandle, false, decodeDouble(result), true).proxy();
+         return new Carrier(nativeHandle, false, decodeLong(result), true).proxy();
       }
    }
 
@@ -207,21 +291,32 @@ public final class NativeLogicalTimeFactories {
       private final long nativeHandle;
       private final boolean floatingPoint;
       private final boolean time;
+      private final boolean includeCompatibilityRoot;
       private long integerValue;
       private double floatingValue;
 
       Carrier(long nativeHandle, boolean time, long value) {
+         this(nativeHandle, time, value, true);
+      }
+
+      Carrier(long nativeHandle, boolean time, long value, boolean includeCompatibilityRoot) {
          this.nativeHandle = nativeHandle;
          this.floatingPoint = false;
          this.time = time;
+         this.includeCompatibilityRoot = includeCompatibilityRoot;
          this.integerValue = value;
          this.floatingValue = 0.0d;
       }
 
       Carrier(long nativeHandle, boolean time, double value) {
+         this(nativeHandle, time, value, true);
+      }
+
+      Carrier(long nativeHandle, boolean time, double value, boolean includeCompatibilityRoot) {
          this.nativeHandle = nativeHandle;
          this.floatingPoint = true;
          this.time = time;
+         this.includeCompatibilityRoot = includeCompatibilityRoot;
          this.integerValue = 0L;
          this.floatingValue = value == 0.0d ? 0.0d : value;
       }
@@ -239,14 +334,15 @@ public final class NativeLogicalTimeFactories {
          }
          ByteBuffer buffer = ByteBuffer.wrap(encoded);
          return floatingPoint
-            ? new Carrier(nativeHandle, resultTime, buffer.getDouble())
-            : new Carrier(nativeHandle, resultTime, buffer.getLong());
+            ? new Carrier(nativeHandle, resultTime, buffer.getDouble(), includeCompatibilityRoot)
+            : new Carrier(nativeHandle, resultTime, buffer.getLong(), includeCompatibilityRoot);
       }
 
       Object proxy() {
          Class<?> surface = floatingPoint ? FloatCarrierSurface.class : IntegerCarrierSurface.class;
          return Proxy.newProxyInstance(
-            LogicalTime.class.getClassLoader(), carrierInterfaces(time, surface), this);
+            LogicalTime.class.getClassLoader(),
+            carrierInterfaces(time, floatingPoint, surface, includeCompatibilityRoot), this);
       }
 
       @Override public Object invoke(Object proxy, Method method, Object[] arguments) throws Throwable {
@@ -300,11 +396,12 @@ public final class NativeLogicalTimeFactories {
             if (time) throw new IllegalArgumentException("Only a logical-time interval can hold a difference");
             Carrier minuend = requireCarrier(values[0], true);
             Carrier subtrahend = requireCarrier(values[1], true);
-            Carrier result = arithmeticResult(
-               false,
-               NativeBridge.nativeDifferenceLogicalTime(
-                  nativeHandle, minuend.encoded(), subtrahend.encoded())
-            );
+            Carrier result = nativeHandle == 0L
+               ? differenceResult(minuend, subtrahend)
+               : arithmeticResult(
+                  false,
+                  NativeBridge.nativeDifferenceLogicalTime(
+                     nativeHandle, minuend.encoded(), subtrahend.encoded()));
             integerValue = result.integerValue;
             floatingValue = result.floatingValue;
             return null;
@@ -315,6 +412,14 @@ public final class NativeLogicalTimeFactories {
             // operand is therefore never a logical-time carrier; using
             // !time here incorrectly rejected interval arithmetic.
             Carrier other = requireCarrier(values[0], false);
+            if (nativeHandle == 0L) {
+               double sign = "add".equals(name) ? 1.0d : -1.0d;
+               return floatingPoint
+                  ? new Carrier(0L, time, floatingValue + sign * other.floatingValue,
+                     includeCompatibilityRoot).proxy()
+                  : new Carrier(0L, time, integerValue + ("add".equals(name)
+                     ? other.integerValue : -other.integerValue), includeCompatibilityRoot).proxy();
+            }
             byte[] result;
             if (time) {
                result = "add".equals(name)
@@ -329,6 +434,7 @@ public final class NativeLogicalTimeFactories {
          }
          if ("distance".equals(name) && values.length == 1) {
             Carrier other = requireCarrier(values[0], true);
+            if (nativeHandle == 0L) return differenceResult(this, other).proxy();
             return arithmeticResult(
                false,
                NativeBridge.nativeDifferenceLogicalTime(nativeHandle, encoded(), other.encoded())
@@ -369,6 +475,17 @@ public final class NativeLogicalTimeFactories {
             throw new IllegalArgumentException("Logical-time implementation mismatch");
          }
          return result;
+      }
+
+      private Carrier differenceResult(Carrier minuend, Carrier subtrahend) {
+         if (floatingPoint) {
+            return new Carrier(0L, false,
+               minuend.floatingValue - subtrahend.floatingValue,
+               includeCompatibilityRoot);
+         }
+         return new Carrier(0L, false,
+            minuend.integerValue - subtrahend.integerValue,
+            includeCompatibilityRoot);
       }
    }
 

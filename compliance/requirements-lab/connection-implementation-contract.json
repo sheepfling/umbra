@@ -3,11 +3,17 @@
   "kind": "implementation-contract",
   "contract_id": "umbra-ieee1516.1-2025-connection-implementation",
   "document_id": "hla-1516.1-2025",
-  "notes": "This contract checks source and test traceability for the implemented embedded connection slice. It is not accepted compliance evidence.",
+  "notes": "This contract checks source and test traceability for the implemented embedded connection slice. The aggregate Lab Connect mapping is explicitly crosswalked to all four official C++ overload-level API records through requirements_lab_api_surface_ids; this is a local traceability selection and does not alter the Lab's aggregate mapping or constitute accepted compliance evidence.",
   "mappings": [
     {
       "id": "umbra.cpp.rti.service.connect",
       "requirements_lab_mapping_id": "rti.service.connect",
+      "requirements_lab_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.connect.ed13bdcc70d7",
+        "api.2025.cpp.rtiambassador.connect.fd07798bb3a7",
+        "api.2025.cpp.rtiambassador.connect.b1de99b1fee7"
+      ],
       "requirement_ids": [
         "req-federate-connect-before-rti-work",
         "req-connect-service-establishes-connection"

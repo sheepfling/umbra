@@ -47,6 +47,11 @@ void CallbackSession::invoke(Invocation invocation) {
     return;
   }
 
+  // Dispatcher paths already serialize extraction, but lifecycle and test
+  // seams can invoke a session directly. Retain one callback entry at a time
+  // for the borrowed FederateAmbassador while allowing same-thread
+  // immediate re-entry.
+  std::unique_lock invocationLock(invocationMutex_);
   FederateAmbassador* recipient = nullptr;
   {
     std::scoped_lock lock(mutex_);

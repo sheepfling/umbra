@@ -56,6 +56,10 @@ $bridgeTarget = Join-Path $outputRoot "umbra-rti-jni.jar"
 $nativeTarget = Join-Path $outputRoot ([System.IO.Path]::GetFileName($nativeSource))
 Copy-Item -LiteralPath $bridgeSource -Destination $bridgeTarget -Force
 Copy-Item -LiteralPath $nativeSource -Destination $nativeTarget -Force
+$runSource = Join-Path $PSScriptRoot "run.ps1"
+if (Test-Path -LiteralPath $runSource -PathType Leaf) {
+    Copy-Item -LiteralPath $runSource -Destination (Join-Path $outputRoot "run.ps1") -Force
+}
 
 $apiTarget = $apiPath
 if ($IncludeJavaApiJar) {
@@ -89,6 +93,9 @@ $bridgeHash = (Get-FileHash -LiteralPath $bridgeTarget -Algorithm SHA256).Hash.T
 $nativeHash = (Get-FileHash -LiteralPath $nativeTarget -Algorithm SHA256).Hash.ToUpperInvariant()
 $dependencyManifest = [ordered]@{
     schemaVersion = 1
+    edition = "IEEE 1516.1-2025"
+    capabilityProfile = "bounded-jni-bridge"
+    launcher = "run.ps1"
     bridge = [ordered]@{
         file = [System.IO.Path]::GetFileName($bridgeTarget)
         sha256 = $bridgeHash
@@ -106,7 +113,8 @@ $dependencyManifest = [ordered]@{
     }
     notes = @(
         "The IEEE Java API remains the authoritative standard surface.",
-        "The bridge JAR must be used with the declared Java API dependency.",
+        "The product directory includes the declared Java API dependency and a standard ServiceLoader launcher.",
+        "The bridge exposes bounded RTI behavior; this bundle is not a full RTI conformance claim.",
         "Redistribution rights and the API source URL must be recorded by the release owner."
     )
 }

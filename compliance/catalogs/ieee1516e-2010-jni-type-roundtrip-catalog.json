@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "kind": "ieee1516e-2010-jni-type-roundtrip-catalog",
+  "standard": "IEEE 1516.1-2010",
+  "document_id": "hla-1516.1-2010",
+  "source_boundary": "packages/umbra-rti-jni-2010",
+  "route": "Python -> JPype -> standard Java carrier -> JNI -> official C++ 1516.1 carrier -> JNI -> standard Java -> Python",
+  "scope": "Carrier and encoding transport plus Python-side factory, overload-dispatch, argument-conversion, and unsupported-service exception transport. This includes both DataElement decode overloads, ByteWrapper cursor semantics, and malformed-wire exception identity. RTI service state, federation behavior, and callback delivery remain separate capabilities.",
+  "java_probe": "org.umbra.jni.rti1516e.NativeTypeRoundTrip",
+  "java_test": "org.umbra.jni.rti1516e.NativeTypeRoundTripTest",
+  "python_test": "packages/umbra-rti-jpype/tests/test_jpype_2010_jni_type_roundtrip.py",
+  "logical_time_wire_matrix": {
+    "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/wire_matrix.py",
+    "requirement_refs": [
+      "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+      "compliance/requirements-lab/float-time-requirements-contract.json",
+      "compliance/requirements-lab/reference-time-requirements-contract.json"
+    ],
+    "wire_vector_count": 16,
+    "python_test_method": "test_python_logical_time_wire_matrix_round_trips_through_jni",
+    "canonical_output_owned_by_cpp": true,
+    "offset_window_preserves_suffix": true,
+    "arithmetic_status": "deferred",
+    "arithmetic_reason": "The 2010 JNI artifact is an ABI/null-provider carrier probe. Provider-neutral Java and direct native profiles cover logical-time arithmetic; this route verifies standard carrier and wire transport only."
+  },
+  "vendor_time_arithmetic_surface": {
+    "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+    "requirement_refs": [
+      "compliance/requirements-lab/float-time-requirements-contract.json"
+    ],
+    "vector_count": 7,
+    "python_test_method": "test_python_logical_time_operation_surface_is_callable_through_jni",
+    "status": "carrier-return-shape-only",
+    "reason": "The null-provider bridge invokes each standard time/interval operation and checks Java return-category casts without claiming vendor arithmetic semantics."
+  },
+  "vendor_data_element_surface": {
+    "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+    "requirement_refs": [
+      "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+    ],
+    "vector_count": 4,
+    "python_test_method": "test_python_unknown_vendor_data_element_preserves_jni_carrier",
+    "status": "raw-carrier-preservation",
+    "reason": "A provider-owned DataElement with a fixed private payload is carried through JNI and JPype; exact, truncated, empty, and overlong inputs retain the provider's accept/reject behavior without being retyped as a standard element."
+  },
+  "python_carrier_facade_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/handle-encoding-requirements-contract.json",
+      "compliance/requirements-lab/handle-decoding-api-contract.json",
+      "compliance/requirements-lab/connection-callback-api-contract.json",
+      "compliance/requirements-lab/save-control-requirements-contract.json",
+      "compliance/requirements-lab/restore-control-requirements-contract.json",
+      "compliance/requirements-lab/logical-time-encoding-requirements-contract.json"
+    ],
+    "python_test_method": "test_python_handle_and_collection_facades_round_trip_through_jni",
+    "handle_families": [
+      "FederateHandle",
+      "ObjectClassHandle",
+      "ObjectInstanceHandle",
+      "AttributeHandle",
+      "InteractionClassHandle",
+      "ParameterHandle",
+      "TransportationTypeHandle",
+      "DimensionHandle",
+      "MessageRetractionHandle",
+      "RegionHandle"
+    ],
+    "collections": [
+      "AttributeHandleSet",
+      "DimensionHandleSet",
+      "FederateHandleSet",
+      "RegionHandleSet",
+      "FederationExecutionInformationSet",
+      "AttributeHandleValueMap",
+      "ParameterHandleValueMap",
+      "AttributeSetRegionSetPairList"
+    ],
+    "record_carriers": [
+      "RangeBounds",
+      "FederationExecutionInformation",
+      "FederateHandleSaveStatusPair",
+      "FederateRestoreStatus",
+      "MessageRetractionReturn",
+      "TimeQueryReturn"
+    ],
+    "callback_carriers": [
+      "SupplementalReflectInfo",
+      "SupplementalReceiveInfo",
+      "SupplementalRemoveInfo"
+    ],
+    "record_callback_test_method": "test_python_callback_and_record_carriers_round_trip_through_jni",
+    "callback_overload_test_method": "test_python_callback_overload_carriers_round_trip_through_jni",
+    "return_handle_test_method": "test_python_returned_retraction_handle_can_round_trip_back_to_jni",
+    "return_services": [
+      "updateAttributeValues",
+      "sendInteraction",
+      "deleteObjectInstance",
+      "sendInteractionWithRegions"
+    ],
+    "round_trip_direction": "Python -> standard Java carrier -> JNI -> C++ -> JNI -> standard Java carrier -> Python"
+  },
+  "python_factory_surface_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/connection-callback-api-contract.json"
+    ],
+    "factory_name": "Umbra JNI IEEE 1516e Null RTI",
+    "factory_version": "0.1.0-null",
+    "discovery": "standard hla.rti1516e.RtiFactoryFactory / ServiceLoader",
+    "rtiambassador_method_count": 150,
+    "rtiambassador_overload_count": 172,
+    "lifecycle_services": ["connect", "disconnect"],
+    "encoder_factory": "standard hla.rti1516e.encoding.EncoderFactory",
+    "python_test_method": "test_python_discovers_jni_factory_and_binds_complete_2010_surface",
+    "round_trip_direction": "Python Java2010RtiFactory -> standard Java RtiFactory -> Java RTIambassador proxy -> JPype -> Python façade"
+  },
+  "python_service_argument_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/connection-callback-api-contract.json",
+      "compliance/requirements-lab/handle-encoding-requirements-contract.json",
+      "compliance/requirements-lab/logical-time-encoding-requirements-contract.json"
+    ],
+    "service_overload_count": 169,
+    "time_implementations": ["HLAinteger64Time", "HLAfloat64Time"],
+    "lifecycle_services": ["connect", "disconnect"],
+    "factory_carriers": [
+      "LogicalTimeFactory",
+      "HandleFactory",
+      "HandleSetFactory",
+      "HandleValueMapFactory",
+      "AttributeSetRegionSetPairListFactory"
+    ],
+    "expected_unsupported_result": "hla.rti1516e.exceptions.RTIinternalError",
+    "python_test_method": "test_python_jni_service_arguments_reach_standard_null_surface",
+    "round_trip_direction": "Provider-neutral Python arguments -> JPype conversion -> standard Java RTIambassador proxy -> JNI -> C++ null-service result"
+  },
+  "callback_surface_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/connection-callback-api-contract.json"
+    ],
+    "method_count": 51,
+    "overload_count": 60,
+    "time_implementations": ["HLAinteger64Time", "HLAfloat64Time"],
+    "python_test_method": "test_python_callback_surface_matrix_round_trips_through_jni",
+    "round_trip_direction": "JNI-produced standard Java callback carriers -> JPype callback proxy -> Python callback arguments"
+  },
+  "python_return_surface_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/handle-encoding-requirements-contract.json",
+      "compliance/requirements-lab/handle-decoding-api-contract.json",
+      "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+      "compliance/requirements-lab/connection-callback-api-contract.json"
+    ],
+    "service_return_overload_count": 50,
+    "time_implementations": ["HLAinteger64Time", "HLAfloat64Time"],
+    "python_test_method": "test_python_rti_return_surface_matrix_round_trips_jni_carriers",
+    "round_trip_direction": "JNI-produced standard Java RTI return carriers -> Java-shaped implementation -> Python RTIambassador return values"
+  },
+  "basic_value_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+    ],
+    "edition": "2010",
+    "data_elements": ["HLAASCIIchar", "HLAASCIIstring", "HLAboolean", "HLAbyte", "HLAfloat32BE", "HLAfloat32LE", "HLAfloat64BE", "HLAfloat64LE", "HLAinteger16BE", "HLAinteger16LE", "HLAinteger32BE", "HLAinteger32LE", "HLAinteger64BE", "HLAinteger64LE", "HLAoctet", "HLAoctetPairBE", "HLAoctetPairLE", "HLAunicodeChar", "HLAunicodeString", "HLAopaqueData"],
+    "vector_count": 79,
+    "wire_owned_by_provider": true,
+    "shared_support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/data_element_matrix.py",
+    "python_test_methods": ["test_native_basic_data_element_value_matrix_round_trips_through_cpp", "test_python_basic_data_element_value_matrix_round_trips_through_jni"]
+  },
+  "malformed_wire_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+      "compliance/requirements-lab/logical-time-encoding-requirements-contract.json"
+    ],
+    "truncated_data_elements": ["HLAASCIIchar", "HLAASCIIstring", "HLAboolean", "HLAbyte", "HLAfloat32BE", "HLAfloat32LE", "HLAfloat64BE", "HLAfloat64LE", "HLAinteger16BE", "HLAinteger16LE", "HLAinteger32BE", "HLAinteger32LE", "HLAinteger64BE", "HLAinteger64LE", "HLAoctet", "HLAoctetPairBE", "HLAoctetPairLE", "HLAunicodeChar", "HLAunicodeString", "HLAopaqueData", "HLAvariableArray", "HLAfixedArray", "HLAfixedRecord", "HLAvariantRecord"],
+    "declared_length_overrun": ["HLAASCIIstring", "HLAunicodeString", "HLAopaqueData", "HLAvariableArray"],
+    "java_exception": "hla.rti1516e.encoding.DecoderException",
+    "python_test_method": "test_malformed_standard_data_element_matrix_maps_to_decoder_exception"
+  },
+  "byte_wrapper_cursor_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+    ],
+    "data_elements": ["HLAASCIIchar", "HLAASCIIstring", "HLAboolean", "HLAbyte", "HLAfloat32BE", "HLAfloat32LE", "HLAfloat64BE", "HLAfloat64LE", "HLAinteger16BE", "HLAinteger16LE", "HLAinteger32BE", "HLAinteger32LE", "HLAinteger64BE", "HLAinteger64LE", "HLAoctet", "HLAoctetPairBE", "HLAoctetPairLE", "HLAunicodeChar", "HLAunicodeString", "HLAopaqueData", "HLAvariableArray", "HLAfixedArray", "HLAfixedRecord", "HLAvariantRecord"],
+    "decode_overloads": ["byte[]", "ByteWrapper"],
+    "preserves_trailing_octet": true,
+    "python_test_method": "test_standard_data_element_bytewrapper_cursor_contract"
+  },
+  "python_encoder_facade_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+    ],
+    "data_elements": ["HLAASCIIchar", "HLAASCIIstring", "HLAboolean", "HLAbyte", "HLAfloat32BE", "HLAfloat32LE", "HLAfloat64BE", "HLAfloat64LE", "HLAinteger16BE", "HLAinteger16LE", "HLAinteger32BE", "HLAinteger32LE", "HLAinteger64BE", "HLAinteger64LE", "HLAoctet", "HLAoctetPairBE", "HLAoctetPairLE", "HLAunicodeChar", "HLAunicodeString", "HLAopaqueData", "HLAvariableArray", "HLAfixedArray", "HLAfixedRecord", "HLAvariantRecord"],
+    "factory_facade": "umbra._java.rti1516e.encoding.JavaEncoderFactory",
+    "creator_surface": {
+      "creator_count": 24,
+      "java_test_method": "requireEncoderFactorySurface",
+      "java_composite_argument_test_method": "requireEncoderFactoryCompositeArguments",
+      "python_test_method": "test_python_encoder_facade_matches_reflected_2010_creator_surface",
+      "python_composite_argument_test_method": "test_python_encoder_facade_forwards_composite_creator_arguments"
+    },
+    "python_test_method": "test_python_encoder_facade_uses_real_jni_carriers"
+  },
+  "carrier_inventories": {
+    "data_elements": ["HLAASCIIchar", "HLAASCIIstring", "HLAboolean", "HLAbyte", "HLAfloat32BE", "HLAfloat32LE", "HLAfloat64BE", "HLAfloat64LE", "HLAinteger16BE", "HLAinteger16LE", "HLAinteger32BE", "HLAinteger32LE", "HLAinteger64BE", "HLAinteger64LE", "HLAoctet", "HLAoctetPairBE", "HLAoctetPairLE", "HLAunicodeChar", "HLAunicodeString", "HLAopaqueData", "HLAvariableArray", "HLAfixedArray", "HLAfixedRecord", "HLAvariantRecord"],
+    "cpp_handles": ["FederateHandle", "ObjectClassHandle", "InteractionClassHandle", "ObjectInstanceHandle", "AttributeHandle", "ParameterHandle", "DimensionHandle", "MessageRetractionHandle", "RegionHandle"],
+    "java_only_handles": ["TransportationTypeHandle"],
+    "logical_times": ["HLAinteger64Time", "HLAinteger64Interval", "HLAfloat64Time", "HLAfloat64Interval"],
+    "logical_time_factories": ["HLAinteger64TimeFactory", "HLAfloat64TimeFactory"],
+    "handle_factories": ["FederateHandleFactory", "ObjectClassHandleFactory", "InteractionClassHandleFactory", "ObjectInstanceHandleFactory", "AttributeHandleFactory", "ParameterHandleFactory", "DimensionHandleFactory", "TransportationTypeHandleFactory"],
+    "data_element_factories": ["HLAoctet", "HLAinteger32BE", "HLAASCIIstring", "HLAopaqueData", "HLAvariableArray", "HLAfixedArray", "HLAfixedRecord", "HLAvariantRecord"],
+    "collection_kinds": ["AttributeHandleSet", "DimensionHandleSet", "FederateHandleSet", "RegionHandleSet", "FederationExecutionInformationSet", "AttributeHandleValueMap", "ParameterHandleValueMap", "AttributeSetRegionSetPairList"],
+    "collection_factories": ["AttributeHandleSetFactory", "DimensionHandleSetFactory", "FederateHandleSetFactory", "RegionHandleSetFactory", "AttributeHandleValueMapFactory", "ParameterHandleValueMapFactory", "AttributeSetRegionSetPairListFactory"]
+  },
+  "carriers": [
+    {"id": "jni-2010.primitive.byte", "category": "primitive", "java_type": "byte", "probe": "roundTripByte", "status": "implemented"},
+    {"id": "jni-2010.primitive.short", "category": "primitive", "java_type": "short", "probe": "roundTripShort", "status": "implemented"},
+    {"id": "jni-2010.primitive.int", "category": "primitive", "java_type": "int", "probe": "roundTripInt", "status": "implemented"},
+    {"id": "jni-2010.primitive.long", "category": "primitive", "java_type": "long", "probe": "roundTripLong", "status": "implemented"},
+    {"id": "jni-2010.primitive.float", "category": "primitive", "java_type": "float", "probe": "roundTripFloat", "status": "implemented"},
+    {"id": "jni-2010.primitive.double", "category": "primitive", "java_type": "double", "probe": "roundTripDouble", "status": "implemented"},
+    {"id": "jni-2010.primitive.boolean", "category": "primitive", "java_type": "boolean", "probe": "roundTripBoolean", "status": "implemented"},
+    {"id": "jni-2010.text.string", "category": "text", "java_type": "java.lang.String (UTF-16)", "probe": "roundTripString", "status": "implemented"},
+    {"id": "jni-2010.bytes.byte-array", "category": "bytes", "java_type": "byte[]", "probe": "roundTripBytes", "status": "implemented"},
+    {"id": "jni-2010.bytes.byte-wrapper", "category": "bytes", "java_type": "hla.rti1516e.encoding.ByteWrapper", "probe": "roundTripByteWrapper", "status": "implemented"},
+    {"id": "jni-2010.factory.encoder", "category": "factory", "java_type": "hla.rti1516e.encoding.EncoderFactory", "probe": "encoderFactoryCarrier", "status": "implemented"},
+    {"id": "jni-2010.factory.data-element", "category": "factory", "java_type": "hla.rti1516e.encoding.DataElementFactory", "probe": "dataElementFactoryCarrier", "status": "implemented"},
+    {"id": "jni-2010.factory.logical-time", "category": "factory", "java_type": "hla.rti1516e.time.*Factory", "probe": "logicalTimeFactoryCarrier", "status": "implemented"},
+    {"id": "jni-2010.factory.handle", "category": "factory", "java_type": "hla.rti1516e.*HandleFactory", "probe": "handleFactoryCarrier", "status": "implemented"},
+    {"id": "jni-2010.factory.collection", "category": "factory", "java_type": "hla.rti1516e.*SetFactory/*MapFactory/*ListFactory", "probe": "collectionFactoryCarrier", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAASCIIchar", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAASCIIchar", "probe": "HLAASCIIchar", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAASCIIstring", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAASCIIstring", "probe": "HLAASCIIstring", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAboolean", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAboolean", "probe": "HLAboolean", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAbyte", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAbyte", "probe": "HLAbyte", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAfloat32BE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAfloat32BE", "probe": "HLAfloat32BE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAfloat32LE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAfloat32LE", "probe": "HLAfloat32LE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAfloat64BE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAfloat64BE", "probe": "HLAfloat64BE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAfloat64LE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAfloat64LE", "probe": "HLAfloat64LE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAinteger16BE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAinteger16BE", "probe": "HLAinteger16BE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAinteger16LE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAinteger16LE", "probe": "HLAinteger16LE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAinteger32BE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAinteger32BE", "probe": "HLAinteger32BE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAinteger32LE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAinteger32LE", "probe": "HLAinteger32LE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAinteger64BE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAinteger64BE", "probe": "HLAinteger64BE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAinteger64LE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAinteger64LE", "probe": "HLAinteger64LE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAoctet", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAoctet", "probe": "HLAoctet", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAoctetPairBE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAoctetPairBE", "probe": "HLAoctetPairBE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAoctetPairLE", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAoctetPairLE", "probe": "HLAoctetPairLE", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAunicodeChar", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAunicodeChar", "probe": "HLAunicodeChar", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAunicodeString", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAunicodeString", "probe": "HLAunicodeString", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAopaqueData", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAopaqueData", "probe": "HLAopaqueData", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAvariableArray", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAvariableArray", "probe": "HLAvariableArray", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAfixedArray", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAfixedArray", "probe": "HLAfixedArray", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAfixedRecord", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAfixedRecord", "probe": "HLAfixedRecord", "status": "implemented"},
+    {"id": "jni-2010.encoding.HLAvariantRecord", "category": "encoding", "java_type": "hla.rti1516e.encoding.HLAvariantRecord", "probe": "HLAvariantRecord", "status": "implemented"},
+    {"id": "jni-2010.handle.federate", "category": "handle", "java_type": "hla.rti1516e.FederateHandle", "probe": "FederateHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.object-class", "category": "handle", "java_type": "hla.rti1516e.ObjectClassHandle", "probe": "ObjectClassHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.interaction-class", "category": "handle", "java_type": "hla.rti1516e.InteractionClassHandle", "probe": "InteractionClassHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.object-instance", "category": "handle", "java_type": "hla.rti1516e.ObjectInstanceHandle", "probe": "ObjectInstanceHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.attribute", "category": "handle", "java_type": "hla.rti1516e.AttributeHandle", "probe": "AttributeHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.parameter", "category": "handle", "java_type": "hla.rti1516e.ParameterHandle", "probe": "ParameterHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.dimension", "category": "handle", "java_type": "hla.rti1516e.DimensionHandle", "probe": "DimensionHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.message-retraction", "category": "handle", "java_type": "hla.rti1516e.MessageRetractionHandle", "probe": "MessageRetractionHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.region", "category": "handle", "java_type": "hla.rti1516e.RegionHandle", "probe": "RegionHandle", "status": "implemented"},
+    {"id": "jni-2010.handle.transportation-type", "category": "java-only-handle", "java_type": "hla.rti1516e.TransportationTypeHandle", "probe": "TransportationTypeHandle", "status": "implemented"},
+    {"id": "jni-2010.collection.handle-array", "category": "collection", "java_type": "byte[][] (encoded handles)", "probe": "roundTripHandleCollection", "status": "implemented"},
+    {"id": "jni-2010.collection.byte-matrix", "category": "collection", "java_type": "byte[][]", "probe": "roundTripByteMatrix", "status": "implemented"},
+    {"id": "jni-2010.collection.standard-set", "category": "collection", "java_type": "hla.rti1516e.*HandleSet/FederationExecutionInformationSet", "probe": "collectionCarrier", "status": "implemented"},
+    {"id": "jni-2010.collection.standard-map", "category": "collection", "java_type": "hla.rti1516e.*HandleValueMap", "probe": "collectionCarrier", "status": "implemented"},
+    {"id": "jni-2010.collection.standard-pair-list", "category": "collection", "java_type": "hla.rti1516e.AttributeSetRegionSetPairList", "probe": "collectionCarrier", "status": "implemented"},
+    {"id": "jni-2010.enum.callback-model", "category": "enum", "java_type": "hla.rti1516e.CallbackModel", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.order-type", "category": "enum", "java_type": "hla.rti1516e.OrderType", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.resign-action", "category": "enum", "java_type": "hla.rti1516e.ResignAction", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.service-group", "category": "enum", "java_type": "hla.rti1516e.ServiceGroup", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.sync-failure", "category": "enum", "java_type": "hla.rti1516e.SynchronizationPointFailureReason", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.save-failure", "category": "enum", "java_type": "hla.rti1516e.SaveFailureReason", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.save-status", "category": "enum", "java_type": "hla.rti1516e.SaveStatus", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.restore-failure", "category": "enum", "java_type": "hla.rti1516e.RestoreFailureReason", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.enum.restore-status", "category": "enum", "java_type": "hla.rti1516e.RestoreStatus", "probe": "roundTripEnum", "status": "implemented"},
+    {"id": "jni-2010.record.range-bounds", "category": "record", "java_type": "hla.rti1516e.RangeBounds", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.record.federation-execution-information", "category": "record", "java_type": "hla.rti1516e.FederationExecutionInformation", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.record.federate-handle-save-status", "category": "record", "java_type": "hla.rti1516e.FederateHandleSaveStatusPair", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.record.federate-restore-status", "category": "record", "java_type": "hla.rti1516e.FederateRestoreStatus", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.record.message-retraction-return", "category": "record", "java_type": "hla.rti1516e.MessageRetractionReturn", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.record.time-query-return", "category": "record", "java_type": "hla.rti1516e.TimeQueryReturn", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.callback.supplemental-reflect-info", "category": "callback", "java_type": "hla.rti1516e.FederateAmbassador.SupplementalReflectInfo", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.callback.supplemental-receive-info", "category": "callback", "java_type": "hla.rti1516e.FederateAmbassador.SupplementalReceiveInfo", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.callback.supplemental-remove-info", "category": "callback", "java_type": "hla.rti1516e.FederateAmbassador.SupplementalRemoveInfo", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.exception.rti-internal-error", "category": "exception", "java_type": "hla.rti1516e.exceptions.RTIinternalError", "probe": "roundTripObject", "status": "implemented"},
+    {"id": "jni-2010.exception.malformed-encoding", "category": "exception", "java_type": "hla.rti1516e.encoding.DecoderException", "probe": "roundTripDataElement", "status": "implemented"},
+    {"id": "jni-2010.time.integer64-time", "category": "logical-time", "java_type": "hla.rti1516e.time.HLAinteger64Time", "probe": "HLAinteger64Time", "status": "implemented"},
+    {"id": "jni-2010.time.integer64-interval", "category": "logical-time", "java_type": "hla.rti1516e.time.HLAinteger64Interval", "probe": "HLAinteger64Interval", "status": "implemented"},
+    {"id": "jni-2010.time.float64-time", "category": "logical-time", "java_type": "hla.rti1516e.time.HLAfloat64Time", "probe": "HLAfloat64Time", "status": "implemented"},
+    {"id": "jni-2010.time.float64-interval", "category": "logical-time", "java_type": "hla.rti1516e.time.HLAfloat64Interval", "probe": "HLAfloat64Interval", "status": "implemented"}
+  ],
+  "explicit_gaps": [
+    {"id": "jni-2010.gap.standard-java-object-semantics", "status": "follow-up", "reason": "The probe validates standard carrier method shape, typed accessors, factories, collections, records, and native encoding. Provider-owned mutable semantics and real callback delivery remain intentionally separate from this transport tranche."},
+    {"id": "jni-2010.gap.rti-services", "status": "out-of-scope", "reason": "RTI service behavior is intentionally still the null-provider surface and is not inferred from carrier round-trip results."}
+  ]
+}

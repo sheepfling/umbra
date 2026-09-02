@@ -99,7 +99,8 @@
       "source_symbol": "UmbraRtiAmbassador::getServiceReportingSwitch",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting suppresses accepted services while the reporting switch is disabled"
       ]
     },
     {
@@ -155,7 +156,8 @@
       "source_symbol": "UmbraRtiAmbassador::getSendServiceReportsToFileSwitch",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting suppresses accepted services while the reporting switch is disabled"
       ]
     },
     {
@@ -168,7 +170,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setSendServiceReportsToFileSwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting suppresses accepted services while the reporting switch is disabled"
       ]
     },
     {
@@ -197,7 +200,10 @@
       "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAllowRelaxedDDMSwitch",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"
+      ]
     }
   ]
 }

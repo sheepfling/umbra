@@ -65,6 +65,9 @@ compile_commands.json
 # vcpkg
 vcpkg_installed/
 
+# Local Python dependency cache used by optional native-extension builds
+.pybind-build-deps/
+
 # debug information files
 *.dwo
 
@@ -86,6 +89,8 @@ dist/
 .codex*/
 .codex*
 tmp/
+/.tmp-*/
+/.tmp_*/
 
 # Locally exported HLA Requirements Lab bundles and test evidence
 .compliance/

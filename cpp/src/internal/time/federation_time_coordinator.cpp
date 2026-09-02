@@ -13,6 +13,7 @@ FederationTimeCoordinator::FederationTimeCoordinator(
     FederationTimeCoordinator const& other)
     : implementationName_(other.implementationName_),
       tsoQueue_(other.tsoQueue_),
+      recipients_(other.recipients_),
       inTransitTsoMessages_(other.inTransitTsoMessages_),
       deliveredTsoMessagesSinceLastAdvance_(other.deliveredTsoMessagesSinceLastAdvance_) {
   for (auto const& [federateId, timeState] : other.federates_) {
@@ -64,7 +65,38 @@ FederationTimeCoordinatorResult FederationTimeCoordinator::registerFederate(
     return {FederationTimeCoordinatorStatus::invalid_time_state};
   }
 
-  auto const [position, inserted] = federates_.emplace(federateId, std::move(timeState));
+  if (recipients_.contains(federateId) || federates_.contains(federateId)) {
+    return {FederationTimeCoordinatorStatus::federate_already_registered};
+  }
+
+  auto const [recipientPosition, recipientInserted] = recipients_.emplace(federateId);
+  static_cast<void>(recipientPosition);
+  if (!recipientInserted) {
+    return {FederationTimeCoordinatorStatus::federate_already_registered};
+  }
+  try {
+    auto const [position, inserted] = federates_.emplace(federateId, std::move(timeState));
+    static_cast<void>(position);
+    if (!inserted) {
+      recipients_.erase(federateId);
+      return {FederationTimeCoordinatorStatus::federate_already_registered};
+    }
+  } catch (...) {
+    recipients_.erase(federateId);
+    throw;
+  }
+  return {FederationTimeCoordinatorStatus::applied};
+}
+
+FederationTimeCoordinatorResult FederationTimeCoordinator::registerRecipient(
+    std::uint64_t federateId) {
+  if (federateId == 0) {
+    return {FederationTimeCoordinatorStatus::invalid_time_state};
+  }
+  if (recipients_.contains(federateId) || federates_.contains(federateId)) {
+    return {FederationTimeCoordinatorStatus::federate_already_registered};
+  }
+  auto const [position, inserted] = recipients_.emplace(federateId);
   static_cast<void>(position);
   return {
       inserted ? FederationTimeCoordinatorStatus::applied
@@ -74,7 +106,9 @@ FederationTimeCoordinatorResult FederationTimeCoordinator::registerFederate(
 
 FederationTimeCoordinatorResult FederationTimeCoordinator::unregisterFederate(
     std::uint64_t federateId) noexcept {
-  if (federates_.erase(federateId) != 1) {
+  bool const removedTimeState = federates_.erase(federateId) == 1;
+  bool const removedRecipient = recipients_.erase(federateId) == 1;
+  if (!removedTimeState && !removedRecipient) {
     return {FederationTimeCoordinatorStatus::federate_not_registered};
   }
   static_cast<void>(discardTsoRecipient(federateId));
@@ -115,6 +149,10 @@ void FederationTimeCoordinator::restoreFrom(FederationTimeCoordinator const& sou
     auto const existing = federates_.find(federateId);
     if (existing != federates_.end() && existing->second) {
       *existing->second = *sourceTimeState;
+      // Assignment restores only route-free temporal state. Any callback
+      // closure that was already queued against this live object belongs to
+      // the pre-restore execution and must not consume a reused generation.
+      existing->second->invalidateCallbacksForRestore();
       restoredFederates.emplace(federateId, existing->second);
     } else {
       restoredFederates.emplace(
@@ -130,6 +168,7 @@ void FederationTimeCoordinator::restoreFrom(FederationTimeCoordinator const& sou
   auto const messageIdAllocationFloor = tsoQueue_.messageIdAllocationFloor();
   implementationName_ = source.implementationName_;
   tsoQueue_ = source.tsoQueue_;
+  recipients_ = source.recipients_;
   tsoQueue_.preserveMessageIdAllocationFloor(messageIdAllocationFloor);
   inTransitTsoMessages_ = source.inTransitTsoMessages_;
   deliveredTsoMessagesSinceLastAdvance_ = source.deliveredTsoMessagesSinceLastAdvance_;
@@ -144,6 +183,9 @@ TsoMessageEnqueueResult FederationTimeCoordinator::enqueueTsoMessage(
     std::uint64_t messageId,
     std::uint64_t recipientFederateId,
     std::shared_ptr<rti1516_2025::LogicalTime const> timestamp) {
+  if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
+    return {TsoMessageQueueStatus::invalid_recipient};
+  }
   return tsoQueue_.enqueue(messageId, recipientFederateId, std::move(timestamp));
 }
 
@@ -160,6 +202,9 @@ TsoMessageRetractionResult FederationTimeCoordinator::retractPendingTsoMessage(
 std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
 FederationTimeCoordinator::earliestTsoTimestampFor(
     std::uint64_t recipientFederateId) const {
+  if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
+    return std::nullopt;
+  }
   return tsoQueue_.earliestTimestampFor(recipientFederateId);
 }
 
@@ -167,7 +212,7 @@ FederationTsoDeliveryResult FederationTimeCoordinator::beginTsoDelivery(
     std::uint64_t recipientFederateId,
     rti1516_2025::LogicalTime const& boundary,
     bool inclusive) {
-  if (recipientFederateId == 0) {
+  if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
     return {FederationTsoDeliveryStatus::invalid_recipient, {}};
   }
   if (!implementationName_.empty() && boundary.implementationName() != implementationName_) {
@@ -238,7 +283,7 @@ std::size_t FederationTimeCoordinator::clearDeliveredTsoMessages(
 FederationTsoSnapshot FederationTimeCoordinator::tsoSnapshotFor(
     std::uint64_t recipientFederateId) const {
   FederationTsoSnapshot result;
-  if (recipientFederateId == 0) {
+  if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
     return result;
   }
   for (auto const& message : tsoQueue_.pendingMessages()) {
@@ -255,6 +300,48 @@ FederationTsoSnapshot FederationTimeCoordinator::tsoSnapshotFor(
     result.deliveredSinceLastAdvance = delivered->second;
   }
   return result;
+}
+
+FederationTsoQueueRestoreResult FederationTimeCoordinator::restoreTsoQueue(
+    std::vector<TsoQueueRestoreEntry> const& entries) {
+  for (auto const& entry : entries) {
+    if (entry.message.recipientFederateId == 0 ||
+        !recipients_.contains(entry.message.recipientFederateId)) {
+      return {FederationTsoQueueRestoreStatus::invalid_recipient, 0};
+    }
+  }
+
+  // Validate and construct a candidate before replacing any live queue or
+  // recipient-phase map. A malformed durable image must leave the current
+  // coordinator untouched so the caller can report a deterministic restore
+  // failure.
+  auto candidateQueue = tsoQueue_;
+  auto const queueResult = candidateQueue.restoreEntries(entries);
+  if (queueResult.status != TsoMessageQueueRestoreStatus::applied) {
+    return {FederationTsoQueueRestoreStatus::invalid_entry, 0};
+  }
+
+  std::map<std::uint64_t, std::vector<TsoQueuedMessage>> inTransit;
+  std::map<std::uint64_t, std::vector<TsoQueuedMessage>> delivered;
+  for (auto const& entry : entries) {
+    switch (entry.phase) {
+      case TsoMessageQueuePhase::queued:
+        break;
+      case TsoMessageQueuePhase::in_transit:
+        inTransit[entry.message.recipientFederateId].push_back(entry.message);
+        break;
+      case TsoMessageQueuePhase::delivered:
+        delivered[entry.message.recipientFederateId].push_back(entry.message);
+        break;
+    }
+  }
+
+  tsoQueue_ = std::move(candidateQueue);
+  inTransitTsoMessages_ = std::move(inTransit);
+  deliveredTsoMessagesSinceLastAdvance_ = std::move(delivered);
+  return {
+      FederationTsoQueueRestoreStatus::applied,
+      queueResult.restoredCount};
 }
 
 std::size_t FederationTimeCoordinator::discardTsoRecipient(
@@ -277,7 +364,7 @@ std::size_t FederationTimeCoordinator::discardTsoRecipient(
 }
 
 bool FederationTimeCoordinator::empty() const noexcept {
-  return federates_.empty();
+  return recipients_.empty();
 }
 
 std::size_t FederationTimeCoordinator::size() const noexcept {

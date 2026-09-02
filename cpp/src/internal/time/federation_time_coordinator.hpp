@@ -8,8 +8,9 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <vector>
+#include <set>
 #include <string>
+#include <vector>
 
 namespace umbra::detail {
 
@@ -53,6 +54,18 @@ struct FederationTsoSnapshot {
   std::vector<TsoQueuedMessage> deliveredSinceLastAdvance;
 };
 
+enum class FederationTsoQueueRestoreStatus {
+  applied,
+  invalid_recipient,
+  invalid_entry,
+};
+
+struct FederationTsoQueueRestoreResult {
+  FederationTsoQueueRestoreStatus status =
+      FederationTsoQueueRestoreStatus::invalid_entry;
+  std::size_t restoredCount = 0;
+};
+
 // Per-federation ownership boundary for time-management state.  The enclosing
 // EmbeddedFederationRegistry holds its mutex whenever it registers, removes,
 // or snapshots members, so this class deliberately has no second lock.  Each
@@ -81,6 +94,13 @@ class FederationTimeCoordinator final {
   [[nodiscard]] FederationTimeCoordinatorResult registerFederate(
       std::uint64_t federateId,
       std::shared_ptr<FederateTimeState> timeState);
+
+  // Every joined member is a valid TSO recipient, even when the member has
+  // not enabled any time-management role. Keep that membership fence
+  // separate from federates_, which contains only members with a live
+  // FederateTimeState used by GALT/LITS calculations.
+  [[nodiscard]] FederationTimeCoordinatorResult registerRecipient(
+      std::uint64_t federateId);
 
   [[nodiscard]] FederationTimeCoordinatorResult unregisterFederate(
       std::uint64_t federateId) noexcept;
@@ -140,6 +160,12 @@ class FederationTimeCoordinator final {
   [[nodiscard]] FederationTsoSnapshot tsoSnapshotFor(
       std::uint64_t recipientFederateId) const;
 
+  // Rebuilds the queue phase state from a route-free save image.  The
+  // coordinator keeps in-transit and delivered vectors; the underlying queue
+  // retains pending entries and its delivered-designator fence.
+  [[nodiscard]] FederationTsoQueueRestoreResult restoreTsoQueue(
+      std::vector<TsoQueueRestoreEntry> const& entries);
+
   // Resign/disconnect cleanup removes all queue and temporal delivery state
   // owned by one recipient without disturbing other fanout recipients.
   [[nodiscard]] std::size_t discardTsoRecipient(
@@ -151,6 +177,7 @@ class FederationTimeCoordinator final {
  private:
   std::wstring implementationName_;
   TsoMessageQueue tsoQueue_;
+  std::set<std::uint64_t> recipients_;
   std::map<std::uint64_t, std::shared_ptr<FederateTimeState>> federates_;
   std::map<std::uint64_t, std::vector<TsoQueuedMessage>> inTransitTsoMessages_;
   std::map<std::uint64_t, std::vector<TsoQueuedMessage>>

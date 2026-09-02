@@ -4,63 +4,44 @@ param(
     [string]$ApiJar,
     [Parameter(Mandatory = $true)]
     [string[]]$ProviderJar,
+    [string[]]$DependencyJar = @(),
     [Parameter(Mandatory = $true)]
     [string]$FomPath,
     [string]$MimPath = '',
     [string]$FactoryName = '',
     [string]$TimeImplementation = 'HLAinteger64Time',
     [string]$NativeLibrary = '',
+    [string[]]$JvmArgument = @(),
     [string]$ClassesDirectory = (Join-Path $PSScriptRoot '..\..\out\java-tck\classes'),
     [string]$CapabilityProfile = '',
     [string]$ResultsPath = '',
     [string]$JUnitPath = '',
-    [string]$ProviderId = ''
+    [string]$ProviderId = 'umbra-jni'
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$api = (Resolve-Path -LiteralPath $ApiJar -ErrorAction Stop).Path
-$fom = (Resolve-Path -LiteralPath $FomPath -ErrorAction Stop).Path
-$classes = (Resolve-Path -LiteralPath $ClassesDirectory -ErrorAction Stop).Path
-$providers = @(
-    foreach ($jar in $ProviderJar) {
-        (Resolve-Path -LiteralPath $jar -ErrorAction Stop).Path
-    }
-)
-
-$javaArguments = @(
-    '-cp', (($classes, $api) + $providers -join [IO.Path]::PathSeparator),
-    "-Dumbra.rti.tck.fom=$fom",
-    "-Dumbra.rti.tck.time=$TimeImplementation",
-    "-Dumbra.rti.tck.apiJar=$api",
-    "-Dumbra.rti.tck.providerJars=$($providers -join [IO.Path]::PathSeparator)"
-)
-if (-not [string]::IsNullOrWhiteSpace($FactoryName)) {
-    $javaArguments += "-Dumbra.rti.tck.factory=$FactoryName"
-}
-if (-not [string]::IsNullOrWhiteSpace($MimPath)) {
-    $mim = (Resolve-Path -LiteralPath $MimPath -ErrorAction Stop).Path
-    $javaArguments += "-Dumbra.rti.tck.mim=$mim"
-}
+$genericRun = Join-Path $PSScriptRoot '..\hla-rti-java-tck\run.ps1'
+$forwardedJvmArguments = @($JvmArgument)
 if (-not [string]::IsNullOrWhiteSpace($NativeLibrary)) {
     $native = (Resolve-Path -LiteralPath $NativeLibrary -ErrorAction Stop).Path
-    $javaArguments += "-Dumbra.rti.jni.library=$native"
+    $forwardedJvmArguments += "-Dumbra.rti.jni.library=$native"
 }
-if (-not [string]::IsNullOrWhiteSpace($CapabilityProfile)) {
-    $profile = (Resolve-Path -LiteralPath $CapabilityProfile -ErrorAction Stop).Path
-    $javaArguments += "-Dumbra.rti.tck.capabilityProfile=$profile"
+$arguments = @{
+    ApiJar = $ApiJar
+    ProviderJar = $ProviderJar
+    DependencyJar = $DependencyJar
+    FomPath = $FomPath
+    TimeImplementation = $TimeImplementation
+    ClassesDirectory = $ClassesDirectory
+    JvmArgument = $forwardedJvmArguments
+    ProviderId = $ProviderId
 }
-if (-not [string]::IsNullOrWhiteSpace($ResultsPath)) {
-    $javaArguments += "-Dumbra.rti.tck.results=$([IO.Path]::GetFullPath($ResultsPath))"
-}
-if (-not [string]::IsNullOrWhiteSpace($JUnitPath)) {
-    $javaArguments += "-Dumbra.rti.tck.junit=$([IO.Path]::GetFullPath($JUnitPath))"
-}
-if (-not [string]::IsNullOrWhiteSpace($ProviderId)) {
-    $javaArguments += "-Dumbra.rti.tck.provider=$ProviderId"
-}
-$javaArguments += 'umbra.rti.tck.RtiTckMain'
-
-& java @javaArguments
+if (-not [string]::IsNullOrWhiteSpace($MimPath)) { $arguments.MimPath = $MimPath }
+if (-not [string]::IsNullOrWhiteSpace($FactoryName)) { $arguments.FactoryName = $FactoryName }
+if (-not [string]::IsNullOrWhiteSpace($CapabilityProfile)) { $arguments.CapabilityProfile = $CapabilityProfile }
+if (-not [string]::IsNullOrWhiteSpace($ResultsPath)) { $arguments.ResultsPath = $ResultsPath }
+if (-not [string]::IsNullOrWhiteSpace($JUnitPath)) { $arguments.JUnitPath = $JUnitPath }
+& $genericRun @arguments
 exit $LASTEXITCODE

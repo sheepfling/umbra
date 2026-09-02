@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "hla-rti-api"
 version = "0.1.0"
-description = "IEEE HLA 1516e and 1516.1-2025 Python API contracts"
+description = "IEEE HLA 1516.1-2010/1516e and 1516.1-2025 Python API contracts"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Umbra contributors" }]

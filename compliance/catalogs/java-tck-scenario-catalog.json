@@ -3,118 +3,502 @@
   "kind": "portable-java-tck-catalog",
   "standard": "IEEE 1516.1-2025",
   "document_id": "hla-1516.1-2025",
-  "source_boundary": "packages/umbra-rti-java-tck",
-  "portable_rule": "Only hla.rti1516_2025 API types may appear in Java TCK sources. JNI/C++ and provider implementation tests are separate evidence.",
+  "source_boundary": "packages/hla-rti-java-tck",
+  "portable_rule": "Java TCK sources may import only JDK classes and hla.rti1516_2025 standard API types. Provider selection is performed only through the standard RtiFactoryFactory/ServiceLoader boundary; provider-specific flags stay in an adapter profile.",
   "scenarios": [
     {
       "id": "java-tck.factory-discovery",
       "category": "lifecycle",
       "title": "Discover the standard factory, encoder factory, and ambassador",
-      "api_methods": ["RtiFactoryFactory.getRtiFactory", "RtiFactory.getEncoderFactory", "RtiFactory.getRtiAmbassador"],
-      "requirement_ids": ["req-connect-service-establishes-connection"],
-      "contract_refs": ["federation-management-preparation-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#factoryDiscovery",
+      "api_methods": [
+        "RtiFactoryFactory.getRtiFactory",
+        "RtiFactory.getEncoderFactory",
+        "RtiFactory.getRtiAmbassador"
+      ],
+      "requirement_ids": [
+        "req-connect-service-establishes-connection"
+      ],
+      "contract_refs": [
+        "federation-management-preparation-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#factoryDiscovery",
       "default_status": "run"
     },
     {
       "id": "java-tck.encoder-round-trip",
       "category": "encoders",
       "title": "Round-trip primitive encoding and reject malformed octets",
-      "api_methods": ["EncoderFactory.createHLAinteger32BE", "DataElement.decode"],
-      "requirement_ids": ["java-1516.1-encoding-primitive-round-trip", "java-1516.1-encoding-malformed-input"],
-      "contract_refs": ["basic-data-elements-requirements-contract.json", "opaque-data-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#encoderRoundTrip",
+      "api_methods": [
+        "EncoderFactory.createHLAinteger32BE",
+        "DataElement.decode"
+      ],
+      "requirement_ids": [
+        "java-1516.1-encoding-primitive-round-trip",
+        "java-1516.1-encoding-malformed-input"
+      ],
+      "contract_refs": [
+        "basic-data-elements-requirements-contract.json",
+        "opaque-data-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#encoderRoundTrip",
       "default_status": "run"
     },
     {
       "id": "java-tck.federation-membership",
       "category": "lifecycle",
-      "title": "Connect, create, join, report members, resign, and disconnect",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.resignFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.reportFederationExecutionMembers"],
-      "requirement_ids": ["req-federate-connect-before-rti-work", "req-connect-service-establishes-connection", "req-federate-disconnect-after-resign", "req-disconnect-service-terminates-connection"],
-      "contract_refs": ["federation-listing-requirements-contract.json", "federation-management-preparation-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#federationMembership",
+      "title": "Complete federation execution create, join, query, resign, destroy, and disconnect lifecycle",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.listFederationExecutions",
+        "RTIambassador.listFederationExecutionMembers",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.reportFederationExecutions",
+        "FederateAmbassador.reportFederationExecutionMembers",
+        "FederateAmbassador.reportFederationExecutionDoesNotExist"
+      ],
+      "requirement_ids": [
+        "req-federate-connect-before-rti-work",
+        "req-connect-service-establishes-connection",
+        "req-federate-disconnect-after-resign",
+        "req-disconnect-service-terminates-connection"
+      ],
+      "contract_refs": [
+        "federation-listing-requirements-contract.json",
+        "federate-lookup-requirements-contract.json",
+        "federation-management-preparation-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#federationMembership",
       "default_status": "run"
     },
     {
       "id": "java-tck.logical-time-factory",
       "category": "time",
       "title": "Create, classify, encode, and decode logical-time values",
-      "api_methods": ["RTIambassador.getTimeFactory", "LogicalTimeFactory.makeInitial", "LogicalTimeFactory.makeFinal", "LogicalTimeFactory.decodeInterval"],
-      "requirement_ids": ["java-1516.1-logical-time-factory-values"],
-      "contract_refs": ["reference-time-requirements-contract.json", "logical-time-encoding-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#logicalTimeFactory",
+      "api_methods": [
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeInitial",
+        "LogicalTimeFactory.makeFinal",
+        "LogicalTimeFactory.decodeInterval"
+      ],
+      "requirement_ids": [
+        "java-1516.1-logical-time-factory-values"
+      ],
+      "contract_refs": [
+        "reference-time-requirements-contract.json",
+        "logical-time-encoding-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#logicalTimeFactory",
       "default_status": "run"
     },
     {
       "id": "java-tck.declaration-management",
       "category": "declarations",
-      "title": "Resolve standard class/attribute handles and publish/subscribe them",
-      "api_methods": ["RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.unsubscribeObjectClassAttributes", "RTIambassador.unpublishObjectClassAttributes"],
-      "requirement_ids": ["java-1516.1-object-class-attribute-declaration"],
-      "contract_refs": ["object-class-attribute-declaration-requirements-contract.json", "publish-object-class-attributes-requirements-contract.json", "subscribe-object-class-attributes-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#declarationManagement",
+      "title": "Resolve standard handles and exercise ordinary object publication/subscription",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesPassively",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass"
+      ],
+      "requirement_ids": [
+        "java-1516.1-object-class-attribute-declaration"
+      ],
+      "contract_refs": [
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "unsubscribe-object-class-attributes-requirements-contract.json",
+        "unpublish-object-class-attributes-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#declarationManagement",
       "default_status": "run"
     },
     {
       "id": "java-tck.object-management",
       "category": "object-management",
-      "title": "Register, discover, update, and reflect an object instance",
-      "api_methods": ["RTIambassador.registerObjectInstance", "FederateAmbassador.discoverObjectInstance", "RTIambassador.updateAttributeValues", "FederateAmbassador.reflectAttributeValues"],
-      "requirement_ids": ["java-1516.1-object-registration-discovery", "java-1516.1-attribute-value-update-reflection"],
-      "contract_refs": ["object-instance-registration-requirements-contract.json", "receive-order-attribute-update-requirements-contract.json", "attribute-value-update-response-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#objectRegistrationAndReflection",
+      "title": "Register, discover, update, reflect, and delete ordinary object instances",
+      "api_methods": [
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.localDeleteObjectInstance",
+        "RTIambassador.deleteObjectInstance",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "java-1516.1-object-registration-discovery",
+        "java-1516.1-attribute-value-update-reflection"
+      ],
+      "contract_refs": [
+        "object-instance-registration-requirements-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "attribute-value-update-response-requirements-contract.json",
+        "local-delete-object-instance-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#objectRegistrationAndReflection",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.attribute-interaction",
+      "category": "interaction-management",
+      "title": "Exercise ordinary attribute and interaction publication, subscription, delivery, and callback control",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesPassively",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeInteractionClassPassively",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.disableCallbacks",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "java-1516.1-attribute-update-and-callback-control",
+        "java-1516.1-interaction-declaration-and-delivery"
+      ],
+      "contract_refs": [
+        "connection-callback-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "interaction-class-lookup-api-contract.json",
+        "parameter-lookup-api-contract.json",
+        "publish-interaction-class-requirements-contract.json",
+        "subscribe-interaction-class-requirements-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "receive-order-interaction-requirements-contract.json",
+        "attribute-value-update-response-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#attributeInteraction",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.support-services",
+      "category": "support-services",
+      "title": "Exercise support lookups, public handle identity, and encoding",
+      "api_methods": [
+        "RTIambassador.getOrderTypeHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getAvailableDimensionsForClass",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getFederateHandleFactory",
+        "Handle.encode",
+        "FederateHandleFactory.decode",
+        "ObjectClassHandleFactory.decode",
+        "InteractionClassHandleFactory.decode",
+        "ObjectInstanceHandleFactory.decode",
+        "AttributeHandleFactory.decode",
+        "ParameterHandleFactory.decode",
+        "DimensionHandleFactory.decode",
+        "RetractionHandleFactory.decode"
+      ],
+      "requirement_ids": [
+        "java-1516.1-support-lookups-and-handle-identity",
+        "java-1516.1-order-type-lookup",
+        "java-1516.1-transportation-type-lookup",
+        "java-1516.1-dimension-lookup",
+        "java-1516.1-handle-normalization"
+      ],
+      "contract_refs": [
+        "order-type-api-contract.json",
+        "order-type-requirements-contract.json",
+        "transportation-type-api-contract.json",
+        "dimension-lookup-api-contract.json",
+        "dimension-lookup-requirements-contract.json",
+        "handle-normalization-api-contract.json",
+        "handle-normalization-requirements-contract.json",
+        "handle-encoding-requirements-contract.json",
+        "handle-decoding-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#supportServices",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.ordinary-edges",
+      "category": "ordinary-edge-matrix",
+      "title": "Exercise ordinary declaration, delivery, and negative edge matrices",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "java-1516.1-ordinary-edge-matrix",
+        "java-1516.1-standard-exception-boundary"
+      ],
+      "contract_refs": [
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json",
+        "connection-callback-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ordinaryEdges",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.relevance-advisories",
+      "category": "declaration-relevance",
+      "title": "Exercise ordinary declaration relevance and turn-on/turn-off callbacks",
+      "api_methods": [
+        "RTIambassador.getObjectClassRelevanceAdvisorySwitch",
+        "RTIambassador.setObjectClassRelevanceAdvisorySwitch",
+        "RTIambassador.getAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.setAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.getInteractionRelevanceAdvisorySwitch",
+        "RTIambassador.setInteractionRelevanceAdvisorySwitch",
+        "RTIambassador.startRegistrationForObjectClass",
+        "RTIambassador.stopRegistrationForObjectClass",
+        "RTIambassador.turnInteractionsOn",
+        "RTIambassador.turnInteractionsOff",
+        "RTIambassador.turnUpdatesOnForObjectInstance",
+        "RTIambassador.turnUpdatesOffForObjectInstance",
+        "FederateAmbassador.startRegistrationForObjectClass",
+        "FederateAmbassador.stopRegistrationForObjectClass",
+        "FederateAmbassador.turnInteractionsOn",
+        "FederateAmbassador.turnInteractionsOff",
+        "FederateAmbassador.turnUpdatesOnForObjectInstance",
+        "FederateAmbassador.turnUpdatesOffForObjectInstance"
+      ],
+      "requirement_ids": [
+        "java-1516.1-declaration-relevance-advisories",
+        "java-1516.1-attribute-relevance-advisories"
+      ],
+      "contract_refs": [
+        "declaration-relevance-advisory-api-contract.json",
+        "declaration-relevance-advisory-requirements-contract.json",
+        "attribute-relevance-advisory-api-contract.json",
+        "attribute-relevance-advisory-requirements-contract.json",
+        "update-rate-subscription-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#relevanceAdvisories",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.directed-interactions",
+      "category": "directed-interaction",
+      "title": "Exercise ordinary directed interaction publication, subscription, and delivery",
+      "api_methods": [
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.sendDirectedInteraction",
+        "FederateAmbassador.receiveDirectedInteraction"
+      ],
+      "requirement_ids": [
+        "java-1516.1-directed-interaction-publication",
+        "java-1516.1-directed-interaction-subscription",
+        "java-1516.1-directed-interaction-delivery"
+      ],
+      "contract_refs": [
+        "directed-interaction-api-contract.json",
+        "directed-interaction-requirements-contract.json",
+        "publish-object-class-directed-interactions-api-contract.json",
+        "publish-object-class-directed-interactions-requirements-contract.json",
+        "subscribe-object-class-directed-interactions-api-contract.json",
+        "subscribe-object-class-directed-interactions-requirements-contract.json",
+        "unsubscribe-object-class-directed-interactions-api-contract.json",
+        "unsubscribe-object-class-directed-interactions-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractions",
+      "default_status": "run"
+    },
+    {
+      "id": "java-tck.transport-order",
+      "category": "transportation-and-order",
+      "title": "Exercise ordinary transportation and order controls",
+      "api_methods": [
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.changeDefaultAttributeTransportationType",
+        "RTIambassador.changeAttributeTransportationType",
+        "RTIambassador.changeInteractionTransportationType",
+        "RTIambassador.queryAttributeTransportationType",
+        "RTIambassador.queryInteractionTransportationType",
+        "RTIambassador.requestAttributeTransportationTypeChange",
+        "RTIambassador.requestInteractionTransportationTypeChange",
+        "FederateAmbassador.confirmAttributeTransportationTypeChange",
+        "FederateAmbassador.reportAttributeTransportationType",
+        "FederateAmbassador.confirmInteractionTransportationTypeChange",
+        "FederateAmbassador.reportInteractionTransportationType",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "java-1516.1-order-type-control",
+        "java-1516.1-transportation-type-control"
+      ],
+      "contract_refs": [
+        "order-type-api-contract.json",
+        "order-type-requirements-contract.json",
+        "order-type-control-api-contract.json",
+        "order-type-control-requirements-contract.json",
+        "transportation-type-api-contract.json",
+        "transportation-type-change-api-contract.json",
+        "transportation-type-change-requirements-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#transportOrder",
       "default_status": "run"
     },
     {
       "id": "java-tck.api-surface-inventory",
       "category": "api-surface",
       "title": "Inventory the Java ambassador, callback, encoder, and time interfaces",
-      "api_methods": ["*"],
-      "requirement_ids": ["java-1516.1-api-surface-inventory"],
-      "contract_refs": ["api-baseline.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#apiSurfaceInventory",
+      "api_methods": [
+        "*"
+      ],
+      "requirement_ids": [
+        "java-1516.1-api-surface-inventory"
+      ],
+      "contract_refs": [
+        "api-baseline.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#apiSurfaceInventory",
       "default_status": "run"
     },
     {
       "id": "java-tck.overloads-and-exceptions",
       "category": "exceptions",
       "title": "Exercise overload dispatch and standard exception identity",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.disconnect"],
-      "requirement_ids": ["java-1516.1-overload-dispatch", "java-1516.1-standard-exception-boundary"],
-      "contract_refs": ["federation-management-preparation-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#overloadsAndExceptions",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "java-1516.1-overload-dispatch",
+        "java-1516.1-standard-exception-boundary"
+      ],
+      "contract_refs": [
+        "federation-management-preparation-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#overloadsAndExceptions",
       "default_status": "run"
     },
     {
       "id": "java-tck.malformed-inputs",
       "category": "malformed-inputs",
       "title": "Reject missing FOM paths and malformed encoded values",
-      "api_methods": ["RTIambassador.createFederationExecution", "DataElement.decode"],
-      "requirement_ids": ["java-1516.1-malformed-fom-input", "java-1516.1-malformed-encoded-input"],
-      "contract_refs": ["fom-source-diagnostics-requirements-contract.json", "basic-data-elements-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#malformedInputs",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "DataElement.decode"
+      ],
+      "requirement_ids": [
+        "java-1516.1-malformed-fom-input",
+        "java-1516.1-malformed-encoded-input"
+      ],
+      "contract_refs": [
+        "fom-source-diagnostics-requirements-contract.json",
+        "basic-data-elements-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#malformedInputs",
       "default_status": "run"
     },
     {
       "id": "java-tck.ddm",
       "category": "ddm",
       "title": "Regional declaration, association, filtering, and conveyed regions",
-      "api_methods": ["RTIambassador.createRegion", "RTIambassador.setRangeBounds", "RTIambassador.subscribeObjectClassAttributesWithRegions", "FederateAmbassador.reflectAttributeValues"],
-      "requirement_ids": ["java-1516.1-ddm-regional-delivery"],
-      "contract_refs": ["region-lifecycle-requirements-contract.json", "interaction-region-requirements-contract.json", "object-attribute-region-requirements-contract.json", "regional-multi-attribute-ddm-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#dataDistributionManagement",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "java-1516.1-ddm-regional-delivery"
+      ],
+      "contract_refs": [
+        "region-lifecycle-requirements-contract.json",
+        "interaction-region-requirements-contract.json",
+        "object-attribute-region-requirements-contract.json",
+        "regional-multi-attribute-ddm-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#dataDistributionManagement",
       "default_status": "unsupported",
-      "exclusion": "The portable scenario is capability-gated until the provider profile supplies a compatible regional FOM; Umbra-specific region tests remain in JNI/C++ suites."
+      "exclusion": "The portable scenario is capability-gated until the provider profile supplies a compatible regional FOM; Provider-specific regional evidence remains in the provider's own integration lane."
     },
     {
       "id": "java-tck.time-advance",
       "category": "time",
       "title": "Enable time roles and complete advance/grant services",
-      "api_methods": ["RTIambassador.enableTimeRegulation", "RTIambassador.enableTimeConstrained", "RTIambassador.timeAdvanceRequest", "FederateAmbassador.timeAdvanceGrant"],
-      "requirement_ids": ["java-1516.1-time-advance-and-grant"],
-      "contract_refs": ["time-advance-requirements-contract.json", "time-role-requirements-contract.json", "time-bounds-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#timeAdvanceAndGrants",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "contract_refs": [
+        "time-advance-requirements-contract.json",
+        "time-role-requirements-contract.json",
+        "time-bounds-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timeAdvanceAndGrants",
       "default_status": "unsupported",
       "exclusion": "Requires a provider capability profile and a time-management FOM; no provider-specific implementation class is allowed into this portable source set."
     },
@@ -122,53 +506,117 @@
       "id": "java-tck.save-restore",
       "category": "save-restore",
       "title": "Complete federation save and restore callbacks",
-      "api_methods": ["RTIambassador.requestFederationSave", "RTIambassador.federateSaveComplete", "RTIambassador.requestFederationRestore", "FederateAmbassador.federationRestored"],
-      "requirement_ids": ["java-1516.1-save-restore-lifecycle"],
-      "contract_refs": ["save-control-requirements-contract.json", "restore-control-requirements-contract.json", "save-restore-interlock-requirements-contract.json", "timed-save-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#saveAndRestore",
+      "api_methods": [
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "FederateAmbassador.federationRestored"
+      ],
+      "requirement_ids": [
+        "java-1516.1-save-restore-lifecycle"
+      ],
+      "contract_refs": [
+        "save-control-requirements-contract.json",
+        "restore-control-requirements-contract.json",
+        "save-restore-interlock-requirements-contract.json",
+        "timed-save-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#saveAndRestore",
       "default_status": "unsupported",
-      "exclusion": "Save/restore requires a provider-managed snapshot policy and is explicitly capability-gated; JNI/C++ persistence evidence does not masquerade as portable Java evidence."
+      "exclusion": "Save/restore requires a provider-managed snapshot policy and is explicitly capability-gated; Provider-specific persistence evidence remains in the provider's own integration lane."
     },
     {
       "id": "java-tck.ownership",
       "category": "ownership",
-      "title": "Query, acquire, divest, and report attribute ownership",
-      "api_methods": ["RTIambassador.queryAttributeOwnership", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.unconditionalAttributeOwnershipDivestiture", "FederateAmbassador.attributeOwnershipAcquisitionNotification"],
-      "requirement_ids": ["java-1516.1-ownership-management"],
-      "contract_refs": ["attribute-ownership-query-requirements-contract.json", "attribute-ownership-acquisition-requirements-contract.json", "unconditional-attribute-ownership-divestiture-requirements-contract.json", "ownership-assumption-research-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#ownershipManagement",
-      "default_status": "unsupported",
-      "exclusion": "Ownership scenarios need a FOM with transferable attributes and at least two federates; provider result status is explicit until that capability is declared."
+      "title": "Query, acquire, divest, cancel, and report attribute ownership",
+      "api_methods": [
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "FederateAmbassador.informAttributeOwnership",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.attributeOwnershipUnavailable",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
+      ],
+      "requirement_ids": [
+        "java-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "attribute-ownership-query-api-contract.json",
+        "attribute-ownership-query-requirements-contract.json",
+        "attribute-ownership-check-api-contract.json",
+        "attribute-ownership-check-requirements-contract.json",
+        "attribute-ownership-acquisition-api-contract.json",
+        "attribute-ownership-acquisition-requirements-contract.json",
+        "attribute-ownership-acquisition-if-available-api-contract.json",
+        "attribute-ownership-acquisition-if-available-requirements-contract.json",
+        "attribute-ownership-divestiture-if-wanted-api-contract.json",
+        "attribute-ownership-divestiture-if-wanted-requirements-contract.json",
+        "negotiated-attribute-ownership-divestiture-api-contract.json",
+        "negotiated-attribute-ownership-divestiture-requirements-contract.json",
+        "unconditional-attribute-ownership-divestiture-api-contract.json",
+        "unconditional-attribute-ownership-divestiture-requirements-contract.json",
+        "ownership-assumption-research-api-contract.json",
+        "ownership-assumption-research-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ownershipManagement",
+      "default_status": "run",
+      "exclusion": "Requires a transfer-capable FOM and a provider profile that enables ownership; the Java source uses only standard ownership APIs."
     },
     {
       "id": "java-tck.synchronization",
       "category": "synchronization",
-      "title": "Register, announce, achieve, and complete a synchronization point",
-      "api_methods": ["RTIambassador.registerFederationSynchronizationPoint", "RTIambassador.synchronizationPointAchieved", "FederateAmbassador.announceSynchronizationPoint", "FederateAmbassador.federationSynchronized"],
-      "requirement_ids": ["java-1516.1-synchronization-point"],
-      "contract_refs": ["synchronization-point-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#synchronizationPoint",
-      "default_status": "unsupported",
-      "exclusion": "The scenario is multi-federate and is enabled only by a provider profile that declares synchronization support."
+      "title": "Register, announce, achieve, and complete multi-member synchronization points",
+      "api_methods": [
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized"
+      ],
+      "requirement_ids": [
+        "java-1516.1-synchronization-point"
+      ],
+      "contract_refs": [
+        "synchronization-point-api-contract.json",
+        "synchronization-point-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#synchronizationPoint",
+      "default_status": "run",
+      "exclusion": "Multi-federate and profile-gated; the Java source uses only standard synchronization and membership APIs."
     },
     {
       "id": "java-tck.mom",
       "category": "mom",
       "title": "Expose MOM/service-reporting callbacks and save-status records",
-      "api_methods": ["RTIambassador.queryFederationSaveStatus", "FederateAmbassador.federationSaveStatusResponse"],
-      "requirement_ids": ["java-1516.1-mom-service-reporting"],
-      "contract_refs": ["mom-service-reporting-requirements-contract.json", "joined-federate-mom-public-requirements-contract.json", "service-report-file-lifecycle-requirements-contract.json"],
-      "java_test": "umbra.rti.tck.RtiTckMain#momStatusReport",
+      "api_methods": [
+        "RTIambassador.queryFederationSaveStatus",
+        "FederateAmbassador.federationSaveStatusResponse"
+      ],
+      "requirement_ids": [
+        "java-1516.1-mom-service-reporting"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "joined-federate-mom-public-requirements-contract.json",
+        "service-report-file-lifecycle-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#momStatusReport",
       "default_status": "unsupported",
       "exclusion": "MOM evidence depends on the provider's MOM FOM and reporting configuration; service-reporting code remains outside the portable Java TCK until a profile enables it."
     }
   ],
   "exclusions": [
     {
-      "id": "java-tck.umbra-native-boundary",
-      "scope": "Umbra JNI/C++ implementation classes and native-only state-machine tests",
+      "id": "java-tck.provider-implementation-boundary",
+      "scope": "Provider implementation classes and implementation-only state-machine tests",
       "status": "not applicable",
-      "reason": "The portable Java TCK may change only API/provider JARs, factory name, FOM/MIM inputs, and capability profile. Native classes and C++ tests are separate evidence."
+      "reason": "The portable Java TCK may change only API/provider JARs, factory name, FOM/MIM inputs, and capability profile. Provider implementation evidence remains in the provider's own compliance lane."
     },
     {
       "id": "java-tck.provider-internal-policy",

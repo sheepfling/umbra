@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "umbra-rti-native"
 version = "0.1.0"
-description = "pybind11 provider for the Umbra IEEE 1516.1-2025 C++ RTI"
+description = "pybind11 providers for the Umbra IEEE 1516.1-2010 and 2025 C++ RTIs"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Umbra contributors" }]
@@ -35,3 +35,6 @@ UMBRA_FETCH_LIBXML2 = true
 
 [project.entry-points."hla.rti1516_2025.factories"]
 Umbra = "umbra._native.rti1516_2025:UmbraRtiFactory"
+
+[project.entry-points."hla.rti1516e.factories"]
+UmbraNative2010 = "umbra._native.rti1516e:Native2010RtiFactory"

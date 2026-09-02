@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-and-rti-invoked-object-management-not-conformance-evidence",
-  "notes": "This contract pins the bounded Auto Provide behavior in Umbra's opt-in, non-installable development profile. The composed FDD seeds one federation-wide dynamic value, omitted input is Disabled, the standard HLAsetSwitches MOM interaction can change that value during execution using the official HLAswitch encoding, and an enabled value causes the RTI to solicit current owners of newly discovered in-scope attributes through Provide Attribute Value Update with an empty tag. Other MOM switches, complete multi-owner/regional/update-rate behavior, package evidence, protected review, JUnit promotion, and conformance remain open.",
+  "notes": "This contract pins the bounded Auto Provide behavior in Umbra's opt-in, non-installable development profile. The composed FDD seeds one federation-wide dynamic value, omitted input is Disabled, the standard HLAsetSwitches MOM interaction can change that value during execution using the official HLAswitch encoding, and an enabled value causes the RTI to solicit current owners of newly discovered in-scope attributes through Provide Attribute Value Update with an empty tag. The public regional slices now cover callback-time DDM and switch revalidation, two-owner grouping, independent source-region projections, exact-touch Allow Relaxed DDM eligibility with positive-gap suppression, fresh post-reenable discovery, receive-order and timestamped switch mutation before provider-callback admission, and timestamped responses admitted before switch disable that are delivered once at their grants. Save/restore, package evidence, protected review, JUnit promotion, and conformance remain open.",
   "requirements": [
     {
       "id": "umbra-auto-provide-invokes-provider-after-discovery",
@@ -13,7 +13,13 @@
       "source_symbol": "queueObjectInstanceDiscovery",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide separates independent source regions and provider callbacks under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -24,7 +30,13 @@
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide separates independent source regions and provider callbacks under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -34,7 +46,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disabled Auto Provide leaves discovery without a provider callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disabled Auto Provide leaves discovery without a provider callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -45,7 +61,10 @@
       "source_symbol": "queueAttributeValueUpdateProvide",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -55,7 +74,63 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide separates independent source regions and provider callbacks under HLA_EVOKED and HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-auto-provide-switch-mutation-fences-queued-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l10-2",
+      "clause_id": "clause-6.1.10",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::attributeValueUpdateProvideRecipientFor",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-auto-provide-switch-admission-fences-provider-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l10-2",
+      "clause_id": "clause-6.1.10",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-auto-provide-timestamped-switch-admission-fences-provider-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+      "clause_id": "clause-8.8.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-auto-provide-separates-independent-source-regions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l100-30",
+      "clause_id": "clause-9.13.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide separates independent source regions and provider callbacks under HLA_EVOKED and HLA_IMMEDIATE"
+      ]
+    },
+    {
+      "id": "umbra-auto-provide-respects-relaxed-ddm-scope",
+      "requirements_lab_requirement_id": "requirement-source-refinement-relaxed-ddm-delivery",
+      "clause_id": "clause-9.1.8",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     }
   ]

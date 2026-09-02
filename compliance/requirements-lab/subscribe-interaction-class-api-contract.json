@@ -24,7 +24,8 @@
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClass",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting suppresses accepted services while the reporting switch is disabled"
       ]
     }
   ]

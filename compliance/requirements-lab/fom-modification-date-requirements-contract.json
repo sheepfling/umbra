@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the bounded IEEE 1516.2-2025 Table 1/6.2.1 modification-date presentation rule. The official DIF schema remains responsible for XML Schema date/calendar validity; Umbra's composition preflight rejects the schema-valid timezone-suffixed forms admitted by xs:date and requires the exact YYYY-MM-DD lexical form when a DIF module supplies a modificationDate. Omitted values remain representable for incomplete DIF modules. This is private source/test traceability only, not FOM conformance or public-service evidence.",
+  "requirements": [
+    {
+      "id": "umbra-omt-modification-date-lexical-form",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-091-l58-8",
+      "clause_id": "clause-6.2.1",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateModificationDate",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces the YYYY-MM-DD modification-date form"
+      ]
+    }
+  ]
+}

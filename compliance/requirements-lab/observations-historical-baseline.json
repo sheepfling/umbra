@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "observations_path": "docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md",
+  "historical_cutoff": 157,
+  "canonicalization": "RL section blocks in file order, normalized to LF",
+  "sha256": "9fd03d59e7003a143329fa2ff72e1aaade3dfa012ce7636da64a93ade572d48d"
+}

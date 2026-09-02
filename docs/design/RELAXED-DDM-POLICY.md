@@ -46,14 +46,24 @@ interaction and object-attribute planners use the same decision.
 
 ## Evidence and limits
 
-`Embedded Allow Relaxed DDM expands only touching regional interaction ranges`
-and `Embedded Allow Relaxed DDM expands only touching regional object-attribute
-ranges` use a standard Restaurant FOM plus an isolated FOM switch module. The
-pair proves:
+`Embedded Allow Relaxed DDM expands only touching regional interaction ranges`,
+`Embedded Allow Relaxed DDM expands only touching regional object-attribute
+ranges`, and `Embedded regional Auto Provide applies Allow Relaxed DDM to
+touching source projections and suppresses positive gaps under HLA_EVOKED and
+HLA_IMMEDIATE` use a standard Restaurant FOM (or the isolated regional
+ownership fixture) plus an isolated FOM switch module. Together they prove:
 
 1. exact boundary-touching ranges deliver only with the switch enabled;
 2. a positive gap never delivers; and
 3. strict delivery remains available in both modes.
+
+The Auto Provide case adds the discovery boundary: a touching source and
+subscription range is eligible only with the enabled switch, induces one
+provider callback with the required empty tag, and delivers one scoped
+response. Moving the known recipient to a positive gap suppresses the update;
+restoring strict overlap permits one ordinary regional update without a second
+discovery or provider solicitation. The same assertions run under both
+HLA_EVOKED and HLA_IMMEDIATE.
 
 The object-attribute case repeats the state transition through regional object
 registration, discovery, and reflection. It confirms that a recipient made
@@ -61,7 +71,8 @@ known by a relaxed boundary stops receiving after a nonzero gap, and that a
 strict-overlap change discovers the previously filtered recipient in the
 disabled configuration.
 
-The evidence is limited to receive-order regional interaction and
-object-attribute delivery in the non-installable embedded profile. Broader
+The evidence is limited to receive-order regional interaction,
+object-attribute delivery, and receive-order Auto Provide discovery/response
+in the embedded profile. Broader
 multi-dimension, timestamped, advisory, update-rate, transport, package, and
 conformance matrices remain separate work.

@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract pins the bounded IEEE 1516.2-2025 Clause 3.3.1 name-convention preflight. Umbra applies XML NCName character rules, reserves periods for directed-interaction qualified class paths, rejects unknown user-defined HLA-prefixed names after MIM names are known, and rejects the NA marker for named table entries. The supplied Restaurant enumerator named NA remains accepted as an explicit source-compatibility exception because the official example conflicts with the prose; that tension is logged in the Requirements-Lab observation ledger. Individual DIF validation remains owned by the vendored schema, and this is private composition traceability only, not a FOM conformance or public-service evidence claim.",
+  "requirements": [
+    {
+      "id": "umbra-omt-parameter-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-053-l39-2",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-dimension-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-056-l6-1",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-simple-data-type-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-071-l61-2",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-enumerator-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-073-l91-1",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-fixed-record-field-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-076-l48-1",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-record-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l58-2",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-discriminant-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l62-3",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-variant-alternative-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-077-l74-6",
+      "clause_id": "clause-4",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-object-class-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-040-l18-3",
+      "clause_id": "clause-4.2.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-attribute-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l101-3",
+      "clause_id": "clause-4.5.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-synchronization-label-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-061-l90-5",
+      "clause_id": "clause-4.10.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-transportation-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-063-l51-3",
+      "clause_id": "clause-4.11.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-update-rate-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-064-l50-3",
+      "clause_id": "clause-4.12.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-basic-data-representation-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-068-l64-4",
+      "clause_id": "clause-4.14.3",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-enumerated-data-type-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-072-l124-2",
+      "clause_id": "clause-4.14.5",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-array-data-type-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l52-2",
+      "clause_id": "clause-4.14.6",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-fixed-record-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-075-l92-3",
+      "clause_id": "clause-4.14.7",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-reference-data-type-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l45-2",
+      "clause_id": "clause-4.14.9",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    },
+    {
+      "id": "umbra-omt-note-label-name-conventions",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-086-l88-9",
+      "clause_id": "clause-4.15.2",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source_symbol": "validateHlaNames",
+      "tests": [
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight enforces HLA 3.3.1 XML names"
+      ]
+    }
+  ]
+}

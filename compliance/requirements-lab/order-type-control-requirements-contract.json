@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract selects the Requirements Lab order-control requirements implemented by the embedded development profile. It records prospective class defaults, per-instance preferred order, ownership-transfer reset behavior, interaction preferred order, and the three official service-validation boundaries. It does not claim a complete time-management or conformance implementation.",
+  "notes": "This contract selects the Requirements Lab order-control requirements implemented by the embedded development profile. It records prospective class defaults, per-instance preferred order, ownership-transfer reset behavior, interaction preferred order, and the three official service-validation boundaries. A focused filesystem process-restart companion now proves one persisted class default rehydrates in a fresh registry as part of the typed object-class declaration ledger; broader instance, ownership-transfer, save/restore, and conformance behavior remain separate.",
   "requirements": [
     {
       "id": "umbra-attribute-order-initializes-from-default",
@@ -22,7 +22,9 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeAttributeOrderType",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
       ]
     },
     {
@@ -54,7 +56,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
@@ -66,7 +69,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {

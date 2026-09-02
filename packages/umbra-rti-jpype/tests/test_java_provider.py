@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import math
 import os
 import struct
 import unittest
-import math
 
 from hla.rti1516_2025 import (
     AttributeHandle,
@@ -12,32 +12,35 @@ from hla.rti1516_2025 import (
     AttributeSetRegionSetPair,
     AttributeSetRegionSetPairList,
     CallbackModel,
-    DecoderException,
     DataElementFactory,
-    EncoderException,
-    EncoderFactory,
-    HLAfixedArray,
-    HLAfixedRecord,
-    HLAvariantRecord,
+    DecoderException,
     DimensionHandle,
     DimensionHandleSet,
+    EncoderException,
+    EncoderFactory,
     FederateAmbassador,
     FederateHandle,
+    FederateHandleSaveStatusPair,
     FederateHandleSet,
+    FederateRestoreStatus,
     FederationExecutionInformation,
     FederationExecutionInformationSet,
     FederationExecutionMemberInformation,
     FederationExecutionMemberInformationSet,
-    FederateHandleSaveStatusPair,
-    FederateRestoreStatus,
+    HLAfixedArray,
+    HLAfixedRecord,
     HLAfloat64Interval,
     HLAfloat64Time,
     HLAfloat64TimeFactory,
     HLAinteger64Interval,
     HLAinteger64Time,
     HLAinteger64TimeFactory,
+    LogicalTime,
+    LogicalTimeFactory,
+    LogicalTimeInterval,
     HLAopaqueData,
     HLAvariableArray,
+    HLAvariantRecord,
     InteractionClassHandle,
     InteractionClassHandleSet,
     MessageRetractionHandle,
@@ -53,13 +56,13 @@ from hla.rti1516_2025 import (
     OrderType,
     ParameterHandle,
     ParameterHandleValueMap,
-    RtiConfiguration,
     RangeBounds,
     RegionHandle,
     RegionHandleSet,
-    RTIambassador,
     ResignAction,
     RestoreStatus,
+    RTIambassador,
+    RtiConfiguration,
     SaveFailureReason,
     SaveStatus,
     ServiceGroup,
@@ -75,11 +78,32 @@ from hla.rti1516_2025.exceptions import (
     InvalidLogicalTimeInterval,
     RTIinternalError,
 )
-from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory, JavaRtiProbe
-from umbra._java.rti1516_2025.provider import JavaRTIambassador
+from umbra._java.rti1516_2025 import (
+    JavaProviderConfiguration,
+    JavaRtiFactory,
+    JavaRtiProbe,
+)
 from umbra._java.rti1516_2025._runtime import (
     JavaCallbackBinding,
     _FederateAmbassadorCallback,
+)
+from umbra._java.rti1516_2025.encoding import _JavaDataElement
+from umbra._java.rti1516_2025.provider import JavaRTIambassador
+from umbra_rti_test_support import (
+    CallbackDeliveryObservation,
+    HLA_FIXTURES,
+    HLA_FOM,
+    HLA_MOM,
+    HLA_TYPES,
+    assert_callback_delivery_parity,
+    iter_callback_provenance_matrix,
+    SurfaceEventTrace,
+    assert_event_order,
+    iter_data_element_value_matrix,
+    iter_logical_time_arithmetic_matrix,
+    iter_logical_time_wire_matrix,
+    iter_save_restore_matrix,
+    iter_surface_matrix,
 )
 
 
@@ -122,11 +146,15 @@ class _FakeCallbackProxy:
             )
         )
 
-    def reportFederationExecutionMembers(self, federation_name: str, report: object) -> None:
+    def reportFederationExecutionMembers(
+        self, federation_name: str, report: object
+    ) -> None:
         self._target.reportFederationExecutionMembers(
             federation_name,
             FederationExecutionMemberInformationSet(
-                FederationExecutionMemberInformation(information.federateName, information.federateType)
+                FederationExecutionMemberInformation(
+                    information.federateName, information.federateType
+                )
                 for information in report  # type: ignore[union-attr]
             ),
         )
@@ -168,7 +196,10 @@ class _FakeCallbackProxy:
         )
 
     def turnUpdatesOnForObjectInstance(
-        self, object_instance: bytes, attributes: object, update_rate_designator: str | None = None
+        self,
+        object_instance: bytes,
+        attributes: object,
+        update_rate_designator: str | None = None,
     ) -> None:
         self._target.turnUpdatesOnForObjectInstance(
             ObjectInstanceHandle(object_instance),
@@ -176,7 +207,9 @@ class _FakeCallbackProxy:
             update_rate_designator,
         )
 
-    def turnUpdatesOffForObjectInstance(self, object_instance: bytes, attributes: object) -> None:
+    def turnUpdatesOffForObjectInstance(
+        self, object_instance: bytes, attributes: object
+    ) -> None:
         self._target.turnUpdatesOffForObjectInstance(
             ObjectInstanceHandle(object_instance),
             AttributeHandleSet(AttributeHandle(attribute) for attribute in attributes),
@@ -258,12 +291,16 @@ class _FakeCallbackProxy:
         else:
             self._target.receiveDirectedInteraction(*arguments)
 
-    def multipleObjectInstanceNameReservationSucceeded(self, object_instance_names: object) -> None:
+    def multipleObjectInstanceNameReservationSucceeded(
+        self, object_instance_names: object
+    ) -> None:
         self._target.multipleObjectInstanceNameReservationSucceeded(
             ObjectInstanceNameSet(str(name) for name in object_instance_names)
         )
 
-    def multipleObjectInstanceNameReservationFailed(self, object_instance_names: object) -> None:
+    def multipleObjectInstanceNameReservationFailed(
+        self, object_instance_names: object
+    ) -> None:
         self._target.multipleObjectInstanceNameReservationFailed(
             ObjectInstanceNameSet(str(name) for name in object_instance_names)
         )
@@ -271,11 +308,13 @@ class _FakeCallbackProxy:
 
 class _FakeJavaFederationExecutionInformation:
     federationExecutionName = "Fake Federation"
-    logicalTimeImplementationName = "HLAinteger64Time"
+    logicalTimeImplementationName = HLA_TYPES.INTEGER64_TIME
 
 
 class _FakeJavaTime:
-    def __init__(self, value: int, *, initial: bool = False, final: bool = False) -> None:
+    def __init__(
+        self, value: int, *, initial: bool = False, final: bool = False
+    ) -> None:
         self.value = value
         self.initial = initial
         self.final = final
@@ -292,25 +331,32 @@ class _FakeJavaTime:
     def isFinal(self) -> bool:
         return self.final
 
-    def add(self, addend: object) -> "_FakeJavaTime":
+    def add(self, addend: object) -> _FakeJavaTime:
         if not isinstance(addend, _FakeJavaInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         result = self.value + addend.value
         if result > 2**63 - 1:
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time addition exceeds final"
+            )
         return _FakeJavaTime(result)
 
-    def subtract(self, subtrahend: object) -> "_FakeJavaTime":
+    def subtract(self, subtrahend: object) -> _FakeJavaTime:
         if not isinstance(subtrahend, _FakeJavaInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         if subtrahend.value > self.value:
             raise _FakeJavaError(
-                "IllegalTimeArithmetic", "logical-time subtraction precedes the initial value"
+                "IllegalTimeArithmetic",
+                "logical-time subtraction precedes the initial value",
             )
         return _FakeJavaTime(self.value - subtrahend.value)
 
     def implementationName(self) -> str:
-        return "HLAinteger64Time"
+        return HLA_TYPES.INTEGER64_TIME
 
     def getTime(self) -> int:
         return self.value
@@ -320,7 +366,9 @@ class _FakeJavaTime:
 
 
 class _FakeJavaInterval:
-    def __init__(self, value: int, *, zero: bool = False, epsilon: bool = False) -> None:
+    def __init__(
+        self, value: int, *, zero: bool = False, epsilon: bool = False
+    ) -> None:
         self.value = value
         self.zero = zero
         self.epsilon = epsilon
@@ -337,34 +385,47 @@ class _FakeJavaInterval:
     def isEpsilon(self) -> bool:
         return self.epsilon
 
-    def add(self, addend: object) -> "_FakeJavaInterval":
+    def add(self, addend: object) -> _FakeJavaInterval:
         if not isinstance(addend, _FakeJavaInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         result = self.value + addend.value
         if result > 2**63 - 1:
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time addition exceeds final"
+            )
         return _FakeJavaInterval(result)
 
-    def subtract(self, subtrahend: object) -> "_FakeJavaInterval":
+    def subtract(self, subtrahend: object) -> _FakeJavaInterval:
         if not isinstance(subtrahend, _FakeJavaInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         if subtrahend.value > self.value:
             raise _FakeJavaError(
-                "IllegalTimeArithmetic", "logical-time interval subtraction precedes zero"
+                "IllegalTimeArithmetic",
+                "logical-time interval subtraction precedes zero",
             )
         return _FakeJavaInterval(self.value - subtrahend.value)
 
     def setToDifference(self, minuend: object, subtrahend: object) -> None:
-        if not isinstance(minuend, _FakeJavaTime) or not isinstance(subtrahend, _FakeJavaTime):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+        if not isinstance(minuend, _FakeJavaTime) or not isinstance(
+            subtrahend, _FakeJavaTime
+        ):
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         if subtrahend.value > minuend.value:
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time difference would be negative")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time difference would be negative"
+            )
         self.value = minuend.value - subtrahend.value
         self.zero = self.value == 0
         self.epsilon = self.value == 1
 
     def implementationName(self) -> str:
-        return "HLAinteger64Time"
+        return HLA_TYPES.INTEGER64_TIME
 
     def getInterval(self) -> int:
         return self.value
@@ -381,7 +442,7 @@ class _FakeJavaTimeQueryReturn:
 
 class _FakeJavaTimeFactory:
     def getName(self) -> str:
-        return "HLAinteger64Time"
+        return HLA_TYPES.INTEGER64_TIME
 
     def makeInitial(self) -> _FakeJavaTime:
         return _FakeJavaTime(0, initial=True)
@@ -402,14 +463,22 @@ class _FakeJavaTimeFactory:
         return _FakeJavaInterval(value)
 
     def decodeLogicalTime(self, encoded: bytes, offset: int) -> _FakeJavaTime:
-        return _FakeJavaTime(struct.unpack(">q", bytes(encoded)[offset : offset + 8])[0])
+        return _FakeJavaTime(
+            struct.unpack(">q", bytes(encoded)[offset : offset + 8])[0]
+        )
 
-    def decodeLogicalTimeInterval(self, encoded: bytes, offset: int) -> _FakeJavaInterval:
-        return _FakeJavaInterval(struct.unpack(">q", bytes(encoded)[offset : offset + 8])[0])
+    def decodeLogicalTimeInterval(
+        self, encoded: bytes, offset: int
+    ) -> _FakeJavaInterval:
+        return _FakeJavaInterval(
+            struct.unpack(">q", bytes(encoded)[offset : offset + 8])[0]
+        )
 
 
 class _FakeJavaFloatTime:
-    def __init__(self, value: float, *, initial: bool = False, final: bool = False) -> None:
+    def __init__(
+        self, value: float, *, initial: bool = False, final: bool = False
+    ) -> None:
         self.value = 0.0 if float(value) == 0.0 else float(value)
         self.initial = initial or self.value == 0.0
         self.final = final or self.value == float("1.7976931348623157e+308")
@@ -426,37 +495,49 @@ class _FakeJavaFloatTime:
     def isFinal(self) -> bool:
         return self.final
 
-    def add(self, addend: object) -> "_FakeJavaFloatTime":
+    def add(self, addend: object) -> _FakeJavaFloatTime:
         if not isinstance(addend, _FakeJavaFloatInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         value = self.value
         interval = addend.value
         if (
-            (value >= float("1.7976931348623157e+308") and interval > 0.0)
-            or interval > float("1.7976931348623157e+308") - value
-        ):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+            value >= float("1.7976931348623157e+308") and interval > 0.0
+        ) or interval > float("1.7976931348623157e+308") - value:
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time addition exceeds final"
+            )
         result = value + interval
         if not math.isfinite(result):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time addition exceeds final"
+            )
         if interval == math.nextafter(0.0, 1.0) and result == value:
             result = math.nextafter(value, float("1.7976931348623157e+308"))
         return _FakeJavaFloatTime(result)
 
-    def subtract(self, subtrahend: object) -> "_FakeJavaFloatTime":
+    def subtract(self, subtrahend: object) -> _FakeJavaFloatTime:
         if not isinstance(subtrahend, _FakeJavaFloatInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         if subtrahend.value > self.value:
             raise _FakeJavaError(
-                "IllegalTimeArithmetic", "logical-time subtraction precedes the initial value"
+                "IllegalTimeArithmetic",
+                "logical-time subtraction precedes the initial value",
             )
         result = self.value - subtrahend.value
-        if subtrahend.value == math.nextafter(0.0, 1.0) and result == self.value and self.value > 0.0:
+        if (
+            subtrahend.value == math.nextafter(0.0, 1.0)
+            and result == self.value
+            and self.value > 0.0
+        ):
             result = math.nextafter(self.value, 0.0)
         return _FakeJavaFloatTime(result)
 
     def implementationName(self) -> str:
-        return "HLAfloat64Time"
+        return HLA_TYPES.FLOAT64_TIME
 
     def getTime(self) -> float:
         return self.value
@@ -466,7 +547,9 @@ class _FakeJavaFloatTime:
 
 
 class _FakeJavaFloatInterval:
-    def __init__(self, value: float, *, zero: bool = False, epsilon: bool = False) -> None:
+    def __init__(
+        self, value: float, *, zero: bool = False, epsilon: bool = False
+    ) -> None:
         self.value = 0.0 if float(value) == 0.0 else float(value)
         self.zero = zero or self.value == 0.0
         self.epsilon = epsilon or self.value == math.nextafter(0.0, 1.0)
@@ -483,44 +566,62 @@ class _FakeJavaFloatInterval:
     def isEpsilon(self) -> bool:
         return self.epsilon
 
-    def add(self, addend: object) -> "_FakeJavaFloatInterval":
+    def add(self, addend: object) -> _FakeJavaFloatInterval:
         if not isinstance(addend, _FakeJavaFloatInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         if (
-            (self.value >= float("1.7976931348623157e+308") and addend.value > 0.0)
-            or addend.value > float("1.7976931348623157e+308") - self.value
-        ):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+            self.value >= float("1.7976931348623157e+308") and addend.value > 0.0
+        ) or addend.value > float("1.7976931348623157e+308") - self.value:
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time addition exceeds final"
+            )
         result = self.value + addend.value
         if not math.isfinite(result):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time addition exceeds final")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time addition exceeds final"
+            )
         if addend.value == math.nextafter(0.0, 1.0) and result == self.value:
             result = math.nextafter(self.value, float("1.7976931348623157e+308"))
         return _FakeJavaFloatInterval(result)
 
-    def subtract(self, subtrahend: object) -> "_FakeJavaFloatInterval":
+    def subtract(self, subtrahend: object) -> _FakeJavaFloatInterval:
         if not isinstance(subtrahend, _FakeJavaFloatInterval):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         if subtrahend.value > self.value:
             raise _FakeJavaError(
-                "IllegalTimeArithmetic", "logical-time interval subtraction precedes zero"
+                "IllegalTimeArithmetic",
+                "logical-time interval subtraction precedes zero",
             )
         result = self.value - subtrahend.value
-        if subtrahend.value == math.nextafter(0.0, 1.0) and result == self.value and self.value > 0.0:
+        if (
+            subtrahend.value == math.nextafter(0.0, 1.0)
+            and result == self.value
+            and self.value > 0.0
+        ):
             result = math.nextafter(self.value, 0.0)
         return _FakeJavaFloatInterval(result)
 
     def setToDifference(self, minuend: object, subtrahend: object) -> None:
-        if not isinstance(minuend, _FakeJavaFloatTime) or not isinstance(subtrahend, _FakeJavaFloatTime):
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time implementation mismatch")
+        if not isinstance(minuend, _FakeJavaFloatTime) or not isinstance(
+            subtrahend, _FakeJavaFloatTime
+        ):
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time implementation mismatch"
+            )
         if subtrahend.value > minuend.value:
-            raise _FakeJavaError("IllegalTimeArithmetic", "logical-time difference would be negative")
+            raise _FakeJavaError(
+                "IllegalTimeArithmetic", "logical-time difference would be negative"
+            )
         self.value = minuend.value - subtrahend.value
         self.zero = self.value == 0.0
         self.epsilon = self.value == math.nextafter(0.0, 1.0)
 
     def implementationName(self) -> str:
-        return "HLAfloat64Time"
+        return HLA_TYPES.FLOAT64_TIME
 
     def getInterval(self) -> float:
         return self.value
@@ -531,7 +632,7 @@ class _FakeJavaFloatInterval:
 
 class _FakeJavaFloatTimeFactory:
     def getName(self) -> str:
-        return "HLAfloat64Time"
+        return HLA_TYPES.FLOAT64_TIME
 
     def makeInitial(self) -> _FakeJavaFloatTime:
         return _FakeJavaFloatTime(0.0, initial=True)
@@ -561,10 +662,259 @@ class _FakeJavaFloatTimeFactory:
         return _FakeJavaFloatInterval(value)
 
     def decodeLogicalTime(self, encoded: bytes, offset: int) -> _FakeJavaFloatTime:
-        return _FakeJavaFloatTime(struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0])
+        return _FakeJavaFloatTime(
+            struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0]
+        )
 
-    def decodeLogicalTimeInterval(self, encoded: bytes, offset: int) -> _FakeJavaFloatInterval:
-        return _FakeJavaFloatInterval(struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0])
+    def decodeLogicalTimeInterval(
+        self, encoded: bytes, offset: int
+    ) -> _FakeJavaFloatInterval:
+        return _FakeJavaFloatInterval(
+            struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0]
+        )
+
+
+class _FakeJavaVendorTime:
+    """Opaque 2025 carrier used to prove custom arithmetic is not coerced."""
+
+    def __init__(self, value: float, *, initial: bool = False, final: bool = False) -> None:
+        self.value = float(value)
+        self.initial = initial
+        self.final = final
+
+    def encodedLength(self) -> int:
+        return 8
+
+    def encode(self, destination: bytearray, offset: int = 0) -> None:
+        destination[offset : offset + 8] = struct.pack(">d", self.value)
+
+    def isInitial(self) -> bool:
+        return self.initial
+
+    def isFinal(self) -> bool:
+        return self.final
+
+    def getClass(self) -> object:
+        return _FakeJavaClass("VendorChronon")
+
+    def getValue(self) -> float:
+        return self.value
+
+    def add(self, addend: object) -> _FakeJavaVendorTime:
+        if not isinstance(addend, _FakeJavaVendorInterval):
+            raise _FakeJavaError("IllegalTimeArithmetic", "vendor time/interval mismatch")
+        return _FakeJavaVendorTime(self.value + addend.value + 100.0)
+
+    def subtract(self, subtrahend: object) -> _FakeJavaVendorTime:
+        if not isinstance(subtrahend, _FakeJavaVendorInterval):
+            raise _FakeJavaError("IllegalTimeArithmetic", "vendor time/interval mismatch")
+        return _FakeJavaVendorTime(self.value - subtrahend.value - 100.0)
+
+    def distance(self, other: object) -> _FakeJavaVendorInterval:
+        if not isinstance(other, _FakeJavaVendorTime):
+            raise _FakeJavaError("IllegalTimeArithmetic", "vendor time mismatch")
+        return _FakeJavaVendorInterval(abs(self.value - other.value) + 100.0)
+
+    def compareTo(self, other: object) -> int:
+        if not isinstance(other, _FakeJavaVendorTime):
+            raise _FakeJavaError("IllegalTimeArithmetic", "vendor time mismatch")
+        return 7 if self.value > other.value else -7 if self.value < other.value else 0
+
+    def toString(self) -> str:
+        return f"vendor-time:{self.value}"
+
+
+class _FakeJavaVendorInterval:
+    def __init__(self, value: float, *, zero: bool = False, epsilon: bool = False) -> None:
+        self.value = float(value)
+        self.zero = zero
+        self.epsilon = epsilon
+
+    def encodedLength(self) -> int:
+        return 8
+
+    def encode(self, destination: bytearray, offset: int = 0) -> None:
+        destination[offset : offset + 8] = struct.pack(">d", self.value)
+
+    def isZero(self) -> bool:
+        return self.zero
+
+    def isEpsilon(self) -> bool:
+        return self.epsilon
+
+    def getClass(self) -> object:
+        return _FakeJavaClass("VendorChrononInterval")
+
+    def getValue(self) -> float:
+        return self.value
+
+    def add(self, addend: object) -> _FakeJavaVendorInterval:
+        if not isinstance(addend, _FakeJavaVendorInterval):
+            raise _FakeJavaError("IllegalTimeArithmetic", "vendor interval mismatch")
+        return _FakeJavaVendorInterval(self.value + addend.value + 10.0)
+
+    def subtract(self, subtrahend: object) -> _FakeJavaVendorInterval:
+        if not isinstance(subtrahend, _FakeJavaVendorInterval):
+            raise _FakeJavaError("IllegalTimeArithmetic", "vendor interval mismatch")
+        return _FakeJavaVendorInterval(self.value - subtrahend.value - 10.0)
+
+    def compareTo(self, other: object) -> int:
+        if not isinstance(other, _FakeJavaVendorInterval):
+            raise _FakeJavaError("IllegalTimeArithmetic", "vendor interval mismatch")
+        return 9 if self.value > other.value else -9 if self.value < other.value else 0
+
+    def toString(self) -> str:
+        return f"vendor-interval:{self.value}"
+
+
+class _FakeJavaVendorTimeFactory:
+    """A Java-shaped custom 2025 time factory with a nonstandard arithmetic domain."""
+
+    def getName(self) -> str:
+        return "VendorChronon"
+
+    def makeInitial(self) -> _FakeJavaVendorTime:
+        return _FakeJavaVendorTime(0.0, initial=True)
+
+    def makeFinal(self) -> _FakeJavaVendorTime:
+        return _FakeJavaVendorTime(1_000_000.0, final=True)
+
+    def makeZero(self) -> _FakeJavaVendorInterval:
+        return _FakeJavaVendorInterval(0.0, zero=True)
+
+    def makeEpsilon(self) -> _FakeJavaVendorInterval:
+        return _FakeJavaVendorInterval(0.001, epsilon=True)
+
+    def makeTime(self, value: object) -> _FakeJavaVendorTime:
+        return _FakeJavaVendorTime(float(value))
+
+    def makeInterval(self, value: object) -> _FakeJavaVendorInterval:
+        return _FakeJavaVendorInterval(float(value))
+
+    def decodeTime(self, encoded: bytes, offset: int) -> _FakeJavaVendorTime:
+        return _FakeJavaVendorTime(struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0])
+
+    def decodeInterval(self, encoded: bytes, offset: int) -> _FakeJavaVendorInterval:
+        return _FakeJavaVendorInterval(struct.unpack(">d", bytes(encoded)[offset : offset + 8])[0])
+
+
+class _FakeJavaWideVendorTime(_FakeJavaVendorTime):
+    """Provider-owned 12-octet carrier used for variable-width decode tests."""
+
+    def encodedLength(self) -> int:
+        return 12
+
+    def encode(self, destination: bytearray, offset: int = 0) -> None:
+        destination[offset : offset + 12] = b"CHRN" + struct.pack(">d", self.value)
+
+
+class _FakeJavaWideVendorInterval(_FakeJavaVendorInterval):
+    def encodedLength(self) -> int:
+        return 12
+
+    def encode(self, destination: bytearray, offset: int = 0) -> None:
+        destination[offset : offset + 12] = b"INTV" + struct.pack(">d", self.value)
+
+
+class _FakeJavaWideVendorTimeFactory(_FakeJavaVendorTimeFactory):
+    """Custom factory whose wire carriers are wider than reference time."""
+
+    def decodeTime(self, encoded: bytes, offset: int) -> _FakeJavaWideVendorTime:
+        payload = bytes(encoded)[offset:]
+        if len(payload) != 12 or payload[:4] != b"CHRN":
+            raise _FakeJavaError("IllegalArgumentException", "invalid VendorChrononWide time")
+        return _FakeJavaWideVendorTime(struct.unpack(">d", payload[4:])[0])
+
+    def decodeInterval(self, encoded: bytes, offset: int) -> _FakeJavaWideVendorInterval:
+        payload = bytes(encoded)[offset:]
+        if len(payload) != 12 or payload[:4] != b"INTV":
+            raise _FakeJavaError(
+                "IllegalArgumentException", "invalid VendorChrononWide interval"
+            )
+        return _FakeJavaWideVendorInterval(struct.unpack(">d", payload[4:])[0])
+
+
+class _FakeJavaOpaqueVendorTime:
+    """Provider carrier that intentionally exposes no numeric accessor."""
+
+    def __init__(self, payload: bytes) -> None:
+        self.payload = bytes(payload)
+
+    def encodedLength(self) -> int:
+        return len(self.payload)
+
+    def encode(self, destination: bytearray, offset: int = 0) -> None:
+        destination[offset : offset + len(self.payload)] = self.payload
+
+    def isInitial(self) -> bool:
+        return False
+
+    def isFinal(self) -> bool:
+        return False
+
+    def getClass(self) -> object:
+        return _FakeJavaClass("VendorOpaqueTime")
+
+    def toString(self) -> str:
+        return "vendor-opaque-time"
+
+
+class _FakeJavaOpaqueVendorInterval:
+    """Provider interval carrier that intentionally exposes no numeric accessor."""
+
+    def __init__(self, payload: bytes) -> None:
+        self.payload = bytes(payload)
+
+    def encodedLength(self) -> int:
+        return len(self.payload)
+
+    def encode(self, destination: bytearray, offset: int = 0) -> None:
+        destination[offset : offset + len(self.payload)] = self.payload
+
+    def isZero(self) -> bool:
+        return False
+
+    def isEpsilon(self) -> bool:
+        return False
+
+    def getClass(self) -> object:
+        return _FakeJavaClass("VendorOpaqueInterval")
+
+    def toString(self) -> str:
+        return "vendor-opaque-interval"
+
+
+class _FakeJavaOpaqueVendorTimeFactory(_FakeJavaWideVendorTimeFactory):
+    """Custom factory whose carriers have no portable numeric representation."""
+
+    def getName(self) -> str:
+        return "VendorOpaque"
+
+    def decodeTime(self, encoded: bytes, offset: int) -> _FakeJavaOpaqueVendorTime:
+        payload = bytes(encoded)[offset:]
+        if len(payload) != 8 or payload[:4] != b"OPAQ":
+            raise _FakeJavaError("IllegalArgumentException", "invalid opaque vendor time")
+        return _FakeJavaOpaqueVendorTime(payload)
+
+    def decodeInterval(
+        self, encoded: bytes, offset: int
+    ) -> _FakeJavaOpaqueVendorInterval:
+        payload = bytes(encoded)[offset:]
+        if len(payload) != 8 or payload[:4] != b"OPIN":
+            raise _FakeJavaError(
+                "IllegalArgumentException", "invalid opaque vendor interval"
+            )
+        return _FakeJavaOpaqueVendorInterval(payload)
+
+
+class _FakeJavaClass:
+    """Small stand-in for ``java.lang.Class`` used by carrier identity tests."""
+
+    def __init__(self, simple_name: str) -> None:
+        self.simple_name = simple_name
+
+    def getSimpleName(self) -> str:
+        return self.simple_name
 
 
 class _FakeJavaRangeBounds:
@@ -581,13 +931,16 @@ class _FakeJavaRangeBounds:
 
 class _FakeJavaAmbassador:
     def __init__(self) -> None:
+        self.calls: list[tuple[str, tuple[object, ...]]] = []
         self.connected = False
         self.callback_proxy: _FakeCallbackProxy | None = None
         self.callback_model: object | None = None
         self.connect_arguments: tuple[object, ...] = ()
         self.connect_error_name: str | None = None
         self.callbacks_enabled = True
-        self.federation_executions: dict[str, str] = {"Fake Federation": "HLAinteger64Time"}
+        self.federation_executions: dict[str, str] = {
+            "Fake Federation": HLA_TYPES.INTEGER64_TIME
+        }
         self.object_instances: dict[str, bytes] = {}
         self._next_object_instance = 1
         self.reserved_object_instance_names: set[str] = set()
@@ -608,7 +961,9 @@ class _FakeJavaAmbassador:
         self.automatic_resign_directive = "NO_ACTION"
         self.service_reporting = False
         self.exception_reporting = False
-        self.last_attribute_value_update_request: tuple[bytes, frozenset[bytes], bytes] | None = None
+        self.last_attribute_value_update_request: (
+            tuple[bytes, frozenset[bytes], bytes] | None
+        ) = None
         self.save_status_queried = False
         self.last_save_label: str | None = None
         self.last_save_time: object | None = None
@@ -622,7 +977,12 @@ class _FakeJavaAmbassador:
         self.restore_not_completed = False
         self.restore_aborted = False
 
-    def connect(self, callback_proxy: _FakeCallbackProxy, callback_model: object, *arguments: object) -> _FakeJavaConfigurationResult:
+    def connect(
+        self,
+        callback_proxy: _FakeCallbackProxy,
+        callback_model: object,
+        *arguments: object,
+    ) -> _FakeJavaConfigurationResult:
         if self.connect_error_name is not None:
             raise _FakeJavaError(self.connect_error_name, "Java provider error")
         if self.connected:
@@ -694,12 +1054,14 @@ class _FakeJavaAmbassador:
         self.federation_executions.pop(name, None)
 
     def joinFederationExecution(self, *arguments: object) -> bytes:
-        if len(arguments) in (2, 3) and (len(arguments) == 2 or not isinstance(arguments[2], str)):
+        if len(arguments) in (2, 3) and (
+            len(arguments) == 2 or not isinstance(arguments[2], str)
+        ):
             federate_type, federation_name = arguments[:2]
             federate_name = federate_type
         else:
             federate_name, federate_type, federation_name = arguments[:3]
-        self.federation_executions[str(federation_name)] = "HLAinteger64Time"
+        self.federation_executions[str(federation_name)] = HLA_TYPES.INTEGER64_TIME
         return f"{federation_name}:{federate_name}:{federate_type}".encode()
 
     def resignFederationExecution(self, resign_action: object) -> None:
@@ -721,37 +1083,48 @@ class _FakeJavaAmbassador:
         self.callback_proxy.federationSynchronized(label, [])  # type: ignore[union-attr]
 
     def queryFederationSaveStatus(self) -> None:
+        self.calls.append(("queryFederationSaveStatus", ()))
         self.save_status_queried = True
 
     def requestFederationSave(self, label: str, time: object | None = None) -> None:
+        self.calls.append(("requestFederationSave", (label, time)))
         self.last_save_label = label
         self.last_save_time = time
 
     def federateSaveBegun(self) -> None:
+        self.calls.append(("federateSaveBegun", ()))
         self.save_begun = True
 
     def federateSaveComplete(self) -> None:
+        self.calls.append(("federateSaveComplete", ()))
         self.save_completed = True
 
     def federateSaveNotComplete(self) -> None:
+        self.calls.append(("federateSaveNotComplete", ()))
         self.save_not_completed = True
 
     def abortFederationSave(self) -> None:
+        self.calls.append(("abortFederationSave", ()))
         self.save_aborted = True
 
     def queryFederationRestoreStatus(self) -> None:
+        self.calls.append(("queryFederationRestoreStatus", ()))
         self.restore_status_queried = True
 
     def requestFederationRestore(self, label: str) -> None:
+        self.calls.append(("requestFederationRestore", (label,)))
         self.last_restore_label = label
 
     def federateRestoreComplete(self) -> None:
+        self.calls.append(("federateRestoreComplete", ()))
         self.restore_completed = True
 
     def federateRestoreNotComplete(self) -> None:
+        self.calls.append(("federateRestoreNotComplete", ()))
         self.restore_not_completed = True
 
     def abortFederationRestore(self) -> None:
+        self.calls.append(("abortFederationRestore", ()))
         self.restore_aborted = True
 
     def getTimeFactory(self) -> _FakeJavaTimeFactory:
@@ -786,21 +1159,32 @@ class _FakeJavaAmbassador:
         return self.current_lookahead
 
     def timeAdvanceRequest(self, time: _FakeJavaTime) -> None:
+        self.calls.append(("timeAdvanceRequest", (time,)))
         self.last_time_request = time
         self.current_time = time
         self.callback_proxy.timeAdvanceGrant(self.current_time)  # type: ignore[union-attr]
 
     def timeAdvanceRequestAvailable(self, time: _FakeJavaTime) -> None:
+        self.calls.append(("timeAdvanceRequestAvailable", (time,)))
         self.timeAdvanceRequest(time)
 
     def nextMessageRequest(self, time: _FakeJavaTime) -> None:
-        self.timeAdvanceRequest(time)
+        self.calls.append(("nextMessageRequest", (time,)))
+        self.last_time_request = time
+        self.current_time = time
+        self.callback_proxy.timeAdvanceGrant(self.current_time)  # type: ignore[union-attr]
 
     def nextMessageRequestAvailable(self, time: _FakeJavaTime) -> None:
-        self.timeAdvanceRequest(time)
+        self.calls.append(("nextMessageRequestAvailable", (time,)))
+        self.last_time_request = time
+        self.current_time = time
+        self.callback_proxy.timeAdvanceGrant(self.current_time)  # type: ignore[union-attr]
 
     def flushQueueRequest(self, time: _FakeJavaTime) -> None:
-        self.timeAdvanceRequest(time)
+        self.calls.append(("flushQueueRequest", (time,)))
+        self.last_time_request = time
+        self.current_time = time
+        self.callback_proxy.timeAdvanceGrant(self.current_time)  # type: ignore[union-attr]
 
     def queryLogicalTime(self) -> _FakeJavaTime:
         return self.current_time
@@ -923,7 +1307,9 @@ class _FakeJavaAmbassador:
         return self._handle_name(handle, "object")
 
     def getAttributeHandle(self, object_class: bytes, name: str) -> bytes:
-        return self._handle("attribute", f"{self.getObjectClassName(object_class)}:{name}")
+        return self._handle(
+            "attribute", f"{self.getObjectClassName(object_class)}:{name}"
+        )
 
     def getAttributeName(self, object_class: bytes, attribute: bytes) -> str:
         prefix = f"{self.getObjectClassName(object_class)}:".encode()
@@ -936,7 +1322,9 @@ class _FakeJavaAmbassador:
         return self._handle_name(handle, "interaction")
 
     def getParameterHandle(self, interaction_class: bytes, name: str) -> bytes:
-        return self._handle("parameter", f"{self.getInteractionClassName(interaction_class)}:{name}")
+        return self._handle(
+            "parameter", f"{self.getInteractionClassName(interaction_class)}:{name}"
+        )
 
     def getParameterName(self, interaction_class: bytes, parameter: bytes) -> str:
         prefix = f"{self.getInteractionClassName(interaction_class)}:".encode()
@@ -962,14 +1350,16 @@ class _FakeJavaAmbassador:
 
     def getKnownObjectClassHandle(self, object_instance: bytes) -> bytes:
         self._handle_name(object_instance, "instance")
-        return self._handle("object", "HLAobjectRoot.Employee.Server")
+        return self._handle("object", HLA_FOM.EMPLOYEE_SERVER)
 
     def getUpdateRateValue(self, designator: str) -> float:
         if not designator:
             raise _FakeJavaError("InvalidUpdateRateDesignator", "empty designator")
         return 1.0
 
-    def getUpdateRateValueForAttribute(self, object_instance: bytes, attribute: bytes) -> float:
+    def getUpdateRateValueForAttribute(
+        self, object_instance: bytes, attribute: bytes
+    ) -> float:
         self._handle_name(object_instance, "instance")
         self._handle_name(attribute, "attribute")
         return 1.0
@@ -991,11 +1381,13 @@ class _FakeJavaAmbassador:
 
     def getAvailableDimensionsForObjectClass(self, object_class: bytes) -> set[bytes]:
         self._handle_name(object_class, "object")
-        return {self._handle("dimension", "SodaFlavor")}
+        return {self._handle("dimension", HLA_FIXTURES.SODA_FLAVOR)}
 
-    def getAvailableDimensionsForInteractionClass(self, interaction_class: bytes) -> set[bytes]:
+    def getAvailableDimensionsForInteractionClass(
+        self, interaction_class: bytes
+    ) -> set[bytes]:
         self._handle_name(interaction_class, "interaction")
-        return {self._handle("dimension", "SodaFlavor")}
+        return {self._handle("dimension", HLA_FIXTURES.SODA_FLAVOR)}
 
     def getDimensionUpperBound(self, dimension: bytes) -> int:
         self._handle_name(dimension, "dimension")
@@ -1080,19 +1472,39 @@ class _FakeJavaAmbassador:
     def decode(self, buffer: bytes, offset: int) -> bytes:
         return bytes(buffer[offset:])
 
-    def publishObjectClassAttributes(self, object_class: bytes, attributes: object) -> None:
-        self.last_declaration_call = ("publish_object", object_class, frozenset(attributes))
+    def publishObjectClassAttributes(
+        self, object_class: bytes, attributes: object
+    ) -> None:
+        self.last_declaration_call = (
+            "publish_object",
+            object_class,
+            frozenset(attributes),
+        )
 
     def unpublishObjectClass(self, object_class: bytes) -> None:
         self.last_declaration_call = ("unpublish_object", object_class)
 
-    def unpublishObjectClassAttributes(self, object_class: bytes, attributes: object) -> None:
-        self.last_declaration_call = ("unpublish_object_attributes", object_class, frozenset(attributes))
+    def unpublishObjectClassAttributes(
+        self, object_class: bytes, attributes: object
+    ) -> None:
+        self.last_declaration_call = (
+            "unpublish_object_attributes",
+            object_class,
+            frozenset(attributes),
+        )
 
-    def publishObjectClassDirectedInteractions(self, object_class: bytes, interactions: object) -> None:
-        self.last_declaration_call = ("publish_object_directed", object_class, frozenset(interactions))
+    def publishObjectClassDirectedInteractions(
+        self, object_class: bytes, interactions: object
+    ) -> None:
+        self.last_declaration_call = (
+            "publish_object_directed",
+            object_class,
+            frozenset(interactions),
+        )
 
-    def unpublishObjectClassDirectedInteractions(self, object_class: bytes, interactions: object = None) -> None:
+    def unpublishObjectClassDirectedInteractions(
+        self, object_class: bytes, interactions: object = None
+    ) -> None:
         self.last_declaration_call = (
             "unpublish_object_directed",
             object_class,
@@ -1144,10 +1556,18 @@ class _FakeJavaAmbassador:
     def unsubscribeObjectClass(self, object_class: bytes) -> None:
         self.last_declaration_call = ("unsubscribe_object", object_class)
 
-    def unsubscribeObjectClassAttributes(self, object_class: bytes, attributes: object) -> None:
-        self.last_declaration_call = ("unsubscribe_object_attributes", object_class, frozenset(attributes))
+    def unsubscribeObjectClassAttributes(
+        self, object_class: bytes, attributes: object
+    ) -> None:
+        self.last_declaration_call = (
+            "unsubscribe_object_attributes",
+            object_class,
+            frozenset(attributes),
+        )
 
-    def unsubscribeObjectClassDirectedInteractions(self, object_class: bytes, interactions: object = None) -> None:
+    def unsubscribeObjectClassDirectedInteractions(
+        self, object_class: bytes, interactions: object = None
+    ) -> None:
         self.last_declaration_call = (
             "unsubscribe_object_directed",
             object_class,
@@ -1176,8 +1596,14 @@ class _FakeJavaAmbassador:
             update_rate,
         )
 
-    def unsubscribeObjectClassAttributesWithRegions(self, object_class: bytes, pairs: object) -> None:
-        self.last_declaration_call = ("unsubscribe_object_regions", object_class, tuple(pairs))
+    def unsubscribeObjectClassAttributesWithRegions(
+        self, object_class: bytes, pairs: object
+    ) -> None:
+        self.last_declaration_call = (
+            "unsubscribe_object_regions",
+            object_class,
+            tuple(pairs),
+        )
 
     def publishInteractionClass(self, interaction_class: bytes) -> None:
         self.last_declaration_call = ("publish_interaction", interaction_class)
@@ -1195,14 +1621,20 @@ class _FakeJavaAmbassador:
         self, interaction_class: bytes, regions: set[bytes]
     ) -> None:
         self.last_declaration_call = (
-            "subscribe_interaction_regions", interaction_class, frozenset(regions), True
+            "subscribe_interaction_regions",
+            interaction_class,
+            frozenset(regions),
+            True,
         )
 
     def subscribeInteractionClassPassivelyWithRegions(
         self, interaction_class: bytes, regions: set[bytes]
     ) -> None:
         self.last_declaration_call = (
-            "subscribe_interaction_regions", interaction_class, frozenset(regions), False
+            "subscribe_interaction_regions",
+            interaction_class,
+            frozenset(regions),
+            False,
         )
 
     def unsubscribeInteractionClass(self, interaction_class: bytes) -> None:
@@ -1212,10 +1644,14 @@ class _FakeJavaAmbassador:
         self, interaction_class: bytes, regions: set[bytes]
     ) -> None:
         self.last_declaration_call = (
-            "unsubscribe_interaction_regions", interaction_class, frozenset(regions)
+            "unsubscribe_interaction_regions",
+            interaction_class,
+            frozenset(regions),
         )
 
-    def registerObjectInstance(self, object_class: bytes, object_instance_name: str | None = None) -> bytes:
+    def registerObjectInstance(
+        self, object_class: bytes, object_instance_name: str | None = None
+    ) -> bytes:
         name = object_instance_name or f"generated-{self._next_object_instance}"
         self._next_object_instance += 1
         if object_instance_name is not None:
@@ -1250,7 +1686,9 @@ class _FakeJavaAmbassador:
         del self.object_instances[name]
         self.last_object_instance_deletion = (handle, bytes(tag))
 
-    def deleteObjectInstanceWithTime(self, handle: bytes, tag: bytes, time: object) -> bytes:
+    def deleteObjectInstanceWithTime(
+        self, handle: bytes, tag: bytes, time: object
+    ) -> bytes:
         self.last_timestamped_delete = (handle, bytes(tag), time)
         return b"retraction:delete"
 
@@ -1279,20 +1717,39 @@ class _FakeJavaAmbassador:
     ) -> None:
         self.last_regional_update_request = (object_class, tuple(pairs), bytes(tag))
 
-    def changeAttributeOrderType(self, object_instance: bytes, attributes: object, order_type: object) -> None:
-        self.last_order_service = ("attribute", object_instance, frozenset(attributes), order_type)
+    def changeAttributeOrderType(
+        self, object_instance: bytes, attributes: object, order_type: object
+    ) -> None:
+        self.last_order_service = (
+            "attribute",
+            object_instance,
+            frozenset(attributes),
+            order_type,
+        )
 
-    def changeDefaultAttributeOrderType(self, object_class: bytes, attributes: object, order_type: object) -> None:
-        self.last_order_service = ("default-attribute", object_class, frozenset(attributes), order_type)
+    def changeDefaultAttributeOrderType(
+        self, object_class: bytes, attributes: object, order_type: object
+    ) -> None:
+        self.last_order_service = (
+            "default-attribute",
+            object_class,
+            frozenset(attributes),
+            order_type,
+        )
 
-    def changeInteractionOrderType(self, interaction_class: bytes, order_type: object) -> None:
+    def changeInteractionOrderType(
+        self, interaction_class: bytes, order_type: object
+    ) -> None:
         self.last_order_service = ("interaction", interaction_class, order_type)
 
     def requestAttributeTransportationTypeChange(
         self, object_instance: bytes, attributes: object, transportation_type: bytes
     ) -> None:
         self.last_transportation_service = (
-            "attribute-request", object_instance, frozenset(attributes), transportation_type
+            "attribute-request",
+            object_instance,
+            frozenset(attributes),
+            transportation_type,
         )
         self.callback_proxy.confirmAttributeTransportationTypeChange(
             object_instance, attributes, transportation_type
@@ -1302,79 +1759,147 @@ class _FakeJavaAmbassador:
         self, object_class: bytes, attributes: object, transportation_type: bytes
     ) -> None:
         self.last_transportation_service = (
-            "default-attribute", object_class, frozenset(attributes), transportation_type
+            "default-attribute",
+            object_class,
+            frozenset(attributes),
+            transportation_type,
         )
 
-    def queryAttributeTransportationType(self, object_instance: bytes, attribute: bytes) -> None:
-        self.last_transportation_service = ("attribute-query", object_instance, attribute)
+    def queryAttributeTransportationType(
+        self, object_instance: bytes, attribute: bytes
+    ) -> None:
+        self.last_transportation_service = (
+            "attribute-query",
+            object_instance,
+            attribute,
+        )
         self.callback_proxy.reportAttributeTransportationType(
-            object_instance, attribute, self._handle("transport", "HLAreliable")
+            object_instance, attribute, self._handle("transport", HLA_MOM.RELIABLE)
         )  # type: ignore[union-attr]
 
     def requestInteractionTransportationTypeChange(
         self, interaction_class: bytes, transportation_type: bytes
     ) -> None:
-        self.last_transportation_service = ("interaction-request", interaction_class, transportation_type)
+        self.last_transportation_service = (
+            "interaction-request",
+            interaction_class,
+            transportation_type,
+        )
         self.callback_proxy.confirmInteractionTransportationTypeChange(
             interaction_class, transportation_type
         )  # type: ignore[union-attr]
 
-    def queryInteractionTransportationType(self, federate: bytes, interaction_class: bytes) -> None:
-        self.last_transportation_service = ("interaction-query", federate, interaction_class)
+    def queryInteractionTransportationType(
+        self, federate: bytes, interaction_class: bytes
+    ) -> None:
+        self.last_transportation_service = (
+            "interaction-query",
+            federate,
+            interaction_class,
+        )
         self.callback_proxy.reportInteractionTransportationType(
-            federate, interaction_class, self._handle("transport", "HLAreliable")
+            federate, interaction_class, self._handle("transport", HLA_MOM.RELIABLE)
         )  # type: ignore[union-attr]
 
-    def queryAttributeOwnership(self, object_instance: bytes, attributes: object) -> None:
+    def queryAttributeOwnership(
+        self, object_instance: bytes, attributes: object
+    ) -> None:
         self.last_ownership_query = (object_instance, frozenset(attributes))
 
-    def isAttributeOwnedByFederate(self, object_instance: bytes, attribute: bytes) -> bool:
+    def isAttributeOwnedByFederate(
+        self, object_instance: bytes, attribute: bytes
+    ) -> bool:
         self.last_ownership_check = (object_instance, attribute)
         return True
 
     def unconditionalAttributeOwnershipDivestiture(
         self, object_instance: bytes, attributes: object, tag: bytes
     ) -> None:
-        self.last_ownership_service = ("divest", object_instance, frozenset(attributes), bytes(tag))
+        self.last_ownership_service = (
+            "divest",
+            object_instance,
+            frozenset(attributes),
+            bytes(tag),
+        )
 
     def attributeOwnershipAcquisition(
         self, object_instance: bytes, attributes: object, tag: bytes
     ) -> None:
-        self.last_ownership_service = ("acquire", object_instance, frozenset(attributes), bytes(tag))
+        self.last_ownership_service = (
+            "acquire",
+            object_instance,
+            frozenset(attributes),
+            bytes(tag),
+        )
 
     def attributeOwnershipAcquisitionIfAvailable(
         self, object_instance: bytes, attributes: object, tag: bytes
     ) -> None:
-        self.last_ownership_service = ("acquire_if_available", object_instance, frozenset(attributes), bytes(tag))
+        self.last_ownership_service = (
+            "acquire_if_available",
+            object_instance,
+            frozenset(attributes),
+            bytes(tag),
+        )
 
     def negotiatedAttributeOwnershipDivestiture(
         self, object_instance: bytes, attributes: object, tag: bytes
     ) -> None:
-        self.last_ownership_service = ("negotiated_divest", object_instance, frozenset(attributes), bytes(tag))
+        self.last_ownership_service = (
+            "negotiated_divest",
+            object_instance,
+            frozenset(attributes),
+            bytes(tag),
+        )
 
-    def confirmDivestiture(self, object_instance: bytes, attributes: object, tag: bytes) -> None:
-        self.last_ownership_service = ("confirm_divest", object_instance, frozenset(attributes), bytes(tag))
+    def confirmDivestiture(
+        self, object_instance: bytes, attributes: object, tag: bytes
+    ) -> None:
+        self.last_ownership_service = (
+            "confirm_divest",
+            object_instance,
+            frozenset(attributes),
+            bytes(tag),
+        )
 
     def cancelNegotiatedAttributeOwnershipDivestiture(
         self, object_instance: bytes, attributes: object
     ) -> None:
-        self.last_ownership_service = ("cancel_negotiated_divest", object_instance, frozenset(attributes))
+        self.last_ownership_service = (
+            "cancel_negotiated_divest",
+            object_instance,
+            frozenset(attributes),
+        )
 
-    def cancelAttributeOwnershipAcquisition(self, object_instance: bytes, attributes: object) -> None:
+    def cancelAttributeOwnershipAcquisition(
+        self, object_instance: bytes, attributes: object
+    ) -> None:
         self.last_ownership_service = ("cancel", object_instance, frozenset(attributes))
 
     def attributeOwnershipReleaseDenied(
         self, object_instance: bytes, attributes: object, tag: bytes
     ) -> None:
-        self.last_ownership_service = ("release_denied", object_instance, frozenset(attributes), bytes(tag))
+        self.last_ownership_service = (
+            "release_denied",
+            object_instance,
+            frozenset(attributes),
+            bytes(tag),
+        )
 
     def attributeOwnershipDivestitureIfWanted(
         self, object_instance: bytes, attributes: object, tag: bytes
     ) -> set[bytes]:
-        self.last_ownership_service = ("divest_if_wanted", object_instance, frozenset(attributes), bytes(tag))
+        self.last_ownership_service = (
+            "divest_if_wanted",
+            object_instance,
+            frozenset(attributes),
+            bytes(tag),
+        )
         return set(attributes)
 
-    def sendInteraction(self, handle: bytes, values: dict[bytes, bytes], tag: bytes) -> None:
+    def sendInteraction(
+        self, handle: bytes, values: dict[bytes, bytes], tag: bytes
+    ) -> None:
         self.last_interaction = (handle, dict(values), bytes(tag))
 
     def sendInteractionWithTime(
@@ -1455,7 +1980,34 @@ class _FakeJavaDataElement:
         self.value = value
 
     def getOctetBoundary(self) -> int:
-        return 1 if self.kind in {"byte", "octet", "ascii_char"} else 2 if self.kind in {"integer16", "integer16le", "unsigned16", "unsigned16le", "unicode_char", "pair_be", "pair_le"} else 8 if self.kind in {"float64", "float64le", "integer64", "integer64le", "unsigned64", "unsigned64le"} else 4
+        return (
+            1
+            if self.kind in {"byte", "octet", "ascii_char"}
+            else 2
+            if self.kind
+            in {
+                "integer16",
+                "integer16le",
+                "unsigned16",
+                "unsigned16le",
+                "unicode_char",
+                "pair_be",
+                "pair_le",
+            }
+            else 8
+            if self.kind
+            in {
+                "float64",
+                "float64le",
+                "integer64",
+                "integer64le",
+                "unsigned64",
+                "unsigned64le",
+                "logical_time",
+                "logical_interval",
+            }
+            else 4
+        )
 
     def getEncodedLength(self) -> int:
         return len(self.toByteArray())
@@ -1473,11 +2025,15 @@ class _FakeJavaDataElement:
             raise AttributeError("get is only defined for opaque data")
         return self.value[index]
 
-    def setValue(self, value: object) -> "_FakeJavaDataElement":
+    def setValue(self, value: object) -> _FakeJavaDataElement:
         self.value = value
         return self
 
     def toByteArray(self) -> bytes:
+        if self.kind in {"logical_time", "logical_interval"}:
+            destination = bytearray(int(self.value.encodedLength()))
+            self.value.encode(destination, 0)
+            return bytes(destination)
         if self.kind in {"byte", "octet"}:
             return bytes((int(self.value) & 0xFF,))
         if self.kind == "ascii_char":
@@ -1535,7 +2091,7 @@ class _FakeJavaDataElement:
         payload = str(self.value).encode("utf-16-be")
         return struct.pack(">I", len(payload) // 2) + payload
 
-    def decode(self, bytes_: bytes) -> "_FakeJavaDataElement":
+    def decode(self, bytes_: bytes) -> _FakeJavaDataElement:
         if self.kind in {"byte", "octet"}:
             self.value = struct.unpack("b", bytes_)[0]
         elif self.kind == "ascii_char":
@@ -1548,17 +2104,25 @@ class _FakeJavaDataElement:
             self.value = struct.unpack("<h", bytes_)[0]
         elif self.kind == "opaque":
             if len(bytes_) < 4:
-                raise _FakeJavaError("DecoderException", "truncated HLAopaqueData encoding")
+                raise _FakeJavaError(
+                    "DecoderException", "truncated HLAopaqueData encoding"
+                )
             length = struct.unpack(">I", bytes_[:4])[0]
             if len(bytes_) != 4 + length:
-                raise _FakeJavaError("DecoderException", "invalid HLAopaqueData encoding")
+                raise _FakeJavaError(
+                    "DecoderException", "invalid HLAopaqueData encoding"
+                )
             self.value = bytes(bytes_[4 : 4 + length])
         elif self.kind == "ascii_string":
             if len(bytes_) < 4:
-                raise _FakeJavaError("DecoderException", "truncated HLAASCIIstring encoding")
+                raise _FakeJavaError(
+                    "DecoderException", "truncated HLAASCIIstring encoding"
+                )
             length = struct.unpack(">i", bytes_[:4])[0]
             if length < 0 or len(bytes_) != 4 + length:
-                raise _FakeJavaError("DecoderException", "invalid HLAASCIIstring encoding")
+                raise _FakeJavaError(
+                    "DecoderException", "invalid HLAASCIIstring encoding"
+                )
             try:
                 self.value = bytes_[4 : 4 + length].decode("ascii")
             except UnicodeError as error:
@@ -1593,9 +2157,7 @@ class _FakeJavaDataElement:
             self.value = struct.unpack("<i", bytes_)[0]
         elif self.kind == "unsigned64le":
             self.value = struct.unpack("<q", bytes_)[0]
-        elif self.kind == "integer32":
-            self.value = struct.unpack(">i", bytes_)[0]
-        elif self.kind == "unsigned32":
+        elif self.kind == "integer32" or self.kind == "unsigned32":
             self.value = struct.unpack(">i", bytes_)[0]
         elif self.kind == "boolean":
             value = struct.unpack(">I", bytes_)[0]
@@ -1604,13 +2166,19 @@ class _FakeJavaDataElement:
             self.value = bool(value)
         else:
             if len(bytes_) < 4:
-                raise _FakeJavaError("DecoderException", "truncated HLAunicodeString encoding")
+                raise _FakeJavaError(
+                    "DecoderException", "truncated HLAunicodeString encoding"
+                )
             element_count = struct.unpack(">i", bytes_[:4])[0]
             if element_count < 0:
-                raise _FakeJavaError("DecoderException", "invalid HLAunicodeString encoding")
+                raise _FakeJavaError(
+                    "DecoderException", "invalid HLAunicodeString encoding"
+                )
             payload_length = element_count * 2
             if len(bytes_) != 4 + payload_length:
-                raise _FakeJavaError("DecoderException", "invalid HLAunicodeString encoding")
+                raise _FakeJavaError(
+                    "DecoderException", "invalid HLAunicodeString encoding"
+                )
             try:
                 self.value = bytes_[4 : 4 + payload_length].decode("utf-16-be")
             except UnicodeError as error:
@@ -1618,6 +2186,7 @@ class _FakeJavaDataElement:
                     "DecoderException", "invalid HLAunicodeString encoding"
                 ) from error
         return self
+
 
 def _fake_encoded_length(element, bytes_: bytes, offset: int) -> int:
     if offset < 0 or offset > len(bytes_):
@@ -1630,12 +2199,20 @@ def _fake_encoded_length(element, bytes_: bytes, offset: int) -> int:
         return element._encoded_length_from(bytes_, offset)
     if isinstance(element, _FakeJavaVariantRecord):
         return element._encoded_length_from(bytes_, offset)
-    if isinstance(element, _FakeJavaDataElement) and element.kind in {"ascii_string", "opaque", "unicode"}:
+    if isinstance(element, _FakeJavaDataElement) and element.kind in {
+        "ascii_string",
+        "opaque",
+        "unicode",
+    }:
         if len(bytes_) - offset < 4:
-            raise _FakeJavaError("DecoderException", "truncated variable-length DataElement count")
+            raise _FakeJavaError(
+                "DecoderException", "truncated variable-length DataElement count"
+            )
         count = struct.unpack(">i", bytes_[offset : offset + 4])[0]
         if count < 0:
-            raise _FakeJavaError("DecoderException", "invalid variable-length DataElement count")
+            raise _FakeJavaError(
+                "DecoderException", "invalid variable-length DataElement count"
+            )
         return 4 + (count * 2 if element.kind == "unicode" else count)
     length = len(element.toByteArray())
     if len(bytes_) - offset < length:
@@ -1675,7 +2252,7 @@ class _FakeJavaVariableArray:
             value = bytes(value)
         return _FakeJavaDataElement(element.kind, value)
 
-    def clone(self) -> "_FakeJavaVariableArray":
+    def clone(self) -> _FakeJavaVariableArray:
         cloned = _FakeJavaVariableArray(self.factory)
         for element in self.elements:
             cloned.addElement(element)
@@ -1692,7 +2269,9 @@ class _FakeJavaVariableArray:
 
     def addElement(self, element: _FakeJavaDataElement) -> None:
         if _fake_element_type(element) != _fake_element_type(self.prototype):
-            raise _FakeJavaError("EncoderException", "variable-array element type mismatch")
+            raise _FakeJavaError(
+                "EncoderException", "variable-array element type mismatch"
+            )
         self.elements.append(self._copy(element))
 
     def get(self, index: int) -> _FakeJavaDataElement:
@@ -1722,30 +2301,42 @@ class _FakeJavaVariableArray:
             return 4
         leading = self._padding(4, self.getOctetBoundary())
         if len(bytes_) - cursor < leading or any(bytes_[cursor : cursor + leading]):
-            raise _FakeJavaError("DecoderException", "invalid variable-array leading padding")
+            raise _FakeJavaError(
+                "DecoderException", "invalid variable-array leading padding"
+            )
         cursor += leading
         for index in range(count):
             length = _fake_encoded_length(self.prototype, bytes_, cursor)
             cursor += length
             if index + 1 != count:
                 padding = self._padding(length, self.prototype.getOctetBoundary())
-                if len(bytes_) - cursor < padding or any(bytes_[cursor : cursor + padding]):
-                    raise _FakeJavaError("DecoderException", "invalid variable-array padding")
+                if len(bytes_) - cursor < padding or any(
+                    bytes_[cursor : cursor + padding]
+                ):
+                    raise _FakeJavaError(
+                        "DecoderException", "invalid variable-array padding"
+                    )
                 cursor += padding
         return cursor - offset
 
-    def _decode_element(self, bytes_: bytes, offset: int) -> tuple[_FakeJavaDataElement, int]:
+    def _decode_element(
+        self, bytes_: bytes, offset: int
+    ) -> tuple[_FakeJavaDataElement, int]:
         if not isinstance(self.prototype, _FakeJavaDataElement):
             element = self._copy(self.prototype)
             length = _fake_encoded_length(self.prototype, bytes_, offset)
             if len(bytes_) - offset < length:
-                raise _FakeJavaError("DecoderException", "truncated variable-array element")
+                raise _FakeJavaError(
+                    "DecoderException", "truncated variable-array element"
+                )
             element.decode(bytes_[offset : offset + length])
             return element, offset + length
         kind = self.prototype.kind
         if kind in {"ascii_string", "opaque", "unicode"}:
             if len(bytes_) - offset < 4:
-                raise _FakeJavaError("DecoderException", "truncated variable-array element")
+                raise _FakeJavaError(
+                    "DecoderException", "truncated variable-array element"
+                )
             count = struct.unpack(">I", bytes_[offset : offset + 4])[0]
             payload_length = count * 2 if kind == "unicode" else count
             length = 4 + payload_length
@@ -1768,7 +2359,9 @@ class _FakeJavaVariableArray:
         if count:
             leading = self._padding(4, self.getOctetBoundary())
             if len(bytes_) - offset < leading or any(bytes_[offset : offset + leading]):
-                raise _FakeJavaError("DecoderException", "invalid variable-array leading padding")
+                raise _FakeJavaError(
+                    "DecoderException", "invalid variable-array leading padding"
+                )
             offset += leading
         boundary = self.prototype.getOctetBoundary()
         for position in range(count):
@@ -1776,8 +2369,12 @@ class _FakeJavaVariableArray:
             self.elements.append(element)
             if position + 1 != count:
                 padding = self._padding(len(element.toByteArray()), boundary)
-                if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
-                    raise _FakeJavaError("DecoderException", "invalid variable-array padding")
+                if len(bytes_) - offset < padding or any(
+                    bytes_[offset : offset + padding]
+                ):
+                    raise _FakeJavaError(
+                        "DecoderException", "invalid variable-array padding"
+                    )
                 offset += padding
         if offset != len(bytes_):
             raise _FakeJavaError("DecoderException", "trailing variable-array data")
@@ -1791,8 +2388,13 @@ class _FakeJavaFixedArray:
         self.factory = factory
         self.prototype = factory.createElement(0)  # type: ignore[attr-defined]
         self.elements = [factory.createElement(index) for index in range(size)]  # type: ignore[attr-defined]
-        if any(_fake_element_type(element) != _fake_element_type(self.prototype) for element in self.elements):
-            raise _FakeJavaError("EncoderException", "fixed-array factory type mismatch")
+        if any(
+            _fake_element_type(element) != _fake_element_type(self.prototype)
+            for element in self.elements
+        ):
+            raise _FakeJavaError(
+                "EncoderException", "fixed-array factory type mismatch"
+            )
 
     @staticmethod
     def _padding(length: int, boundary: int) -> int:
@@ -1808,7 +2410,7 @@ class _FakeJavaFixedArray:
     def size(self) -> int:
         return len(self.elements)
 
-    def clone(self) -> "_FakeJavaFixedArray":
+    def clone(self) -> _FakeJavaFixedArray:
         cloned = _FakeJavaFixedArray(self.factory, len(self.elements))
         cloned.decode(self.toByteArray())
         return cloned
@@ -1837,8 +2439,12 @@ class _FakeJavaFixedArray:
             cursor += length
             if index + 1 != len(self.elements):
                 padding = self._padding(length, boundary)
-                if len(bytes_) - cursor < padding or any(bytes_[cursor : cursor + padding]):
-                    raise _FakeJavaError("DecoderException", "invalid fixed-array padding")
+                if len(bytes_) - cursor < padding or any(
+                    bytes_[cursor : cursor + padding]
+                ):
+                    raise _FakeJavaError(
+                        "DecoderException", "invalid fixed-array padding"
+                    )
                 cursor += padding
         return cursor - offset
 
@@ -1848,13 +2454,19 @@ class _FakeJavaFixedArray:
         for index, element in enumerate(self.elements):
             length = self._element_length(bytes_, offset)
             if len(bytes_) - offset < length:
-                raise _FakeJavaError("DecoderException", "truncated fixed-array element")
+                raise _FakeJavaError(
+                    "DecoderException", "truncated fixed-array element"
+                )
             element.decode(bytes_[offset : offset + length])
             offset += length
             if index + 1 != len(self.elements):
                 padding = self._padding(length, boundary)
-                if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
-                    raise _FakeJavaError("DecoderException", "invalid fixed-array padding")
+                if len(bytes_) - offset < padding or any(
+                    bytes_[offset : offset + padding]
+                ):
+                    raise _FakeJavaError(
+                        "DecoderException", "invalid fixed-array padding"
+                    )
                 offset += padding
         if offset != len(bytes_):
             raise _FakeJavaError("DecoderException", "trailing fixed-array data")
@@ -1871,7 +2483,9 @@ class _FakeJavaFixedRecord:
         return 0 if remainder == 0 else boundary - remainder
 
     @staticmethod
-    def _element_length(element: _FakeJavaDataElement, bytes_: bytes, offset: int) -> int:
+    def _element_length(
+        element: _FakeJavaDataElement, bytes_: bytes, offset: int
+    ) -> int:
         return _fake_encoded_length(element, bytes_, offset)
 
     def getOctetBoundary(self) -> int:
@@ -1883,7 +2497,7 @@ class _FakeJavaFixedRecord:
     def size(self) -> int:
         return len(self.elements)
 
-    def clone(self) -> "_FakeJavaFixedRecord":
+    def clone(self) -> _FakeJavaFixedRecord:
         cloned = _FakeJavaFixedRecord()
         for element in self.elements:
             cloned.appendElement(element)
@@ -1926,19 +2540,25 @@ class _FakeJavaFixedRecord:
                     length,
                     self.elements[index + 1].getOctetBoundary(),
                 )
-                if len(bytes_) - cursor < padding or any(bytes_[cursor : cursor + padding]):
-                    raise _FakeJavaError("DecoderException", "invalid fixed-record padding")
+                if len(bytes_) - cursor < padding or any(
+                    bytes_[cursor : cursor + padding]
+                ):
+                    raise _FakeJavaError(
+                        "DecoderException", "invalid fixed-record padding"
+                    )
                 cursor += padding
                 record_offset += length + padding
         return cursor - offset
 
-    def decode(self, bytes_: bytes) -> "_FakeJavaFixedRecord":
+    def decode(self, bytes_: bytes) -> _FakeJavaFixedRecord:
         offset = 0
         record_offset = 0
         for index, element in enumerate(self.elements):
             length = self._element_length(element, bytes_, offset)
             if len(bytes_) - offset < length:
-                raise _FakeJavaError("DecoderException", "truncated fixed-record element")
+                raise _FakeJavaError(
+                    "DecoderException", "truncated fixed-record element"
+                )
             element.decode(bytes_[offset : offset + length])
             offset += length
             if index + 1 != len(self.elements):
@@ -1947,8 +2567,12 @@ class _FakeJavaFixedRecord:
                     length,
                     self.elements[index + 1].getOctetBoundary(),
                 )
-                if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
-                    raise _FakeJavaError("DecoderException", "invalid fixed-record padding")
+                if len(bytes_) - offset < padding or any(
+                    bytes_[offset : offset + padding]
+                ):
+                    raise _FakeJavaError(
+                        "DecoderException", "invalid fixed-record padding"
+                    )
                 offset += padding
                 record_offset += length + padding
         if offset != len(bytes_):
@@ -1958,7 +2582,9 @@ class _FakeJavaFixedRecord:
 
 class _FakeJavaVariantRecord:
     def __init__(self, discriminant_prototype: _FakeJavaDataElement) -> None:
-        self.discriminant_prototype = _FakeJavaVariableArray._copy(discriminant_prototype)
+        self.discriminant_prototype = _FakeJavaVariableArray._copy(
+            discriminant_prototype
+        )
         self.current_discriminant = _FakeJavaVariableArray._copy(discriminant_prototype)
         self.variants: list[tuple[_FakeJavaDataElement, _FakeJavaDataElement]] = []
 
@@ -1968,19 +2594,28 @@ class _FakeJavaVariantRecord:
         return 0 if remainder == 0 else boundary - remainder
 
     @staticmethod
-    def _element_length(element: _FakeJavaDataElement, bytes_: bytes, offset: int) -> int:
+    def _element_length(
+        element: _FakeJavaDataElement, bytes_: bytes, offset: int
+    ) -> int:
         return _fake_encoded_length(element, bytes_, offset)
 
     def _find(self, discriminant: _FakeJavaDataElement):
         encoded = discriminant.toByteArray()
         for slot in self.variants:
-            if _fake_element_type(slot[0]) == _fake_element_type(discriminant) and slot[0].toByteArray() == encoded:
+            if (
+                _fake_element_type(slot[0]) == _fake_element_type(discriminant)
+                and slot[0].toByteArray() == encoded
+            ):
                 return slot
         return None
 
     def _require_discriminant_type(self, discriminant: _FakeJavaDataElement) -> None:
-        if _fake_element_type(discriminant) != _fake_element_type(self.discriminant_prototype):
-            raise _FakeJavaError("EncoderException", "variant-record discriminant type mismatch")
+        if _fake_element_type(discriminant) != _fake_element_type(
+            self.discriminant_prototype
+        ):
+            raise _FakeJavaError(
+                "EncoderException", "variant-record discriminant type mismatch"
+            )
 
     def getOctetBoundary(self) -> int:
         return max(
@@ -1994,23 +2629,30 @@ class _FakeJavaVariantRecord:
     def getEncodedLength(self) -> int:
         return len(self.toByteArray())
 
-    def clone(self) -> "_FakeJavaVariantRecord":
+    def clone(self) -> _FakeJavaVariantRecord:
         cloned = _FakeJavaVariantRecord(self.discriminant_prototype)
         for discriminant, value in self.variants:
             cloned.setVariant(discriminant, value)
         cloned.setDiscriminant(self.current_discriminant)
         return cloned
 
-    def setVariant(self, discriminant: _FakeJavaDataElement, data_element: _FakeJavaDataElement) -> None:
+    def setVariant(
+        self, discriminant: _FakeJavaDataElement, data_element: _FakeJavaDataElement
+    ) -> None:
         self._require_discriminant_type(discriminant)
         slot = self._find(discriminant)
         if slot is None:
             self.variants.append(
-                (_FakeJavaVariableArray._copy(discriminant), _FakeJavaVariableArray._copy(data_element))
+                (
+                    _FakeJavaVariableArray._copy(discriminant),
+                    _FakeJavaVariableArray._copy(data_element),
+                )
             )
         else:
             if _fake_element_type(slot[1]) != _fake_element_type(data_element):
-                raise _FakeJavaError("EncoderException", "variant-record replacement type mismatch")
+                raise _FakeJavaError(
+                    "EncoderException", "variant-record replacement type mismatch"
+                )
             slot[1].decode(data_element.toByteArray())
         self.current_discriminant = _FakeJavaVariableArray._copy(discriminant)
 
@@ -2033,28 +2675,45 @@ class _FakeJavaVariantRecord:
         value = slot[1].toByteArray()
         return (
             discriminant
-            + b"\0" * self._padding(discriminant.__len__(), self._maximum_alternative_boundary())
+            + b"\0"
+            * self._padding(
+                discriminant.__len__(), self._maximum_alternative_boundary()
+            )
             + value
         )
 
     def _encoded_length_from(self, bytes_: bytes, offset: int) -> int:
-        discriminant_length = _fake_encoded_length(self.discriminant_prototype, bytes_, offset)
+        discriminant_length = _fake_encoded_length(
+            self.discriminant_prototype, bytes_, offset
+        )
         decoded = _FakeJavaVariableArray._copy(self.discriminant_prototype)
         decoded.decode(bytes_[offset : offset + discriminant_length])
         slot = self._find(decoded)
         if slot is None:
             return discriminant_length
         cursor = offset + discriminant_length
-        alternative_padding = self._padding(discriminant_length, self._maximum_alternative_boundary())
-        if len(bytes_) - cursor < alternative_padding or any(bytes_[cursor : cursor + alternative_padding]):
+        alternative_padding = self._padding(
+            discriminant_length, self._maximum_alternative_boundary()
+        )
+        if len(bytes_) - cursor < alternative_padding or any(
+            bytes_[cursor : cursor + alternative_padding]
+        ):
             raise _FakeJavaError("DecoderException", "invalid variant-record padding")
         cursor += alternative_padding
-        return discriminant_length + alternative_padding + _fake_encoded_length(slot[1], bytes_, cursor)
+        return (
+            discriminant_length
+            + alternative_padding
+            + _fake_encoded_length(slot[1], bytes_, cursor)
+        )
 
-    def decode(self, bytes_: bytes) -> "_FakeJavaVariantRecord":
-        discriminant_length = self._element_length(self.discriminant_prototype, bytes_, 0)
+    def decode(self, bytes_: bytes) -> _FakeJavaVariantRecord:
+        discriminant_length = self._element_length(
+            self.discriminant_prototype, bytes_, 0
+        )
         if len(bytes_) - discriminant_length < 0:
-            raise _FakeJavaError("DecoderException", "truncated variant-record discriminant")
+            raise _FakeJavaError(
+                "DecoderException", "truncated variant-record discriminant"
+            )
         decoded = _FakeJavaVariableArray._copy(self.discriminant_prototype)
         decoded.decode(bytes_[:discriminant_length])
         self.current_discriminant = decoded
@@ -2064,7 +2723,9 @@ class _FakeJavaVariantRecord:
                 raise _FakeJavaError("DecoderException", "trailing variant-record data")
             return self
         offset = discriminant_length
-        padding = self._padding(discriminant_length, self._maximum_alternative_boundary())
+        padding = self._padding(
+            discriminant_length, self._maximum_alternative_boundary()
+        )
         if len(bytes_) - offset < padding or any(bytes_[offset : offset + padding]):
             raise _FakeJavaError("DecoderException", "invalid variant-record padding")
         offset += padding
@@ -2136,6 +2797,24 @@ class _FakeJavaEncoderFactory:
     def createHLAopaqueData(self, value: bytes = b"") -> _FakeJavaDataElement:
         return _FakeJavaDataElement("opaque", bytes(value))
 
+    def createHLAlogicalTime(
+        self, ambassador: object, value: object | None = None
+    ) -> _FakeJavaDataElement:
+        factory = ambassador.getTimeFactory()  # type: ignore[attr-defined]
+        return _FakeJavaDataElement(
+            "logical_time",
+            factory.makeInitial() if value is None else value,
+        )
+
+    def createHLAlogicalTimeInterval(
+        self, ambassador: object, value: object | None = None
+    ) -> _FakeJavaDataElement:
+        factory = ambassador.getTimeFactory()  # type: ignore[attr-defined]
+        return _FakeJavaDataElement(
+            "logical_interval",
+            factory.makeZero() if value is None else value,
+        )
+
     def createHLAvariableArray(
         self, factory: object, elements: tuple[_FakeJavaDataElement, ...] = ()
     ) -> _FakeJavaVariableArray:
@@ -2201,18 +2880,24 @@ class _FakeJavaRuntime:
         self.factory = _FakeJavaFactory(self.ambassador)
         self.configuration: JavaProviderConfiguration | None = None
 
-    def get_rti_factory(self, configuration: JavaProviderConfiguration) -> _FakeJavaFactory:
+    def get_rti_factory(
+        self, configuration: JavaProviderConfiguration
+    ) -> _FakeJavaFactory:
         self.configuration = configuration
         return self.factory
 
     def callback_model(self, callback_model: CallbackModel) -> str:
         return f"java:{callback_model.name}"
 
-    def bind_federate_ambassador(self, federate_ambassador: FederateAmbassador) -> JavaCallbackBinding:
+    def bind_federate_ambassador(
+        self, federate_ambassador: FederateAmbassador
+    ) -> JavaCallbackBinding:
         proxy = _FakeCallbackProxy(federate_ambassador)
         return JavaCallbackBinding(proxy=proxy, target=proxy)
 
-    def rti_configuration(self, configuration: RtiConfiguration) -> tuple[str, str, str, str]:
+    def rti_configuration(
+        self, configuration: RtiConfiguration
+    ) -> tuple[str, str, str, str]:
         return (
             "java-configuration",
             configuration.configurationName(),
@@ -2244,10 +2929,14 @@ class _FakeJavaRuntime:
     def cast_handle(self, handle: object, interface_name: str) -> object:
         return handle
 
-    def attribute_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> frozenset[bytes]:
+    def attribute_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> frozenset[bytes]:
         return frozenset(encoded_values)
 
-    def federate_handle_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> frozenset[bytes]:
+    def federate_handle_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> frozenset[bytes]:
         return frozenset(encoded_values)
 
     def fom_module_url(self, value: str) -> str:
@@ -2256,10 +2945,14 @@ class _FakeJavaRuntime:
     def fom_module_urls(self, values: tuple[str, ...]) -> tuple[str, ...]:
         return tuple(self.fom_module_url(value) for value in values)
 
-    def interaction_class_set(self, ambassador: object, encoded_values: tuple[bytes, ...]) -> frozenset[bytes]:
+    def interaction_class_set(
+        self, ambassador: object, encoded_values: tuple[bytes, ...]
+    ) -> frozenset[bytes]:
         return frozenset(encoded_values)
 
-    def object_instance_name_set(self, encoded_values: tuple[str, ...]) -> frozenset[str]:
+    def object_instance_name_set(
+        self, encoded_values: tuple[str, ...]
+    ) -> frozenset[str]:
         return frozenset(encoded_values)
 
     def attribute_handle_value_map(
@@ -2286,11 +2979,23 @@ class _FakeJavaRuntime:
     def logical_time_factory(self, ambassador: object) -> _FakeJavaTimeFactory:
         return self.ambassador.time_factory
 
-    def decode_logical_time(self, ambassador: object, encoded_value: bytes) -> _FakeJavaTime:
-        return self.ambassador.time_factory.decodeLogicalTime(encoded_value, 0)
+    def decode_logical_time(
+        self, ambassador: object, encoded_value: bytes
+    ) -> _FakeJavaTime:
+        factory = self.ambassador.time_factory
+        decoder = getattr(factory, "decodeTime", None)
+        if decoder is None:
+            decoder = factory.decodeLogicalTime
+        return decoder(encoded_value, 0)
 
-    def decode_logical_interval(self, ambassador: object, encoded_value: bytes) -> _FakeJavaInterval:
-        return self.ambassador.time_factory.decodeLogicalTimeInterval(encoded_value, 0)
+    def decode_logical_interval(
+        self, ambassador: object, encoded_value: bytes
+    ) -> _FakeJavaInterval:
+        factory = self.ambassador.time_factory
+        decoder = getattr(factory, "decodeInterval", None)
+        if decoder is None:
+            decoder = factory.decodeLogicalTimeInterval
+        return decoder(encoded_value, 0)
 
     def dimension_handle_set(
         self, ambassador: object, encoded_values: tuple[bytes, ...]
@@ -2340,10 +3045,14 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         self.time_regulation: list[HLAinteger64Time] = []
         self.time_constrained: list[HLAinteger64Time] = []
         self.time_grants: list[HLAinteger64Time] = []
-        self.attribute_value_requests: list[tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]] = []
+        self.attribute_value_requests: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
+        ] = []
         self.scope_entries: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
         self.scope_exits: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
-        self.updates_on: list[tuple[ObjectInstanceHandle, AttributeHandleSet, str | None]] = []
+        self.updates_on: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, str | None]
+        ] = []
         self.updates_off: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
         self.attribute_transport_confirmations: list[
             tuple[ObjectInstanceHandle, AttributeHandleSet, TransportationTypeHandle]
@@ -2369,34 +3078,57 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         self.timed_interactions: list[tuple[object, ...]] = []
         self.name_batch_successes: list[ObjectInstanceNameSet] = []
         self.name_batch_failures: list[ObjectInstanceNameSet] = []
-        self.ownership_assumptions: list[tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]] = []
+        self.ownership_assumptions: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
+        ] = []
         self.ownership_divestiture_confirmations: list[
             tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
         ] = []
-        self.ownership_acquisitions: list[tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]] = []
-        self.ownership_unavailable: list[tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]] = []
-        self.ownership_release_requests: list[tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]] = []
+        self.ownership_acquisitions: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
+        ] = []
+        self.ownership_unavailable: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
+        ] = []
+        self.ownership_release_requests: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet, bytes]
+        ] = []
         self.ownership_acquisition_cancellations: list[
             tuple[ObjectInstanceHandle, AttributeHandleSet]
         ] = []
         self.ownership_reports: list[
             tuple[ObjectInstanceHandle, AttributeHandleSet, FederateHandle]
         ] = []
-        self.ownership_not_owned: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
-        self.ownership_owned_by_rti: list[tuple[ObjectInstanceHandle, AttributeHandleSet]] = []
+        self.ownership_not_owned: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet]
+        ] = []
+        self.ownership_owned_by_rti: list[
+            tuple[ObjectInstanceHandle, AttributeHandleSet]
+        ] = []
         self.save_status_reports: list[tuple[FederateHandleSaveStatusPair, ...]] = []
         self.save_initiations: list[str] = []
         self.timestamped_save_initiations: list[tuple[str, LogicalTime]] = []
         self.save_completions = 0
         self.save_failures: list[SaveFailureReason] = []
         self.restore_status_reports: list[tuple[FederateRestoreStatus, ...]] = []
-        self.directed_interactions: list[tuple[InteractionClassHandle, ObjectInstanceHandle, ParameterHandleValueMap, bytes, TransportationTypeHandle, FederateHandle]] = []
+        self.directed_interactions: list[
+            tuple[
+                InteractionClassHandle,
+                ObjectInstanceHandle,
+                ParameterHandleValueMap,
+                bytes,
+                TransportationTypeHandle,
+                FederateHandle,
+            ]
+        ] = []
         self.timestamped_directed_interactions: list[tuple[object, ...]] = []
 
     def connectionLost(self, faultDescription: str) -> None:
         self.connection_losses.append(faultDescription)
 
-    def reportFederationExecutions(self, report: FederationExecutionInformationSet) -> None:
+    def reportFederationExecutions(
+        self, report: FederationExecutionInformationSet
+    ) -> None:
         self.federation_execution_reports.append(report)
 
     def reportFederationExecutionMembers(
@@ -2404,9 +3136,13 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         federationExecutionName: str,
         report: FederationExecutionMemberInformationSet,
     ) -> None:
-        self.federation_execution_member_reports.append((federationExecutionName, report))
+        self.federation_execution_member_reports.append(
+            (federationExecutionName, report)
+        )
 
-    def reportFederationExecutionDoesNotExist(self, federationExecutionName: str) -> None:
+    def reportFederationExecutionDoesNotExist(
+        self, federationExecutionName: str
+    ) -> None:
         self.missing_federation_executions.append(federationExecutionName)
 
     def federateResigned(self, reasonForResignDescription: str) -> None:
@@ -2415,7 +3151,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def provideAttributeValueUpdate(
         self, objectInstance, attributes, userSuppliedTag
     ) -> None:
-        self.attribute_value_requests.append((objectInstance, attributes, userSuppliedTag))
+        self.attribute_value_requests.append(
+            (objectInstance, attributes, userSuppliedTag)
+        )
 
     def attributesInScope(self, objectInstance, attributes) -> None:
         self.scope_entries.append((objectInstance, attributes))
@@ -2423,7 +3161,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def attributesOutOfScope(self, objectInstance, attributes) -> None:
         self.scope_exits.append((objectInstance, attributes))
 
-    def turnUpdatesOnForObjectInstance(self, objectInstance, attributes, updateRateDesignator=None) -> None:
+    def turnUpdatesOnForObjectInstance(
+        self, objectInstance, attributes, updateRateDesignator=None
+    ) -> None:
         self.updates_on.append((objectInstance, attributes, updateRateDesignator))
 
     def turnUpdatesOffForObjectInstance(self, objectInstance, attributes) -> None:
@@ -2432,16 +3172,30 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def confirmAttributeTransportationTypeChange(
         self, objectInstance, attributes, transportationType
     ) -> None:
-        self.attribute_transport_confirmations.append((objectInstance, attributes, transportationType))
+        self.attribute_transport_confirmations.append(
+            (objectInstance, attributes, transportationType)
+        )
 
-    def reportAttributeTransportationType(self, objectInstance, attribute, transportationType) -> None:
-        self.attribute_transport_reports.append((objectInstance, attribute, transportationType))
+    def reportAttributeTransportationType(
+        self, objectInstance, attribute, transportationType
+    ) -> None:
+        self.attribute_transport_reports.append(
+            (objectInstance, attribute, transportationType)
+        )
 
-    def confirmInteractionTransportationTypeChange(self, interactionClass, transportationType) -> None:
-        self.interaction_transport_confirmations.append((interactionClass, transportationType))
+    def confirmInteractionTransportationTypeChange(
+        self, interactionClass, transportationType
+    ) -> None:
+        self.interaction_transport_confirmations.append(
+            (interactionClass, transportationType)
+        )
 
-    def reportInteractionTransportationType(self, federate, interactionClass, transportationType) -> None:
-        self.interaction_transport_reports.append((federate, interactionClass, transportationType))
+    def reportInteractionTransportationType(
+        self, federate, interactionClass, transportationType
+    ) -> None:
+        self.interaction_transport_reports.append(
+            (federate, interactionClass, transportationType)
+        )
 
     def synchronizationPointRegistrationSucceeded(self, label: str) -> None:
         self.sync_registration.append(label)
@@ -2449,7 +3203,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def announceSynchronizationPoint(self, label: str, tag: bytes) -> None:
         self.sync_announcements.append((label, tag))
 
-    def federationSynchronized(self, label: str, failedToSyncSet: FederateHandleSet) -> None:
+    def federationSynchronized(
+        self, label: str, failedToSyncSet: FederateHandleSet
+    ) -> None:
         self.sync_completions.append((label, failedToSyncSet))
 
     def receiveDirectedInteraction(
@@ -2481,7 +3237,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def receiveInteraction(self, *arguments: object) -> None:
         self.timed_interactions.append(arguments)
 
-    def multipleObjectInstanceNameReservationSucceeded(self, objectInstanceNames) -> None:
+    def multipleObjectInstanceNameReservationSucceeded(
+        self, objectInstanceNames
+    ) -> None:
         self.name_batch_successes.append(objectInstanceNames)
 
     def multipleObjectInstanceNameReservationFailed(self, objectInstanceNames) -> None:
@@ -2490,7 +3248,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def requestAttributeOwnershipAssumption(
         self, objectInstance, offeredAttributes, userSuppliedTag
     ) -> None:
-        self.ownership_assumptions.append((objectInstance, offeredAttributes, userSuppliedTag))
+        self.ownership_assumptions.append(
+            (objectInstance, offeredAttributes, userSuppliedTag)
+        )
 
     def requestDivestitureConfirmation(
         self, objectInstance, releasedAttributes, userSuppliedTag
@@ -2502,9 +3262,13 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def attributeOwnershipAcquisitionNotification(
         self, objectInstance, securedAttributes, userSuppliedTag
     ) -> None:
-        self.ownership_acquisitions.append((objectInstance, securedAttributes, userSuppliedTag))
+        self.ownership_acquisitions.append(
+            (objectInstance, securedAttributes, userSuppliedTag)
+        )
 
-    def attributeOwnershipUnavailable(self, objectInstance, attributes, userSuppliedTag) -> None:
+    def attributeOwnershipUnavailable(
+        self, objectInstance, attributes, userSuppliedTag
+    ) -> None:
         self.ownership_unavailable.append((objectInstance, attributes, userSuppliedTag))
 
     def requestAttributeOwnershipRelease(
@@ -2514,7 +3278,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
             (objectInstance, candidateAttributes, userSuppliedTag)
         )
 
-    def confirmAttributeOwnershipAcquisitionCancellation(self, objectInstance, attributes) -> None:
+    def confirmAttributeOwnershipAcquisitionCancellation(
+        self, objectInstance, attributes
+    ) -> None:
         self.ownership_acquisition_cancellations.append((objectInstance, attributes))
 
     def informAttributeOwnership(self, objectInstance, attributes, owner) -> None:
@@ -2545,8 +3311,14 @@ class _RecordingFederateAmbassador(FederateAmbassador):
         self.restore_status_reports.append(response)
 
     def receiveDirectedInteraction(
-        self, interactionClass, objectInstance, parameterValues, userSuppliedTag,
-        transportationType, producingFederate, *timed
+        self,
+        interactionClass,
+        objectInstance,
+        parameterValues,
+        userSuppliedTag,
+        transportationType,
+        producingFederate,
+        *timed,
     ) -> None:
         entry = (
             interactionClass,
@@ -2567,7 +3339,9 @@ class _RecordingFederateAmbassador(FederateAmbassador):
     def timeConstrainedEnabled(self, time: HLAinteger64Time) -> None:
         self.time_constrained.append(time)
 
-    def flushQueueGrant(self, time: HLAinteger64Time, optimisticTime: HLAinteger64Time) -> None:
+    def flushQueueGrant(
+        self, time: HLAinteger64Time, optimisticTime: HLAinteger64Time
+    ) -> None:
         self.flush_grants.append((time, optimisticTime))
 
     def timeAdvanceGrant(self, time: HLAinteger64Time) -> None:
@@ -2585,6 +3359,25 @@ class _Integer32ElementFactory(DataElementFactory):
         return self.encoder.createHLAinteger32BE()
 
 
+class _SurfaceMatrixFederateAmbassador(FederateAmbassador):
+    """Provider-neutral callback recorder used by the state-space matrix."""
+
+    def __init__(self, trace: SurfaceEventTrace) -> None:
+        self.trace = trace
+
+    def timeRegulationEnabled(self, time: object) -> None:
+        del time
+        self.trace.record("timeRegulationEnabled")
+
+    def timeConstrainedEnabled(self, time: object) -> None:
+        del time
+        self.trace.record("timeConstrainedEnabled")
+
+    def timeAdvanceGrant(self, time: object) -> None:
+        del time
+        self.trace.record("timeAdvanceGrant")
+
+
 class JavaProviderTest(unittest.TestCase):
     def setUp(self) -> None:
         self.runtime = _FakeJavaRuntime()
@@ -2594,11 +3387,196 @@ class JavaProviderTest(unittest.TestCase):
         )
         self.factory = JavaRtiFactory(self.configuration, runtime=self.runtime)
 
+    def test_provider_neutral_callback_and_save_time_state_space(self) -> None:
+        """Run the same matrix a transplanted provider can reuse.
+
+        The fake Java implementation is deliberately state-light, so this is
+        a binding matrix rather than a claim about federation-wide scheduling.
+        It proves that callback model, logical-time carrier, save overload, and
+        advance-service selection all survive the Python-to-Java boundary for
+        one, two, and three independently bound federate ambassadors.  The
+        JNI and native suites consume the same matrix dimensions for their
+        provider-owned stateful evidence.
+        """
+
+        for case in iter_surface_matrix():
+            with self.subTest(case=case.case_id):
+                members: list[tuple[object, _FakeJavaRuntime, SurfaceEventTrace]] = []
+                try:
+                    for member in range(case.member_count):
+                        runtime = _FakeJavaRuntime()
+                        if case.time_implementation == HLA_TYPES.FLOAT64_TIME:
+                            runtime.ambassador.time_factory = (
+                                _FakeJavaFloatTimeFactory()
+                            )
+                            runtime.ambassador.current_time = (
+                                runtime.ambassador.time_factory.makeInitial()
+                            )
+                            runtime.ambassador.current_lookahead = (
+                                runtime.ambassador.time_factory.makeZero()
+                            )
+                        factory = JavaRtiFactory(self.configuration, runtime=runtime)
+                        ambassador = factory.getRtiAmbassador()
+                        trace = SurfaceEventTrace()
+                        callback = _SurfaceMatrixFederateAmbassador(trace)
+                        model = CallbackModel[case.callback_model]
+                        ambassador.connect(callback, model)
+                        ambassador.joinFederationExecution(
+                            f"matrix-{member}", "Fake Federation"
+                        )
+                        time_factory = ambassador.getTimeFactory()
+                        if case.time_implementation == HLA_TYPES.FLOAT64_TIME:
+                            target = time_factory.makeLogicalTime(5.5)
+                            lookahead = time_factory.makeLogicalTimeInterval(0.25)
+                        else:
+                            target = time_factory.makeLogicalTime(5)
+                            lookahead = time_factory.makeLogicalTimeInterval(1)
+                        ambassador.enableTimeRegulation(lookahead)
+                        ambassador.enableTimeConstrained()
+                        label = f"matrix-{case.callback_model}-{member}"
+                        if case.save_kind == "timestamped":
+                            ambassador.requestFederationSave(label, target)
+                            self.assertIsNotNone(runtime.ambassador.last_save_time)
+                        else:
+                            ambassador.requestFederationSave(label)
+                            self.assertIsNone(runtime.ambassador.last_save_time)
+                        getattr(ambassador, case.advance_service)(target)
+                        ambassador.federateSaveBegun()
+                        ambassador.federateSaveComplete()
+                        ambassador.queryFederationRestoreStatus()
+                        ambassador.requestFederationRestore(label)
+                        ambassador.federateRestoreComplete()
+
+                        assert_event_order(
+                            trace.events,
+                            "timeRegulationEnabled",
+                            "timeConstrainedEnabled",
+                            "timeAdvanceGrant",
+                        )
+                        self.assertEqual(
+                            runtime.ambassador.callback_model,
+                            f"java:{case.callback_model}",
+                        )
+                        self.assertEqual(runtime.ambassador.last_save_label, label)
+                        self.assertTrue(runtime.ambassador.save_begun)
+                        self.assertTrue(runtime.ambassador.save_completed)
+                        self.assertTrue(runtime.ambassador.restore_status_queried)
+                        self.assertEqual(runtime.ambassador.last_restore_label, label)
+                        self.assertTrue(runtime.ambassador.restore_completed)
+                        self.assertEqual(
+                            ambassador.queryLogicalTime().getTime(), target.getTime()
+                        )
+                        members.append((ambassador, runtime, trace))
+                finally:
+                    for ambassador, _runtime, _trace in members:
+                        ambassador.disconnect()
+
+    def test_provider_neutral_save_restore_outcome_matrix(self) -> None:
+        """Forward every save/restore outcome through the Java-shaped surface."""
+
+        for case in iter_save_restore_matrix():
+            with self.subTest(case=case.case_id):
+                members: list[tuple[JavaRTIambassador, _FakeJavaRuntime]] = []
+                try:
+                    for member in range(case.member_count):
+                        runtime = _FakeJavaRuntime()
+                        if case.time_implementation == HLA_TYPES.FLOAT64_TIME:
+                            runtime.ambassador.time_factory = (
+                                _FakeJavaFloatTimeFactory()
+                            )
+                            runtime.ambassador.current_time = (
+                                runtime.ambassador.time_factory.makeInitial()
+                            )
+                            runtime.ambassador.current_lookahead = (
+                                runtime.ambassador.time_factory.makeZero()
+                            )
+                        factory = JavaRtiFactory(self.configuration, runtime=runtime)
+                        ambassador = factory.getRtiAmbassador()
+                        callback = _SurfaceMatrixFederateAmbassador(SurfaceEventTrace())
+                        ambassador.connect(callback, CallbackModel[case.callback_model])
+                        time_factory = ambassador.getTimeFactory()
+                        target = (
+                            time_factory.makeLogicalTime(5.5)
+                            if case.time_implementation == HLA_TYPES.FLOAT64_TIME
+                            else time_factory.makeLogicalTime(5)
+                        )
+                        label = f"outcome-{case.save_outcome}-{member}"
+                        if case.save_kind == "timestamped":
+                            ambassador.requestFederationSave(label, target)
+                        else:
+                            ambassador.requestFederationSave(label)
+                        getattr(ambassador, case.advance_service)(target)
+                        ambassador.queryFederationSaveStatus()
+                        ambassador.federateSaveBegun()
+                        getattr(ambassador, case.save_service)()
+                        ambassador.queryFederationRestoreStatus()
+                        ambassador.requestFederationRestore(label)
+                        getattr(ambassador, case.restore_service)()
+
+                        implementation = runtime.ambassador
+                        names = [name for name, _args in implementation.calls]
+                        self.assertIn("queryFederationSaveStatus", names)
+                        self.assertIn("requestFederationSave", names)
+                        self.assertIn(case.advance_service, names)
+                        self.assertIn(case.save_service, names)
+                        self.assertIn("queryFederationRestoreStatus", names)
+                        self.assertIn("requestFederationRestore", names)
+                        self.assertIn(case.restore_service, names)
+                        self.assertEqual(
+                            implementation.callback_model,
+                            f"java:{case.callback_model}",
+                        )
+                        self.assertEqual(implementation.last_save_label, label)
+                        self.assertEqual(implementation.last_restore_label, label)
+                        self.assertEqual(
+                            implementation.last_save_time is not None,
+                            case.save_kind == "timestamped",
+                        )
+                        self.assertEqual(
+                            implementation.save_completed,
+                            case.save_outcome == "complete",
+                        )
+                        self.assertEqual(
+                            implementation.save_not_completed,
+                            case.save_outcome == "not-complete",
+                        )
+                        self.assertEqual(
+                            implementation.save_aborted,
+                            case.save_outcome == "abort",
+                        )
+                        self.assertEqual(
+                            implementation.restore_completed,
+                            case.restore_outcome == "complete",
+                        )
+                        self.assertEqual(
+                            implementation.restore_not_completed,
+                            case.restore_outcome == "not-complete",
+                        )
+                        self.assertEqual(
+                            implementation.restore_aborted,
+                            case.restore_outcome == "abort",
+                        )
+                        members.append((ambassador, runtime))
+                finally:
+                    for ambassador, _runtime in members:
+                        ambassador.disconnect()
+
     def test_java_provider_declares_every_shared_rti_ambassador_method(self) -> None:
         missing = sorted(
             name
             for name in RTIambassador.__abstractmethods__
             if not hasattr(JavaRTIambassador, name)
+        )
+        self.assertEqual(missing, [])
+
+    def test_java_encoder_factory_declares_every_contract_creator(self) -> None:
+        """The Java façade must expose every generated 2025 creator symbol."""
+
+        encoder = self.factory.getEncoderFactory()
+        missing = sorted(
+            name
+            for name in EncoderFactory.__abstractmethods__
+            if not callable(getattr(encoder, name, None))
         )
         self.assertEqual(missing, [])
 
@@ -2628,7 +3606,9 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(callbacks.flush_grants[0][1].getTime(), 0)
         self.assertEqual(len(callbacks.request_retractions), 1)
         self.assertTrue(callbacks.request_retractions[0].isValid())
-        self.assertEqual(callbacks.request_retractions[0].encodedValue, b"fake-retraction")
+        self.assertEqual(
+            callbacks.request_retractions[0].encodedValue, b"fake-retraction"
+        )
         ambassador.disconnect()
 
     def test_java_callback_proxy_converts_all_ownership_callbacks(self) -> None:
@@ -2640,10 +3620,14 @@ class JavaProviderTest(unittest.TestCase):
 
         proxy.requestAttributeOwnershipAssumption(object_instance, attributes, tag)
         proxy.requestDivestitureConfirmation(object_instance, attributes, tag)
-        proxy.attributeOwnershipAcquisitionNotification(object_instance, attributes, tag)
+        proxy.attributeOwnershipAcquisitionNotification(
+            object_instance, attributes, tag
+        )
         proxy.attributeOwnershipUnavailable(object_instance, attributes, tag)
         proxy.requestAttributeOwnershipRelease(object_instance, attributes, tag)
-        proxy.confirmAttributeOwnershipAcquisitionCancellation(object_instance, attributes)
+        proxy.confirmAttributeOwnershipAcquisitionCancellation(
+            object_instance, attributes
+        )
         proxy.informAttributeOwnership(object_instance, attributes, b"owner")
         proxy.attributeIsNotOwned(object_instance, attributes)
         proxy.attributeIsOwnedByRTI(object_instance, attributes)
@@ -2743,8 +3727,12 @@ class JavaProviderTest(unittest.TestCase):
             ],
         )
         self.assertEqual(callbacks.save_initiations, ["save-label"])
-        self.assertEqual(callbacks.timestamped_save_initiations[0][0], "timed-save-label")
-        self.assertIsInstance(callbacks.timestamped_save_initiations[0][1], HLAinteger64Time)
+        self.assertEqual(
+            callbacks.timestamped_save_initiations[0][0], "timed-save-label"
+        )
+        self.assertIsInstance(
+            callbacks.timestamped_save_initiations[0][1], HLAinteger64Time
+        )
         self.assertEqual(callbacks.timestamped_save_initiations[0][1].getTime(), 17)
         self.assertEqual(callbacks.save_completions, 1)
         self.assertEqual(callbacks.save_failures, [SaveFailureReason.SAVE_ABORTED])
@@ -2785,7 +3773,7 @@ class JavaProviderTest(unittest.TestCase):
                 return struct.pack(">q", 7)
 
             def implementationName(self) -> str:
-                return "HLAinteger64Time"
+                return HLA_TYPES.INTEGER64_TIME
 
             def isInitial(self) -> bool:
                 return False
@@ -2828,17 +3816,27 @@ class JavaProviderTest(unittest.TestCase):
 
         reflection = callbacks.timed_reflections[-1]
         self.assertEqual(reflection[0], ObjectInstanceHandle(b"object-instance"))
-        self.assertEqual(reflection[1], AttributeHandleValueMap({AttributeHandle(b"attribute"): b"\x01\x02\xff"}))
+        self.assertEqual(
+            reflection[1],
+            AttributeHandleValueMap({AttributeHandle(b"attribute"): b"\x01\x02\xff"}),
+        )
         self.assertEqual(reflection[2], b"\x09\x0a")
-        self.assertEqual(reflection[5], RegionHandleSet([RegionHandle(b"region:callback")]))
+        self.assertEqual(
+            reflection[5], RegionHandleSet([RegionHandle(b"region:callback")])
+        )
         self.assertEqual(reflection[6].getTime(), 7)
         self.assertEqual(reflection[7], OrderType.TIMESTAMP)
         self.assertTrue(reflection[9].isValid())
 
         interaction = callbacks.timed_interactions[-1]
         self.assertEqual(interaction[0], InteractionClassHandle(b"interaction"))
-        self.assertEqual(interaction[1], ParameterHandleValueMap({ParameterHandle(b"parameter"): b"\x03\x04"}))
-        self.assertEqual(interaction[5], RegionHandleSet([RegionHandle(b"region:callback")]))
+        self.assertEqual(
+            interaction[1],
+            ParameterHandleValueMap({ParameterHandle(b"parameter"): b"\x03\x04"}),
+        )
+        self.assertEqual(
+            interaction[5], RegionHandleSet([RegionHandle(b"region:callback")])
+        )
         self.assertEqual(interaction[6].getTime(), 7)
         self.assertEqual(interaction[7], OrderType.TIMESTAMP)
         self.assertTrue(interaction[9].isValid())
@@ -2858,7 +3856,372 @@ class JavaProviderTest(unittest.TestCase):
         self.assertIsNone(callbacks.timed_reflections[-1][5])
         self.assertEqual(callbacks.timed_reflections[-1][8], OrderType.RECEIVE)
 
-    def test_java_provider_exposes_standard_handle_and_collection_factories(self) -> None:
+    def test_java_callback_proxy_preserves_shared_callback_provenance_vectors(
+        self,
+    ) -> None:
+        """Keep payloads and source metadata stable at the 2025 callback edge.
+
+        The same vectors are consumed by the 2010 proxy test.  Only the raw
+        Java carrier layout differs: 2025 carries producer/regions directly,
+        while 2010 carries them in supplemental records.
+        """
+
+        class _RawEntry:
+            def __init__(self, key: bytes, value: bytes) -> None:
+                self._key = key
+                self._value = value
+
+            def getKey(self) -> bytes:
+                return self._key
+
+            def getValue(self) -> bytes:
+                return self._value
+
+        class _RawMap:
+            def __init__(self, entry: _RawEntry) -> None:
+                self._entry = entry
+
+            def entrySet(self) -> tuple[_RawEntry, ...]:
+                return (self._entry,)
+
+        class _RawTime:
+            def __init__(self, value: int | float, implementation: str) -> None:
+                self.value = value
+                self.implementation = implementation
+
+            def encodedLength(self) -> int:
+                return 8
+
+            def encode(self, destination: bytearray, offset: int = 0) -> None:
+                payload = (
+                    struct.pack(">q", int(self.value))
+                    if self.implementation == "HLAinteger64Time"
+                    else struct.pack(">d", float(self.value))
+                )
+                destination[offset : offset + 8] = payload
+
+            def isInitial(self) -> bool:
+                return self.value == 0
+
+            def isFinal(self) -> bool:
+                return False
+
+            def implementationName(self) -> str:
+                return self.implementation
+
+            def getTime(self) -> int | float:
+                return self.value
+
+            def toString(self) -> str:
+                return str(self.value)
+
+        class _Callback(FederateAmbassador):
+            def __init__(self) -> None:
+                self.discoveries: list[tuple[object, ...]] = []
+                self.reflections: list[tuple[object, ...]] = []
+                self.interactions: list[tuple[object, ...]] = []
+
+            def discoverObjectInstance(self, *args: object) -> None:
+                self.discoveries.append(args)
+
+            def reflectAttributeValues(self, *args: object) -> None:
+                self.reflections.append(args)
+
+            def receiveInteraction(self, *args: object) -> None:
+                self.interactions.append(args)
+
+        def _raw_bytes(value: object) -> bytes:
+            if isinstance(value, (bytes, bytearray)):
+                return bytes(value)
+            destination = bytearray(value.encodedLength())  # type: ignore[attr-defined]
+            value.encode(destination, 0)  # type: ignore[attr-defined]
+            return bytes(destination)
+
+        for vector in iter_callback_provenance_matrix():
+            with self.subTest(case=vector.case_id):
+                callback = _Callback()
+                proxy = _FederateAmbassadorCallback(callback, _raw_bytes)
+                if vector.callback == "discoverObjectInstance":
+                    proxy.discoverObjectInstance(
+                        vector.object_instance,
+                        vector.object_class,
+                        vector.instance_name,
+                        vector.producing_federate,
+                    )
+                    result = callback.discoveries[-1]
+                    self.assertEqual(result[0].encodedValue, vector.object_instance)
+                    self.assertEqual(result[1].encodedValue, vector.object_class)
+                    self.assertEqual(result[2], vector.instance_name)
+                    self.assertEqual(
+                        result[3].encodedValue, vector.producing_federate
+                    )
+                    continue
+
+                raw_map = _RawMap(
+                    _RawEntry(vector.payload_handle, vector.payload)  # type: ignore[arg-type]
+                )
+                optional_regions = (
+                    (vector.sent_region,) if vector.sent_region is not None else None
+                )
+                raw_time = (
+                    _RawTime(vector.time_value, vector.time_implementation)  # type: ignore[arg-type]
+                    if vector.timed
+                    else None
+                )
+                raw_sent_order = (
+                    _FakeJavaEnum(vector.sent_order)  # type: ignore[arg-type]
+                    if vector.timed
+                    else None
+                )
+                raw_received_order = (
+                    _FakeJavaEnum(vector.received_order)  # type: ignore[arg-type]
+                    if vector.timed
+                    else None
+                )
+                arguments = (
+                    vector.object_instance
+                    if vector.callback == "reflectAttributeValues"
+                    else vector.interaction_class,
+                    raw_map,
+                    vector.tag,
+                    vector.transportation,
+                    vector.producing_federate,
+                    optional_regions,
+                )
+                if vector.timed:
+                    arguments += (
+                        raw_time,
+                        raw_sent_order,
+                        raw_received_order,
+                        vector.retraction,
+                    )
+                getattr(proxy, vector.callback)(*arguments)
+                result = (
+                    callback.reflections[-1]
+                    if vector.callback == "reflectAttributeValues"
+                    else callback.interactions[-1]
+                )
+                self.assertEqual(result[2], vector.tag)
+                self.assertEqual(result[3].encodedValue, vector.transportation)
+                self.assertEqual(result[4].encodedValue, vector.producing_federate)
+                if vector.callback == "reflectAttributeValues":
+                    self.assertEqual(
+                        result[1][AttributeHandle(vector.payload_handle)],  # type: ignore[arg-type]
+                        vector.payload,
+                    )
+                else:
+                    self.assertEqual(
+                        result[1][ParameterHandle(vector.payload_handle)],  # type: ignore[arg-type]
+                        vector.payload,
+                    )
+                if vector.timed:
+                    self.assertEqual(result[6].getTime(), vector.time_value)
+                    self.assertEqual(result[7].name, vector.sent_order)
+                    self.assertEqual(result[8].name, vector.received_order)
+                    self.assertEqual(result[9].encodedValue, vector.retraction)
+                    if vector.sent_region is None:
+                        self.assertIsNone(result[5])
+                    else:
+                        self.assertEqual(
+                            next(iter(result[5])).encodedValue, vector.sent_region
+                        )
+                else:
+                    self.assertEqual(len(result), 5)
+
+    def test_java_callback_delivery_normalizes_two_member_streams(self) -> None:
+        """Compare two independently proxied member streams semantically."""
+
+        class _RawEntry:
+            def __init__(self, key: bytes, value: bytes) -> None:
+                self._key = key
+                self._value = value
+
+            def getKey(self) -> bytes:
+                return self._key
+
+            def getValue(self) -> bytes:
+                return self._value
+
+        class _RawMap:
+            def __init__(self, entry: _RawEntry) -> None:
+                self._entry = entry
+
+            def entrySet(self) -> tuple[_RawEntry, ...]:
+                return (self._entry,)
+
+        class _RawTime:
+            def __init__(self, value: int | float, implementation: str) -> None:
+                self.value = value
+                self.implementation = implementation
+
+            def encodedLength(self) -> int:
+                return 8
+
+            def encode(self, destination: bytearray, offset: int = 0) -> None:
+                payload = (
+                    struct.pack(">q", int(self.value))
+                    if self.implementation == "HLAinteger64Time"
+                    else struct.pack(">d", float(self.value))
+                )
+                destination[offset : offset + 8] = payload
+
+            def getTime(self) -> int | float:
+                return self.value
+
+            def implementationName(self) -> str:
+                return self.implementation
+
+            def isInitial(self) -> bool:
+                return self.value == 0
+
+            def isFinal(self) -> bool:
+                return False
+
+            def toString(self) -> str:
+                return str(self.value)
+
+        class _Callback(FederateAmbassador):
+            def __init__(self) -> None:
+                self.discoveries: list[tuple[object, ...]] = []
+                self.reflections: list[tuple[object, ...]] = []
+                self.interactions: list[tuple[object, ...]] = []
+
+            def discoverObjectInstance(self, *args: object) -> None:
+                self.discoveries.append(args)
+
+            def reflectAttributeValues(self, *args: object) -> None:
+                self.reflections.append(args)
+
+            def receiveInteraction(self, *args: object) -> None:
+                self.interactions.append(args)
+
+        def _raw_bytes(value: object) -> bytes:
+            if isinstance(value, (bytes, bytearray)):
+                return bytes(value)
+            destination = bytearray(value.encodedLength())  # type: ignore[attr-defined]
+            value.encode(destination, 0)  # type: ignore[attr-defined]
+            return bytes(destination)
+
+        vectors = iter_callback_provenance_matrix()
+        actual: list[CallbackDeliveryObservation] = []
+        for recipient in ("member-a", "member-b"):
+            callback = _Callback()
+            proxy = _FederateAmbassadorCallback(callback, _raw_bytes)
+            for sequence, vector in enumerate(vectors):
+                with self.subTest(recipient=recipient, case=vector.case_id):
+                    if vector.callback == "discoverObjectInstance":
+                        proxy.discoverObjectInstance(
+                            vector.object_instance,
+                            vector.object_class,
+                            vector.instance_name,
+                            vector.producing_federate,
+                        )
+                        result = callback.discoveries[-1]
+                        actual.append(
+                            CallbackDeliveryObservation(
+                                recipient=recipient,
+                                sequence=sequence,
+                                vector_id=vector.case_id,
+                                callback=vector.callback,
+                                timed=False,
+                                object_instance=bytes(result[0].encodedValue),  # type: ignore[attr-defined]
+                                object_class=bytes(result[1].encodedValue),  # type: ignore[attr-defined]
+                                instance_name=result[2],  # type: ignore[arg-type]
+                                producing_federate=bytes(result[3].encodedValue),  # type: ignore[attr-defined]
+                            )
+                        )
+                        continue
+
+                    raw_map = _RawMap(
+                        _RawEntry(vector.payload_handle, vector.payload)  # type: ignore[arg-type]
+                    )
+                    raw_regions = (
+                        (vector.sent_region,)
+                        if vector.sent_region is not None
+                        else None
+                    )
+                    arguments = (
+                        vector.object_instance
+                        if vector.callback == "reflectAttributeValues"
+                        else vector.interaction_class,
+                        raw_map,
+                        vector.tag,
+                        vector.transportation,
+                        vector.producing_federate,
+                        raw_regions,
+                    )
+                    if vector.timed:
+                        arguments += (
+                            _RawTime(vector.time_value, vector.time_implementation),  # type: ignore[arg-type]
+                            _FakeJavaEnum(vector.sent_order),  # type: ignore[arg-type]
+                            _FakeJavaEnum(vector.received_order),  # type: ignore[arg-type]
+                            vector.retraction,
+                        )
+                    getattr(proxy, vector.callback)(*arguments)
+                    result = (
+                        callback.reflections[-1]
+                        if vector.callback == "reflectAttributeValues"
+                        else callback.interactions[-1]
+                    )
+                    payload_key = next(iter(result[1]))
+                    raw_region = result[5] if vector.timed else None
+                    actual.append(
+                        CallbackDeliveryObservation(
+                            recipient=recipient,
+                            sequence=sequence,
+                            vector_id=vector.case_id,
+                            callback=vector.callback,
+                            timed=vector.timed,
+                            object_instance=(
+                                bytes(result[0].encodedValue)
+                                if vector.callback == "reflectAttributeValues"
+                                else None
+                            ),  # type: ignore[attr-defined]
+                            interaction_class=(
+                                bytes(result[0].encodedValue)
+                                if vector.callback == "receiveInteraction"
+                                else None
+                            ),  # type: ignore[attr-defined]
+                            payload_handle=bytes(payload_key.encodedValue),  # type: ignore[attr-defined]
+                            payload=result[1][payload_key],
+                            tag=result[2],  # type: ignore[arg-type]
+                            transportation=bytes(result[3].encodedValue),  # type: ignore[attr-defined]
+                            producing_federate=bytes(result[4].encodedValue),  # type: ignore[attr-defined]
+                            sent_region=(
+                                bytes(next(iter(raw_region)).encodedValue)
+                                if raw_region is not None
+                                else None
+                            ),  # type: ignore[attr-defined]
+                            time_implementation=(
+                                result[6].implementationName() if vector.timed else None
+                            ),
+                            time_value=(result[6].getTime() if vector.timed else None),
+                            sent_order=(result[7].name if vector.timed else None),
+                            received_order=(result[8].name if vector.timed else vector.received_order),
+                            retraction=(
+                                bytes(result[9].encodedValue)
+                                if vector.timed and result[9] is not None
+                                else None
+                            ),  # type: ignore[attr-defined]
+                        )
+                    )
+
+        expected = tuple(
+            CallbackDeliveryObservation.from_vector(
+                vector,
+                recipient=recipient,
+                sequence=sequence,
+            )
+            for recipient in ("member-a", "member-b")
+            for sequence, vector in enumerate(vectors)
+        )
+        # Reverse the aggregate to model a provider that interleaves member
+        # callbacks differently.  Per-member sequence numbers remain strict.
+        assert_callback_delivery_parity(expected, reversed(actual))
+
+    def test_java_provider_exposes_standard_handle_and_collection_factories(
+        self,
+    ) -> None:
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED)
         ambassador.joinFederationExecution("observer", "Fake Federation")
@@ -2900,7 +4263,9 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(attribute_values[AttributeHandle(b"attribute")], b"value")
         self.assertEqual(parameter_values[ParameterHandle(b"parameter")], b"value")
 
-        ambassador.publishObjectClassAttributes(ObjectClassHandle(b"object"), attribute_set)
+        ambassador.publishObjectClassAttributes(
+            ObjectClassHandle(b"object"), attribute_set
+        )
         self.assertEqual(self.runtime.ambassador.last_declaration_call[1], b"object")
         ambassador.disconnect()
 
@@ -2912,7 +4277,9 @@ class JavaProviderTest(unittest.TestCase):
         with self.assertRaises(AlreadyConnected):
             ambassador.connect(callbacks, CallbackModel.HLA_IMMEDIATE)
 
-    def test_java_exception_names_outside_the_initial_service_slice_remain_typed(self) -> None:
+    def test_java_exception_names_outside_the_initial_service_slice_remain_typed(
+        self,
+    ) -> None:
         self.runtime.ambassador.connect_error_name = "ConnectionFailed"
 
         with self.assertRaises(ConnectionFailed):
@@ -2922,24 +4289,28 @@ class JavaProviderTest(unittest.TestCase):
             )
 
     def test_java_provider_selects_each_standard_connect_overload(self) -> None:
-        configuration = RtiConfiguration.createConfiguration().withConfigurationName("fake")
+        configuration = RtiConfiguration.createConfiguration().withConfigurationName(
+            "fake"
+        )
         credentials = HLAnoCredentials()
         expected_arguments = (
             ((), ()),
             ((configuration,), (("java-configuration", "fake", "", ""),)),
-            ((credentials,), (("java-credentials", "HLAnoCredentials", b""),)),
+            ((credentials,), (("java-credentials", HLA_TYPES.NO_CREDENTIALS, b""),)),
             (
                 (configuration, credentials),
                 (
                     ("java-configuration", "fake", "", ""),
-                    ("java-credentials", "HLAnoCredentials", b""),
+                    ("java-credentials", HLA_TYPES.NO_CREDENTIALS, b""),
                 ),
             ),
         )
         for supplied, expected in expected_arguments:
             with self.subTest(supplied=supplied):
                 ambassador = self.factory.getRtiAmbassador()
-                ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED, *supplied)
+                ambassador.connect(
+                    FederateAmbassador(), CallbackModel.HLA_EVOKED, *supplied
+                )
                 self.assertEqual(self.runtime.ambassador.connect_arguments, expected)
                 ambassador.disconnect()
 
@@ -2953,7 +4324,11 @@ class JavaProviderTest(unittest.TestCase):
             callback.federation_execution_reports,
             [
                 FederationExecutionInformationSet(
-                    [FederationExecutionInformation("Fake Federation", "HLAinteger64Time")]
+                    [
+                        FederationExecutionInformation(
+                            "Fake Federation", HLA_TYPES.INTEGER64_TIME
+                        )
+                    ]
                 )
             ],
         )
@@ -2963,31 +4338,42 @@ class JavaProviderTest(unittest.TestCase):
         callback = _RecordingFederateAmbassador()
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(callback, CallbackModel.HLA_EVOKED)
-        ambassador.createFederationExecution("Created Federation", "example.xml", "HLAinteger64Time")
+        ambassador.createFederationExecution(
+            "Created Federation", "example.xml", HLA_TYPES.INTEGER64_TIME
+        )
         ambassador.listFederationExecutions()
         self.assertIn(
-            FederationExecutionInformation("Created Federation", "HLAinteger64Time"),
+            FederationExecutionInformation(
+                "Created Federation", HLA_TYPES.INTEGER64_TIME
+            ),
             callback.federation_execution_reports[-1],
         )
         ambassador.destroyFederationExecution("Created Federation")
         ambassador.disconnect()
 
-    def test_java_provider_maps_fom_mim_join_and_synchronization_overloads(self) -> None:
+    def test_java_provider_maps_fom_mim_join_and_synchronization_overloads(
+        self,
+    ) -> None:
         callback = _RecordingFederateAmbassador()
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(callback, CallbackModel.HLA_EVOKED)
 
         ambassador.createFederationExecution(
-            "Module Federation", ["base.xml", "extension.xml"], "HLAinteger64Time"
+            "Module Federation", ["base.xml", "extension.xml"], HLA_TYPES.INTEGER64_TIME
         )
         self.assertEqual(
             self.runtime.ambassador.last_fom_modules,
             ("base.xml", "extension.xml"),
         )
         ambassador.createFederationExecutionWithMIM(
-            "MIM Federation", ["base.xml"], "HLAstandardMIM.xml", "HLAinteger64Time"
+            "MIM Federation",
+            ["base.xml"],
+            HLA_MOM.STANDARD_MIM_FILE_LEGACY,
+            HLA_TYPES.INTEGER64_TIME,
         )
-        self.assertEqual(self.runtime.ambassador.last_mim_module, "HLAstandardMIM.xml")
+        self.assertEqual(
+            self.runtime.ambassador.last_mim_module, HLA_MOM.STANDARD_MIM_FILE_LEGACY
+        )
 
         unnamed = ambassador.joinFederationExecution(
             "observer", "Module Federation", additionalFomModules=["additional.xml"]
@@ -2999,12 +4385,16 @@ class JavaProviderTest(unittest.TestCase):
             additionalFomModules=["additional.xml"],
         )
         self.assertEqual(unnamed.encodedValue, b"Module Federation:observer:observer")
-        self.assertEqual(named.encodedValue, b"Module Federation:named-observer:observer")
+        self.assertEqual(
+            named.encodedValue, b"Module Federation:named-observer:observer"
+        )
         explicit_set = FederateHandleSet([FederateHandle(b"target")])
         ambassador.registerFederationSynchronizationPoint(
             "explicit-sync", b"tag", synchronizationSet=explicit_set
         )
-        self.assertEqual(self.runtime.ambassador.last_synchronization_set, frozenset({b"target"}))
+        self.assertEqual(
+            self.runtime.ambassador.last_synchronization_set, frozenset({b"target"})
+        )
         ambassador.disconnect()
 
     def test_java_provider_converts_federation_member_callbacks(self) -> None:
@@ -3028,7 +4418,9 @@ class JavaProviderTest(unittest.TestCase):
         handle = ambassador.joinFederationExecution(
             "observer", "Fake Federation", federateName="named-observer"
         )
-        self.assertEqual(handle.encodedValue, b"Fake Federation:named-observer:observer")
+        self.assertEqual(
+            handle.encodedValue, b"Fake Federation:named-observer:observer"
+        )
         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
         self.assertEqual(self.runtime.ambassador.last_resign_action, "java:NO_ACTION")
         ambassador.disconnect()
@@ -3041,7 +4433,7 @@ class JavaProviderTest(unittest.TestCase):
 
         time_factory = ambassador.getTimeFactory()
         self.assertIsInstance(time_factory, HLAinteger64TimeFactory)
-        self.assertEqual(time_factory.implementationName(), "HLAinteger64Time")
+        self.assertEqual(time_factory.implementationName(), HLA_TYPES.INTEGER64_TIME)
         self.assertTrue(time_factory.makeInitial().isInitial())
         self.assertTrue(time_factory.makeFinal().isFinal())
         self.assertTrue(time_factory.makeZero().isZero())
@@ -3050,14 +4442,21 @@ class JavaProviderTest(unittest.TestCase):
         lookahead = time_factory.makeLogicalTimeInterval(1)
         self.assertIsInstance(requested_time, HLAinteger64Time)
         self.assertIsInstance(lookahead, HLAinteger64Interval)
-        self.assertEqual(time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 5)
         self.assertEqual(
-            time_factory.decodeLogicalTimeInterval(lookahead.toByteArray()).getInterval(), 1
+            time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 5
+        )
+        self.assertEqual(
+            time_factory.decodeLogicalTimeInterval(
+                lookahead.toByteArray()
+            ).getInterval(),
+            1,
         )
         advanced = time_factory.add(requested_time, lookahead)
         self.assertEqual(advanced.getTime(), 6)
         self.assertEqual(time_factory.subtract(advanced, lookahead).getTime(), 5)
-        self.assertEqual(time_factory.difference(advanced, requested_time).getInterval(), 1)
+        self.assertEqual(
+            time_factory.difference(advanced, requested_time).getInterval(), 1
+        )
         malformed_time_values = (
             b"",
             b"\0" * 7,
@@ -3070,10 +4469,10 @@ class JavaProviderTest(unittest.TestCase):
             with self.assertRaises(CouldNotDecode):
                 time_factory.decodeLogicalTimeInterval(encoded)
         foreign_time = HLAfloat64Time(
-            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+            struct.pack(">d", 1.0), HLA_TYPES.FLOAT64_TIME, False, False, 1.0, "1.0"
         )
         foreign_interval = HLAfloat64Interval(
-            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+            struct.pack(">d", 1.0), HLA_TYPES.FLOAT64_TIME, False, False, 1.0, "1.0"
         )
         with self.assertRaises(InvalidLogicalTime):
             time_factory.add(foreign_time, lookahead)
@@ -3082,7 +4481,9 @@ class JavaProviderTest(unittest.TestCase):
         with self.assertRaises(IllegalTimeArithmetic):
             time_factory.add(time_factory.makeFinal(), time_factory.makeEpsilon())
         with self.assertRaises(IllegalTimeArithmetic):
-            time_factory.subtract(time_factory.makeInitial(), time_factory.makeEpsilon())
+            time_factory.subtract(
+                time_factory.makeInitial(), time_factory.makeEpsilon()
+            )
         with self.assertRaises(IllegalTimeArithmetic):
             time_factory.difference(time_factory.makeInitial(), requested_time)
 
@@ -3132,7 +4533,7 @@ class JavaProviderTest(unittest.TestCase):
 
         time_factory = ambassador.getTimeFactory()
         self.assertIsInstance(time_factory, HLAfloat64TimeFactory)
-        self.assertEqual(time_factory.implementationName(), "HLAfloat64Time")
+        self.assertEqual(time_factory.implementationName(), HLA_TYPES.FLOAT64_TIME)
         requested_time = time_factory.makeLogicalTime(12.5)
         lookahead = time_factory.makeLogicalTimeInterval(0.25)
         self.assertIsInstance(requested_time, HLAfloat64Time)
@@ -3154,7 +4555,10 @@ class JavaProviderTest(unittest.TestCase):
             time_factory.decodeLogicalTime(requested_time.toByteArray()).getTime(), 12.5
         )
         self.assertEqual(
-            time_factory.decodeLogicalTimeInterval(lookahead.toByteArray()).getInterval(), 0.25
+            time_factory.decodeLogicalTimeInterval(
+                lookahead.toByteArray()
+            ).getInterval(),
+            0.25,
         )
         base = time_factory.makeLogicalTime(1.0)
         advanced = time_factory.add(base, epsilon)
@@ -3166,11 +4570,16 @@ class JavaProviderTest(unittest.TestCase):
         )
         final_time = time_factory.makeFinal()
         before_final = time_factory.subtract(final_time, epsilon)
-        self.assertEqual(before_final.getTime(), math.nextafter(final_time.getTime(), 0.0))
-        self.assertEqual(time_factory.add(before_final, epsilon).getTime(), final_time.getTime())
+        self.assertEqual(
+            before_final.getTime(), math.nextafter(final_time.getTime(), 0.0)
+        )
+        self.assertEqual(
+            time_factory.add(before_final, epsilon).getTime(), final_time.getTime()
+        )
         smallest = time_factory.makeLogicalTime(math.nextafter(0.0, 1.0))
         self.assertEqual(
-            time_factory.add(smallest, epsilon).getTime(), math.nextafter(smallest.getTime(), math.inf)
+            time_factory.add(smallest, epsilon).getTime(),
+            math.nextafter(smallest.getTime(), math.inf),
         )
         with self.assertRaises(IllegalTimeArithmetic):
             time_factory.add(final_time, epsilon)
@@ -3196,14 +4605,383 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(callbacks.time_grants[-1].getTime(), math.nextafter(0.0, 1.0))
         ambassador.disconnect()
 
+    def test_java_provider_consumes_shared_logical_time_wire_and_arithmetic_vectors(
+        self,
+    ) -> None:
+        """Keep integer/float edge evidence reusable for a transplanted provider."""
+
+        for implementation in (HLA_TYPES.INTEGER64_TIME, HLA_TYPES.FLOAT64_TIME):
+            with self.subTest(implementation=implementation):
+                runtime = _FakeJavaRuntime()
+                if implementation == HLA_TYPES.FLOAT64_TIME:
+                    runtime.ambassador.time_factory = _FakeJavaFloatTimeFactory()
+                ambassador = JavaRtiFactory(
+                    self.configuration, runtime=runtime
+                ).getRtiAmbassador()
+                time_factory = ambassador.getTimeFactory()
+                for vector in iter_logical_time_wire_matrix((implementation,)):
+                    with self.subTest(vector=vector.case_id):
+                        if vector.valid:
+                            decoded_time = time_factory.decodeLogicalTime(
+                                vector.encoded
+                            )
+                            decoded_interval = time_factory.decodeLogicalTimeInterval(
+                                vector.encoded
+                            )
+                            self.assertEqual(decoded_time.getTime(), vector.expected)
+                            self.assertEqual(
+                                decoded_interval.getInterval(), vector.expected
+                            )
+                        else:
+                            with self.assertRaises(CouldNotDecode):
+                                time_factory.decodeLogicalTime(vector.encoded)
+                            with self.assertRaises(CouldNotDecode):
+                                time_factory.decodeLogicalTimeInterval(vector.encoded)
+                for vector in iter_logical_time_arithmetic_matrix((implementation,)):
+                    with self.subTest(arithmetic=vector.case_id):
+                        base = time_factory.makeLogicalTime(vector.base)
+                        interval = time_factory.makeLogicalTimeInterval(vector.interval)
+                        self.assertEqual(
+                            time_factory.add(base, interval).getTime(),
+                            vector.expected_sum,
+                        )
+                        self.assertEqual(
+                            time_factory.subtract(base, interval).getTime(),
+                            vector.expected_difference,
+                        )
+                        self.assertEqual(
+                            time_factory.difference(
+                                time_factory.makeLogicalTime(vector.expected_sum),
+                                base,
+                            ).getInterval(),
+                            vector.expected_distance,
+                        )
+
+    def test_java_provider_preserves_custom_2025_time_factory_and_arithmetic(
+        self,
+    ) -> None:
+        """Keep provider-owned 2025 time carriers opaque and fully callable.
+
+        The IEEE Java surface allows a provider to advertise a logical-time
+        factory other than the two reference implementations.  This fixture
+        intentionally applies nonstandard arithmetic offsets so a test would
+        fail if the adapter silently decoded the carrier as an integer or
+        floating-point value.  The assertions exercise factory methods,
+        carrier methods, byte round-trips, malformed lengths, and callback
+        conversion without claiming portable semantics for the vendor domain.
+        """
+
+        runtime = _FakeJavaRuntime()
+        runtime.ambassador.time_factory = _FakeJavaVendorTimeFactory()
+        ambassador = JavaRtiFactory(
+            self.configuration, runtime=runtime
+        ).getRtiAmbassador()
+        time_factory = ambassador.getTimeFactory()
+
+        self.assertIsInstance(time_factory, LogicalTimeFactory)
+        self.assertEqual(time_factory.implementationName(), "VendorChronon")
+        self.assertNotIsInstance(
+            time_factory, (HLAinteger64TimeFactory, HLAfloat64TimeFactory)
+        )
+        self.assertTrue(time_factory.makeInitial().isInitial())
+        self.assertTrue(time_factory.makeFinal().isFinal())
+        self.assertTrue(time_factory.makeZero().isZero())
+        self.assertTrue(time_factory.makeEpsilon().isEpsilon())
+
+        base = time_factory.makeLogicalTime(200.0)
+        interval = time_factory.makeLogicalTimeInterval(0.5)
+        other = time_factory.makeTime(199.5)
+        other_interval = time_factory.makeInterval(0.25)
+        self.assertIsInstance(base, LogicalTime)
+        self.assertIsInstance(interval, LogicalTimeInterval)
+        self.assertNotIsInstance(base, (HLAinteger64Time, HLAfloat64Time))
+        self.assertNotIsInstance(
+            interval, (HLAinteger64Interval, HLAfloat64Interval)
+        )
+        self.assertEqual(base.implementationName(), "VendorChronon")
+        self.assertEqual(interval.implementationName(), "VendorChronon")
+        self.assertEqual(base.getTime(), 200.0)
+        self.assertEqual(interval.getInterval(), 0.5)
+        self.assertEqual(base.toString(), "vendor-time:200.0")
+        self.assertEqual(interval.toString(), "vendor-interval:0.5")
+
+        # Every operation must reach the raw Java carrier, including methods
+        # invoked on the Python snapshots rather than the factory façade.
+        for result, expected in (
+            (base.add(interval), 300.5),
+            (time_factory.add(base, interval), 300.5),
+            (base.subtract(interval), 99.5),
+            (time_factory.subtract(base, interval), 99.5),
+        ):
+            with self.subTest(time_result=result):
+                self.assertEqual(result.getTime(), expected)
+                self.assertEqual(result.implementationName(), "VendorChronon")
+        self.assertEqual(base.distance(other).getInterval(), 100.5)
+        self.assertEqual(
+            time_factory.difference(base, other).getInterval(), 100.5
+        )
+        self.assertEqual(base.compareTo(other), 7)
+        self.assertEqual(interval.add(other_interval).getInterval(), 10.75)
+        self.assertEqual(interval.subtract(other_interval).getInterval(), -9.75)
+        self.assertEqual(interval.compareTo(other_interval), 9)
+
+        decoded_time = time_factory.decodeLogicalTime(base.toByteArray())
+        decoded_interval = time_factory.decodeLogicalTimeInterval(
+            interval.toByteArray()
+        )
+        self.assertIsInstance(decoded_time, LogicalTime)
+        self.assertIsInstance(decoded_interval, LogicalTimeInterval)
+        self.assertEqual(decoded_time.getTime(), 200.0)
+        self.assertEqual(decoded_interval.getInterval(), 0.5)
+        self.assertEqual(decoded_time.implementationName(), "VendorChronon")
+        self.assertEqual(decoded_interval.implementationName(), "VendorChronon")
+
+        # This fixture's Java decoder intentionally consumes the first eight
+        # octets and permits a suffix.  Unknown providers own that policy; the
+        # adapter must not impose the reference implementation's exact width.
+        for encoded in (b"", b"\0" * 7):
+            with self.subTest(encoded_length=len(encoded)):
+                with self.assertRaises(CouldNotDecode):
+                    time_factory.decodeLogicalTime(encoded)
+                with self.assertRaises(CouldNotDecode):
+                    time_factory.decodeLogicalTimeInterval(encoded)
+
+        # The callback bridge uses the Java concrete class name when the
+        # standard interface has no implementation-name accessor.
+        callbacks = _RecordingFederateAmbassador()
+        callback = _FederateAmbassadorCallback(callbacks, runtime.handle_bytes)
+        callback.timeAdvanceGrant(_FakeJavaVendorTime(201.0))
+        delivered = callbacks.time_grants[-1]
+        self.assertIsInstance(delivered, LogicalTime)
+        self.assertNotIsInstance(delivered, (HLAinteger64Time, HLAfloat64Time))
+        self.assertEqual(delivered.implementationName(), "VendorChronon")
+        self.assertEqual(delivered.getTime(), 201.0)
+
+        # Query services must use the selected factory as well.  This catches
+        # the common adapter shortcut of constructing every query result as an
+        # HLAfloat64Time/HLAfloat64Interval when the raw Java carrier merely
+        # exposes a numeric accessor.
+        runtime.ambassador.current_time = _FakeJavaVendorTime(42.5)
+        runtime.ambassador.current_lookahead = _FakeJavaVendorInterval(0.75)
+        queried_time = ambassador.queryLogicalTime()
+        queried_lookahead = ambassador.queryLookahead()
+        self.assertIsInstance(queried_time, LogicalTime)
+        self.assertIsInstance(queried_lookahead, LogicalTimeInterval)
+        self.assertNotIsInstance(queried_time, (HLAinteger64Time, HLAfloat64Time))
+        self.assertNotIsInstance(
+            queried_lookahead, (HLAinteger64Interval, HLAfloat64Interval)
+        )
+        self.assertEqual(queried_time.implementationName(), "VendorChronon")
+        self.assertEqual(queried_lookahead.implementationName(), "VendorChronon")
+        self.assertEqual(queried_time.getTime(), 42.5)
+        self.assertEqual(queried_lookahead.getInterval(), 0.75)
+        for query in (ambassador.queryGALT(), ambassador.queryLITS()):
+            with self.subTest(query=query):
+                self.assertTrue(query.timeIsValid)
+                self.assertIsInstance(query.time, LogicalTime)
+                self.assertNotIsInstance(query.time, (HLAinteger64Time, HLAfloat64Time))
+                self.assertEqual(query.time.implementationName(), "VendorChronon")
+                self.assertEqual(query.time.getTime(), 42.5)
+
+    def test_java_provider_delegates_variable_width_vendor_time_wire(self) -> None:
+        """Unknown 2025 carrier widths are owned by the Java factory."""
+
+        runtime = _FakeJavaRuntime()
+        runtime.ambassador.time_factory = _FakeJavaWideVendorTimeFactory()
+        ambassador = JavaRtiFactory(
+            self.configuration, runtime=runtime
+        ).getRtiAmbassador()
+        time_factory = ambassador.getTimeFactory()
+        self.assertEqual(time_factory.implementationName(), "VendorChronon")
+
+        time_wire = b"CHRN" + struct.pack(">d", 12.25)
+        interval_wire = b"INTV" + struct.pack(">d", 0.75)
+        decoded_time = time_factory.decodeLogicalTime(time_wire)
+        decoded_interval = time_factory.decodeLogicalTimeInterval(interval_wire)
+        self.assertIsInstance(decoded_time, LogicalTime)
+        self.assertIsInstance(decoded_interval, LogicalTimeInterval)
+        self.assertNotIsInstance(decoded_time, (HLAinteger64Time, HLAfloat64Time))
+        self.assertNotIsInstance(
+            decoded_interval, (HLAinteger64Interval, HLAfloat64Interval)
+        )
+        self.assertEqual(decoded_time.getTime(), 12.25)
+        self.assertEqual(decoded_interval.getInterval(), 0.75)
+        self.assertEqual(decoded_time.toByteArray(), time_wire)
+        self.assertEqual(decoded_interval.toByteArray(), interval_wire)
+        self.assertEqual(decoded_time.implementationName(), "VendorChronon")
+        self.assertEqual(decoded_interval.implementationName(), "VendorChronon")
+
+        # The Python value façade must preserve a provider-owned width when it
+        # writes into a caller-owned offset window.  Keep sentinels on both
+        # sides so a transplant cannot accidentally normalize this carrier to
+        # the eight-octet reference shape or overwrite adjacent bytes.
+        for value, wire in (
+            (decoded_time, time_wire),
+            (decoded_interval, interval_wire),
+        ):
+            with self.subTest(offset_carrier=type(value).__name__):
+                destination = bytearray(b"\xaa" + wire + b"\xbb")
+                value.encode(destination, 1)
+                self.assertEqual(bytes(destination), b"\xaa" + wire + b"\xbb")
+
+        malformed_time = (
+            b"",
+            time_wire[:-1],
+            b"WRNG" + time_wire[4:],
+            time_wire + b"\x00",
+        )
+        malformed_interval = (
+            b"",
+            interval_wire[:-1],
+            b"WRNG" + interval_wire[4:],
+            interval_wire + b"\x00",
+        )
+        for encoded in malformed_time:
+            with self.subTest(carrier="time", length=len(encoded)):
+                with self.assertRaises(CouldNotDecode):
+                    time_factory.decodeLogicalTime(encoded)
+        for encoded in malformed_interval:
+            with self.subTest(carrier="interval", length=len(encoded)):
+                with self.assertRaises(CouldNotDecode):
+                    time_factory.decodeLogicalTimeInterval(encoded)
+
+        # A custom implementation need not expose getValue/getTime at all.
+        # The generic wrapper still has to preserve its bytes and Java class
+        # identity instead of treating the missing numeric value as malformed.
+        runtime.ambassador.time_factory = _FakeJavaOpaqueVendorTimeFactory()
+        opaque_factory = ambassador.getTimeFactory()
+        opaque_time_wire = b"OPAQ\x01\x02\x03\x04"
+        opaque_interval_wire = b"OPIN\x05\x06\x07\x08"
+        opaque_time = opaque_factory.decodeLogicalTime(opaque_time_wire)
+        opaque_interval = opaque_factory.decodeLogicalTimeInterval(opaque_interval_wire)
+        self.assertIsInstance(opaque_time, LogicalTime)
+        self.assertIsInstance(opaque_interval, LogicalTimeInterval)
+        self.assertIsNone(opaque_time.getTime())
+        self.assertIsNone(opaque_interval.getInterval())
+        self.assertEqual(opaque_time.toByteArray(), opaque_time_wire)
+        self.assertEqual(opaque_interval.toByteArray(), opaque_interval_wire)
+        self.assertEqual(opaque_time.implementationName(), "VendorOpaque")
+        self.assertEqual(opaque_interval.implementationName(), "VendorOpaque")
+
+        class SentinelOnlyFactory(_FakeJavaOpaqueVendorTimeFactory):
+            makeTime = None
+            makeInterval = None
+
+        runtime.ambassador.time_factory = SentinelOnlyFactory()
+        sentinel_factory = ambassador.getTimeFactory()
+        with self.assertRaises(NotImplementedError):
+            sentinel_factory.makeLogicalTime(1)
+        with self.assertRaises(NotImplementedError):
+            sentinel_factory.makeLogicalTimeInterval(1)
+
+    def test_java_provider_maps_vendor_arithmetic_failures(self) -> None:
+        """Preserve a provider's typed arithmetic failure at the Python edge."""
+
+        class FailingVendorTime(_FakeJavaVendorTime):
+            def add(self, addend: object) -> _FakeJavaVendorTime:
+                if not isinstance(addend, _FakeJavaVendorInterval):
+                    raise _FakeJavaError(
+                        "IllegalTimeArithmetic", "vendor time/interval mismatch"
+                    )
+                raise _FakeJavaError(
+                    "IllegalTimeArithmetic", "vendor arithmetic overflow"
+                )
+
+        class FailingVendorTimeFactory(_FakeJavaVendorTimeFactory):
+            def makeTime(self, value: object) -> FailingVendorTime:
+                return FailingVendorTime(float(value))
+
+        runtime = _FakeJavaRuntime()
+        runtime.ambassador.time_factory = FailingVendorTimeFactory()
+        ambassador = JavaRtiFactory(self.configuration, runtime=runtime).getRtiAmbassador()
+        time_factory = ambassador.getTimeFactory()
+        time = time_factory.makeLogicalTime(1.0)
+        interval = time_factory.makeLogicalTimeInterval(0.25)
+
+        with self.assertRaises(IllegalTimeArithmetic) as raised:
+            time.add(interval)
+        self.assertEqual(str(raised.exception), "vendor arithmetic overflow")
+
+    def test_java_callback_does_not_guess_vendor_time_from_class_substrings(self) -> None:
+        """A vendor class name containing HLA text remains provider-owned."""
+
+        class MisleadingVendorTime(_FakeJavaVendorTime):
+            def getClass(self) -> object:
+                return _FakeJavaClass("VendorHLAfloat64Time")
+
+        callbacks = _RecordingFederateAmbassador()
+        callback = _FederateAmbassadorCallback(callbacks, _FakeJavaRuntime().handle_bytes)
+        callback.timeAdvanceGrant(MisleadingVendorTime(3.5))
+        delivered = callbacks.time_grants[-1]
+        self.assertIsInstance(delivered, LogicalTime)
+        self.assertNotIsInstance(delivered, HLAfloat64Time)
+        self.assertEqual(delivered.implementationName(), "VendorHLAfloat64Time")
+        self.assertEqual(delivered.getTime(), 3.5)
+
+    def test_java_encoder_preserves_custom_2025_logical_time_data_elements(
+        self,
+    ) -> None:
+        """Exercise provider-owned time carriers through ``EncoderFactory``."""
+
+        runtime = _FakeJavaRuntime()
+        runtime.ambassador.time_factory = _FakeJavaVendorTimeFactory()
+        factory = JavaRtiFactory(self.configuration, runtime=runtime)
+        ambassador = factory.getRtiAmbassador()
+        encoder = factory.getEncoderFactory()
+        time_factory = ambassador.getTimeFactory()
+        time = time_factory.makeLogicalTime(42.5)
+        interval = time_factory.makeLogicalTimeInterval(0.75)
+
+        time_element = encoder.createHLAlogicalTime(ambassador, time)
+        interval_element = encoder.createHLAlogicalTimeInterval(ambassador, interval)
+        for element, expected, expected_bytes in (
+            (time_element, time, time.toByteArray()),
+            (interval_element, interval, interval.toByteArray()),
+        ):
+            with self.subTest(element=type(element).__name__):
+                value = element.getValue()
+                self.assertIsInstance(value, LogicalTime if element is time_element else LogicalTimeInterval)
+                self.assertNotIsInstance(
+                    value,
+                    (
+                        HLAinteger64Time,
+                        HLAfloat64Time,
+                        HLAinteger64Interval,
+                        HLAfloat64Interval,
+                    ),
+                )
+                self.assertEqual(value.implementationName(), "VendorChronon")
+                self.assertEqual(element.toByteArray(), expected_bytes)
+                if element is time_element:
+                    self.assertEqual(value.getTime(), expected.getTime())
+                else:
+                    self.assertEqual(value.getInterval(), expected.getInterval())
+
+        empty_time_element = encoder.createHLAlogicalTime(ambassador)
+        empty_interval_element = encoder.createHLAlogicalTimeInterval(ambassador)
+        empty_time_element.setValue(time)
+        empty_interval_element.setValue(interval)
+        self.assertEqual(empty_time_element.getValue().getTime(), 42.5)
+        self.assertEqual(empty_interval_element.getValue().getInterval(), 0.75)
+        self.assertEqual(empty_time_element.toByteArray(), time.toByteArray())
+        self.assertEqual(empty_interval_element.toByteArray(), interval.toByteArray())
+
+        foreign_time = HLAfloat64Time(
+            struct.pack(">d", 1.0), HLA_TYPES.FLOAT64_TIME, False, False, 1.0, "1.0"
+        )
+        with self.assertRaises(EncoderException):
+            encoder.createHLAlogicalTime(ambassador, foreign_time)
+
     def test_java_provider_adapts_region_values_and_ddm_lifecycle(self) -> None:
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED)
         ambassador.joinFederationExecution("observer", "Fake Federation")
-        dimension = ambassador.getDimensionHandle("SodaFlavor")
+        dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
         region = ambassador.createRegion(DimensionHandleSet([dimension]))
         self.assertIsInstance(region, RegionHandle)
-        self.assertEqual(ambassador.getDimensionHandleSet(region), DimensionHandleSet([dimension]))
+        self.assertEqual(
+            ambassador.getDimensionHandleSet(region), DimensionHandleSet([dimension])
+        )
         bounds = RangeBounds(1, 3)
         ambassador.setRangeBounds(region, dimension, bounds)
         queried = ambassador.getRangeBounds(region, dimension)
@@ -3235,14 +5013,22 @@ class JavaProviderTest(unittest.TestCase):
             setter(initial)
             self.assertEqual(getter(), initial)
         initial_resign = ambassador.getAutomaticResignDirective()
-        alternate_resign = next(action for action in ResignAction if action is not initial_resign)
+        alternate_resign = next(
+            action for action in ResignAction if action is not initial_resign
+        )
         ambassador.setAutomaticResignDirective(alternate_resign)
         self.assertEqual(ambassador.getAutomaticResignDirective(), alternate_resign)
         ambassador.setAutomaticResignDirective(initial_resign)
         self.assertEqual(ambassador.getAutomaticResignDirective(), initial_resign)
         for getter, setter in (
-            (ambassador.getServiceReportingSwitch, ambassador.setServiceReportingSwitch),
-            (ambassador.getExceptionReportingSwitch, ambassador.setExceptionReportingSwitch),
+            (
+                ambassador.getServiceReportingSwitch,
+                ambassador.setServiceReportingSwitch,
+            ),
+            (
+                ambassador.getExceptionReportingSwitch,
+                ambassador.setExceptionReportingSwitch,
+            ),
         ):
             initial = getter()
             setter(not initial)
@@ -3268,25 +5054,34 @@ class JavaProviderTest(unittest.TestCase):
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED)
         ambassador.joinFederationExecution("observer", "Fake Federation")
-        interaction = ambassador.getInteractionClassHandle(
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+        interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
+        parameter = ambassador.getParameterHandle(
+            interaction, HLA_FIXTURES.TEMPERATURE_OK
         )
-        parameter = ambassador.getParameterHandle(interaction, "TemperatureOk")
-        dimension = ambassador.getDimensionHandle("SodaFlavor")
+        dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
         region = ambassador.createRegion(DimensionHandleSet([dimension]))
         regions = RegionHandleSet([region])
-        ambassador.subscribeInteractionClassWithRegions(interaction, regions, active=False)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "subscribe_interaction_regions")
+        ambassador.subscribeInteractionClassWithRegions(
+            interaction, regions, active=False
+        )
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0],
+            "subscribe_interaction_regions",
+        )
         ambassador.sendInteractionWithRegions(
             interaction,
             ParameterHandleValueMap({parameter: b"regional"}),
             regions,
             b"regional-tag",
         )
-        self.assertEqual(self.runtime.ambassador.last_interaction[2], frozenset([region.encodedValue]))
+        self.assertEqual(
+            self.runtime.ambassador.last_interaction[2],
+            frozenset([region.encodedValue]),
+        )
         ambassador.unsubscribeInteractionClassWithRegions(interaction, regions)
         self.assertEqual(
-            self.runtime.ambassador.last_declaration_call[0], "unsubscribe_interaction_regions"
+            self.runtime.ambassador.last_declaration_call[0],
+            "unsubscribe_interaction_regions",
         )
         ambassador.disconnect()
 
@@ -3295,17 +5090,23 @@ class JavaProviderTest(unittest.TestCase):
         callbacks = _RecordingFederateAmbassador()
         ambassador.connect(callbacks, CallbackModel.HLA_EVOKED)
         ambassador.joinFederationExecution("observer", "Fake Federation")
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-        attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
-        dimension = ambassador.getDimensionHandle("ServerId")
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+        attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
+        dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
         region = ambassador.createRegion(DimensionHandleSet([dimension]))
         pairs = AttributeSetRegionSetPairList(
-            [AttributeSetRegionSetPair(AttributeHandleSet([attribute]), RegionHandleSet([region]))]
+            [
+                AttributeSetRegionSetPair(
+                    AttributeHandleSet([attribute]), RegionHandleSet([region])
+                )
+            ]
         )
         ambassador.subscribeObjectClassAttributesWithRegions(
             object_class, pairs, active=False, updateRateDesignator="High"
         )
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "subscribe_object_regions")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "subscribe_object_regions"
+        )
         instance = ambassador.registerObjectInstanceWithRegions(object_class, pairs)
         self.assertIsInstance(instance, ObjectInstanceHandle)
         self.runtime.ambassador.callback_proxy.provideAttributeValueUpdate(
@@ -3314,7 +5115,9 @@ class JavaProviderTest(unittest.TestCase):
             b"provided",
         )
         self.assertEqual(callbacks.attribute_value_requests[0][0], instance)
-        self.assertEqual(callbacks.attribute_value_requests[0][1], AttributeHandleSet([attribute]))
+        self.assertEqual(
+            callbacks.attribute_value_requests[0][1], AttributeHandleSet([attribute])
+        )
         self.assertEqual(callbacks.attribute_value_requests[0][2], b"provided")
         self.runtime.ambassador.callback_proxy.attributesInScope(
             instance.encodedValue, [attribute.encodedValue]
@@ -3328,24 +5131,44 @@ class JavaProviderTest(unittest.TestCase):
         self.runtime.ambassador.callback_proxy.turnUpdatesOffForObjectInstance(
             instance.encodedValue, [attribute.encodedValue]
         )
-        self.assertEqual(callbacks.scope_entries[-1], (instance, AttributeHandleSet([attribute])))
-        self.assertEqual(callbacks.scope_exits[-1], (instance, AttributeHandleSet([attribute])))
+        self.assertEqual(
+            callbacks.scope_entries[-1], (instance, AttributeHandleSet([attribute]))
+        )
+        self.assertEqual(
+            callbacks.scope_exits[-1], (instance, AttributeHandleSet([attribute]))
+        )
         self.assertEqual(callbacks.updates_on[-1][2], "High")
-        self.assertEqual(callbacks.updates_off[-1], (instance, AttributeHandleSet([attribute])))
-        ambassador.requestAttributeValueUpdate(object_class, AttributeHandleSet([attribute]), b"class-request")
-        self.assertEqual(self.runtime.ambassador.last_attribute_value_update_request[2], b"class-request")
-        ambassador.requestAttributeValueUpdate(instance, AttributeHandleSet([attribute]), b"instance-request")
-        self.assertEqual(self.runtime.ambassador.last_attribute_value_update_request[2], b"instance-request")
+        self.assertEqual(
+            callbacks.updates_off[-1], (instance, AttributeHandleSet([attribute]))
+        )
+        ambassador.requestAttributeValueUpdate(
+            object_class, AttributeHandleSet([attribute]), b"class-request"
+        )
+        self.assertEqual(
+            self.runtime.ambassador.last_attribute_value_update_request[2],
+            b"class-request",
+        )
+        ambassador.requestAttributeValueUpdate(
+            instance, AttributeHandleSet([attribute]), b"instance-request"
+        )
+        self.assertEqual(
+            self.runtime.ambassador.last_attribute_value_update_request[2],
+            b"instance-request",
+        )
         ambassador.associateRegionsForUpdates(instance, pairs)
         ambassador.unassociateRegionsForUpdates(instance, pairs)
-        ambassador.requestAttributeValueUpdateWithRegions(object_class, pairs, b"request")
-        transportation = ambassador.getTransportationTypeHandle("HLAreliable")
-        ambassador.changeAttributeOrderType(instance, AttributeHandleSet([attribute]), OrderType.TIMESTAMP)
+        ambassador.requestAttributeValueUpdateWithRegions(
+            object_class, pairs, b"request"
+        )
+        transportation = ambassador.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+        ambassador.changeAttributeOrderType(
+            instance, AttributeHandleSet([attribute]), OrderType.TIMESTAMP
+        )
         ambassador.changeDefaultAttributeOrderType(
             object_class, AttributeHandleSet([attribute]), OrderType.RECEIVE
         )
         ambassador.changeInteractionOrderType(
-            ambassador.getInteractionClassHandle("HLAinteractionRoot.CustomerTransactions"),
+            ambassador.getInteractionClassHandle(HLA_FOM.CUSTOMER_TRANSACTIONS),
             OrderType.RECEIVE,
         )
         ambassador.requestAttributeTransportationTypeChange(
@@ -3355,48 +5178,77 @@ class JavaProviderTest(unittest.TestCase):
             object_class, AttributeHandleSet([attribute]), transportation
         )
         ambassador.queryAttributeTransportationType(instance, attribute)
-        interaction = ambassador.getInteractionClassHandle("HLAinteractionRoot.CustomerTransactions")
+        interaction = ambassador.getInteractionClassHandle(
+            HLA_FOM.CUSTOMER_TRANSACTIONS
+        )
         federate = ambassador.getFederateHandle("mock-owner")
-        ambassador.requestInteractionTransportationTypeChange(interaction, transportation)
+        ambassador.requestInteractionTransportationTypeChange(
+            interaction, transportation
+        )
         ambassador.queryInteractionTransportationType(federate, interaction)
-        self.assertEqual(callbacks.attribute_transport_confirmations[-1][2], transportation)
+        self.assertEqual(
+            callbacks.attribute_transport_confirmations[-1][2], transportation
+        )
         self.assertEqual(callbacks.attribute_transport_reports[-1][2], transportation)
-        self.assertEqual(callbacks.interaction_transport_confirmations[-1][1], transportation)
+        self.assertEqual(
+            callbacks.interaction_transport_confirmations[-1][1], transportation
+        )
         self.assertEqual(callbacks.interaction_transport_reports[-1][0], federate)
         ambassador.unsubscribeObjectClassAttributesWithRegions(object_class, pairs)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unsubscribe_object_regions")
-        self.assertEqual(self.runtime.ambassador.last_regional_update_request[2], b"request")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0],
+            "unsubscribe_object_regions",
+        )
+        self.assertEqual(
+            self.runtime.ambassador.last_regional_update_request[2], b"request"
+        )
         ambassador.disconnect()
 
     def test_java_provider_forwards_ownership_query_and_status(self) -> None:
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(FederateAmbassador(), CallbackModel.HLA_EVOKED)
         ambassador.joinFederationExecution("observer", "Fake Federation")
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-        attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+        attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
         instance = ambassador.registerObjectInstance(object_class)
         ambassador.queryAttributeOwnership(instance, AttributeHandleSet([attribute]))
-        self.assertEqual(self.runtime.ambassador.last_ownership_query[1], {attribute.encodedValue})
+        self.assertEqual(
+            self.runtime.ambassador.last_ownership_query[1], {attribute.encodedValue}
+        )
         self.assertTrue(ambassador.isAttributeOwnedByFederate(instance, attribute))
-        self.assertEqual(self.runtime.ambassador.last_ownership_check[1], attribute.encodedValue)
-        ambassador.unconditionalAttributeOwnershipDivestiture(instance, AttributeHandleSet([attribute]), b"divest")
+        self.assertEqual(
+            self.runtime.ambassador.last_ownership_check[1], attribute.encodedValue
+        )
+        ambassador.unconditionalAttributeOwnershipDivestiture(
+            instance, AttributeHandleSet([attribute]), b"divest"
+        )
         self.assertEqual(self.runtime.ambassador.last_ownership_service[0], "divest")
-        ambassador.attributeOwnershipAcquisition(instance, AttributeHandleSet([attribute]), b"acquire")
+        ambassador.attributeOwnershipAcquisition(
+            instance, AttributeHandleSet([attribute]), b"acquire"
+        )
         self.assertEqual(self.runtime.ambassador.last_ownership_service[0], "acquire")
         ambassador.attributeOwnershipAcquisitionIfAvailable(
             instance, AttributeHandleSet([attribute]), b"available"
         )
-        self.assertEqual(self.runtime.ambassador.last_ownership_service[0], "acquire_if_available")
-        ambassador.cancelAttributeOwnershipAcquisition(instance, AttributeHandleSet([attribute]))
+        self.assertEqual(
+            self.runtime.ambassador.last_ownership_service[0], "acquire_if_available"
+        )
+        ambassador.cancelAttributeOwnershipAcquisition(
+            instance, AttributeHandleSet([attribute])
+        )
         self.assertEqual(self.runtime.ambassador.last_ownership_service[0], "cancel")
         ambassador.negotiatedAttributeOwnershipDivestiture(
             instance, AttributeHandleSet([attribute]), b"negotiated"
         )
-        ambassador.confirmDivestiture(instance, AttributeHandleSet([attribute]), b"confirm")
+        ambassador.confirmDivestiture(
+            instance, AttributeHandleSet([attribute]), b"confirm"
+        )
         ambassador.cancelNegotiatedAttributeOwnershipDivestiture(
             instance, AttributeHandleSet([attribute])
         )
-        ambassador.attributeOwnershipReleaseDenied(instance, AttributeHandleSet([attribute]), b"denied")
+        ambassador.attributeOwnershipReleaseDenied(
+            instance, AttributeHandleSet([attribute]), b"denied"
+        )
         self.assertEqual(
             ambassador.attributeOwnershipDivestitureIfWanted(
                 instance, AttributeHandleSet([attribute]), b"wanted"
@@ -3440,19 +5292,21 @@ class JavaProviderTest(unittest.TestCase):
         self.assertTrue(self.runtime.ambassador.restore_aborted)
         ambassador.disconnect()
 
-    def test_java_provider_rebuilds_typed_handles_through_the_standard_factories(self) -> None:
+    def test_java_provider_rebuilds_typed_handles_through_the_standard_factories(
+        self,
+    ) -> None:
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(_RecordingFederateAmbassador(), CallbackModel.HLA_EVOKED)
 
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-        attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
-        interaction = ambassador.getInteractionClassHandle(
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+        attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
+        interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
+        directed = ambassador.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
+        parameter = ambassador.getParameterHandle(
+            interaction, HLA_FIXTURES.TEMPERATURE_OK
         )
-        directed = ambassador.getInteractionClassHandle("HLAinteractionRoot.ServerAction.TakeOrder")
-        parameter = ambassador.getParameterHandle(interaction, "TemperatureOk")
-        transportation = ambassador.getTransportationTypeHandle("HLAreliable")
-        dimension = ambassador.getDimensionHandle("ServerId")
+        transportation = ambassador.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+        dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
 
         self.assertIsInstance(object_class, ObjectClassHandle)
         self.assertIsInstance(attribute, AttributeHandle)
@@ -3460,15 +5314,25 @@ class JavaProviderTest(unittest.TestCase):
         self.assertIsInstance(parameter, ParameterHandle)
         self.assertIsInstance(transportation, TransportationTypeHandle)
         self.assertIsInstance(dimension, DimensionHandle)
-        self.assertEqual(ambassador.getObjectClassName(object_class), "HLAobjectRoot.Employee.Server")
-        self.assertEqual(ambassador.getAttributeName(object_class, attribute), "Efficiency")
+        self.assertEqual(
+            ambassador.getObjectClassName(object_class), HLA_FOM.EMPLOYEE_SERVER
+        )
+        self.assertEqual(
+            ambassador.getAttributeName(object_class, attribute),
+            HLA_FIXTURES.EFFICIENCY,
+        )
         self.assertEqual(
             ambassador.getInteractionClassName(interaction),
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
+            HLA_FOM.MAIN_COURSE_SERVED,
         )
-        self.assertEqual(ambassador.getParameterName(interaction, parameter), "TemperatureOk")
-        self.assertEqual(ambassador.getTransportationTypeName(transportation), "HLAreliable")
-        self.assertEqual(ambassador.getDimensionName(dimension), "ServerId")
+        self.assertEqual(
+            ambassador.getParameterName(interaction, parameter),
+            HLA_FIXTURES.TEMPERATURE_OK,
+        )
+        self.assertEqual(
+            ambassador.getTransportationTypeName(transportation), HLA_MOM.RELIABLE
+        )
+        self.assertEqual(ambassador.getDimensionName(dimension), HLA_FIXTURES.SERVER_ID)
         with self.assertRaises(TypeError):
             ambassador.getObjectClassName(attribute)  # type: ignore[arg-type]
         ambassador.disconnect()
@@ -3479,18 +5343,20 @@ class JavaProviderTest(unittest.TestCase):
         ambassador.joinFederationExecution("observer", "Fake Federation")
         federate = ambassador.getFederateHandle("observer")
         self.assertEqual(ambassador.getFederateName(federate), "observer")
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-        interaction = ambassador.getInteractionClassHandle(
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
-        )
-        attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+        interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
+        attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
         instance = ambassador.registerObjectInstance(object_class)
         self.assertEqual(
             ambassador.getKnownObjectClassHandle(instance),
             ObjectClassHandle(b"object:HLAobjectRoot.Employee.Server"),
         )
-        self.assertEqual(ambassador.getUpdateRateValue("HLAdefaultUpdateRate"), 1.0)
-        self.assertEqual(ambassador.getUpdateRateValueForAttribute(instance, attribute), 1.0)
+        self.assertEqual(
+            ambassador.getUpdateRateValue(HLA_MOM.DEFAULT_UPDATE_RATE), 1.0
+        )
+        self.assertEqual(
+            ambassador.getUpdateRateValueForAttribute(instance, attribute), 1.0
+        )
         self.assertEqual(ambassador.getOrderType("Receive"), OrderType.RECEIVE)
         self.assertEqual(ambassador.getOrderName(OrderType.TIMESTAMP), "TimeStamp")
         self.assertEqual(
@@ -3505,7 +5371,9 @@ class JavaProviderTest(unittest.TestCase):
             ambassador.getDimensionUpperBound(DimensionHandle(b"dimension:SodaFlavor")),
             100,
         )
-        self.assertEqual(ambassador.normalizeServiceGroup(ServiceGroup.OBJECT_MANAGEMENT), 2)
+        self.assertEqual(
+            ambassador.normalizeServiceGroup(ServiceGroup.OBJECT_MANAGEMENT), 2
+        )
         self.assertEqual(ambassador.normalizeFederateHandle(federate), 1)
         self.assertEqual(ambassador.normalizeObjectClassHandle(object_class), 2)
         self.assertEqual(ambassador.normalizeInteractionClassHandle(interaction), 3)
@@ -3516,19 +5384,25 @@ class JavaProviderTest(unittest.TestCase):
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(_RecordingFederateAmbassador(), CallbackModel.HLA_EVOKED)
         ambassador.joinFederationExecution("observer", "Fake Federation")
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-        attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+        attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
         region = ambassador.createRegion(
             DimensionHandleSet([DimensionHandle(b"dimension:SodaFlavor")])
         )
         region_pairs = AttributeSetRegionSetPairList(
-            [AttributeSetRegionSetPair(AttributeHandleSet([attribute]), RegionHandleSet([region]))]
+            [
+                AttributeSetRegionSetPair(
+                    AttributeHandleSet([attribute]), RegionHandleSet([region])
+                )
+            ]
         )
-        instance = ambassador.registerObjectInstanceWithRegions(object_class, region_pairs)
-        interaction = ambassador.getInteractionClassHandle(
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+        instance = ambassador.registerObjectInstanceWithRegions(
+            object_class, region_pairs
         )
-        parameter = ambassador.getParameterHandle(interaction, "TemperatureOk")
+        interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
+        parameter = ambassador.getParameterHandle(
+            interaction, HLA_FIXTURES.TEMPERATURE_OK
+        )
         time = ambassador.getTimeFactory().makeLogicalTime(7)
         update = ambassador.updateAttributeValuesWithTime(
             instance,
@@ -3549,7 +5423,9 @@ class JavaProviderTest(unittest.TestCase):
             time,
             b"regional-tag",
         )
-        deletion = ambassador.deleteObjectInstanceWithTime(instance, time, b"delete-tag")
+        deletion = ambassador.deleteObjectInstanceWithTime(
+            instance, time, b"delete-tag"
+        )
         for retraction in (update, interaction_retraction, regional, deletion):
             self.assertIsInstance(retraction, MessageRetractionHandle)
             self.assertTrue(retraction.isValid())
@@ -3564,15 +5440,17 @@ class JavaProviderTest(unittest.TestCase):
     def test_java_provider_adapts_basic_declaration_services(self) -> None:
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(_RecordingFederateAmbassador(), CallbackModel.HLA_EVOKED)
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-        attributes = AttributeHandleSet([ambassador.getAttributeHandle(object_class, "Efficiency")])
-        interaction = ambassador.getInteractionClassHandle(
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+        attributes = AttributeHandleSet(
+            [ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)]
         )
-        directed = ambassador.getInteractionClassHandle("HLAinteractionRoot.ServerAction.TakeOrder")
+        interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
+        directed = ambassador.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
 
         ambassador.publishObjectClassAttributes(object_class, attributes)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "publish_object")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "publish_object"
+        )
         ambassador.subscribeObjectClassAttributes(
             object_class, attributes, active=False, updateRateDesignator="slow"
         )
@@ -3582,32 +5460,62 @@ class JavaProviderTest(unittest.TestCase):
             ("subscribe_object", False, "slow"),
         )
         ambassador.unpublishObjectClassAttributes(object_class, attributes)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unpublish_object_attributes")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0],
+            "unpublish_object_attributes",
+        )
         ambassador.unsubscribeObjectClassAttributes(object_class, attributes)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unsubscribe_object_attributes")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0],
+            "unsubscribe_object_attributes",
+        )
         ambassador.unpublishObjectClass(object_class)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unpublish_object")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "unpublish_object"
+        )
         ambassador.unsubscribeObjectClass(object_class)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unsubscribe_object")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "unsubscribe_object"
+        )
         directed_set = InteractionClassHandleSet([directed])
         ambassador.publishObjectClassDirectedInteractions(object_class, directed_set)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "publish_object_directed")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "publish_object_directed"
+        )
         ambassador.subscribeObjectClassDirectedInteractions(
             object_class, directed_set, universally=True
         )
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "subscribe_object_directed")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0],
+            "subscribe_object_directed",
+        )
         ambassador.unpublishObjectClassDirectedInteractions(object_class, directed_set)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unpublish_object_directed")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0],
+            "unpublish_object_directed",
+        )
         ambassador.unsubscribeObjectClassDirectedInteractions(object_class)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unsubscribe_object_directed")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0],
+            "unsubscribe_object_directed",
+        )
         ambassador.publishInteractionClass(interaction)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "publish_interaction")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "publish_interaction"
+        )
         ambassador.subscribeInteractionClass(interaction, active=False)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call, ("subscribe_interaction", interaction.encodedValue, False))
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call,
+            ("subscribe_interaction", interaction.encodedValue, False),
+        )
         ambassador.unpublishInteractionClass(interaction)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unpublish_interaction")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "unpublish_interaction"
+        )
         ambassador.unsubscribeInteractionClass(interaction)
-        self.assertEqual(self.runtime.ambassador.last_declaration_call[0], "unsubscribe_interaction")
+        self.assertEqual(
+            self.runtime.ambassador.last_declaration_call[0], "unsubscribe_interaction"
+        )
         with self.assertRaises(TypeError):
             ambassador.publishObjectClassAttributes(object_class, frozenset())  # type: ignore[arg-type]
         ambassador.disconnect()
@@ -3615,7 +5523,7 @@ class JavaProviderTest(unittest.TestCase):
     def test_java_provider_adapts_named_and_generated_object_registration(self) -> None:
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(_RecordingFederateAmbassador(), CallbackModel.HLA_EVOKED)
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
         ambassador.reserveObjectInstanceName("named-server")
         named = ambassador.registerObjectInstance(
             object_class, objectInstanceName="named-server"
@@ -3628,7 +5536,9 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(ambassador.getObjectInstanceHandle("named-server"), named)
         self.assertEqual(ambassador.getObjectInstanceName(generated), "generated-2")
         ambassador.localDeleteObjectInstance(generated)
-        self.assertEqual(self.runtime.ambassador.last_local_delete, generated.encodedValue)
+        self.assertEqual(
+            self.runtime.ambassador.last_local_delete, generated.encodedValue
+        )
         ambassador.deleteObjectInstance(named, b"\x00deleted\xff")
         self.assertEqual(
             self.runtime.ambassador.last_object_instance_deletion,
@@ -3637,7 +5547,11 @@ class JavaProviderTest(unittest.TestCase):
         ambassador.updateAttributeValues(
             generated,
             AttributeHandleValueMap(
-                {ambassador.getAttributeHandle(object_class, "Efficiency"): b"updated"}
+                {
+                    ambassador.getAttributeHandle(
+                        object_class, HLA_FIXTURES.EFFICIENCY
+                    ): b"updated"
+                }
             ),
             b"update-tag",
         )
@@ -3649,13 +5563,15 @@ class JavaProviderTest(unittest.TestCase):
                 b"update-tag",
             ),
         )
-        interaction = ambassador.getInteractionClassHandle(
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
-        )
+        interaction = ambassador.getInteractionClassHandle(HLA_FOM.MAIN_COURSE_SERVED)
         ambassador.sendInteraction(
             interaction,
             ParameterHandleValueMap(
-                {ambassador.getParameterHandle(interaction, "TemperatureOk"): b"served"}
+                {
+                    ambassador.getParameterHandle(
+                        interaction, HLA_FIXTURES.TEMPERATURE_OK
+                    ): b"served"
+                }
             ),
             b"interaction-tag",
         )
@@ -3669,20 +5585,26 @@ class JavaProviderTest(unittest.TestCase):
                 b"interaction-tag",
             ),
         )
-        directed = ambassador.getInteractionClassHandle("HLAinteractionRoot.ServerAction.TakeOrder")
+        directed = ambassador.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
         callbacks = _RecordingFederateAmbassador()
         ambassador.disconnect()
         ambassador = self.factory.getRtiAmbassador()
         ambassador.connect(callbacks, CallbackModel.HLA_IMMEDIATE)
         batch_names = ObjectInstanceNameSet(["batch-one", "batch-two"])
         ambassador.reserveMultipleObjectInstanceNames(batch_names)
-        self.assertEqual(self.runtime.ambassador.last_name_batch, frozenset(batch_names))
+        self.assertEqual(
+            self.runtime.ambassador.last_name_batch, frozenset(batch_names)
+        )
         self.assertEqual(callbacks.name_batch_successes[-1], batch_names)
         ambassador.releaseMultipleObjectInstanceNames(batch_names)
-        self.assertEqual(self.runtime.ambassador.last_released_name_batch, frozenset(batch_names))
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
+        self.assertEqual(
+            self.runtime.ambassador.last_released_name_batch, frozenset(batch_names)
+        )
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
         instance = ambassador.registerObjectInstance(object_class)
-        ambassador.sendDirectedInteraction(directed, instance, ParameterHandleValueMap(), b"directed")
+        ambassador.sendDirectedInteraction(
+            directed, instance, ParameterHandleValueMap(), b"directed"
+        )
         self.assertEqual(callbacks.directed_interactions[-1][0], directed)
         self.assertEqual(callbacks.directed_interactions[-1][1], instance)
         directed_retraction = ambassador.sendDirectedInteractionWithTime(
@@ -3730,7 +5652,7 @@ class JavaProviderTest(unittest.TestCase):
         unicode_char = encoder.createHLAunicodeChar(0x03A9)
         pair_be = encoder.createHLAoctetPairBE(0x1234)
         pair_le = encoder.createHLAoctetPairLE(0x1234)
-        opaque = encoder.createHLAopaqueData(b"\x00\xA5\xFF")
+        opaque = encoder.createHLAopaqueData(b"\x00\xa5\xff")
 
         self.assertEqual(integer.toByteArray(), b"\xff\xff\xff\xfe")
         self.assertEqual(unsigned.toByteArray(), b"\x124\xab\xcd")
@@ -3767,12 +5689,12 @@ class JavaProviderTest(unittest.TestCase):
         self.assertIs(pair_le.decode(b"\xab\xcd"), pair_le)
         self.assertEqual(pair_le.getValue(), 0xCDAB)
         self.assertIsInstance(opaque, HLAopaqueData)
-        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xA5\xFF")
+        self.assertEqual(opaque.toByteArray(), b"\x00\x00\x00\x03\x00\xa5\xff")
         self.assertEqual(opaque.getOctetBoundary(), 4)
         self.assertEqual(opaque.getEncodedLength(), 7)
         self.assertEqual(opaque.size(), 3)
         self.assertEqual([opaque.get(index) for index in range(3)], [0, 0xA5, 0xFF])
-        self.assertEqual(opaque.getValue(), b"\x00\xA5\xFF")
+        self.assertEqual(opaque.getValue(), b"\x00\xa5\xff")
         self.assertIs(opaque.decode(b"\x00\x00\x00\x02OK"), opaque)
         self.assertEqual(opaque.getValue(), b"OK")
         source = bytearray(b"copy")
@@ -3798,11 +5720,16 @@ class JavaProviderTest(unittest.TestCase):
         decoded_array = encoder.createHLAvariableArray(integer_factory)
         decoded_array.decode(variable_array.toByteArray())
         self.assertIsInstance(variable_array, HLAvariableArray)
-        self.assertEqual(variable_array.toByteArray(), b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe")
+        self.assertEqual(
+            variable_array.toByteArray(),
+            b"\x00\x00\x00\x02\x00\x00\x00\x01\xff\xff\xff\xfe",
+        )
         self.assertEqual(variable_array.getOctetBoundary(), 4)
         self.assertEqual(variable_array.size(), 2)
         self.assertEqual([element.getValue() for element in variable_array], [1, -2])
-        self.assertEqual([decoded_array.get(index).getValue() for index in range(2)], [1, -2])
+        self.assertEqual(
+            [decoded_array.get(index).getValue() for index in range(2)], [1, -2]
+        )
         with self.assertRaises(EncoderException):
             variable_array.addElement(encoder.createHLAoctet(1))
         with self.assertRaises(IndexError):
@@ -3824,7 +5751,9 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(fixed_array.toByteArray(), b"\x00\x00\x00\x01\xff\xff\xff\xfe")
         self.assertEqual(fixed_array.size(), 2)
         self.assertEqual([element.getValue() for element in fixed_array], [1, -2])
-        self.assertEqual([decoded_fixed.get(index).getValue() for index in range(2)], [1, -2])
+        self.assertEqual(
+            [decoded_fixed.get(index).getValue() for index in range(2)], [1, -2]
+        )
         ascii_factory = type(
             "_AsciiStringFactory",
             (DataElementFactory,),
@@ -3860,13 +5789,15 @@ class JavaProviderTest(unittest.TestCase):
         first.setValue(99)
         middle.setValue(0x11)
         last.setValue(7)
-        record_bytes = b"\x10\x20\x30\x40\xA5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
+        record_bytes = b"\x10\x20\x30\x40\xa5" + b"\0\0\0" + b"\xff\xff\xff\xfe"
         self.assertIsInstance(record, HLAfixedRecord)
         self.assertEqual(record.toByteArray(), record_bytes)
         self.assertEqual(record.getEncodedLength(), len(record_bytes))
         self.assertEqual(record.getOctetBoundary(), 4)
         self.assertEqual(record.size(), 3)
-        self.assertEqual([element.getValue() for element in record], [0x10203040, 0xA5, -2])
+        self.assertEqual(
+            [element.getValue() for element in record], [0x10203040, 0xA5, -2]
+        )
         decoded_record = encoder.createHLAfixedRecord()
         decoded_record.appendElement(encoder.createHLAinteger32BE())
         decoded_record.appendElement(encoder.createHLAoctet())
@@ -3879,7 +5810,7 @@ class JavaProviderTest(unittest.TestCase):
         record.set(1, encoder.createHLAoctet(0x5A))
         self.assertEqual(
             record.toByteArray(),
-            b"\x10\x20\x30\x40\x5A" + b"\0\0\0" + b"\xff\xff\xff\xfe",
+            b"\x10\x20\x30\x40\x5a" + b"\0\0\0" + b"\xff\xff\xff\xfe",
         )
         with self.assertRaises(EncoderException):
             record.set(1, encoder.createHLAinteger32BE(1))
@@ -3898,7 +5829,7 @@ class JavaProviderTest(unittest.TestCase):
         outer.appendElement(nested)
         outer.appendElement(encoder.createHLAinteger32BE(-2))
         nested.set(0, encoder.createHLAinteger32BE(99))
-        nested_bytes = b"\x01\x02\x03\x04\xA5"
+        nested_bytes = b"\x01\x02\x03\x04\xa5"
         outer_bytes = nested_bytes + b"\0\0\0" + b"\xff\xff\xff\xfe"
         self.assertIsInstance(outer.get(0), HLAfixedRecord)
         self.assertEqual(outer.toByteArray(), outer_bytes)
@@ -3927,7 +5858,9 @@ class JavaProviderTest(unittest.TestCase):
         decoded_array_outer.appendElement(decoded_nested_array)
         decoded_array_outer.appendElement(encoder.createHLAinteger32BE())
         decoded_array_outer.decode(array_outer_bytes)
-        self.assertEqual([decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(
+            [decoded_array_outer.get(0).get(i).getValue() for i in range(2)], [11, -12]
+        )
         self.assertEqual(decoded_array_outer.get(1).getValue(), -2)
         nested_variable_factory = type(
             "_NestedIntegerFactory",
@@ -3946,12 +5879,17 @@ class JavaProviderTest(unittest.TestCase):
         self.assertIsInstance(variable_outer.get(0), HLAvariableArray)
         self.assertEqual(variable_outer.toByteArray(), variable_outer_bytes)
         decoded_variable_outer = encoder.createHLAfixedRecord()
-        decoded_nested_variable = encoder.createHLAvariableArray(nested_variable_factory)
+        decoded_nested_variable = encoder.createHLAvariableArray(
+            nested_variable_factory
+        )
         decoded_variable_outer.appendElement(decoded_nested_variable)
         decoded_variable_outer.appendElement(encoder.createHLAinteger32BE())
         decoded_variable_outer.decode(variable_outer_bytes)
         self.assertEqual(decoded_variable_outer.get(0).size(), 2)
-        self.assertEqual([decoded_variable_outer.get(0).get(i).getValue() for i in range(2)], [11, -12])
+        self.assertEqual(
+            [decoded_variable_outer.get(0).get(i).getValue() for i in range(2)],
+            [11, -12],
+        )
         self.assertEqual(decoded_variable_outer.get(1).getValue(), -2)
         nested_variant_value = encoder.createHLAfixedRecord()
         nested_variant_value.appendElement(encoder.createHLAinteger32BE(0x01020304))
@@ -3959,33 +5897,47 @@ class JavaProviderTest(unittest.TestCase):
         nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
         nested_variant.setVariant(encoder.createHLAoctet(3), nested_variant_value)
         nested_variant_value.set(0, encoder.createHLAinteger32BE(99))
-        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xA5"
+        nested_variant_bytes = b"\x03\0\0\0\x01\x02\x03\x04\xa5"
         self.assertIsInstance(nested_variant.getValue(), HLAfixedRecord)
         self.assertEqual(nested_variant.toByteArray(), nested_variant_bytes)
-        decoded_nested_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
+        decoded_nested_variant = encoder.createHLAvariantRecord(
+            encoder.createHLAoctet()
+        )
         decoded_nested_variant_value = encoder.createHLAfixedRecord()
         decoded_nested_variant_value.appendElement(encoder.createHLAinteger32BE())
         decoded_nested_variant_value.appendElement(encoder.createHLAoctet())
-        decoded_nested_variant.setVariant(encoder.createHLAoctet(3), decoded_nested_variant_value)
+        decoded_nested_variant.setVariant(
+            encoder.createHLAoctet(3), decoded_nested_variant_value
+        )
         decoded_nested_variant.decode(nested_variant_bytes)
-        self.assertEqual(decoded_nested_variant.getValue().get(0).getValue(), 0x01020304)
+        self.assertEqual(
+            decoded_nested_variant.getValue().get(0).getValue(), 0x01020304
+        )
         composite_discriminant = encoder.createHLAfixedRecord()
         composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
         composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
         composite_variant = encoder.createHLAvariantRecord(composite_discriminant)
-        composite_variant.setVariant(composite_discriminant, encoder.createHLAinteger32BE(7))
+        composite_variant.setVariant(
+            composite_discriminant, encoder.createHLAinteger32BE(7)
+        )
         composite_discriminant.set(0, encoder.createHLAinteger32BE(99))
-        composite_variant_bytes = b"\x01\x02\x03\x04\xA5" + b"\0\0\0" + b"\0\0\0\x07"
+        composite_variant_bytes = b"\x01\x02\x03\x04\xa5" + b"\0\0\0" + b"\0\0\0\x07"
         self.assertIsInstance(composite_variant.getDiscriminant(), HLAfixedRecord)
         self.assertEqual(composite_variant.toByteArray(), composite_variant_bytes)
         decoded_composite_discriminant = encoder.createHLAfixedRecord()
         decoded_composite_discriminant.appendElement(encoder.createHLAinteger32BE())
         decoded_composite_discriminant.appendElement(encoder.createHLAoctet())
-        decoded_composite_variant = encoder.createHLAvariantRecord(decoded_composite_discriminant)
+        decoded_composite_variant = encoder.createHLAvariantRecord(
+            decoded_composite_discriminant
+        )
         mapped_composite_discriminant = encoder.createHLAfixedRecord()
-        mapped_composite_discriminant.appendElement(encoder.createHLAinteger32BE(0x01020304))
+        mapped_composite_discriminant.appendElement(
+            encoder.createHLAinteger32BE(0x01020304)
+        )
         mapped_composite_discriminant.appendElement(encoder.createHLAoctet(0xA5))
-        decoded_composite_variant.setVariant(mapped_composite_discriminant, encoder.createHLAinteger32BE())
+        decoded_composite_variant.setVariant(
+            mapped_composite_discriminant, encoder.createHLAinteger32BE()
+        )
         decoded_composite_variant.decode(composite_variant_bytes)
         self.assertEqual(decoded_composite_variant.getValue().getValue(), 7)
         variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
@@ -4012,8 +5964,12 @@ class JavaProviderTest(unittest.TestCase):
         self.assertIsNone(variant.getValue())
         self.assertEqual(variant.toByteArray(), b"\x03")
         decoded_variant = encoder.createHLAvariantRecord(encoder.createHLAoctet())
-        decoded_variant.setVariant(encoder.createHLAoctet(1), encoder.createHLAinteger32BE())
-        decoded_variant.setVariant(encoder.createHLAoctet(2), encoder.createHLAASCIIstring())
+        decoded_variant.setVariant(
+            encoder.createHLAoctet(1), encoder.createHLAinteger32BE()
+        )
+        decoded_variant.setVariant(
+            encoder.createHLAoctet(2), encoder.createHLAASCIIstring()
+        )
         decoded_variant.decode(variant_two_bytes)
         self.assertEqual(decoded_variant.getValue().getValue(), "A")  # type: ignore[union-attr]
         bad_variant_padding = bytearray(variant_two_bytes)
@@ -4079,11 +6035,17 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(integer64.getValue(), 0x0102030405060708)
         self.assertEqual(integer64le.toByteArray(), struct.pack("<q", -0x123456789AB))
         self.assertEqual(integer64le.getOctetBoundary(), 8)
-        self.assertEqual(unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210))
+        self.assertEqual(
+            unsigned64.toByteArray(), struct.pack(">Q", 0xFEDCBA9876543210)
+        )
         self.assertEqual(unsigned64.getValue(), 0xFEDCBA9876543210)
-        self.assertIs(unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64)
+        self.assertIs(
+            unsigned64.decode(b"\xff\xff\xff\xff\xff\xff\xff\xff"), unsigned64
+        )
         self.assertEqual(unsigned64.getValue(), 0xFFFFFFFFFFFFFFFF)
-        self.assertEqual(unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210))
+        self.assertEqual(
+            unsigned64le.toByteArray(), struct.pack("<Q", 0xFEDCBA9876543210)
+        )
         self.assertEqual(unsigned64le.getValue(), 0xFEDCBA9876543210)
         with self.assertRaises(TypeError):
             encoder.createHLAinteger16BE(True)  # type: ignore[arg-type]
@@ -4142,12 +6104,87 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(unicode.getValue(), "reset")
 
         self.assertIs(self.factory.unwrap_java_factory(), self.runtime.factory)
-        self.assertIs(self.factory.unwrap_java_encoder_factory(), self.runtime.factory.encoder_factory)
+        self.assertIs(
+            self.factory.unwrap_java_encoder_factory(),
+            self.runtime.factory.encoder_factory,
+        )
 
-    def test_environment_configuration_does_not_reuse_the_standard_factory_name(self) -> None:
+    def test_python_encode_preflights_undersized_foreign_cursor(self) -> None:
+        """Reject a short destination before entering a foreign provider.
+
+        Some JNI providers do not return a typed Java exception for an
+        undersized ``ByteWrapper``.  The Python façade therefore owns this
+        deterministic check; a tracking implementation proves that the raw
+        ``encode`` method is never called after the capacity check fails.
+        """
+
+        class TrackingImplementation:
+            def __init__(self) -> None:
+                self.encode_calls = 0
+
+            def getEncodedLength(self) -> int:
+                return 4
+
+            def toByteArray(self) -> bytes:
+                return b"wire"
+
+            def encode(self, _destination: object) -> None:
+                self.encode_calls += 1
+                raise AssertionError("undersized encode entered the foreign provider")
+
+        class ShortCursor:
+            def remaining(self) -> int:
+                return 3
+
+        implementation = TrackingImplementation()
+        element = _JavaDataElement(implementation, self.runtime)
+        with self.assertRaises(EncoderException):
+            element.encode(ShortCursor())
+        self.assertEqual(implementation.encode_calls, 0)
+
+    def test_java_basic_data_element_value_matrix_round_trips_through_facade(
+        self,
+    ) -> None:
+        """Keep the fake Java provider on the same 2025 value contract."""
+        encoder = self.factory.getEncoderFactory()
+        byte_kinds = {"HLAbyte", "HLAoctet", "HLAASCIIchar"}
+        short_kinds = {"HLAunicodeChar", "HLAoctetPairBE", "HLAoctetPairLE"}
+        for vector in iter_data_element_value_matrix("2025"):
+            with self.subTest(case=vector.case_id):
+                method = getattr(encoder, "create" + vector.kind)
+                element = method(vector.value)
+                encoded = bytes(element.toByteArray())
+                decoded = method()
+                decoded.decode(encoded)
+                self.assertEqual(bytes(decoded.toByteArray()), encoded)
+                actual = decoded.getValue()
+                if vector.kind in byte_kinds:
+                    self.assertEqual(int(actual) & 0xFF, int(vector.value) & 0xFF)
+                elif vector.kind in short_kinds:
+                    self.assertEqual(int(actual) & 0xFFFF, int(vector.value) & 0xFFFF)
+                elif vector.kind.startswith("HLAfloat32"):
+                    self.assertEqual(
+                        struct.pack(">f", float(actual)),
+                        struct.pack(">f", float(vector.value)),
+                    )
+                elif vector.kind.startswith("HLAfloat64"):
+                    self.assertEqual(
+                        struct.pack(">d", float(actual)),
+                        struct.pack(">d", float(vector.value)),
+                    )
+                elif vector.kind == "HLAopaqueData":
+                    self.assertEqual(bytes(actual), bytes(vector.value))
+                else:
+                    self.assertEqual(actual, vector.value)
+
+    def test_environment_configuration_does_not_reuse_the_standard_factory_name(
+        self,
+    ) -> None:
         configuration = JavaProviderConfiguration.from_environment(
             {
-                "UMBRA_JAVA_RTI_CLASSPATH": os.pathsep.join(("first.jar", "second.jar")),
+                "UMBRA_JAVA_RTI_CLASSPATH": os.pathsep.join(
+                    ("first.jar", "second.jar")
+                ),
                 "UMBRA_JAVA_RTI_FACTORY_NAME": "Vendor RTI",
                 "UMBRA_JAVA_RTI_JVM_PATH": "java.dll",
                 "HLA_RTI_FACTORY_NAME": "must-not-be-read-here",
@@ -4175,12 +6212,12 @@ class JavaProviderTest(unittest.TestCase):
         self.assertEqual(factory._configuration.rti_factory_name, "Vendor RTI")
         self.assertEqual(factory._configuration.jvm_options[0], "-Xmx1g")
         self.assertTrue(
-            factory._configuration.jvm_options[1].startswith(
-                "-Djava.library.path="
-            )
+            factory._configuration.jvm_options[1].startswith("-Djava.library.path=")
         )
 
-    def test_probe_jar_resolves_standard_factory_metadata_without_ambassador(self) -> None:
+    def test_probe_jar_resolves_standard_factory_metadata_without_ambassador(
+        self,
+    ) -> None:
         probe = JavaRtiFactory.probe_jar(
             "vendor-rti.jar",
             factory_name="Vendor RTI",

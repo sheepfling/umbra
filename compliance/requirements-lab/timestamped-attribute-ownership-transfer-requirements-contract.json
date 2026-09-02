@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records deliberately bounded native C++ stress slices harvested from the adjacent Python/JPype scenarios. It uses only official IEEE 1516.1-2025 timestamped Update Attribute Values and ownership services: an accepted TSO passel remains in the federation-owned recipient ledger while the producing federate unconditionally divests the source attribute, a new federate completes Attribute Ownership Acquisition If Available, and the constrained recipient later receives the original producer, payload, timestamp/order, tag, and retraction designator. A companion case performs that ownership disposition through voluntary Resign Federation Execution with Unconditionally Divest Attributes, retains an independent surviving time regulator, and proves the queued passel still reflects after the source owner has left. A two-recipient companion drains separate TAR/NMR recipient-local ledgers after the same source departure and proves the first reflection does not consume the second copy. These are not timestamped ownership-transition services and do not claim complete ownership arbitration, other divestiture or resignation actions, save/restore, DDM, remote transport, package support, protected review, validation, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-tso-ownership-transfer-update-invocation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-retraction-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeMessageRetractionHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-reflection-values",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.reflectAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-reflection-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.reflectAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-reflection-retraction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeMessageRetractionHandle",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-preserves-passel",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-divestiture-offer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13",
+      "clause_id": "clause-7.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-assumption-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49",
+      "clause_id": "clause-7.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "candidate.requestAttributeOwnershipAssumption",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-ownership-transfer-grant-order",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+      "clause_id": "clause-8.1.4",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant"
+      ]
+    },
+    {
+      "id": "umbra-tso-resignation-retains-accepted-queued-passel",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
+      ],
+      "notes": "The accepted timestamped Update Attribute Values passel remains queued for the time-constrained survivor after the producing owner resigns; the independent surviving regulator supplies the later grant boundary."
+    },
+    {
+      "id": "umbra-tso-resignation-divests-and-offers-survivor",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l125-35",
+      "clause_id": "clause-4.12",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::resign",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
+      ],
+      "notes": "The voluntary directive-1 transition unowns the source attributes, including HLAprivilegeToDeleteObject, and queues one assumption offer to the surviving publisher before its If Available acquisition."
+    },
+    {
+      "id": "umbra-tso-resignation-reflects-original-producer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.reflectAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
+      ],
+      "notes": "The post-resignation callback retains the departed producer's federate handle, original payload/tag, timestamp/order, and accepted retraction designator."
+    },
+    {
+      "id": "umbra-tso-resignation-reflection-precedes-survivor-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+      "clause_id": "clause-8.1.4",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "makeTimeAdvanceGrantDispatch",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
+      ]
+    }
+  ]
+}

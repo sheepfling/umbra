@@ -1,5 +1,7 @@
 #include "internal/observability/mom_service_report_encoding.hpp"
 
+#include "internal/fom/hla_names.hpp"
+
 #include <RTI/encoding/BasicDataElements.h>
 
 #include <cstddef>
@@ -73,6 +75,10 @@ std::wstring formatMomServiceArgumentList(
   }
   result.push_back(L']');
   return result;
+}
+
+std::wstring formatMomJsonKey(wchar_t const* name) {
+  return std::wstring{L"\""} + name + L"\":";
 }
 
 }  // namespace
@@ -574,10 +580,13 @@ std::wstring formatMomOrderType(rti1516_2025::OrderType orderType) {
 }
 
 std::wstring formatMomServiceArgumentRecord(MomServiceArgument const& argument) {
-  return L"{\"HLAargumentType\":" +
+  return std::wstring{L"{"} +
+      formatMomJsonKey(umbra::detail::hla::wide::mom::argument_type) +
       std::to_wstring(static_cast<std::int32_t>(argument.type)) +
-      L",\"HLAargumentName\":" + formatMomString(argument.name) +
-      L",\"HLAargumentValue\":" + argument.value + L"}";
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::argument_name) +
+      formatMomString(argument.name) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::argument_value) +
+      argument.value + L"}";
 }
 
 std::wstring formatMomServiceReportInitialRecord(
@@ -586,26 +595,35 @@ std::wstring formatMomServiceReportInitialRecord(
   // semantically unordered, but preserving the published order gives log
   // readers stable output and makes independent conformance comparison
   // practical.
-  return L"{\"Configuration\":{\"CallbackModel\":" +
+  return std::wstring{L"{\"Configuration\":{\"CallbackModel\":"} +
       formatMomString(record.callbackModel) +
       L",\"ConfigurationName\":" + formatMomString(record.configurationName) +
       L",\"RTIaddress\":" + formatMomString(record.rtiAddress) +
       L",\"AdditionalSettings\":" + formatMomString(record.additionalSettings) +
       L",\"OptionalInternalData\":" + formatMomStringPairList(record.optionalInternalData) +
-      L"},\"HLAmanager.HLAfederation\":{\"HLAfederationName\":" +
+      L"}," + formatMomJsonKey(umbra::detail::hla::wide::mom::manager_federation_json) + L"{" +
+      formatMomJsonKey(umbra::detail::hla::wide::mom::federation_name) +
       formatMomString(record.federationName) +
-      L",\"HLARTIversion\":" + formatMomString(record.rtiVersion) +
-      L",\"HLAMIMDesignator\":" + formatMomString(record.mimDesignator) +
-      L",\"HLAFOMmoduleDesignatorList\":" +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::rti_version) +
+      formatMomString(record.rtiVersion) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::service_report_mim_designator) +
+      formatMomString(record.mimDesignator) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::fom_module_designator_list) +
       formatMomStringArray(record.federationFomModuleDesignators) +
-      L",\"HLAtimeImplementationName\":" + formatMomString(record.timeImplementationName) +
-      L",\"HLAautoProvide\":" + formatMomBoolean(record.autoProvide) +
-      L"},\"HLAmanager.HLAfederate\":{\"HLAfederateHandle\":" +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::time_implementation_name) +
+      formatMomString(record.timeImplementationName) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::auto_provide) +
+      formatMomBoolean(record.autoProvide) +
+      L"}," + formatMomJsonKey(umbra::detail::hla::wide::mom::manager_federate_json) + L"{" +
+      formatMomJsonKey(umbra::detail::hla::wide::mom::federate_handle) +
       formatMomString(record.federateHandle) +
-      L",\"HLAfederateName\":" + formatMomString(record.federateName) +
-      L",\"HLAfederateType\":" + formatMomString(record.federateType) +
-      L",\"HLAfederateHost\":" + formatMomString(record.federateHost) +
-      L",\"HLAFOMmoduleDesignatorList\":" +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::federate_name) +
+      formatMomString(record.federateName) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::federate_type) +
+      formatMomString(record.federateType) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::federate_host) +
+      formatMomString(record.federateHost) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::fom_module_designator_list) +
       formatMomStringArray(record.federateFomModuleDesignators) + L"}}";
 }
 
@@ -616,11 +634,16 @@ std::wstring formatMomSuccessfulVoidServiceReportRecord(
   // Preserve the member order shown in Table 5.  [null] is deliberately
   // hard-coded here: it is the standard's explicit successful-void form, not
   // an inference about the unresolved ReturnArgument alias (RL-042).
-  return L"{\"HLAserialNumber\":" + formatMomNumber(std::to_wstring(serialNumber)) +
-      L",\"HLAreturnedArgument\":[null]" +
-      L",\"HLAservice\":" + formatMomString(service) +
-      L",\"HLAsuppliedArguments\":" + formatMomServiceArgumentList(suppliedArguments) +
-      L",\"HLAsuccessIndicator\":true,\"HLAexception\":null}";
+  return std::wstring{L"{"} +
+      formatMomJsonKey(umbra::detail::hla::wide::mom::serial_number) +
+      formatMomNumber(std::to_wstring(serialNumber)) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::returned_argument) + L"[null]" +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::service) +
+      formatMomString(service) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::supplied_arguments) +
+      formatMomServiceArgumentList(suppliedArguments) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::success_indicator) +
+      L"true," + formatMomJsonKey(umbra::detail::hla::wide::mom::exception) + L"null}";
 }
 
 std::wstring formatMomSuccessfulServiceReportRecord(
@@ -628,12 +651,17 @@ std::wstring formatMomSuccessfulServiceReportRecord(
     std::wstring const& service,
     std::vector<MomServiceArgument> const& suppliedArguments,
     MomServiceArgument const& returnedArgument) {
-  return L"{\"HLAserialNumber\":" + formatMomNumber(std::to_wstring(serialNumber)) +
-      L",\"HLAreturnedArgument\":[" +
+  return std::wstring{L"{"} +
+      formatMomJsonKey(umbra::detail::hla::wide::mom::serial_number) +
+      formatMomNumber(std::to_wstring(serialNumber)) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::returned_argument) + L"[" +
       formatMomServiceArgumentRecord(returnedArgument) +
-      L"],\"HLAservice\":" + formatMomString(service) +
-      L",\"HLAsuppliedArguments\":" + formatMomServiceArgumentList(suppliedArguments) +
-      L",\"HLAsuccessIndicator\":true,\"HLAexception\":null}";
+      L"]," + formatMomJsonKey(umbra::detail::hla::wide::mom::service) +
+      formatMomString(service) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::supplied_arguments) +
+      formatMomServiceArgumentList(suppliedArguments) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::success_indicator) +
+      L"true," + formatMomJsonKey(umbra::detail::hla::wide::mom::exception) + L"null}";
 }
 
 std::wstring formatMomFailedServiceReportRecord(
@@ -644,11 +672,16 @@ std::wstring formatMomFailedServiceReportRecord(
   // A failed invocation has no usable return value. The [null] form is the
   // textual representation of a ReturnArgument whose HLAargumentType is Null;
   // do not leak a partially constructed C++ return value into the report.
-  return L"{\"HLAserialNumber\":" + formatMomNumber(std::to_wstring(serialNumber)) +
-      L",\"HLAreturnedArgument\":[null]" +
-      L",\"HLAservice\":" + formatMomString(service) +
-      L",\"HLAsuppliedArguments\":" + formatMomServiceArgumentList(suppliedArguments) +
-      L",\"HLAsuccessIndicator\":false,\"HLAexception\":" +
+  return std::wstring{L"{"} +
+      formatMomJsonKey(umbra::detail::hla::wide::mom::serial_number) +
+      formatMomNumber(std::to_wstring(serialNumber)) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::returned_argument) + L"[null]" +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::service) +
+      formatMomString(service) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::supplied_arguments) +
+      formatMomServiceArgumentList(suppliedArguments) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::success_indicator) +
+      L"false," + formatMomJsonKey(umbra::detail::hla::wide::mom::exception) +
       formatMomString(exception) + L"}";
 }
 

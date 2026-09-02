@@ -71,17 +71,34 @@ def _java_time_value(value: object) -> object:
 
 
 def _java_time_implementation_name(value: object, numeric: object) -> str:
-    """Identify one of the standard time carriers without vendor extensions.
+    """Identify standard carriers while retaining obvious vendor identities.
 
     The compact test fixture retains the older ``implementationName`` helper,
     but IEEE 1516.1-2025's ``LogicalTime`` interface deliberately does not.
     Its two standard time implementations expose distinct primitive ``getValue``
     return types, which JPype presents as ``int`` and ``float`` respectively.
+    A custom Java class is not safe to classify from its numeric accessor, so
+    use its concrete class name when it is available and only apply the
+    primitive fallback to generated ``$Proxy`` carriers.
     """
 
     legacy = getattr(value, "implementationName", None)
     if callable(legacy):
         return str(legacy())
+    get_class = getattr(value, "getClass", None)
+    if callable(get_class):
+        try:
+            java_class = get_class()
+            simple = getattr(java_class, "getSimpleName", None)
+            class_name = str(simple() if callable(simple) else java_class)
+            if class_name and not class_name.startswith("$Proxy"):
+                if class_name == "HLAinteger64Time":
+                    return "HLAinteger64Time"
+                if class_name == "HLAfloat64Time":
+                    return "HLAfloat64Time"
+                return class_name
+        except (AttributeError, TypeError):
+            pass
     return "HLAfloat64Time" if isinstance(numeric, float) else "HLAinteger64Time"
 
 
@@ -637,7 +654,13 @@ class _FederateAmbassadorCallback:
     def _logical_time(self, value: object) -> LogicalTime:
         numeric = _java_time_value(value)
         implementation = _java_time_implementation_name(value, numeric)
-        value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
+        value_type = (
+            HLAinteger64Time
+            if implementation == "HLAinteger64Time"
+            else HLAfloat64Time
+            if implementation == "HLAfloat64Time"
+            else LogicalTime
+        )
         return value_type(
             self._federate_handle_bytes(value),
             implementation,

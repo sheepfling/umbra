@@ -213,8 +213,9 @@ class MemoryServiceReportWriter final : public ServiceReportWriter {
  public:
   explicit MemoryServiceReportWriter(
       std::vector<std::wstring>& records,
+      std::mutex& recordsMutex,
       std::shared_ptr<RuntimeInstrumentation> instrumentation)
-      : records_(records), instrumentation_(std::move(instrumentation)) {}
+      : records_(records), recordsMutex_(recordsMutex), instrumentation_(std::move(instrumentation)) {}
   [[nodiscard]] std::filesystem::path location() const override { return {}; }
   void append(std::wstring_view encodedRecord) override {
     auto instrumentationScope = instrumentation_
@@ -222,10 +223,12 @@ class MemoryServiceReportWriter final : public ServiceReportWriter {
               InstrumentationLayer::service_reporting,
               "memory_append")
         : RuntimeInstrumentation::Scope{};
+    std::scoped_lock lock(recordsMutex_);
     records_.emplace_back(encodedRecord);
   }
  private:
   std::vector<std::wstring>& records_;
+  std::mutex& recordsMutex_;
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;
 };
 
@@ -286,10 +289,18 @@ std::unique_ptr<ServiceReportWriter> MemoryServiceReportStore::createForJoinedFe
             InstrumentationLayer::service_reporting,
             "create_writer")
       : RuntimeInstrumentation::Scope{};
-  records_.push_back(descriptor.initialRecord);
-  return std::make_unique<MemoryServiceReportWriter>(records_, instrumentation_);
+  {
+    std::scoped_lock lock(recordsMutex_);
+    records_.push_back(descriptor.initialRecord);
+  }
+  return std::make_unique<MemoryServiceReportWriter>(records_, recordsMutex_, instrumentation_);
 }
 
 std::vector<std::wstring> const& MemoryServiceReportStore::records() const noexcept { return records_; }
+
+std::vector<std::wstring> MemoryServiceReportStore::snapshotRecords() const {
+  std::scoped_lock lock(recordsMutex_);
+  return records_;
+}
 
 }  // namespace umbra::detail

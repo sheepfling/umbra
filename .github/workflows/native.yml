@@ -1,4 +1,4 @@
-name: Native baseline
+name: CI fan-out
 
 on:
   push:
@@ -9,12 +9,36 @@ permissions:
   contents: read
 
 jobs:
-  windows-native:
+  route:
     runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: tooling
+            command: lint --scope ci
+          - name: cpp-2010
+            command: test --standard 2010 --route cpp
+          - name: cpp-2025
+            command: test --standard 2025 --route cpp
+          - name: java-2025
+            command: test --standard 2025 --route java
+          - name: jni-2025
+            command: test --standard 2025 --route jni
+          - name: python-2010
+            command: test --standard 2010 --route python
+          - name: python-2025
+            command: test --standard 2025 --route python
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Native baseline
-        run: python tools/ci.py native
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install CI tools
+        run: python -m pip install --disable-pip-version-check pytest ruff
+      - name: ${{ matrix.name }}
+        run: python -m tools.ci ${{ matrix.command }}

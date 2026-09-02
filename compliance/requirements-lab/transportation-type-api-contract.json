@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 transportation-type lookup foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The embedded profile recognizes the two mandatory standard type names plus transportation names declared in the composed FDD, assigning custom names deterministic execution-scoped opaque handles. Focused native cases now carry one declared custom type through ordinary/regional/timestamped interactions, ordinary/timestamped regional attributes, and ordinary/timestamped directed callbacks. Remote, packaging, and conformance behavior remain open. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 transportation-type lookup foundation to the exact C++ API surfaces exported by the Requirements Lab. It verifies only official signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The embedded profile recognizes the two mandatory standard type names plus transportation names declared in the composed FDD, assigning custom names deterministic execution-scoped opaque handles; the companion HLA_IMMEDIATE case decodes the accepted type-53/type-59 forms. Focused native cases now carry one declared custom type through ordinary/regional/timestamped interactions, ordinary/timestamped regional attributes, and ordinary/timestamped directed callbacks. Remote, packaging, and conformance behavior remain open. The Lab exports no higher-level implementation mapping for these services, so this is source/API traceability only, not a catalog or validation claim.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-get-transportation-type-handle",
@@ -21,6 +21,7 @@
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary delivery accepts a declared custom FOM transportation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped delivery accepts a declared custom FOM transportation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary regional delivery accepts a declared custom FOM transportation",
@@ -47,6 +48,7 @@
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeName",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary delivery accepts a declared custom FOM transportation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped delivery accepts a declared custom FOM transportation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary regional delivery accepts a declared custom FOM transportation",

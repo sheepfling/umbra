@@ -12,9 +12,51 @@ default packaged profile keeps federation-management methods on the generated
 `destroyFederationExecution`, `joinFederationExecution`, and
 `resignFederationExecution` through an in-process registry only after that
 pipeline succeeds. It also returns the selected logical-time factory from
-`getTimeFactory` only to a joined federate. That profile is intentionally
-non-installable: its libxml2 linkage and source-tree resource path are not yet
-part of the SDK contract.
+`getTimeFactory` only to a joined federate. The profile is installable: its
+package exports the LibXml2 dependency, installs the reviewed 1516.2 resource
+payload, and selects the source-tree payload in development or the installed
+payload at runtime.
+
+The same 2025 public binding has an explicit, opt-in IEEE 1516.2-2010 model
+edition compatibility lane. `fomEdition=2010` selects the external 2010
+schema/MIM resources when they are configured; 2025 remains the default, and
+ambiguous values such as `202x` are rejected. This first 2010 milestone
+validates and composes a catalog for class/attribute/interaction lookup,
+publication, and object registration. It deliberately does not manufacture a
+2025 FDD or RTI-owned 2025 MOM projection from the 2010 MIM, and it does not
+claim a 2010 RTI API or simulation conformance profile.
+
+For the reviewed RPR 2.0 family, that lane additionally selects the narrow
+`FomSourceCompatibility::rpr_2010` normalization. It changes only the known
+SISO-REF-010-00v20-0 reference-identification value in the in-memory XML tree
+so the official 2010 DIF schema can validate it; the source file is never
+rewritten. Strict validation remains available and continues to report the
+source defect.
+
+The catalog also keeps the RPR boundary explicit after XML validation.
+`fom_wire_encoding.hpp` maps standard HLA encoding labels and the five
+reviewed RPR structural labels to neutral wire-shape metadata while preserving
+each source label; it does not include the RPR implementation. The
+validation-only `fom_rpr_wire_encoding.hpp` adapter is the sole layer that
+promotes those structural labels and the four exact
+`RPRunsignedInteger*BE` scalar representations, and `fom_wire_codec.hpp`
+backs them with independent golden and malformed-payload tests. The resulting
+`FomWireCodecStatus::available` claim means that the isolated RPR adapter is
+available; it does not mean that every child FOM datatype has been projected
+into a public runtime serializer. In particular, lengthless arrays require
+caller-supplied bounds/child decoders and, where padding can be ambiguous, an
+external count; extended variants return raw length-delimited alternatives for
+catalog-level dispatch. The RPR external-corpus lane now also proves a
+bounded two-federate embedded payload exchange for a null-terminated identifier,
+RPR boolean octet, and RPR unsigned scalar. Catalog recognition and that
+development-profile exchange still do not imply full scenario simulation or
+external-RTI interoperability. The 2025 strict profile does not activate
+those RPR label mappings.
+The public standard RTI path has a dedicated isolation test that compares
+strict and RPR-profile standard descriptors and exercises the standard 2025
+basic/composite encoders while importing only the neutral descriptor header.
+The CMake/Python boundary test also rejects direct RPR codec or adapter
+includes from other `cpp/src` translation units.
 
 ## Authoritative inputs
 
@@ -67,7 +109,7 @@ The validator must:
 1. preserve the supplied FOM/MIM designator exactly while canonicalizing its
    permitted local source separately for safe file access;
 2. reject network resolution, external entities, and DTD processing;
-3. validate the IEEE 1516-2025 namespace and the selected vendored schema;
+3. validate the selected IEEE 1516.2 namespace and edition-specific schema;
 4. return structured diagnostics without treating a well-formed document as a
    valid FOM merely because it has an `objectModel` root; and
 5. revalidate and inspect every requested FOM module with the selected MIM
@@ -94,6 +136,17 @@ has no untracked transitive schema dependency.
 | `IEEE1516-DIF-2025.xsd` | Validate each supplied MIM, FOM, or SOM module before composition. | The standard MIM and all three supplied Restaurant modules are accepted; malformed XML, wrong namespace, and DTD-bearing sources are rejected. |
 | `IEEE1516-FDD-2025.xsd` | Validate only the RTI-facing FDD materialized from a compatible module set. | The MIM plus Restaurant base produces a schema-valid FDD; fixed-order materialization is also checked for repeatability. |
 | `IEEE1516-OMT-2025.xsd` | Retain as the strict complete-object-model schema; never substitute it for individual module validation. | A complete Umbra-owned DIF fixture now composes to an FDD that validates under OMT. The standard MIM and Restaurant modules are intentionally rejected when individually checked against OMT because their cross-module key/keyref references are unresolved. |
+
+The optional 2010 compatibility lane selects the external
+`IEEE1516-DIF-2010.xsd` for every 2010 MIM/FOM module and enforces a
+same-edition composition boundary. Its first catalog-only result intentionally
+does not invoke the 2010 FDD serializer: legacy DIF inputs such as the
+Target Radar fixture can contain class-level dimensions or direct basic-data
+representations that the current 2025-oriented completed-model predicates and
+runtime MOM projection are not permitted to reinterpret. The exact external
+resource snapshot is guarded by
+`compliance/fom/external-2010-fom-resources.json`; no 2010 source XML is
+vendored.
 
 The positive vector deliberately uses a complete, single-module fixture so it
 tests the serializer's complete-model path without laundering incomplete DIF
@@ -144,7 +197,24 @@ DTD-bearing input, and parses with network and XXE access disabled. It is a
 private test/runtime component until a public service depends on it and its
 dependency packaging is finalized.
 
+The optional 2010 development lane is enabled with
+`UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY`; it supplies the unvendored
+2010 schemas/MIM used by the compatibility mode. Setting
+`UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH` additionally enables the reviewed
+sibling Target Radar test. The integrity test checks the configured files
+against `compliance/fom/external-2010-fom-resources.json` before the Catch2
+fixtures run.
+
 ## Current composition scope
+
+For IEEE 1516.2-2010, the first compatibility slice retains the validated
+merged catalog and stops before FDD materialization. This makes the boundary
+useful for importing legacy class/type vocabularies and creating objects
+through the 2025 API without implying that a 2010 model has been converted to
+the 2025 FDD/MOM shape. The 2010 resource and Target Radar tests are therefore
+registration-only: they perform lookup, publication, and object registration,
+not attribute updates, interactions, time advancement, DDM, ownership, or
+save/restore.
 
 The preflight follows the Annex C root-to-leaf direction for objects and
 interactions. It compares the supported OMT sections (`objects`, `interactions`,
@@ -183,6 +253,55 @@ new deterministic `UmbraNoteN` labels before their `noteReferences` values are
 merged, and matching service-usage entries combine their `isUsed` value with a
 logical OR. The generated XML is validated against the official relaxed FDD
 schema before it becomes an immutable `MaterializedFdd` artifact.
+
+Direct attribute names within an object-class element and direct parameter
+names within an interaction-class element are enforced by the official
+`IEEE1516-DIF-2025.xsd` `xs:unique` declarations during the per-module
+`xmlSchemaValidateDoc` step. The native validator regression
+`The official 2025 DIF schema rejects duplicate attribute and parameter names
+within one class` keeps that boundary explicit; Umbra does not duplicate the
+schema rule in its composition maps, and same-name declarations in separate
+module documents remain subject to Annex C composition semantics. Its private
+traceability is recorded in
+`compliance/requirements-lab/fom-class-member-name-uniqueness-requirements-contract.json`.
+
+The composition preflight also applies the bounded IEEE 1516.2-2025 Clause
+3.3.1 name convention. Libxml2 owns the XML NCName character and
+leading-character check; Umbra adds the HLA restrictions that periods are
+reserved for qualified class paths, colons are not used, case-insensitive
+`hla` prefixes are reserved for standard identifiers, and case-insensitive
+`na` is the non-applicable marker rather than a user-defined name. The check
+covers the named OMT declarations listed by 3.3.1 (classes, members, data
+types, dimensions, transportation/update-rate/synchronization entries,
+record fields and alternatives, enumerators, directed-interaction paths, and
+note labels). A merged pass collects the HLA-prefixed names supplied by the
+MIM so an extension can use standard identifiers while an unknown HLA-prefixed
+user name is rejected. Qualified directed-interaction names are split and
+validated segment by segment; the standard object and interaction roots remain
+allowed.
+
+The supplied official Restaurant module contains an enumerator named `NA`
+(`RestaurantFOMmodule-2025.xml`, `Modifiable`). That source artifact conflicts
+with the prose reservation of `NA`, so the preflight preserves this one
+enumerator compatibility exception and records the cross-artifact tension in
+the Requirements-Lab observation ledger. It does not promote the result to a
+conformance claim. The native case
+`The FOM composition preflight enforces HLA 3.3.1 XML names` and
+`compliance/requirements-lab/fom-name-conventions-requirements-contract.json`
+keep this boundary private and executable.
+
+The object-model identification preflight also enforces the exact
+`YYYY-MM-DD` modification-date presentation required by Table 1 and the
+6.2.1 conformance assessment. The vendored DIF schema intentionally uses
+`xs:date`, whose lexical space admits a timezone suffix; Umbra leaves calendar
+validity to that official schema but rejects a supplied value such as
+`2025-02-10Z` before composition. An omitted value remains representable for
+an incomplete DIF module. This bounded rule is exercised by
+`The FOM composition preflight enforces the YYYY-MM-DD modification-date form`
+and traced in
+`compliance/requirements-lab/fom-modification-date-requirements-contract.json`;
+it is private source/test traceability, not a complete object-model or
+conformance claim.
 
 When the completed model supplies object or interaction class tables, their
 top-level class must be `HLAobjectRoot` or `HLAinteractionRoot`, respectively.
@@ -457,20 +576,54 @@ producing conformance evidence.
 Umbra does not vendor third-party SISO XML merely to make a test convenient.
 Instead, a developer may configure a reviewed local corpus root with
 `UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY`. The
-`compliance/fom/external-siso-fom-corpus.json` manifest pins seven representative
-files—the complete Space ordered family, an RPR 3.0 foundation module, and a
-Link 16 extension—by path, digest, XML namespace, and schema location. The
-optional CTest integrity check detects corpus drift before Catch2 reads it.
+`compliance/fom/external-siso-fom-corpus.json` manifest pins 22 files—the
+complete five-module Space ordered family, an RPR 3.0 foundation module, the
+RPR 2.0 family inputs, and its Link 16/Link 11 extensions—by path, digest, XML
+namespace, and schema location. The optional CTest integrity check detects
+corpus drift before Catch2 reads it.
 
 Those fixtures all declare the IEEE 1516-2010 namespace and
 `IEEE1516-DIF-2010.xsd`. This includes the RPR publication whose title is dated
-2025. The optional Catch2 lane therefore proves a narrow but important
-property: Umbra's 2025 DIF policy rejects each as `invalid_model`. It is not a
-2010 validation result, a claim that their ordered composition succeeds, or a
-claim of interoperability. Umbra's current scope is IEEE 1516.1/1516.2-2025
-only: this repository has no 2010 schema, adapter, conversion, or positive
-compatibility profile. The rejection lane is retained solely to prevent an
-accidental cross-edition acceptance.
+2025. The optional Catch2 lane exercises every pinned input and proves the
+narrow but important property that Umbra's 2025 DIF policy rejects each as
+`invalid_model`. It is not a 2010 validation result, an ordered-composition
+result, or a claim of interoperability. The rejection lane is retained solely
+to prevent an accidental cross-edition acceptance in the strict 2025 profile.
+The detailed RPR-specific loading gaps and ownership classification are tracked
+in [RPR FOM load-gap backlog](RPR-FOM-LOAD-GAP-BACKLOG.md).
+
+## Optional external IEEE 1516.2-2010 compatibility boundary
+
+The first legacy-model slice is separate from the strict packaged profile. A
+developer explicitly supplies the reviewed, unvendored 2010 schema/MIM root
+through `UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY`; the exact resource
+layout and digests are checked by
+`compliance/fom/external-2010-fom-resources.json`. The embedded 2025 API then
+selects it only when `fomEdition=2010` is present in the configuration's
+additional settings. `2025` and the 2025 schema/MIM remain the default.
+
+The optional Catch2 lane validates the sibling CERTI Restaurant module and,
+when `UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH` is configured, the sibling Target
+Radar module. It composes a 2010 catalog and exercises class/attribute/
+interaction lookup, publication, anonymous registration, and named
+registration. The result is intentionally not an FDD conversion: 2010
+catalog-only mode does not synthesize the 2025 MOM object projection and does
+not exercise updates, interactions, time advancement, DDM, ownership,
+synchronization, or save/restore.
+
+When both external roots are configured, the same 2010 lane validates and
+composes the five-module SISO Space family and the complete ordered RPR 2.0
+family into lookup catalogs. Strict validation still records that 15 of the 16
+RPR/Link inputs pass the official 2010 DIF schema; the explicit RPR
+compatibility path normalizes the known `RPR-Enumerations_v2.0.xml`
+reference-identification value in memory because the source uses prose where
+the official schema requires `xs:anyURI`. The source remains unchanged and the
+normalization is retained as a module warning. The 2025 API performs both the
+registration-only object-creation check against the full family and, in the
+embedded development profile, a bounded two-federate RPR payload exchange.
+The isolated RPR wire lane exercises structural and scalar byte boundaries.
+These tests do not claim full composite payload serialization, scenario
+simulation, or external-RTI interoperability.
 
 ## Optional external 2025 corpus boundary
 
@@ -496,21 +649,21 @@ baseline; the external XML is not copied into this repository or released with
 the SDK. The source-tree resource check and the installed-package smoke test
 now use the same reviewed digest manifest. The latter verifies the staged
 schemas, MIM, examples, and manifest after `cmake --install`, before the
-consumer package is configured. This closes the resource-copy portion of the
-package contract without making the embedded federation-management profile
-installable: its libxml2 dependency and runtime resource lookup remain a
-separate packaging decision. This expected-rejection lane establishes no
+consumer package is configured. This closes the resource-copy and dependency
+portion of the embedded federation-management package contract; runtime
+lookup selects the source-tree or installed resource root. This
+expected-rejection lane establishes no
 object, interaction, declaration, callback, time-management, transport,
 interoperability, or conformance behavior for the external model.
 
 Remaining required tests are:
 
 1. remaining Annex C merge, data-representation, other special reference-data
-   semantics, other table-specific resolution, and
-   switch-default rules;
+   semantics, other table-specific resolution, and switch-default rules (the
+   bounded 3.3.1 name convention is now covered);
 2. callback/event behavior, object and ownership effects, and federation-wide
    time-management coordination beyond the initial per-federate advance state; and
-3. packaged dependency handling, cross-process transport, and reproducible
+3. cross-process transport, package-relocation validation, and reproducible
    JUnit evidence for a reviewable service slice.
 
 The development-profile contract is source/test traceability only. It does not

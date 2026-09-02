@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -59,9 +60,14 @@ class MemoryServiceReportStore final : public ServiceReportStore {
   [[nodiscard]] std::unique_ptr<ServiceReportWriter> createForJoinedFederate(
       JoinedFederateReportDescriptor const& descriptor) override;
   [[nodiscard]] std::vector<std::wstring> const& records() const noexcept;
+  // Returns a synchronized copy for tests that intentionally exercise the
+  // store from more than one callback/thread. The reference-returning
+  // records() accessor remains for quiescent, single-threaded assertions.
+  [[nodiscard]] std::vector<std::wstring> snapshotRecords() const;
 
  private:
   std::vector<std::wstring> records_;
+  mutable std::mutex recordsMutex_;
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;
 };
 

@@ -109,6 +109,13 @@ struct FederateTimeSnapshot {
   FederateTimeAdvanceMode advanceMode = FederateTimeAdvanceMode::none;
   bool timeRegulationPending = false;
   bool timeConstrainedPending = false;
+  // Pending role-enable requests also have callback-generation identities.
+  // Keep those identities in the immutable snapshot so a durable image can
+  // distinguish a live request from an already-consumed callback and can
+  // preserve the allocator floor across restore.
+  std::uint64_t pendingTimeRegulationGeneration = 0;
+  std::uint64_t pendingTimeConstrainedGeneration = 0;
+  std::uint64_t nextGeneration = 1;
   // A zero-lookahead regulator with a forward TAR pending, or with that TAR
   // already granted, must not send at the boundary time. The no-TSO bounds
   // calculator applies one factory epsilon to this exclusive lower bound.
@@ -127,6 +134,11 @@ struct FederateTimeSnapshot {
   std::shared_ptr<rti1516_2025::LogicalTime const> advanceRequestTime;
   std::shared_ptr<rti1516_2025::LogicalTimeInterval const> lookahead;
   std::shared_ptr<rti1516_2025::LogicalTimeInterval const> requestedLookahead;
+  // A decreasing Modify Lookahead request is applied at the next logical-time
+  // grant. Retain that callback-gated request separately from the active and
+  // role-enable lookahead values so a durable image cannot silently lose it.
+  std::shared_ptr<rti1516_2025::LogicalTimeInterval const>
+      pendingModifiedLookahead;
 };
 
 // Wall-clock time spent in each temporal state since the previous MOM
@@ -165,6 +177,20 @@ class FederateTimeState final {
   [[nodiscard]] std::wstring const& implementationName() const noexcept;
   [[nodiscard]] std::shared_ptr<rti1516_2025::LogicalTime const> currentTime() const;
   [[nodiscard]] FederateTimeSnapshot snapshot() const;
+
+  // Apply a route-free temporal image to this live state.  Callback epochs,
+  // deferred callback closures, and MOM wall-clock accumulators remain local
+  // to the current ambassador; only the official logical-time values and
+  // application-request state cross the save/restore boundary.
+  void restoreFromSnapshot(FederateTimeSnapshot const& snapshot);
+
+  // Callback-gated temporal requests retain a live callback epoch that is
+  // deliberately outside the route-free save image. Restoring into an
+  // existing ambassador advances this epoch so queued pre-restore role work
+  // becomes a harmless stale no-op even when the saved generation is reused.
+  [[nodiscard]] std::uint64_t callbackEpoch() const noexcept;
+  [[nodiscard]] bool callbackEpochMatches(std::uint64_t expected) const noexcept;
+  void invalidateCallbacksForRestore() noexcept;
 
   [[nodiscard]] FederateTimeAdvanceResult requestAdvance(
       std::shared_ptr<rti1516_2025::LogicalTime> requestedTime);
@@ -211,6 +237,14 @@ class FederateTimeState final {
   [[nodiscard]] std::shared_ptr<rti1516_2025::LogicalTime const> grantTimeRegulation(
       std::uint64_t generation);
 
+  // Atomic generation/epoch gate used by a live callback dispatch rebuilt
+  // after save/restore. The ordinary overload remains useful to direct state
+  // tests and non-restored callers.
+  [[nodiscard]] std::shared_ptr<rti1516_2025::LogicalTime const>
+  grantTimeRegulationIfCurrent(
+      std::uint64_t generation,
+      std::uint64_t callbackEpoch);
+
   [[nodiscard]] FederateTimeDisableStatus disableTimeRegulation();
 
   [[nodiscard]] FederateTimeLookaheadResult currentLookahead() const;
@@ -227,6 +261,11 @@ class FederateTimeState final {
   // request. The returned time is the argument to Time Constrained Enabled.
   [[nodiscard]] std::shared_ptr<rti1516_2025::LogicalTime const> grantTimeConstrained(
       std::uint64_t generation);
+
+  [[nodiscard]] std::shared_ptr<rti1516_2025::LogicalTime const>
+  grantTimeConstrainedIfCurrent(
+      std::uint64_t generation,
+      std::uint64_t callbackEpoch);
 
   [[nodiscard]] FederateTimeDisableStatus disableTimeConstrained();
 
@@ -284,6 +323,8 @@ class FederateTimeState final {
   std::uint64_t pendingTimeRegulationGeneration_ = 0;
   std::uint64_t pendingTimeConstrainedGeneration_ = 0;
   std::uint64_t nextGeneration_ = 1;
+  // Live callback identity; never serialized into FederationStateImage.
+  std::uint64_t callbackEpoch_ = 1;
   bool timeRegulating_ = false;
   bool timeConstrained_ = false;
   bool asynchronousDeliveryEnabled_ = false;

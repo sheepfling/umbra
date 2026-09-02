@@ -20,8 +20,6 @@
 namespace umbra::detail {
 namespace {
 
-constexpr char kHla2025Namespace[] = "http://standards.ieee.org/IEEE1516-2025";
-
 struct ParserContextDeleter {
   void operator()(xmlParserCtxt* context) const noexcept {
     xmlFreeParserCtxt(context);
@@ -144,6 +142,43 @@ FomValidationResult resolveRegularFile(
   return {FomValidationStatus::valid, std::nullopt, {}};
 }
 
+void normalizeLegacyRprReferenceMetadata(
+    xmlNode* node,
+    std::vector<std::string>& warnings) {
+  for (xmlNode* current = node; current != nullptr; current = current->next) {
+    if (current->type == XML_ELEMENT_NODE && current->name != nullptr &&
+        xmlStrEqual(current->name, BAD_CAST "identification") != 0 &&
+        current->parent != nullptr && current->parent->name != nullptr &&
+        xmlStrEqual(current->parent->name, BAD_CAST "reference") != 0) {
+      xmlChar* rawContent = xmlNodeGetContent(current);
+      std::string content = rawContent == nullptr
+          ? std::string{}
+          : std::string(reinterpret_cast<char const*>(rawContent));
+      if (rawContent != nullptr) {
+        xmlFree(rawContent);
+      }
+
+      // RPR-Enumerations_v2.0.xml contains this source reference as a
+      // multi-line bibliographic description.  IEEE 1516.2-2010 declares the
+      // field as xs:anyURI, while the other RPR reference descriptions happen
+      // to remain accepted by libxml2's anyURI implementation.  Normalize
+      // only this known SISO reference, and only when the caller selected the
+      // explicit RPR 2010 compatibility lane.
+      if (content.find("Reference for: Enumerations for Simulation Interoperability") !=
+              std::string::npos &&
+          content.find("SISO-REF-010-00v20-0") != std::string::npos) {
+        constexpr char normalizedReference[] =
+            "urn:siso:reference:SISO-REF-010-00v20-0";
+        xmlNodeSetContent(current, BAD_CAST normalizedReference);
+        warnings.emplace_back(
+            "RPR 2010 compatibility normalized the SISO-REF-010-00v20-0 "
+            "reference identification to an anyURI.");
+      }
+    }
+    normalizeLegacyRprReferenceMetadata(current->children, warnings);
+  }
+}
+
 FomValidationResult readLocalXmlSource(
     std::filesystem::path const& source,
     std::vector<char>& contents) {
@@ -175,11 +210,14 @@ FomValidationResult readLocalXmlSource(
   return {FomValidationStatus::valid, std::nullopt, {}};
 }
 
-bool hasExpectedRoot(xmlDoc const* document) {
+bool hasExpectedRoot(xmlDoc const* document, FomStandardEdition standardEdition) {
   xmlNode const* root = xmlDocGetRootElement(const_cast<xmlDoc*>(document));
+  std::string const expectedNamespace = std::string(fomNamespace(standardEdition));
   return root != nullptr && xmlStrEqual(root->name, BAD_CAST "objectModel") != 0 &&
          root->ns != nullptr && root->ns->href != nullptr &&
-         xmlStrEqual(root->ns->href, BAD_CAST kHla2025Namespace) != 0;
+         xmlStrEqual(
+             root->ns->href,
+             BAD_CAST expectedNamespace.c_str()) != 0;
 }
 
 }  // namespace
@@ -236,10 +274,23 @@ FomValidationResult loadValidatedLibXml2FomDocument(
   if (xmlGetIntSubset(document.get()) != nullptr || document->extSubset != nullptr) {
     return failure(FomValidationStatus::invalid_model, "DTD declarations are not permitted in an Umbra FOM.");
   }
-  if (!hasExpectedRoot(document.get())) {
+  if (!hasExpectedRoot(document.get(), request.standardEdition)) {
+    auto const expectedNamespace = std::string(fomNamespace(request.standardEdition));
     return failure(
         FomValidationStatus::invalid_model,
-        "The FOM root must be objectModel in the IEEE 1516-2025 namespace.");
+        "The FOM root must be objectModel in the " + expectedNamespace + " namespace.");
+  }
+
+  std::vector<std::string> normalizationWarnings;
+  if (request.sourceCompatibility == FomSourceCompatibility::rpr_2010) {
+    if (request.standardEdition != FomStandardEdition::ieee1516_2010) {
+      return failure(
+          FomValidationStatus::invalid_model,
+          "RPR source compatibility is only available with IEEE 1516-2010 model edition.");
+    }
+    normalizeLegacyRprReferenceMetadata(
+        xmlDocGetRootElement(document.get()),
+        normalizationWarnings);
   }
 
   ErrorCollector schemaErrors;
@@ -316,6 +367,9 @@ FomValidationResult loadValidatedLibXml2FomDocument(
       request.moduleKind,
       std::move(schemaDesignator),
       std::move(*serializedContents),
+      request.standardEdition,
+      request.sourceCompatibility,
+      std::move(normalizationWarnings),
   };
   destination.document = std::move(document);
   return {FomValidationStatus::valid, destination.module, {}};

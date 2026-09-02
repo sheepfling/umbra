@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the non-region unnamed Register Object Instance path, its generated private identity/name state, and induced discovery/known-instance lookup in Umbra's non-installable development profile. It uses only requirement candidates exported by the Requirements Lab and does not infer missing IDs. A separate contract covers the limited no-time deletion/removal slice that consumes registration ownership state. This contract intentionally excludes named registration and reservation, object update/reflection, timestamped/retraction or local deletion, DDM scope, ownership transfer, FOM sharing policy, save/restore, complete resignation disposition, remote transport, packaging, and all evidence promotion. The linked tests demonstrate a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "notes": "This source/test traceability contract covers only the non-region unnamed Register Object Instance path, its generated private identity/name state, and induced discovery/known-instance lookup in Umbra's non-installable development profile. It uses only requirement candidates exported by the Requirements Lab and does not infer missing IDs. A separate fresh-registry application-value companion now proves that the registered object identity and one accepted opaque attribute value survive filesystem save/restore; named registration and reservation, callback delivery, timestamped/retraction or local deletion, DDM scope, ownership transfer, FOM sharing policy, broader save/restore, complete resignation disposition, remote transport, packaging, and all evidence promotion remain outside this contract. The linked tests demonstrate bounded implementation slices, not full IEEE 1516.1-2025 conformance.",
   "requirements": [
     {
       "id": "umbra-object-registration-implicit-privilege-publication",
@@ -23,7 +23,8 @@
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes object-class attributes and registers an object through a configured process endpoint"
       ]
     },
     {
@@ -33,7 +34,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes object-class attributes and registers an object through a configured process endpoint"
       ]
     },
     {
@@ -44,7 +46,9 @@
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
-        "cpp/tests/object_instance_handle_catch2.cpp::The embedded ObjectInstanceHandle encoding is an HLAvariableArray-wrapped identity"
+        "cpp/tests/object_instance_handle_catch2.cpp::The embedded ObjectInstanceHandle encoding is an HLAvariableArray-wrapped identity",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes object-class attributes and registers an object through a configured process endpoint"
       ]
     },
     {
@@ -54,7 +58,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
       ]
     },
     {

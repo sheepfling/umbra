@@ -89,7 +89,7 @@ void* EmbeddedTransportConnection::owner() const noexcept {
   return owner_;
 }
 
-std::shared_ptr<EmbeddedTransportConnection> EmbeddedTransportHub::connect(
+std::shared_ptr<TransportConnection> EmbeddedTransportHub::connect(
     void* owner,
     EmbeddedTransportConnection::FailureHandler failureHandler,
     EmbeddedTransportConnection::ForcedResignationHandler forcedResignationHandler,
@@ -99,7 +99,7 @@ std::shared_ptr<EmbeddedTransportConnection> EmbeddedTransportHub::connect(
       std::move(failureHandler),
       std::move(forcedResignationHandler),
       std::move(instrumentation));
-  std::weak_ptr<EmbeddedTransportConnection> previous;
+  std::weak_ptr<TransportConnection> previous;
   {
     std::scoped_lock lock(mutex_);
     auto const existing = connections_.find(owner);
@@ -115,7 +115,7 @@ std::shared_ptr<EmbeddedTransportConnection> EmbeddedTransportHub::connect(
 }
 
 void EmbeddedTransportHub::disconnect(void* owner) noexcept {
-  std::shared_ptr<EmbeddedTransportConnection> connection;
+  std::shared_ptr<TransportConnection> connection;
   {
     std::scoped_lock lock(mutex_);
     auto const existing = connections_.find(owner);
@@ -133,7 +133,7 @@ void EmbeddedTransportHub::disconnect(void* owner) noexcept {
 bool EmbeddedTransportHub::fail(
     void* owner,
     std::wstring faultDescription) {
-  std::shared_ptr<EmbeddedTransportConnection> connection;
+  std::shared_ptr<TransportConnection> connection;
   {
     std::scoped_lock lock(mutex_);
     auto const existing = connections_.find(owner);
@@ -153,7 +153,7 @@ bool EmbeddedTransportHub::fail(
 bool EmbeddedTransportHub::forceFederateResignation(
     void* owner,
     std::wstring reasonForResign) {
-  std::shared_ptr<EmbeddedTransportConnection> connection;
+  std::shared_ptr<TransportConnection> connection;
   {
     std::scoped_lock lock(mutex_);
     auto const existing = connections_.find(owner);

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only Umbra's bounded extension of Negotiated Attribute Ownership Divestiture to a currently pending Willing-to-Acquire request in the opt-in, non-installable IEEE 1516.1-2025 development profile. The owner remains owner while the private Waiting state selects one deterministic pending regular or If Available candidate; the selected If Available request's original acquisition tag reaches Request Divestiture Confirmation, and successful Confirm Divestiture consumes the stale If Available reservation before the normal acquisition notification. The selection policy is an internal earliest-request policy, not a complete owner-search or arbitration implementation. This contract is source/API traceability only, with no validation, catalog, JUnit, protected-review, or conformance claim.",
+  "notes": "This source/test traceability contract covers only Umbra's bounded extension of Negotiated Attribute Ownership Divestiture to currently pending Willing-to-Acquire requests in the opt-in, non-installable IEEE 1516.1-2025 development profile. The owner remains owner while the private Waiting state selects one deterministic pending regular or If Available candidate; the selected If Available request's original acquisition tag reaches Request Divestiture Confirmation, and successful Confirm Divestiture consumes the stale If Available reservation before the normal acquisition notification. The continuation case also keeps a later WTA candidate after the first selected reservation is superseded by a regular request and cancelled before confirmation. The selection policy is an internal earliest-request policy, not a complete owner-search or arbitration implementation. This contract is source/API traceability only, with no validation, catalog, JUnit, protected-review, or conformance claim.",
   "requirements": [
     {
       "id": "umbra-negotiated-divestiture-identifies-a-willing-to-acquire-candidate",
@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -22,7 +23,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -32,7 +34,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginRequestDivestitureConfirmation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -42,7 +45,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -52,7 +56,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -62,7 +67,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueConfirmDivestitureNotifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     }
   ]

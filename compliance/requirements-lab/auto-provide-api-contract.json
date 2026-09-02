@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins the exact IEEE 1516.1-2025 C++ RTIambassador Auto Provide getter and the receive-order Send Interaction surface used by the standard federation-wide HLAsetSwitches MOM adjustment. The development profile returns the federation-wide value seeded from the creation FDD, accepts the standard four-byte HLAswitch enumerators through the MOM path, and exercises the enabled/disabled discovery boundary. The separately traced joined-federate HLAsetSwitches leaf does not broaden this Auto Provide claim. Other MOM control/reporting families, complete automatic provision, package evidence, protected review, JUnit promotion, and conformance remain open.",
+  "notes": "This contract pins the exact IEEE 1516.1-2025 C++ RTIambassador Auto Provide getter and the receive-order Send Interaction surface used by the standard federation-wide HLAsetSwitches MOM adjustment. The development profile returns the federation-wide value seeded from the creation FDD, accepts the standard four-byte HLAswitch enumerators through the MOM path, and exercises enabled/disabled discovery, callback-time switch mutation, receive-order and timestamped switch mutation before provider-callback admission, and re-enable behavior. The separately traced joined-federate HLAsetSwitches leaf does not broaden this Auto Provide claim. Other MOM control/reporting families, complete automatic provision, package evidence, protected review, JUnit promotion, and conformance remain open.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-get-auto-provide-switch",
@@ -24,6 +24,12 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disabled Auto Provide leaves discovery without a provider callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide separates independent source regions and provider callbacks under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_auto_provide_mom_switch"
       ]
@@ -48,6 +54,10 @@
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_auto_provide_mom_switch"
       ]
     }

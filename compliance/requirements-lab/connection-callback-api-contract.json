@@ -84,7 +84,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::evokeCallback",
       "tests": [
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -97,7 +99,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::evokeMultipleCallbacks",
       "tests": [
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -110,7 +113,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableCallbacks",
       "tests": [
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -123,7 +127,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableCallbacks",
       "tests": [
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     }
   ]

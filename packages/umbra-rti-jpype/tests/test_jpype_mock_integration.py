@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import math
+import os
 from pathlib import Path
 import struct
 import tempfile
@@ -93,6 +94,15 @@ from hla.rti1516_2025.exceptions import (
     IllegalTimeArithmetic,
     InvalidLogicalTime,
     InvalidLogicalTimeInterval,
+)
+from umbra_rti_test_support import (
+    HLA_FIXTURES,
+    HLA_FOM,
+    HLA_MOM,
+    HLA_TYPES,
+    SurfaceEventTrace,
+    assert_event_order,
+    iter_surface_matrix,
 )
 from umbra._java.rti1516_2025 import JavaProviderConfiguration, JavaRtiFactory
 
@@ -482,6 +492,72 @@ class _RecordingFederateAmbassador(FederateAmbassador):
 
     def federationNotRestored(self, reason: RestoreFailureReason) -> None:
         self.restore_failures.append(reason)
+
+
+class _MatrixFederateAmbassador(_RecordingFederateAmbassador):
+    """Record the cross-federate callback sequence without narrowing types."""
+
+    def __init__(self, trace: SurfaceEventTrace) -> None:
+        super().__init__()
+        self.trace = trace
+
+    def timeRegulationEnabled(self, time: object) -> None:
+        self.trace.record("timeRegulationEnabled")
+        super().timeRegulationEnabled(time)  # type: ignore[arg-type]
+
+    def timeConstrainedEnabled(self, time: object) -> None:
+        self.trace.record("timeConstrainedEnabled")
+        super().timeConstrainedEnabled(time)  # type: ignore[arg-type]
+
+    def timeAdvanceGrant(self, time: object) -> None:
+        self.trace.record("timeAdvanceGrant")
+        super().timeAdvanceGrant(time)  # type: ignore[arg-type]
+
+    def discoverObjectInstance(self, *args: object) -> None:
+        self.trace.record("discoverObjectInstance")
+        super().discoverObjectInstance(*args)  # type: ignore[arg-type]
+
+    def reflectAttributeValues(self, *args: object) -> None:
+        self.trace.record("reflectAttributeValues")
+        super().reflectAttributeValues(*args)  # type: ignore[arg-type]
+
+    def receiveInteraction(self, *args: object) -> None:
+        self.trace.record("receiveInteraction")
+        super().receiveInteraction(*args)  # type: ignore[arg-type]
+
+    def initiateFederateSave(self, label: str, time: object | None = None) -> None:
+        self.trace.record("initiateFederateSave")
+        super().initiateFederateSave(label, time)  # type: ignore[arg-type]
+
+    def federationSaved(self) -> None:
+        self.trace.record("federationSaved")
+        super().federationSaved()
+
+    def federationNotSaved(self, reason: SaveFailureReason) -> None:
+        self.trace.record("federationNotSaved")
+        super().federationNotSaved(reason)
+
+    def requestFederationRestoreSucceeded(self, label: str) -> None:
+        self.trace.record("requestFederationRestoreSucceeded")
+        super().requestFederationRestoreSucceeded(label)
+
+    def federationRestoreBegun(self) -> None:
+        self.trace.record("federationRestoreBegun")
+        super().federationRestoreBegun()
+
+    def initiateFederateRestore(
+        self, label: str, federateName: str, postRestoreFederateHandle: FederateHandle
+    ) -> None:
+        self.trace.record("initiateFederateRestore")
+        super().initiateFederateRestore(label, federateName, postRestoreFederateHandle)
+
+    def federationRestored(self) -> None:
+        self.trace.record("federationRestored")
+        super().federationRestored()
+
+    def federationNotRestored(self, reason: RestoreFailureReason) -> None:
+        self.trace.record("federationNotRestored")
+        super().federationNotRestored(reason)
 
 
 @unittest.skipUnless(JPYPE_AVAILABLE and java_toolchain_available(), "requires JPype and a JDK")
@@ -937,7 +1013,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             callbacks.federation_execution_reports,
             [
                 FederationExecutionInformationSet(
-                    [FederationExecutionInformation("Umbra Mock Federation", "HLAinteger64Time")]
+                    [FederationExecutionInformation("Umbra Mock Federation", HLA_TYPES.INTEGER64_TIME)]
                 )
             ],
         )
@@ -945,12 +1021,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.createFederationExecution(
             "Python-created mock federation",
             "fixture-does-not-parse-fom.xml",
-            "HLAinteger64Time",
+            HLA_TYPES.INTEGER64_TIME,
         )
         ambassador.listFederationExecutions()
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertIn(
-            FederationExecutionInformation("Python-created mock federation", "HLAinteger64Time"),
+            FederationExecutionInformation("Python-created mock federation", HLA_TYPES.INTEGER64_TIME),
             callbacks.federation_execution_reports[-1],
         )
         ambassador.destroyFederationExecution("Python-created mock federation")
@@ -958,13 +1034,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.createFederationExecution(
             "Python-created module federation",
             ["fixture-base.xml", "fixture-extension.xml"],
-            "HLAinteger64Time",
+            HLA_TYPES.INTEGER64_TIME,
         )
         ambassador.createFederationExecutionWithMIM(
             "Python-created MIM federation",
             ["fixture-base.xml"],
             "fixture-mim.xml",
-            "HLAinteger64Time",
+            HLA_TYPES.INTEGER64_TIME,
         )
         ambassador.destroyFederationExecution("Python-created module federation")
         ambassador.destroyFederationExecution("Python-created MIM federation")
@@ -1066,7 +1142,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertTrue(ambassador.evokeCallback(0.0))
         time_factory = ambassador.getTimeFactory()
         self.assertIsInstance(time_factory, HLAinteger64TimeFactory)
-        self.assertEqual(time_factory.implementationName(), "HLAinteger64Time")
+        self.assertEqual(time_factory.implementationName(), HLA_TYPES.INTEGER64_TIME)
         initial = time_factory.makeInitial()
         final = time_factory.makeFinal()
         zero = time_factory.makeZero()
@@ -1101,10 +1177,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             with self.assertRaises(CouldNotDecode):
                 time_factory.decodeLogicalTimeInterval(encoded)
         foreign_time = HLAfloat64Time(
-            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+            struct.pack(">d", 1.0), HLA_TYPES.FLOAT64_TIME, False, False, 1.0, "1.0"
         )
         foreign_interval = HLAfloat64Interval(
-            struct.pack(">d", 1.0), "HLAfloat64Time", False, False, 1.0, "1.0"
+            struct.pack(">d", 1.0), HLA_TYPES.FLOAT64_TIME, False, False, 1.0, "1.0"
         )
         with self.assertRaises(InvalidLogicalTime):
             time_factory.add(foreign_time, lookahead)
@@ -1149,7 +1225,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.disableAsynchronousDelivery()
         ambassador.disableTimeConstrained()
         ambassador.disableTimeRegulation()
-        dimension = ambassador.getDimensionHandle("SodaFlavor")
+        dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
         region = ambassador.createRegion(DimensionHandleSet([dimension]))
         self.assertIsInstance(region, RegionHandle)
         self.assertEqual(ambassador.getDimensionHandleSet(region), DimensionHandleSet([dimension]))
@@ -1158,30 +1234,36 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertEqual((bounds.getLowerBound(), bounds.getUpperBound()), (1, 3))
         ambassador.commitRegionModifications(RegionHandleSet([region]))
         ambassador.deleteRegion(region)
-        object_class = ambassador.getObjectClassHandle("HLAobjectRoot.Employee.Server")
-        attribute = ambassador.getAttributeHandle(object_class, "Efficiency")
+        object_class = ambassador.getObjectClassHandle(HLA_FOM.EMPLOYEE_SERVER)
+        attribute = ambassador.getAttributeHandle(object_class, HLA_FIXTURES.EFFICIENCY)
         interaction = ambassador.getInteractionClassHandle(
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+            HLA_FOM.MAIN_COURSE_SERVED
         )
-        directed = ambassador.getInteractionClassHandle("HLAinteractionRoot.ServerAction.TakeOrder")
-        parameter = ambassador.getParameterHandle(interaction, "TemperatureOk")
-        transportation = ambassador.getTransportationTypeHandle("HLAreliable")
-        dimension = ambassador.getDimensionHandle("ServerId")
+        directed = ambassador.getInteractionClassHandle(HLA_FOM.TAKE_ORDER)
+        parameter = ambassador.getParameterHandle(interaction, HLA_FIXTURES.TEMPERATURE_OK)
+        transportation = ambassador.getTransportationTypeHandle(HLA_MOM.RELIABLE)
+        dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
         self.assertIsInstance(object_class, ObjectClassHandle)
         self.assertIsInstance(attribute, AttributeHandle)
         self.assertIsInstance(interaction, InteractionClassHandle)
         self.assertIsInstance(parameter, ParameterHandle)
         self.assertIsInstance(transportation, TransportationTypeHandle)
         self.assertIsInstance(dimension, DimensionHandle)
-        self.assertEqual(ambassador.getObjectClassName(object_class), "HLAobjectRoot.Employee.Server")
-        self.assertEqual(ambassador.getAttributeName(object_class, attribute), "Efficiency")
+        self.assertEqual(ambassador.getObjectClassName(object_class), HLA_FOM.EMPLOYEE_SERVER)
+        self.assertEqual(
+            ambassador.getAttributeName(object_class, attribute),
+            HLA_FIXTURES.EFFICIENCY,
+        )
         self.assertEqual(
             ambassador.getInteractionClassName(interaction),
-            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
+            HLA_FOM.MAIN_COURSE_SERVED,
         )
-        self.assertEqual(ambassador.getParameterName(interaction, parameter), "TemperatureOk")
-        self.assertEqual(ambassador.getTransportationTypeName(transportation), "HLAreliable")
-        self.assertEqual(ambassador.getDimensionName(dimension), "ServerId")
+        self.assertEqual(
+            ambassador.getParameterName(interaction, parameter),
+            HLA_FIXTURES.TEMPERATURE_OK,
+        )
+        self.assertEqual(ambassador.getTransportationTypeName(transportation), HLA_MOM.RELIABLE)
+        self.assertEqual(ambassador.getDimensionName(dimension), HLA_FIXTURES.SERVER_ID)
         batch_names = ObjectInstanceNameSet(["jvm-batch-one", "jvm-batch-two"])
         ambassador.reserveMultipleObjectInstanceNames(batch_names)
         self.assertTrue(ambassador.evokeCallback(0.0))
@@ -1236,7 +1318,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         federate = ambassador.getFederateHandle("python-mock-member")
         self.assertEqual(ambassador.getFederateName(federate), "python-mock-member")
         self.assertEqual(ambassador.getKnownObjectClassHandle(registered), object_class)
-        self.assertEqual(ambassador.getUpdateRateValue("HLAdefaultUpdateRate"), 1.0)
+        self.assertEqual(ambassador.getUpdateRateValue(HLA_MOM.DEFAULT_UPDATE_RATE), 1.0)
         self.assertEqual(ambassador.getUpdateRateValueForAttribute(registered, attribute), 1.0)
         self.assertEqual(ambassador.getOrderType("Receive"), OrderType.RECEIVE)
         self.assertEqual(ambassador.getOrderName(OrderType.TIMESTAMP), "TimeStamp")
@@ -1379,7 +1461,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.queryInteractionTransportationType(federate, interaction)
         self.assertTrue(ambassador.evokeCallback(0.0))
         self.assertEqual(callbacks.interaction_transport_reports[-1], (federate, interaction, transportation))
-        regional_dimension = ambassador.getDimensionHandle("SodaFlavor")
+        regional_dimension = ambassador.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
         regional = ambassador.createRegion(DimensionHandleSet([regional_dimension]))
         ambassador.setRangeBounds(regional, regional_dimension, RangeBounds(1, 3))
         ambassador.commitRegionModifications(RegionHandleSet([regional]))
@@ -1588,7 +1670,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         self.assertTrue(ambassador.evokeCallback(0.0))
         raw_timed_save = ambassador.unwrap_java_object().getLastRequestedSaveTime()
         self.assertEqual(raw_timed_save.getTime(), 12)
-        self.assertEqual(str(raw_timed_save.implementationName()), "HLAinteger64Time")
+        self.assertEqual(str(raw_timed_save.implementationName()), HLA_TYPES.INTEGER64_TIME)
         ambassador.federateSaveBegun()
         ambassador.federateSaveComplete()
         self.assertTrue(ambassador.evokeCallback(0.0))
@@ -1721,7 +1803,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("fanout-publisher", federation_name)
@@ -1732,18 +1814,18 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             second_joined = True
 
             publisher_object_class = publisher.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             first_object_class = first_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             second_object_class = second_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, "Flavor")
-            first_attribute = first_subscriber.getAttributeHandle(first_object_class, "Flavor")
+            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, HLA_FIXTURES.FLAVOR)
+            first_attribute = first_subscriber.getAttributeHandle(first_object_class, HLA_FIXTURES.FLAVOR)
             second_attribute = second_subscriber.getAttributeHandle(
-                second_object_class, "Flavor"
+                second_object_class, HLA_FIXTURES.FLAVOR
             )
             publisher.publishObjectClassAttributes(
                 publisher_object_class, AttributeHandleSet([publisher_attribute])
@@ -1756,13 +1838,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
 
             publisher_interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             first_interaction = first_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             second_interaction = second_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             publisher.publishInteractionClass(publisher_interaction)
             first_subscriber.subscribeInteractionClass(first_interaction)
@@ -1832,7 +1914,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             owner.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             owner.joinFederationExecution("ownership-owner", federation_name)
@@ -1840,10 +1922,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             acquirer.joinFederationExecution("ownership-acquirer", federation_name)
             acquirer_joined = True
 
-            owner_class = owner.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            acquirer_class = acquirer.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            owner_attribute = owner.getAttributeHandle(owner_class, "Flavor")
-            acquirer_attribute = acquirer.getAttributeHandle(acquirer_class, "Flavor")
+            owner_class = owner.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            acquirer_class = acquirer.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            owner_attribute = owner.getAttributeHandle(owner_class, HLA_FIXTURES.FLAVOR)
+            acquirer_attribute = acquirer.getAttributeHandle(acquirer_class, HLA_FIXTURES.FLAVOR)
             attributes = AttributeHandleSet([owner_attribute])
             acquirer_attributes = AttributeHandleSet([acquirer_attribute])
             owner.publishObjectClassAttributes(owner_class, attributes)
@@ -1948,7 +2030,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             first.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             first.joinFederationExecution("save-first", federation_name)
@@ -2124,7 +2206,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("timestamped-publisher", federation_name)
@@ -2139,20 +2221,20 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             constrained_joined = True
 
             publisher_object_class = publisher.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             immediate_object_class = immediate_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             constrained_object_class = constrained_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, "Flavor")
+            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, HLA_FIXTURES.FLAVOR)
             immediate_attribute = immediate_subscriber.getAttributeHandle(
-                immediate_object_class, "Flavor"
+                immediate_object_class, HLA_FIXTURES.FLAVOR
             )
             constrained_attribute = constrained_subscriber.getAttributeHandle(
-                constrained_object_class, "Flavor"
+                constrained_object_class, HLA_FIXTURES.FLAVOR
             )
             publisher.publishObjectClassAttributes(
                 publisher_object_class, AttributeHandleSet([publisher_attribute])
@@ -2165,13 +2247,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
 
             publisher_interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             immediate_interaction = immediate_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             constrained_interaction = constrained_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             publisher.publishInteractionClass(publisher_interaction)
             immediate_subscriber.subscribeInteractionClass(immediate_interaction)
@@ -2230,7 +2312,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(constrained_callbacks.timed_reflections[0][6].getTime(), 6)
             self.assertEqual(constrained_callbacks.timed_reflections[0][8], OrderType.TIMESTAMP)
 
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             region = publisher.createRegion(DimensionHandleSet([dimension]))
             immediate_subscriber.subscribeInteractionClassWithRegions(
                 immediate_interaction, RegionHandleSet([region])
@@ -2304,13 +2386,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertIsNone(constrained_callbacks.timed_reflections[-1][5])
 
             publisher_secondary_attribute = publisher.getAttributeHandle(
-                publisher_object_class, "Color"
+                publisher_object_class, HLA_FIXTURES.COLOR
             )
             immediate_secondary_attribute = immediate_subscriber.getAttributeHandle(
-                immediate_object_class, "Color"
+                immediate_object_class, HLA_FIXTURES.COLOR
             )
             constrained_secondary_attribute = constrained_subscriber.getAttributeHandle(
-                constrained_object_class, "Color"
+                constrained_object_class, HLA_FIXTURES.COLOR
             )
             publisher.publishObjectClassAttributes(
                 publisher_object_class, AttributeHandleSet([publisher_secondary_attribute])
@@ -2473,7 +2555,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("overlap-publisher", federation_name)
@@ -2484,19 +2566,19 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             disjoint_joined = True
 
             publisher_interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             overlap_interaction = overlap_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             disjoint_interaction = disjoint_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             publisher.publishInteractionClass(publisher_interaction)
 
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            overlap_dimension = overlap_subscriber.getDimensionHandle("SodaFlavor")
-            disjoint_dimension = disjoint_subscriber.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            overlap_dimension = overlap_subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            disjoint_dimension = disjoint_subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
             overlap_region = overlap_subscriber.createRegion(DimensionHandleSet([overlap_dimension]))
             disjoint_region = disjoint_subscriber.createRegion(
@@ -2544,20 +2626,20 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             self.assertEqual(disjoint_callbacks.request_retractions, [])
 
             publisher_object_class = publisher.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             overlap_object_class = overlap_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             disjoint_object_class = disjoint_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, "Flavor")
+            publisher_attribute = publisher.getAttributeHandle(publisher_object_class, HLA_FIXTURES.FLAVOR)
             overlap_attribute = overlap_subscriber.getAttributeHandle(
-                overlap_object_class, "Flavor"
+                overlap_object_class, HLA_FIXTURES.FLAVOR
             )
             disjoint_attribute = disjoint_subscriber.getAttributeHandle(
-                disjoint_object_class, "Flavor"
+                disjoint_object_class, HLA_FIXTURES.FLAVOR
             )
             publisher.publishObjectClassAttributes(
                 publisher_object_class, AttributeHandleSet([publisher_attribute])
@@ -2638,7 +2720,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("interaction-reprojection-publisher", federation_name)
@@ -2647,17 +2729,17 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber_joined = True
 
             publisher_interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             subscriber_interaction = subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
             publisher_parameter = publisher.getParameterHandle(
-                publisher_interaction, "TemperatureOk"
+                publisher_interaction, HLA_FIXTURES.TEMPERATURE_OK
             )
             publisher.publishInteractionClass(publisher_interaction)
-            publisher_dimension = publisher.getDimensionHandle("ServerId")
-            subscriber_dimension = subscriber.getDimensionHandle("ServerId")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
+            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SERVER_ID)
             publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
             disjoint_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
             overlap_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
@@ -2760,7 +2842,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("relaxed-ddm-publisher", federation_name)
@@ -2769,19 +2851,19 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            parameter = publisher.getParameterHandle(interaction, HLA_FIXTURES.TEMPERATURE_OK)
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishInteractionClass(interaction)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle("SodaFlavor")])
+                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
             )
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 1))
             subscriber.setRangeBounds(
                 subscriber_region,
-                subscriber.getDimensionHandle("SodaFlavor"),
+                subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR),
                 RangeBounds(1, 2),
             )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
@@ -2815,10 +2897,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             )
             self.assertEqual(subscriber_callbacks.interactions[-1][2], b"relaxed-boundary-tag")
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -2891,7 +2973,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("default-region-publisher", federation_name)
@@ -2899,20 +2981,20 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.joinFederationExecution("default-region-subscriber", federation_name)
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle("SodaFlavor")])
+                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
             )
             subscriber.setRangeBounds(
                 subscriber_region,
-                subscriber.getDimensionHandle("SodaFlavor"),
+                subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR),
                 RangeBounds(1, 3),
             )
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
@@ -2981,7 +3063,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("regional-delayed-publisher", federation_name)
@@ -2990,19 +3072,19 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber_joined = True
 
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"
+                HLA_FOM.MAIN_COURSE_SERVED
             )
-            parameter = publisher.getParameterHandle(interaction, "TemperatureOk")
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            parameter = publisher.getParameterHandle(interaction, HLA_FIXTURES.TEMPERATURE_OK)
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher.publishInteractionClass(interaction)
             publisher_region = publisher.createRegion(DimensionHandleSet([dimension]))
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle("SodaFlavor")])
+                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
             )
             publisher.setRangeBounds(publisher_region, dimension, RangeBounds(0, 2))
             subscriber.setRangeBounds(
                 subscriber_region,
-                subscriber.getDimensionHandle("SodaFlavor"),
+                subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR),
                 RangeBounds(20, 30),
             )
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
@@ -3027,7 +3109,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             # actual callback boundary.
             subscriber.setRangeBounds(
                 subscriber_region,
-                subscriber.getDimensionHandle("SodaFlavor"),
+                subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR),
                 RangeBounds(1, 3),
             )
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
@@ -3060,7 +3142,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("regional-delayed-object-publisher", federation_name)
@@ -3069,15 +3151,15 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber_joined = True
 
             publisher_class = publisher.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             subscriber_class = subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             subscriber_attributes = AttributeHandleSet([subscriber_attribute])
             publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
@@ -3159,7 +3241,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("timed-association-publisher", federation_name)
@@ -3167,10 +3249,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.joinFederationExecution("timed-association-subscriber", federation_name)
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
             publisher_attributes = AttributeHandleSet([publisher_attribute])
             subscriber_attributes = AttributeHandleSet([subscriber_attribute])
             publisher.publishObjectClassAttributes(publisher_class, publisher_attributes)
@@ -3178,8 +3260,8 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 publisher_class, publisher_attributes, OrderType.TIMESTAMP
             )
 
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_overlap_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
@@ -3301,7 +3383,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("passive-publisher", federation_name)
@@ -3311,12 +3393,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             active.joinFederationExecution("active-subscriber", federation_name)
             active_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            passive_class = passive.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            active_class = active.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            passive_attribute = passive.getAttributeHandle(passive_class, "Flavor")
-            active_attribute = active.getAttributeHandle(active_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            passive_class = passive.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            active_class = active.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            passive_attribute = passive.getAttributeHandle(passive_class, HLA_FIXTURES.FLAVOR)
+            active_attribute = active.getAttributeHandle(active_class, HLA_FIXTURES.FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -3336,15 +3418,15 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                     )
                 ]
             )
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
             publisher.setRangeBounds(publisher_region, publisher_dimension, RangeBounds(0, 10))
             publisher.commitRegionModifications(RegionHandleSet([publisher_region]))
-            passive_dimension = passive.getDimensionHandle("SodaFlavor")
+            passive_dimension = passive.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             passive_region = passive.createRegion(DimensionHandleSet([passive_dimension]))
             passive.setRangeBounds(passive_region, passive_dimension, RangeBounds(5, 15))
             passive.commitRegionModifications(RegionHandleSet([passive_region]))
-            active_dimension = active.getDimensionHandle("SodaFlavor")
+            active_dimension = active.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             active_region = active.createRegion(DimensionHandleSet([active_dimension]))
             active.setRangeBounds(active_region, active_dimension, RangeBounds(5, 15))
             active.commitRegionModifications(RegionHandleSet([active_region]))
@@ -3371,13 +3453,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 active_class, active_pair, active=True
             )
             interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             passive_interaction = passive.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             active_interaction = active.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             publisher.publishInteractionClass(interaction)
             passive.subscribeInteractionClassWithRegions(
@@ -3465,7 +3547,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("association-publisher", federation_name)
@@ -3473,16 +3555,16 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.joinFederationExecution("association-subscriber", federation_name)
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_flavor = publisher.getAttributeHandle(publisher_class, "Flavor")
-            publisher_color = publisher.getAttributeHandle(publisher_class, "Color")
-            subscriber_flavor = subscriber.getAttributeHandle(subscriber_class, "Flavor")
-            subscriber_color = subscriber.getAttributeHandle(subscriber_class, "Color")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_flavor = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            publisher_color = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.COLOR)
+            subscriber_flavor = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
+            subscriber_color = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.COLOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_flavor, publisher_color])
             )
-            dimension = publisher.getDimensionHandle("SodaFlavor")
+            dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_overlap_region = publisher.createRegion(DimensionHandleSet([dimension]))
             publisher_disjoint_region = publisher.createRegion(DimensionHandleSet([dimension]))
             publisher.setRangeBounds(
@@ -3495,10 +3577,10 @@ class JPypeMockIntegrationTest(unittest.TestCase):
                 RegionHandleSet([publisher_overlap_region, publisher_disjoint_region])
             )
             subscriber_region = subscriber.createRegion(
-                DimensionHandleSet([subscriber.getDimensionHandle("SodaFlavor")])
+                DimensionHandleSet([subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)])
             )
             subscriber.setRangeBounds(
-                subscriber_region, subscriber.getDimensionHandle("SodaFlavor"), RangeBounds(5, 15)
+                subscriber_region, subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR), RangeBounds(5, 15)
             )
             subscriber.commitRegionModifications(RegionHandleSet([subscriber_region]))
             subscriber_pairs = AttributeSetRegionSetPairList(
@@ -3643,7 +3725,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("recipient-isolation-publisher", federation_name)
@@ -3653,19 +3735,19 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             disjoint.joinFederationExecution("recipient-isolation-disjoint", federation_name)
             disjoint_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            overlap_class = overlap.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            disjoint_class = disjoint.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            overlap_attribute = overlap.getAttributeHandle(overlap_class, "Flavor")
-            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            overlap_class = overlap.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            disjoint_class = disjoint.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            overlap_attribute = overlap.getAttributeHandle(overlap_class, HLA_FIXTURES.FLAVOR)
+            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, HLA_FIXTURES.FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
 
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            overlap_dimension = overlap.getDimensionHandle("SodaFlavor")
-            disjoint_dimension = disjoint.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            overlap_dimension = overlap.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            disjoint_dimension = disjoint.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_overlap_region = publisher.createRegion(
                 DimensionHandleSet([publisher_dimension])
             )
@@ -3822,7 +3904,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("value-request-publisher", federation_name)
@@ -3832,12 +3914,12 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             disjoint.joinFederationExecution("value-request-disjoint", federation_name)
             disjoint_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            overlap_class = overlap.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            disjoint_class = disjoint.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            overlap_attribute = overlap.getAttributeHandle(overlap_class, "Flavor")
-            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            overlap_class = overlap.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            disjoint_class = disjoint.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            overlap_attribute = overlap.getAttributeHandle(overlap_class, HLA_FIXTURES.FLAVOR)
+            disjoint_attribute = disjoint.getAttributeHandle(disjoint_class, HLA_FIXTURES.FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
@@ -3845,9 +3927,9 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             # advisory in HLA_EVOKED mode; drain it before asserting the
             # value-request callback below.
             self.assertTrue(publisher.evokeCallback(0.0))
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            overlap_dimension = overlap.getDimensionHandle("SodaFlavor")
-            disjoint_dimension = disjoint.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            overlap_dimension = overlap.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            disjoint_dimension = disjoint.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
             overlap_region = overlap.createRegion(DimensionHandleSet([overlap_dimension]))
             disjoint_region = disjoint.createRegion(DimensionHandleSet([disjoint_dimension]))
@@ -3930,7 +4012,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("reprojection-publisher", federation_name)
@@ -3938,15 +4020,15 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             subscriber.joinFederationExecution("reprojection-subscriber", federation_name)
             subscriber_joined = True
 
-            publisher_class = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            subscriber_class = subscriber.getObjectClassHandle("HLAobjectRoot.Food.Drink.Soda")
-            publisher_attribute = publisher.getAttributeHandle(publisher_class, "Flavor")
-            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, "Flavor")
+            publisher_class = publisher.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            subscriber_class = subscriber.getObjectClassHandle(HLA_FOM.FOOD_DRINK_SODA)
+            publisher_attribute = publisher.getAttributeHandle(publisher_class, HLA_FIXTURES.FLAVOR)
+            subscriber_attribute = subscriber.getAttributeHandle(subscriber_class, HLA_FIXTURES.FLAVOR)
             publisher.publishObjectClassAttributes(
                 publisher_class, AttributeHandleSet([publisher_attribute])
             )
-            publisher_dimension = publisher.getDimensionHandle("SodaFlavor")
-            subscriber_dimension = subscriber.getDimensionHandle("SodaFlavor")
+            publisher_dimension = publisher.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
+            subscriber_dimension = subscriber.getDimensionHandle(HLA_FIXTURES.SODA_FLAVOR)
             publisher_region = publisher.createRegion(DimensionHandleSet([publisher_dimension]))
             disjoint_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
             overlap_region = subscriber.createRegion(DimensionHandleSet([subscriber_dimension]))
@@ -4100,7 +4182,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             publisher.createFederationExecution(
                 federation_name,
                 "fixture-does-not-parse-fom.xml",
-                "HLAinteger64Time",
+                HLA_TYPES.INTEGER64_TIME,
             )
             created = True
             publisher.joinFederationExecution("directed-publisher", federation_name)
@@ -4113,22 +4195,22 @@ class JPypeMockIntegrationTest(unittest.TestCase):
             constrained_joined = True
 
             publisher_object_class = publisher.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             immediate_object_class = immediate_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             constrained_object_class = constrained_subscriber.getObjectClassHandle(
-                "HLAobjectRoot.Food.Drink.Soda"
+                HLA_FOM.FOOD_DRINK_SODA
             )
             publisher_interaction = publisher.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             immediate_interaction = immediate_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             constrained_interaction = constrained_subscriber.getInteractionClassHandle(
-                "HLAinteractionRoot.Food.Drink.SodaServed"
+                HLA_FOM.SODA_SERVED
             )
             directed_set = InteractionClassHandleSet([publisher_interaction])
             publisher.publishObjectClassDirectedInteractions(
@@ -4217,13 +4299,13 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.createFederationExecution(
             "Python-created floating federation",
             "fixture-does-not-parse-fom.xml",
-            "HLAfloat64Time",
+            HLA_TYPES.FLOAT64_TIME,
         )
         ambassador.joinFederationExecution("observer", "Python-created floating federation")
 
         time_factory = ambassador.getTimeFactory()
         self.assertIsInstance(time_factory, HLAfloat64TimeFactory)
-        self.assertEqual(time_factory.implementationName(), "HLAfloat64Time")
+        self.assertEqual(time_factory.implementationName(), HLA_TYPES.FLOAT64_TIME)
         initial = time_factory.makeInitial()
         final = time_factory.makeFinal()
         zero = time_factory.makeZero()
@@ -4325,7 +4407,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.createFederationExecution(
             federation_name,
             "fixture-does-not-parse-fom.xml",
-            "HLAinteger64Time",
+            HLA_TYPES.INTEGER64_TIME,
         )
         ambassador.joinFederationExecution("restore-time-window", federation_name)
         time_factory = ambassador.getTimeFactory()
@@ -4362,6 +4444,520 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.resignFederationExecution(ResignAction.NO_ACTION)
         ambassador.disconnect()
 
+    def test_provider_neutral_multi_federate_callback_and_save_matrix(self) -> None:
+        """Run the reusable matrix against the stateful Java mock federation."""
+
+        if os.environ.get("UMBRA_ENABLE_JPYPE_STATE_SPACE_MATRIX") != "1":
+            self.skipTest(
+                "set UMBRA_ENABLE_JPYPE_STATE_SPACE_MATRIX=1 to run the opt-in JVM state-space lane"
+            )
+        # The source-checkout adapter matrix executes all 120 points without a
+        # JVM.  Keep the live-JVM lane focused on successful save boundaries,
+        # but include every standard time-advance service so a provider cannot
+        # accidentally bind only the TAR spelling.
+        cases = iter_surface_matrix()
+        for case in cases:
+            federation_name = f"python-surface-matrix-{case.case_id.replace(':', '-')}"
+            ambassadors: list[object] = []
+            callbacks: list[_MatrixFederateAmbassador] = []
+            created = False
+
+            def drain(ambassador: object) -> None:
+                # JavaRTIambassador exposes the standard bool-returning evoke
+                # operation; keep the helper provider-neutral for a transplant.
+                while ambassador.evokeCallback(0.0):  # type: ignore[attr-defined]
+                    pass
+
+            try:
+                for member in range(case.member_count):
+                    ambassador = self.factory.getRtiAmbassador()
+                    callback = _MatrixFederateAmbassador(SurfaceEventTrace())
+                    ambassador.connect(callback, CallbackModel[case.callback_model])
+                    if member == 0:
+                        ambassador.createFederationExecution(
+                            federation_name,
+                            "fixture-does-not-parse-fom.xml",
+                            case.time_implementation,
+                        )
+                        created = True
+                    ambassador.joinFederationExecution(
+                        f"matrix-{member}", federation_name
+                    )
+                    ambassadors.append(ambassador)
+                    callbacks.append(callback)
+
+                time_factory = ambassadors[0].getTimeFactory()
+                if case.time_implementation == HLA_TYPES.FLOAT64_TIME:
+                    target = time_factory.makeLogicalTime(5.5)
+                    lookahead = time_factory.makeLogicalTimeInterval(0.25)
+                else:
+                    target = time_factory.makeLogicalTime(5)
+                    lookahead = time_factory.makeLogicalTimeInterval(1)
+                for ambassador in ambassadors:
+                    ambassador.enableTimeRegulation(lookahead)
+                    ambassador.enableTimeConstrained()
+                drain(ambassadors[0])
+                # Drain each member's setup callbacks before the save request;
+                # this gives the matrix a stable per-member prefix.
+                for ambassador in ambassadors[1:]:
+                    drain(ambassador)
+
+                label = f"save-{case.save_kind}-{case.member_count}"
+                if case.save_kind == "timestamped":
+                    ambassadors[0].requestFederationSave(label, target)
+                else:
+                    ambassadors[0].requestFederationSave(label)
+                for ambassador in ambassadors:
+                    getattr(ambassador, case.advance_service)(target)
+                for ambassador in ambassadors:
+                    drain(ambassador)
+                for ambassador in ambassadors:
+                    ambassador.federateSaveBegun()
+                    ambassador.federateSaveComplete()
+                for ambassador in ambassadors:
+                    drain(ambassador)
+
+                ambassadors[0].requestFederationRestore(label)
+                for ambassador in ambassadors:
+                    drain(ambassador)
+                for ambassador in ambassadors:
+                    ambassador.federateRestoreComplete()
+                for ambassador in ambassadors:
+                    drain(ambassador)
+
+                for index, callback in enumerate(callbacks):
+                    restore_events = (
+                        "requestFederationRestoreSucceeded",
+                        "federationRestoreBegun",
+                        "initiateFederateRestore",
+                        "federationRestored",
+                    )
+                    if index != 0:
+                        restore_events = restore_events[1:]
+                    assert_event_order(
+                        callback.trace.events,
+                        "timeRegulationEnabled",
+                        "timeConstrainedEnabled",
+                        "initiateFederateSave",
+                        "timeAdvanceGrant",
+                        "federationSaved",
+                        *restore_events,
+                    )
+                    self.assertEqual(callback.trace.events.count("federationSaved"), 1)
+                    self.assertEqual(callback.trace.events.count("federationRestored"), 1)
+            finally:
+                for ambassador in ambassadors:
+                    try:
+                        ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                    try:
+                        ambassador.disconnect()
+                    except Exception:
+                        pass
+                if created:
+                    cleanup = self.factory.getRtiAmbassador()
+                    cleanup.connect(_RecordingFederateAmbassador(), CallbackModel.HLA_IMMEDIATE)
+                    try:
+                        cleanup.destroyFederationExecution(federation_name)
+                    finally:
+                        cleanup.disconnect()
+
+    def test_provider_neutral_multi_federate_object_and_interaction_matrix(self) -> None:
+        """Exercise discover/reflect/receive ordering across provider members.
+
+        This is deliberately opt-in for the same reason as the save matrix:
+        it is a live JVM state-space lane, while the source-checkout provider
+        tests cover every matrix point without requiring a JVM.  One publisher
+        and one or two subscribers prove that the callback proxy keeps member
+        identity, payloads, and ordering independent of callback model and
+        logical-time family.
+        """
+
+        if os.environ.get("UMBRA_ENABLE_JPYPE_STATE_SPACE_MATRIX") != "1":
+            self.skipTest(
+                "set UMBRA_ENABLE_JPYPE_STATE_SPACE_MATRIX=1 to run the opt-in JVM state-space lane"
+            )
+        # Keep scalar object traffic bounded, but cover every standard
+        # time-advance spelling so a provider cannot accidentally implement
+        # only the ordinary TAR path.  The source-checkout matrix and the
+        # companion 2010 JVM lane use the same defaults.
+        cases = iter_surface_matrix(
+            save_kinds=("scalar",),
+            member_counts=(2, 3),
+        )
+        for case in cases:
+            with self.subTest(case=case.case_id):
+                federation_name = (
+                    f"python-object-matrix-{case.case_id.replace(':', '-')}"
+                )
+                publisher = self.factory.getRtiAmbassador()
+                subscribers: list[object] = []
+                publisher_callback = _MatrixFederateAmbassador(SurfaceEventTrace())
+                subscriber_callbacks: list[_MatrixFederateAmbassador] = []
+                subscriber_attributes: list[AttributeHandle] = []
+                created = False
+
+                def drain(ambassador: object) -> None:
+                    for _ in range(32):
+                        if not ambassador.evokeCallback(0.0):  # type: ignore[attr-defined]
+                            return
+                    self.fail("callback queue did not drain")
+
+                try:
+                    callback_model = CallbackModel[case.callback_model]
+                    publisher.connect(publisher_callback, callback_model)
+                    publisher.createFederationExecution(
+                        federation_name,
+                        "fixture-does-not-parse-fom.xml",
+                        case.time_implementation,
+                    )
+                    created = True
+                    publisher.joinFederationExecution(
+                        "matrix-publisher", federation_name
+                    )
+                    self.assertEqual(
+                        publisher.getTimeFactory().implementationName(),
+                        case.time_implementation,
+                    )
+
+                    publisher_class = publisher.getObjectClassHandle(
+                        HLA_FOM.FOOD_DRINK_SODA
+                    )
+                    publisher_attribute = publisher.getAttributeHandle(
+                        publisher_class, HLA_FIXTURES.FLAVOR
+                    )
+                    publisher_interaction = publisher.getInteractionClassHandle(
+                        HLA_FOM.SODA_SERVED
+                    )
+                    publisher.publishObjectClassAttributes(
+                        publisher_class, AttributeHandleSet([publisher_attribute])
+                    )
+                    publisher.publishInteractionClass(publisher_interaction)
+
+                    for member in range(case.member_count - 1):
+                        subscriber = self.factory.getRtiAmbassador()
+                        callback = _MatrixFederateAmbassador(SurfaceEventTrace())
+                        subscriber.connect(callback, callback_model)
+                        subscriber.joinFederationExecution(
+                            f"matrix-subscriber-{member}", federation_name
+                        )
+                        subscriber_class = subscriber.getObjectClassHandle(
+                            HLA_FOM.FOOD_DRINK_SODA
+                        )
+                        subscriber_attribute = subscriber.getAttributeHandle(
+                            subscriber_class, HLA_FIXTURES.FLAVOR
+                        )
+                        subscriber_interaction = subscriber.getInteractionClassHandle(
+                            HLA_FOM.SODA_SERVED
+                        )
+                        subscriber.subscribeObjectClassAttributes(
+                            subscriber_class,
+                            AttributeHandleSet([subscriber_attribute]),
+                        )
+                        subscriber.subscribeInteractionClass(subscriber_interaction)
+                        target = subscriber.getTimeFactory().makeLogicalTime(
+                            5.5 if case.time_implementation == HLA_TYPES.FLOAT64_TIME else 5
+                        )
+                        getattr(subscriber, case.advance_service)(target)
+                        drain(subscriber)
+                        self.assertEqual(
+                            subscriber.queryLogicalTime().getTime(), target.getTime()
+                        )
+                        subscribers.append(subscriber)
+                        subscriber_callbacks.append(callback)
+                        subscriber_attributes.append(subscriber_attribute)
+
+                    target = publisher.getTimeFactory().makeLogicalTime(
+                        5.5 if case.time_implementation == HLA_TYPES.FLOAT64_TIME else 5
+                    )
+                    getattr(publisher, case.advance_service)(target)
+                    drain(publisher)
+                    self.assertEqual(
+                        publisher.queryLogicalTime().getTime(), target.getTime()
+                    )
+                    object_instance = publisher.registerObjectInstance(publisher_class)
+                    for subscriber in subscribers:
+                        drain(subscriber)
+                    for callback in subscriber_callbacks:
+                        self.assertEqual(len(callback.discoveries), 1)
+                        self.assertEqual(callback.discoveries[0][0], object_instance)
+
+                    publisher.updateAttributeValues(
+                        object_instance,
+                        AttributeHandleValueMap({publisher_attribute: b"matrix-value"}),
+                        b"matrix-update-tag",
+                    )
+                    for subscriber in subscribers:
+                        drain(subscriber)
+                    for callback, attribute in zip(
+                        subscriber_callbacks, subscriber_attributes, strict=True
+                    ):
+                        self.assertEqual(len(callback.reflections), 1)
+                        self.assertEqual(
+                            callback.reflections[0][1][attribute], b"matrix-value"
+                        )
+                        self.assertEqual(callback.reflections[0][2], b"matrix-update-tag")
+
+                    publisher.sendInteraction(
+                        publisher_interaction,
+                        ParameterHandleValueMap(),
+                        b"matrix-interaction-tag",
+                    )
+                    for subscriber in subscribers:
+                        drain(subscriber)
+                    for callback in subscriber_callbacks:
+                        self.assertEqual(len(callback.interactions), 1)
+                        self.assertEqual(
+                            callback.interactions[0][2], b"matrix-interaction-tag"
+                        )
+                        assert_event_order(
+                            callback.trace.events,
+                            "timeAdvanceGrant",
+                            "discoverObjectInstance",
+                            "reflectAttributeValues",
+                            "receiveInteraction",
+                        )
+                finally:
+                    for subscriber in subscribers:
+                        try:
+                            subscriber.resignFederationExecution(ResignAction.NO_ACTION)
+                        except Exception:
+                            pass
+                        try:
+                            subscriber.disconnect()
+                        except Exception:
+                            pass
+                    try:
+                        publisher.resignFederationExecution(ResignAction.NO_ACTION)
+                    except Exception:
+                        pass
+                    if created:
+                        cleanup = self.factory.getRtiAmbassador()
+                        cleanup.connect(
+                            _RecordingFederateAmbassador(), CallbackModel.HLA_IMMEDIATE
+                        )
+                        try:
+                            cleanup.destroyFederationExecution(federation_name)
+                        finally:
+                            cleanup.disconnect()
+                    try:
+                        publisher.disconnect()
+                    except Exception:
+                        pass
+
+    def test_provider_neutral_live_save_restore_outcome_matrix(self) -> None:
+        """Exercise lifecycle outcomes through a real Java callback proxy.
+
+        The source-checkout provider test covers the complete 720-point
+        forwarding matrix.  This opt-in lane keeps the JVM workload bounded
+        while still proving every save outcome and every restore outcome for
+        both callback models, both reference time families, both save forms,
+        and one- or two-member federations.
+        """
+
+        if os.environ.get("UMBRA_ENABLE_JPYPE_STATE_SPACE_MATRIX") != "1":
+            self.skipTest(
+                "set UMBRA_ENABLE_JPYPE_STATE_SPACE_MATRIX=1 to run the opt-in JVM state-space lane"
+            )
+        outcomes = ("complete", "not-complete", "abort")
+        expected_save_failure = {
+            "not-complete": SaveFailureReason.FEDERATE_REPORTED_FAILURE_DURING_SAVE,
+            "abort": SaveFailureReason.SAVE_ABORTED,
+        }
+        expected_restore_failure = {
+            "not-complete": RestoreFailureReason.FEDERATE_REPORTED_FAILURE_DURING_RESTORE,
+            "abort": RestoreFailureReason.RESTORE_ABORTED,
+        }
+        cases = iter_surface_matrix(advance_services=("timeAdvanceRequest",))
+        for case in cases:
+            for save_outcome in outcomes:
+                with self.subTest(
+                    case=case.case_id,
+                    save_outcome=save_outcome,
+                ):
+                    federation_name = (
+                        f"python-save-outcome-{case.case_id.replace(':', '-')}-"
+                        f"{save_outcome}"
+                    )
+                    ambassadors: list[object] = []
+                    callbacks: list[_MatrixFederateAmbassador] = []
+                    created = False
+
+                    def drain(ambassador: object) -> None:
+                        for _ in range(64):
+                            if not ambassador.evokeCallback(0.0):  # type: ignore[attr-defined]
+                                return
+                        self.fail("callback queue did not drain")
+
+                    try:
+                        callback_model = CallbackModel[case.callback_model]
+                        for member in range(case.member_count):
+                            ambassador = self.factory.getRtiAmbassador()
+                            callback = _MatrixFederateAmbassador(SurfaceEventTrace())
+                            ambassador.connect(callback, callback_model)
+                            if member == 0:
+                                ambassador.createFederationExecution(
+                                    federation_name,
+                                    "fixture-does-not-parse-fom.xml",
+                                    case.time_implementation,
+                                )
+                                created = True
+                            ambassador.joinFederationExecution(
+                                f"save-outcome-{member}", federation_name
+                            )
+                            ambassadors.append(ambassador)
+                            callbacks.append(callback)
+
+                        time_factory = ambassadors[0].getTimeFactory()
+                        if case.time_implementation == HLA_TYPES.FLOAT64_TIME:
+                            target = time_factory.makeLogicalTime(5.5)
+                            lookahead = time_factory.makeLogicalTimeInterval(0.25)
+                        else:
+                            target = time_factory.makeLogicalTime(5)
+                            lookahead = time_factory.makeLogicalTimeInterval(1)
+                        for ambassador in ambassadors:
+                            ambassador.enableTimeRegulation(lookahead)
+                            ambassador.enableTimeConstrained()
+                            drain(ambassador)
+                        for callback in callbacks:
+                            callback.trace.events.clear()
+
+                        save_label = f"save-{case.save_kind}-{save_outcome}"
+                        if case.save_kind == "timestamped":
+                            ambassadors[0].requestFederationSave(save_label, target)
+                            for ambassador in ambassadors:
+                                getattr(ambassador, case.advance_service)(target)
+                                drain(ambassador)
+                        else:
+                            ambassadors[0].requestFederationSave(save_label)
+                            for ambassador in ambassadors:
+                                drain(ambassador)
+
+                        if save_outcome == "complete":
+                            for ambassador in ambassadors:
+                                ambassador.federateSaveBegun()
+                            for ambassador in ambassadors:
+                                ambassador.federateSaveComplete()
+                        else:
+                            ambassadors[0].federateSaveBegun()
+                            getattr(
+                                ambassadors[0],
+                                "federateSaveNotComplete"
+                                if save_outcome == "not-complete"
+                                else "abortFederationSave",
+                            )()
+                        for ambassador in ambassadors:
+                            drain(ambassador)
+
+                        for callback in callbacks:
+                            self.assertEqual(callback.save_initiations, [save_label])
+                            if save_outcome == "complete":
+                                self.assertEqual(callback.save_completions, 1)
+                                self.assertEqual(callback.save_failures, [])
+                            else:
+                                self.assertEqual(callback.save_completions, 0)
+                                self.assertEqual(
+                                    callback.save_failures,
+                                    [expected_save_failure[save_outcome]],
+                                )
+
+                        if save_outcome != "complete":
+                            continue
+
+                        for restore_outcome in outcomes:
+                            with self.subTest(restore_outcome=restore_outcome):
+                                restore_label = (
+                                    f"restore-{case.save_kind}-{restore_outcome}"
+                                )
+                                before_accepted = [
+                                    len(callback.restore_accepted) for callback in callbacks
+                                ]
+                                before_begun = [
+                                    callback.restore_begun for callback in callbacks
+                                ]
+                                before_initiated = [
+                                    len(callback.restore_initiations)
+                                    for callback in callbacks
+                                ]
+                                before_completed = [
+                                    callback.restore_completions for callback in callbacks
+                                ]
+                                before_failed = [
+                                    len(callback.restore_failures) for callback in callbacks
+                                ]
+                                ambassadors[0].requestFederationRestore(restore_label)
+                                for ambassador in ambassadors:
+                                    drain(ambassador)
+                                for index, (callback, accepted, begun, initiated) in enumerate(zip(
+                                    callbacks,
+                                    before_accepted,
+                                    before_begun,
+                                    before_initiated,
+                                    strict=True,
+                                )):
+                                    self.assertEqual(
+                                        len(callback.restore_accepted),
+                                        accepted + (1 if index == 0 else 0),
+                                    )
+                                    self.assertEqual(callback.restore_begun, begun + 1)
+                                    self.assertEqual(
+                                        len(callback.restore_initiations), initiated + 1
+                                    )
+
+                                if restore_outcome == "complete":
+                                    for ambassador in ambassadors:
+                                        ambassador.federateRestoreComplete()
+                                else:
+                                    getattr(
+                                        ambassadors[0],
+                                        "federateRestoreNotComplete"
+                                        if restore_outcome == "not-complete"
+                                        else "abortFederationRestore",
+                                    )()
+                                for ambassador in ambassadors:
+                                    drain(ambassador)
+                                for callback, completed, failed in zip(
+                                    callbacks,
+                                    before_completed,
+                                    before_failed,
+                                    strict=True,
+                                ):
+                                    if restore_outcome == "complete":
+                                        self.assertEqual(
+                                            callback.restore_completions, completed + 1
+                                        )
+                                        self.assertEqual(
+                                            len(callback.restore_failures), failed
+                                        )
+                                    else:
+                                        self.assertEqual(
+                                            callback.restore_completions, completed
+                                        )
+                                        self.assertEqual(
+                                            callback.restore_failures[failed:],
+                                            [expected_restore_failure[restore_outcome]],
+                                        )
+                    finally:
+                        for ambassador in ambassadors:
+                            try:
+                                ambassador.resignFederationExecution(ResignAction.NO_ACTION)
+                            except Exception:
+                                pass
+                            try:
+                                ambassador.disconnect()
+                            except Exception:
+                                pass
+                        if created:
+                            cleanup = self.factory.getRtiAmbassador()
+                            cleanup.connect(
+                                _RecordingFederateAmbassador(), CallbackModel.HLA_IMMEDIATE
+                            )
+                            try:
+                                cleanup.destroyFederationExecution(federation_name)
+                            finally:
+                                cleanup.disconnect()
+
     def test_probe_jar_uses_standard_factory_factory_without_connecting(self) -> None:
         probe = JavaRtiFactory.probe_jar(
             self._jar_path,
@@ -4381,7 +4977,7 @@ class JPypeMockIntegrationTest(unittest.TestCase):
         ambassador.createFederationExecution(
             federation_name,
             "fixture-does-not-parse-fom.xml",
-            "HLAinteger64Time",
+            HLA_TYPES.INTEGER64_TIME,
         )
         ambassador.joinFederationExecution("deferred-lookahead", federation_name)
         time_factory = ambassador.getTimeFactory()

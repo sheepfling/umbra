@@ -6,7 +6,7 @@ This is a Java/JNI bridge artifact, not a Python package and not a second RTI
 implementation. Use it only when developing Umbra's C++ to JNI to Java route.
 For normal Python provider selection, start with the
 [package map](../README.md); for portable Java behavior tests, use the
-[Java TCK](../umbra-rti-java-tck/README.md).
+[Java TCK](../hla-rti-java-tck/README.md).
 
 ## Scope and integration boundary
 
@@ -32,15 +32,15 @@ second, Java-side RTI implementation:
 
 The bridge now has a reproducible staging path, but it is not a Maven/Gradle
 publication and Umbra does not claim redistribution rights for the IEEE API.
-`package.ps1` stages the bridge JAR and native library, runs the release
-verifier, and records the API coordinate, source, and SHA-256 in a dependency
-manifest. `-IncludeJavaApiJar` can copy an API JAR supplied by the release
-owner beside the bridge for a directly consumable Python artifact directory;
-without that switch, the manifest records the external API dependency without
-copying it. It can compile against the repository's small API declaration JAR
-for fixture tests or an independently obtained IEEE 1516.1-2025 Java API JAR
-for consumer validation. The latter path has passed the Java smoke test and the
-C++ → JNI → Java → JPype → Python integration suite. The façade never inherits mock ambassador services: every standard
+The Python `build_umbra_jni.py` workflow stages the bridge JAR, native library,
+authoritative API JAR, portable launcher, and release manifests. It records
+the API coordinate, source, and SHA-256 in a dependency manifest. The lower-
+level PowerShell files remain as compatibility helpers for existing checkout
+workflows. The bridge can compile against the repository's small API
+declaration JAR for fixture tests or an independently obtained IEEE
+1516.1-2025 Java API JAR for consumer validation. The latter path has passed
+the Java smoke test and the C++ → JNI → Java → JPype → Python integration
+suite. The façade never inherits mock ambassador services: every standard
 operation either crosses JNI to C++ or raises `RTIinternalError` as explicitly
 unbound. The compact fixture is retained for Java compilation and smoke
 coverage; JPype/JNI logical-time conformance uses the independently obtained
@@ -101,10 +101,28 @@ The build script clears its generated Java classes directory before invoking
 `javac`, so a reused output directory cannot retain stale façade or API
 classes. A clean build against the independently obtained IEEE JAR has been
 smoke-tested and then run through the complete external suite; the bridge JAR
-contains only `org.umbra.jni` classes plus its standard RTI and authorization
-`ServiceLoader` descriptors.
-The build now fails fast if an API class is accidentally bundled or either
+contains only `org.umbra.jni` classes plus its standard RTI, authorization,
+and logical-time `ServiceLoader` descriptors.
+The build now fails fast if an API class is accidentally bundled or a required
 descriptor is missing or names a provider other than the native façade.
+
+### Product bundle
+
+For a directory that a Java user can run immediately, invoke the Python
+builder from `packages`:
+
+```text
+python build_umbra_jni.py --edition 2025 \
+  --java-api-jar C:\path\to\ieee-1516.1-2025-java-api.jar \
+  --run-smoke-test
+```
+
+The resulting directory contains `umbra-rti-jni.jar`, the native library, the
+release owner's copied API JAR, both manifests, and `run.py`. The bridge
+registers the standard `RtiFactory`, `AuthorizerFactory`, and
+`time.LogicalTimeFactory` providers. `python run.py` executes the standard
+surface smoke by default or the bounded native smoke with `--mode native`; it
+is a product launcher, not a full RTI-conformance runner.
 
 The current native service slice covers connection/callback control, federation
 listing and membership reports, FOM/MIM creation and destruction, named and
@@ -530,7 +548,7 @@ artifact verification remains usable without shipping test classes:
   -ArtifactDirectory $bridgeDirectory `
   -JavaApiJar C:\path\to\ieee-1516.1-2025-java-api.jar `
   -RunJavaTck `
-  -JavaTckClassesDirectory ..\umbra-rti-java-tck\.build\classes
+  -JavaTckClassesDirectory ..\..\out\java-tck\classes
 ```
 
 `-JavaTckFomPath` selects a compatible FOM when the default Restaurant FOM is
@@ -602,7 +620,7 @@ $env:UMBRA_JNI_JAVA_API_JAR = 'C:\path\to\ieee-1516.1-2025-java-api.jar'
 python -m unittest packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py
 ```
 
-The external route currently runs 438 integration tests (all passing),
+The external route currently runs 442 integration tests (all passing),
 including functional vectors, both named and no-argument
 standard `RtiFactoryFactory` discovery paths, plus the artifact-level
 non-shadowing/ServiceLoader gate. It includes the focused
@@ -980,7 +998,7 @@ primitive decoders preserve
 `DecoderException` at the raw Java boundary as well as through the Python
 adapter.
 The complete JPype test-package discovery against the same external artifact
-executes 438 tests, all passing, including the HLA_IMMEDIATE
+executes 442 tests, all passing, including the HLA_IMMEDIATE
 `SendInteraction` and timestamped `UpdateAttributeValues`
 service-report-before-callback ordering vectors, plus the timestamped
 `DeleteObjectInstance` sender-report and removal-callback ordering vector.

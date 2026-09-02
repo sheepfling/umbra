@@ -1,110 +1,116 @@
 # Java RTI conformance TCK
 
-`packages/umbra-rti-java-tck` is the provider-neutral Java test boundary for
-Umbra and other IEEE 1516.1-2025 Java RTIs.  Its sources import only the
-standard `hla.rti1516_2025` API.  Provider selection is runtime configuration:
+`packages/hla-rti-java-tck` is a vendor-neutral executable test set for an
+IEEE 1516.1-2025 Java RTI provider. Its Java sources import only JDK classes
+and the official `hla.rti1516_2025` API. Provider selection happens outside
+the test package:
 
 ```text
-API JAR + provider JAR(s) + factory name + FOM/MIM paths
+official API JAR + provider JAR(s) + factory name + FOM/MIM inputs
 ```
 
-The TCK deliberately does not import `org.umbra.jni`, `NativeBridge`, or any
-C++-specific report format.  Consequently, the same compiled test classes can
-exercise a pure Java vendor RTI or Umbra's C++ → JNI → Java provider.
+The compiled classes can therefore be copied to another product and run with
+that product's API/provider JARs. Provider-specific JVM or native-loader flags
+are supplied as launcher arguments and are never referenced by the test
+sources.
 
-## Test boundaries
+## Scope
 
-| Layer | Purpose | Provider-specific? |
-| --- | --- | --- |
-| Java TCK | Exact Java factory, ambassador, encoder, callback, handle, time, and standard exception behavior | No |
-| JPype contract suite | Java provider consumed through the public Python API | No, except Python/JPype behavior |
-| JNI integration suite | C++ semantics crossing JNI and becoming standard Java values/callbacks | Umbra JNI |
-| Native C++ suite | C++ state machines and embedded RTI semantics | Umbra C++ |
+The catalog contains 21 scenarios:
 
-The runner has executable scenarios for factory/lifecycle, encoders and
-malformed octets, membership/callback delivery, logical-time factories,
-declarations, object registration/reflection, API-surface inventory, overloads
-and standard exceptions, malformed FOM input, DDM region lifecycle,
-save/restore, ownership, synchronization, MOM, and a two-federate
-time-regulation/time-constrained advance with grant callbacks. The checked-in
-Umbra JNI profile passes all fifteen scenarios. Every family remains an
-explicit catalog scenario with `unsupported` or `not applicable` available
-when a provider lacks the needed capability; scenarios never silently
-disappear from the evidence.
+- factory discovery, standard encoding, malformed input, and API/exception
+  checks;
+- complete federation execution create, join, query, resign, destroy, and
+  disconnect lifecycle;
+- ordinary object-class declaration, object registration/discovery, attribute
+  update/reflection, interaction publication/delivery, callback control,
+  support lookups, negative edges, relevance advisories, directed
+  interactions, and transportation/order controls; and
+- capability-profile lanes for DDM, time advance, save/restore, ownership,
+  synchronization, and MOM.
 
-Every result carries a stable scenario ID, stable requirement IDs, standard
-Java API method linkage, provider identity, capability profile, and an evidence
-artifact path. `-ResultsPath` writes the machine-readable evidence and
-`-JUnitPath` writes JUnit XML suitable for existing compliance tooling.
+All scenarios remain in the evidence output. A provider that does not expose a
+required capability records `unsupported` or `not applicable`; the scenario is
+not silently removed.
 
-## Porting to another RTI
+The ordinary scenarios use the IEEE Restaurant example names by default,
+including `HLAobjectRoot.Employee.Server`/`Efficiency`,
+`HLAobjectRoot.Food.Drink`/`NumberCups`, and
+`HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed`.
+Directed-interaction and relevance checks default to
+`HLAinteractionRoot.ServerAction.TakeOrder`. Supply a compatible FOM or
+override names with the `hla.rti.tck.*` system properties.
 
-Compile once against the authoritative IEEE API JAR, then run with the other
-RTI's provider class path:
+## Build
+
+PowerShell:
 
 ```powershell
-.\packages\umbra-rti-java-tck\build.ps1 `
-  -ApiJar C:\deps\hla-4-api-2.1.0.jar `
-  -OutputDirectory out\java-tck
-
-.\packages\umbra-rti-java-tck\run.ps1 `
-  -ApiJar C:\deps\hla-4-api-2.1.0.jar `
-  -ProviderJar C:\vendor\work-rti.jar `
-  -FactoryName 'Work RTI' `
-  -FomPath C:\fom\minimal.xml `
-  -ClassesDirectory out\java-tck
+.\packages\hla-rti-java-tck\build.ps1 `
+  -ApiJar C:\deps\hla-1516e-2025-api.jar `
+  -OutputDirectory .\out\java-tck\classes
 ```
 
-For a two-provider run, put two provider configurations in a JSON array and
-use the same compiled classes:
+Only the official API JAR is needed at compile time.
+
+## Run
+
+At runtime, put the provider JAR and any provider dependencies on the class
+path. The FOM module is required for lifecycle and ordinary data scenarios.
 
 ```powershell
-.\packages\umbra-rti-java-tck\run-matrix.ps1 `
-  -ConfigurationPath .\packages\umbra-rti-java-tck\matrix.example.json
+.\packages\hla-rti-java-tck\run.ps1 `
+  -ApiJar C:\deps\hla-1516e-2025-api.jar `
+  -ProviderJar C:\deps\provider-rti.jar `
+  -FactoryName 'Provider RTI' `
+  -FomPath C:\fom\RestaurantFOMmodule-2025.xml `
+  -CapabilityProfile C:\fom\provider.properties `
+  -ClassesDirectory .\out\java-tck\classes `
+  -ResultsPath .\out\java-tck\provider.results.json `
+  -JUnitPath .\out\java-tck\provider.junit.xml
 ```
 
-Each configuration may change only the API/provider JARs, factory name,
-FOM/MIM inputs, native library transport, and capability profile. The included
-`profiles\pure-java-mock.properties` is a deliberately limited unrelated
-pure-Java ServiceLoader fixture; a complete vendor profile can enable the
-behavioral families it implements.
+Use `-DependencyJar` for additional provider JARs and `-JvmArgument` for
+provider-owned JVM flags. The reusable runner passes those flags through
+without interpreting them.
 
-Umbra's JNI run adds only `umbra-rti-jni.jar` and
-`-NativeLibrary`; those are transport details, not part of the TCK contract.
+`run-matrix.ps1` runs the same compiled classes against two or more provider
+configurations. `matrix.example.json` shows the portable configuration shape;
+each provider supplies its own JAR paths, factory name, FOM, profile, and
+optional JVM arguments.
 
-## Requirements Lab export
+## Traceability
 
-`compliance/catalogs/java-tck-scenario-catalog.json` is the portable traceability source
-of truth. Validate it against the pinned Lab bundle and export one or more
-provider runs with:
+`compliance/catalogs/java-tck-scenario-catalog.json` is the source of truth for
+scenario IDs, standard Java API methods, requirements IDs, and contract files.
+Validate the source boundary and catalog with:
 
 ```powershell
 python tools/java_tck.py validate
-python tools/java_tck.py export `
-  --results out\java-tck\matrix\umbra-jni.results.json `
-  --results out\java-tck\matrix\pure-java-provider.results.json
 ```
 
-The export joins all Java API surfaces in the Lab bundle, all referenced
-compliance-contract requirements, provider statuses, JUnit/evidence artifacts,
-and the documented portable exclusions. It is an Umbra-owned compliance
-artifact and does not claim protected-review acceptance by the Requirements
-Lab.
-
-## JPype handoff
-
-After the direct Java TCK passes for a provider, the same API/provider JARs can
-be checked through JPype:
+The export command joins provider result artifacts to the catalog:
 
 ```powershell
-.\packages\umbra-rti-java-tck\run-jpype.ps1 `
-  -DirectResults out\java-tck\matrix\umbra-jni.results.json `
-  -ApiJar C:\deps\hla-4-api-2.1.0.jar `
-  -ProviderJar C:\deps\umbra-rti-jni.jar `
-  -NativeLibrary C:\deps\umbra_rti_jni.dll `
-  -FactoryName 'Umbra JNI C++ RTI'
+python tools/java_tck.py export `
+  --results .\out\java-tck\provider.results.json
 ```
 
-The JPype smoke lane is separate from the portable Java source set. It gates on
-the direct result artifact, then discovers the same standard `RtiFactory`,
-encoder factory, and ambassador through JPype.
+The result contains stable scenario IDs, provider identity, capability profile,
+standard API linkage, JUnit/evidence paths, and explicit portable exclusions.
+
+## Optional JPype handoff
+
+After a direct Java run passes, the same API/provider JARs can be checked
+through JPype:
+
+```powershell
+.\packages\hla-rti-java-tck\run-jpype.ps1 `
+  -DirectResults .\out\java-tck\provider.results.json `
+  -ApiJar C:\deps\hla-1516e-2025-api.jar `
+  -ProviderJar C:\deps\provider-rti.jar `
+  -FactoryName 'Provider RTI'
+```
+
+This handoff is an integration check; it does not add provider code to the
+portable Java source set.

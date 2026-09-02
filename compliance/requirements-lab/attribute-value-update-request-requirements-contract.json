@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only Umbra's object-instance Request Attribute Value Update and matching Provide Attribute Value Update callback path in the non-installable IEEE 1516.1-2025 development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The implementation validates attributes at the requester's currently known object class, groups existing owners, preserves the tag, and rechecks a provider after queueing. A focused production-filesystem regression additionally proves the explicit provider-side callback report appears before callback user code; it does not turn the report into public MOM interaction delivery. The sibling class-designator request form has its own traceability contract. This slice intentionally implements neither regional request forms, automatic provision, an ensuing value-update response, timestamped/retraction behavior, DDM, update-rate reduction, ownership transfer, FOM sharing policy, save/restore, remote transport, packaging, catalog evidence, nor conformance. The linked Catch2 test demonstrates a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "notes": "This source/test traceability contract covers Umbra's object-instance Request Attribute Value Update and matching Provide Attribute Value Update callback path in the non-installable IEEE 1516.1-2025 development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The implementation validates attributes at the requester's currently known object class, groups existing owners, preserves the tag, and rechecks a provider after queueing. A focused production-filesystem regression additionally proves the explicit provider-side callback report appears before callback user code; it does not turn the report into public MOM interaction delivery. A separate focused timestamped response companion invokes Update Attribute Values from the official provider callback and verifies the requester reflection; its timestamped/retraction contracts own that cross-service response behavior. The sibling class-designator request form has its own traceability contract. This slice intentionally implements neither regional request forms, automatic provision, broader timestamped/retraction behavior, DDM, update-rate reduction, ownership transfer, FOM sharing policy, save/restore, remote transport, packaging, catalog evidence, nor conformance. The linked Catch2 tests demonstrate bounded implementation slices, not full IEEE 1516.1-2025 conformance.",
   "requirements": [
     {
       "id": "umbra-attribute-value-request-stimulates-specified-instance-attributes",
@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
     {
@@ -22,7 +23,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
     {
@@ -32,7 +34,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
     {
@@ -42,7 +45,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
     {
@@ -63,6 +67,7 @@
       "source_symbol": "provider.provideAttributeValueUpdate",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback"
       ]
@@ -85,7 +90,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     }
   ]

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract records one bounded native C++ development-profile slice: an explicit-source timestamped Update Attribute Values passel is accepted while the producer regulates with lookahead one, retained while the producer disables and callback-gated re-enables Time Regulation with changed lookahead three, and delivered to a time-constrained regional recipient after the producer establishes the new GALT boundary. The callback preserves the source RegionHandle, payload, metadata, and retraction identity. It does not claim general time-role coordination, alternate advance modes, save/restore, remote transport, package/JUnit/protected-review evidence, validation, or conformance. Requirement IDs are synchronized to the locked 2025 export; any future reappearance of a previously mitigated RL issue must be appended as a new post-RL-157 observation rather than changing the historical entry.",
+  "requirements": [
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-table",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l54-15",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::grantTimeRegulation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-disable",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::disableTimeRegulation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-required",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::grantTimeRegulation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-bound",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
+      "clause_id": "clause-8",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "validateTsoTimestamp",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-queue",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+      "clause_id": "clause-8.1.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-eligibility",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-enable",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+      "clause_id": "clause-8.2",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-enabled-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+      "clause_id": "clause-8.3.1",
+      "source": "cpp/src/internal/time/federate_time_state.cpp",
+      "source_symbol": "FederateTimeState::grantTimeRegulation",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-send",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+      "clause_id": "clause-6.10",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-region",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-121-l36-10",
+      "clause_id": "clause-6.10.5",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-reflection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+      "clause_id": "clause-6.11.1",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueTimestampedReflectAttributeUpdate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-query",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l66-15",
+      "clause_id": "clause-8.20.4",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryLookahead",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    },
+    {
+      "id": "umbra-timestamped-regional-attribute-regulation-reenable-changed-lookahead-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+      "clause_id": "clause-8.8.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives time-regulation disable and re-enable with changed lookahead"
+      ]
+    }
+  ]
+}

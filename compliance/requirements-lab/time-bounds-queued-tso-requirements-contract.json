@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-runtime-foundation-not-conformance-evidence",
+  "notes": "This bounded contract joins the 2025 Query GALT/Query LITS service candidates with the private federation time-bounds calculator and a real C++ queued-TSO resignation case. It proves that a future queued timestamp can keep LITS defined after the source regulator resigns while GALT becomes undefined; it does not claim complete time coordination, transport, alternate advances, save/restore, JUnit, protected review, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-query-galt-queued-tso-source-resignation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l26-3",
+      "clause_id": "clause-8.18.1",
+      "source": "cpp/src/internal/time/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query LITS remains defined for a queued TSO after source resignation"
+      ]
+    },
+    {
+      "id": "umbra-query-galt-queued-tso-undefined-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+      "clause_id": "clause-8.18.1",
+      "source": "cpp/src/internal/time/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query LITS remains defined for a queued TSO after source resignation"
+      ]
+    },
+    {
+      "id": "umbra-query-lits-queued-tso-source-resignation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l109-27",
+      "clause_id": "clause-8.19.3",
+      "source": "cpp/src/internal/time/federation_time_bounds.cpp",
+      "source_symbol": "FederationTimeBoundsCalculator::calculate",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query LITS remains defined for a queued TSO after source resignation"
+      ]
+    },
+    {
+      "id": "umbra-query-lits-queued-tso-defined-return",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l115-29",
+      "clause_id": "clause-8.19.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryLITS",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query LITS remains defined for a queued TSO after source resignation"
+      ]
+    }
+  ]
+}

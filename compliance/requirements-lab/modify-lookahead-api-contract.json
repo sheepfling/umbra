@@ -18,7 +18,9 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Modify Lookahead applies increases immediately and decreases gradually",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded fresh-registry restore rebinds pending TAR and deferred lookahead through public callback models"
       ]
     }
   ]

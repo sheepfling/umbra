@@ -171,6 +171,37 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Increasing a zero lookahead clears its prior exclusive TAR boundary",
+    "[unit][kernel][time-management][federation-time][galt][lits][modify-lookahead]") {
+  auto recipient = integerTimeState();
+  auto regulator = integerTimeState();
+  enableRegulation(*regulator, 0);
+
+  auto advance = regulator->requestAdvance(std::make_shared<HLAinteger64Time>(5));
+  REQUIRE(advance.generation != 0);
+  REQUIRE(regulator->grant(advance.generation));
+
+  // The zero-lookahead forward TAR leaves the regulator's minimum timestamp
+  // exclusive, so the integer GALT candidate is 6 before the modification.
+  auto before = FederationTimeBoundsCalculator{}.calculate(
+      snapshot({{1, recipient}, {2, regulator}}), 1);
+  REQUIRE(before.status == FederationTimeBoundStatus::available);
+  REQUIRE(asIntegerTime(before.galt).getTime() == 6);
+
+  REQUIRE(
+      regulator->modifyLookahead(std::make_shared<HLAinteger64Interval>(2)) ==
+      umbra::detail::FederateTimeModifyLookaheadStatus::applied);
+
+  // A positive effective lookahead uses the ordinary inclusive lower bound:
+  // current time five plus lookahead two, without the stale epsilon.
+  auto after = FederationTimeBoundsCalculator{}.calculate(
+      snapshot({{1, recipient}, {2, regulator}}), 1);
+  REQUIRE(after.status == FederationTimeBoundStatus::available);
+  REQUIRE(asIntegerTime(after.galt).getTime() == 7);
+  REQUIRE(asIntegerTime(after.lits).getTime() == 7);
+}
+
+TEST_CASE(
     "Federation time bounds include queued and in-transit TSO timestamps",
     "[unit][kernel][time-management][federation-time][galt][lits][tso]") {
   auto recipient = integerTimeState();

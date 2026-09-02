@@ -21,6 +21,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants"
       ]
@@ -40,7 +41,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {

@@ -34,6 +34,35 @@ struct TsoQueuedMessage {
   std::shared_ptr<rti1516_2025::LogicalTime const> timestamp;
 };
 
+// A route-free save image records the queue phase separately from the
+// immutable message identity.  In-transit and delivered entries have already
+// crossed the queue's pending boundary and therefore remain in its delivered
+// designator fence after rehydration.
+enum class TsoMessageQueuePhase : std::uint32_t {
+  queued = 0,
+  in_transit = 1,
+  delivered = 2,
+};
+
+struct TsoQueueRestoreEntry final {
+  TsoQueuedMessage message;
+  TsoMessageQueuePhase phase = TsoMessageQueuePhase::queued;
+};
+
+enum class TsoMessageQueueRestoreStatus {
+  applied,
+  invalid_entry,
+  invalid_phase,
+  duplicate_entry,
+  logical_time_implementation_mismatch,
+};
+
+struct TsoMessageQueueRestoreResult {
+  TsoMessageQueueRestoreStatus status =
+      TsoMessageQueueRestoreStatus::invalid_entry;
+  std::size_t restoredCount = 0;
+};
+
 struct TsoMessageEnqueueResult {
   TsoMessageQueueStatus status = TsoMessageQueueStatus::invalid_message_id;
 };
@@ -93,6 +122,13 @@ class TsoMessageQueue final {
   // service ledger makes that decision atomically with this queue mutation.
   [[nodiscard]] TsoMessageRetractionResult retractPending(std::uint64_t messageId);
 
+  // Replaces the active queue view from a route-free save image while
+  // preserving the current allocator high-water mark.  The caller owns the
+  // per-recipient in-transit/delivered vectors; this queue records pending
+  // entries and the delivered-designator fence atomically after validation.
+  [[nodiscard]] TsoMessageQueueRestoreResult restoreEntries(
+      std::vector<TsoQueueRestoreEntry> const& entries);
+
   // Removes and marks as delivered all entries for one recipient whose time is
   // before the boundary, or equal to it when inclusive is true. Returned
   // entries remain immutable and are ready for a later callback coordinator.
@@ -126,6 +162,11 @@ class TsoMessageQueue final {
       std::shared_ptr<rti1516_2025::LogicalTime const> const& timestamp) const noexcept;
 
   std::wstring implementationName_;
+  // An initially unconfigured queue learns the implementation from its first
+  // admitted timestamp.  Keep that identity even after the entry is popped:
+  // otherwise a drained queue could be rebound to a different LogicalTime
+  // family while copied temporal state still refers to the original one.
+  std::optional<std::wstring> admittedImplementationName_;
   std::uint64_t nextMessageId_ = 1;
   std::uint64_t nextSequence_ = 1;
   std::vector<PendingEntry> pending_;

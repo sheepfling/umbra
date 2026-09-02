@@ -19,3 +19,8 @@ filename and a short descriptive name makes a test case easy to locate. Add a
 new fixture only for a behavior that needs a distinct model input; do not use
 this directory for unreviewed external FOM corpora. Those are represented by
 manifests under [compliance/fom/](../../../compliance/fom/).
+
+The `regional-ownership-fanout-fom.xml` fixture is the focused positive model
+for the public regional Auto Provide multi-provider lane: one dimensional
+object class with two `DivestAcquire` attributes, used only to make the
+ownership split explicit in C++ tests.

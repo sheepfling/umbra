@@ -38,7 +38,7 @@ Umbra's repository fixture remains a fast compatibility harness; it is not
 the authority for Java API compatibility. On 2026-08-23, the JNI façade was
 compiled and smoke-tested against an independently obtained IEEE
 1516.1-2025 Java API JAR, then exercised through C++ → JNI → Java → JPype →
-the public Python API. The focused JNI integration module now runs 438 tests
+the public Python API. The focused JNI integration module now runs 442 tests
 against the exact external artifact (all passed, including the standard named
 and no-argument `RtiFactoryFactory` discovery checks and the
 structural/runtime gates). The exception-surface check loads every C++ exception whose exact
@@ -49,7 +49,7 @@ also launches a fresh JVM with the bridge treated as a vendor JAR and the
 IEEE API supplied as a dependency, proving onboarding does not depend on the
 JNI-specific Python subclass or a preconfigured process. Running Python's
 complete JPype test-package discovery against the same artifact produces the
-same 438-test result.
+same 442-test result.
 The same fresh-process lane copies the external API, bridge, and native
 artifacts into a release directory and starts `UmbraJniRtiFactory` from that
 directory alone, with no JNI path environment overrides; this verifies the
@@ -757,11 +757,25 @@ The same float vector now drives the raw Java `HLAlogicalTime` and
 preserving the C++ opaque one-octet alignment, exact bytes, one-element
 `ByteWrapper` cursor consumption, and the C++ `CouldNotDecode` cause through
 Java's declared method boundary; Python data-element encoders emit the same
-wire values.
+wire values. Both integer and float routes now exercise the reverse
+`encode(ByteWrapper)` direction through raw Java and the provider-scoped
+Python façade, checking non-zero offsets, exact cursor advancement, and an
+untouched trailing sentinel so logical-time carriers are covered in both
+directions at the JNI boundary.
+Provider-owned wide time carriers are also written through the Python value
+facade at a non-zero offset with sentinels on both sides; the facade preserves
+the provider-reported wire width and adjacent caller bytes instead of
+silently reducing the carrier to the reference eight-octet shape.
 It also exercises a malformed payload matrix across all twenty-six primitive
 encoder classes and all four standard composite forms, including nested
 fixed-record, fixed-array, variable-array, and variant children, preserving
 typed `DecoderException` results through the external Java API.
+The standalone Java 2025 surface smoke repeats the successful carrier pass
+without Python: every one of those twenty-six primitive creators and the four
+composite creators is encoded and decoded through a non-zero-offset
+`ByteWrapper`, with exact cursor advancement and a preserved trailing
+sentinel. This keeps the Java-only JNI gate transplantable to another provider
+JAR while the Python matrix verifies the additional façade conversion layer.
 The latest raw-Java companion repeats the scalar and variable-envelope
 malformed cases through the exact `ByteWrapper` cursor overload, proving the
 decoder exception originates at the C++ boundary rather than in Python byte
@@ -789,6 +803,9 @@ payloads, while a well-formed unknown alternative is skipped and surfaced as
 an unmapped Java value with its typed discriminant intact. The cursor overload
 consumes one exact element and leaves a following sentinel for the caller;
 the exact `byte[]` overload continues to reject a trailing payload.
+The same known-alternative carrier now exercises `encode(ByteWrapper)` through
+both raw Java and the provider-scoped Python façade, preserving the native
+payload at a non-zero offset and leaving the trailing sentinel untouched.
 The companion handle-factory vector applies empty, truncated, trailing, and
 wrong-count variable-array envelopes to every public Java handle decoder and
 preserves typed `CouldNotDecode` through JNI and JPype.
@@ -801,6 +818,17 @@ directly: `AttributeRegionAssociation` public fields, `List` add/addAll,
 contains/index lookup, iteration, array conversion, remove, clone,
 clear/is-empty behavior, and a raw Java regional subscription/unsubscription
 call all cross the C++ JNI boundary before the Python-normalized DDM vectors.
+Undersized destinations for the live raw Java `DataElement.encode(ByteWrapper)`
+overload are deliberately not invoked in the pass gates: the current bounded
+C++ JNI fixture does not return a typed encoder failure for that window and can
+remain inside the native call. Typed destination-window failures are therefore
+covered by the provider-neutral fake/vendor carriers, while the live claims
+remain limited to successful standard encode/decode transport.
+The Python façade now preflights `remaining()` against the provider-reported
+encoded length and raises `EncoderException` before JNI for an undersized
+window, giving Python callers a deterministic boundary even while the raw Java
+behavior remains bounded. Provider-neutral tracking tests for both edition
+adapters assert that this guard does not call the foreign `encode` method.
 The same raw Java handle carriers now exercise both `encode()` and cursor-based
 `encode(ByteWrapper)`/`decode(ByteWrapper)` overloads for every public handle
 domain, preserving cursor advancement and C++ handle identity. The JNI handle
@@ -828,6 +856,10 @@ loaded external `FederateAmbassador`, verifies all 56 exact callback names, and
 constructs the actual standard JPype proxy before accepting the C++ callback-slot
 and JPype marshaller audit. It now also checks every reflected Java callback
 overload arity against the dispatcher's required/optional Python argument range.
+The companion carrier matrix invokes all 62 reflected overloads once for each
+integer and floating logical-time route, using C++-backed Java handles,
+typed collections, enums, status arrays, information sets, byte arrays, and
+time values before checking their provider-neutral Python shapes.
 The exact external `RTIambassador` reflection
 surface is audited separately: every overload declared by the loaded IEEE Java
 interface (206 declarations, including the four `connect` forms and the
@@ -984,8 +1016,132 @@ or an inherited mock method never counts as JNI coverage.
    binds standard handle and logical-time carriers through provider-scoped
    Python façade methods and C++-validated factories, including the Java
     extendable-variant creator. It remains a deliberate edition-specific
-    extension boundary in the shared Python contract because the native
-    provider has no matching standard factory method.
+   extension boundary in the shared Python contract because the native
+   provider has no matching standard factory method.
+
+### Current state-space and packaging tranche
+
+The provider-neutral `umbra_rti_test_support.surface_matrix` module now
+defines a deterministic 120-point matrix across callback model, integer versus
+floating logical time, scalar versus timestamped save, all five standard
+advance-service forms (`timeAdvanceRequest`, `timeAdvanceRequestAvailable`,
+`nextMessageRequest`, `nextMessageRequestAvailable`, and
+`flushQueueRequest`), and one/two/three independently bound federate
+ambassadors. The 2025
+and 2010 Java adapters execute the complete matrix through their normal
+Python-to-Java forwarding paths (including both 2010 logical-time families)
+and assert the required
+`timeRegulationEnabled → timeConstrainedEnabled → timeAdvanceGrant` partial
+order. This is binding evidence; it deliberately does not claim that the
+lightweight fakes implement federation-wide scheduling.
+
+The companion `iter_callback_provenance_matrix()` contains five stable
+semantic callback envelopes.  The fake 2010 and 2025 provider tests consume
+the same discovery, reflection, and interaction vectors and normalize their
+edition-specific Java layouts before checking payload bytes, tags, producer
+handles, optional regions, logical-time implementation/value, order metadata,
+and retraction handles.  The 2010 and 2025 JNI lanes additionally construct
+the carriers through the C++-backed Java factories before passing them through
+the Python callback boundary. This closes a cross-route callback transport gap
+without turning the matrix into a claim about callback scheduling.
+
+`CallbackDeliveryObservation` and `normalize_callback_delivery()` provide a
+small differential layer above those vectors.  The edition-specific fixture
+tests feed two independently proxied recipients, retain a strict sequence per
+recipient, and compare semantic handles/payload/provenance after provider
+decoding.  Cross-recipient interleaving is intentionally not compared because
+the provider owns that scheduling choice; duplicate or missing sequence
+numbers remain binding failures.  The catalog records this as a ten-observation
+normalization matrix (five vectors × two recipients), keeping the check
+transplantable without treating private handle bytes as normative.
+
+The opt-in `test_jpype_2010_mock_integration.py` lane adds a real-JVM
+stateful check for the 2010 route: it builds the repository fixture, discovers
+the named provider through the standard `ServiceLoader`, and fans object and
+interaction traffic from one publisher to two or three members under both
+callback models. The fixture is intentionally small; this lane verifies Java
+carrier/callback conversion, URL adaptation, and event ordering rather than
+claiming complete RTI scheduling or vendor behavior. Enable it with
+`UMBRA_ENABLE_JPYPE_2010_MOCK_INTEGRATION=1`; it remains outside the default
+gate because it requires a local JDK/JVM.
+
+The companion `umbra_rti_test_support.wire_matrix` module supplies the same
+fixed-width logical-time vectors to both edition adapters. It covers offset
+decode, signed zero, values above the IEEE-754 exact-integer range, finite
+final boundaries, negative/non-finite rejection, truncation/trailing-octet
+failures, and provider-owned add/subtract/distance arithmetic. These vectors
+are carrier evidence only; vendor-specific extensions remain explicitly
+deferred when no standard Java/C++ type can represent them.
+
+`compliance/catalogs/python-surface-completeness-catalog.json` is the
+transplantable map from each edition and adapter route to its package metadata,
+required tests, and Requirements Lab references. Its `matrix_evidence` section
+records the shared support modules, deterministic vector counts, exact
+`path#test_method` links used by each route, and the normative Requirements Lab
+contracts that the matrix exercises. Run
+`tools/verify_python_surface_report.py` (also included in the Python integrity
+gate) to validate the namespace constants, entry-point groups, JNI
+ServiceLoader descriptor, required test paths, matrix anchors, matrix
+requirement references, and explicit status vocabulary; the JSON output carries
+those counts and references for CI and downstream transplant tooling.
+The report keeps direct-native routes `bounded` and vendor-specific floating or
+non-time malformed matrices `deferred`; neither status is silently promoted to
+implementation conformance.
+
+The representable provider-extension boundary is tracked separately in
+`provider-extension-wire-boundaries`. The shared
+`provider_extension_matrix.py` vectors drive the native 2025
+`HLAextendableVariantRecord` test (known alternatives, unknown future and
+empty alternatives, discriminator-padding corruption, malformed lengths,
+truncation, zero/overlong mapped values, signed and positive length extremes,
+and trailing bytes). This is matrix-covered evidence for that explicit
+extension only; it does not turn the extension into a provider-neutral factory
+or imply coverage for vendor-defined arithmetic that has no standard carrier.
+The support module also records seven provider-owned time/interval operation
+shapes and four fixed-payload unknown-`DataElement` probes. The latter also
+has a four-case destination-window matrix (exact offset, exact origin,
+truncated, and empty) that checks typed encoder failures without partial
+cursor/buffer mutation. The former checks
+that a custom Java time carrier receives `add`, `subtract`, `distance`, and
+`compareTo` without Python arithmetic substitution. The 2025 Java-shaped
+provider test now wraps a provider-defined `LogicalTimeFactory` as an opaque
+Python carrier and exercises all seven operation shapes, including deliberately
+nonstandard arithmetic results; this proves delegation without claiming a
+portable vendor domain. The latter checks generic carrier/cursor preservation
+and provider-selected malformed rejection through both the 2010 and 2025 JNI
+lanes. Dedicated 12-octet fixtures also prove that unknown 2010 and 2025
+factories own variable-width decode and malformed-wire decisions; the Python
+edge does not truncate them to the eight-octet reference shape. Both are
+explicitly shape/transport evidence, not portable IEEE arithmetic or wire
+semantics.
+The arithmetic edge also records the edition distinction: the 2025 opaque
+wrapper translates a provider `IllegalTimeArithmetic` into the Python
+exception, while the 2010 adapter intentionally leaves an unknown carrier and
+its Java exception untouched. Wide-carrier Python encodes use non-zero offsets
+and sentinels in both editions, so the final façade step cannot overwrite
+caller-owned bytes.
+The companion 2025 encoder test sends the same opaque carrier through
+`createHLAlogicalTime` and `createHLAlogicalTimeInterval`, checking selected
+factory identity on set/get and preserving provider bytes.
+
+The save/restore lifecycle boundary now has a separate shared
+`save_restore_matrix.py`. Its 720 deterministic cases combine both callback
+models, integer and float logical-time carriers, scalar and timestamped save
+overloads, all five advance services, one/two-member membership, and every
+complete/not-complete/abort outcome pair for save and restore. The 2025 and
+2010 Java-shaped Python provider tests consume the same cases and assert the
+exact standard service names forwarded to the provider. These are binding and
+surface tests; they do not claim federation-wide persistence semantics for a
+provider that does not implement them.
+
+The opt-in live-JVM companion extends that evidence across the actual callback
+proxy: the 2025 fixture runs complete, not-complete, and abort save outcomes,
+then replays all three restore outcomes for both callback models, integer and
+floating reference times, scalar and timestamped requests, and one-, two-, and
+three-member federations. The 2010 fixture runs the same outcome callbacks for
+the scalar 1516e route with one or two members. These lanes remain fixture
+state-machine evidence; timed 2010 persistence semantics and vendor-specific
+snapshot behavior stay outside the claim.
 
 ## Encoder boundary rule
 
@@ -1008,7 +1164,12 @@ encode/decode conformance vectors from the C++ and Java suites. Further endian
  selected C++ factories. The Java extendable carrier registers its C++ mapping
  on first `setVariant`; it remains a provider-specific extension rather than
  part of the provider-neutral Python factory. The exact Java creator audit now
- finds all 43 standard creator names on the Java façade.
+finds all 43 standard 2025 creator signatures on the Java façade, while the
+2010 JNI carrier lane reflects all 24 legacy creator names and overload
+ arities at both the Java and Python boundaries. The 2010 carrier probe also
+ forwards fixed-array factory/varargs, variable-array varargs, fixed-record
+ additions, and variant discriminant/value arguments, checking child-carrier
+ shape without introducing a Python-side composite wire codec.
  Native
 and Java provider tests also audit that every abstract method in the shared
 `RTIambassador` contract is declared by both provider classes.
@@ -2063,6 +2224,12 @@ underflow/non-finite failures through the standard Java carrier. The external
 JNI float-time edge matrix now additionally carries signed zero, denormal
 epsilon stepping, finite-final boundaries, non-finite interval rejection, and
 malformed time/interval payloads through the IEEE Java API.
+The direct native 2010 route consumes the same wire and arithmetic vectors at
+both the raw pybind factory and the standard Python façade. It records the
+provider-owned canonicalization of signed zero and the C++ carrier's IEEE
+rounding for the smallest-subnormal subtraction, so these representation and
+arithmetic differences remain visible rather than being mistaken for a Java
+adapter defect.
 The next slice is broader regional association matrices beyond these
 multi-member, two-dimensional, per-attribute, and recipient-isolation vectors,
 provider-specific arithmetic beyond the standard integer/floating matrix, and
@@ -2217,7 +2384,7 @@ The HLA_IMMEDIATE regional companion adds source-coordinate filtering: only the
 matching federate-lost subscriber receives the synchronous report, while the
 adjacent disjoint subscription remains silent.
 Latest clean verification records 755 native Catch2 test cases (41,797
-assertions) and 438 external IEEE-JAR JNI/JPype tests, all passing. The native
+assertions) and 442 external IEEE-JAR JNI/JPype tests, all passing. The native
 class-request callback regression now matches the standard zero-window
 `evokeMultipleCallbacks` contract: a first call reports a remaining queued
 provider callback, while the final call reports an empty queue; a resigned

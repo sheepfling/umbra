@@ -25,7 +25,8 @@
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
       ]
     },
     {
@@ -41,7 +42,8 @@
       "source_symbol": "queueAttributeOwnershipDivestitureIfWantedNotifications",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
       ]
     }
   ]

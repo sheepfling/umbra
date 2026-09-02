@@ -111,6 +111,137 @@ class _UnsupportedJavaArithmetic(Exception):
     """Internal marker for a legacy Java fixture's unimplemented distance."""
 
 
+class _JavaProviderLogicalTime(LogicalTime):
+    """Opaque Python snapshot for a non-reference Java time implementation.
+
+    IEEE 1516.1 permits a federation to provide a ``LogicalTimeFactory`` whose
+    name is neither ``HLAinteger64Time`` nor ``HLAfloat64Time``.  The public
+    Python contract intentionally has no vendor-specific numeric type, so keep
+    the carrier identity and encoded bytes while retaining the raw Java value
+    for delegated arithmetic when it is available.
+    """
+
+    __slots__ = ("_java_value", "_factory")
+
+    def add(self, addend: LogicalTimeInterval) -> LogicalTime:
+        if not isinstance(addend, LogicalTimeInterval):
+            raise TypeError("addend must be LogicalTimeInterval")
+        self._factory._require_interval(addend, "addend")
+        java_addend = getattr(addend, "_java_value", None)
+        if java_addend is None:
+            java_addend = self._factory._runtime.decode_logical_interval(
+                self._factory._ambassador, addend.toByteArray()
+            )
+        return self._factory._time(
+            self._factory._arithmetic_call(
+                self._java_value.add,
+                java_addend,
+            )
+        )
+
+    def subtract(self, subtrahend: LogicalTimeInterval) -> LogicalTime:
+        if not isinstance(subtrahend, LogicalTimeInterval):
+            raise TypeError("subtrahend must be LogicalTimeInterval")
+        self._factory._require_interval(subtrahend, "subtrahend")
+        java_subtrahend = getattr(subtrahend, "_java_value", None)
+        if java_subtrahend is None:
+            java_subtrahend = self._factory._runtime.decode_logical_interval(
+                self._factory._ambassador, subtrahend.toByteArray()
+            )
+        return self._factory._time(
+            self._factory._arithmetic_call(
+                self._java_value.subtract,
+                java_subtrahend,
+            )
+        )
+
+    def distance(self, other: LogicalTime) -> LogicalTimeInterval:
+        if not isinstance(other, LogicalTime):
+            raise TypeError("other must be LogicalTime")
+        self._factory._require_time(other, "other")
+        java_other = getattr(other, "_java_value", None)
+        if java_other is None:
+            java_other = self._factory._runtime.decode_logical_time(
+                self._factory._ambassador, other.toByteArray()
+            )
+        return self._factory._interval(
+            self._factory._arithmetic_call(
+                self._java_value.distance,
+                java_other,
+            )
+        )
+
+    def compareTo(self, other: LogicalTime) -> int:
+        if not isinstance(other, LogicalTime):
+            raise TypeError("other must be LogicalTime")
+        self._factory._require_time(other, "other")
+        java_other = getattr(other, "_java_value", None)
+        if java_other is None:
+            java_other = self._factory._runtime.decode_logical_time(
+                self._factory._ambassador, other.toByteArray()
+            )
+        return int(
+            self._factory._arithmetic_call(
+                self._java_value.compareTo,
+                java_other,
+            )
+        )
+
+
+class _JavaProviderLogicalTimeInterval(LogicalTimeInterval):
+    """Opaque Python snapshot for a non-reference Java interval implementation."""
+
+    __slots__ = ("_java_value", "_factory")
+
+    def add(self, addend: LogicalTimeInterval) -> LogicalTimeInterval:
+        if not isinstance(addend, LogicalTimeInterval):
+            raise TypeError("addend must be LogicalTimeInterval")
+        self._factory._require_interval(addend, "addend")
+        java_addend = getattr(addend, "_java_value", None)
+        if java_addend is None:
+            java_addend = self._factory._runtime.decode_logical_interval(
+                self._factory._ambassador, addend.toByteArray()
+            )
+        return self._factory._interval(
+            self._factory._arithmetic_call(
+                self._java_value.add,
+                java_addend,
+            )
+        )
+
+    def subtract(self, subtrahend: LogicalTimeInterval) -> LogicalTimeInterval:
+        if not isinstance(subtrahend, LogicalTimeInterval):
+            raise TypeError("subtrahend must be LogicalTimeInterval")
+        self._factory._require_interval(subtrahend, "subtrahend")
+        java_subtrahend = getattr(subtrahend, "_java_value", None)
+        if java_subtrahend is None:
+            java_subtrahend = self._factory._runtime.decode_logical_interval(
+                self._factory._ambassador, subtrahend.toByteArray()
+            )
+        return self._factory._interval(
+            self._factory._arithmetic_call(
+                self._java_value.subtract,
+                java_subtrahend,
+            )
+        )
+
+    def compareTo(self, other: LogicalTimeInterval) -> int:
+        if not isinstance(other, LogicalTimeInterval):
+            raise TypeError("other must be LogicalTimeInterval")
+        self._factory._require_interval(other, "other")
+        java_other = getattr(other, "_java_value", None)
+        if java_other is None:
+            java_other = self._factory._runtime.decode_logical_interval(
+                self._factory._ambassador, other.toByteArray()
+            )
+        return int(
+            self._factory._arithmetic_call(
+                self._java_value.compareTo,
+                java_other,
+            )
+        )
+
+
 def _java_time_value(value: object) -> object:
     exact = getattr(value, "getTimeValue", None)
     if exact is not None:
@@ -123,11 +254,25 @@ def _java_time_value(value: object) -> object:
 
 
 def _java_time_implementation_name(value: object, numeric: object) -> str:
-    """Identify standard time carriers without requiring vendor extensions."""
+    """Identify standard carriers while retaining obvious vendor identities."""
 
     legacy = getattr(value, "implementationName", None)
     if callable(legacy):
         return str(legacy())
+    get_class = getattr(value, "getClass", None)
+    if callable(get_class):
+        try:
+            java_class = get_class()
+            simple = getattr(java_class, "getSimpleName", None)
+            class_name = str(simple() if callable(simple) else java_class)
+            if class_name and not class_name.startswith("$Proxy"):
+                if class_name == "HLAinteger64Time":
+                    return "HLAinteger64Time"
+                if class_name == "HLAfloat64Time":
+                    return "HLAfloat64Time"
+                return class_name
+        except (AttributeError, TypeError):
+            pass
     return "HLAfloat64Time" if isinstance(numeric, float) else "HLAinteger64Time"
 
 
@@ -280,14 +425,32 @@ class _JavaTimeFactoryBase:
     def _time(self, value: object) -> LogicalTime:
         implementation = self.implementationName()
         numeric = _java_time_value(value)
-        try:
-            invalid = numeric is None or float(numeric) < 0.0 or not math.isfinite(float(numeric))
-        except (TypeError, ValueError, OverflowError):
-            invalid = True
-        if invalid:
-            raise InvalidLogicalTime("Java provider returned an invalid logical-time value")
-        value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
-        return value_type(
+        # Reference carriers have a numeric domain that the adapter can
+        # validate.  A provider-owned carrier is opaque at this layer: it may
+        # deliberately expose no numeric accessor (or use a different domain),
+        # and coercing it to integer/float would destroy its implementation
+        # identity.  Keep that raw carrier and let the provider validate it.
+        if implementation in {"HLAinteger64Time", "HLAfloat64Time"}:
+            try:
+                invalid = (
+                    numeric is None
+                    or float(numeric) < 0.0
+                    or not math.isfinite(float(numeric))
+                )
+            except (TypeError, ValueError, OverflowError):
+                invalid = True
+            if invalid:
+                raise InvalidLogicalTime(
+                    "Java provider returned an invalid logical-time value"
+                )
+            value_type: type[LogicalTime] = (
+                HLAinteger64Time
+                if implementation == "HLAinteger64Time"
+                else HLAfloat64Time
+            )
+        else:
+            value_type = _JavaProviderLogicalTime
+        result = value_type(
             self._runtime.handle_bytes(value),
             implementation,
             bool(value.isInitial()),
@@ -295,22 +458,35 @@ class _JavaTimeFactoryBase:
             numeric,
             str(value.toString()),
         )
+        if isinstance(result, _JavaProviderLogicalTime):
+            object.__setattr__(result, "_java_value", value)
+            object.__setattr__(result, "_factory", self)
+        return result
 
     def _interval(self, value: object) -> LogicalTimeInterval:
         implementation = self.implementationName()
         numeric = _java_interval_value(value)
-        try:
-            invalid = numeric is None or float(numeric) < 0.0 or not math.isfinite(float(numeric))
-        except (TypeError, ValueError, OverflowError):
-            invalid = True
-        if invalid:
-            raise InvalidLogicalTimeInterval(
-                "Java provider returned an invalid logical-time interval value"
+        if implementation in {"HLAinteger64Time", "HLAfloat64Time"}:
+            try:
+                invalid = (
+                    numeric is None
+                    or float(numeric) < 0.0
+                    or not math.isfinite(float(numeric))
+                )
+            except (TypeError, ValueError, OverflowError):
+                invalid = True
+            if invalid:
+                raise InvalidLogicalTimeInterval(
+                    "Java provider returned an invalid logical-time interval value"
+                )
+            value_type: type[LogicalTimeInterval] = (
+                HLAinteger64Interval
+                if implementation == "HLAinteger64Time"
+                else HLAfloat64Interval
             )
-        value_type = (
-            HLAinteger64Interval if implementation == "HLAinteger64Time" else HLAfloat64Interval
-        )
-        return value_type(
+        else:
+            value_type = _JavaProviderLogicalTimeInterval
+        result = value_type(
             self._runtime.handle_bytes(value),
             implementation,
             bool(value.isZero()),
@@ -318,6 +494,10 @@ class _JavaTimeFactoryBase:
             numeric,
             str(value.toString()),
         )
+        if isinstance(result, _JavaProviderLogicalTimeInterval):
+            object.__setattr__(result, "_java_value", value)
+            object.__setattr__(result, "_factory", self)
+        return result
 
     def makeInitial(self) -> LogicalTime:
         return self._time(self._factory_call(self._java_factory.makeInitial))
@@ -333,7 +513,14 @@ class _JavaTimeFactoryBase:
 
     def decodeLogicalTime(self, encodedValue: BytesLike) -> LogicalTime:
         encoded = bytes(encodedValue)
-        if len(encoded) != 8:
+        # The reference IEEE carriers are eight octets.  A provider-defined
+        # Java LogicalTime is allowed to choose another wire width, so defer
+        # that validation to its decode method instead of truncating or
+        # rejecting a valid vendor carrier at the Python edge.
+        if (
+            self.implementationName() in {"HLAinteger64Time", "HLAfloat64Time"}
+            and len(encoded) != 8
+        ):
             raise CouldNotDecode("Logical-time encoding must contain exactly eight bytes")
         try:
             return self._time(
@@ -350,7 +537,10 @@ class _JavaTimeFactoryBase:
 
     def decodeLogicalTimeInterval(self, encodedValue: BytesLike) -> LogicalTimeInterval:
         encoded = bytes(encodedValue)
-        if len(encoded) != 8:
+        if (
+            self.implementationName() in {"HLAinteger64Time", "HLAfloat64Time"}
+            and len(encoded) != 8
+        ):
             raise CouldNotDecode("Logical-time interval encoding must contain exactly eight bytes")
         try:
             return self._interval(
@@ -405,8 +595,16 @@ class _JavaTimeFactoryBase:
             raise TypeError("addend must be LogicalTimeInterval")
         self._require_time(time, "time")
         self._require_interval(addend, "addend")
-        java_time = self._runtime.decode_logical_time(self._ambassador, time.toByteArray())
-        java_addend = self._runtime.decode_logical_interval(self._ambassador, addend.toByteArray())
+        java_time = getattr(time, "_java_value", None)
+        if java_time is None:
+            java_time = self._runtime.decode_logical_time(
+                self._ambassador, time.toByteArray()
+            )
+        java_addend = getattr(addend, "_java_value", None)
+        if java_addend is None:
+            java_addend = self._runtime.decode_logical_interval(
+                self._ambassador, addend.toByteArray()
+            )
         return self._time(self._arithmetic_call(java_time.add, java_addend))
 
     def subtract(self, time: LogicalTime, subtrahend: LogicalTimeInterval) -> LogicalTime:
@@ -416,10 +614,16 @@ class _JavaTimeFactoryBase:
             raise TypeError("subtrahend must be LogicalTimeInterval")
         self._require_time(time, "time")
         self._require_interval(subtrahend, "subtrahend")
-        java_time = self._runtime.decode_logical_time(self._ambassador, time.toByteArray())
-        java_subtrahend = self._runtime.decode_logical_interval(
-            self._ambassador, subtrahend.toByteArray()
-        )
+        java_time = getattr(time, "_java_value", None)
+        if java_time is None:
+            java_time = self._runtime.decode_logical_time(
+                self._ambassador, time.toByteArray()
+            )
+        java_subtrahend = getattr(subtrahend, "_java_value", None)
+        if java_subtrahend is None:
+            java_subtrahend = self._runtime.decode_logical_interval(
+                self._ambassador, subtrahend.toByteArray()
+            )
         return self._time(self._arithmetic_call(java_time.subtract, java_subtrahend))
 
     def difference(self, minuend: LogicalTime, subtrahend: LogicalTime) -> LogicalTimeInterval:
@@ -429,10 +633,16 @@ class _JavaTimeFactoryBase:
             raise TypeError("subtrahend must be LogicalTime")
         self._require_time(minuend, "minuend")
         self._require_time(subtrahend, "subtrahend")
-        java_minuend = self._runtime.decode_logical_time(self._ambassador, minuend.toByteArray())
-        java_subtrahend = self._runtime.decode_logical_time(
-            self._ambassador, subtrahend.toByteArray()
-        )
+        java_minuend = getattr(minuend, "_java_value", None)
+        if java_minuend is None:
+            java_minuend = self._runtime.decode_logical_time(
+                self._ambassador, minuend.toByteArray()
+            )
+        java_subtrahend = getattr(subtrahend, "_java_value", None)
+        if java_subtrahend is None:
+            java_subtrahend = self._runtime.decode_logical_time(
+                self._ambassador, subtrahend.toByteArray()
+            )
         # IEEE 1516.1-2025 Java time carriers expose ``distance`` on
         # LogicalTime.  Older compact fixtures expose the C++-shaped
         # ``LogicalTimeInterval.setToDifference`` mutator as a compatibility
@@ -487,6 +697,42 @@ class _JavaFloat64TimeFactory(_JavaTimeFactoryBase, HLAfloat64TimeFactory):
         if method is None:
             method = self._java_factory.makeLogicalTimeInterval
         return self._interval(self._factory_call(method, float(value)))  # type: ignore[return-value]
+
+
+class _JavaProviderTimeFactory(_JavaTimeFactoryBase, LogicalTimeFactory):
+    """Forward a vendor-defined 2025 logical-time factory without coercion.
+
+    The standard factory interface only guarantees the four sentinel creators
+    and the two decode overloads.  Some providers additionally expose numeric
+    ``makeTime``/``makeInterval`` helpers; when present, keep those helpers
+    available as convenience methods while preserving the opaque carrier type.
+    """
+
+    def makeLogicalTime(self, value: object) -> LogicalTime:
+        method = getattr(self._java_factory, "makeLogicalTime", None)
+        if method is None:
+            method = getattr(self._java_factory, "makeTime", None)
+        if method is None:
+            raise NotImplementedError(
+                "provider-defined LogicalTimeFactory does not expose a numeric time creator"
+            )
+        return self._time(self._factory_call(method, value))
+
+    def makeLogicalTimeInterval(self, value: object) -> LogicalTimeInterval:
+        method = getattr(self._java_factory, "makeLogicalTimeInterval", None)
+        if method is None:
+            method = getattr(self._java_factory, "makeInterval", None)
+        if method is None:
+            raise NotImplementedError(
+                "provider-defined LogicalTimeFactory does not expose a numeric interval creator"
+            )
+        return self._interval(self._factory_call(method, value))
+
+    # The 2010-shaped spellings are useful to transplanted providers whose
+    # Java implementation exposes those names even when the 2025 interface
+    # itself only requires makeInitial/makeFinal/makeZero/makeEpsilon.
+    makeTime = makeLogicalTime
+    makeInterval = makeLogicalTimeInterval
 
 
 class _JavaHandleFactory(HandleFactory):
@@ -2238,7 +2484,10 @@ class JavaRTIambassador(RTIambassador):
             return _JavaInteger64TimeFactory(self._implementation, self._runtime, java_factory)
         if name == "HLAfloat64Time":
             return _JavaFloat64TimeFactory(self._implementation, self._runtime, java_factory)
-        raise RTIinternalError(f"Unsupported logical-time implementation: {name}")
+        # IEEE 1516.1 permits provider-defined logical-time factories.  Keep
+        # their Java carrier opaque instead of rejecting the otherwise valid
+        # standard factory surface or guessing an integer/float representation.
+        return _JavaProviderTimeFactory(self._implementation, self._runtime, java_factory)
 
     def _selected_time_implementation_name(self) -> str:
         """Return the C++ federation's selected logical-time implementation."""
@@ -2314,19 +2563,11 @@ class JavaRTIambassador(RTIambassador):
 
     def queryLookahead(self) -> LogicalTimeInterval:
         raw = self._call(getattr(self._implementation, "queryLookahead"))
-        numeric = _java_interval_value(raw)
-        implementation = _java_time_implementation_name(raw, numeric)
-        interval_type = (
-            HLAinteger64Interval if implementation == "HLAinteger64Time" else HLAfloat64Interval
-        )
-        return interval_type(
-            self._runtime.handle_bytes(raw),
-            implementation,
-            bool(raw.isZero()),
-            bool(raw.isEpsilon()),
-            numeric,
-            str(raw.toString()),
-        )
+        # Let the selected factory own carrier classification.  In
+        # particular, provider-defined 2025 intervals must remain opaque
+        # instead of being guessed as HLAfloat64Interval merely because they
+        # expose a numeric-looking accessor.
+        return self.getTimeFactory()._interval(raw)  # type: ignore[return-value]
 
     def timeAdvanceRequest(self, time: LogicalTime) -> None:
         if not isinstance(time, LogicalTime):
@@ -2370,17 +2611,7 @@ class JavaRTIambassador(RTIambassador):
 
     def queryLogicalTime(self) -> LogicalTime:
         raw = self._call(getattr(self._implementation, "queryLogicalTime"))
-        numeric = _java_time_value(raw)
-        implementation = _java_time_implementation_name(raw, numeric)
-        value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
-        return value_type(
-            self._runtime.handle_bytes(raw),
-            implementation,
-            bool(raw.isInitial()),
-            bool(raw.isFinal()),
-            numeric,
-            str(raw.toString()),
-        )
+        return self.getTimeFactory()._time(raw)  # type: ignore[return-value]
 
     def _timeQuery(self, method_name: str) -> TimeQueryResult:
         raw = self._call(getattr(self._implementation, method_name))
@@ -2388,19 +2619,9 @@ class JavaRTIambassador(RTIambassador):
         if not valid:
             return TimeQueryResult(False, None)
         value = raw.time
-        numeric = _java_time_value(value)
-        implementation = _java_time_implementation_name(value, numeric)
-        value_type = HLAinteger64Time if implementation == "HLAinteger64Time" else HLAfloat64Time
         return TimeQueryResult(
             True,
-            value_type(
-                self._runtime.handle_bytes(value),
-                implementation,
-                bool(value.isInitial()),
-                bool(value.isFinal()),
-                numeric,
-                str(value.toString()),
-            ),
+            self.getTimeFactory()._time(value),  # type: ignore[arg-type]
         )
 
     def queryGALT(self) -> TimeQueryResult:

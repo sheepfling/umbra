@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
       "source_symbol": "materializeFdd",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer emits a strict OMT-positive complete model"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer emits a strict OMT-positive complete model",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer is repeatable for a fixed official module set"
       ]
     },
     {
@@ -22,7 +23,8 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
       "source_symbol": "validateDataTypeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer emits a strict OMT-positive complete model"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer emits a strict OMT-positive complete model",
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer is repeatable for a fixed official module set"
       ]
     }
   ]

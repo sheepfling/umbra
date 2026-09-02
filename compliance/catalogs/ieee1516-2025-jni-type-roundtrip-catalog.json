@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "kind": "ieee1516-2025-jni-type-roundtrip-catalog",
+  "standard": "IEEE 1516.1-2025",
+  "document_id": "hla-1516.1-2025",
+  "source_boundary": "packages/umbra-rti-jni",
+  "route": "Python -> JPype -> standard Java carrier -> JNI -> official C++ 1516.1 carrier -> JNI -> standard Java -> Python",
+  "scope": "Carrier, encoding, callback, factory, argument-conversion, and return-shape transport. This catalog proves the Python adapter consumes the exact Java 2025 interfaces and that representable values cross the C++ JNI boundary; it does not infer complete RTI service semantics from carrier evidence.",
+  "java_probe": "org.umbra.jni.rti1516_2025.StandardSurfaceSmokeTest",
+  "java_service_smoke": "org.umbra.jni.rti1516_2025.NativeSmokeTest",
+  "python_test": "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py",
+  "basic_value_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/basic-data-elements-requirements-contract.json"
+    ],
+    "edition": "2025",
+    "data_elements": [
+      "HLAASCIIchar", "HLAASCIIstring", "HLAboolean", "HLAbyte",
+      "HLAfloat32BE", "HLAfloat32LE", "HLAfloat64BE", "HLAfloat64LE",
+      "HLAinteger16BE", "HLAinteger16LE", "HLAinteger32BE", "HLAinteger32LE",
+      "HLAinteger64BE", "HLAinteger64LE", "HLAunsignedInteger16BE",
+      "HLAunsignedInteger16LE", "HLAunsignedInteger32BE",
+      "HLAunsignedInteger32LE", "HLAunsignedInteger64BE",
+      "HLAunsignedInteger64LE", "HLAoctet", "HLAoctetPairBE",
+      "HLAoctetPairLE", "HLAopaqueData", "HLAunicodeChar", "HLAunicodeString"
+    ],
+    "composite_data_elements": [
+      "HLAvariableArray", "HLAfixedArray", "HLAfixedRecord", "HLAvariantRecord"
+    ],
+    "vector_count": 103,
+    "wire_owned_by_provider": true,
+    "shared_support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/data_element_matrix.py",
+    "java_test_method": "verifyNativeDataElementCarriers",
+    "python_test_method": "test_cpp_jni_java_jpype_basic_data_element_value_matrix",
+    "python_composite_test_method": "test_cpp_jni_java_jpype_python_composite_creator_arguments"
+  },
+  "logical_time_carrier_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/logical-time-encoding-requirements-contract.json",
+      "compliance/requirements-lab/float-time-requirements-contract.json",
+      "compliance/requirements-lab/reference-time-requirements-contract.json"
+    ],
+    "logical_times": [
+      "HLAinteger64Time", "HLAinteger64Interval", "HLAfloat64Time", "HLAfloat64Interval"
+    ],
+    "logical_time_data_elements": ["HLAlogicalTime", "HLAlogicalTimeInterval"],
+    "factory_names": ["HLAinteger64TimeFactory", "HLAfloat64TimeFactory"],
+    "python_test_methods": [
+      "test_cpp_jni_java_jpype_get_time_factory_lifecycle",
+      "test_cpp_jni_java_jpype_standard_encoder_handle_and_time_carriers",
+      "test_cpp_jni_java_jpype_raw_java_composite_alignment_and_padding"
+    ],
+    "offset_window_preserves_suffix": true,
+    "canonical_output_owned_by_cpp": true
+  },
+  "handle_and_collection_carrier_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/handle-encoding-requirements-contract.json",
+      "compliance/requirements-lab/handle-decoding-api-contract.json"
+    ],
+    "handles": [
+      "FederateHandle", "ObjectClassHandle", "InteractionClassHandle",
+      "ObjectInstanceHandle", "AttributeHandle", "ParameterHandle",
+      "DimensionHandle", "RegionHandle", "TransportationTypeHandle",
+      "MessageRetractionHandle"
+    ],
+    "handle_factories": [
+      "FederateHandleFactory", "ObjectClassHandleFactory",
+      "InteractionClassHandleFactory", "ObjectInstanceHandleFactory",
+      "AttributeHandleFactory", "ParameterHandleFactory", "DimensionHandleFactory",
+      "RegionHandleFactory", "TransportationTypeHandleFactory",
+      "MessageRetractionHandleFactory"
+    ],
+    "collections": [
+      "AttributeHandleSet", "DimensionHandleSet", "FederateHandleSet",
+      "InteractionClassHandleSet", "RegionHandleSet",
+      "FederationExecutionInformationSet", "FederationExecutionMemberInformationSet",
+      "AttributeHandleValueMap", "ParameterHandleValueMap",
+      "AttributeSetRegionSetPairList", "ObjectInstanceNameSet"
+    ],
+    "python_test_methods": [
+      "test_cpp_jni_java_jpype_standard_encoder_handle_and_time_carriers",
+      "test_cpp_jni_java_jpype_callback_overload_carriers",
+      "test_cpp_jni_java_jpype_callback_provenance_carriers"
+    ],
+    "round_trip_direction": "Python provider values -> standard Java handles/collections -> JNI -> C++ -> standard Java -> Python provider values"
+  },
+  "record_enum_and_exception_carriers": {
+    "records": [
+      "ConfigurationResult", "FederationExecutionInformation",
+      "FederationExecutionMemberInformation", "FederateHandleSaveStatusPair",
+      "FederateRestoreStatus", "MessageRetractionReturn", "TimeQueryReturn",
+      "RangeBounds"
+    ],
+    "callback_records": [
+      "SupplementalReflectInfo", "SupplementalReceiveInfo", "SupplementalRemoveInfo"
+    ],
+    "enums": [
+      "AdditionalSettingsResultCode", "CallbackModel", "OrderType", "ResignAction",
+      "ServiceGroup", "SynchronizationPointFailureReason", "SaveFailureReason",
+      "SaveStatus", "RestoreFailureReason", "RestoreStatus"
+    ],
+    "exceptions": [
+      "RTIexception", "RTIinternalError", "CouldNotDecode", "EncoderException",
+      "DecoderException", "IllegalTimeArithmetic"
+    ],
+    "python_test_methods": [
+      "test_cpp_jni_java_jpype_callback_overload_carriers",
+      "test_cpp_jni_java_jpype_callback_provenance_carriers",
+      "test_cpp_jni_java_jpype_standard_authorizer_service",
+      "test_cpp_jni_java_jpype_raw_java_byte_wrapper_malformed_scalars"
+    ]
+  },
+  "callback_surface_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/connection-callback-api-contract.json",
+      "compliance/requirements-lab/reference-time-requirements-contract.json"
+    ],
+    "java_callback_method_count": 56,
+    "overload_count_per_time_family": 62,
+    "time_implementations": ["HLAinteger64Time", "HLAfloat64Time"],
+    "vector_count": 124,
+    "python_test_method": "test_cpp_jni_java_jpype_callback_overload_carriers",
+    "round_trip_direction": "JNI-produced standard Java callback carriers -> JPype callback proxy -> Python callback arguments"
+  },
+  "service_surface_matrix": {
+    "python_test_methods": [
+      "test_jni_integration_vectors_reference_every_public_rti_service",
+      "test_jni_invocation_handler_routes_external_standard_signatures",
+      "test_jni_encoder_factory_routes_external_standard_signatures",
+      "test_jni_callback_surface_is_marshaled_and_callback_classes_are_released",
+      "test_jni_bridge_registers_every_declared_native_endpoint"
+    ],
+    "scope": "Every public Java RTIambassador and EncoderFactory method is reflected or statically linked to a JNI dispatch route; service state remains a separate capability profile."
+  },
+  "malformed_wire_matrix": {
+    "requirement_refs": [
+      "compliance/requirements-lab/basic-data-elements-requirements-contract.json",
+      "compliance/requirements-lab/logical-time-encoding-requirements-contract.json"
+    ],
+    "python_test_methods": [
+      "test_cpp_jni_java_jpype_raw_java_byte_wrapper_malformed_scalars",
+      "test_cpp_jni_java_jpype_raw_java_variable_array_signed_count_and_padding",
+      "test_cpp_jni_java_jpype_raw_java_variant_record_alignment_and_unknown",
+      "test_cpp_jni_java_jpype_raw_java_composite_alignment_and_padding",
+      "test_cpp_jni_java_jpype_raw_java_extendable_variant_malformed",
+      "test_cpp_jni_java_jpype_unknown_vendor_data_element_preserves_carrier"
+    ],
+    "java_exception": "hla.rti1516_2025.encoding.DecoderException",
+    "python_failure_preflight": "hla.rti1516_2025.encoding.EncoderException",
+    "raw_undersized_encode_status": "bounded",
+    "raw_undersized_encode_reason": "The current native fixture can fail to return from an undersized Java encode window; the Python façade preflight and provider-neutral destination-window matrix remain the deterministic failure evidence."
+  },
+  "provider_extension_surface": {
+    "support": "packages/umbra-rti-test-support/src/umbra_rti_test_support/provider_extension_matrix.py",
+    "extendable_variant_vector_count": 15,
+    "unknown_data_element_vector_count": 4,
+    "vendor_time_arithmetic_vector_count": 7,
+    "python_test_methods": [
+      "test_cpp_jni_java_jpype_raw_java_extendable_variant_malformed",
+      "test_cpp_jni_java_jpype_unknown_vendor_data_element_preserves_carrier",
+      "test_cpp_jni_java_jpype_standard_encoder_handle_and_time_carriers"
+    ],
+    "scope": "Representable provider-owned carriers are transported without Python-side reinterpretation; external vendor-specific non-time wire formats remain deferred."
+  },
+  "explicit_gaps": [
+    {
+      "id": "jni-2025.gap.direct-native-completeness",
+      "status": "bounded",
+      "reason": "This catalog covers the C++ JNI route. The direct pybind provider remains a separately bounded implementation profile."
+    },
+    {
+      "id": "jni-2025.gap.external-vendor-arithmetic",
+      "status": "deferred",
+      "reason": "The adapter delegates unknown vendor arithmetic and preserves typed failures where a fake/provider carrier can represent them; portable numeric semantics for an external vendor are not inferred."
+    },
+    {
+      "id": "jni-2025.gap.external-vendor-non-time-wire",
+      "status": "deferred",
+      "reason": "The fixed opaque carrier and standard malformed matrices prove the boundary shape only; vendor-specific non-time codecs require the vendor artifact."
+    }
+  ]
+}

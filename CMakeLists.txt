@@ -24,20 +24,32 @@ option(
 )
 option(
   UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT
-  "Enable the non-installable embedded federation-management development profile"
+  "Enable the embedded federation-management profile and its packaged FOM resources"
   OFF
 )
 set(
   UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY
   ""
   CACHE PATH
-  "Optional unvendored SISO FOM corpus root for development-only 2025 boundary-rejection tests"
+  "Optional unvendored SISO FOM corpus root for development-only 2010 loading and 2025 boundary tests"
 )
 set(
   UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY
   ""
   CACHE PATH
   "Optional unvendored 2025 FOM corpus root for development-only positive validation tests"
+)
+set(
+  UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY
+  ""
+  CACHE PATH
+  "Optional unvendored IEEE 1516.2-2010 schema/MIM resource root for compatibility-mode tests"
+)
+set(
+  UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH
+  ""
+  CACHE FILEPATH
+  "Optional reviewed third-party IEEE 1516.2-2010 Target Radar FOM module for registration-only tests"
 )
 if(UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY)
   if(NOT UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
@@ -75,8 +87,68 @@ if(UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY)
     )
   endif()
 endif()
+if(UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY)
+  if(NOT UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
+    message(FATAL_ERROR
+      "UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY requires UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR=ON."
+    )
+  endif()
+  get_filename_component(
+    UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY
+    "${UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY}"
+    ABSOLUTE
+    BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(NOT IS_DIRECTORY "${UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY}")
+    message(FATAL_ERROR
+      "UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY is not a directory: ${UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY}"
+    )
+  endif()
+endif()
+if(UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH)
+  if(NOT UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY)
+    message(FATAL_ERROR
+      "UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH requires UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY."
+    )
+  endif()
+  if(NOT UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
+    message(FATAL_ERROR
+      "UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH requires UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR=ON."
+    )
+  endif()
+  get_filename_component(
+    UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH
+    "${UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH}"
+    ABSOLUTE
+    BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(NOT EXISTS "${UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH}" OR
+     IS_DIRECTORY "${UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH}")
+    message(FATAL_ERROR
+      "UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH is not a file: ${UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH}"
+    )
+  endif()
+endif()
 set(UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY "${CMAKE_BINARY_DIR}/compliance"
   CACHE PATH "Directory for generated Catch2 JUnit artifacts"
+)
+
+# Keep the selected build profile discoverable after installation.  This is a
+# deployment manifest, not a second public API: the official C++ binding still
+# carries the runtime configuration (including RtiConfiguration::rtiAddress),
+# while the manifest records which optional profile was actually built and
+# where its reviewed 1516.2 resources live.
+if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  set(UMBRA_PROFILE_NAME "embedded-federation-management")
+  set(UMBRA_PROFILE_PROCESS_ENDPOINT "rtiAddress=tcp://host:port")
+else()
+  set(UMBRA_PROFILE_NAME "binding-foundation")
+  set(UMBRA_PROFILE_PROCESS_ENDPOINT "not-enabled")
+endif()
+configure_file(
+  cmake/umbra_rti-profile.json.in
+  "${CMAKE_CURRENT_BINARY_DIR}/umbra_rti-profile.json"
+  @ONLY
 )
 
 set(UMBRA_IEEE1516_2025_INCLUDE_DIR
@@ -84,6 +156,13 @@ set(UMBRA_IEEE1516_2025_INCLUDE_DIR
 )
 if(NOT EXISTS "${UMBRA_IEEE1516_2025_INCLUDE_DIR}/RTI/RTI1516.h")
   message(FATAL_ERROR "The vendored IEEE 1516.1-2025 C++ headers are missing")
+endif()
+
+set(UMBRA_IEEE1516_2010_INCLUDE_DIR
+  "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ieee1516.1-2010/include"
+)
+if(NOT EXISTS "${UMBRA_IEEE1516_2010_INCLUDE_DIR}/RTI/RTI1516.h")
+  message(FATAL_ERROR "The vendored IEEE 1516.1-2010 C++ headers are missing")
 endif()
 
 set(UMBRA_IEEE1516_2_2025_RESOURCE_DIR
@@ -98,6 +177,13 @@ add_library(umbra::ieee1516_2025_headers ALIAS ieee1516_2025_headers)
 target_include_directories(ieee1516_2025_headers SYSTEM INTERFACE
   $<BUILD_INTERFACE:${UMBRA_IEEE1516_2025_INCLUDE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+add_library(ieee1516_2010_headers INTERFACE)
+add_library(umbra::ieee1516_2010_headers ALIAS ieee1516_2010_headers)
+target_include_directories(ieee1516_2010_headers SYSTEM INTERFACE
+  $<BUILD_INTERFACE:${UMBRA_IEEE1516_2010_INCLUDE_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/umbra/ieee1516.1-2010>
 )
 
 # The implementation starts as a standards-shaped static binding with an
@@ -132,17 +218,27 @@ add_library(umbra_rti STATIC
   cpp/src/internal/callbacks/callback_dispatcher.cpp
   cpp/src/internal/callbacks/callback_session.cpp
   cpp/src/internal/federation/embedded_transport.cpp
+  cpp/src/internal/federation/process_transport.cpp
+  cpp/src/internal/federation/process_federation_service.cpp
+  cpp/src/internal/federation/process_federation_callback_bridge.cpp
+  cpp/src/internal/federation/process_federation_client.cpp
+  cpp/src/internal/federation/process_transport_session.cpp
+  cpp/src/internal/federation/transport_protocol.cpp
+  cpp/src/internal/federation/transport_service_protocol.cpp
   cpp/src/internal/handles/attribute_handle_directory.cpp
   cpp/src/internal/handles/dimension_handle_directory.cpp
   cpp/src/internal/federation/federate_lifecycle.cpp
   cpp/src/internal/time/federate_time_state.cpp
-  cpp/src/internal/federation/federation_management_coordinator.cpp
-  cpp/src/internal/federation/federation_registry.cpp
+    cpp/src/internal/federation/federation_management_coordinator.cpp
+    cpp/src/internal/federation/federation_registry.cpp
+    cpp/src/internal/federation/federation_state_image.cpp
+    cpp/src/internal/federation/federation_save_commit_store.cpp
   cpp/src/internal/handles/interaction_class_handle_directory.cpp
   cpp/src/internal/observability/mom_service_report_encoding.cpp
   cpp/src/internal/observability/service_report_store.cpp
   cpp/src/internal/handles/object_class_handle_directory.cpp
   cpp/src/internal/handles/parameter_handle_directory.cpp
+  cpp/src/internal/handles/transportation_type_handle_directory.cpp
   cpp/src/internal/time/federation_time_bounds.cpp
   cpp/src/internal/time/federation_time_coordinator.cpp
   cpp/src/internal/time/federation_time_grant_policy.cpp
@@ -173,6 +269,43 @@ target_include_directories(umbra_rti
     "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
 )
 target_link_libraries(umbra_rti PUBLIC umbra::ieee1516_2025_headers)
+if(WIN32)
+  target_link_libraries(umbra_rti PRIVATE ws2_32)
+endif()
+
+# IEEE 1516.1-2010 / 1516e bounded binding. This target owns the official
+# basic/composite encoders, reference integer64/float64 logical-time families,
+# connection lifecycle, and a deterministic in-process federation /
+# declaration / receive-order object callback slice. FOM loading and every
+# remaining RTI/MOM ambassador service remain explicit RTIinternalError gates.
+add_library(umbra_rti_2010 STATIC
+  cpp/src/ieee1516_2010_handles.cpp
+  cpp/src/ieee1516_2010_null.cpp
+  cpp/src/ieee1516_2010_support.cpp
+  cpp/src/internal/runtime/reference_2010.cpp
+  cpp/src/ieee1516_2010_basic_data_elements.cpp
+  cpp/src/ieee1516_2010_fixed_array.cpp
+  cpp/src/ieee1516_2010_fixed_record.cpp
+  cpp/src/ieee1516_2010_integer_time.cpp
+  cpp/src/ieee1516_2010_variable_array.cpp
+  cpp/src/ieee1516_2010_variant_record.cpp
+  cpp/src/ieee1516_2010_float_time.cpp
+)
+add_library(umbra::rti_2010 ALIAS umbra_rti_2010)
+set_target_properties(umbra_rti_2010 PROPERTIES EXPORT_NAME rti_2010)
+target_compile_features(umbra_rti_2010 PUBLIC cxx_std_14)
+target_compile_definitions(umbra_rti_2010 PUBLIC STATIC_RTI STATIC_FEDTIME RTI_DISABLE_WARNINGS)
+target_include_directories(umbra_rti_2010
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/ieee1516.1-2010/include>
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+)
+target_link_libraries(umbra_rti_2010 PUBLIC umbra::ieee1516_2010_headers)
+if(MSVC)
+  target_compile_options(umbra_rti_2010 PRIVATE /bigobj)
+endif()
 
 # The IEEE binding separates the user-selectable LogicalTimeFactoryFactory
 # into libfedtime. Keep that boundary even while Umbra ships the two mandated
@@ -247,20 +380,26 @@ if(UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
     "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
   )
   target_link_libraries(umbra_fom_validation_backend PRIVATE LibXml2::LibXml2)
+  set_target_properties(umbra_fom_validation_backend PROPERTIES
+    EXPORT_NAME fom_validation_backend
+  )
 
   if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-    # This first public federation-management slice intentionally remains a
-    # source-tree development profile. Its libxml2 linkage is not yet part of
-    # the installed SDK dependency contract, so the install/package targets
-    # below stay disabled for this configuration.
+    # Keep both locations in the binary. The source-tree location makes the
+    # development profile deterministic; the installed location lets the
+    # same binary use the reviewed 1516.2 resources after installation. The
+    # package config declares the matching LibXml2 dependency below.
     target_compile_definitions(umbra_rti PRIVATE
       UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
       UMBRA_EMBEDDED_FOM_RESOURCE_DIRECTORY=L"${UMBRA_IEEE1516_2_2025_RESOURCE_DIR}"
+      UMBRA_EMBEDDED_FOM_RESOURCE_DIRECTORY_INSTALL=L"${CMAKE_INSTALL_FULL_DATADIR}/umbra_rti/ieee1516.2-2025"
     )
+    if(UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY)
+      target_compile_definitions(umbra_rti PRIVATE
+        UMBRA_EMBEDDED_FOM_2010_RESOURCE_DIRECTORY=L"${UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY}"
+      )
+    endif()
     target_link_libraries(umbra_rti PRIVATE umbra_fom_validation_backend)
-    message(WARNING
-      "UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT is a non-installable development profile; disable it for the packaged SDK."
-    )
   endif()
 elseif(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   message(FATAL_ERROR
@@ -273,6 +412,76 @@ if(BUILD_TESTING)
   target_compile_features(umbra_ieee1516_2025_headers_smoke PRIVATE cxx_std_20)
   target_link_libraries(umbra_ieee1516_2025_headers_smoke PRIVATE umbra::ieee1516_2025_headers)
   add_test(NAME umbra.ieee1516_2025.headers COMMAND umbra_ieee1516_2025_headers_smoke)
+
+  add_executable(umbra_ieee1516_2010_binding_shell_smoke
+    cpp/tests/ieee1516_2010_binding_shell_smoke.cpp
+  )
+  target_compile_features(umbra_ieee1516_2010_binding_shell_smoke PRIVATE cxx_std_14)
+  target_link_libraries(umbra_ieee1516_2010_binding_shell_smoke PRIVATE umbra::rti_2010)
+  add_test(
+    NAME umbra.ieee1516e_2010.binding_shell
+    COMMAND umbra_ieee1516_2010_binding_shell_smoke
+  )
+
+  add_executable(umbra_ieee1516_2010_headers_smoke
+    cpp/tests/ieee1516_2010_headers_smoke.cpp
+  )
+  target_compile_features(umbra_ieee1516_2010_headers_smoke PRIVATE cxx_std_14)
+  target_link_libraries(umbra_ieee1516_2010_headers_smoke PRIVATE umbra::ieee1516_2010_headers)
+  add_test(
+    NAME umbra.ieee1516e_2010.headers
+    COMMAND umbra_ieee1516_2010_headers_smoke
+  )
+
+  add_executable(umbra_ieee1516_2010_encoding_smoke
+    cpp/tests/ieee1516_2010_encoding_smoke.cpp
+  )
+  target_compile_features(umbra_ieee1516_2010_encoding_smoke PRIVATE cxx_std_14)
+  target_link_libraries(umbra_ieee1516_2010_encoding_smoke PRIVATE umbra::rti_2010)
+  add_test(
+    NAME umbra.ieee1516e_2010.encoding
+    COMMAND umbra_ieee1516_2010_encoding_smoke
+  )
+
+  add_executable(umbra_ieee1516_2010_composite_encoding_smoke
+    cpp/tests/ieee1516_2010_composite_encoding_smoke.cpp
+  )
+  target_compile_features(umbra_ieee1516_2010_composite_encoding_smoke PRIVATE cxx_std_14)
+  target_link_libraries(umbra_ieee1516_2010_composite_encoding_smoke PRIVATE umbra::rti_2010)
+  add_test(
+    NAME umbra.ieee1516e_2010.composite_encoding
+    COMMAND umbra_ieee1516_2010_composite_encoding_smoke
+  )
+
+  add_executable(umbra_ieee1516_2010_integer_time_smoke
+    cpp/tests/ieee1516_2010_integer_time_smoke.cpp
+  )
+  target_compile_features(umbra_ieee1516_2010_integer_time_smoke PRIVATE cxx_std_14)
+  target_link_libraries(umbra_ieee1516_2010_integer_time_smoke PRIVATE umbra::rti_2010)
+  add_test(
+    NAME umbra.ieee1516e_2010.integer_time
+    COMMAND umbra_ieee1516_2010_integer_time_smoke
+  )
+
+  add_executable(umbra_ieee1516_2010_float_time_smoke
+    cpp/tests/ieee1516_2010_float_time_smoke.cpp
+  )
+  target_compile_features(umbra_ieee1516_2010_float_time_smoke PRIVATE cxx_std_14)
+  target_link_libraries(umbra_ieee1516_2010_float_time_smoke PRIVATE umbra::rti_2010)
+  add_test(
+    NAME umbra.ieee1516e_2010.float_time
+    COMMAND umbra_ieee1516_2010_float_time_smoke
+  )
+
+  add_executable(umbra_ieee1516_2010_time_marshal_smoke
+    cpp/tests/ieee1516_2010_time_marshal_smoke.cpp
+  )
+  target_compile_features(umbra_ieee1516_2010_time_marshal_smoke PRIVATE cxx_std_14)
+  target_link_libraries(umbra_ieee1516_2010_time_marshal_smoke PRIVATE umbra::rti_2010)
+  add_test(
+    NAME umbra.ieee1516e_2010.time_marshal
+    COMMAND umbra_ieee1516_2010_time_marshal_smoke
+  )
 
   add_executable(umbra_ieee1516_2025_binding_shell_smoke
     cpp/tests/ieee1516_2025_binding_shell_smoke.cpp
@@ -320,8 +529,65 @@ if(BUILD_TESTING)
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_rti_ambassador_shell.py --check
     )
     add_test(
+      NAME umbra.ieee1516e_2010.binding_shell_generation
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_1516e_cpp_shell.py --check
+    )
+    add_test(
+      NAME umbra.ieee1516e_2010.provider_boundaries
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_1516e_provider_boundaries.py
+    )
+    add_test(
+      NAME umbra.hla.symbolic_names
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_hla_symbolic_names.py
+        --root ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    add_test(
+      NAME umbra.fom.rpr_standard_boundary
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_rpr_standard_boundary.py
+    )
+    add_test(
       NAME umbra.ieee1516_2_2025.resources
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/ieee_1516_2_resources.py --check
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.catch2_plan_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check-plan
+        --bundle ${CMAKE_CURRENT_SOURCE_DIR}/.compliance/corpus-bundle.json
+        --plan ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/catch2-test-plan.json
+    )
+    add_test(
+      NAME umbra.planning.work_index
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/query_rti_work.py check
+    )
+    set_tests_properties(umbra.planning.work_index
+      PROPERTIES LABELS "foundation;planning;traceability"
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.requirements_lab_observations
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py
+        check-observations
+        --observations ${CMAKE_CURRENT_SOURCE_DIR}/docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md
+        --baseline ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/observations-historical-baseline.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.requirements_lab_observation_guard
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab_observations_regression.py
+    )
+    set_tests_properties(
+      umbra.ieee1516_2025.requirements_lab_observation_guard
+      PROPERTIES LABELS "requirements-lab;traceability"
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.requirements_lab_resync_guard
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab_resync_regression.py
+    )
+    set_tests_properties(
+      umbra.ieee1516_2025.requirements_lab_resync_guard
+      PROPERTIES LABELS "requirements-lab;traceability"
     )
     if(UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY)
       add_test(
@@ -337,6 +603,22 @@ if(BUILD_TESTING)
         COMMAND ${Python3_EXECUTABLE}
           ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_external_2025_fom_corpus.py
           --root ${UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY}
+      )
+    endif()
+    if(UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY)
+      set(UMBRA_EXTERNAL_2010_INTEGRITY_ARGS
+        --root ${UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY}
+      )
+      if(UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH)
+        list(APPEND UMBRA_EXTERNAL_2010_INTEGRITY_ARGS
+          --target-radar ${UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH}
+        )
+      endif()
+      add_test(
+        NAME umbra.external_2010_fom_resources.integrity
+        COMMAND ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_external_2010_fom_resources.py
+          ${UMBRA_EXTERNAL_2010_INTEGRITY_ARGS}
       )
     endif()
     add_test(
@@ -440,6 +722,26 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/fom-dimension-input-data-type-na-exclusivity-requirements-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2_2025.dimension_name_uniqueness_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/fom-dimension-name-uniqueness-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.class_member_name_uniqueness_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/fom-class-member-name-uniqueness-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.name_conventions_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/fom-name-conventions-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2_2025.modification_date_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/fom-modification-date-requirements-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2_2025.dimension_input_data_description_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/fom-dimension-input-data-description-requirements-contract.json
@@ -514,21 +816,24 @@ if(BUILD_TESTING)
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/fom-source-diagnostics-api-contract.json
     )
-    if(NOT UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-      add_test(
-        NAME umbra.package_config
-        COMMAND ${CMAKE_COMMAND}
-          "-DUMBRA_CMAKE_COMMAND=${CMAKE_COMMAND}"
-          "-DUMBRA_CTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
-          "-DUMBRA_PYTHON_EXECUTABLE=${Python3_EXECUTABLE}"
-          "-DUMBRA_SOURCE_DIRECTORY=${CMAKE_CURRENT_SOURCE_DIR}"
-          "-DUMBRA_BINARY_DIRECTORY=${CMAKE_CURRENT_BINARY_DIR}"
-          "-DUMBRA_GENERATOR=${CMAKE_GENERATOR}"
-          "-DUMBRA_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
-          "-DUMBRA_CONFIGURATION=$<CONFIG>"
-          -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_installed_package_smoke.cmake
-      )
-    else()
+    add_test(
+      NAME umbra.package_config
+      COMMAND ${CMAKE_COMMAND}
+        "-DUMBRA_CMAKE_COMMAND=${CMAKE_COMMAND}"
+        "-DUMBRA_CTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
+        "-DUMBRA_PYTHON_EXECUTABLE=${Python3_EXECUTABLE}"
+        "-DUMBRA_SOURCE_DIRECTORY=${CMAKE_CURRENT_SOURCE_DIR}"
+        "-DUMBRA_BINARY_DIRECTORY=${CMAKE_CURRENT_BINARY_DIR}"
+        "-DUMBRA_GENERATOR=${CMAKE_GENERATOR}"
+        "-DUMBRA_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
+        "-DUMBRA_CONFIGURATION=$<CONFIG>"
+        "-DUMBRA_EXPECT_PROCESS_PROFILE=${UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT}"
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_installed_package_smoke.cmake
+    )
+    set_tests_properties(umbra.package_config PROPERTIES
+      LABELS installable-package
+    )
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
       add_test(
         NAME umbra.ieee1516_2025.embedded_federation_management_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
@@ -880,6 +1185,16 @@ if(BUILD_TESTING)
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/declaration-relevance-advisory-api-contract.json
       )
       add_test(
+        NAME umbra.ieee1516_2025.regional_declaration_relevance_advisory_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/regional-declaration-relevance-advisory-requirements-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.regional_declaration_relevance_advisory_api_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/regional-declaration-relevance-advisory-api-contract.json
+      )
+      add_test(
         NAME umbra.ieee1516_2025.attribute_relevance_advisory_requirements_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/attribute-relevance-advisory-requirements-contract.json
@@ -1037,6 +1352,11 @@ if(BUILD_TESTING)
         NAME umbra.ieee1516_2025.connection_callback_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/connection-callback-api-contract.json
+      )
+      add_test(
+        NAME umbra.ieee1516_2025.connection_implementation_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/connection-implementation-contract.json
       )
       add_test(
         NAME umbra.ieee1516_2025.federation_execution_api_traceability
@@ -1484,6 +1804,76 @@ if(BUILD_TESTING)
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-attribute-update-api-contract.json
     )
     add_test(
+      NAME umbra.ieee1516_2025.timestamped_attribute_update_regulation_reenable_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-attribute-update-regulation-reenable-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_attribute_update_regulation_reenable_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-attribute-update-regulation-reenable-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_interaction_regulation_reenable_changed_lookahead_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-interaction-regulation-reenable-changed-lookahead-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_interaction_regulation_reenable_changed_lookahead_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-interaction-regulation-reenable-changed-lookahead-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_attribute_update_regulation_reenable_changed_lookahead_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-attribute-update-regulation-reenable-changed-lookahead-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_attribute_update_regulation_reenable_changed_lookahead_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-attribute-update-regulation-reenable-changed-lookahead-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_object_deletion_regulation_reenable_changed_lookahead_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-object-deletion-regulation-reenable-changed-lookahead-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_object_deletion_regulation_reenable_changed_lookahead_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-object-deletion-regulation-reenable-changed-lookahead-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_directed_interaction_regulation_reenable_changed_lookahead_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-directed-interaction-regulation-reenable-changed-lookahead-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_directed_interaction_regulation_reenable_changed_lookahead_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-directed-interaction-regulation-reenable-changed-lookahead-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_interaction_regulation_reenable_changed_lookahead_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-regional-interaction-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_interaction_regulation_reenable_changed_lookahead_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-regional-interaction-api-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_attribute_update_regulation_reenable_changed_lookahead_requirements_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-regional-attribute-update-regulation-reenable-changed-lookahead-requirements-contract.json
+    )
+    add_test(
+      NAME umbra.ieee1516_2025.timestamped_regional_attribute_update_regulation_reenable_changed_lookahead_api_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+        --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-regional-attribute-update-regulation-reenable-changed-lookahead-api-contract.json
+    )
+    add_test(
       NAME umbra.ieee1516_2025.timestamped_regional_attribute_update_requirements_traceability
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
         --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/timestamped-regional-attribute-update-requirements-contract.json
@@ -1590,6 +1980,18 @@ if(BUILD_TESTING)
     LABELS omt-complete-model
   )
   umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2_2025\\.class_member_name_uniqueness_traceability$"
+    LABELS fom-member-name-uniqueness
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2_2025\\.name_conventions_traceability$"
+    LABELS fom-name-conventions
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2_2025\\.modification_date_traceability$"
+    LABELS fom-modification-date
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "^umbra\\.ieee1516_2025\\.catch2\\.The FDD materializer emits a strict OMT-positive complete model$"
     LABELS omt-complete-model
   )
@@ -1654,6 +2056,38 @@ if(BUILD_TESTING)
     LABELS timestamped-default-region-attribute-reenable
   )
   umbra_label_registered_ctest_tests(
+    MATCH "timestamped_attribute_update_regulation_reenable_requirements_traceability$"
+    LABELS timestamped-default-region-attribute-regulation-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_attribute_update_regulation_reenable_api_traceability$"
+    LABELS timestamped-default-region-attribute-regulation-reenable
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_attribute_update_regulation_reenable_changed_lookahead_(requirements|api)_traceability$"
+    LABELS timestamped-attribute-update-regulation-reenable-changed-lookahead
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_interaction_regulation_reenable_changed_lookahead_(requirements|api)_traceability$"
+    LABELS timestamped-interaction-regulation-reenable-changed-lookahead
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_object_deletion_regulation_reenable_changed_lookahead_(requirements|api)_traceability$"
+    LABELS timestamped-object-deletion-regulation-reenable-changed-lookahead
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_directed_interaction_regulation_reenable_changed_lookahead_(requirements|api)_traceability$"
+    LABELS timestamped-directed-interaction-regulation-reenable-changed-lookahead
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_interaction_regulation_reenable_changed_lookahead_(requirements|api)_traceability$"
+    LABELS timestamped-regional-interaction-regulation-reenable-changed-lookahead
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_regional_attribute_update_regulation_reenable_changed_lookahead_(requirements|api)_traceability$"
+    LABELS timestamped-regional-attribute-update-regulation-reenable-changed-lookahead
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "timestamped_regional_attribute_update_(requirements|api)_traceability$"
     LABELS timestamped-default-region-attribute-reenable
   )
@@ -1704,6 +2138,26 @@ if(BUILD_TESTING)
   umbra_label_registered_ctest_tests(
     MATCH "object_class_attribute_value_update_request_(requirements|api)_traceability$"
     LABELS object-class-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2025\\.attribute_value_update_request_(requirements|api)_traceability$"
+    LABELS object-instance-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "timestamped_attribute_update_(requirements|api)_traceability$"
+    LABELS object-instance-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_role_(requirements|api)_traceability$"
+    LABELS object-instance-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "time_advance_(requirements|api)_traceability$"
+    LABELS object-instance-request-provider-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "order_type_control_(requirements|api)_traceability$"
+    LABELS object-instance-request-provider-response
   )
   umbra_label_registered_ctest_tests(
     MATCH "timestamped_attribute_update_(requirements|api)_traceability$"
@@ -1802,8 +2256,40 @@ if(BUILD_TESTING)
     LABELS unconditional-attribute-ownership-divestiture
   )
   umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.attribute_ownership_divestiture_if_wanted_(requirements|api)_traceability$"
+    LABELS ownership-acquisition-cancellation-race
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "umbra\\.ieee1516_2025\\.ownership_assumption_research_(requirements|api)_traceability$"
     LABELS ownership-assumption-research
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.ownership_assumption_research_(requirements|api)_traceability$"
+    LABELS ownership-assumption-search-epoch
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.ownership_assumption_research_(requirements|api)_traceability$"
+    LABELS ownership-assumption-search-continuation
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.attribute_ownership_acquisition_(requirements|api)_traceability$"
+    LABELS ownership-acquisition-cancellation-race
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2025\\.catch2\\.Embedded cancellation race returns Attribute Ownership Unavailable after owner denial$"
+    LABELS ownership-acquisition-cancellation-race
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2025\\.catch2\\.Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer$"
+    LABELS ownership-acquisition-cancellation-race
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership assumption search starts a fresh epoch after transfer$"
+    LABELS ownership-assumption-search-epoch
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "^umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership assumption search advances after a declined callback$"
+    LABELS ownership-assumption-search-continuation
   )
   umbra_label_registered_ctest_tests(
     MATCH "umbra\\.ieee1516_2025\\.negotiated_willing_to_acquire_(requirements|api)_traceability$"
@@ -1898,6 +2384,18 @@ if(BUILD_TESTING)
     LABELS timestamped-directed-interaction-service-report
   )
   umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.directed_interaction_(requirements|api)_traceability$"
+    LABELS directed-send-interaction-service-report-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers directed invocation reports before directed callbacks$"
+    LABELS directed-send-interaction-service-report-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS directed-send-interaction-service-report-interaction
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "umbra\\.ieee1516_2025\\.unpublish_object_class_attributes_(requirements|api)_traceability$"
     LABELS unpublish-object-class-attributes
   )
@@ -1928,6 +2426,14 @@ if(BUILD_TESTING)
   umbra_label_registered_ctest_tests(
     MATCH "declaration_relevance_advisory_(requirements|api)_traceability$"
     LABELS declaration-relevance-advisory-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "regional_declaration_relevance_advisory_(requirements|api)_traceability$"
+    LABELS declaration-relevance-advisory-regional
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded regional declaration relevance advisories follow active subscriptions$"
+    LABELS declaration-relevance-advisory-regional
   )
   umbra_label_registered_ctest_tests(
     MATCH "mom_service_reporting_requirements_traceability$"
@@ -2242,6 +2748,18 @@ if(BUILD_TESTING)
     LABELS timestamped-send-interaction-service-report
   )
   umbra_label_registered_ctest_tests(
+    MATCH "receive_order_interaction_(requirements|api)_traceability$"
+    LABELS receive-order-send-interaction-service-report-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers receive-order Send Interaction through MOM interaction$"
+    LABELS receive-order-send-interaction-service-report-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "mom_service_reporting_requirements_traceability$"
+    LABELS receive-order-send-interaction-service-report-interaction
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "umbra\\.ieee1516_2025\\.attribute_value_update_with_regions_(requirements|api)_traceability$"
     LABELS provide-attribute-value-update-regional-service-report
   )
@@ -2284,6 +2802,13 @@ if(BUILD_TESTING)
   umbra_label_registered_ctest_tests(
     MATCH "region_lifecycle_(requirements|api)_traceability$"
     LABELS ddm-nonvoid-failure
+  )
+  # Region templates/specifications have their own lifecycle lane.  Keep the
+  # official C++ create/commit/query/delete case separate from the broader DDM
+  # routing matrix so a region-state edit does not require a full DDM run.
+  umbra_label_registered_ctest_tests(
+    MATCH "region_lifecycle_(requirements|api)_traceability$"
+    LABELS region-lifecycle
   )
   umbra_label_registered_ctest_tests(
     MATCH "mom_service_reporting_requirements_traceability$"
@@ -2498,6 +3023,13 @@ if(BUILD_TESTING)
     MATCH "service_report_file_lifecycle_(requirements|api)_traceability$"
     LABELS service-report-file-lifecycle
   )
+  # Keep the internal filesystem/memory store seam independently runnable.
+  # The service-report lifecycle contracts are its standards-facing boundary;
+  # the Catch2 [service-report-store] cases exercise the implementation seam.
+  umbra_label_registered_ctest_tests(
+    MATCH "service_report_file_lifecycle_(requirements|api)_traceability$"
+    LABELS service-report-store
+  )
   umbra_label_registered_ctest_tests(
     MATCH "(support_switches_(table_requirements|service_requirements|api)|declaration_relevance_advisory_api|attribute_relevance_advisory_api|object_attribute_scope_api)_traceability$"
     LABELS support-switches
@@ -2686,6 +3218,8 @@ if(BUILD_TESTING)
       cpp/tests/ieee1516_2025_headers_catch2.cpp
       cpp/tests/ieee1516_2025_authorization_catch2.cpp
       cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp
+      cpp/tests/fom_wire_codec_catch2.cpp
+      cpp/tests/rpr_standard_isolation_catch2.cpp
       cpp/tests/mom_service_report_encoding_catch2.cpp
       cpp/tests/service_report_store_catch2.cpp
       cpp/tests/runtime_instrumentation_catch2.cpp
@@ -2708,14 +3242,37 @@ if(BUILD_TESTING)
       cpp/tests/transportation_type_handle_catch2.cpp
       cpp/tests/utf8_string_catch2.cpp
       cpp/tests/variable_length_data_catch2.cpp
-      cpp/tests/federation_registry_catch2.cpp
       cpp/tests/ieee1516_2025_connection_catch2.cpp
+        cpp/tests/process_transport_catch2.cpp
+        cpp/tests/process_transport_service_catch2.cpp
+        cpp/tests/process_federation_callback_bridge_catch2.cpp
+        cpp/tests/transport_protocol_catch2.cpp
       cpp/tests/ieee1516_2025_time_catch2.cpp
     )
     if(UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
-      target_sources(umbra_ieee1516_2025_catch2 PRIVATE
-        cpp/tests/libxml2_fom_composer_catch2.cpp
-        cpp/tests/libxml2_fom_validator_catch2.cpp
+      add_executable(umbra_process_federation_service_probe
+        cpp/tests/process_federation_service_probe.cpp
+      )
+      target_compile_features(umbra_process_federation_service_probe PRIVATE cxx_std_20)
+      target_compile_definitions(umbra_process_federation_service_probe PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_include_directories(umbra_process_federation_service_probe PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_link_libraries(umbra_process_federation_service_probe PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        umbra::fedtime
+      )
+        target_sources(umbra_ieee1516_2025_catch2 PRIVATE
+          cpp/tests/libxml2_fom_composer_catch2.cpp
+          cpp/tests/libxml2_fom_validator_catch2.cpp
+          cpp/tests/fom_declaration_management_catch2.cpp
+          cpp/tests/federation_registry_catch2.cpp
+        cpp/tests/process_federation_service_catch2.cpp
+        cpp/tests/process_federation_service_process_catch2.cpp
       )
       if(UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
@@ -2725,6 +3282,42 @@ if(BUILD_TESTING)
           UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY="${UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY}"
         )
       endif()
+      if(UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY)
+        add_executable(umbra_external_siso_fom_catch2
+          cpp/tests/external_siso_fom_catch2.cpp
+        )
+        target_compile_features(umbra_external_siso_fom_catch2 PRIVATE cxx_std_20)
+        target_compile_definitions(umbra_external_siso_fom_catch2 PRIVATE
+          UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY="${UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY}"
+          UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        )
+        if(UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY)
+          target_compile_definitions(umbra_external_siso_fom_catch2 PRIVATE
+            UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY="${UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY}"
+          )
+        endif()
+        if(UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH)
+          target_compile_definitions(umbra_external_siso_fom_catch2 PRIVATE
+            UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH="${UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH}"
+          )
+        endif()
+        target_include_directories(umbra_external_siso_fom_catch2 PRIVATE
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_link_libraries(umbra_external_siso_fom_catch2 PRIVATE
+          umbra_fom_validation_backend
+          umbra::rti
+          umbra::fedtime
+          umbra::authorizer
+          Catch2::Catch2WithMain
+        )
+        if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+          target_compile_definitions(umbra_external_siso_fom_catch2 PRIVATE
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+          )
+        endif()
+      endif()
       if(UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/external_2025_fom_catch2.cpp
@@ -2733,15 +3326,117 @@ if(BUILD_TESTING)
           UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY="${UMBRA_EXTERNAL_2025_FOM_CORPUS_DIRECTORY}"
         )
       endif()
+      if(UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY)
+        target_sources(umbra_ieee1516_2025_catch2 PRIVATE
+          cpp/tests/external_2010_fom_catch2.cpp
+        )
+        target_compile_definitions(umbra_ieee1516_2025_catch2 PRIVATE
+          UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY="${UMBRA_EXTERNAL_2010_FOM_RESOURCE_DIRECTORY}"
+        )
+        if(UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH)
+          target_compile_definitions(umbra_ieee1516_2025_catch2 PRIVATE
+            UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH="${UMBRA_EXTERNAL_TARGET_RADAR_FOM_PATH}"
+          )
+        endif()
+      endif()
       if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/ieee1516_2025_federation_management_catch2.cpp
+          cpp/tests/attribute_relevance_advisory_catch2.cpp
         )
       endif()
       target_link_libraries(umbra_ieee1516_2025_catch2 PRIVATE umbra_fom_validation_backend)
       target_compile_definitions(umbra_ieee1516_2025_catch2 PRIVATE
         UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_PROCESS_SERVICE_PROBE_PATH="$<TARGET_FILE:umbra_process_federation_service_probe>"
       )
+      add_dependencies(umbra_ieee1516_2025_catch2
+        umbra_process_federation_service_probe
+      )
+
+      # Keep the process-boundary connection slice independently buildable.
+      # The aggregate 2025 executable also contains the large federation-
+      # management translation unit; this focused target lets the process
+      # endpoint lane compile and run while that unrelated source is under
+      # development.  It intentionally uses the same official headers,
+      # validator backend, and production RTI library as the aggregate target.
+      if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+        add_executable(umbra_ieee1516_2025_connection_catch2
+          cpp/tests/ieee1516_2025_connection_catch2.cpp
+        )
+        target_compile_features(umbra_ieee1516_2025_connection_catch2 PRIVATE cxx_std_20)
+        if(MSVC)
+          target_compile_options(umbra_ieee1516_2025_connection_catch2 PRIVATE /bigobj)
+        endif()
+        target_include_directories(umbra_ieee1516_2025_connection_catch2 PRIVATE
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(umbra_ieee1516_2025_connection_catch2 PRIVATE
+          UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+          UMBRA_PROCESS_SERVICE_PROBE_PATH="$<TARGET_FILE:umbra_process_federation_service_probe>"
+          UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(umbra_ieee1516_2025_connection_catch2 PRIVATE
+          umbra_fom_validation_backend
+          umbra::rti
+          umbra::fedtime
+          umbra::authorizer
+          Catch2::Catch2WithMain
+        )
+        add_dependencies(umbra_ieee1516_2025_connection_catch2
+          umbra_process_federation_service_probe
+        )
+
+        # Keep the small FOM declaration-management slice independently
+        # buildable. The aggregate target also contains the large federation-
+        # management translation unit, so this target gives the bounded
+        # §4.5.5 case a focused compile/run path while that source is under
+        # development.
+        add_executable(umbra_fom_declaration_management_catch2
+          cpp/tests/fom_declaration_management_catch2.cpp
+        )
+        target_compile_features(umbra_fom_declaration_management_catch2 PRIVATE cxx_std_20)
+        target_include_directories(umbra_fom_declaration_management_catch2 PRIVATE
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(umbra_fom_declaration_management_catch2 PRIVATE
+          UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+          UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(umbra_fom_declaration_management_catch2 PRIVATE
+          umbra_fom_validation_backend
+          umbra::rti
+          umbra::fedtime
+          umbra::authorizer
+          Catch2::Catch2WithMain
+        )
+
+        # Keep FOM-composition validation independently buildable. The
+        # aggregate 2025 executable also contains the large federation-
+        # management translation unit; this target lets Annex C and schema
+        # reconciliation lanes run without waiting on unrelated service work.
+        add_executable(umbra_fom_composer_catch2
+          cpp/tests/libxml2_fom_composer_catch2.cpp
+        )
+        target_compile_features(umbra_fom_composer_catch2 PRIVATE cxx_std_20)
+        target_include_directories(umbra_fom_composer_catch2 PRIVATE
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(umbra_fom_composer_catch2 PRIVATE
+          UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+          UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(umbra_fom_composer_catch2 PRIVATE
+          umbra_fom_validation_backend
+          umbra::rti
+          umbra::fedtime
+          umbra::authorizer
+          Catch2::Catch2WithMain
+        )
+      endif()
     endif()
     target_compile_features(umbra_ieee1516_2025_catch2 PRIVATE cxx_std_20)
     if(MSVC)
@@ -2770,6 +3465,13 @@ if(BUILD_TESTING)
     # `ctest -L` and the named development targets below without duplicating a
     # second, hand-maintained list of C++ tests.
     include(Catch)
+    if(TARGET umbra_external_siso_fom_catch2)
+      catch_discover_tests(umbra_external_siso_fom_catch2
+        TEST_PREFIX "umbra.external_siso_fom_catch2.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
     catch_discover_tests(umbra_ieee1516_2025_catch2
       TEST_PREFIX "umbra.ieee1516_2025.catch2."
       ADD_TAGS_AS_LABELS
@@ -2779,6 +3481,148 @@ if(BUILD_TESTING)
       # when the Catch2 executable changes, before any lane runs.
       DISCOVERY_MODE POST_BUILD
     )
+    if(TARGET umbra_ieee1516_2025_connection_catch2)
+      catch_discover_tests(umbra_ieee1516_2025_connection_catch2
+        TEST_PREFIX "umbra.ieee1516_2025.connection_catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_fom_declaration_management_catch2)
+      catch_discover_tests(umbra_fom_declaration_management_catch2
+        TEST_PREFIX "umbra.fom_declaration_management.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_fom_composer_catch2)
+      catch_discover_tests(umbra_fom_composer_catch2
+        TEST_PREFIX "umbra.fom_composer.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the legacy wire boundary runnable even when a large unrelated
+    # development translation unit is being edited. The same source remains
+    # in the aggregate Catch2 target so the normal regression executable still
+    # covers it.
+    add_executable(umbra_fom_wire_codec_catch2
+      cpp/tests/fom_wire_codec_catch2.cpp
+    )
+    target_compile_features(umbra_fom_wire_codec_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_fom_wire_codec_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_link_libraries(umbra_fom_wire_codec_catch2 PRIVATE
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_fom_wire_codec_catch2
+      TEST_PREFIX "umbra.fom_wire_codec.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # This target intentionally includes only the neutral FOM descriptor and
+    # the public 2025 RTI. It is the compile/link/run guard that the standard
+    # RTI path cannot accidentally depend on the RPR codec adapter.
+    add_executable(umbra_rpr_standard_isolation_catch2
+      cpp/tests/rpr_standard_isolation_catch2.cpp
+    )
+    target_compile_features(umbra_rpr_standard_isolation_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_rpr_standard_isolation_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_link_libraries(umbra_rpr_standard_isolation_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_rpr_standard_isolation_catch2
+      TEST_PREFIX "umbra.rpr.standard_isolation.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # Keep the durable service-report store independently buildable.  The
+    # aggregate 2025 Catch2 executable also contains the large federation-
+    # management translation unit; an isolated target preserves a fast,
+    # standards-facing filesystem-store loop when an unrelated aggregate test
+    # is being edited.
+    add_executable(umbra_service_report_store_catch2
+      cpp/tests/service_report_store_catch2.cpp
+    )
+    target_compile_features(umbra_service_report_store_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_service_report_store_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/include"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_service_report_store_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_service_report_store_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_service_report_store_catch2
+      TEST_PREFIX "umbra.service_report_store.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+    add_custom_target(umbra_service_report_store_junit
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/service-report-store"
+      COMMAND $<TARGET_FILE:umbra_service_report_store_catch2>
+        "[service-report-store]"
+        --allow-running-no-tests
+        --reporter junit
+        --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/service-report-store/service-report-store.xml"
+      DEPENDS umbra_service_report_store_catch2
+      COMMENT "Writing service-report-store Catch2 JUnit artifact"
+      VERBATIM
+    )
+
+    # Keep the embedded regional Attribute Relevance Advisory regression
+    # independently buildable.  The aggregate 2025 Catch2 executable also
+    # contains the large federation-management translation unit; this focused
+    # target preserves a fast regional advisory lane while that file is under
+    # unrelated development.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_attribute_relevance_advisory_catch2
+        cpp/tests/attribute_relevance_advisory_catch2.cpp
+      )
+      target_compile_features(umbra_attribute_relevance_advisory_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_attribute_relevance_advisory_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_attribute_relevance_advisory_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_attribute_relevance_advisory_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_attribute_relevance_advisory_catch2
+        TEST_PREFIX "umbra.attribute_relevance_advisory.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+      add_custom_target(umbra_attribute_relevance_advisory_junit
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/regional-attribute-relevance"
+        COMMAND $<TARGET_FILE:umbra_attribute_relevance_advisory_catch2>
+          "[regional-attribute-relevance]"
+          --allow-running-no-tests
+          --reporter junit
+          --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/regional-attribute-relevance/regional-attribute-relevance.xml"
+        DEPENDS umbra_attribute_relevance_advisory_catch2
+        COMMENT "Writing regional-attribute-relevance Catch2 JUnit artifact"
+        VERBATIM
+      )
+    endif()
 
     # Catch2 tags are the source of truth for focused CTest lanes.  Make the
     # taxonomy executable so a new test cannot silently escape both its
@@ -2805,13 +3649,17 @@ if(BUILD_TESTING)
     endif()
 
     function(umbra_add_ctest_lane TARGET_NAME LABEL_REGEX)
+      set(_umbra_lane_dependencies umbra_ieee1516_2025_catch2)
+      if(ARGN)
+        list(APPEND _umbra_lane_dependencies ${ARGN})
+      endif()
       add_custom_target(${TARGET_NAME}
         COMMAND ${CMAKE_CTEST_COMMAND}
           --test-dir "${CMAKE_BINARY_DIR}"
           ${_umbra_ctest_configuration_arguments}
           --output-on-failure
           -L "${LABEL_REGEX}"
-        DEPENDS umbra_ieee1516_2025_catch2
+        DEPENDS ${_umbra_lane_dependencies}
         COMMENT "Running Umbra ${TARGET_NAME} development test lane"
         USES_TERMINAL
         VERBATIM
@@ -2834,8 +3682,28 @@ if(BUILD_TESTING)
     # The rapid lane has no Requirements-Lab contract checks; it is intended
     # for a tight edit/build/test loop.  Domain lanes combine tagged Catch2
     # cases with the matching source/API traceability checks above.
-    umbra_add_ctest_lane(umbra_test_rapid "^(foundation|unit)$")
-    umbra_add_ctest_lane(umbra_test_foundation "^foundation$")
+    # The rapid lane includes the three small foundation smoke tests as well
+    # as Catch2's foundation/unit cases.  Make those executables explicit
+    # dependencies so a fresh single-config build cannot report them as
+    # "Not Run" merely because only the Catch2 binary was built.
+    umbra_add_ctest_lane(
+      umbra_test_rapid
+      "^(foundation|unit)$"
+      umbra_ieee1516_2025_headers_smoke
+      umbra_ieee1516_2025_binding_shell_smoke
+      umbra_federate_lifecycle_smoke
+    )
+    # Foundation is a standalone lane, so include the small header/binding/
+    # lifecycle smoke executables when a clean build invokes it directly.
+    # Without these explicit dependencies CTest can report the registered
+    # smoke tests as "Not Run" even though the Catch2 foundation cases pass.
+    umbra_add_ctest_lane(
+      umbra_test_foundation
+      "^foundation$"
+      umbra_ieee1516_2025_headers_smoke
+      umbra_ieee1516_2025_binding_shell_smoke
+      umbra_federate_lifecycle_smoke
+    )
     umbra_add_ctest_lane(umbra_test_federation_management "^federation-management$")
     umbra_add_ctest_service_lane(umbra_test_explicit_mim explicit-mim)
     umbra_add_ctest_lane(umbra_test_time_management "^time-management$")
@@ -2855,6 +3723,10 @@ if(BUILD_TESTING)
     umbra_add_ctest_lane(
       umbra_test_fom_directed_interaction_sharing
       "^directed-interaction-sharing$"
+    )
+    umbra_add_ctest_lane(
+      umbra_test_fom_name_conventions
+      "^fom-name-conventions$"
     )
     umbra_add_ctest_service_lane(umbra_test_time_advance_request time-advance-request)
     umbra_add_ctest_service_lane(
@@ -2880,6 +3752,34 @@ if(BUILD_TESTING)
       timestamped-default-region-attribute-reenable
     )
     umbra_add_ctest_service_lane(
+      umbra_test_timestamped_default_region_attribute_regulation_reenable
+      timestamped-default-region-attribute-regulation-reenable
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_interaction_regulation_reenable_changed_lookahead
+      timestamped-interaction-regulation-reenable-changed-lookahead
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_attribute_update_regulation_reenable_changed_lookahead
+      timestamped-attribute-update-regulation-reenable-changed-lookahead
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_object_deletion_regulation_reenable_changed_lookahead
+      timestamped-object-deletion-regulation-reenable-changed-lookahead
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_directed_interaction_regulation_reenable_changed_lookahead
+      timestamped-directed-interaction-regulation-reenable-changed-lookahead
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_timestamped_regional_interaction_regulation_reenable_changed_lookahead
+      timestamped-regional-interaction-regulation-reenable-changed-lookahead
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_ts_regional_attr_reenable_changed_lookahead
+      timestamped-regional-attribute-update-regulation-reenable-changed-lookahead
+    )
+    umbra_add_ctest_service_lane(
       umbra_test_timestamped_regional_attribute_reenable
       timestamped-regional-attribute-reenable
     )
@@ -2890,6 +3790,14 @@ if(BUILD_TESTING)
     umbra_add_ctest_service_lane(
       umbra_test_object_class_request_provider_response
       object-class-request-provider-response
+    )
+    # These response/mutation labels currently contain only Requirements-Lab
+    # and API traceability checks. Keep them runnable as narrow CTest lanes,
+    # but do not advertise them as complete service lanes until a real Catch2
+    # behavior case is tagged for each one.
+    umbra_add_ctest_lane(
+      umbra_test_object_instance_request_provider_response
+      object-instance-request-provider-response
     )
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_regional_interaction_reenable
@@ -2992,11 +3900,11 @@ if(BUILD_TESTING)
       umbra_test_connection_lost_report_ordering
       connection-lost-report-ordering
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_connection_lost_directed_selector_mutation
       connection-lost-directed-selector-mutation
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_connection_lost_regional_selector_mutation
       connection-lost-regional-selector-mutation
     )
@@ -3065,6 +3973,18 @@ if(BUILD_TESTING)
       ownership-assumption-research
     )
     umbra_add_ctest_service_lane(
+      umbra_test_ownership_assumption_search_epoch
+      ownership-assumption-search-epoch
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_ownership_assumption_search_continuation
+      ownership-assumption-search-continuation
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_ownership_acquisition_cancellation_race
+      ownership-acquisition-cancellation-race
+    )
+    umbra_add_ctest_service_lane(
       umbra_test_negotiated_willing_to_acquire
       negotiated-willing-to-acquire
     )
@@ -3076,7 +3996,7 @@ if(BUILD_TESTING)
       umbra_test_local_delete_failure
       local-delete-failure
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_delete_failure
       delete-failure
     )
@@ -3133,6 +4053,10 @@ if(BUILD_TESTING)
       declaration-relevance-advisory-service-report
     )
     umbra_add_ctest_service_lane(
+      umbra_test_regional_declaration_relevance_advisory
+      declaration-relevance-advisory-regional
+    )
+    umbra_add_ctest_service_lane(
       umbra_test_discover_object_instance_service_report
       discover-object-instance-service-report
     )
@@ -3160,11 +4084,11 @@ if(BUILD_TESTING)
       umbra_test_regional_interaction_subscription_service_report
       regional-interaction-subscription-service-report
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_ordinary_regional_interaction_service_report
       ordinary-regional-interaction-service-report
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_ordinary_regional_interaction_failure
       ordinary-regional-interaction-failure
     )
@@ -3172,11 +4096,11 @@ if(BUILD_TESTING)
       umbra_test_timestamped_remove_object_instance_service_report
       timestamped-remove-object-instance-service-report
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_timestamped_delete_object_instance_service_report
       timestamped-delete-object-instance-service-report
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_timestamped_delete_failure
       timestamped-delete-failure
     )
@@ -3225,10 +4149,14 @@ if(BUILD_TESTING)
       timestamped-send-interaction-service-report
     )
     umbra_add_ctest_service_lane(
+      umbra_test_receive_order_send_interaction_service_report_interaction
+      receive-order-send-interaction-service-report-interaction
+    )
+    umbra_add_ctest_lane(
       umbra_test_timestamped_regional_interaction_service_report
       timestamped-regional-interaction-service-report
     )
-    umbra_add_ctest_service_lane(
+    umbra_add_ctest_lane(
       umbra_test_timestamped_regional_interaction_failure
       timestamped-regional-interaction-failure
     )
@@ -3239,6 +4167,10 @@ if(BUILD_TESTING)
     umbra_add_ctest_service_lane(
       umbra_test_timestamped_directed_interaction_service_report
       timestamped-directed-interaction-service-report
+    )
+    umbra_add_ctest_service_lane(
+      umbra_test_directed_send_interaction_service_report_interaction
+      directed-send-interaction-service-report-interaction
     )
     umbra_add_ctest_service_lane(
       umbra_test_provide_attribute_value_update_regional_service_report
@@ -3323,12 +4255,17 @@ if(BUILD_TESTING)
     umbra_add_ctest_lane(umbra_test_mom "^mom$")
     umbra_add_ctest_lane(umbra_test_service_reporting "^service-reporting$")
     umbra_add_ctest_lane(umbra_test_service_report_file "^service-report-file$")
+    umbra_add_ctest_service_lane(umbra_test_service_report_store service-report-store)
     umbra_add_ctest_service_lane(
       umbra_test_service_report_file_lifecycle
       service-report-file-lifecycle
     )
     umbra_add_ctest_lane(umbra_test_support_switches "^support-switches$")
     umbra_add_ctest_lane(umbra_test_fom "^fom$")
+    umbra_add_ctest_lane(
+      umbra_test_fom_member_name_uniqueness
+      "^fom-member-name-uniqueness$"
+    )
     umbra_add_ctest_lane(umbra_test_fom_omt_complete_model "^omt-complete-model$")
     umbra_add_ctest_service_lane(
       umbra_test_fom_source_diagnostics
@@ -3343,9 +4280,18 @@ if(BUILD_TESTING)
     umbra_add_ctest_lane(umbra_test_declaration_management "^declaration-management$")
     umbra_add_ctest_lane(umbra_test_interaction_management "^interaction-management$")
     umbra_add_ctest_lane(umbra_test_save_restore "^save-restore$")
+    umbra_add_ctest_service_lane(umbra_test_region_lifecycle region-lifecycle)
+    umbra_add_ctest_lane(umbra_test_callbacks "^callbacks$")
     # A cross-cutting callback-model lane keeps direct-dispatch regressions
     # fast without forcing a whole domain lane.
     umbra_add_ctest_lane(umbra_test_callback_immediate "^callback-immediate$")
+    # The roadmap's multi-federate callback-ordering slice spans several
+    # domains. Keep its existing Catch2 tag directly runnable as one focused
+    # edit/build/test lane instead of requiring a full-suite scan.
+    umbra_add_ctest_lane(
+      umbra_test_multi_federate_callback_ordering
+      "^multi-federate-callback-ordering$"
+    )
 
     get_property(
       _umbra_ctest_service_lane_labels
@@ -3388,6 +4334,33 @@ if(BUILD_TESTING)
       VERBATIM
     )
 
+    # Keep the installable profile as a named, reproducible edit/build/test
+    # slice.  The test script builds every exported runtime target, stages the
+    # package, validates its profile/resource manifests, and runs a clean
+    # downstream consumer; callers need not remember a target-ordering recipe.
+    set(_umbra_installable_package_dependencies
+      umbra_rti
+      umbra_rti_2010
+      umbra_fedtime
+      umbra_authorizer
+    )
+    if(TARGET umbra_process_federation_service_probe)
+      list(APPEND _umbra_installable_package_dependencies
+        umbra_process_federation_service_probe
+      )
+    endif()
+    add_custom_target(umbra_test_installable_package
+      COMMAND ${CMAKE_CTEST_COMMAND}
+        --test-dir "${CMAKE_BINARY_DIR}"
+        ${_umbra_ctest_configuration_arguments}
+        --output-on-failure
+        -L "^installable-package$"
+      DEPENDS ${_umbra_installable_package_dependencies}
+      COMMENT "Running Umbra installable-package profile smoke"
+      USES_TERMINAL
+      VERBATIM
+    )
+
     add_custom_target(umbra_catch2_junit
       COMMAND ${CMAKE_COMMAND} -E make_directory "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}"
       COMMAND $<TARGET_FILE:umbra_ieee1516_2025_catch2>
@@ -3399,23 +4372,69 @@ if(BUILD_TESTING)
       COMMENT "Writing Catch2 compliance JUnit artifact"
       VERBATIM
     )
+
+    # Emit a bounded JUnit artifact for the active process-boundary lane.  It
+    # intentionally uses the exact Catch2 tag rather than the broad
+    # compliance selector, so the artifact remains aligned with the roadmap's
+    # mapped process-boundary edit/build/test slice.
+    if(TARGET umbra_ieee1516_2025_connection_catch2)
+      # Prefer the independently buildable process-boundary executable when
+      # it is available; the aggregate target remains the fallback for
+      # profiles that do not enable the embedded service.
+      set(_umbra_process_boundary_catch2_target
+        umbra_ieee1516_2025_connection_catch2
+      )
+    else()
+      set(_umbra_process_boundary_catch2_target
+        umbra_ieee1516_2025_catch2
+      )
+    endif()
+    add_custom_target(umbra_process_boundary_junit
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary"
+      COMMAND $<TARGET_FILE:${_umbra_process_boundary_catch2_target}>
+        "[process-boundary]"
+        --allow-running-no-tests
+        --reporter junit
+        --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary.xml"
+      DEPENDS ${_umbra_process_boundary_catch2_target}
+      COMMENT "Writing process-boundary Catch2 JUnit artifact"
+      VERBATIM
+    )
   else()
     message(STATUS "Catch2 v3 not found; configure with -DUMBRA_FETCH_CATCH2=ON or provide Catch2::Catch2WithMain")
   endif()
 endif()
 
-if(NOT UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-install(TARGETS ieee1516_2025_headers
+install(TARGETS ieee1516_2025_headers ieee1516_2010_headers
   EXPORT umbra_rti_targets
 )
-install(TARGETS umbra_rti umbra_fedtime umbra_authorizer
+install(TARGETS umbra_rti umbra_rti_2010 umbra_fedtime umbra_authorizer
   EXPORT umbra_rti_targets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  install(TARGETS umbra_fom_validation_backend
+    EXPORT umbra_rti_targets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+endif()
 install(DIRECTORY "${UMBRA_IEEE1516_2025_INCLUDE_DIR}/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cpp/include/umbra/"
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/umbra
+)
 install(FILES third_party/ieee1516.1-2025/NOTICE
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/umbra_rti
+)
+install(
+  DIRECTORY "${UMBRA_IEEE1516_2010_INCLUDE_DIR}/"
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/umbra/ieee1516.1-2010
+)
+install(FILES third_party/ieee1516.1-2010/NOTICE
   DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/umbra_rti
 )
 install(DIRECTORY "${UMBRA_IEEE1516_2_2025_RESOURCE_DIR}/"
@@ -3426,6 +4445,10 @@ install(FILES
   third_party/ieee1516.2-2025/manifest.json
   third_party/ieee1516.2-2025/resource-digests.json
   DESTINATION ${CMAKE_INSTALL_DATADIR}/umbra_rti/ieee1516.2-2025
+)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/umbra_rti-profile.json"
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/umbra_rti
 )
 install(EXPORT umbra_rti_targets
   FILE umbra_rti_targets.cmake
@@ -3448,4 +4471,3 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/umbra_rti-config-version.cmake"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/umbra_rti
 )
-endif()

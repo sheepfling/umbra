@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the receive-order Send Interaction path exercised by Umbra's non-installable development profile. It selects only active ordinary subscriptions; passive subscriptions remain declaration state but do not arrange callback delivery. The active/passive delivery predicate is stated in the standard's passive-subscription definition, while the Lab's immutable Clause 5.1.3 candidate records the required active-or-passive state. The contract intentionally excludes the absent exported candidate for the Clause 5.1.3 published-class sentence (recorded separately as a Requirements Lab observation), timestamped behavior, DDM regions, directed interactions, FOM sharing-policy enforcement, custom transportation, and all evidence promotion. The public test uses a pre-existing IEEE-2025-schema fixture with Receive order and PublishSubscribe hierarchy; the private routing-kernel test additionally exercises the official Restaurant FOM hierarchy to cover descendant-parameter projection.",
+  "notes": "This source/test traceability contract covers the receive-order Send Interaction predicates exercised by Umbra's non-installable development profile. It selects only active ordinary subscriptions; passive subscriptions remain declaration state but do not arrange callback delivery. The active/passive delivery predicate is stated in the standard's passive-subscription definition, while the Lab's immutable Clause 5.1.3 candidate records the required active-or-passive state. Ordinary rows are reused as foundational receive-order predicates for the process timestamped Receive/Evoke baseline; they do not claim timestamped queue, time-regulation, or retraction semantics. The timestamped-specific mapping is recorded in timestamped-interaction-requirements-contract.json. DDM regions, directed interactions, FOM sharing-policy enforcement, custom transportation, and all evidence promotion remain open. The public test uses a pre-existing IEEE-2025-schema fixture with Receive order and PublishSubscribe hierarchy; the private routing-kernel test additionally exercises the official Restaurant FOM hierarchy to cover descendant-parameter projection.",
   "requirements": [
     {
       "id": "umbra-receive-order-subscribed-class-only",
@@ -12,8 +12,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -23,9 +25,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -35,8 +39,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -46,8 +52,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -67,8 +75,10 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderInteraction",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -78,7 +88,10 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers receive-order Send Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -88,8 +101,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -99,8 +114,11 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers receive-order Send Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -110,7 +128,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -120,7 +140,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -130,8 +152,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry plans 2025 interaction promotion and parameter projection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     }
   ]

@@ -5,8 +5,11 @@
 #include <RTI/encoding/EncodingConfig.h>
 #include <RTI/libauth/AuthorizerFactoryFactory.h>
 
+#include <umbra/embedded_profile_configuration.hpp>
+
 #include <array>
 #include <cstring>
+#include <filesystem>
 #include <memory>
 
 int main() {
@@ -48,6 +51,25 @@ int main() {
       configuration.rtiAddress() != L"in-process" ||
       configuration.additionalSettings() != L"none") {
     return 4;
+  }
+
+  // The installed public convenience layer must preserve the official
+  // RtiConfiguration surface while selecting only the documented filesystem
+  // service-report directory.  It intentionally exposes no backend/sink
+  // choice and does not replace the standard process-address field.
+  auto embeddedConfiguration = umbra::embedded::makeEmbeddedRtiConfiguration(
+      {std::filesystem::path("package-smoke-reports")});
+  if (embeddedConfiguration.additionalSettings() !=
+      L"serviceReportDirectory=package-smoke-reports") {
+    return 11;
+  }
+  auto processConfiguration =
+      rti1516_2025::RtiConfiguration::createConfiguration()
+          .withConfigurationName(L"package-process")
+          .withRtiAddress(L"tcp://127.0.0.1:42424");
+  if (processConfiguration.configurationName() != L"package-process" ||
+      processConfiguration.rtiAddress() != L"tcp://127.0.0.1:42424") {
+    return 12;
   }
 
   rti1516_2025::RTIambassadorFactory ambassadorFactory;

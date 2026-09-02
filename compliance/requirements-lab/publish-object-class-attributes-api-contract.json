@@ -24,7 +24,9 @@
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes object-class attributes and registers an object through a configured process endpoint"
       ]
     }
   ]

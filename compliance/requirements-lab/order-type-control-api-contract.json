@@ -25,7 +25,9 @@
       "source_symbol": "UmbraRtiAmbassador::changeAttributeOrderType",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Attribute Order Type arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Attribute Order Type arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
       ]
     },
     {
@@ -49,7 +51,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Default Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {

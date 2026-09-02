@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only Umbra's bounded regular Attribute Ownership Acquisition path in the opt-in, non-installable IEEE 1516.1-2025 development profile: private Acquisition Pending state, the owner-side Request Attribute Ownership Release callback, callback-time notification for an unowned attribute, the Attribute Ownership Release Denied terminal response, and a separate pending cancellation reservation that ends at Confirm Attribute Ownership Acquisition Cancellation. The regular request overrides the invoking federate's still-pending If Available reservation for the same attribute and preserves an existing regular pending attribute on repeat without a duplicate release callback. Both regular acquisition and accepted cancellation retain requester publication until their terminal callback, and Unpublish Object Class Attributes therefore raises OwnershipAcquisitionPending. A release denial preserves current ownership, terminates all matching regular pending acquisitions, and delivers Attribute Ownership Unavailable with the denial tag. A bounded cancellation accepts only a still-pending regular request, suppresses stale notification/release work, and confirms all qualifying attributes in one callback. The contract uses immutable candidate IDs from the Requirements Lab and follows their exported clause IDs; RL-015 records the ownership-page attribution mismatch. Competing in-flight cancellation races that yield notification or unavailable, every divestiture form, acquisition arbitration beyond the tested bounded scheduler behavior, RTI-owned state, full resign-action disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This source/test traceability contract covers only Umbra's bounded regular Attribute Ownership Acquisition path in the opt-in, non-installable IEEE 1516.1-2025 development profile: private Acquisition Pending state, the owner-side Request Attribute Ownership Release callback, callback-time notification for an unowned attribute, the Attribute Ownership Release Denied terminal response, and a separate pending cancellation reservation that ends at Confirm Attribute Ownership Acquisition Cancellation. The regular request overrides the invoking federate's still-pending If Available reservation for the same attribute and preserves an existing regular pending attribute on repeat without a duplicate release callback. Both regular acquisition and accepted cancellation retain requester publication until their terminal callback, and Unpublish Object Class Attributes therefore raises OwnershipAcquisitionPending. A release denial preserves current ownership, terminates all matching regular pending acquisitions, and delivers Attribute Ownership Unavailable with the denial tag. A bounded cancellation accepts only a still-pending regular request, suppresses stale notification/release work, and confirms all qualifying attributes in one callback. The owner-denial in-flight cancellation race now produces the third-form Attribute Ownership Unavailable outcome, and a competing Divestiture If Wanted transfer consumes the queued cancellation reservation so the second-form Attribute Ownership Acquisition Notification wins without a duplicate confirmation. The contract uses immutable candidate IDs from the Requirements Lab and follows their exported clause IDs; RL-015 records the ownership-page attribution mismatch. Every remaining divestiture form, acquisition arbitration beyond the tested bounded scheduler behavior, RTI-owned state, full resign-action disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
   "requirements": [
     {
       "id": "umbra-regular-acquisition-records-a-request",
@@ -76,6 +76,26 @@
       ]
     },
     {
+      "id": "umbra-cancellation-race-delivers-unavailable-after-owner-denial",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l34-8",
+      "clause_id": "clause-7.15",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial"
+      ]
+    },
+    {
+      "id": "umbra-cancellation-race-delivers-notification-after-transfer",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5",
+      "clause_id": "clause-7.15",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
+      ]
+    },
+    {
       "id": "umbra-regular-acquisition-cancellation-targets-only-pending-regular-requests",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12",
       "clause_id": "clause-7.15",
@@ -83,7 +103,8 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]
     },
     {
@@ -94,7 +115,8 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]
     },
     {
@@ -105,7 +127,8 @@
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]
     },
     {

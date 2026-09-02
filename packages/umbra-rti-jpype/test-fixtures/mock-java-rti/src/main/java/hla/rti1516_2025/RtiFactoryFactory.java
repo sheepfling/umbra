@@ -1,7 +1,9 @@
 package hla.rti1516_2025;
 
 import hla.rti1516_2025.exceptions.RTIinternalError;
+import java.util.HashSet;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 /** A small ServiceLoader-based counterpart to the standard helper. */
 public final class RtiFactoryFactory {
@@ -26,5 +28,13 @@ public final class RtiFactoryFactory {
          return factory;
       }
       throw new RTIinternalError("Cannot find factory");
+   }
+
+   public static Set<RtiFactory> getAvailableRtiFactories() {
+      Set<RtiFactory> factories = new HashSet<>();
+      for (RtiFactory factory : ServiceLoader.load(RtiFactory.class)) {
+         factories.add(factory);
+      }
+      return factories;
    }
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <dimensions>
+    <dimension>
+      <name>UmbraDuplicateDimension</name>
+      <inputDataTypes>
+        <dataType>HLAcount</dataType>
+      </inputDataTypes>
+      <inputDataDescription>NA</inputDataDescription>
+      <upperBound>100</upperBound>
+      <normalization>First duplicate fixture normalization.</normalization>
+      <outputDataSemantics>First duplicate fixture coordinate.</outputDataSemantics>
+      <value>[0..100)</value>
+    </dimension>
+    <dimension>
+      <name>UmbraDuplicateDimension</name>
+      <inputDataTypes>
+        <dataType>HLAcount</dataType>
+      </inputDataTypes>
+      <inputDataDescription>NA</inputDataDescription>
+      <upperBound>100</upperBound>
+      <normalization>Second duplicate fixture normalization.</normalization>
+      <outputDataSemantics>Second duplicate fixture coordinate.</outputDataSemantics>
+      <value>[0..100)</value>
+    </dimension>
+  </dimensions>
+</objectModel>

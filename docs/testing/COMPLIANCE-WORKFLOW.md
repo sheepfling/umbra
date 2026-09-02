@@ -23,7 +23,7 @@ Disconnect integration test with the Lab's exact selected C++ API surface.
 Running umbra_catch2_junit emits one matching JUnit testcase and the sidecar
 produces an implemented binding plus unreviewed, real passed evidence. That raw
 result is not validated or verified. The plan also records a real Create/
-Destroy/Join/Resign Catch2 scenario in Umbra's non-installable development
+Destroy/Join/Resign Catch2 scenario in Umbra's embedded development
 profile. That scenario is source/test traceability only: it has no test-catalog
 entry, JUnit sidecar result, protected review, package support, or conformance
 claim.
@@ -35,6 +35,7 @@ Use the Python environment that can run the local Requirements Lab:
 ~~~powershell
 $python = 'C:\Users\peanu\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 & $python tools/requirements_lab.py export --python $python
+& $python tools/requirements_lab.py check-plan --bundle .compliance/corpus-bundle.json
 & $python tools/requirements_lab_sidecar.py prepare --python $python
 & $python tools/generate_cpp_conformance_worklist.py
 ~~~
@@ -58,7 +59,7 @@ The Connect family remains outside the catalog because the aggregate mapping
 still has four C++ candidates and no selected surface in the Lab sidecar
 request. Umbra implements and tests all four overloads, but does not claim
 catalog evidence for them. Disconnect has a selected surface and one real
-cataloged test. Resign is exercised only by the non-installable development
+cataloged test. Resign is exercised only by the embedded development
 profile, so it remains outside the catalog until its service and package scope
 are stable enough for a reproducible JUnit evidence submission.
 

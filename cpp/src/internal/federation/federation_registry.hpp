@@ -6,8 +6,11 @@
 #include "internal/fom/fom_validation.hpp"
 #include "internal/handles/interaction_class_handle_directory.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
+#include "internal/federation/federation_save_commit_store.hpp"
+#include "internal/federation/federation_state_image.hpp"
 #include "internal/handles/object_class_handle_directory.hpp"
 #include "internal/handles/parameter_handle_directory.hpp"
+#include "internal/handles/transportation_type_handle_directory.hpp"
 #include "internal/observability/runtime_instrumentation.hpp"
 
 #include <RTI/Enums.h>
@@ -70,6 +73,12 @@ struct FederateCallbackRoute final {
   void enqueueReceiveOrder(FederateCallbackInvocation invocation) const {
     if (receiveOrderSubmit) {
       receiveOrderSubmit(std::move(invocation));
+    } else if (submit) {
+      // Lightweight registry/test routes historically provided only the
+      // ordinary submission callback.  Receive-order work must still reach
+      // that route rather than being silently discarded; production routes
+      // install receiveOrderSubmit so they can add their queue accounting.
+      submit(std::move(invocation));
     }
   }
 
@@ -114,6 +123,19 @@ using FederationTimeGrantDispatchFactory = std::function<FederationTimeGrantDisp
     std::uint64_t generation,
     std::uint64_t dispatchIdentity)>;
 
+// Role-enable requests are callback-gated temporal state too. Their callback
+// endpoints remain live ambassador concerns, so a restore rebuilds the
+// dispatch from this factory after applying the route-free time image.
+enum class FederationTimeRoleEnableKind {
+  regulation,
+  constrained,
+};
+
+using FederationTimeRoleEnableDispatchFactory = std::function<FederationTimeGrantDispatch(
+    std::uint64_t federateId,
+    std::uint64_t generation,
+    FederationTimeRoleEnableKind kind)>;
+
 class FomCatalog;
 class MaterializedFdd;
 struct FederationTimeBounds;
@@ -123,6 +145,7 @@ struct FederationDefinition {
   std::wstring logicalTimeImplementationName;
   std::shared_ptr<FomCatalog const> catalog;
   std::shared_ptr<MaterializedFdd const> fdd;
+  FomStandardEdition standardEdition = FomStandardEdition::ieee1516_2025;
 };
 
 struct FederateMembership {
@@ -351,9 +374,14 @@ enum class FederationSaveNotificationKind {
 };
 
 // Immutable save-control callback work. The embedded profile stores a
-// process-local in-memory snapshot after every participating federate reports
-// completion; external durable persistence and distributed transport are
-// separate layers.
+// process-local snapshot and publishes a route-free versioned state image
+// after every participating federate reports completion; distributed
+// transport and the remaining typed application-ledger rehydration remain
+// separate layers. Typed If Available and regular ownership-acquisition
+// reservation ledgers are part of the v1 image; remaining ownership/value
+// ledgers remain separate. Pending time-advance and time-role-enable
+// generation identities are carried by the route-free temporal image; live
+// callback routes remain a separate rebinding concern.
 struct FederationSaveNotification {
   FederationSaveNotificationKind kind = FederationSaveNotificationKind::initiate;
   // The joined federate whose callback route receives this notification.  It
@@ -453,6 +481,18 @@ struct FederationRestoreNotification {
   FederatePublicServiceReportRoute publicServiceReportRoute;
 };
 
+struct AttributeOwnershipAcquisitionWorkItem;
+struct AttributeOwnershipAcquisitionCancellationWorkItem;
+struct AttributeOwnershipDivestitureIfWantedNotification;
+struct ConfirmDivestitureNotification;
+struct AttributeTransportationTypeChangeWorkItem;
+struct InteractionTransportationTypeChangeWorkItem;
+struct AttributeValueUpdateProvideWorkItem;
+struct AttributeValueUpdateClassProvideWorkItem;
+struct AttributeValueUpdateRegionalProvideWorkItem;
+struct AttributeOwnershipQueryRecipient;
+struct AttributeOwnershipAssumptionRecipient;
+
 struct FederationRestoreControlResult {
   FederationRestoreControlStatus status =
       FederationRestoreControlStatus::applied;
@@ -460,9 +500,67 @@ struct FederationRestoreControlResult {
   // Successful restore can reconstitute a saved Time Advance Grant only after
   // the federation-restored callbacks have been submitted to their routes.
   std::vector<FederationTimeGrantDispatch> timeAdvanceGrantDispatches;
+  // Pending Enable Time Regulation/Constrained callbacks use the same
+  // route-free image boundary. Return live dispatches for every member so a
+  // multi-federate completion can rebind each current ambassador, not only
+  // the member that called Federate Restore Complete.
+  std::vector<FederationTimeGrantDispatch> timeRoleEnableDispatches;
+  // A fresh-registry restore has no serialized callback closures. Ownership
+  // acquisition reservations are restored as durable state, then their live
+  // callback work is rebuilt against the joined ambassadors after the
+  // federation-restored notifications are prepared.
+  std::vector<AttributeOwnershipAcquisitionWorkItem>
+      ownershipAcquisitionWorkItems;
+  // Pending Cancel Attribute Ownership Acquisition confirmations are a
+  // distinct callback family from the acquisition work-item variants above.
+  // Fresh-registry restore rebuilds them against the current requester route.
+  std::vector<AttributeOwnershipAcquisitionCancellationWorkItem>
+      ownershipAcquisitionCancellationWorkItems;
+  // Pending Divestiture If Wanted notifications are rebound to the current
+  // requester route only after Federation Restored; the callback boundary
+  // remains the one-shot ownership-notification consume point.
+  std::vector<AttributeOwnershipDivestitureIfWantedNotification>
+      ownershipDivestitureIfWantedWorkItems;
+  // Pending Confirm Divestiture notifications are rebound to the current
+  // requester route only after Federation Restored. Their callback tag is
+  // retained in the route-free ledger and carried into this work item.
+  std::vector<ConfirmDivestitureNotification>
+      confirmDivestitureWorkItems;
+  // Pending attribute transportation-type changes are rebound to the live
+  // requester route after a fresh-registry restore; the callback boundary
+  // remains the commit point for the effective per-instance type.
+  std::vector<AttributeTransportationTypeChangeWorkItem>
+      attributeTransportationTypeChangeWorkItems;
+  // Pending interaction transportation-type changes are likewise rebound to
+  // the current requester route after a fresh-registry restore. The public
+  // confirmation callback remains the one-shot commit boundary.
+  std::vector<InteractionTransportationTypeChangeWorkItem>
+      interactionTransportationTypeChangeWorkItems;
+  // Accepted object-instance Request Attribute Value Update provider
+  // callbacks are restored from their route-free request ledger and rebound
+  // to the current provider routes after Federation Restored callbacks.
+  std::vector<AttributeValueUpdateProvideWorkItem>
+      attributeValueUpdateProvideWorkItems;
+  // Accepted object-class Request Attribute Value Update callbacks are
+  // likewise restored from one durable entry per object/provider delivery.
+  std::vector<AttributeValueUpdateClassProvideWorkItem>
+      attributeValueUpdateClassProvideWorkItems;
+  // Accepted regional object-class Request Attribute Value Update callbacks
+  // retain their per-attribute region designators across fresh-registry
+  // restore and are rebound to current provider routes.
+  std::vector<AttributeValueUpdateRegionalProvideWorkItem>
+      attributeValueUpdateRegionalProvideWorkItems;
+  // Accepted Query Attribute Ownership result callbacks are restored from
+  // their route-free request ledger and rebound to the current requester
+  // routes after Federation Restored callbacks.
+  std::vector<AttributeOwnershipQueryRecipient>
+      attributeOwnershipQueryWorkItems;
+  // Queued Request Attribute Ownership Assumption callbacks retain their
+  // search tuple and tag in the route-free image; fresh-registry restore
+  // rebuilds each callback against the current recipient route.
+  std::vector<AttributeOwnershipAssumptionRecipient>
+      attributeOwnershipAssumptionWorkItems;
 };
-
-struct AttributeOwnershipAcquisitionWorkItem;
 
 // Resign-action work is returned as generic callback routes so the registry
 // can keep its lock boundary independent of the public object/ownership
@@ -657,6 +755,11 @@ struct JoinedFederateMomObjectSnapshot {
   std::uint64_t objectInstanceHandle = 0;
   std::uint64_t joinedFederateId = 0;
   std::uint64_t objectClassHandle = 0;
+  // HLAreportServiceFile is a static value for the complete joined-federate
+  // lifetime. Keep the canonical path as state in its own right instead of
+  // relying on a particular encoded attribute-map entry to carry the
+  // identity through save/restore.
+  std::wstring reportServiceFile;
   // The federation-execution MOM object shares the RTI-owned discovery and
   // reflection machinery with HLAfederate objects, but has execution scope
   // rather than one represented member lifetime.  It is retained in this
@@ -855,6 +958,11 @@ struct ObjectClassAttributeDeclarationSnapshot {
   std::set<std::uint64_t> explicitlyPublishedAttributes;
   std::map<std::uint64_t, bool> subscribedAttributes;
   std::map<std::uint64_t, std::string> subscribedUpdateRateDesignators;
+  // Subscription mutations receive a federation-scoped generation so the
+  // update-rate gate cannot reuse admission history for a changed
+  // declaration.  Retain it in the internal snapshot used by restore tests
+  // and callback planning; it is not a public HLA surface.
+  std::uint64_t subscriptionGeneration = 0;
 };
 
 // Private state/result vocabulary for IEEE 1516.1-2025 object-instance name
@@ -964,11 +1072,10 @@ struct ObjectInstanceScopeChangeRecipient {
 
 // Private result for the bounded 2025 Attribute Relevance Advisory path. A
 // recipient is emitted for each owner/receiver/object/direction combination
-// whose calculated scope changed. The adapter invokes the official Turn
+// whose calculated relevance changed, or whose maximum applicable update rate
+// changed while it remained relevant. The adapter invokes the official Turn
 // Updates On/Off callback at the owning federate, then rechecks ownership,
-// scope, and the owner's advisory switch at callback entry. Update-rate
-// designators are intentionally not synthesized until the update-rate model
-// is implemented.
+// scope, and the owner's advisory switch at callback entry.
 struct AttributeRelevanceAdvisoryRecipient {
   std::uint64_t providingFederateId = 0;
   std::uint64_t receivingFederateId = 0;
@@ -984,6 +1091,11 @@ struct AttributeRelevanceAdvisoryRecipient {
 
 struct RegionScopeChangePlan {
   RegionServiceStatus status = RegionServiceStatus::applied;
+  // A committed region can make an already-registered object enter a
+  // receiver's scope for the first time.  Discovery must be planned in the
+  // same transaction as the region mutation so callback delivery sees the
+  // new specification rather than a later, unrelated declaration event.
+  std::vector<ObjectInstanceDiscoveryRecipient> discoveries;
   std::vector<ObjectInstanceScopeChangeRecipient> recipients;
   std::vector<AttributeRelevanceAdvisoryRecipient> attributeRelevanceAdvisories;
 };
@@ -991,6 +1103,10 @@ struct RegionScopeChangePlan {
 struct ObjectInstanceRegionAssociationScopePlan {
   ObjectInstanceRegionAssociationStatus status =
       ObjectInstanceRegionAssociationStatus::applied;
+  // Adding an update-region association can make an already-registered object
+  // discoverable to an existing regional subscriber.  Keep those reservations
+  // in the same transaction as the association mutation.
+  std::vector<ObjectInstanceDiscoveryRecipient> discoveries;
   std::vector<ObjectInstanceScopeChangeRecipient> recipients;
   std::vector<AttributeRelevanceAdvisoryRecipient> attributeRelevanceAdvisories;
 };
@@ -1086,9 +1202,10 @@ enum class ReceiveOrderAttributeUpdateStatus {
 struct ReceiveOrderAttributeUpdateRecipient {
   std::uint64_t federateId = 0;
   std::set<std::uint64_t> receivedAttributeHandles;
-  // Maximum selected FDD rate for this callback projection. Zero means the
-  // default/no-reduction designator or an unavailable rate.
-  double maximumUpdateRate = 0.0;
+  // Only attributes with an explicit FDD update-rate designator appear in
+  // this map.  An absent entry is the HLAdefault/no-reduction case; keeping
+  // that distinction per attribute prevents one reduced attribute from
+  // throttling another attribute in the same callback passel.
   std::map<std::uint64_t, double> maximumUpdateRatesByAttribute;
   std::uint64_t subscriptionGeneration = 0;
   // The receiver's Convey Region Designator Sets switch is projected at the
@@ -1103,6 +1220,12 @@ struct ReceiveOrderAttributeUpdatePassel {
   std::string transportationName;
   std::vector<std::uint64_t> sentAttributeHandles;
   std::set<std::uint64_t> sentRegionHandles;
+  // Regional delivery is admitted against the producer's committed source
+  // realization at the Update Attribute Values boundary.  Keep those
+  // specifications with the passel so a later source-range mutation cannot
+  // reinterpret an already accepted callback.  The live association is still
+  // rechecked at delivery, which keeps association replacement suppressive.
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
   // The 2025 default region is intentionally not exposed as a RegionHandle.
   // Preserve its use separately so an enabled Convey Region Designator Sets
   // switch can distinguish a default-region callback (an empty supplied set)
@@ -1146,6 +1269,50 @@ struct AttributeValueUpdateProvideRecipient {
 struct AttributeValueUpdateRequestPlan {
   AttributeValueUpdateRequestStatus status = AttributeValueUpdateRequestStatus::applied;
   std::vector<AttributeValueUpdateProvideRecipient> recipients;
+};
+
+// Fresh-registry restore work for an accepted object-instance Request
+// Attribute Value Update. The callback route and service-report route are
+// rebound from the current joined federates; the copied tag and request
+// identity remain durable application state.
+struct AttributeValueUpdateProvideWorkItem {
+  std::uint64_t requestId = 0;
+  std::uint64_t requestingFederateId = 0;
+  std::uint64_t providingFederateId = 0;
+  std::uint64_t objectInstanceHandle = 0;
+  std::set<std::uint64_t> requestedAttributeHandles;
+  std::vector<unsigned char> userSuppliedTag;
+  ObjectInstanceCallbackRoute callbackRoute;
+  FederateServiceReportRoute serviceReportRoute;
+};
+
+// Fresh-registry restore work for one accepted object-class Request Attribute
+// Value Update provider callback.  The requested class is retained so the
+// callback-time hierarchy/ownership recheck cannot silently widen the
+// original class-designator request.
+struct AttributeValueUpdateClassProvideWorkItem {
+  std::uint64_t requestId = 0;
+  std::uint64_t requestingFederateId = 0;
+  std::uint64_t providingFederateId = 0;
+  std::uint64_t objectInstanceHandle = 0;
+  std::uint64_t requestedObjectClassHandle = 0;
+  std::set<std::uint64_t> requestedAttributeHandles;
+  std::vector<unsigned char> userSuppliedTag;
+  ObjectInstanceCallbackRoute callbackRoute;
+  FederateServiceReportRoute serviceReportRoute;
+};
+
+struct AttributeValueUpdateRegionalProvideWorkItem {
+  std::uint64_t requestId = 0;
+  std::uint64_t requestingFederateId = 0;
+  std::uint64_t providingFederateId = 0;
+  std::uint64_t objectInstanceHandle = 0;
+  std::uint64_t requestedObjectClassHandle = 0;
+  std::set<std::uint64_t> requestedAttributeHandles;
+  std::map<std::uint64_t, std::set<std::uint64_t>> requestRegionsByAttribute;
+  std::vector<unsigned char> userSuppliedTag;
+  ObjectInstanceCallbackRoute callbackRoute;
+  FederateServiceReportRoute serviceReportRoute;
 };
 
 // RTI-owned joined-federate MOM attributes are supplied directly by the RTI;
@@ -1227,6 +1394,7 @@ enum class AttributeOwnershipQueryReportKind {
 };
 
 struct AttributeOwnershipQueryRecipient {
+  std::uint64_t requestId = 0;
   std::uint64_t receivingFederateId = 0;
   std::uint64_t objectInstanceHandle = 0;
   AttributeOwnershipQueryReportKind reportKind = AttributeOwnershipQueryReportKind::unowned;
@@ -1269,6 +1437,7 @@ enum class AttributeOwnershipAcquisitionIfAvailableStatus {
   federation_does_not_exist,
   requesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_already_being_acquired,
   attribute_not_published,
   object_class_not_published,
@@ -1305,6 +1474,7 @@ enum class AttributeOwnershipAcquisitionStatus {
   federation_does_not_exist,
   requesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_not_published,
   object_class_not_published,
   federate_owns_attributes,
@@ -1314,6 +1484,10 @@ enum class AttributeOwnershipAcquisitionStatus {
 
 enum class AttributeOwnershipAcquisitionWorkKind {
   acquisition_notification,
+  // A saved Willing-to-Acquire request has an already-accepted callback
+  // boundary but no owner-side release work.  Fresh-registry restore uses
+  // this kind to rebind that callback to the current requester route.
+  if_available_notification,
   request_release,
   request_divestiture_confirmation,
 };
@@ -1356,6 +1530,7 @@ enum class NegotiatedAttributeOwnershipDivestitureStatus {
   federation_does_not_exist,
   divesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_not_owned,
   attribute_not_defined,
   attribute_already_being_divested,
@@ -1378,6 +1553,7 @@ enum class ConfirmDivestitureStatus {
   federation_does_not_exist,
   divesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_not_owned,
   attribute_not_defined,
   attribute_divestiture_was_not_requested,
@@ -1410,6 +1586,7 @@ enum class CancelNegotiatedAttributeOwnershipDivestitureStatus {
   federation_does_not_exist,
   divesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_not_owned,
   attribute_not_defined,
   attribute_divestiture_was_not_requested,
@@ -1447,6 +1624,7 @@ enum class AttributeOwnershipReleaseDeniedStatus {
   federation_does_not_exist,
   owning_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_not_owned,
   attribute_not_defined,
   inconsistent_catalog,
@@ -1463,6 +1641,7 @@ struct AttributeOwnershipReleaseDeniedPlan {
   AttributeOwnershipReleaseDeniedStatus status =
       AttributeOwnershipReleaseDeniedStatus::applied;
   std::vector<AttributeOwnershipUnavailableRecipient> recipients;
+  std::vector<AttributeOwnershipAcquisitionWorkItem> followupWorkItems;
 };
 
 // Private validation/routing result for the 2025 Attribute Ownership
@@ -1476,6 +1655,7 @@ enum class AttributeOwnershipDivestitureIfWantedStatus {
   federation_does_not_exist,
   divesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_not_owned,
   attribute_not_defined,
   inconsistent_catalog,
@@ -1515,6 +1695,7 @@ enum class UnconditionalAttributeOwnershipDivestitureStatus {
   federation_does_not_exist,
   divesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_not_owned,
   attribute_not_defined,
   inconsistent_catalog,
@@ -1540,6 +1721,17 @@ struct AttributeOwnershipAssumptionDelivery {
   std::set<std::uint64_t> attributeHandles;
 };
 
+// A queued Request Attribute Ownership Assumption callback is a live route
+// around a durable search reservation. Keep this callback identity separate
+// from ownershipAssumptionRecipientsByAttribute: that map records candidates
+// already offered during the unowned interval, while this vector records only
+// callback work that has not reached its one-shot begin boundary yet.
+struct PendingAttributeOwnershipAssumptionCallback {
+  std::uint64_t receivingFederateId = 0;
+  std::set<std::uint64_t> attributeHandles;
+  std::vector<unsigned char> userSuppliedTag;
+};
+
 struct UnconditionalAttributeOwnershipDivestiturePlan {
   UnconditionalAttributeOwnershipDivestitureStatus status =
       UnconditionalAttributeOwnershipDivestitureStatus::applied;
@@ -1557,6 +1749,7 @@ enum class AttributeOwnershipAcquisitionCancellationStatus {
   federation_does_not_exist,
   requesting_federate_not_member,
   object_instance_not_known,
+  attribute_owned_by_rti,
   attribute_acquisition_was_not_requested,
   attribute_already_owned,
   attribute_not_defined,
@@ -1566,6 +1759,18 @@ enum class AttributeOwnershipAcquisitionCancellationStatus {
 struct AttributeOwnershipAcquisitionCancellationPlan {
   AttributeOwnershipAcquisitionCancellationStatus status =
       AttributeOwnershipAcquisitionCancellationStatus::applied;
+  std::uint64_t cancellationId = 0;
+  std::set<std::uint64_t> attributeHandles;
+  ObjectInstanceCallbackRoute callbackRoute;
+};
+
+// A fresh-registry restore has no serialized callback closure for a pending
+// cancellation. Keep the durable callback identity and attribute projection
+// separate from the public plan so the ambassador can rebind it to the live
+// requester route after Federation Restored.
+struct AttributeOwnershipAcquisitionCancellationWorkItem {
+  std::uint64_t requestingFederateId = 0;
+  std::uint64_t objectInstanceHandle = 0;
   std::uint64_t cancellationId = 0;
   std::set<std::uint64_t> attributeHandles;
   ObjectInstanceCallbackRoute callbackRoute;
@@ -1647,6 +1852,11 @@ struct ReceiveOrderInteractionPlan {
   // Send Interaction uses the RTI-provided default region when the class has
   // available dimensions, without exposing a caller-visible region handle.
   bool defaultRegionUsed = false;
+  // Regional receive-order callbacks may be queued under HLA_EVOKED or an
+  // asynchronous-delivery gate. Retain the committed send-time
+  // specifications so callback-time rechecks do not reinterpret an accepted
+  // interaction against a later source-region mutation.
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
   rti1516_2025::OrderType preferredOrderType = rti1516_2025::RECEIVE;
   std::vector<ReceiveOrderInteractionRecipient> recipients;
 };
@@ -2274,6 +2484,17 @@ struct AttributeTransportationTypeChangePlan {
   ObjectInstanceCallbackRoute callbackRoute;
 };
 
+// A fresh-registry restore has no serialized callback closure for a pending
+// attribute transportation-type change. Keep the durable request identity
+// separate from the public plan so the ambassador can rebind it to the live
+// requester route after Federation Restored.
+struct AttributeTransportationTypeChangeWorkItem {
+  std::uint64_t requestingFederateId = 0;
+  std::uint64_t objectInstanceHandle = 0;
+  std::uint64_t requestId = 0;
+  ObjectInstanceCallbackRoute callbackRoute;
+};
+
 struct AttributeTransportationTypeChangeDelivery {
   std::uint64_t objectInstanceHandle = 0;
   std::set<std::uint64_t> attributeHandles;
@@ -2329,6 +2550,16 @@ struct InteractionTransportationTypeChangePlan {
   InteractionCallbackRoute callbackRoute;
 };
 
+// A fresh-registry restore has no serialized callback closure for a pending
+// interaction transportation-type change. Keep the durable class identity
+// separate from the public plan so the ambassador can rebind it to the live
+// requester route after Federation Restored.
+struct InteractionTransportationTypeChangeWorkItem {
+  std::uint64_t requestingFederateId = 0;
+  std::uint64_t interactionClassHandle = 0;
+  InteractionCallbackRoute callbackRoute;
+};
+
 enum class InteractionTransportationTypeQueryStatus {
   applied,
   federation_does_not_exist,
@@ -2363,6 +2594,12 @@ struct TsoInteractionMessage {
   rti1516_2025::VariableLengthData userSuppliedTag;
   std::string transportationName;
   std::set<std::uint64_t> sentRegionHandles;
+  // Region handles are public opaque identities, but their mutable region
+  // specifications belong to the producing federate. Retain the committed
+  // invocation-time snapshots so a queued TSO interaction can still be
+  // overlap-qualified after that federate resigns and its regions are
+  // released from the live federation registry.
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
   bool defaultRegionUsed = false;
   std::shared_ptr<rti1516_2025::LogicalTime const> timestamp;
   rti1516_2025::OrderType sentOrderType = rti1516_2025::TIMESTAMP;
@@ -2383,6 +2620,12 @@ struct TsoAttributeUpdatePassel {
   std::string transportationName;
   std::vector<std::uint64_t> sentAttributeHandles;
   std::set<std::uint64_t> sentRegionHandles;
+  // Keep the committed source realization with the passel for immediate
+  // timestamped recipients as well as federation-owned TSO recipients.  The
+  // public RegionHandle identities remain opaque, but a callback may occur
+  // after the producer mutates the live range; delivery must not reinterpret
+  // the accepted update against that later range.
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
   bool defaultRegionUsed = false;
   rti1516_2025::OrderType preferredOrderType = rti1516_2025::TIMESTAMP;
 };
@@ -2398,6 +2641,12 @@ struct TsoAttributeUpdateMessage {
   rti1516_2025::VariableLengthData userSuppliedTag;
   std::map<std::uint64_t, std::vector<TsoAttributeUpdatePassel>>
       passelsByRecipient;
+  // Retain committed invocation-time source-region specifications. A
+  // voluntary source resignation releases its public RegionHandles and
+  // update-region associations before a queued TSO reflection reaches its
+  // recipient; callback-time DDM evaluation must still use the accepted
+  // passel's original regional realization.
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
   std::shared_ptr<rti1516_2025::LogicalTime const> timestamp;
 };
 
@@ -2628,7 +2877,8 @@ struct FederationTsoPayloadDeliveryRegistryResult {
 class EmbeddedFederationRegistry final {
  public:
   explicit EmbeddedFederationRegistry(
-      std::shared_ptr<RuntimeInstrumentation> instrumentation = {});
+      std::shared_ptr<RuntimeInstrumentation> instrumentation = {},
+      std::shared_ptr<FederationSaveCommitStore> saveCommitStore = {});
 
   [[nodiscard]] RuntimeInstrumentationSnapshot
   runtimeInstrumentationSnapshotForTesting() const;
@@ -2642,19 +2892,22 @@ class EmbeddedFederationRegistry final {
   FederationJoinResult join(
       std::wstring const& federationName,
       std::wstring const& federateType,
-      std::optional<std::wstring> requestedFederateName = std::nullopt);
+      std::optional<std::wstring> requestedFederateName = std::nullopt,
+      InteractionCallbackRoute interactionCallbackRoute = {});
 
   // Runtime-backed joins register their FederateTimeState in the same private
-  // membership transaction.  The legacy join overload remains useful to unit
-  // test the registry independently, but public embedded joins must use this
-  // overload so a GALT/LITS coordinator cannot observe an untracked member.
+  // membership transaction. The legacy join overload remains useful to unit
+  // test the registry independently; it still registers the member as a TSO
+  // recipient, but (without a time state) it is intentionally absent from the
+  // coordinator's GALT/LITS input set.
   FederationJoinResult joinWithTimeState(
       std::wstring const& federationName,
       std::shared_ptr<FederateTimeState> timeState,
       std::wstring const& federateType,
       std::optional<std::wstring> requestedFederateName = std::nullopt,
       InteractionCallbackRoute interactionCallbackRoute = {},
-      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory = {});
+      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory = {},
+      FederationTimeRoleEnableDispatchFactory timeRoleEnableDispatchFactory = {});
 
   // Commits a freshly prevalidated replacement definition and a membership as
   // one state transition. This is used only after an external coordinator has
@@ -2672,7 +2925,8 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federateType,
       std::optional<std::wstring> requestedFederateName = std::nullopt,
       InteractionCallbackRoute interactionCallbackRoute = {},
-      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory = {});
+      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory = {},
+      FederationTimeRoleEnableDispatchFactory timeRoleEnableDispatchFactory = {});
 
   FederationRegistryResult resign(
       std::wstring const& federationName,
@@ -2835,7 +3089,10 @@ class EmbeddedFederationRegistry final {
       std::uint64_t federateId,
       std::uint64_t objectInstanceHandle,
       std::uint64_t registeredObjectClassHandle,
-      std::set<std::string> const& transportationNames);
+      std::set<std::string> const& transportationNames,
+      std::vector<std::pair<
+          std::uint64_t,
+          rti1516_2025::VariableLengthData>> const* acceptedAttributeValues = nullptr);
 
   // Records one accepted application-object Reflect Attribute Values callback
   // at the receiving federate's callback boundary. The retained handle set is
@@ -3079,7 +3336,9 @@ class EmbeddedFederationRegistry final {
       bool switchValue);
 
   // Re-evaluates a scheduled Turn Updates On/Off advisory immediately before
-  // callback entry. This prevents stale queued advisories after a second
+  // callback entry. A zero receivingFederateId evaluates the federation-wide
+  // relevance edge; a nonzero value retains the older receiver-local query
+  // seam. This prevents stale queued advisories after a second
   // subscription/region/ownership transition or after the owner disables the
   // Attribute Relevance Advisory Switch.
   [[nodiscard]] std::set<std::uint64_t> attributeRelevanceAdvisoryAttributes(
@@ -3090,8 +3349,8 @@ class EmbeddedFederationRegistry final {
       std::set<std::uint64_t> const& attributeHandles,
       bool expectedInScope) const;
 
-  // Re-resolves the currently retained explicit update-rate designator for a
-  // queued Turn Updates On callback. A missing value means the official
+  // Re-resolves the currently retained maximum active update-rate designator
+  // for a queued Turn Updates On callback. A missing value means the official
   // no-rate overload must be used; an explicit HLAdefault remains distinct
   // and therefore selects the rate-bearing overload.
   [[nodiscard]] std::optional<std::string>
@@ -3229,7 +3488,8 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t producingFederateId,
       std::uint64_t messageId,
-      std::shared_ptr<rti1516_2025::LogicalTime const> const& retractionLowerBound);
+      std::shared_ptr<rti1516_2025::LogicalTime const> const& retractionLowerBound,
+      bool enforceTimestampEligibility = true);
 
   // Retires heavyweight state for message designators whose producing
   // federate can no longer legally retract them at the supplied strict
@@ -3414,6 +3674,12 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] std::optional<unsigned long> dimensionUpperBoundFor(
       std::wstring const& federationName,
       std::uint64_t dimensionHandle) const;
+  [[nodiscard]] std::optional<std::uint64_t> transportationTypeHandleFor(
+      std::wstring const& federationName,
+      std::string const& transportationTypeName) const;
+  [[nodiscard]] std::optional<std::string> transportationTypeNameFor(
+      std::wstring const& federationName,
+      std::uint64_t transportationTypeHandle) const;
   [[nodiscard]] std::optional<std::set<std::uint64_t>> availableDimensionsForObjectClass(
       std::wstring const& federationName,
       std::uint64_t objectClassHandle) const;
@@ -3661,6 +3927,17 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t receivingFederateId);
 
+  // Once a discovery commits the receiver's known-instance state, plan the
+  // initial owner-directed Attribute Relevance Advisory for attributes that
+  // are already relevant through the receiver's active declaration. The
+  // planner compares against an empty prior declaration/association state so
+  // this boundary is distinct from later subscription and region transitions.
+  [[nodiscard]] std::vector<AttributeRelevanceAdvisoryRecipient>
+  planInitialAttributeRelevanceAdvisoriesForDiscovery(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t objectInstanceHandle);
+
   // RTI-owned joined-federate MOM objects are planned separately from
   // federate-created instances. Their eligibility still follows the active
   // ordinary subscription declaration, while regional MOM realization and
@@ -3763,8 +4040,9 @@ class EmbeddedFederationRegistry final {
 
   // Validates an Update Attribute Values request and forms one passel for
   // every submitted FOM transportation type and explicit association region
-  // set. The common plan feeds bounded receive-order and timestamped traffic;
-  // relaxed DDM and update-rate reduction remain outside this boundary.
+  // set. The common plan feeds receive-order and timestamped traffic; relaxed
+  // DDM remains outside this boundary while the adapter applies each
+  // recipient's explicit update-rate reduction at delivery time.
   [[nodiscard]] ReceiveOrderAttributeUpdatePlan planReceiveOrderAttributeUpdate(
       std::wstring const& federationName,
       std::uint64_t producingFederateId,
@@ -3782,7 +4060,8 @@ class EmbeddedFederationRegistry final {
       std::uint64_t receivingFederateId,
        std::uint64_t objectInstanceHandle,
        std::vector<std::uint64_t> const& sentAttributeHandles,
-       std::set<std::uint64_t> const* sentRegionHandles = nullptr) const;
+       std::set<std::uint64_t> const* sentRegionHandles = nullptr,
+       std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides = nullptr) const;
 
   // Validates an object-instance Request Attribute Value Update request at
   // the requester's known class, then groups currently owned requested
@@ -3800,7 +4079,9 @@ class EmbeddedFederationRegistry final {
       std::uint64_t requestingFederateId,
       std::uint64_t objectInstanceHandle,
       std::set<std::uint64_t> const& requestedAttributeHandles,
-      bool requireActiveSubscription = false) const;
+      bool requireActiveSubscription = false,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const*
+          requestRegionsByAttribute = nullptr) const;
 
   [[nodiscard]] JoinedFederateMomAttributeValueUpdateClassPlan
   planJoinedFederateMomAttributeValueUpdateClass(
@@ -3808,7 +4089,9 @@ class EmbeddedFederationRegistry final {
       std::uint64_t requestingFederateId,
       std::uint64_t objectClassHandle,
       std::set<std::uint64_t> const& requestedAttributeHandles,
-      bool requireActiveSubscription = false) const;
+      bool requireActiveSubscription = false,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const*
+          requestRegionsByAttribute = nullptr) const;
 
   // Plans an RTI-originated conditional update for one joined-federate MOM
   // object. Automatic updates set requireActiveSubscription so only current
@@ -3831,7 +4114,32 @@ class EmbeddedFederationRegistry final {
       std::uint64_t requestingFederateId,
       std::uint64_t providingFederateId,
       std::uint64_t objectInstanceHandle,
-      std::set<std::uint64_t> const& requestedAttributeHandles) const;
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      bool requireCurrentScope = false) const;
+
+  // Persists one accepted object-instance Request Attribute Value Update in
+  // the route-free federation state. The live provider callback is queued by
+  // the ambassador only after the request has been recorded here.
+  [[nodiscard]] std::optional<std::uint64_t>
+  registerAttributeValueUpdateRequest(
+      std::wstring const& federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t providingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      std::vector<unsigned char> userSuppliedTag);
+
+  // Atomically consumes a persisted request and rechecks its live provider
+  // eligibility. A suppressed or stale request is consumed without a
+  // callback, matching the existing one-shot provider-delivery boundary.
+  [[nodiscard]] std::optional<AttributeValueUpdateProvideRecipient>
+  beginAttributeValueUpdateProvideRecipientFor(
+      std::wstring const& federationName,
+      std::uint64_t requestId,
+      std::uint64_t requestingFederateId,
+      std::uint64_t providingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles);
 
   // Validates an object-class Request Attribute Value Update request, then
   // expands it over all current instances registered at the requested class
@@ -3860,6 +4168,59 @@ class EmbeddedFederationRegistry final {
       std::map<std::uint64_t, std::set<std::uint64_t>> const* requestRegionsByAttribute =
           nullptr) const;
 
+  // Persists one accepted non-regional object-class Request Attribute Value
+  // Update provider delivery.  The class request is expanded by the planner,
+  // so each object/provider group receives its own durable identity.
+  [[nodiscard]] std::optional<std::uint64_t>
+  registerAttributeValueUpdateClassRequest(
+      std::wstring const& federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t providingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t requestedObjectClassHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      std::vector<unsigned char> userSuppliedTag);
+
+  // Atomically consumes one persisted class-form delivery and rechecks its
+  // current hierarchy/ownership eligibility. Regional class requests remain
+  // on the existing non-durable path until their own typed ledger is added.
+  [[nodiscard]] std::optional<AttributeValueUpdateProvideRecipient>
+  beginAttributeValueUpdateClassProvideRecipientFor(
+      std::wstring const& federationName,
+      std::uint64_t requestId,
+      std::uint64_t requestingFederateId,
+      std::uint64_t providingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t requestedObjectClassHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles);
+
+  // Persists one accepted regional object-class Request Attribute Value
+  // Update provider delivery, including the requester's per-attribute region
+  // designators. This is a distinct ledger from the non-regional class form.
+  [[nodiscard]] std::optional<std::uint64_t>
+  registerAttributeValueUpdateRegionalRequest(
+      std::wstring const& federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t providingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t requestedObjectClassHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const&
+          requestRegionsByAttribute,
+      std::vector<unsigned char> userSuppliedTag);
+
+  [[nodiscard]] std::optional<AttributeValueUpdateProvideRecipient>
+  beginAttributeValueUpdateRegionalProvideRecipientFor(
+      std::wstring const& federationName,
+      std::uint64_t requestId,
+      std::uint64_t requestingFederateId,
+      std::uint64_t providingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t requestedObjectClassHandle,
+      std::set<std::uint64_t> const& requestedAttributeHandles,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const&
+          requestRegionsByAttribute);
+
   // Validates a Query Attribute Ownership request at the requester's known
   // class, then groups requested attributes into their standard C++ owner
   // reports. Federate-created instances use federate/unowned reports;
@@ -3869,7 +4230,7 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t requestingFederateId,
       std::uint64_t objectInstanceHandle,
-      std::set<std::uint64_t> const& requestedAttributeHandles) const;
+      std::set<std::uint64_t> const& requestedAttributeHandles);
 
   // Rechecks one pending ownership report immediately before callback
   // delivery. A removed instance, resigned requester, changed known-class
@@ -3879,11 +4240,12 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] std::optional<AttributeOwnershipQueryRecipient>
   attributeOwnershipQueryRecipientFor(
       std::wstring const& federationName,
+      std::uint64_t requestId,
       std::uint64_t requestingFederateId,
       std::uint64_t objectInstanceHandle,
       AttributeOwnershipQueryReportKind reportKind,
       std::uint64_t owningFederateId,
-      std::set<std::uint64_t> const& requestedAttributeHandles) const;
+      std::set<std::uint64_t> const& requestedAttributeHandles);
 
   // Determines whether one valid attribute of a requester's known instance is
   // owned by that same joined federate. It has no callback or transfer effect.
@@ -4092,7 +4454,9 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] std::vector<AttributeOwnershipAssumptionRecipient>
   planAttributeOwnershipAssumptionsForFederate(
       std::wstring const& federationName,
-      std::uint64_t receivingFederateId);
+      std::uint64_t receivingFederateId,
+      std::optional<std::uint64_t> objectInstanceFilter = std::nullopt,
+      std::set<std::uint64_t> const* attributeFilter = nullptr);
 
   // Validates and accepts a regular-acquisition cancellation. The original
   // acquisition work is made stale immediately, but the separate cancellation
@@ -4125,7 +4489,7 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle,
-      std::set<std::uint64_t> const& attributeHandles) const;
+      std::set<std::uint64_t> const& attributeHandles);
 
   // Validates a receive-order Send Interaction request and captures one
   // recipient projection per eligible joined federate.  A passive
@@ -4148,7 +4512,8 @@ class EmbeddedFederationRegistry final {
       std::uint64_t receivingFederateId,
       std::uint64_t sentInteractionClassHandle,
       std::vector<std::uint64_t> const& sentParameterHandles,
-      std::set<std::uint64_t> const* sentRegionHandles = nullptr) const;
+      std::set<std::uint64_t> const* sentRegionHandles = nullptr,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides = nullptr) const;
 
   // Plans the private RTI report endpoint mandated by §11.5.1.  The exact
   // endpoint contains HLAfederate and HLAserviceGroup point ranges only;
@@ -4679,6 +5044,13 @@ class EmbeddedFederationRegistry final {
       // recipient states survive for public exception/callback classification,
       // while its timestamp and every reclaimable payload may be released.
       bool terminal = false;
+      // A voluntary Resign Federation Execution removes the producer before
+      // an already accepted directed TSO payload reaches its recipient. Keep
+      // this separate from the connection-loss cutoff marker below: voluntary
+      // resignation retains every pending accepted recipient, while forced
+      // connection loss retains only messages at or before the lost regulator
+      // boundary.
+      bool producerResigned = false;
       // IEEE 1516.1-2025 connection-loss handling marks a message that was
       // sent at or before a lost time regulator's last-known time. The marker
       // is consumed only to release existing queued TSO delivery after that
@@ -4746,6 +5118,14 @@ class EmbeddedFederationRegistry final {
     struct RestoreOperation {
       std::wstring label;
       std::map<std::uint64_t, rti1516_2025::RestoreStatus> statuses;
+      // The canonical durable image is captured at restore admission so the
+      // completion boundary rehydrates from the same validated bytes rather
+      // than re-reading a mutable store.
+      std::optional<FederationStateImage> stateImage;
+      // True when admission also found the process-local snapshot. A false
+      // value means completion must materialize the route-free image against
+      // the current live federation instead.
+      bool processLocalSnapshot = false;
     };
 
     struct ObjectClassAttributeDeclarations {
@@ -4790,6 +5170,11 @@ class EmbeddedFederationRegistry final {
         std::uint64_t requestSequence = 0;
         std::set<std::uint64_t> desiredAttributeHandles;
         std::set<std::uint64_t> notificationQueuedAttributeHandles;
+        // A release-denied response is terminal for the acquisition, but its
+        // official Attribute Ownership Unavailable callback may still be
+        // queued. Keep the attribute in the request until that callback's
+        // delivery boundary so a concurrent cancellation can win the race.
+        std::set<std::uint64_t> unavailableQueuedAttributeHandles;
         std::map<std::uint64_t, std::set<std::uint64_t>>
             releaseCallbacksQueuedByOwningFederate;
         std::vector<unsigned char> userSuppliedTag;
@@ -4803,6 +5188,7 @@ class EmbeddedFederationRegistry final {
       struct PendingAttributeOwnershipDivestitureIfWantedNotification {
         std::uint64_t receivingFederateId = 0;
         std::set<std::uint64_t> attributeHandles;
+        std::vector<unsigned char> userSuppliedTag;
       };
 
       // A negotiated divestiture leaves the owner in the private Waiting for
@@ -4822,6 +5208,7 @@ class EmbeddedFederationRegistry final {
       struct PendingConfirmDivestitureNotification {
         std::uint64_t receivingFederateId = 0;
         std::set<std::uint64_t> attributeHandles;
+        std::vector<unsigned char> userSuppliedTag;
       };
 
       struct PendingAttributeTransportationTypeChange {
@@ -4849,6 +5236,45 @@ class EmbeddedFederationRegistry final {
       // Explicit region associations used by the no-time Update Attribute
       // Values path. Missing entries retain the ordinary no-region behavior.
       std::map<std::uint64_t, std::set<std::uint64_t>> updateRegionsByAttribute;
+      // Latest accepted application values. Receive-order updates commit at
+      // admission; timestamped updates commit at their callback/reclaim
+      // boundary so a retracted payload never becomes current state.
+      std::map<std::uint64_t, rti1516_2025::VariableLengthData> attributeValues;
+      struct PendingAttributeValueUpdateRequest {
+        std::uint64_t requestingFederateId = 0;
+        std::uint64_t providingFederateId = 0;
+        std::set<std::uint64_t> requestedAttributeHandles;
+        std::vector<unsigned char> userSuppliedTag;
+      };
+      struct PendingAttributeValueUpdateClassRequest {
+        std::uint64_t requestingFederateId = 0;
+        std::uint64_t providingFederateId = 0;
+        std::uint64_t requestedObjectClassHandle = 0;
+        std::set<std::uint64_t> requestedAttributeHandles;
+        std::vector<unsigned char> userSuppliedTag;
+      };
+      struct PendingAttributeValueUpdateRegionalRequest {
+        std::uint64_t requestingFederateId = 0;
+        std::uint64_t providingFederateId = 0;
+        std::uint64_t requestedObjectClassHandle = 0;
+        std::set<std::uint64_t> requestedAttributeHandles;
+        std::map<std::uint64_t, std::set<std::uint64_t>>
+            requestRegionsByAttribute;
+        std::vector<unsigned char> userSuppliedTag;
+      };
+      // Accepted object-instance Request Attribute Value Update callbacks
+      // remain here until their provider callback reaches its delivery
+      // boundary. The callback route itself is live-only and rebound on a
+      // fresh-registry restore.
+      std::map<std::uint64_t, PendingAttributeValueUpdateRequest>
+          pendingAttributeValueUpdateRequests;
+      // Accepted object-class Request Attribute Value Update callbacks are
+      // retained per expanded object/provider delivery until their provider
+      // callback reaches its one-shot begin boundary.
+      std::map<std::uint64_t, PendingAttributeValueUpdateClassRequest>
+          pendingAttributeValueUpdateClassRequests;
+      std::map<std::uint64_t, PendingAttributeValueUpdateRegionalRequest>
+          pendingAttributeValueUpdateRegionalRequests;
       std::map<std::uint64_t, PendingAttributeOwnershipAcquisitionIfAvailable>
           pendingAttributeOwnershipAcquisitionIfAvailableRequests;
       std::map<std::uint64_t, PendingAttributeOwnershipAcquisition>
@@ -4869,6 +5295,12 @@ class EmbeddedFederationRegistry final {
       // stores the accepted service tag for later continuation callbacks.
       std::map<std::uint64_t, std::vector<unsigned char>>
           ownershipAssumptionUserSuppliedTagsByAttribute;
+      // Callback routes are process-local. Retain only queued assumption
+      // callback identities so a fresh-registry restore can rebind them to
+      // the current federate ambassadors without replaying callbacks that
+      // already crossed their begin boundary.
+      std::vector<PendingAttributeOwnershipAssumptionCallback>
+          pendingAttributeOwnershipAssumptionCallbacks;
       std::map<std::uint64_t, PendingNegotiatedAttributeOwnershipDivestiture>
           pendingNegotiatedAttributeOwnershipDivestitures;
       std::map<std::uint64_t, PendingConfirmDivestitureNotification>
@@ -4925,6 +5357,7 @@ class EmbeddedFederationRegistry final {
     std::shared_ptr<InteractionClassHandleDirectory const> interactionClassHandles;
     std::shared_ptr<ParameterHandleDirectory const> parameterHandles;
     std::shared_ptr<DimensionHandleDirectory const> dimensionHandles;
+    std::shared_ptr<TransportationTypeHandleDirectory const> transportationTypeHandles;
     std::map<std::uint64_t, FederateMembership> members;
     std::map<std::wstring, std::uint64_t> memberIdsByName;
     // Unlike memberIdsByName, this lifetime index is not removed at resign.
@@ -4949,10 +5382,25 @@ class EmbeddedFederationRegistry final {
     std::map<std::uint64_t, FederateServiceReportRoute> serviceReportRoutes;
     std::map<std::uint64_t, FederatePublicServiceReportRoute>
         publicServiceReportRoutes;
+    struct PendingAttributeOwnershipQuery {
+      std::uint64_t requestingFederateId = 0;
+      std::uint64_t objectInstanceHandle = 0;
+      AttributeOwnershipQueryReportKind reportKind =
+          AttributeOwnershipQueryReportKind::unowned;
+      std::uint64_t owningFederateId = 0;
+      std::set<std::uint64_t> requestedAttributeHandles;
+    };
+    // Accepted Query Attribute Ownership callbacks remain here until their
+    // one-shot callback boundary. The route itself is live-only and rebound
+    // on a fresh-registry restore.
+    std::map<std::uint64_t, PendingAttributeOwnershipQuery>
+        pendingAttributeOwnershipQueries;
     // Like callback routes, grant factories are live binding endpoints and
     // are preserved from the current ambassadors when state is restored.
     std::map<std::uint64_t, FederationTimeGrantDispatchFactory>
         timeAdvanceGrantDispatchFactories;
+    std::map<std::uint64_t, FederationTimeRoleEnableDispatchFactory>
+        timeRoleEnableDispatchFactories;
     // This monotonically increases for every production grant dispatch and
     // never rolls back with a snapshot, invalidating pre-restore callback
     // work even when the saved time-generation value is later reused.
@@ -4994,16 +5442,33 @@ class EmbeddedFederationRegistry final {
     std::uint64_t nextAttributeOwnershipDivestitureIfWantedNotificationId = 1;
     std::uint64_t nextConfirmDivestitureNotificationId = 1;
     std::uint64_t nextAttributeTransportationTypeChangeRequestId = 1;
+    std::uint64_t nextAttributeValueUpdateRequestId = 1;
+    std::uint64_t nextAttributeOwnershipQueryRequestId = 1;
   };
 
   [[nodiscard]] static bool isFirstPendingAttributeOwnershipAcquisition(
       Federation::ObjectInstance const& instance,
       std::uint64_t requestId,
       std::uint64_t attributeHandle);
+  // An ownership-assumption search is scoped to one unowned interval. Once an
+  // attribute becomes owned, a later divestiture starts a fresh search and
+  // must not inherit the prior search's recipient reservations or tag.
+  static void clearOwnershipAssumptionSearch(
+      Federation::ObjectInstance& instance,
+      std::uint64_t attributeHandle);
+  [[nodiscard]] static std::vector<AttributeOwnershipAssumptionRecipient>
+  planAttributeOwnershipAssumptionsForFederateLocked(
+      Federation& federation,
+      std::uint64_t receivingFederateId,
+      std::optional<std::uint64_t> objectInstanceFilter = std::nullopt,
+      std::set<std::uint64_t> const* attributeFilter = nullptr);
   [[nodiscard]] static std::vector<AttributeOwnershipAcquisitionWorkItem>
   planPendingAttributeOwnershipAcquisitionWork(
       Federation& federation,
       Federation::ObjectInstance& instance);
+  static void clearPendingAttributeOwnershipQueries(
+      Federation& federation,
+      std::uint64_t objectInstanceHandle);
   [[nodiscard]] static std::vector<AttributeOwnershipAcquisitionWorkItem>
   planPendingNegotiatedAttributeOwnershipDivestitureConfirmations(
       Federation& federation,
@@ -5062,7 +5527,8 @@ class EmbeddedFederationRegistry final {
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle,
       std::vector<std::uint64_t> const& sentAttributeHandles,
-      std::set<std::uint64_t> const* sentRegionHandles);
+      std::set<std::uint64_t> const* sentRegionHandles,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides = nullptr);
   [[nodiscard]] static std::optional<AttributeValueUpdateProvideRecipient>
   candidateAttributeValueUpdateProvideRecipient(
       Federation const& federation,
@@ -5108,7 +5574,8 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federateType,
       std::optional<std::wstring> requestedFederateName,
       InteractionCallbackRoute interactionCallbackRoute,
-      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory);
+      FederationTimeGrantDispatchFactory timeAdvanceGrantDispatchFactory,
+      FederationTimeRoleEnableDispatchFactory timeRoleEnableDispatchFactory);
 
   [[nodiscard]] static std::optional<FederationTimeExecutionSnapshot> makeTimeSnapshot(
       Federation const& federation);
@@ -5224,7 +5691,9 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] static std::optional<std::uint64_t> candidateObjectInstanceDiscoveryClass(
       Federation const& federation,
       Federation::ObjectInstance const& objectInstance,
-      std::uint64_t receivingFederateId);
+      std::uint64_t receivingFederateId,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides = nullptr,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const* updateRegionOverrides = nullptr);
   [[nodiscard]] static std::optional<std::uint64_t>
   candidateJoinedFederateMomObjectDiscoveryClass(
       Federation const& federation,
@@ -5237,7 +5706,9 @@ class EmbeddedFederationRegistry final {
       JoinedFederateMomObjectSnapshot const& object,
       std::uint64_t receivingFederateId,
       std::set<std::uint64_t> const& requestedAttributeHandles,
-      bool requireActiveSubscription = false);
+      bool requireActiveSubscription = false,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const*
+          requestRegionsByAttribute = nullptr);
   [[nodiscard]] static std::optional<rti1516_2025::VariableLengthData>
   joinedFederateMomObjectAttributeValue(
       Federation const& federation,
@@ -5251,12 +5722,46 @@ class EmbeddedFederationRegistry final {
       std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides = nullptr,
       std::map<std::uint64_t, std::set<std::uint64_t>> const* associationOverrides = nullptr,
       Federation::ObjectClassAttributeDeclarations const* declarationOverrides = nullptr);
+  // Attribute relevance advisories have one deliberate fork in the 2025
+  // model.  With Advisories Use Known Class enabled they follow the actual
+  // known-class scope calculation above.  With it disabled they are based on
+  // the subscribing federate's retained subscriptions from the registered
+  // class lineage, even when the known class cannot reflect the attribute.
+  [[nodiscard]] static bool objectAttributeRelevantForAdvisory(
+      Federation const& federation,
+      Federation::ObjectInstance const& objectInstance,
+      std::uint64_t receivingFederateId,
+      std::uint64_t attributeHandle,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides = nullptr,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const* associationOverrides = nullptr,
+      Federation::ObjectClassAttributeDeclarations const* declarationOverrides = nullptr);
+  struct AttributeRelevanceRateSnapshot {
+    bool relevant = false;
+    std::optional<std::string> updateRateDesignator;
+  };
+  // Evaluate one object's attribute across every known non-owner receiver.
+  // `declarationOverrideFederateId` identifies the receiver whose prior
+  // declaration snapshot is supplied for a subscription mutation; a zero
+  // value means that all receivers use their live declarations.  Region and
+  // association overrides describe the state being evaluated.
+  [[nodiscard]] static AttributeRelevanceRateSnapshot
+  attributeRelevanceRateSnapshotForState(
+      Federation const& federation,
+      Federation::ObjectInstance const& objectInstance,
+      std::uint64_t declarationOverrideFederateId,
+      std::uint64_t attributeHandle,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides = nullptr,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const* associationOverrides = nullptr,
+      Federation::ObjectClassAttributeDeclarations const* declarationOverrides = nullptr);
   [[nodiscard]] static std::optional<std::string>
   subscribedUpdateRateDesignatorForAttribute(
       Federation const& federation,
       Federation::ObjectInstance const& objectInstance,
       std::uint64_t receivingFederateId,
-      std::uint64_t attributeHandle);
+      std::uint64_t attributeHandle,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* regionOverrides = nullptr,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const* associationOverrides = nullptr,
+      Federation::ObjectClassAttributeDeclarations const* declarationOverrides = nullptr);
   [[nodiscard]] static std::vector<ObjectInstanceScopeChangeRecipient>
   objectInstanceScopeChangesForAssociation(
       Federation const& federation,
@@ -5273,6 +5778,29 @@ class EmbeddedFederationRegistry final {
   attributeRelevanceAdvisoriesForScopeChanges(
       Federation const& federation,
       std::vector<ObjectInstanceScopeChangeRecipient> const& scopeChanges);
+  // When the static known-class switch is disabled, actual scope changes are
+  // not a sufficient trigger: a subscription may become relevant for an
+  // already-known instance even though the known class cannot reflect it.
+  // Compare the pre/post state for one mutation family and build the same
+  // owner-directed advisory records without contaminating Attribute Scope
+  // callbacks with the advisory-only transition.
+  // The comparison always evaluates every known non-owner receiver so one
+  // owner-directed callback represents the federation-wide relevance edge.
+  // A nonzero receivingFederateId identifies the receiver whose prior
+  // declaration snapshot is supplied for a subscription mutation; zero means
+  // all receivers use their live declarations. Association transitions may
+  // supply both the pre-mutation and staged post-mutation association maps;
+  // other mutation families leave the latter null and use live state.
+  [[nodiscard]] static std::vector<AttributeRelevanceAdvisoryRecipient>
+  attributeRelevanceAdvisoriesForTransitions(
+      Federation const& federation,
+      std::uint64_t receivingFederateId,
+      std::set<std::uint64_t> const& attributeHandles,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* previousRegions = nullptr,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const* previousAssociations = nullptr,
+      std::map<std::uint64_t, std::set<std::uint64_t>> const* currentAssociations = nullptr,
+      Federation::ObjectClassAttributeDeclarations const* previousDeclarations = nullptr,
+      std::optional<std::uint64_t> objectInstanceHandle = std::nullopt);
   [[nodiscard]] static std::optional<KnownObjectInstanceSnapshot> knownObjectInstanceSnapshot(
       Federation const& federation,
       Federation::ObjectInstance const& objectInstance,
@@ -5300,9 +5828,18 @@ class EmbeddedFederationRegistry final {
       Federation& federation,
       std::uint64_t messageId);
   static void reclaimTsoMessagePayloads(Federation& federation);
+  static void applyTsoAttributeUpdateValues(
+      Federation& federation,
+      std::uint64_t messageId);
 
   [[nodiscard]] static std::vector<FederationTimeGrantDispatch> scheduleEligibleTimeAdvanceGrants(
       Federation& federation);
+
+  // Rebind callback-gated role-enable requests after the route-free temporal
+  // image has been applied. Factories capture the target state's fresh
+  // callback epoch when these dispatches are created.
+  [[nodiscard]] static std::vector<FederationTimeGrantDispatch>
+  scheduleRestoredTimeRoleEnableDispatches(Federation& federation);
 
   // Starts a federation-wide save after all admission/readiness checks have
   // passed.  The caller owns mutex_ and supplies a result whose callbacks are
@@ -5327,6 +5864,136 @@ class EmbeddedFederationRegistry final {
       std::vector<FederationRestoreNotification>& notifications,
       std::optional<std::uint64_t> excludedFederateId = std::nullopt);
 
+  // Builds the route-free, versioned payload that accompanies a durable save
+  // commit.  Live callback endpoints remain outside the image and are
+  // rebound by restoreFederationFromSnapshot from the current ambassadors.
+  [[nodiscard]] static FederationStateImage stateImageFor(
+      Federation const& federation,
+      std::wstring const& federationName);
+
+  // Rebuild the accepted Update Attribute Values telemetry ledger from the
+  // admission-validated image. Callback routes are unrelated to these
+  // joined-federate lifetime values and remain outside the image.
+  static void restoreMemberUpdateTelemetryFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild the accepted application reflection callback count from the
+  // admission-validated durable image. The count is a joined-federate
+  // lifetime statistic and does not depend on callback routing.
+  static void restoreMemberReflectionTelemetryFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild the joined-federate object-lifecycle MOM counters from the
+  // admission-validated durable image. These are lifetime statistics, not a
+  // reconstruction of the current object map.
+  static void restoreMemberObjectLifecycleTelemetryFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild the accepted sender-side interaction statistics from the
+  // admission-validated durable image. Directed sends are retained as a
+  // subset while both ledgers remain scoped to the joined-federate lifetime.
+  static void restoreMemberInteractionSendTelemetryFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild accepted application Receive Interaction callback statistics from
+  // the admission-validated durable image. Directed receipts remain a typed
+  // subset of the total receiver-side ledger.
+  static void restoreMemberInteractionReceiptTelemetryFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild the scalar federation/member controls and route-free temporal
+  // state when a durable image is being admitted without a process-local
+  // save snapshot.  Callback routes, MOM objects, and service writers remain
+  // owned by the current joined ambassadors.
+  static void restoreControlAndTimeFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild the accepted object-instance-name reservations from the
+  // admission-validated durable image. Reservations are federation-scoped
+  // ownership of exact names and remain valid until release, registration, or
+  // resignation.
+  static void restoreObjectInstanceNameReservationsFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild federation-owned region specifications from the
+  // admission-validated durable image. Pending and committed range maps are
+  // restored before regional declaration ledgers so their region references
+  // can be validated against the restored DDM catalog.
+  static void restoreRegionsFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild pending synchronization-point state from the admission-validated
+  // durable image. Callback routes remain live-only and are rebound by the
+  // normal restore notification path.
+  static void restoreSynchronizationPointsFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild the per-federate object-class publication/subscription/default
+  // declaration ledgers from the admission-validated durable image. These
+  // declarations are federation state, while callback routes remain live-only
+  // and are rebound from the current joined federates during restore.
+  static void restoreObjectClassAttributeDeclarationsFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  // Rebuild the bounded route-free interaction declaration slice used by a
+  // fresh-registry restore. The current tranche admits one or two published
+  // classes (the one-class form may carry one same-class subscription and/or
+  // one pending transportation-type change), one standalone subscription, or
+  // one standalone regional subscription; callback routes remain live-only
+  // and are rebound after the snapshot is applied.
+  static void restoreInteractionDeclarationsFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
+  static void restoreTsoQueueFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image);
+
+  // Rebuild object identity, ownership, and latest application-value state
+  // from the admission-validated durable image. If Available and regular
+  // reservations are restored with callback-free identity and attribute sets;
+  // any remaining opaque pending-operation count is preserved only when a
+  // process-local snapshot supplies its live-only callback bookkeeping. A
+  // restarted registry may materialize only the bounded, route-free object
+  // application-value slice; broader object/application ledgers remain gated.
+  static void restoreObjectOwnershipLedgersFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation,
+      bool allowProcessRestartApplicationValues = false);
+
+  // Rebuild the route-free timestamped application payloads and Request
+  // Retraction ledger from the admission-validated durable image. Directed
+  // and object-deletion recipients are rebound to the current live
+  // callback/report routes; no callback endpoint is copied from the
+  // process-local save snapshot. The deletion invocation snapshot is
+  // restored with its bounded object/ownership basis.
+  static void restoreTsoPayloadsFromStateImage(
+      Federation& federation,
+      FederationStateImage const& image,
+      Federation const& liveFederation);
+
   static void restoreFederationFromSnapshot(
       Federation& target,
       Federation const& snapshot);
@@ -5343,9 +6010,14 @@ class EmbeddedFederationRegistry final {
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;
   std::map<std::wstring, Federation> federations_;
   // One or more completed labels may be restored while the federation
-  // remains alive.  These snapshots are intentionally process-local and
-  // immutable after save completion; no filesystem serialization is implied.
+  // remains alive. These snapshots are intentionally process-local and
+  // immutable after save completion. The save-commit store receives the
+  // canonical route-free state image before Federation Saved callbacks;
+  // bounded queue, payload, Request Retraction-ledger, and typed ownership-
+  // acquisition-reservation rehydration consume that image during restore,
+  // while the remaining typed ledgers are a later versioned step.
   std::map<std::wstring, std::map<std::wstring, Federation>> saveSnapshots_;
+  std::shared_ptr<FederationSaveCommitStore> saveCommitStore_;
   std::uint64_t nextFederateId_ = 1;
 };
 

@@ -146,7 +146,7 @@ final class NativeEncoderFactory implements InvocationHandler {
          }
          DataElementFactory factory = new DataElementFactory() {
             @Override public DataElement createElement(int index) {
-               return elements[0];
+               return elements[index];
             }
          };
          NativeHLAfixedArray result = new NativeHLAfixedArray(factory, elements.length);

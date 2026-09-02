@@ -17,6 +17,44 @@ std::shared_ptr<rti1516_2025::LogicalTime const> integerTime(std::int64_t value)
 }  // namespace
 
 TEST_CASE(
+    "Private 2025 TSO queue cannot bind a logical-time implementation after admission",
+    "[tso][time][unit][time-management][logical-time]") {
+  umbra::detail::TsoMessageQueue queue;
+  auto const messageId = queue.allocateMessageId();
+
+  // An initially unconfigured private queue may accept the first immutable
+  // time value, but that admission must freeze the configuration boundary;
+  // it must not later be rebound to a different implementation.
+  REQUIRE(queue.enqueue(messageId, 2, integerTime(4)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE_FALSE(queue.configureImplementationName(L"HLAfloat64Time"));
+  REQUIRE(queue.implementationName().empty());
+  REQUIRE_FALSE(queue.configureImplementationName(L"HLAinteger64Time"));
+
+  REQUIRE(queue.popEligible(2, *integerTime(4), true).size() == 1U);
+  REQUIRE(queue.configureImplementationName(L"HLAinteger64Time"));
+  REQUIRE(queue.implementationName() == L"HLAinteger64Time");
+}
+
+TEST_CASE(
+    "Private 2025 TSO queue preserves the admitted implementation after draining",
+    "[tso][time][unit][time-management][logical-time]") {
+  umbra::detail::TsoMessageQueue queue;
+  auto const messageId = queue.allocateMessageId();
+
+  REQUIRE(queue.enqueue(messageId, 2, integerTime(6)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.popEligible(2, *integerTime(6), true).size() == 1U);
+
+  // The pending vector is empty now, but the queue has already admitted an
+  // HLAinteger64Time payload.  Draining it must not make a different time
+  // implementation legal for later temporal state.
+  REQUIRE_FALSE(queue.configureImplementationName(L"HLAfloat64Time"));
+  REQUIRE(queue.configureImplementationName(L"HLAinteger64Time"));
+  REQUIRE(queue.implementationName() == L"HLAinteger64Time");
+}
+
+TEST_CASE(
     "Private 2025 TSO queue orders equal timestamps and isolates recipients",
     "[tso][time][unit][time-management]") {
   umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
@@ -179,4 +217,38 @@ TEST_CASE(
   REQUIRE(atBoundary.size() == 1);
   REQUIRE(atBoundary.front().messageId == atId);
   REQUIRE(queue.pendingCount() == 0);
+}
+
+TEST_CASE(
+    "Private 2025 TSO queue exposes stable global pending order and recipient cleanup",
+    "[tso][time][unit][time-management][resignation]") {
+  umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
+  auto const later = queue.allocateMessageId();
+  auto const firstAtTimestamp = queue.allocateMessageId();
+  auto const secondAtTimestamp = queue.allocateMessageId();
+
+  REQUIRE(queue.enqueue(later, 2, integerTime(9)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.enqueue(firstAtTimestamp, 3, integerTime(5)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.enqueue(secondAtTimestamp, 2, integerTime(5)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+
+  auto const pending = queue.pendingMessages();
+  REQUIRE(pending.size() == 3);
+  REQUIRE(pending[0].messageId == firstAtTimestamp);
+  REQUIRE(pending[1].messageId == secondAtTimestamp);
+  REQUIRE(pending[2].messageId == later);
+  REQUIRE(pending[0].recipientFederateId == 3);
+  REQUIRE(pending[1].recipientFederateId == 2);
+  REQUIRE(pending[2].recipientFederateId == 2);
+  REQUIRE(pending[0].sequence < pending[1].sequence);
+
+  REQUIRE(queue.discardRecipient(2) == 2);
+  REQUIRE(queue.pendingCount() == 1);
+  auto const remaining = queue.pendingMessages();
+  REQUIRE(remaining.size() == 1);
+  REQUIRE(remaining.front().messageId == firstAtTimestamp);
+  REQUIRE(remaining.front().recipientFederateId == 3);
+  REQUIRE(queue.discardRecipient(2) == 0);
 }

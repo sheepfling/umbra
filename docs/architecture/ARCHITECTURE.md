@@ -312,8 +312,8 @@ against HLAfloat64Time/HLAinteger64Time; it does not guess a custom fedtime
 mapping. In the opt-in development profile, a MIM-first coordinator creates an
 immutable definition before registry mutation, and an additional-FOM join
 commits its replacement definition and membership atomically. The profile uses
-a shared in-process registry and remains non-installable because libxml2 and
-the vendored resource path are not yet part of the exported SDK contract. It
+a shared in-process registry and is installable with the LibXml2 dependency
+and reviewed vendored resource payload exported as part of the SDK contract. It
 returns a fresh official logical-time factory for the joined federation's
 stored selection and resolves joined federate names to active handles while
 retaining valid departed-handle name identity within that same joined federation.
@@ -618,7 +618,7 @@ creates no public-service evidence.
 `compliance/requirements-lab/federation-management-embedded-requirements-contract.json` pins
 the opt-in public adapter symbols to Create, Destroy, Join, Resign, and
 connection-precondition source records. Its CTest runs only when the
-non-installable development profile is enabled; it is not a service-catalog,
+embedded development profile is enabled; it is not a service-catalog,
 JUnit, protected-review, package, or conformance record.
 
 `compliance/requirements-lab/get-time-factory-api-contract.json` uses the Lab's exact C++ API
@@ -766,13 +766,20 @@ designator selects the rate-bearing overload. At callback entry, the adapter
 re-resolves the current retained designator for each still-eligible attribute,
 including regional overlap, then checks that federate's Attribute Relevance
 switch and revalidates ownership, known-instance state, and current overlap
-before invoking the callback. This keeps scope
-computation distinct from whether scope callbacks are emitted. Advisories Use
-Known Class is now exposed as an FDD-seeded, per-federate read-only switch;
-the switch is not yet consumed by complete known-class advisory calculation.
-Initial registration/discovery advisories, complete DDM, update-rate
-enforcement/reduction, and conformance remain outside the bounded
-implementation.
+before invoking the callback. This keeps scope computation distinct from
+whether scope callbacks are emitted. Advisories Use Known Class is now exposed
+as an FDD-seeded, per-federate read-only switch; the runtime consumes that
+static policy for Attribute Relevance: enabled uses the receiver's known-class
+scope, while disabled compares retained subscriptions along the
+registered-class lineage and can therefore notify an owner about an attribute
+that the receiver cannot reflect. Subscription, association, and region
+mutations use a federation-wide transition planner, so advisory-only changes
+never leak into Attribute Scope callbacks, multiple receivers do not create
+duplicate owner advisories, and a changed maximum active rate reissues Turn
+Updates On with the new rate. Any active omitted/default subscription suppresses
+the optional designator. Initial registration/discovery advisories, complete
+DDM, update-rate enforcement/reduction, and conformance remain outside the
+bounded implementation.
 
 `compliance/requirements-lab/advisories-use-known-class-requirements-contract.json` and
 `compliance/requirements-lab/advisories-use-known-class-api-contract.json` pin the official
@@ -792,8 +799,15 @@ invalid-designator, known-object, and defined-attribute outcomes to the
 official exceptions. Ordinary and regional subscription declarations retain
 their normalized FDD designators, and the attribute query returns the
 corresponding rate (taking the bounded maximum across applicable regional
-declarations) or the default `0.0` when no declaration applies. Subscription
-throttling, rate reduction, and MOM/transport remain separate runtime work.
+declarations) or the default `0.0` when no declaration applies. Only active
+ordinary/regional declarations contribute to that query; passive declarations
+remain retained for later activation without arranging delivery or a rate
+reduction. Subscription
+throttling is now applied at the immediate and timestamped reflection
+boundaries for best-effort attributes, including explicit regional source /
+subscription overlap; reliable delivery bypasses the gate. The remaining
+producer/timing matrix, MOM, and transport behavior remain separate runtime
+work.
 The subscription API contract pins the exact official C++ designator-bearing
 declarations.
 
@@ -819,7 +833,7 @@ catalog evidence, validation, or conformance.
 `compliance/requirements-lab/transportation-type-api-contract.json` separately pins the exact
 2025 C++ declarations and exception sets for `getTransportationTypeHandle` and
 `getTransportationTypeName` to their adapter symbols and Catch2 case. The
-non-installable profile recognizes only the mandatory `HLAreliable` and
+embedded profile recognizes only the mandatory `HLAreliable` and
 `HLAbestEffort` pair. The separate transportation-type-change contracts pin
 the official change/default/query methods and four callback surfaces to the
 per-federate state kernel and a real Catch2 case. Instance attribute changes
@@ -938,7 +952,12 @@ argument. A second focused companion changes the requester subscription to a
 valid disjoint range before the queued reflection boundary and verifies
 suppression. Provider responses remain explicit user code; the contracts exclude
 automatic provision, timestamped/retraction behavior, broader DDM, catalog
-evidence, and conformance.
+evidence, and conformance. The native runtime also resolves this regional
+class request against RTI-owned `HLAfederate` MOM objects: a request-region
+must overlap the immutable represented-federate point, and an evoked callback
+rechecks that overlap before reflecting the values. This direct MOM route does
+not synthesize a `Provide Attribute Value Update` callback at the represented
+federate.
 
 `compliance/requirements-lab/attribute-ownership-query-requirements-contract.json` and
 `compliance/requirements-lab/attribute-ownership-query-api-contract.json` trace the exact 2025

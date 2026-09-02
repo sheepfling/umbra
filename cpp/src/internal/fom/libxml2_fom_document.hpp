@@ -22,8 +22,9 @@ struct LibXml2ValidatedFomDocument {
 
 // Opens one explicitly selected local FOM/MIM source, rejects external XML
 // resources and DTD declarations, validates it against the explicitly
-// selected local schema, and retains that exact validated XML tree for a
-// private caller such as the module-composition preflight.
+// selected local schema, and retains the validated XML tree (including any
+// explicitly selected source-compatibility normalization) for a private
+// caller such as the module-composition preflight.
 [[nodiscard]] FomValidationResult loadValidatedLibXml2FomDocument(
     FomValidationRequest const& request,
     LibXml2ValidatedFomDocument& destination);

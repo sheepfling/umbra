@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <transportations>
+        <transportation>
+            <name>AaaTransportationFixture</name>
+            <reliable>No</reliable>
+            <semantics>Earlier extension transportation for handle stability.</semantics>
+        </transportation>
+    </transportations>
+</objectModel>

@@ -127,7 +127,18 @@ from .encoding import (
     HLAunsignedInteger32BE,
 )
 
+# Keep the edition identity explicit at the public Python boundary.  These
+# constants mirror the package/namespace facts exposed by the Java and C++
+# standards and let packaging/conformance tooling validate an import without
+# reaching into a provider implementation.
+STANDARD_EDITION = "IEEE 1516.1-2025"
+JAVA_PACKAGE = "hla.rti1516_2025"
+CPP_NAMESPACE = "RTI"
+
 __all__ = [
+    "STANDARD_EDITION",
+    "JAVA_PACKAGE",
+    "CPP_NAMESPACE",
     "AdditionalSettingsResultCode",
     "BytesLike",
     "WritableBytes",

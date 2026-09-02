@@ -1,5 +1,6 @@
 #include "internal/federation/federation_management_coordinator.hpp"
 
+#include "internal/fom/hla_names.hpp"
 #include "internal/fom/fom_composition.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/time/reference_time_selection.hpp"
@@ -8,9 +9,6 @@
 
 namespace umbra::detail {
 namespace {
-
-constexpr wchar_t kStandardMimDesignator[] = L"HLAstandardMIM";
-constexpr wchar_t kDifSchemaDesignator[] = L"IEEE1516-DIF-2025.xsd";
 
 FederationPreparationStatus statusFor(FomValidationStatus status, FomModuleKind kind) {
   switch (status) {
@@ -63,13 +61,17 @@ FomValidationRequest requestFor(
     std::filesystem::path schemaPath,
     FomModuleKind kind,
     std::wstring designator,
-    std::wstring schemaDesignator = kDifSchemaDesignator) {
+    std::wstring schemaDesignator,
+    FomStandardEdition standardEdition,
+    FomSourceCompatibility sourceCompatibility) {
   return {
       std::move(sourcePath),
       std::move(schemaPath),
       kind,
       std::move(designator),
       std::move(schemaDesignator),
+      standardEdition,
+      sourceCompatibility,
   };
 }
 
@@ -79,16 +81,34 @@ FomValidationRequest requestForExisting(PrevalidatedFomModule const& module) {
       module.schemaPath,
       module.kind,
       module.designator,
-      module.schemaDesignator);
+      module.schemaDesignator,
+      module.standardEdition,
+      module.sourceCompatibility);
+}
+
+std::optional<FomEditionResources> resourcesFor(
+    FederationManagementResources const& resources,
+    FomStandardEdition standardEdition) {
+  if (standardEdition == FomStandardEdition::ieee1516_2010) {
+    return resources.ieee1516_2010;
+  }
+  return FomEditionResources{
+      FomStandardEdition::ieee1516_2025,
+      resources.standardMimPath,
+      resources.difSchemaPath,
+      {},
+      std::wstring{fomDifSchemaDesignator(FomStandardEdition::ieee1516_2025)},
+  };
 }
 
 FederationPreparationResult materializeDefinition(
     FomModuleComposer const& composer,
     ReferenceLogicalTimeSelector const& timeSelector,
     std::vector<PrevalidatedFomModule> modules,
-    std::wstring const& logicalTimeImplementationName) {
+    std::wstring const& logicalTimeImplementationName,
+    FomStandardEdition standardEdition) {
   auto composition = composer.compose(modules);
-  if (composition.status != FomCompositionStatus::valid || !composition.catalog || !composition.fdd) {
+  if (composition.status != FomCompositionStatus::valid || !composition.catalog) {
     return failure(statusFor(composition.status), std::move(composition.diagnostics));
   }
 
@@ -102,6 +122,7 @@ FederationPreparationResult materializeDefinition(
               std::move(selection.selectedImplementationName),
               std::move(composition.catalog),
               std::move(composition.fdd),
+              standardEdition,
           },
           {},
       };
@@ -130,29 +151,50 @@ FederationManagementCoordinator::FederationManagementCoordinator(
 FederationPreparationResult FederationManagementCoordinator::prepareCreate(
     std::vector<std::wstring> const& fomDesignators,
     std::optional<std::wstring> const& mimDesignator,
-    std::wstring const& logicalTimeImplementationName) const {
+    std::wstring const& logicalTimeImplementationName,
+    FomStandardEdition standardEdition) const {
   if (fomDesignators.empty()) {
     return failure(
         FederationPreparationStatus::invalid_fom,
         "Create Federation Execution requires at least one FOM module designator.");
   }
-  if (mimDesignator && *mimDesignator == kStandardMimDesignator) {
+  if (mimDesignator && *mimDesignator == umbra::detail::hla::wide::mom::standard_mim) {
     return failure(
         FederationPreparationStatus::standard_mim_designator_supplied,
         "A supplied MIM designator must not be HLAstandardMIM.");
   }
 
+  auto const selectedResources = resourcesFor(resources_, standardEdition);
+  if (!selectedResources || selectedResources->standardMimPath.empty() ||
+      selectedResources->difSchemaPath.empty()) {
+    return failure(
+        FederationPreparationStatus::backend_failure,
+        standardEdition == FomStandardEdition::ieee1516_2010
+            ? "IEEE 1516-2010 FOM resources are not configured for this runtime."
+            : "IEEE 1516-2025 FOM resources are not configured for this runtime.");
+  }
+
   FomValidationRequest mimRequest = mimDesignator
       ? requestFor(
             std::filesystem::path(*mimDesignator),
-            resources_.difSchemaPath,
+            selectedResources->difSchemaPath,
             FomModuleKind::mim,
-            *mimDesignator)
+            *mimDesignator,
+            selectedResources->difSchemaDesignator,
+            standardEdition,
+            standardEdition == FomStandardEdition::ieee1516_2010
+                ? FomSourceCompatibility::rpr_2010
+                : FomSourceCompatibility::strict)
       : requestFor(
-            resources_.standardMimPath,
-            resources_.difSchemaPath,
+            selectedResources->standardMimPath,
+            selectedResources->difSchemaPath,
             FomModuleKind::mim,
-            kStandardMimDesignator);
+            umbra::detail::hla::wide::mom::standard_mim,
+            selectedResources->difSchemaDesignator,
+            standardEdition,
+            standardEdition == FomStandardEdition::ieee1516_2010
+                ? FomSourceCompatibility::rpr_2010
+                : FomSourceCompatibility::strict);
   auto mimValidation = validator_.validate(mimRequest);
   if (mimValidation.status != FomValidationStatus::valid || !mimValidation.module) {
     return failure(statusFor(mimValidation.status, FomModuleKind::mim), std::move(mimValidation.diagnostics));
@@ -164,16 +206,26 @@ FederationPreparationResult FederationManagementCoordinator::prepareCreate(
   for (auto const& designator : fomDesignators) {
     auto validation = validator_.validate(requestFor(
         std::filesystem::path(designator),
-        resources_.difSchemaPath,
+        selectedResources->difSchemaPath,
         FomModuleKind::fom,
-        designator));
+        designator,
+        selectedResources->difSchemaDesignator,
+        standardEdition,
+        standardEdition == FomStandardEdition::ieee1516_2010
+            ? FomSourceCompatibility::rpr_2010
+            : FomSourceCompatibility::strict));
     if (validation.status != FomValidationStatus::valid || !validation.module) {
       return failure(statusFor(validation.status, FomModuleKind::fom), std::move(validation.diagnostics));
     }
     modules.push_back(std::move(*validation.module));
   }
 
-  return materializeDefinition(composer_, timeSelector_, std::move(modules), logicalTimeImplementationName);
+  return materializeDefinition(
+      composer_,
+      timeSelector_,
+      std::move(modules),
+      logicalTimeImplementationName,
+      standardEdition);
 }
 
 FederationPreparationResult FederationManagementCoordinator::prepareAdditionalModules(
@@ -186,6 +238,13 @@ FederationPreparationResult FederationManagementCoordinator::prepareAdditionalMo
   }
   if (additionalFomDesignators.empty()) {
     return {FederationPreparationStatus::applied, existing, {}};
+  }
+
+  auto const selectedResources = resourcesFor(resources_, existing.standardEdition);
+  if (!selectedResources || selectedResources->difSchemaPath.empty()) {
+    return failure(
+        FederationPreparationStatus::backend_failure,
+        "The existing federation definition's FOM edition is not configured for this runtime.");
   }
 
   std::vector<PrevalidatedFomModule> modules;
@@ -202,9 +261,14 @@ FederationPreparationResult FederationManagementCoordinator::prepareAdditionalMo
   for (auto const& designator : additionalFomDesignators) {
     auto validation = validator_.validate(requestFor(
         std::filesystem::path(designator),
-        resources_.difSchemaPath,
+        selectedResources->difSchemaPath,
         FomModuleKind::fom,
-        designator));
+        designator,
+        selectedResources->difSchemaDesignator,
+        existing.standardEdition,
+        existing.standardEdition == FomStandardEdition::ieee1516_2010
+            ? FomSourceCompatibility::rpr_2010
+            : FomSourceCompatibility::strict));
     if (validation.status != FomValidationStatus::valid || !validation.module) {
       return failure(statusFor(validation.status, FomModuleKind::fom), std::move(validation.diagnostics));
     }
@@ -215,7 +279,8 @@ FederationPreparationResult FederationManagementCoordinator::prepareAdditionalMo
       composer_,
       timeSelector_,
       std::move(modules),
-      existing.logicalTimeImplementationName);
+      existing.logicalTimeImplementationName,
+      existing.standardEdition);
 }
 
 }  // namespace umbra::detail

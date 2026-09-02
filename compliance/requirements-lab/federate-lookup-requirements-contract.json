@@ -13,7 +13,8 @@
       "source_symbol": "EmbeddedFederationRegistry::federateNameFor",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services preserve departed designator identities within the joined federation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers federate and object-class lookup return arguments through MOM interaction"
       ]
     },
     {
@@ -24,7 +25,8 @@
       "source_symbol": "UmbraRtiAmbassador::getFederateName",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federate lookup services preserve departed designator identities within the joined federation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers federate and object-class lookup return arguments through MOM interaction"
       ]
     }
   ]

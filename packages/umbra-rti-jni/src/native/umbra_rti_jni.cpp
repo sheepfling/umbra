@@ -388,7 +388,13 @@ std::string nativeDataElementType(JNIEnv* environment, jobject value) {
     environment->DeleteLocalRef(type);
     if (matches) return candidate.nativeName;
   }
-  throw std::runtime_error("The Java data element is not a C++-backed Umbra primitive type");
+  // An arbitrary vendor DataElement is valid at the Java/Python boundary,
+  // but this native implementation can only clone the standard carriers it
+  // knows how to encode.  Report that boundary as the Java encoding error
+  // promised by the DataElement/composite APIs instead of leaking an
+  // implementation ``RTIinternalError``.
+  throw rti::EncoderException(
+      L"The Java data element is not a C++-backed Umbra primitive type");
 }
 
 std::unique_ptr<rti::DataElement> nativeDataElementPrototype(std::string const& type) {

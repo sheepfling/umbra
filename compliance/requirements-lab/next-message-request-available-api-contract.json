@@ -19,6 +19,7 @@
     "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
     "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",

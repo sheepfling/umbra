@@ -2,6 +2,7 @@
 
 #include "internal/time/federate_time_state.hpp"
 
+#include <cstdint>
 #include <memory>
 
 #include <RTI/time/HLAfloat64Interval.h>
@@ -20,6 +21,57 @@ using umbra::detail::FederateTimeState;
 using rti1516_2025::HLAfloat64Time;
 using rti1516_2025::HLAinteger64Interval;
 using rti1516_2025::HLAinteger64Time;
+
+class ThrowingGreaterEqualTime final : public HLAinteger64Time {
+ public:
+  ThrowingGreaterEqualTime(std::int64_t value, bool& throwOnComparison)
+      : HLAinteger64Time(value), throwOnComparison_(&throwOnComparison) {}
+
+  bool operator>=(rti1516_2025::LogicalTime const& value) const override {
+    if (*throwOnComparison_) {
+      throw rti1516_2025::InvalidLogicalTime(
+          L"test logical-time implementation rejected operator>=.");
+    }
+    return HLAinteger64Time::operator>=(value);
+  }
+
+ private:
+  bool* throwOnComparison_;
+};
+
+class ThrowingLessEqualTime final : public HLAinteger64Time {
+ public:
+  ThrowingLessEqualTime(std::int64_t value, bool& throwOnComparison)
+      : HLAinteger64Time(value), throwOnComparison_(&throwOnComparison) {}
+
+  bool operator<=(rti1516_2025::LogicalTime const& value) const override {
+    if (*throwOnComparison_) {
+      throw rti1516_2025::InvalidLogicalTime(
+          L"test logical-time implementation rejected operator<=.");
+    }
+    return HLAinteger64Time::operator<=(value);
+  }
+
+ private:
+  bool* throwOnComparison_;
+};
+
+class ThrowingEncodeInterval final : public HLAinteger64Interval {
+ public:
+  ThrowingEncodeInterval(std::int64_t value, bool& throwOnEncode)
+      : HLAinteger64Interval(value), throwOnEncode_(&throwOnEncode) {}
+
+  rti1516_2025::VariableLengthData encode() const override {
+    if (*throwOnEncode_) {
+      throw rti1516_2025::InvalidLogicalTimeInterval(
+          L"test logical-time interval rejected cloning.");
+    }
+    return HLAinteger64Interval::encode();
+  }
+
+ private:
+  bool* throwOnEncode_;
+};
 
 std::shared_ptr<FederateTimeState> integerTimeState() {
   return std::make_shared<FederateTimeState>(
@@ -202,6 +254,208 @@ TEST_CASE(
   REQUIRE(next.status == FederateTimeAdvanceStatus::applied);
   REQUIRE(state->grant(next.generation));
   REQUIRE_FALSE(state->snapshot().optimisticTime);
+}
+
+TEST_CASE(
+    "Federate time state rejects NMR targets below the Flush Queue optimistic floor",
+    "[unit][kernel][time-management][flush-queue-request][next-message-request]"
+    "[next-message-request-available]") {
+  auto state = integerTimeState();
+
+  auto flushRequest = state->requestFlushQueueAdvance(
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(flushRequest.status == FederateTimeAdvanceStatus::applied);
+  auto flushGrant = state->grantFlushQueue(
+      flushRequest.generation,
+      std::make_shared<HLAinteger64Time>(5),
+      std::make_shared<HLAinteger64Time>(8));
+  REQUIRE(flushGrant.status == FederateTimeAdvanceStatus::applied);
+
+  // NMR/NMRA retain the caller's request separately from the selected message
+  // timestamp.  A valid request of ten must not be allowed to grant at seven,
+  // because that effective target is below the retained optimistic floor.
+  auto rejectedNmr = state->requestNextMessageAdvance(
+      std::make_shared<HLAinteger64Time>(10),
+      std::make_shared<HLAinteger64Time>(7));
+  REQUIRE(rejectedNmr.status == FederateTimeAdvanceStatus::logical_time_already_passed);
+  REQUIRE_FALSE(state->snapshot().timeAdvancePending);
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 5);
+
+  // The floor itself is admissible for the available variant and is cleared
+  // once the matching grant reaches it.
+  auto acceptedNmra = state->requestNextMessageAvailableAdvance(
+      std::make_shared<HLAinteger64Time>(10),
+      std::make_shared<HLAinteger64Time>(8));
+  REQUIRE(acceptedNmra.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(state->grant(acceptedNmra.generation));
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 8);
+  REQUIRE_FALSE(state->snapshot().optimisticTime);
+}
+
+TEST_CASE(
+    "Federate time state leaves a pending grant intact when its optimistic comparison fails",
+    "[unit][kernel][time-management][flush-queue-request][exception-safety]") {
+  auto state = integerTimeState();
+
+  auto firstRequest = state->requestFlushQueueAdvance(
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(firstRequest.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(state->grantFlushQueue(
+              firstRequest.generation,
+              std::make_shared<HLAinteger64Time>(5),
+              std::make_shared<HLAinteger64Time>(8))
+              .status ==
+          FederateTimeAdvanceStatus::applied);
+
+  auto secondRequest = state->requestFlushQueueAdvance(
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(secondRequest.status == FederateTimeAdvanceStatus::applied);
+  bool throwOnComparison = true;
+  auto rejectedGrant = state->grantFlushQueue(
+      secondRequest.generation,
+      std::make_shared<ThrowingGreaterEqualTime>(9, throwOnComparison),
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(rejectedGrant.status == FederateTimeAdvanceStatus::invalid_logical_time);
+
+  // The comparison failed before the callback-gated transition.  The
+  // original current time, optimistic floor, and pending generation remain
+  // available for a retry rather than being stranded half-committed.
+  auto snapshot = state->snapshot();
+  REQUIRE(snapshot.timeAdvancePending);
+  REQUIRE(snapshot.pendingTimeAdvanceGeneration == secondRequest.generation);
+  REQUIRE(asIntegerTime(snapshot.currentTime).getTime() == 5);
+  REQUIRE(asIntegerTime(snapshot.optimisticTime).getTime() == 8);
+
+  throwOnComparison = false;
+  auto retry = state->grantFlushQueue(
+      secondRequest.generation,
+      std::make_shared<HLAinteger64Time>(9),
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(retry.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 9);
+  REQUIRE(asIntegerTime(state->snapshot().optimisticTime).getTime() == 10);
+}
+
+TEST_CASE(
+    "Federate time state rejects a Flush Queue optimistic value before committing the grant",
+    "[unit][kernel][time-management][flush-queue-request][exception-safety]") {
+  auto state = integerTimeState();
+  auto request = state->requestFlushQueueAdvance(
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(request.status == FederateTimeAdvanceStatus::applied);
+
+  bool throwOnComparison = true;
+  auto optimistic = std::make_shared<ThrowingLessEqualTime>(8, throwOnComparison);
+  auto rejectedGrant = state->grantFlushQueue(
+      request.generation,
+      std::make_shared<HLAinteger64Time>(5),
+      optimistic);
+  REQUIRE(rejectedGrant.status == FederateTimeAdvanceStatus::invalid_logical_time);
+  auto snapshot = state->snapshot();
+  REQUIRE(snapshot.timeAdvancePending);
+  REQUIRE(snapshot.pendingTimeAdvanceGeneration == request.generation);
+  REQUIRE(asIntegerTime(snapshot.currentTime).isInitial());
+
+  throwOnComparison = false;
+  auto retry = state->grantFlushQueue(
+      request.generation,
+      std::make_shared<HLAinteger64Time>(5),
+      optimistic);
+  REQUIRE(retry.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 5);
+  REQUIRE(asIntegerTime(state->snapshot().optimisticTime).getTime() == 8);
+}
+
+TEST_CASE(
+    "Federate time state keeps a deferred lookahead grant transactional when cloning fails",
+    "[unit][kernel][time-management][modify-lookahead][exception-safety]") {
+  auto state = integerTimeState();
+  bool throwOnEncode = true;
+
+  auto regulation = state->requestTimeRegulation(
+      std::make_shared<ThrowingEncodeInterval>(5, throwOnEncode));
+  REQUIRE(regulation.status == FederateTimeEnableStatus::applied);
+  REQUIRE(state->grantTimeRegulation(regulation.generation));
+
+  auto const modifyStatus = state->modifyLookahead(
+      std::make_shared<HLAinteger64Interval>(1));
+  REQUIRE(
+      modifyStatus ==
+      umbra::detail::FederateTimeModifyLookaheadStatus::applied);
+
+  auto advance = state->requestAdvance(std::make_shared<HLAinteger64Time>(3));
+  REQUIRE(advance.status == FederateTimeAdvanceStatus::applied);
+
+  // The old implementation reduced the live interval before committing the
+  // grant.  Cloning the custom interval now fails first, so the request and
+  // the original actual lookahead remain available and unchanged.
+  REQUIRE_FALSE(state->grant(advance.generation));
+  auto snapshot = state->snapshot();
+  REQUIRE(snapshot.timeAdvancePending);
+  REQUIRE(snapshot.pendingTimeAdvanceGeneration == advance.generation);
+  REQUIRE(asIntegerTime(snapshot.currentTime).isInitial());
+  REQUIRE(snapshot.lookahead);
+  auto const* lookahead =
+      dynamic_cast<HLAinteger64Interval const*>(snapshot.lookahead.get());
+  REQUIRE(lookahead != nullptr);
+  REQUIRE(lookahead->getInterval() == 5);
+
+  // The deferred request was not consumed by the failed attempt.  Let the
+  // custom interval clone succeed and retry the same generation; the revised
+  // interval is then applied exactly once from the original value.
+  throwOnEncode = false;
+  REQUIRE(state->grant(advance.generation));
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 3);
+  auto revised = state->currentLookahead();
+  REQUIRE(revised.status == FederateTimeLookaheadStatus::applied);
+  REQUIRE(asIntegerInterval(revised.lookahead).getInterval() == 2);
+}
+
+TEST_CASE(
+    "Federate time state keeps a Flush Queue request target when deferred lookahead cloning fails",
+    "[unit][kernel][time-management][flush-queue-request][modify-lookahead]"
+    "[exception-safety]") {
+  auto state = integerTimeState();
+  bool throwOnEncode = true;
+
+  auto regulation = state->requestTimeRegulation(
+      std::make_shared<ThrowingEncodeInterval>(5, throwOnEncode));
+  REQUIRE(regulation.status == FederateTimeEnableStatus::applied);
+  REQUIRE(state->grantTimeRegulation(regulation.generation));
+  REQUIRE(
+      state->modifyLookahead(std::make_shared<HLAinteger64Interval>(1)) ==
+      umbra::detail::FederateTimeModifyLookaheadStatus::applied);
+
+  auto request = state->requestFlushQueueAdvance(
+      std::make_shared<HLAinteger64Time>(10));
+  REQUIRE(request.status == FederateTimeAdvanceStatus::applied);
+
+  // The provisional actual grant requires cloning the custom live lookahead.
+  // A failed clone must leave the original FQG target (10), not the
+  // provisional actual grant (3), in the pending state.
+  auto rejected = state->grantFlushQueue(
+      request.generation,
+      std::make_shared<HLAinteger64Time>(3),
+      std::make_shared<HLAinteger64Time>(8));
+  REQUIRE(rejected.status == FederateTimeAdvanceStatus::invalid_logical_time);
+  auto snapshot = state->snapshot();
+  REQUIRE(snapshot.timeAdvancePending);
+  REQUIRE(snapshot.pendingTimeAdvanceGeneration == request.generation);
+  REQUIRE(snapshot.advanceRequestTime);
+  REQUIRE(asIntegerTime(snapshot.advanceRequestTime).getTime() == 10);
+  REQUIRE(snapshot.requestedTime);
+  REQUIRE(asIntegerTime(snapshot.requestedTime).getTime() == 10);
+  REQUIRE(asIntegerTime(snapshot.currentTime).isInitial());
+
+  throwOnEncode = false;
+  auto retry = state->grantFlushQueue(
+      request.generation,
+      std::make_shared<HLAinteger64Time>(3),
+      std::make_shared<HLAinteger64Time>(8));
+  REQUIRE(retry.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(asIntegerTime(state->currentTime()).getTime() == 3);
+  REQUIRE(asIntegerInterval(state->currentLookahead().lookahead).getInterval() == 2);
+  REQUIRE(asIntegerTime(state->snapshot().optimisticTime).getTime() == 8);
 }
 
 TEST_CASE(

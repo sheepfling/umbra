@@ -8,6 +8,10 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.RtiFactoryFactory;
 import hla.rti1516_2025.ResignAction;
+import hla.rti1516_2025.encoding.ByteWrapper;
+import hla.rti1516_2025.encoding.DataElement;
+import hla.rti1516_2025.encoding.DecoderException;
+import hla.rti1516_2025.encoding.HLAfixedArray;
 import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger16LE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
@@ -35,6 +39,17 @@ public final class NativeSmokeTest {
       if (integer.getValue() != 0x01020304) {
          throw new AssertionError("C++ HLAinteger32BE decode did not cross the JNI encoder boundary");
       }
+      DataElement[] fixedValues = new DataElement[] {
+         factory.getEncoderFactory().createHLAinteger32BE(17),
+         factory.getEncoderFactory().createHLAinteger32BE(-23)
+      };
+      HLAfixedArray fixedArray = factory.getEncoderFactory().createHLAfixedArray(fixedValues);
+      if (fixedArray.size() != 2 ||
+          ((HLAinteger32BE) fixedArray.get(0)).getValue() != 17 ||
+          ((HLAinteger32BE) fixedArray.get(1)).getValue() != -23) {
+         throw new AssertionError("C++ fixed-array varargs indexing did not cross the JNI encoder boundary");
+      }
+      requireVendorDataElementCarrier();
       HLAinteger32LE integer32LE = factory.getEncoderFactory().createHLAinteger32LE(-7);
       if (integer32LE.getValue() != -7 || integer32LE.getOctetBoundary() != 4 ||
           integer32LE.getEncodedLength() != 4 || integer32LE.toByteArray()[0] != (byte) 0xf9) {
@@ -143,5 +158,33 @@ public final class NativeSmokeTest {
       ambassador.disconnect();
       ((AutoCloseable) ambassador).close();
       System.out.println("Umbra JNI Java RTI smoke test: OK");
+   }
+
+   /** Return an unknown provider-owned DataElement for raw-carrier tests. */
+   public static DataElement vendorDataElementCarrier() {
+      return new NativeVendorDataElement(new byte[] { 'a', 'b', 'c', 'd' });
+   }
+
+   private static void requireVendorDataElementCarrier() throws Exception {
+      DataElement carrier = vendorDataElementCarrier();
+      if (carrier.getOctetBoundary() != 1 || carrier.getEncodedLength() != 4 ||
+          !java.util.Arrays.equals(carrier.toByteArray(), new byte[] { 'a', 'b', 'c', 'd' })) {
+         throw new AssertionError("provider-owned 2025 DataElement carrier did not retain its payload");
+      }
+      ByteWrapper cursor = new ByteWrapper(new byte[] { '!', 'w', 'x', 'y', 'z', '?' }, 1, 5);
+      carrier.decode(cursor);
+      if (!java.util.Arrays.equals(carrier.toByteArray(), new byte[] { 'w', 'x', 'y', 'z' }) ||
+          cursor.getPos() != 5 || cursor.remaining() != 1) {
+         throw new AssertionError("provider-owned 2025 DataElement cursor contract did not advance exactly");
+      }
+      try {
+         carrier.decode(new byte[] { 'x', 'y', 'z' });
+         throw new AssertionError("provider-owned 2025 DataElement accepted a truncated payload");
+      } catch (DecoderException expected) {
+         // The carrier retains its previous value after malformed input.
+      }
+      if (!java.util.Arrays.equals(carrier.toByteArray(), new byte[] { 'w', 'x', 'y', 'z' })) {
+         throw new AssertionError("provider-owned 2025 DataElement exposed partial malformed state");
+      }
    }
 }

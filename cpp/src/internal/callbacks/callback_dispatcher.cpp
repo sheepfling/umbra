@@ -39,18 +39,33 @@ CallbackDispatcher::CallbackDispatcher(
     : model_(model), instrumentation_(std::move(instrumentation)) {}
 
 void CallbackDispatcher::configure(CallbackDispatchModel model) {
-  std::deque<QueuedCallback> immediateTasks;
+  bool drain = false;
   {
     std::scoped_lock lock(mutex_);
     model_ = model;
-    if (model_ == CallbackDispatchModel::immediate && enabled_) {
-      immediateTasks = takeAllLocked();
+    if (model_ == CallbackDispatchModel::immediate && enabled_ &&
+        !pending_.empty()) {
+      if (!dispatchingImmediate_) {
+        dispatchingImmediate_ = true;
+        immediateDrainer_ = std::this_thread::get_id();
+        drain = true;
+      } else if (immediateDrainer_ == std::this_thread::get_id()) {
+        // Preserve the immediate model's legal re-entrant behavior: a
+        // callback may submit RTI work that must be observed before the
+        // outer service stack continues.  Independent producer threads do
+        // not take this branch and remain queued behind the current task.
+        drain = true;
+      }
     }
   }
   callbackAvailable_.notify_all();
 
-  for (QueuedCallback& callback : immediateTasks) {
-    invoke(std::move(callback), CallbackDispatchModel::immediate);
+  if (drain) {
+    // Drain one callback at a time.  A federate callback may legally disable
+    // callbacks, and that transition must stop an immediate backlog at the
+    // next callback boundary rather than allowing a pre-extracted batch to
+    // run after the switch has changed.
+    drainImmediate();
   }
 }
 
@@ -64,18 +79,28 @@ void CallbackDispatcher::reset() {
 }
 
 void CallbackDispatcher::setEnabled(bool enabled) {
-  std::deque<QueuedCallback> immediateTasks;
+  bool drain = false;
   {
     std::scoped_lock lock(mutex_);
     enabled_ = enabled;
-    if (enabled_ && model_ == CallbackDispatchModel::immediate) {
-      immediateTasks = takeAllLocked();
+    if (model_ == CallbackDispatchModel::immediate && enabled_ &&
+        !pending_.empty()) {
+      if (!dispatchingImmediate_) {
+        dispatchingImmediate_ = true;
+        immediateDrainer_ = std::this_thread::get_id();
+        drain = true;
+      } else if (immediateDrainer_ == std::this_thread::get_id()) {
+        drain = true;
+      }
     }
   }
   callbackAvailable_.notify_all();
 
-  for (QueuedCallback& callback : immediateTasks) {
-    invoke(std::move(callback), CallbackDispatchModel::immediate);
+  // Do not extract the whole queue before invocation.  Immediate callback
+  // code can call disableCallbacks(), and the next iteration must observe
+  // that switch and leave the remaining work pending.
+  if (drain) {
+    drainImmediate();
   }
 }
 
@@ -103,23 +128,38 @@ void CallbackDispatcher::submit(CallbackTask callback) {
             InstrumentationLayer::callback_dispatch,
             "submit")
       : RuntimeInstrumentation::Scope{};
-  QueuedCallback immediateTask;
+  bool drain = false;
   {
     std::scoped_lock lock(mutex_);
     pending_.push_back({std::move(callback), RuntimeInstrumentation::Clock::now()});
     if (model_ == CallbackDispatchModel::immediate && enabled_) {
-      immediateTask = takeNextLocked();
+      if (!dispatchingImmediate_) {
+        dispatchingImmediate_ = true;
+        immediateDrainer_ = std::this_thread::get_id();
+        drain = true;
+      } else if (immediateDrainer_ == std::this_thread::get_id()) {
+        // Re-enter the drainer on this callback thread so callbacks
+        // submitted from an HLA_IMMEDIATE callback retain their established
+        // synchronous behavior.  Other threads only append to the FIFO.
+        drain = true;
+      }
     }
   }
   callbackAvailable_.notify_one();
 
-  if (immediateTask.callback) {
-    invoke(std::move(immediateTask), CallbackDispatchModel::immediate);
+  if (drain) {
+    drainImmediate();
   }
 }
 
 bool CallbackDispatcher::evokeOne(std::chrono::milliseconds minimumWait) {
   minimumWait = nonNegative(minimumWait);
+
+  // Extract and invoke under one recursive dispatcher lock.  Recursive entry
+  // remains legal for an immediate callback that calls an RTI service which
+  // itself produces another callback, while independent producer/evoker
+  // threads cannot enter the same FederateAmbassador concurrently.
+  std::unique_lock dispatchLock(dispatchMutex_);
 
   QueuedCallback callback;
   {
@@ -153,6 +193,11 @@ bool CallbackDispatcher::evokeMultiple(
     std::chrono::milliseconds maximumWait) {
   minimumWait = nonNegative(minimumWait);
   maximumWait = std::max(nonNegative(maximumWait), minimumWait);
+
+  // Keep extraction and invocation serialized with immediate delivery and
+  // other evokers.  The lock is recursive so a callback can make a legal
+  // nested dispatcher call without deadlocking itself.
+  std::unique_lock dispatchLock(dispatchMutex_);
 
   std::unique_lock lock(mutex_);
   if (model_ != CallbackDispatchModel::evoked) {
@@ -194,6 +239,49 @@ bool CallbackDispatcher::evokeMultiple(
 
 std::chrono::milliseconds CallbackDispatcher::nonNegative(std::chrono::milliseconds value) noexcept {
   return std::max(value, std::chrono::milliseconds::zero());
+}
+
+void CallbackDispatcher::drainImmediate() {
+  std::unique_lock dispatchLock(dispatchMutex_);
+  {
+    std::scoped_lock lock(mutex_);
+    ++immediateDrainDepth_;
+  }
+  while (true) {
+    QueuedCallback callback;
+    {
+      std::scoped_lock lock(mutex_);
+      if (model_ != CallbackDispatchModel::immediate || !enabled_ ||
+          pending_.empty()) {
+        if (immediateDrainDepth_ != 0) {
+          --immediateDrainDepth_;
+        }
+        if (immediateDrainDepth_ == 0) {
+          dispatchingImmediate_ = false;
+          immediateDrainer_ = {};
+        }
+        return;
+      }
+      callback = takeNextLocked();
+    }
+
+    try {
+      invoke(std::move(callback), CallbackDispatchModel::immediate);
+    } catch (...) {
+      // Preserve the remaining FIFO backlog for a later service call, but do
+      // not leave the drainer election latched after an application callback
+      // propagates an exception through the immediate submitter.
+      std::scoped_lock lock(mutex_);
+      if (immediateDrainDepth_ != 0) {
+        --immediateDrainDepth_;
+      }
+      if (immediateDrainDepth_ == 0) {
+        dispatchingImmediate_ = false;
+        immediateDrainer_ = {};
+      }
+      throw;
+    }
+  }
 }
 
 void CallbackDispatcher::invoke(

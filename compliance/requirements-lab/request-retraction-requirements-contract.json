@@ -20,9 +20,12 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Retract through MOM before Request Retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -48,6 +51,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
         "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding"
       ]
     },
@@ -68,7 +72,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable"
       ]
     },
     {
@@ -105,7 +110,8 @@
       "tests": [
         "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue withdraws pending fanout after another recipient delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -137,7 +143,8 @@
       "source_symbol": "queueRequestRetraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -148,7 +155,8 @@
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -158,7 +166,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -169,7 +178,8 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped directed-interaction slice: one non-regional directed target, constrained and nonconstrained recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, official timestamp/order/retraction callback fields, lower-bound validation, pending-fanout suppression, a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient, and focused save/restore regressions. The live-record save/restore case saves one queued directed payload and its retraction ledger, terminalizes it after saving, restores it, delivers it through Flush Queue Request, and proves the original designator still drives Request Retraction; a separate designator case prevents discarded post-save handles from aliasing fresh post-restore directed traffic. A dedicated lifecycle regression now keeps one queued directed payload associated with the same joined federate across Time Constrained disable/re-enable and verifies one callback before the matching grant. A target-departure regression queues the directed interaction at time 7 and a target deletion at time 6: the time-6 removal callback commits target departure, and the later time-7 callback boundary suppresses the stale directed payload before its grant. Connection-loss regressions retain an accepted time-6 directed payload through a regulating producer's forced resignation: one reaches a survivor already awaiting the matching grant, and a DELETE_OBJECTS target collision retains the target until a survivor later opens the time-6 boundary; in both cases the cutoff marker is required and the selector remains live at callback time. A late directed unsubscription suppresses the callback without leaving a false pending ledger state that would strand the distinct automatic removal. The dedicated selector regression covers an owner/default recipient, a known non-owner/default recipient, a known non-owner/universal recipient, a universal-to-by-ownership change before TSO grant, and an unsubscription before a later grant. The direct selector predicate remains source-traced through the generic §5.12 candidate because the Lab has no granular candidate (RL-028); the §5.13 postcondition candidate's exported clause-5.14.3 ownership is the cross-page error recorded in RL-080, the re-enable lifecycle relation gap is recorded in RL-134, and the save/restore cross-service relation gap is recorded in RL-135. It does not claim directed DDM, alternate advance modes, complete save/restore semantics, remote transport, catalog evidence, or conformance.",
+  "notes": "This contract records Umbra's bounded IEEE 1516.1-2025 timestamped directed-interaction slice: one non-regional directed target, constrained and nonconstrained recipients captured in a federation-owned recipient ledger, TSO queueing before Time Advance Grant for the constrained recipient, callback-gated delivery, official timestamp/order/retraction callback fields, lower-bound validation, pending-fanout suppression, a legal post-delivery Request Retraction callback for the delivered nonconstrained recipient, and focused save/restore regressions. The live-record save/restore case saves one queued directed payload and its retraction ledger, terminalizes it after saving, restores it, delivers it through Flush Queue Request, and proves the original designator still drives Request Retraction; a separate designator case prevents discarded post-save handles from aliasing fresh post-restore directed traffic. A dedicated lifecycle regression now keeps one queued directed payload associated with the same joined federate across Time Constrained disable/re-enable and verifies one callback before the matching grant. Voluntary-source-resignation regressions now separate the target owner from the interaction producer: one single-survivor case and one two-survivor case accept a timestamped directed payload, resign the producer with NO_ACTION, drain one survivor before the other, and retain the target, departed producer, timestamp/order, tag, and retraction metadata for each callback. The private ledger distinguishes this voluntary departure from the narrower connection-loss cutoff rule and preserves recipient-local pending state. A target-departure regression queues the directed interaction at time 7 and a target deletion at time 6: the time-6 removal callback commits target departure, and the later time-7 callback boundary suppresses the stale directed payload before its grant. Connection-loss regressions retain an accepted time-6 directed payload through a regulating producer's forced resignation: one reaches a survivor already awaiting the matching grant, and a DELETE_OBJECTS target collision retains the target until a survivor later opens the time-6 boundary; in both cases the cutoff marker is required and the selector remains live at callback time. A late directed unsubscription suppresses the callback without leaving a false pending ledger state that would strand the distinct automatic removal. The dedicated selector regression covers an owner/default recipient, a known non-owner/default recipient, a known non-owner/universal recipient, a universal-to-by-ownership change before TSO grant, and an unsubscription before a later grant. The direct selector predicate remains source-traced through the generic §5.12 candidate because the Lab has no granular candidate (RL-028); the §5.13 postcondition candidate's exported clause-5.14.3 ownership is the cross-page error recorded in RL-080, the re-enable lifecycle relation gap is recorded in RL-134, and the save/restore cross-service relation gap is recorded in RL-135. A direct TAR/NMR companion now covers the inclusive queued-timestamp frontier for the two standard alternate advance forms; broader alternate combinations remain open. It does not claim directed DDM, complete save/restore semantics, remote transport, catalog evidence, or conformance.",
   "requirements": [
     {
       "id": "umbra-timestamped-directed-interaction-lower-bound",
@@ -12,7 +12,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "validateTsoTimestamp",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation"
       ]
     },
     {
@@ -23,7 +24,10 @@
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderDirectedInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -34,7 +38,10 @@
       "source_symbol": "receiveOrderDirectedInteractionRecipientFor",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -68,9 +75,14 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -82,9 +94,14 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -104,7 +121,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -127,9 +145,13 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback"
       ]
     },
     {
@@ -171,7 +193,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -181,7 +204,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -191,7 +215,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
       ]
     },
     {
@@ -244,6 +269,75 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification"
       ],
       "notes": "The bounded two-member image saves a terminal timestamped Send Directed Interaction tombstone after a successful pre-save Retract, while a separate live passel provides the constrained save-admission frontier. A distinct post-save directed interaction is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This does not claim directed callback delivery, live payload recovery, timed, durable, alternate-advance, changed-membership, remote, package/JUnit, or conformance coverage."
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-survives-voluntary-source-resignation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+      "clause_id": "clause-4.12",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::resignLocked",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
+      ],
+      "notes": "This bounded three-survivor fixture separates the target owner, directed interaction producer, constrained recipient, and remaining regulator. The producer resigns with NO_ACTION after the directed TSO payload is accepted; the target stays owned and known by the recipient, and delivery preserves the original producer and retraction metadata before the grant. This is development-profile evidence only; other resignation actions, target/ownership arbitration, alternate advances, recovery, remote transport, package/JUnit/protected-review evidence, and conformance remain open."
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-preserves-per-recipient-resignation-ledger",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+      "clause_id": "clause-8.1.6",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
+      ],
+      "notes": "This two-survivor development-profile case proves recipient-local TSO state: after voluntary source resignation, one constrained directed recipient drains its accepted callback before grant while the second remains pending, then the second advances later and receives the same payload exactly once. This is callback-ordering evidence, not a complete multi-recipient, resignation-action, alternate-advance, transport, or conformance matrix."
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-tar-nmr-frontier",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+      "clause_id": "clause-8.8.3",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before TAR and NMR grants"
+      ],
+      "notes": "This bounded two-recipient case sends one target-qualified timestamped directed interaction at time 7, admits TAR(7) and NMR(10), and proves each Receive Directed Interaction callback precedes its own grant with the original target, tag, producer, timestamp/order, and retraction metadata. It covers the direct TAR/NMR frontier only; TARA/NMRA/FQR, re-enable, save/restore, ownership, transport, directed DDM, package/JUnit/protected-review evidence, and conformance remain separate concerns."
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-public-save-restore-alternate-advances",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+      "clause_id": "clause-4.32",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::restoreTsoPayloadsFromStateImage",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
+      ],
+      "notes": "The public fresh-registry regression persists one timestamped directed payload, its per-recipient retraction ledger, and three constrained queue entries to the filesystem save image, then rebinds the same joined-federate identities and report-file lifetime before alternate-advance delivery. This is a focused development-profile save/restore case; ownership transfer, resignation, directed DDM, remote transport, package/JUnit/protected-review evidence, Lab validation, and conformance remain open."
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-fqr-tara-nmra-frontier",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+      "clause_id": "clause-8.9",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
+      ],
+      "notes": "This entry keeps the two standard alternate-advance families queryable together: a direct pre-save directed interaction baseline and the public fresh-registry companion. Both require the Receive Directed Interaction callback to precede the applicable FQR, TARA, or NMRA grant at the inclusive timestamp frontier; broader mixed fanout, resignation, and directed-DDM combinations remain separate."
+    },
+    {
+      "id": "umbra-timestamped-directed-interaction-alternate-advance-callback-fields",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+      "clause_id": "clause-5.1.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueTimestampedReceiveOrderDirectedInteraction",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
+      ],
+      "notes": "The restored callback is checked for target object, empty parameter map, user tag, reliable transportation, producing federate, integer64 timestamp 9, sent/received TIMESTAMP order, and a valid retraction designator before each alternate grant."
     }
   ]
 }
