@@ -53117,6 +53117,30 @@ void scenarioServiceReportRegionalInteractionFailureContract(
   scenarioServiceReportRegionalInteractionFailure(options, model);
 }
 
+void scenarioServiceReportRegionalInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRegionalInteraction(options, model);
+}
+
+void scenarioServiceReportRegionalInteractionSubscriptionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRegionalInteractionSubscription(options, model);
+}
+
+void scenarioFederationMomSaveConditionalsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomSaveConditionals(options, model);
+}
+
+void scenarioJoinedFederateMomFederateStateSaveRestoreContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomFederateStateSaveRestore(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdateFailureContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -53193,10 +53217,16 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.explicit-mim-creation-contract",
       "cpp-tck.federation-mom-current-fdd",
       "cpp-tck.federation-mom-current-fdd-contract",
+      "cpp-tck.federation-mom-save-conditionals",
+      "cpp-tck.federation-mom-save-conditionals-contract",
+      "cpp-tck.joined-federate-mom-federate-state-save-restore",
+      "cpp-tck.joined-federate-mom-federate-state-save-restore-contract",
       "cpp-tck.service-report-interaction",
       "cpp-tck.service-report-interaction-failure",
       "cpp-tck.service-report-regional-interaction",
+      "cpp-tck.service-report-regional-interaction-contract",
       "cpp-tck.service-report-regional-interaction-subscription",
+      "cpp-tck.service-report-regional-interaction-subscription-contract",
       "cpp-tck.service-report-regional-interaction-failure",
       "cpp-tck.service-report-attribute-update",
       "cpp-tck.service-report-attribute-update-failure",
@@ -53963,6 +53993,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.federation-mom-current-fdd-contract") {
     return scenarioFederationMomCurrentFddContract;
   }
+  if (id == "cpp-tck.federation-mom-save-conditionals-contract") {
+    return scenarioFederationMomSaveConditionalsContract;
+  }
+  if (id == "cpp-tck.joined-federate-mom-federate-state-save-restore-contract") {
+    return scenarioJoinedFederateMomFederateStateSaveRestoreContract;
+  }
   if (id == "cpp-tck.service-report-interaction") {
     return scenarioServiceReportInteraction;
   }
@@ -53972,8 +54008,14 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.service-report-regional-interaction") {
     return scenarioServiceReportRegionalInteraction;
   }
+  if (id == "cpp-tck.service-report-regional-interaction-contract") {
+    return scenarioServiceReportRegionalInteractionContract;
+  }
   if (id == "cpp-tck.service-report-regional-interaction-subscription") {
     return scenarioServiceReportRegionalInteractionSubscription;
+  }
+  if (id == "cpp-tck.service-report-regional-interaction-subscription-contract") {
+    return scenarioServiceReportRegionalInteractionSubscriptionContract;
   }
   if (id == "cpp-tck.service-report-regional-interaction-failure") {
     return scenarioServiceReportRegionalInteractionFailure;

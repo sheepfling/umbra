@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for joined-federate MOM save and restore state. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, HLAinteger32BE, and the standard library; the adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and logical-time configuration. It verifies HLAfederateState transitions and callback/reflection metadata across save and restore without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-save-restore",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation save/restore controls and FederateAmbassador joined-federate MOM state delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador save/restore/MOM declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomFederateStateSaveRestoreContract"
+      ]
+    }
+  ]
+}

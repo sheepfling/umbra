@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 330 promoted scenario IDs (660 callback-model cases).
-`--scenario-set all` configures all 335 available IDs (670 cases), including
+The verified lane is 334 promoted scenario IDs (668 callback-model cases).
+`--scenario-set all` configures all 339 available IDs (678 cases), including
 five candidates. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
 into the direct evidence; the current candidate-inclusive lane has 405 passes
@@ -142,7 +142,7 @@ cases. The promoted `cpp-tck.query-lits-source-resignation-contract` and
 `cpp-tck.partial-attribute-ownership-transfer-contract` runners add the same
 standard-only boundary for Query LITS and partial ownership transfer; their
 focused four-scenario lane also passed 8/8. The full promoted aggregate now
-passes 658/658 CTest cases plus 658 direct passes with only the two expected
+passes 662/662 CTest cases plus 662 direct passes with only the two expected
 connection-loss skips. The promoted
 `cpp-tck.federation-teardown-isolation-contract`,
 `cpp-tck.mixed-update-rate-subscriptions-contract`, and
@@ -153,8 +153,19 @@ focused six-scenario lane passed 12/12 callback-model cases. The promoted
 `cpp-tck.federation-mom-current-fdd-contract` runners add the same
 standard-only boundary for adapter-supplied MIM composition and the federation
 MOM current-FDD surface; their focused four-scenario lane passed 8/8
-callback-model cases. The full promoted aggregate now passes 658/658 CTest
-cases plus 658 direct passes with only the two expected connection-loss skips.
+callback-model cases. The promoted
+`cpp-tck.service-report-regional-interaction-contract` and
+`cpp-tck.service-report-regional-interaction-subscription-contract` runners add
+the same standard-only boundary for successful regional interaction service
+reporting, typed MOM invocation metadata, and regional delivery or subscription
+state; their focused four-scenario lane passed 8/8 callback-model cases. The
+full promoted aggregate now passes 662/662 CTest cases plus 662 direct passes
+with only the two expected connection-loss skips.
+The promoted `cpp-tck.federation-mom-save-conditionals-contract` and
+`cpp-tck.joined-federate-mom-federate-state-save-restore-contract` runners
+add the standard save/restore MOM contract twins. Their focused four-scenario
+lane passed 8/8 callback-model cases; the catalog-wide aggregate for this
+newest slice was paused at the checkpoint.
 The promoted `cpp-tck.mixed-update-rate-subscriptions` case uses the
 adapter-supplied rich FOM to verify ordinary per-attribute update-rate gating.
 Its focused portable lane passed 2/2 callback-model cases, and the matching
@@ -717,7 +728,9 @@ pinned 2025 requirement-gap card instead of scanning the Lab export:
 The card reports total/mapped/uncovered requirement counts and the most
 uncovered canonical document:clause subsections. Summary output omits full
 statements; query one sample id with `requirement <id> --summary --compact`
-when the normative text is needed.
+when the normative text is needed. If no Catch2 row is mapped yet, that lookup
+returns the bounded gap record (subsection, statement, and source) instead of
+ending at an empty test result.
 
 `focus` reports `needs-mapping` if any unclassified row remains, even when its
 source case is implemented; `complete` is reserved for lanes with no executable
@@ -1452,7 +1465,9 @@ process lane.
 `source <source-path-substring>` is the bounded reverse lookup for planned
 cases in a known C++ translation unit; each row keeps its source line, Lab IDs,
 and canonical 2025 sections. `requirement` accepts a Lab identifier, contract,
-or standard clause and returns the mapped tests. `section` is the exact
+or standard clause and returns the mapped tests; when the query matches an
+uncovered pinned 2025 requirement, it returns that bounded gap record for
+planning the next C++ case. `section` is the exact
 standard-mapping path: it accepts a canonical
 `document-id:clause-id`, the renderer's space-separated form, or a clause-only
 key such as `clause-9.13.1`, and returns only tests mapped to that section.

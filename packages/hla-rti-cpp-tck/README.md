@@ -56,12 +56,16 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.explicit-mim-creation-contract` | Pure standard C++ contract for adapter-supplied MIM composition, reserved standard designators, shared MOM declarations, and ordinary FOM preservation |
 | `cpp-tck.federation-mom-current-fdd` | Standard federation MOM discovery, `HLAcurrentFDD` request/reflection, reliable transportation reporting, and refresh after an additional-FOM join |
 | `cpp-tck.federation-mom-current-fdd-contract` | Pure standard C++ contract for federation-MOM `HLAcurrentFDD` discovery, request/reflection, transportation reporting, and additional-FOM refresh |
+| `cpp-tck.federation-mom-save-conditionals-contract` | Pure standard C++ contract for federation MOM save-conditionals, timed save initiation/completion, and adapter-supplied logical-time/MIM inputs |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
+| `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
 | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
 | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
 | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
 | `cpp-tck.service-report-regional-interaction` | Standard MOM service-report callback for regional `SendInteractionWithRegions`, paired with overlap-qualified regional application delivery and conveyed source-region metadata |
+| `cpp-tck.service-report-regional-interaction-contract` | Pure standard C++ contract for successful regional interaction service reporting, typed MOM invocation metadata, and overlap-qualified delivery using adapter-supplied MIM/DDM inputs |
 | `cpp-tck.service-report-regional-interaction-subscription` | Standard MOM service-report callbacks for regional `SubscribeInteractionClassWithRegions` and `UnsubscribeInteractionClassWithRegions`, including the passive-subscription indicator, typed association arguments, serial progression, and standard MIM/DDM setup |
+| `cpp-tck.service-report-regional-interaction-subscription-contract` | Pure standard C++ contract for regional interaction subscription/unsubscription reports, passive state, typed associations, serial progression, and adapter-supplied MIM/DDM inputs |
 | `cpp-tck.service-report-regional-interaction-failure` | Standard MOM failure reports for invalid regional interaction class, parameter, and region inputs, including typed report arguments and no application callback |
 | `cpp-tck.service-report-regional-interaction-failure-contract` | Standard adapter-backed regional interaction service-report failure contract using the official MIM, DDM, and interaction callbacks |
 | `cpp-tck.service-report-attribute-update` | Standard MOM service-report callback for successful ordinary `UpdateAttributeValues`, with typed report metadata and ordinary registration/publication setup |
@@ -812,9 +816,9 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 330 scenario IDs and 660 matrix cases. Run the later adapter-required
+    that is 334 scenario IDs and 668 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
-     complete set is 335 IDs and 670 matrix cases, including five candidates. The
+     complete set is 339 IDs and 678 matrix cases, including five candidates. The
   previously recorded candidate-inclusive adapter-owned lane contains 405 passes
   and five expected skips from the pre-value-contract 410-case matrix: the
   immediate callback-model cases for Willing-to-Acquire continuation, the
@@ -1322,6 +1326,18 @@ passive-subscription indicator, exact typed association arguments for active
 and passive declarations, null returned argument, exception, serial
 progression, and the absence of an application callback in both callback
 models.
+The promoted `cpp-tck.service-report-regional-interaction-contract` and
+`cpp-tck.service-report-regional-interaction-subscription-contract` runners
+expose those successful regional service-report routes as independently
+selectable pure standard C++ contracts. The focused four-scenario lane passed
+8/8 callback-model cases; provider, MIM, DDM FOM, dimensions, endpoint, and
+callback configuration remain adapter inputs.
+The promoted `cpp-tck.federation-mom-save-conditionals-contract` and
+`cpp-tck.joined-federate-mom-federate-state-save-restore-contract` runners
+likewise expose the save/restore MOM routes as independently selectable pure
+standard C++ contracts. Their focused four-scenario lane passed 8/8
+callback-model cases; their catalog-wide aggregate was paused at this
+checkpoint.
 The promoted `cpp-tck.service-report-regional-interaction-failure` scenario
 drives invalid interaction-class, parameter, and region inputs through the same
 standard API. It verifies typed failure reports, exception names, serial

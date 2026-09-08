@@ -1168,6 +1168,50 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.service-report-regional-interaction-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed successful regional interaction service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery"
+      ],
+      "contract_refs": [
+        "standard-service-report-regional-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportRegionalInteractionContract",
+      "runner_id": "cpp-tck.service-report-regional-interaction-contract",
+      "parity": "cpp-tck.service-report-regional-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.service-report-regional-interaction-subscription",
       "category": "mom-service-reporting",
       "title": "Report regional interaction subscription declarations through standard HLAreportServiceInvocation",
@@ -1216,6 +1260,46 @@
       "cpp_test": "src/main.cpp#scenarioServiceReportRegionalInteractionSubscription",
       "runner_id": "cpp-tck.service-report-regional-interaction-subscription",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-regional-interaction-subscription-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed regional interaction subscription service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-ddm-regional-interaction-subscription"
+      ],
+      "contract_refs": [
+        "standard-service-report-regional-interaction-subscription-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportRegionalInteractionSubscriptionContract",
+      "runner_id": "cpp-tck.service-report-regional-interaction-subscription-contract",
+      "parity": "cpp-tck.service-report-regional-interaction-subscription",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -12467,6 +12551,53 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federation-mom-save-conditionals-contract",
+      "category": "federation-mom-save-conditionals",
+      "title": "Exercise the standard federation MOM save-conditionals contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.initiateFederateSave(time)",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.federationSaved",
+        "HLAunicodeString",
+        "adapter-supplied logical-time encoding"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timed-federation-save",
+        "cpp-1516.1-federation-save-lifecycle",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federation-mom-save-conditionals-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationMomSaveConditionalsContract",
+      "runner_id": "cpp-tck.federation-mom-save-conditionals-contract",
+      "parity": "cpp-tck.federation-mom-save-conditionals",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.joined-federate-mom-federate-state-save-restore",
       "category": "joined-federate-mom-save-restore",
       "title": "Track standard HLAfederateState across federation save and restore callbacks",
@@ -12518,6 +12649,51 @@
       "cpp_test": "src/main.cpp#scenarioJoinedFederateMomFederateStateSaveRestore",
       "runner_id": "cpp-tck.joined-federate-mom-federate-state-save-restore",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.joined-federate-mom-federate-state-save-restore-contract",
+      "category": "joined-federate-mom-save-restore",
+      "title": "Exercise the standard joined-federate MOM save/restore contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.initiateFederateSave",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestoreBegun",
+        "FederateAmbassador.initiateFederateRestore",
+        "FederateAmbassador.federationRestored",
+        "HLAinteger32BE"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-save-restore",
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-joined-federate-mom-save-restore-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioJoinedFederateMomFederateStateSaveRestoreContract",
+      "runner_id": "cpp-tck.joined-federate-mom-federate-state-save-restore-contract",
+      "parity": "cpp-tck.joined-federate-mom-federate-state-save-restore",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 330 promoted scenarios (660 callback-model
+The verified lane currently runs 334 promoted scenarios (668 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -307,9 +307,21 @@ focused six-scenario lane passed 12/12 callback-model cases. The pure
 `cpp-tck.federation-mom-current-fdd-contract` runners add the same
 standard-only boundary for adapter-supplied MIM composition and the federation
 MOM current-FDD surface; their focused four-scenario lane passed 8/8
-callback-model cases. The full promoted aggregate passed 658/658 CTest cases
-with 658 direct passes plus the
+callback-model cases. The promoted
+`cpp-tck.service-report-regional-interaction-contract` and
+`cpp-tck.service-report-regional-interaction-subscription-contract` runners add
+the same standard-only boundary for successful regional interaction service
+reporting, including typed MOM invocation metadata and regional delivery or
+subscription-report state. Their focused four-scenario lane passed 8/8
+callback-model cases. The full promoted aggregate passed 662/662 CTest cases
+with 662 direct passes plus the
 two expected connection-loss skips.
+The promoted `cpp-tck.federation-mom-save-conditionals-contract` and
+`cpp-tck.joined-federate-mom-federate-state-save-restore-contract` runners
+make the standard save/restore MOM routes independently selectable. Their
+focused four-scenario lane passed 8/8 callback-model cases. The catalog-wide
+aggregate for this newest slice was paused at the checkpoint; the latest
+completed full aggregate remains the regional-service-report gate above.
 The promoted `cpp-tck.fom-empty-module-validation` scenario verifies the
 standard `InvalidFOM` boundary for an empty create-module set and then proves
 that the rejected request did not reserve the federation name by creating and
@@ -1804,11 +1816,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 330 catalog
-entries with `promotion=promoted`, which produces 660 cases with
+configuration. The default `--scenario-set verified` selects the 334 catalog
+entries with `promotion=promoted`, which produces 668 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the complete set is 335 IDs and 670 cases, including
+adapter-required entries; the complete set is 339 IDs and 678 cases, including
 five candidates. The previously recorded candidate-inclusive lane has 405
 passes and five expected skips from the pre-value-contract 410-case matrix: the immediate
 callback-model cases for Willing-to-Acquire continuation, the ownership-
@@ -1827,14 +1839,16 @@ declaration.
 as adapter options and are passed only through the standard `RtiConfiguration`
 API.
 
-The latest local installed-package evidence (2026-09-08) is recorded in
-`.build\cpp-tck-all\verified-evidence-standard-mim-mom-contracts-final.json`:
-CTest passed 658/658 runnable cases, and the direct lane recorded 658 passes plus
+The latest completed local installed-package evidence (2026-09-08) is recorded in
+`.build\cpp-tck-all\verified-evidence-standard-regional-service-report-contracts-final.json`:
+CTest passed 662/662 runnable cases, and the direct lane recorded 662 passes plus
 two expected connection-loss skips (one evoked and one immediate). The matching
 native survey is recorded in
-`.build\cpp-tck-all\native-survey-standard-mim-mom-contracts-final.txt`;
-it reports 335 catalog IDs, zero portable candidates, and 244 unmatched native
-stems. Earlier
+`.build\cpp-tck-all\native-survey-standard-regional-service-report-contracts-final.txt`;
+it reports 337 catalog IDs, zero portable candidates, and 244 unmatched native
+stems. The two MOM save/restore contract IDs are present in the current
+334-ID checkpoint and have focused evidence, but were not included in that
+completed catalog-wide aggregate. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
 `.build\cpp-tck-all\verified-evidence-auth.json`: CTest passed 398/398
@@ -2083,6 +2097,10 @@ regional-interaction source-region snapshot lane passed 2/2 in
 `.build\cpp-tck-all\regional-interaction-source-region-snapshot-focused.json`; the focused
 regional-interaction subscription-report lane passed 2/2 in
 `.build\cpp-tck-all\regional-interaction-subscription-service-report-focused.json`; the focused
+regional service-report contract-twin lane passed 8/8 in
+`.build\cpp-tck-all\focused-standard-regional-service-report-contracts.json`; the focused
+MOM save/restore contract-twin lane passed 8/8 in
+`.build\cpp-tck-all\focused-standard-mom-save-restore-contracts.json`; the focused
 factory-discovery lane passed 2/2 in
 `.build\cpp-tck-all\factory-discovery-focused.json`; the focused
 MOM transportation-type-change request lane passed 2/2 in

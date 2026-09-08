@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for a successful regional interaction service report. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, DDM handles, and the standard library; the adapter supplies the provider package, DDM FOM, dimensions, standard MIM, endpoint, and callback configuration. It verifies the typed HLAreportServiceInvocation payload, regional application delivery, source-region metadata, tag, producer, and transportation identity without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-regional-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional SendInteractionWithRegions service-reporting controls and FederateAmbassador service-report/application delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador service-report declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportRegionalInteractionContract"
+      ]
+    }
+  ]
+}
