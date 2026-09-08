@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for canceling a negotiated regular ownership transfer after confirmation request delivery across a timed regional attribute update, federation save, and federation restore. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, logical-time implementation, and callback configuration. It covers standard region metadata, timestamped attribute reflection, timed save and restore callbacks, ownership acquisition, negotiated divestiture, confirmation cancellation, stale-confirmation rejection, acquisition-cancellation callbacks, Flush Queue delivery, and cleanup without provider-specific headers, registries, names, or diagnostics. The immediate callback-model case remains an explicit candidate skip because synchronous delivery closes the cancellation window before the first candidate resigns.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timed-regional-attribute-negotiated-regular-confirmation-cancel-after-restore",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional subscription and registration, timestamped attribute update, timed save/restore, ownership acquisition and negotiated divestiture confirmation/cancellation, time advance, Flush Queue, and standard FederateAmbassador delivery callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador object-management, DDM, time-management, save/restore, and ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimedRegionalAttributeNegotiatedRegularConfirmationCancelAfterRestoreContract"
+      ]
+    }
+  ]
+}
