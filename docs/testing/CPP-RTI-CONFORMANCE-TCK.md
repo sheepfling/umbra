@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 320 promoted scenarios (640 callback-model
+The verified lane currently runs 325 promoted scenarios (650 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -1202,6 +1202,24 @@ timestamp/order, transport, and retraction metadata and verifies the matching
 logical-time queries through the standard directed-interaction and time-
 management API.
 
+The pure contract twins
+`cpp-tck.timestamped-directed-interaction-tar-nmr-contract` and
+`cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract`
+reuse those verified behaviors through standard-only C++ wrapper entry points.
+Their contract references name only the official `RTIambassador` and
+`FederateAmbassador` surfaces plus the standard library; the adapter owns the
+provider package, FOM, endpoint, callback configuration, and logical-time
+implementation. The focused four-scenario lane passed 8/8 callback-model
+cases in
+`.build\cpp-tck-all\focused-standard-timestamped-directed-interaction-tar-nmr-resignation-contracts.json`.
+
+The pure `cpp-tck.query-lits-source-resignation-contract` and
+`cpp-tck.partial-attribute-ownership-transfer-contract` runners likewise
+reuse the verified standard Query LITS and partial ownership behaviors through
+official C++ interfaces only. Their focused four-scenario lane passed 8/8
+callback-model cases in
+`.build\cpp-tck-all\focused-standard-query-lits-partial-ownership-contracts.json`.
+
 The promoted `cpp-tck.federation-mom-save-conditionals` scenario observes the
 standard `HLAfederation` MOM object's `HLAnextSaveName/Time` and
 `HLAlastSaveName/Time` conditionals. It verifies empty initial values, a
@@ -1393,7 +1411,10 @@ accepts a timestamped attribute update, transfers ownership before the
 constrained grant, and verifies exact value, tag, time, producer, order, and
 retraction metadata after the new owner acquires the attribute. It uses only
 the adapter-supplied FOM, logical-time implementation, and official
-`RTIambassador`/`FederateAmbassador` API.
+`RTIambassador`/`FederateAmbassador` API. The promoted
+`cpp-tck.timestamped-attribute-update-ownership-transfer-contract` runner
+exposes the same ownership, queued-delivery, callback, metadata, time-advance,
+and retraction boundaries as an independently selectable pure standard contract.
 
 The promoted `cpp-tck.timestamped-attribute-source-resignation` scenario queues
 an ordinary timestamped attribute update, resigns the source with unconditional
@@ -1763,11 +1784,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 320 catalog
-entries with `promotion=promoted`, which produces 640 cases with
+configuration. The default `--scenario-set verified` selects the 325 catalog
+entries with `promotion=promoted`, which produces 650 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the complete set is 325 IDs and 650 cases, including
+adapter-required entries; the complete set is 330 IDs and 660 cases, including
 five candidates. The previously recorded candidate-inclusive lane has 405
 passes and five expected skips from the pre-value-contract 410-case matrix: the immediate
 callback-model cases for Willing-to-Acquire continuation, the ownership-
@@ -1787,12 +1808,12 @@ as adapter options and are passed only through the standard `RtiConfiguration`
 API.
 
 The latest local installed-package evidence (2026-09-08) is recorded in
-`.build\cpp-tck-all\verified-evidence-standard-object-lifecycle-contracts-final.json`:
-CTest passed 638/638 runnable cases, and the direct lane recorded 638 passes plus
+`.build\cpp-tck-all\verified-evidence-standard-query-lits-partial-ownership-contracts-final.json`:
+CTest passed 648/648 runnable cases, and the direct lane recorded 648 passes plus
 two expected connection-loss skips (one evoked and one immediate). The matching
 native survey is recorded in
-`.build\cpp-tck-all\native-survey-standard-object-lifecycle-contracts-final.txt`;
-it reports 325 catalog IDs, zero portable candidates, and 244 unmatched native
+`.build\cpp-tck-all\native-survey-standard-query-lits-partial-ownership-contracts-final.txt`;
+it reports 330 catalog IDs, zero portable candidates, and 244 unmatched native
 stems. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
@@ -1964,12 +1985,13 @@ ordering/fan-out, timestamped attribute advance/re-enable, source-resignation,
 and Time Regulation re-enable contract slices, plus the ordinary and directed
 timestamped interaction re-enable contracts, source-resignation fan-out,
 joined-owner retraction cleanup, and mixed alternate-advance object-deletion
-contracts, and the pure object-name reservation and object registration/discovery
-lifecycle contracts, are
+contracts, the pure object-name reservation and object registration/discovery
+lifecycle contracts, and the timestamped attribute ownership-transfer contract,
+are
 recorded together in
-`.build\cpp-tck-all\verified-evidence-standard-object-lifecycle-contracts-final.json`:
-CTest passed 638/638 runnable cases, while the direct lane passed 638 cases, skipped the two
-adapter-managed connection-loss cases, and reported no failures across 320
+`.build\cpp-tck-all\verified-evidence-standard-timestamped-ownership-transfer-contract-final.json`:
+CTest passed 640/640 runnable cases, while the direct lane passed 640 cases, skipped the two
+adapter-managed connection-loss cases, and reported no failures across 321
 scenario IDs in both callback models. Each slice uses only the official C++ API
 and standard library while taking the provider package, FOM, endpoint, and
 callback configuration from the adapter.
@@ -1979,7 +2001,10 @@ each passed 4/4 callback-model cases. They are recorded in
 `.build\cpp-tck-all\focused-standard-timestamped-reenable-base.json`,
 `.build\cpp-tck-all\focused-standard-timestamped-reenable-contracts.json`,
 `.build\cpp-tck-all\focused-standard-object-lifecycle-base.json`, and
-`.build\cpp-tck-all\focused-standard-object-lifecycle-contracts.json`.
+`.build\cpp-tck-all\focused-standard-object-lifecycle-contracts.json`. The
+focused timestamped ownership-transfer base and contract lane passed 4/4
+callback-model cases in
+`.build\cpp-tck-all\focused-standard-timestamped-ownership-transfer-contract.json`.
 The same artifact records the independent pure standard ownership,
 synchronization-point, federation save/restore, callback-servicing,
 timestamped ordinary update/deletion, including no-fanout, tombstone, and
@@ -2062,6 +2087,11 @@ timestamped attribute-update queued-passel retraction lane passed 2/2 in
 `.build\cpp-tck-all\queued-passel-isolation.json`; the focused
 timestamped directed TAR/NMR lane passed 2/2 in
 `.build\cpp-tck-all\timestamped-directed-interaction-tar-nmr-focused.json`; the focused
+timestamped directed TAR/NMR and immediate-source-resignation contract lane
+passed 8/8 in
+`.build\cpp-tck-all\focused-standard-timestamped-directed-interaction-tar-nmr-resignation-contracts.json`; the focused
+Query LITS source-resignation and partial ownership contract lane passed 8/8 in
+`.build\cpp-tck-all\focused-standard-query-lits-partial-ownership-contracts.json`; the focused
 named-registration lane passed 2/2 in
 `.build\cpp-tck-all\named-registration-focused.json`; the focused
 named-registration contract lane passed 2/2 in

@@ -165,10 +165,13 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-directed-interaction-source-resignation-contract` | Standard adapter-backed queued timestamped directed-interaction source-resignation contract covering target routing, post-resignation delivery, metadata, and retraction boundaries |
 | `cpp-tck.timestamped-directed-interaction-source-resignation-fanout-contract` | Standard adapter-backed timestamped directed-interaction source-resignation fan-out contract covering independent recipient TAR servicing, target/payload metadata, and per-recipient retraction boundaries |
 | `cpp-tck.timestamped-directed-interaction-tar-nmr` | One timestamped directed interaction reaches two constrained recipients through independent TAR(7) and NMR(10) requests, with callback-before-grant ordering, target/payload/time/order/transport/retraction metadata, and logical-time query checks |
+| `cpp-tck.timestamped-directed-interaction-tar-nmr-contract` | Standard adapter-backed timestamped directed-interaction TAR/NMR contract for target routing, callback-before-grant ordering, timestamp/order/retraction metadata, and independent time-advance servicing |
 | `cpp-tck.timestamped-directed-interaction-immediate-source-resignation` | An accepted timestamped directed interaction remains deliverable on an immediate callback route after producer resignation, preserving target, parameter, tag, producer, time/order, transport, and retraction metadata |
+| `cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract` | Standard adapter-backed immediate timestamped directed-interaction source-resignation contract for accepted delivery, callback metadata, resignation, and cleanup boundaries |
 | `cpp-tck.timestamped-attribute-update` | Timestamped ordinary Update/Reflect, invalid object/attribute boundaries, immediate versus constrained delivery, timestamp/order metadata, and attribute-update retraction |
 | `cpp-tck.timestamped-attribute-update-contract` | Standard adapter-backed timestamped ordinary attribute-update contract for Update/Reflect, retraction, time-role servicing, and invalid-handle boundaries |
 | `cpp-tck.timestamped-attribute-update-ownership-transfer` | A timestamped attribute update remains deliverable after unconditional divestiture and If Available acquisition before the constrained grant, preserving value, tag, timestamp, producer, order, and retraction metadata |
+| `cpp-tck.timestamped-attribute-update-ownership-transfer-contract` | Standard adapter-backed timestamped attribute ownership-transfer contract for queued delivery, ownership callbacks, reflection metadata, time advancement, and retraction |
 | `cpp-tck.timestamped-attribute-source-resignation` | A queued timestamped attribute update remains deliverable after source resignation and ownership acquisition, preserving value, tag, time, producer, order, transportation, and retraction metadata before the grant |
 | `cpp-tck.timestamped-attribute-source-resignation-contract` | Standard adapter-backed queued timestamped attribute source-resignation contract for ownership transfer, post-resignation delivery, reflection metadata, and retraction boundaries |
 | `cpp-tck.timestamped-attribute-source-resignation-fanout` | A queued timestamped attribute update remains deliverable to each constrained recipient after source resignation, preserving per-recipient value, producer, time/order, transportation, and retraction metadata |
@@ -226,6 +229,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.time-bounds-queries` | Undefined and minimum no-TSO Query GALT/Query LITS results, pending regulator advances, grant stability, and resignation/disable transitions |
 | `cpp-tck.time-bounds-queries-contract` | Standard adapter-backed Query GALT and Query LITS contract for undefined, active-regulator, pending-advance, resignation, and disconnect boundaries |
 | `cpp-tck.query-lits-source-resignation` | Query GALT becomes undefined while Query LITS remains the queued timestamp after the sole source regulator resigns |
+| `cpp-tck.query-lits-source-resignation-contract` | Standard adapter-backed Query LITS source-resignation contract for queued timestamp retention, time-management callbacks, and cleanup boundaries |
 | `java-tck.directed-interactions` | Pre-connect and pre-join directed declaration and send boundaries, directed interaction publication, selective and universal subscription, target-object routing, callback delivery, unsubscription, unpublication, and invalid object/interaction-handle boundaries |
 | `cpp-tck.directed-interaction-contract` | Standard adapter-backed ordinary directed-interaction contract for publication, selective/universal subscription, targeted send/delivery, invalid handles, and lifecycle boundaries |
 | `cpp-tck.directed-interaction-publication-send-fence` | Whole-class directed-interaction unpublication fences `sendDirectedInteraction` with `InteractionClassNotPublished`; republication restores targeted parameter delivery and standard metadata |
@@ -292,6 +296,7 @@ The executable covers these ordinary public-API workflows, under both
 | `java-tck.ownership` | Pre-connect and pre-join ownership-service boundaries, ownership queries (including unowned reports), invalid object/attribute boundaries, assumption offers, negotiated and If Wanted acquisition/divestiture, If Available acquisition/unavailability, unconditional divestiture, denial, and cancellation |
 | `cpp-tck.ownership-management-contract` | Standard adapter-backed ordinary attribute-ownership contract for queries, assumption offers, negotiated and If Wanted acquisition/divestiture, If Available acquisition, unconditional divestiture, denial, cancellation, callbacks, and lifecycle boundaries |
 | `cpp-tck.partial-attribute-ownership-transfer` | Multi-attribute ownership acquisition and cancellation with an If Wanted transfer of only the uncanceled attribute, including release, cancellation, acquisition, tag, and ownership-state assertions |
+| `cpp-tck.partial-attribute-ownership-transfer-contract` | Standard adapter-backed partial attribute ownership-transfer contract for acquisition cancellation, Divestiture If Wanted, ownership callbacks, and lifecycle cleanup |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | Transfers independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted; immediate mode uses regular pending acquisition to preserve the standard pending boundary |
 | `cpp-tck.ownership-acquisition-cancellation-transfer-race` | Candidate evoked-callback race: cancellation begins from the owner release callback, Divestiture If Wanted wins the terminal race, and the requester receives only the acquisition notification; immediate mode is explicitly inapplicable because it closes the race window |
 | `cpp-tck.negotiated-divestiture-partial-acquisition-cancellation` | Cancels one attribute of a negotiated multi-attribute divestiture, confirms only the retained attribute, and verifies exact transfer, tags, cancellation, and ownership state under both callback models |
@@ -802,9 +807,9 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 320 scenario IDs and 640 matrix cases. Run the later adapter-required
+    that is 325 scenario IDs and 650 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
-     complete set is 325 IDs and 650 matrix cases, including five candidates. The
+     complete set is 330 IDs and 660 matrix cases, including five candidates. The
   previously recorded candidate-inclusive adapter-owned lane contains 405 passes
   and five expected skips from the pre-value-contract 410-case matrix: the
   immediate callback-model cases for Willing-to-Acquire continuation, the
@@ -1187,7 +1192,10 @@ accepts a timestamped attribute update, transfers ownership before the
 constrained grant, and verifies exact value, tag, time, producer, order, and
 retraction metadata after the new owner acquires the attribute. It uses only
 the adapter-supplied FOM, logical-time implementation, and official
-`RTIambassador`/`FederateAmbassador` API.
+`RTIambassador`/`FederateAmbassador` API. The promoted
+`cpp-tck.timestamped-attribute-update-ownership-transfer-contract` runner
+exposes the same ownership, queued-delivery, callback, metadata, time-advance,
+and retraction boundaries as an independently selectable pure standard contract.
 
 The promoted `cpp-tck.timestamped-attribute-source-resignation` scenario queues
 an ordinary timestamped attribute update, resigns the source with unconditional

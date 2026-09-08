@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 Query LITS source-resignation surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies that a queued timestamped interaction keeps Query LITS defined after its producing federate resigns, while preserving standard time-management, delivery, callback, and cleanup behavior without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-query-lits-source-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Query GALT/LITS, timestamped interaction, time-management, resignation, and cleanup services with FederateAmbassador time callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador Query LITS source-resignation declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioQueryLitsAfterSourceResignationContract"
+      ]
+    }
+  ]
+}

@@ -5806,6 +5806,49 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-directed-interaction-tar-nmr-contract",
+      "category": "timestamped-directed-interaction-tar-nmr",
+      "title": "Exercise the standard timestamped directed-interaction TAR/NMR contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-directed-interaction-delivery",
+        "cpp-1516.1-directed-interaction-retraction",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-directed-interaction-tar-nmr-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionTarNmrContract",
+      "runner_id": "cpp-tck.timestamped-directed-interaction-tar-nmr-contract",
+      "parity": "cpp-tck.timestamped-directed-interaction-tar-nmr",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
       "category": "timestamped-directed-interaction-immediate-source-resignation",
       "title": "Deliver an accepted timestamped directed interaction after immediate producer resignation",
@@ -5842,6 +5885,43 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionImmediateSourceResignation",
       "runner_id": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract",
+      "category": "timestamped-directed-interaction-immediate-source-resignation",
+      "title": "Exercise the standard immediate timestamped directed-interaction source-resignation contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-directed-interaction-delivery",
+        "cpp-1516.1-directed-interaction-retraction"
+      ],
+      "contract_refs": [
+        "standard-timestamped-directed-interaction-immediate-source-resignation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionImmediateSourceResignationContract",
+      "runner_id": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract",
+      "parity": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -5971,6 +6051,49 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateOwnershipTransfer",
       "runner_id": "cpp-tck.timestamped-attribute-update-ownership-transfer",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-attribute-update-ownership-transfer-contract",
+      "category": "timestamped-attribute-ownership-transfer",
+      "title": "Exercise the standard timestamped attribute ownership-transfer contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-attribute-update-retraction",
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-attribute-update-ownership-transfer-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateOwnershipTransferContract",
+      "runner_id": "cpp-tck.timestamped-attribute-update-ownership-transfer-contract",
+      "parity": "cpp-tck.timestamped-attribute-update-ownership-transfer",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8704,6 +8827,41 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.query-lits-source-resignation-contract",
+      "category": "query-galt-lits-source-resignation",
+      "title": "Exercise the standard Query LITS source-resignation contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.queryGALT",
+        "RTIambassador.queryLITS",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-query-galt-lits",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-query-lits-source-resignation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioQueryLitsAfterSourceResignationContract",
+      "runner_id": "cpp-tck.query-lits-source-resignation-contract",
+      "parity": "cpp-tck.query-lits-source-resignation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.partial-attribute-ownership-transfer",
       "category": "ownership-management",
       "title": "Cancel one attribute of a multi-attribute acquisition and transfer only the remaining attribute",
@@ -8736,6 +8894,37 @@
       "cpp_test": "src/main.cpp#scenarioPartialAttributeOwnershipTransfer",
       "runner_id": "cpp-tck.partial-attribute-ownership-transfer",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.partial-attribute-ownership-transfer-contract",
+      "category": "ownership-management",
+      "title": "Exercise the standard partial attribute ownership-transfer contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-partial-attribute-ownership-transfer-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioPartialAttributeOwnershipTransferContract",
+      "runner_id": "cpp-tck.partial-attribute-ownership-transfer-contract",
+      "parity": "cpp-tck.partial-attribute-ownership-transfer",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

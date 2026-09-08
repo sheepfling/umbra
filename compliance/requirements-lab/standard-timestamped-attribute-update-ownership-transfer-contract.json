@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 timestamped attribute-update ownership-transfer surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies an accepted timestamped update remains deliverable after ownership transfers before the constrained grant, preserves standard ownership, reflection, time, order, and retraction behavior, and performs lifecycle cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-attribute-update-ownership-transfer",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped attribute-update, ownership-transfer, and time-advance services with FederateAmbassador ownership, reflection, and time callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped attribute ownership-transfer declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedAttributeUpdateOwnershipTransferContract"
+      ]
+    }
+  ]
+}

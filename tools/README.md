@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 320 promoted scenario IDs (640 callback-model cases).
-`--scenario-set all` configures all 325 available IDs (650 cases), including
+The verified lane is 325 promoted scenario IDs (650 callback-model cases).
+`--scenario-set all` configures all 330 available IDs (660 cases), including
 five candidates. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
 into the direct evidence; the current candidate-inclusive lane has 405 passes
@@ -134,6 +134,16 @@ protection, fresh-requester deletion, rediscovery, stable identity lookups, and
 continued ordinary reflection as an independently selectable pure C++ contract.
 The provider package, FOM, endpoint, callback model, and logical-time
 configuration remain adapter inputs.
+The promoted `cpp-tck.timestamped-directed-interaction-tar-nmr-contract` and
+`cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract`
+runners expose the standard-only directed-interaction contracts as independently
+selectable slices. Their focused four-scenario lane passed 8/8 callback-model
+cases. The promoted `cpp-tck.query-lits-source-resignation-contract` and
+`cpp-tck.partial-attribute-ownership-transfer-contract` runners add the same
+standard-only boundary for Query LITS and partial ownership transfer; their
+focused four-scenario lane also passed 8/8. The full promoted aggregate now
+passes 648/648 CTest cases plus 648 direct passes with only the two expected
+connection-loss skips.
 The promoted `cpp-tck.mixed-update-rate-subscriptions` case uses the
 adapter-supplied rich FOM to verify ordinary per-attribute update-rate gating.
 Its focused portable lane passed 2/2 callback-model cases, and the matching
@@ -462,6 +472,10 @@ The promoted `cpp-tck.timestamped-interaction-regulation-reenable-contract`,
 `cpp-tck.timestamped-directed-interaction-regulation-reenable-contract` runners
 add ordinary and directed timestamped Time Constrained/Time Regulation
 re-enable boundaries on the same adapter-owned standard surface.
+The promoted `cpp-tck.timestamped-attribute-update-ownership-transfer-contract`
+runner adds the corresponding pure standard ownership-transfer boundary for a
+queued timestamped update, ownership callbacks, reflection metadata, time
+advancement, and retraction.
 The promoted `cpp-tck.federation-list-services-contract` and
 `cpp-tck.federate-lookup-lifecycle-contract` runners expose standard federation
 execution/member reports and federate identity lookup boundaries as independently
@@ -656,8 +670,11 @@ assertions, requirement/2025-section counts, and prints one next-test
 `trace`/`focus`/CTest handle. Add `--disposition unclassified` to select only
 rows that still need a Requirements-Lab mapping decision, or
 `--disposition explicit` to review intentional no-standalone-surface
-dispositions. This is bounded discovery over the checked-in index; it does not
-rescan the Requirements Lab. If a broad family has no single `next_lane`,
+dispositions. In the combined view, `next` is reserved for an actionable
+source-located implementation, mapping, or source-reconciliation handoff;
+lanes containing only explicit dispositions expose `review_only` and a
+separate `review_trace` handle instead. This is bounded discovery over the
+checked-in index; it does not rescan the Requirements Lab. If a broad family has no single `next_lane`,
 `work <family-id>` emits the same bounded lane-discovery command plus a scoped
 `ready --family <family-id>` handoff so the next case is still selected locally.
 
@@ -669,6 +686,17 @@ The implementation plan is queryable by heading without printing its prose:
 The filtered plan view returns heading line numbers and breadcrumb paths; use
 the reported line to open only the relevant portion of
 `docs/planning/IMPLEMENTATION-PLAN.md`.
+
+When existing C++ rows are complete and a new mapped case is needed, use the
+pinned 2025 requirement-gap card instead of scanning the Lab export:
+
+    python tools/query_rti_work.py gaps --summary --compact --limit 8
+    python tools/query_rti_work.py gaps hla-1516.1-2025:clause-7.2 --summary --compact --limit 8
+
+The card reports total/mapped/uncovered requirement counts and the most
+uncovered canonical document:clause subsections. Summary output omits full
+statements; query one sample id with `requirement <id> --summary --compact`
+when the normative text is needed.
 
 `focus` reports `needs-mapping` if any unclassified row remains, even when its
 source case is implemented; `complete` is reserved for lanes with no executable

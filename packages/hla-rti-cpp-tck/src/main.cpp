@@ -32617,6 +32617,12 @@ void scenarioTimestampedDirectedInteractionImmediateSourceResignation(
   owner.disconnect();
 }
 
+void scenarioQueryLitsAfterSourceResignationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioQueryLitsAfterSourceResignation(options, model);
+}
+
 void scenarioTimestampedDirectedInteractions(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session targeted(options, model, "member");
@@ -33046,6 +33052,18 @@ void scenarioTimestampedDirectedInteractionSourceResignationFanoutContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedDirectedInteractionSourceResignationFanout(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionTarNmrContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionTarNmr(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionImmediateSourceResignationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionImmediateSourceResignation(options, model);
 }
 
 void scenarioTransportOrder(Options const& options, rti::CallbackModel model) {
@@ -37760,6 +37778,12 @@ void scenarioPartialAttributeOwnershipTransfer(
   owner.rtiAmbassador().destroyFederationExecution(federation);
   acquirer.disconnect();
   owner.disconnect();
+}
+
+void scenarioPartialAttributeOwnershipTransferContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioPartialAttributeOwnershipTransfer(options, model);
 }
 
 void scenarioDivestitureIfWantedMixedAcquirers(
@@ -52751,6 +52775,12 @@ void scenarioTimestampedAttributeUpdateContract(
   scenarioTimestampedAttributeUpdate(options, model);
 }
 
+void scenarioTimestampedAttributeUpdateOwnershipTransferContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateOwnershipTransfer(options, model);
+}
+
 void scenarioTimestampedInteractionsContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -53243,9 +53273,12 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-directed-interaction-source-resignation-contract",
       "cpp-tck.timestamped-directed-interaction-source-resignation-fanout-contract",
       "cpp-tck.timestamped-directed-interaction-tar-nmr",
+      "cpp-tck.timestamped-directed-interaction-tar-nmr-contract",
       "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
+      "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract",
       "cpp-tck.timestamped-attribute-update",
       "cpp-tck.timestamped-attribute-update-ownership-transfer",
+      "cpp-tck.timestamped-attribute-update-ownership-transfer-contract",
       "cpp-tck.timestamped-attribute-update-queued-passel-retraction",
       "cpp-tck.timestamped-attribute-source-resignation",
       "cpp-tck.timestamped-attribute-order-cohort",
@@ -53295,6 +53328,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.time-bounds-queries",
       "cpp-tck.time-bounds-queries-contract",
       "cpp-tck.query-lits-source-resignation",
+      "cpp-tck.query-lits-source-resignation-contract",
       "cpp-tck.timestamped-directed-interactions",
       "cpp-tck.region-lifecycle",
       "cpp-tck.regional-unpublish-region-release",
@@ -53360,6 +53394,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.handle-wire-formats-contract",
       "java-tck.ownership",
       "cpp-tck.partial-attribute-ownership-transfer",
+      "cpp-tck.partial-attribute-ownership-transfer-contract",
       "cpp-tck.divestiture-if-wanted-mixed-acquirers",
       "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
       "cpp-tck.ownership-acquisition-cancellation-transfer-race",
@@ -54200,14 +54235,23 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-directed-interaction-tar-nmr") {
     return scenarioTimestampedDirectedInteractionTarNmr;
   }
+  if (id == "cpp-tck.timestamped-directed-interaction-tar-nmr-contract") {
+    return scenarioTimestampedDirectedInteractionTarNmrContract;
+  }
   if (id == "cpp-tck.timestamped-directed-interaction-immediate-source-resignation") {
     return scenarioTimestampedDirectedInteractionImmediateSourceResignation;
+  }
+  if (id == "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract") {
+    return scenarioTimestampedDirectedInteractionImmediateSourceResignationContract;
   }
   if (id == "cpp-tck.timestamped-attribute-update") {
     return scenarioTimestampedAttributeUpdate;
   }
   if (id == "cpp-tck.timestamped-attribute-update-ownership-transfer") {
     return scenarioTimestampedAttributeUpdateOwnershipTransfer;
+  }
+  if (id == "cpp-tck.timestamped-attribute-update-ownership-transfer-contract") {
+    return scenarioTimestampedAttributeUpdateOwnershipTransferContract;
   }
   if (id == "cpp-tck.timestamped-attribute-update-queued-passel-retraction") {
     return scenarioTimestampedAttributeUpdateQueuedPasselRetraction;
@@ -54355,6 +54399,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.query-lits-source-resignation") {
     return scenarioQueryLitsAfterSourceResignation;
+  }
+  if (id == "cpp-tck.query-lits-source-resignation-contract") {
+    return scenarioQueryLitsAfterSourceResignationContract;
   }
   if (id == "cpp-tck.timestamped-directed-interactions") {
     return scenarioTimestampedDirectedInteractions;
@@ -54535,6 +54582,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "java-tck.ownership") return scenarioOwnership;
   if (id == "cpp-tck.partial-attribute-ownership-transfer") {
     return scenarioPartialAttributeOwnershipTransfer;
+  }
+  if (id == "cpp-tck.partial-attribute-ownership-transfer-contract") {
+    return scenarioPartialAttributeOwnershipTransferContract;
   }
   if (id == "cpp-tck.divestiture-if-wanted-mixed-acquirers") {
     return scenarioDivestitureIfWantedMixedAcquirers;
@@ -54822,6 +54872,7 @@ int run(Options const& options) {
       } else if ((scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction" ||
                   scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract" ||
                   scenario == "cpp-tck.partial-attribute-ownership-transfer" ||
+                  scenario == "cpp-tck.partial-attribute-ownership-transfer-contract" ||
                   scenario == "cpp-tck.divestiture-if-wanted-mixed-acquirers" ||
                   scenario == "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore" ||
@@ -54935,10 +54986,13 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-directed-interaction-source-resignation-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-source-resignation-fanout-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-tar-nmr" ||
+                  scenario == "cpp-tck.timestamped-directed-interaction-tar-nmr-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-immediate-source-resignation" ||
+                  scenario == "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-rate-reduction" ||
                   scenario == "cpp-tck.timestamped-attribute-update" ||
                   scenario == "cpp-tck.timestamped-attribute-update-ownership-transfer" ||
+                  scenario == "cpp-tck.timestamped-attribute-update-ownership-transfer-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction" ||
                   scenario == "cpp-tck.timestamped-attribute-source-resignation" ||
                   scenario == "cpp-tck.timestamped-attribute-order-cohort" ||
@@ -54976,6 +55030,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.time-bounds-queries" ||
                   scenario == "cpp-tck.time-bounds-queries-contract" ||
                   scenario == "cpp-tck.query-lits-source-resignation" ||
+                  scenario == "cpp-tck.query-lits-source-resignation-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interactions" ||
                   scenario == "cpp-tck.timestamped-directed-interactions-contract" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-delivery" ||
