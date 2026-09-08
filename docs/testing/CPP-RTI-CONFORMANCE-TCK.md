@@ -432,6 +432,12 @@ tag. Immediate mode is retained as an explicit skip because synchronous
 delivery closes the concurrent pending-transfer window before the service can
 win that race.
 
+The candidate timed regular-candidate continuation contract twin exercises the
+same standard API boundary across regional timestamped update, timed save and
+restore, ownership continuation, and Flush Queue delivery. Its focused lane
+recorded 2 evoked passes and 2 explicit immediate-model skips; provider, FOM,
+endpoint, logical-time, and callback configuration remain adapter inputs.
+
 The promoted `cpp-tck.unnamed-join-overload` scenario isolates the standard
 unnamed federation Join overload. It verifies that a federate can join without
 supplying a name, that the generated federate name and handle are reversible
@@ -1820,8 +1826,8 @@ configuration. The default `--scenario-set verified` selects the 334 catalog
 entries with `promotion=promoted`, which produces 668 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the complete set is 341 IDs and 682 cases, including
-seven candidates. The previously recorded candidate-inclusive lane has 405
+adapter-required entries; the complete set is 342 IDs and 684 cases, including
+eight candidates. The previously recorded candidate-inclusive lane has 405
 passes and five expected skips from the pre-value-contract 410-case matrix: the immediate
 callback-model cases for Willing-to-Acquire continuation, the ownership-
 acquisition cancellation transfer race, the regular-candidate continuation,
@@ -1845,7 +1851,7 @@ CTest passed 666/666 runnable cases, and the direct lane recorded 666 passes plu
 two expected connection-loss skips (one evoked and one immediate). The matching
 native survey is recorded in
 `.build\cpp-tck-all\native-survey-standard-mom-save-restore-contracts-final.txt`;
-it reports 341 catalog IDs, zero portable candidates, and 244 unmatched native
+it reports 342 catalog IDs, zero portable candidates, and 244 unmatched native
 stems. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
@@ -2102,6 +2108,10 @@ MOM save/restore contract-twin lane passed 8/8 in
 ownership candidate contract-twin lane recorded 4 passes and 4 explicit
 immediate-model skips in
 `.build\cpp-tck-all\focused-standard-ownership-candidate-contracts.json`; the focused
+timed regular-candidate contract-twin lane recorded 2 evoked passes and 2
+explicit immediate-model skips in
+`.build\cpp-tck-all\focused-standard-timed-ownership-candidate-continuation-contract.json`; both
+candidate lanes remain `promotion=candidate` pending broader adapter coverage. The focused
 factory-discovery lane passed 2/2 in
 `.build\cpp-tck-all\factory-discovery-focused.json`; the focused
 MOM transportation-type-change request lane passed 2/2 in
