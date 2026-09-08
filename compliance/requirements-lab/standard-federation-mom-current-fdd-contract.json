@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard HLAcurrentFDD federation MOM surface after FOM composition. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, base and extension FOM modules, standard MIM, endpoint, callback configuration, and logical-time implementation. It verifies standard federation MOM discovery, current-FDD reflection, transportation reporting, request/update behavior, and composed FOM refresh without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-current-fdd",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador composed-FOM federation MOM lookup, subscription, identity, transportation query, and value-request services with FederateAmbassador discovery, reflection, and transportation-report callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador HLAcurrentFDD declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFederationMomCurrentFddContract"
+      ]
+    }
+  ]
+}

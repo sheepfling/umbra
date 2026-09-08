@@ -53,7 +53,9 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.federate-lookup-lifecycle` | Federate handle/name lookup boundaries before membership, across active members, foreign handles, and resignation |
 | `cpp-tck.federate-lookup-lifecycle-contract` | Standard adapter-backed federate handle/name lookup contract across membership, invalid inputs, foreign handles, and resignation |
 | `cpp-tck.explicit-mim-creation` | Adapter-supplied standard MIM composition during federation creation, shared MOM declaration handles, and ordinary FOM preservation |
+| `cpp-tck.explicit-mim-creation-contract` | Pure standard C++ contract for adapter-supplied MIM composition, reserved standard designators, shared MOM declarations, and ordinary FOM preservation |
 | `cpp-tck.federation-mom-current-fdd` | Standard federation MOM discovery, `HLAcurrentFDD` request/reflection, reliable transportation reporting, and refresh after an additional-FOM join |
+| `cpp-tck.federation-mom-current-fdd-contract` | Pure standard C++ contract for federation-MOM `HLAcurrentFDD` discovery, request/reflection, transportation reporting, and additional-FOM refresh |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
 | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
 | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
@@ -289,8 +291,11 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.update-rate-queries` | Named-rate lookup, active/passive/default subscription effects, unsubscribe reset, per-federate isolation, and invalid rate/object/attribute boundaries |
 | `cpp-tck.update-rate-queries-contract` | Standard adapter-backed update-rate query contract |
 | `cpp-tck.federation-teardown-isolation` | Two similarly named live executions keep independent named update-rate admission history when one execution is resigned and destroyed |
+| `cpp-tck.federation-teardown-isolation-contract` | Standard adapter-backed contract for update-rate isolation across federation teardown |
 | `cpp-tck.mixed-update-rate-subscriptions` | Ordinary mixed-rate attribute delivery: an active named best-effort subscription is reduced while a default-rate reliable attribute remains deliverable, with transport-aware callback aggregation |
+| `cpp-tck.mixed-update-rate-subscriptions-contract` | Standard adapter-backed contract for independent named and default update-rate subscriptions |
 | `cpp-tck.timestamped-attribute-update-rate-reduction` | Adapter-FOM-driven timestamped rate reduction: reliable attributes remain deliverable, an active named best-effort subscription suppresses excess passels, and suppressed retraction handles reach the standard terminal boundary |
+| `cpp-tck.timestamped-attribute-update-rate-reduction-contract` | Standard adapter-backed contract for timestamped update-rate reduction and retraction |
 | `cpp-tck.handle-wire-formats` | Dimension, region, and message-retraction handle encoding/decoding, direct-buffer and `VariableLengthData&` parity, encoded-length and truncated-buffer checks, copied-handle value semantics, and DDM/timestamped-service boundaries |
 | `cpp-tck.handle-wire-formats-contract` | Standard adapter-backed handle encoding and decoding contract |
 | `java-tck.ownership` | Pre-connect and pre-join ownership-service boundaries, ownership queries (including unowned reports), invalid object/attribute boundaries, assumption offers, negotiated and If Wanted acquisition/divestiture, If Available acquisition/unavailability, unconditional divestiture, denial, and cancellation |
@@ -807,9 +812,9 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 325 scenario IDs and 650 matrix cases. Run the later adapter-required
+    that is 330 scenario IDs and 660 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
-     complete set is 330 IDs and 660 matrix cases, including five candidates. The
+     complete set is 335 IDs and 670 matrix cases, including five candidates. The
   previously recorded candidate-inclusive adapter-owned lane contains 405 passes
   and five expected skips from the pre-value-contract 410-case matrix: the
   immediate callback-model cases for Willing-to-Acquire continuation, the
@@ -822,6 +827,13 @@ The promoted `cpp-tck.fom-empty-module-validation` scenario checks the
 standard empty-FOM rejection boundary, then creates and joins the same
 federation name with the adapter-supplied FOM to prove that the rejected
 request did not reserve partial state. It uses only the official C++ API.
+
+The promoted `cpp-tck.explicit-mim-creation-contract` and
+`cpp-tck.federation-mom-current-fdd-contract` runners expose the standard MIM
+composition and federation-MOM current-FDD surfaces as pure C++ contracts.
+Their focused four-scenario lane passed 8/8 callback-model cases; provider,
+FOM/MIM, endpoint, callback, and logical-time configuration remain adapter
+inputs.
 
 The promoted `cpp-tck.custom-transportation-interaction-delivery` scenario
 uses the adapter-declared rich FOM to verify custom transportation handle/name

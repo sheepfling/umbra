@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard explicit MIM federation creation and shared declarations. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, standard MIM, endpoint, callback configuration, and logical-time implementation. It verifies standard MIM composition, reserved designator rejection, MOM handle/name round trips, and ordinary declaration retention without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-explicit-mim-creation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador explicit-MIM federation creation, join, handle lookup, name lookup, resignation, and destruction services",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador explicit MIM composition declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioExplicitMimCreationContract"
+      ]
+    }
+  ]
+}

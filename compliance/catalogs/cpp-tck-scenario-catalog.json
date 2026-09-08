@@ -873,6 +873,32 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.explicit-mim-creation-contract",
+      "category": "fom-composition",
+      "title": "Portable standard contract for explicit MIM creation and shared declarations",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-explicit-mim-creation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioExplicitMimCreationContract",
+      "runner_id": "cpp-tck.explicit-mim-creation-contract",
+      "parity": "cpp-tck.explicit-mim-creation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.federation-mom-current-fdd",
       "category": "federation-mom",
       "title": "Expose and refresh the standard HLAcurrentFDD federation MOM attribute after FOM composition",
@@ -902,6 +928,38 @@
       "cpp_test": "src/main.cpp#scenarioFederationMomCurrentFdd",
       "runner_id": "cpp-tck.federation-mom-current-fdd",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federation-mom-current-fdd-contract",
+      "category": "federation-mom",
+      "title": "Portable standard contract for the federation MOM current-FDD surface",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution(additionalFomModules)",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.queryAttributeTransportationType",
+        "RTIambassador.requestAttributeValueUpdate",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.reportAttributeTransportationType"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-fom-module-composition",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-federation-mom-current-fdd-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationMomCurrentFddContract",
+      "runner_id": "cpp-tck.federation-mom-current-fdd-contract",
+      "parity": "cpp-tck.federation-mom-current-fdd",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9628,6 +9686,43 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federation-teardown-isolation-contract",
+      "category": "federation-isolation",
+      "title": "Portable standard contract for update-rate isolation across federation teardown",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(active=true, named rate)",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-update-rate-reduction",
+        "cpp-1516.1-update-rate-value"
+      ],
+      "contract_refs": [
+        "standard-federation-teardown-isolation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationTeardownIsolationContract",
+      "runner_id": "cpp-tck.federation-teardown-isolation-contract",
+      "parity": "cpp-tck.federation-teardown-isolation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.mixed-update-rate-subscriptions",
       "category": "update-rate-reduction",
       "title": "Gate ordinary attribute reflections independently for named and default update-rate subscriptions",
@@ -9671,6 +9766,41 @@
       "cpp_test": "src/main.cpp#scenarioMixedUpdateRateSubscriptions",
       "runner_id": "cpp-tck.mixed-update-rate-subscriptions",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.mixed-update-rate-subscriptions-contract",
+      "category": "update-rate-reduction",
+      "title": "Portable standard contract for independent named and default update-rate subscriptions",
+      "api_methods": [
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.getUpdateRateValueForAttribute",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(active=true, default rate)",
+        "RTIambassador.subscribeObjectClassAttributes(active=true, named rate)",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-update-rate-reduction",
+        "cpp-1516.1-update-rate-value",
+        "cpp-1516.1-update-rate-value-for-attribute",
+        "cpp-1516.1-update-rate-subscription-state"
+      ],
+      "contract_refs": [
+        "standard-mixed-update-rate-subscriptions-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioMixedUpdateRateSubscriptionsContract",
+      "runner_id": "cpp-tck.mixed-update-rate-subscriptions-contract",
+      "parity": "cpp-tck.mixed-update-rate-subscriptions",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9724,6 +9854,45 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateRateReduction",
       "runner_id": "cpp-tck.timestamped-attribute-update-rate-reduction",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-attribute-update-rate-reduction-contract",
+      "category": "timestamped-attribute-update-rate-reduction",
+      "title": "Portable standard contract for timestamped update-rate reduction and retraction",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(active=true, default rate)",
+        "RTIambassador.subscribeObjectClassAttributes(active=true, named rate)",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.getUpdateRateValueForAttribute",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.retract",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-update-rate-reduction",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-request-retraction",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-attribute-update-rate-reduction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateRateReductionContract",
+      "runner_id": "cpp-tck.timestamped-attribute-update-rate-reduction-contract",
+      "parity": "cpp-tck.timestamped-attribute-update-rate-reduction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

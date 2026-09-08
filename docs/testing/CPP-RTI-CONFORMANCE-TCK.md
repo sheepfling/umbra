@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 325 promoted scenarios (650 callback-model
+The verified lane currently runs 330 promoted scenarios (660 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -297,6 +297,19 @@ attribute. It accepts standard callback splitting by transport and checks
 object, tag, producer, value, and transport identity. Its focused portable
 artifact passed 2/2 callback-model cases, and the matching native oracle passed
 37 assertions.
+The pure contract twins
+`cpp-tck.federation-teardown-isolation-contract`,
+`cpp-tck.mixed-update-rate-subscriptions-contract`, and
+`cpp-tck.timestamped-attribute-update-rate-reduction-contract` reuse those
+verified update-rate behaviors through official C++ interfaces only. Their
+focused six-scenario lane passed 12/12 callback-model cases. The pure
+`cpp-tck.explicit-mim-creation-contract` and
+`cpp-tck.federation-mom-current-fdd-contract` runners add the same
+standard-only boundary for adapter-supplied MIM composition and the federation
+MOM current-FDD surface; their focused four-scenario lane passed 8/8
+callback-model cases. The full promoted aggregate passed 658/658 CTest cases
+with 658 direct passes plus the
+two expected connection-loss skips.
 The promoted `cpp-tck.fom-empty-module-validation` scenario verifies the
 standard `InvalidFOM` boundary for an empty create-module set and then proves
 that the rejected request did not reserve the federation name by creating and
@@ -1641,6 +1654,13 @@ join-triggered refresh after an adapter-supplied additional FOM module is
 joined. It uses the standard `HLAfederation` object instance name and an
 adapter-supplied standard MIM; no provider or private header is involved.
 
+The promoted `cpp-tck.explicit-mim-creation-contract` and
+`cpp-tck.federation-mom-current-fdd-contract` runners expose those MIM and
+federation-MOM boundaries as independently selectable pure standard C++
+contracts. They use only official IEEE C++ API headers and the standard
+library; the provider package, FOM/MIM modules, endpoint, callback model, and
+logical-time implementation remain adapter inputs.
+
 `cpp-tck.joined-federate-mom-federate-state-save-restore` observes the standard
 `HLAfederateState` MOM attribute from a joined federate across save initiation,
 save completion, restore initiation, and restore completion. It verifies the
@@ -1784,11 +1804,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 325 catalog
-entries with `promotion=promoted`, which produces 650 cases with
+configuration. The default `--scenario-set verified` selects the 330 catalog
+entries with `promotion=promoted`, which produces 660 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the complete set is 330 IDs and 660 cases, including
+adapter-required entries; the complete set is 335 IDs and 670 cases, including
 five candidates. The previously recorded candidate-inclusive lane has 405
 passes and five expected skips from the pre-value-contract 410-case matrix: the immediate
 callback-model cases for Willing-to-Acquire continuation, the ownership-
@@ -1808,12 +1828,12 @@ as adapter options and are passed only through the standard `RtiConfiguration`
 API.
 
 The latest local installed-package evidence (2026-09-08) is recorded in
-`.build\cpp-tck-all\verified-evidence-standard-query-lits-partial-ownership-contracts-final.json`:
-CTest passed 648/648 runnable cases, and the direct lane recorded 648 passes plus
+`.build\cpp-tck-all\verified-evidence-standard-mim-mom-contracts-final.json`:
+CTest passed 658/658 runnable cases, and the direct lane recorded 658 passes plus
 two expected connection-loss skips (one evoked and one immediate). The matching
 native survey is recorded in
-`.build\cpp-tck-all\native-survey-standard-query-lits-partial-ownership-contracts-final.txt`;
-it reports 330 catalog IDs, zero portable candidates, and 244 unmatched native
+`.build\cpp-tck-all\native-survey-standard-mim-mom-contracts-final.txt`;
+it reports 335 catalog IDs, zero portable candidates, and 244 unmatched native
 stems. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
@@ -2092,6 +2112,11 @@ passed 8/8 in
 `.build\cpp-tck-all\focused-standard-timestamped-directed-interaction-tar-nmr-resignation-contracts.json`; the focused
 Query LITS source-resignation and partial ownership contract lane passed 8/8 in
 `.build\cpp-tck-all\focused-standard-query-lits-partial-ownership-contracts.json`; the focused
+federation teardown, mixed update-rate, and timestamped update-rate reduction
+contract lane passed 12/12 in
+`.build\cpp-tck-all\focused-standard-update-rate-isolation-contracts.json`; the focused
+explicit-MIM creation and federation-MOM current-FDD contract lane passed 8/8 in
+`.build\cpp-tck-all\focused-standard-mim-mom-contracts.json`; the focused
 named-registration lane passed 2/2 in
 `.build\cpp-tck-all\named-registration-focused.json`; the focused
 named-registration contract lane passed 2/2 in

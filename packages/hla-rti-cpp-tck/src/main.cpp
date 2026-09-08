@@ -52859,6 +52859,36 @@ void scenarioTimestampedDirectedInteractionRegulationReenableContract(
   scenarioTimestampedDirectedInteractionRegulationReenable(options, model);
 }
 
+void scenarioFederationTeardownIsolationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationTeardownIsolation(options, model);
+}
+
+void scenarioMixedUpdateRateSubscriptionsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMixedUpdateRateSubscriptions(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateRateReductionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateRateReduction(options, model);
+}
+
+void scenarioExplicitMimCreationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioExplicitMimCreation(options, model);
+}
+
+void scenarioFederationMomCurrentFddContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomCurrentFdd(options, model);
+}
+
 void scenarioTimestampedAttributeOrderCohortContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -53160,7 +53190,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.federate-lookup-lifecycle",
       "cpp-tck.federate-lookup-lifecycle-contract",
       "cpp-tck.explicit-mim-creation",
+      "cpp-tck.explicit-mim-creation-contract",
       "cpp-tck.federation-mom-current-fdd",
+      "cpp-tck.federation-mom-current-fdd-contract",
       "cpp-tck.service-report-interaction",
       "cpp-tck.service-report-interaction-failure",
       "cpp-tck.service-report-regional-interaction",
@@ -53388,8 +53420,11 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.update-rate-queries",
       "cpp-tck.update-rate-queries-contract",
       "cpp-tck.federation-teardown-isolation",
+      "cpp-tck.federation-teardown-isolation-contract",
       "cpp-tck.mixed-update-rate-subscriptions",
+      "cpp-tck.mixed-update-rate-subscriptions-contract",
       "cpp-tck.timestamped-attribute-update-rate-reduction",
+      "cpp-tck.timestamped-attribute-update-rate-reduction-contract",
       "cpp-tck.handle-wire-formats",
       "cpp-tck.handle-wire-formats-contract",
       "java-tck.ownership",
@@ -53919,8 +53954,14 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioFederateLookupLifecycleContract;
   }
   if (id == "cpp-tck.explicit-mim-creation") return scenarioExplicitMimCreation;
+  if (id == "cpp-tck.explicit-mim-creation-contract") {
+    return scenarioExplicitMimCreationContract;
+  }
   if (id == "cpp-tck.federation-mom-current-fdd") {
     return scenarioFederationMomCurrentFdd;
+  }
+  if (id == "cpp-tck.federation-mom-current-fdd-contract") {
+    return scenarioFederationMomCurrentFddContract;
   }
   if (id == "cpp-tck.service-report-interaction") {
     return scenarioServiceReportInteraction;
@@ -54569,11 +54610,20 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.federation-teardown-isolation") {
     return scenarioFederationTeardownIsolation;
   }
+  if (id == "cpp-tck.federation-teardown-isolation-contract") {
+    return scenarioFederationTeardownIsolationContract;
+  }
   if (id == "cpp-tck.mixed-update-rate-subscriptions") {
     return scenarioMixedUpdateRateSubscriptions;
   }
+  if (id == "cpp-tck.mixed-update-rate-subscriptions-contract") {
+    return scenarioMixedUpdateRateSubscriptionsContract;
+  }
   if (id == "cpp-tck.timestamped-attribute-update-rate-reduction") {
     return scenarioTimestampedAttributeUpdateRateReduction;
+  }
+  if (id == "cpp-tck.timestamped-attribute-update-rate-reduction-contract") {
+    return scenarioTimestampedAttributeUpdateRateReductionContract;
   }
   if (id == "cpp-tck.handle-wire-formats") return scenarioHandleWireFormats;
   if (id == "cpp-tck.handle-wire-formats-contract") {
@@ -54845,19 +54895,24 @@ int run(Options const& options) {
                   scenario == "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery" ||
                   scenario == "cpp-tck.object-registration-discovery-lifecycle" ||
                   scenario == "cpp-tck.federation-teardown-isolation" ||
+                  scenario == "cpp-tck.federation-teardown-isolation-contract" ||
                   scenario == "cpp-tck.mixed-update-rate-subscriptions" ||
+                  scenario == "cpp-tck.mixed-update-rate-subscriptions-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-rate-reduction" ||
+                  scenario == "cpp-tck.timestamped-attribute-update-rate-reduction-contract" ||
                   scenario == "cpp-tck.object-class-attribute-value-update-request-baseline" ||
                   scenario == "cpp-tck.object-class-attribute-value-update-request-baseline-contract") &&
                  options.modelFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied rich FOM model";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
-                  scenario == "cpp-tck.federation-mom-current-fdd") &&
+                  scenario == "cpp-tck.federation-mom-current-fdd" ||
+                  scenario == "cpp-tck.federation-mom-current-fdd-contract") &&
                  options.additionalFomModules.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied extension FOM module";
-      } else if (scenario == "cpp-tck.federation-mom-current-fdd" &&
+      } else if ((scenario == "cpp-tck.federation-mom-current-fdd" ||
+                  scenario == "cpp-tck.federation-mom-current-fdd-contract") &&
                  options.mimFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied standard MIM";
@@ -54990,6 +55045,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-directed-interaction-immediate-source-resignation" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-rate-reduction" ||
+                  scenario == "cpp-tck.timestamped-attribute-update-rate-reduction-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update" ||
                   scenario == "cpp-tck.timestamped-attribute-update-ownership-transfer" ||
                   scenario == "cpp-tck.timestamped-attribute-update-ownership-transfer-contract" ||

@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 325 promoted scenario IDs (650 callback-model cases).
-`--scenario-set all` configures all 330 available IDs (660 cases), including
+The verified lane is 330 promoted scenario IDs (660 callback-model cases).
+`--scenario-set all` configures all 335 available IDs (670 cases), including
 five candidates. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
 into the direct evidence; the current candidate-inclusive lane has 405 passes
@@ -142,8 +142,19 @@ cases. The promoted `cpp-tck.query-lits-source-resignation-contract` and
 `cpp-tck.partial-attribute-ownership-transfer-contract` runners add the same
 standard-only boundary for Query LITS and partial ownership transfer; their
 focused four-scenario lane also passed 8/8. The full promoted aggregate now
-passes 648/648 CTest cases plus 648 direct passes with only the two expected
-connection-loss skips.
+passes 658/658 CTest cases plus 658 direct passes with only the two expected
+connection-loss skips. The promoted
+`cpp-tck.federation-teardown-isolation-contract`,
+`cpp-tck.mixed-update-rate-subscriptions-contract`, and
+`cpp-tck.timestamped-attribute-update-rate-reduction-contract` runners add
+the same standard-only boundary for update-rate isolation and reduction; their
+focused six-scenario lane passed 12/12 callback-model cases. The promoted
+`cpp-tck.explicit-mim-creation-contract` and
+`cpp-tck.federation-mom-current-fdd-contract` runners add the same
+standard-only boundary for adapter-supplied MIM composition and the federation
+MOM current-FDD surface; their focused four-scenario lane passed 8/8
+callback-model cases. The full promoted aggregate now passes 658/658 CTest
+cases plus 658 direct passes with only the two expected connection-loss skips.
 The promoted `cpp-tck.mixed-update-rate-subscriptions` case uses the
 adapter-supplied rich FOM to verify ordinary per-attribute update-rate gating.
 Its focused portable lane passed 2/2 callback-model cases, and the matching
@@ -686,6 +697,16 @@ The implementation plan is queryable by heading without printing its prose:
 The filtered plan view returns heading line numbers and breadcrumb paths; use
 the reported line to open only the relevant portion of
 `docs/planning/IMPLEMENTATION-PLAN.md`.
+
+Before editing a contract selector, run the bounded native drift guard:
+
+    python tools/query_rti_work.py contract-drift --summary --compact
+
+It checks every local `cpp/tests/...::Title` reference against the current
+C++ declarations, reports exact path/title mismatches with a bounded sample,
+and counts external portable-TCK symbols separately. It never resynchronizes
+the Requirements Lab; a clean result is the fast prerequisite for focused
+lane work.
 
 When existing C++ rows are complete and a new mapped case is needed, use the
 pinned 2025 requirement-gap card instead of scanning the Lab export:
