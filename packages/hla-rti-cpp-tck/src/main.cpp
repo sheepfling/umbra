@@ -40151,6 +40151,12 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
   disjoint.disconnect();
 }
 
+void scenarioRegionalObjectUpdateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalObjectUpdate(options, model);
+}
+
 void scenarioRegionalAttributeValueUpdateResponseRecheck(
     Options const& options,
     rti::CallbackModel model) {
@@ -53457,6 +53463,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-unpublish-region-release",
       "cpp-tck.regional-unpublish-region-release-contract",
       "cpp-tck.regional-object-update",
+      "cpp-tck.regional-object-update-contract",
       "cpp-tck.regional-attribute-value-update-response-recheck",
       "cpp-tck.regional-attribute-value-request-filtering",
       "cpp-tck.default-region-object-routing",
@@ -54570,6 +54577,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioRegionalUnpublishRegionReleaseContract;
   }
   if (id == "cpp-tck.regional-object-update") return scenarioRegionalObjectUpdate;
+  if (id == "cpp-tck.regional-object-update-contract") {
+    return scenarioRegionalObjectUpdateContract;
+  }
   if (id == "cpp-tck.regional-attribute-value-update-response-recheck") {
     return scenarioRegionalAttributeValueUpdateResponseRecheck;
   }
@@ -55109,6 +55119,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-unpublish-region-release" ||
                  scenario == "cpp-tck.regional-unpublish-region-release-contract" ||
                  scenario == "cpp-tck.regional-object-update" ||
+                 scenario == "cpp-tck.regional-object-update-contract" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering" ||
                  scenario == "cpp-tck.allow-relaxed-ddm" ||

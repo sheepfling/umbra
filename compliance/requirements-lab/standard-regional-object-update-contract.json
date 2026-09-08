@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 regional object publication, subscription, discovery, update, value-request, and region-reassociation surface. The source uses only the standard C++ RTIambassador/FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and any logical-time implementation. It verifies regional overlap filtering, conveyed source-region designators, named registration, ordinary Update/Reflect metadata, Request Attribute Value Update callbacks, and source-region reassociation without provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-object-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object publication, subscription, registration, update, value-request, association, unsubscription, and unpublication services with FederateAmbassador discovery, value-request, and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional object update declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalObjectUpdateContract"
+      ]
+    }
+  ]
+}

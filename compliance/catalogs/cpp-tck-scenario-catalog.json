@@ -10846,6 +10846,40 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-object-update-contract",
+      "category": "regional-object-management",
+      "title": "Exercise the standard regional object publication, subscription, update, and reassociation contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstanceWithRegions(named)",
+        "RTIambassador.associateRegionsForUpdates",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.requestAttributeValueUpdateWithRegions",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-regional-value-request",
+        "cpp-1516.1-ddm-region-designator-callback"
+      ],
+      "contract_refs": [
+        "standard-regional-object-update-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalObjectUpdateContract",
+      "runner_id": "cpp-tck.regional-object-update-contract",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-attribute-value-request-filtering",
       "category": "regional-attribute-value-request",
       "title": "Filter regional Request Attribute Value Update solicitations by source-region scope",
