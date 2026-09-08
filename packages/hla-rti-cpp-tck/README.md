@@ -319,6 +319,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore` | Candidate evoked-callback continuation of a regular multi-attribute ownership candidate across timed regional attribute save/restore, resignation, negotiated divestiture, retained queued delivery, and Flush Queue metadata; immediate delivery is intentionally skipped because it closes the continuation window |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract` | Candidate pure standard C++ contract for the same timed regional ownership-candidate continuation; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs, and immediate delivery is intentionally skipped |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore` | Candidate cancellation of a regular negotiated ownership transfer before confirmation callback delivery after timed regional attribute save/restore, preserving publisher ownership, canceling the surviving acquisition reservation, and retaining restored queued delivery; immediate delivery is intentionally skipped |
+| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract` | Candidate pure standard C++ contract for the same pre-delivery negotiated cancellation after timed regional restore; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs, and immediate delivery is intentionally skipped |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore` | Candidate regular-to-regular negotiated ownership cancellation after Request Divestiture Confirmation, preserving publisher ownership, rejecting stale Confirm Divestiture, canceling the surviving acquisition reservation, and retaining the restored queued regional update; immediate delivery is intentionally skipped |
 | `cpp-tck.resign-pending-acquisition-rejection` | Rejects unconditional resignation while ownership acquisition is pending, then cancels that work during standard cancel-then-delete-then-divest resignation |
 | `cpp-tck.resign-pending-acquisition-rejection-contract` | Standard adapter-backed pending-acquisition resignation rejection contract |
@@ -821,7 +822,7 @@ The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
     that is 334 scenario IDs and 668 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
-     complete set is 342 IDs and 684 matrix cases, including eight candidates. The
+     complete set is 343 IDs and 686 matrix cases, including nine candidates. The
   previously recorded candidate-inclusive adapter-owned lane contains 405 passes
   and five expected skips from the pre-value-contract 410-case matrix: the
   immediate callback-model cases for Willing-to-Acquire continuation, the
@@ -1346,6 +1347,9 @@ immediate-model skips across the two candidate scenarios; both remain
 `promotion=candidate` until an all-model verification fixture is available.
 The timed regular-candidate contract twin recorded 2 evoked passes and 2
 explicit immediate-model skips in its focused four-case lane; it also remains
+`promotion=candidate` pending broader adapter coverage.
+The timed pre-delivery cancellation contract twin recorded 2 evoked passes and
+2 explicit immediate-model skips in its focused four-case lane; it also remains
 `promotion=candidate` pending broader adapter coverage.
 The promoted `cpp-tck.service-report-regional-interaction-failure` scenario
 drives invalid interaction-class, parameter, and region inputs through the same

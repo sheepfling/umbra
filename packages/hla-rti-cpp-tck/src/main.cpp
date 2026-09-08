@@ -52687,6 +52687,14 @@ void scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestor
       true);
 }
 
+void scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestoreContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestore(
+      options,
+      model);
+}
+
 void scenarioConnectionLoss(Options const& options, rti::CallbackModel model) {
   require(
       options.connectionLossServerManaged,
@@ -53494,6 +53502,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract",
       "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
       "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
+      "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract",
       "cpp-tck.resign-pending-acquisition-rejection",
       "cpp-tck.resign-pending-acquisition-rejection-contract",
       "cpp-tck.resign-cancel-pending-acquisition",
@@ -54610,6 +54619,10 @@ ScenarioFunction scenarioFunction(std::string const& id) {
       "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore") {
     return scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestore;
   }
+  if (id ==
+      "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract") {
+    return scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestoreContract;
+  }
   if (id == "cpp-tck.federation-mom-save-conditionals") {
     return scenarioFederationMomSaveConditionals;
   }
@@ -54950,8 +54963,10 @@ int run(Options const& options) {
             "requires evoked callback servicing because immediate regular-candidate delivery "
             "closes the cancellation window before the first candidate resigns";
       } else if (
-          scenario ==
-              "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore" &&
+          (scenario ==
+               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore" ||
+           scenario ==
+               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract") &&
           callback.first == "immediate") {
         result.status = "skipped";
         result.message =
@@ -55013,7 +55028,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore" ||
-                  scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore") &&
+                  scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore" ||
+                  scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract") &&
                  options.multiAttributeFom.empty()) {
         result.status = "skipped";
         result.message =
@@ -55184,6 +55200,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore" ||
+                  scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract" ||
                    scenario == "cpp-tck.federation-mom-save-conditionals" ||
                    scenario == "cpp-tck.joined-federate-mom-federate-state-save-restore" ||
                    scenario == "cpp-tck.joined-federate-mom-galt-lits-periodic" ||
@@ -55212,7 +55229,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore" ||
-                  scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore") &&
+                  scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore" ||
+                  scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract") &&
                  options.ddmFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied dimensional FOM";

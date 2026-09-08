@@ -106,8 +106,8 @@ either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
 The verified lane is 334 promoted scenario IDs (668 callback-model cases).
-`--scenario-set all` configures all 342 available IDs (684 cases), including
-eight candidates. With `--connection-loss-fixture <path>`, the Python adapter
+`--scenario-set all` configures all 343 available IDs (686 cases), including
+nine candidates. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
 into the direct evidence; the current candidate-inclusive lane has 405 passes
 and five expected skips. The skips are the immediate callback-model cases for
@@ -172,6 +172,9 @@ immediate-model skips in their focused eight-case lane; they remain candidates
 until an all-model verification fixture is available.
 The timed regular-candidate contract twin recorded 2 evoked passes and 2
 explicit immediate-model skips in its focused four-case lane; it remains a
+candidate pending broader adapter coverage.
+The timed pre-delivery cancellation contract twin recorded 2 evoked passes and
+2 explicit immediate-model skips in its focused four-case lane; it remains a
 candidate pending broader adapter coverage.
 The promoted `cpp-tck.mixed-update-rate-subscriptions` case uses the
 adapter-supplied rich FOM to verify ordinary per-attribute update-rate gating.
