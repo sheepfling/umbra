@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for queued timestamped ordinary object deletion through Flush Queue Request, Time Advance Request Available, and Next Message Request Available. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies alternate-advance callback ordering, grant and logical-time query bounds, removal metadata, and terminal retraction behavior without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-object-deletion-mixed-advances",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped DeleteObjectInstance, Flush Queue Request, Time Advance Request Available, Next Message Request Available, Retract, and logical-time declarations with FederateAmbassador removal and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped object-deletion and alternate time-advance declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedObjectDeletionMixedAdvancesContract"
+      ]
+    }
+  ]
+}

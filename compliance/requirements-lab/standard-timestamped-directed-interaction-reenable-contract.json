@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for a queued timestamped directed interaction that survives Time Constrained disable and re-enable. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies target routing, discovery, callback-before-grant ordering, interaction metadata, and terminal retraction behavior without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-directed-interaction-reenable",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped SendDirectedInteraction, directed publication/subscription, object registration, Time Constrained, Time Advance Request, and Retract declarations with FederateAmbassador discovery, directed-receive, constrained, and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped directed-interaction and Time Constrained declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedDirectedInteractionReenableContract"
+      ]
+    }
+  ]
+}

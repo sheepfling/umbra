@@ -105,15 +105,17 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 311 promoted scenario IDs (622 callback-model cases).
-`--scenario-set all` configures all 316 available IDs (632 cases), including
+The verified lane is 320 promoted scenario IDs (640 callback-model cases).
+`--scenario-set all` configures all 325 available IDs (650 cases), including
 five candidates. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
 into the direct evidence; the current candidate-inclusive lane has 405 passes
 and five expected skips. The skips are the immediate callback-model cases for
 Willing-to-Acquire continuation, the ownership-acquisition cancellation
 transfer race, and the regular-candidate continuation, pre-delivery
-cancellation, and confirmation-cancellation cases.
+cancellation, and confirmation-cancellation cases. The latest promoted object
+management expansion includes independently selectable pure-standard contracts
+for object-name reservation and object registration/discovery lifecycle.
 The promoted `cpp-tck.named-registration-contract` runner exposes standard
 object-instance name reservation/release and reuse, multiple-name lifecycle,
 named registration and discovery identity, contention, and invalid-name
@@ -448,6 +450,18 @@ name/ownership restoration, terminal deletion tombstones and named
 re-registration, and Time Regulation re-enable with changed lookahead. They
 use only the official C++ API and standard library; provider package, FOM,
 endpoint, callback, and logical-time configuration remains adapter-owned.
+The promoted `cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract`,
+`cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract`, and
+`cpp-tck.timestamped-object-deletion-mixed-advances-contract` runners add
+independent post-resignation fan-out, joined-owner retraction cleanup, and
+Flush Queue/TAR-available/NMR-available delivery boundaries on the same pure
+standard surface.
+The promoted `cpp-tck.timestamped-interaction-regulation-reenable-contract`,
+`cpp-tck.timestamped-interaction-reenable-contract`,
+`cpp-tck.timestamped-directed-interaction-reenable-contract`, and
+`cpp-tck.timestamped-directed-interaction-regulation-reenable-contract` runners
+add ordinary and directed timestamped Time Constrained/Time Regulation
+re-enable boundaries on the same adapter-owned standard surface.
 The promoted `cpp-tck.federation-list-services-contract` and
 `cpp-tck.federate-lookup-lifecycle-contract` runners expose standard federation
 execution/member reports and federate identity lookup boundaries as independently
@@ -568,7 +582,9 @@ The fastest resume command is the bounded dashboard:
 It prints live roadmap and Catch2/mapping counts, source health, snapshot
 freshness, the latest completed slice, one next work handoff, and only the
 first three open-family queue rows. Use `--limit N` for a different preview or
-`--json` for automation. It is read-only and does not reopen or rewrite the
+`--json` for automation. The resume card caps descriptive family prose at 240
+characters and leaves exact `work`, `focus`, `trace`, and `matrix` commands as
+the expansion points. It is read-only and does not reopen or rewrite the
 Requirements Lab.
 
 When the indexed source and planned-row queues are exhausted, the dashboard
@@ -595,8 +611,11 @@ three bounded open-family options with exact `work <family>` commands, while
 requires reopening the unchanged Requirements Lab.
 The default `next --summary`/`next --json` form is a compatibility alias for
 that same `ready` handoff; it no longer reports the completed active pointer as
-new work. Use `next --pointer` only for the explicit historical source-pointer
-view.
+new work. Source-only declarations remain visible through `unplanned` and the
+diagnostic source queue, but they do not displace an indexed 2025 family by
+default. Use `ready --include-source-only` or
+`next --include-source-only` only when deliberately reconciling that queue.
+Use `next --pointer` only for the explicit historical source-pointer view.
 Once a family is selected, `ready --family <id>` keeps the handoff scoped to
 that exact roadmap family, including when its source/planned queues are
 exhausted. This avoids repeating the global shortlist during focused work.
@@ -989,10 +1008,12 @@ signal (use the bounded `git diff --check` hint), not a reason to rescan or
 revise the unchanged Requirements Lab.
 
 When an indexed source lane is exhausted, `work` and `next --pointer` expose
-the global unplanned-source count and deterministic head when one exists. If
-that queue is empty, they expose the overlapping planned-row head with its plan
-id, requirement/section/API counts, and a copyable `trace` command; no full
-queue dump or Requirements-Lab rescan is needed.
+the global unplanned-source count and deterministic head when one exists. The
+default `ready`/`next` implementation handoff does not select that source-only
+head; pass `--include-source-only` when the explicit reconciliation task is
+intended. If that queue is empty, they expose the overlapping planned-row head
+with its plan id, requirement/section/API counts, and a copyable `trace`
+command; no full queue dump or Requirements-Lab rescan is needed.
 
 The Lab is optional for ordinary source work. When a requirement mapping or
 source-path contract changes, start with:
@@ -1061,9 +1082,12 @@ or source-backed slice (or bounded family choices), its lane/test selector,
 canonical 2025 mapping counts, and copyable trace/focus/check handles;
 `next --json` exposes the same bounded object to scripts. Use
 `next --pointer` only for the historical parent-pointer view. Run `check --compact` before a focused build to
-catch stale test/source, requirement, section, or lane handles. Its text output
-prints only a small sample when the checkout has many drift rows; use
-`check --json` for the complete diagnostic. If the selector is an existing
+catch stale test/source, requirement, section, or lane handles. The default
+check validates the live roadmap, plan, requirement, and source index; it
+skips the append-only completion ledger so historical source splits do not
+block current work. Use `check --historical` for the strict ledger audit. Its
+text output prints only a small sample when the checkout has many drift rows;
+use `check --json` for the complete diagnostic. If the selector is an existing
 regression used as the starting point for a new slice, it is labeled
 `baseline_test` and reports `test_pointer=complete`; it is not presented as a
 test to add or rerun. For an architectural slice that still needs its first
@@ -1074,6 +1098,8 @@ do not silently become the work queue. `recent --lane <exact-tag>` narrows the
 completion ledger to one focus lane. `status --compact` and `item --compact`
 keep broad roadmap items bounded by reporting tag/match counts rather than
 expanding every tag.
+The live check also rejects repeated requirement, API, section, or tag
+selectors within one Catch2 plan row, keeping reverse mappings deterministic.
 
 Follow `work` with `focus [<exact-catch2-tag>] --summary --compact` to get a
 bounded lane decision card: implemented cases, source-located executable
@@ -1082,12 +1108,13 @@ copyable Catch2/CTest/JUnit handles. With no tag, `focus` follows the active
 indexed lane. Use `focus --json` for automation; it never triggers a Lab scan.
 
 For an iteration-local integrity gate, add `check --lane <exact-tag>`; it
-limits test/source and recent-slice validation to that lane and reports any
-unlocated historical rows as visible source drift. Historical line-number drift
-within the same source file is tolerated because query output derives the live
-`TEST_CASE` location; missing declarations, wrong-file pointers, and unknown
-sections still fail. The unscoped `check` remains the whole-plan
-reconciliation check.
+limits live test/source validation to that lane. Add `--historical` when the
+lane's completion-ledger rows should be audited too; unlocated historical rows
+then remain visible as source drift. Historical line-number drift within the
+same source file is tolerated because query output derives the live `TEST_CASE`
+location; missing declarations, wrong-file pointers, and unknown sections still
+fail. The unscoped `check` remains the whole-live-plan reconciliation check;
+`check --historical` is the slower append-only ledger audit.
 
 `test "<exact TEST_CASE title>" --summary --compact` is the bounded traceability
 view: it prints the source location, API-surface IDs, service/callback tags,
@@ -1113,6 +1140,7 @@ tests.
     python tools/query_rti_work.py next --json
     python tools/query_rti_work.py check --lane transport --summary --compact
     python tools/query_rti_work.py check --compact
+    python tools/query_rti_work.py check --historical --compact
     python tools/query_rti_work.py item multi-federate-callback-ordering --compact
     python tools/query_rti_work.py plan
     python tools/query_rti_work.py coverage

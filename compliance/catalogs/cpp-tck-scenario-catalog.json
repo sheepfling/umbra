@@ -3608,6 +3608,38 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.object-name-reservation-lifecycle-contract",
+      "category": "object-management",
+      "title": "Exercise the standard object-instance name reservation lifecycle contract",
+      "api_methods": [
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.releaseObjectInstanceName",
+        "RTIambassador.reserveMultipleObjectInstanceNames",
+        "RTIambassador.releaseMultipleObjectInstanceNames",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded",
+        "FederateAmbassador.objectInstanceNameReservationFailed",
+        "FederateAmbassador.multipleObjectInstanceNameReservationSucceeded",
+        "FederateAmbassador.multipleObjectInstanceNameReservationFailed"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-instance-name-lifecycle",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-object-name-reservation-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioObjectNameReservationLifecycleContract",
+      "runner_id": "cpp-tck.object-name-reservation-lifecycle-contract",
+      "parity": "cpp-tck.object-name-reservation-lifecycle",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.object-name-reservation-lifecycle",
       "category": "object-management",
       "title": "Exercise single and multiple object-instance name reservation, release, contention, and resignation cleanup",
@@ -3639,6 +3671,41 @@
       "cpp_test": "src/main.cpp#scenarioObjectNameReservationLifecycle",
       "runner_id": "cpp-tck.object-name-reservation-lifecycle",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.object-registration-discovery-lifecycle-contract",
+      "category": "object-management",
+      "title": "Exercise the standard object registration and discovery lifecycle contract",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-registration-negative-boundaries"
+      ],
+      "contract_refs": [
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioObjectRegistrationDiscoveryLifecycleContract",
+      "runner_id": "cpp-tck.object-registration-discovery-lifecycle-contract",
+      "parity": "cpp-tck.object-registration-discovery-lifecycle",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -5165,6 +5232,43 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-interaction-regulation-reenable-contract",
+      "category": "timestamped-interaction-regulation-reenable",
+      "title": "Exercise the standard timestamped interaction Time Regulation re-enable contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.retract",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction",
+        "cpp-1516.1-timestamped-interaction-receive",
+        "cpp-1516.1-time-regulation-reenable-changed-lookahead",
+        "cpp-1516.1-query-lookahead",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-interaction-regulation-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionRegulationReenableContract",
+      "runner_id": "cpp-tck.timestamped-interaction-regulation-reenable-contract",
+      "parity": "cpp-tck.timestamped-interaction-regulation-reenable",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-interaction-regulation-reenable",
       "category": "timestamped-interaction-regulation-reenable",
       "title": "Preserve a queued timestamped interaction across Time Regulation re-enable with changed lookahead",
@@ -5209,6 +5313,41 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-interaction-reenable-contract",
+      "category": "timestamped-interaction-reenable",
+      "title": "Exercise the standard timestamped interaction Time Constrained re-enable contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.retract",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction",
+        "cpp-1516.1-timestamped-interaction-receive",
+        "cpp-1516.1-timestamped-interaction-reenable",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-interaction-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionReenableContract",
+      "runner_id": "cpp-tck.timestamped-interaction-reenable-contract",
+      "parity": "cpp-tck.timestamped-interaction-reenable",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-interaction-reenable",
       "category": "timestamped-interaction-reenable",
       "title": "Preserve a queued timestamped interaction across Time Constrained disable and re-enable",
@@ -5247,6 +5386,47 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedInteractionReenable",
       "runner_id": "cpp-tck.timestamped-interaction-reenable",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-directed-interaction-reenable-contract",
+      "category": "timestamped-directed-interaction-reenable",
+      "title": "Exercise the standard timestamped directed-interaction Time Constrained re-enable contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.retract",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-directed-interaction-delivery",
+        "cpp-1516.1-directed-interaction-retraction",
+        "cpp-1516.1-timestamped-directed-interaction-reenable",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-directed-interaction-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionReenableContract",
+      "runner_id": "cpp-tck.timestamped-directed-interaction-reenable-contract",
+      "parity": "cpp-tck.timestamped-directed-interaction-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -5295,6 +5475,49 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionReenable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-reenable",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract",
+      "category": "timestamped-directed-interaction-regulation-reenable",
+      "title": "Exercise the standard timestamped directed-interaction Time Regulation re-enable contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.retract",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-directed-interaction-delivery",
+        "cpp-1516.1-directed-interaction-retraction",
+        "cpp-1516.1-time-regulation-reenable-changed-lookahead",
+        "cpp-1516.1-query-lookahead",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-directed-interaction-regulation-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionRegulationReenableContract",
+      "runner_id": "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract",
+      "parity": "cpp-tck.timestamped-directed-interaction-regulation-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -7827,6 +8050,44 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract",
+      "category": "timestamped-object-deletion-source-resignation-fanout",
+      "title": "Standard adapter-backed timestamped object-deletion source-resignation fan-out contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES)",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal",
+        "cpp-1516.1-object-deletion-retraction",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-object-deletion-source-resignation-fanout-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionSourceResignationFanoutContract",
+      "runner_id": "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract",
+      "parity": "cpp-tck.timestamped-object-deletion-source-resignation-fanout",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
       "category": "timestamped-object-deletion-retraction-joined-owners",
       "title": "Reconstitute a timestamped object deletion only for joined owners after owner resignation",
@@ -7891,6 +8152,54 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract",
+      "category": "timestamped-object-deletion-retraction-joined-owners",
+      "title": "Standard adapter-backed timestamped object-deletion joined-owner retraction contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.retract",
+        "RTIambassador.resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance(time)",
+        "FederateAmbassador.requestRetraction",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.attributeIsNotOwned",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal",
+        "cpp-1516.1-object-deletion-retraction",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-object-deletion-retraction-joined-owners-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionJoinedOwnerRetractionContract",
+      "runner_id": "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract",
+      "parity": "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-object-deletion-mixed-advances",
       "category": "timestamped-object-deletion-mixed-advances",
       "title": "Deliver a queued timestamped object deletion before Flush Queue, TARA, and NMRA grants",
@@ -7938,6 +8247,45 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionMixedAdvances",
       "runner_id": "cpp-tck.timestamped-object-deletion-mixed-advances",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-object-deletion-mixed-advances-contract",
+      "category": "timestamped-object-deletion-mixed-advances",
+      "title": "Standard adapter-backed timestamped object-deletion alternate-advance contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.retract",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal",
+        "cpp-1516.1-object-deletion-retraction",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-time-advance-request-available",
+        "cpp-1516.1-next-message-request-available",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-object-deletion-mixed-advances-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionMixedAdvancesContract",
+      "runner_id": "cpp-tck.timestamped-object-deletion-mixed-advances-contract",
+      "parity": "cpp-tck.timestamped-object-deletion-mixed-advances",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

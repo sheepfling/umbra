@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 311 promoted scenarios (622 callback-model
+The verified lane currently runs 320 promoted scenarios (640 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -441,7 +441,10 @@ asynchronous single-name contention, mixed multiple-name success/failure
 callbacks, atomic multiple release, reuse after release, and reservation
 cleanup on resignation under both callback models. Names and the federation
 FOM come from the adapter-owned execution setup; the source uses only the
-official `RTIambassador`/`FederateAmbassador` API.
+official `RTIambassador`/`FederateAmbassador` API. The promoted
+`cpp-tck.object-name-reservation-lifecycle-contract` runner exposes the same
+reservation, release, contention, reuse, callback, and resignation boundaries
+as an independently selectable pure standard contract.
 
 The promoted `cpp-tck.object-registration-discovery-lifecycle` scenario
 isolates hierarchy-aware registration/discovery from the ordinary
@@ -450,7 +453,10 @@ and superclass discovery identities, invalid-class and unpublished
 registration boundaries, evoked callback cancellation, late subscription
 discovery, stable object/class/name lookups, and duplicate-discovery
 suppression. The same source runs under both callback models and uses only the
-official `RTIambassador`/`FederateAmbassador` API.
+official `RTIambassador`/`FederateAmbassador` API. The promoted
+`cpp-tck.object-registration-discovery-lifecycle-contract` runner exposes the
+registration, discovery, lookup, callback-servicing, and lifecycle boundaries
+as an independently selectable pure standard contract.
 
 The promoted `cpp-tck.resign-delete-objects` scenario isolates the standard
 resign-time deletion boundary. It verifies that a federate owning a registered
@@ -1757,11 +1763,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 311 catalog
-entries with `promotion=promoted`, which produces 622 cases with
+configuration. The default `--scenario-set verified` selects the 320 catalog
+entries with `promotion=promoted`, which produces 640 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the complete set is 316 IDs and 632 cases, including
+adapter-required entries; the complete set is 325 IDs and 650 cases, including
 five candidates. The previously recorded candidate-inclusive lane has 405
 passes and five expected skips from the pre-value-contract 410-case matrix: the immediate
 callback-model cases for Willing-to-Acquire continuation, the ownership-
@@ -1780,13 +1786,13 @@ declaration.
 as adapter options and are passed only through the standard `RtiConfiguration`
 API.
 
-The latest local installed-package evidence (2026-09-07) is recorded in
-`.build\cpp-tck-all\verified-evidence-standard-timestamped-object-deletion-contract-boundaries-final.json`:
-CTest passed 620/620 runnable cases, and the direct lane recorded 620 passes plus
+The latest local installed-package evidence (2026-09-08) is recorded in
+`.build\cpp-tck-all\verified-evidence-standard-object-lifecycle-contracts-final.json`:
+CTest passed 638/638 runnable cases, and the direct lane recorded 638 passes plus
 two expected connection-loss skips (one evoked and one immediate). The matching
 native survey is recorded in
-`.build\cpp-tck-all\native-survey-standard-timestamped-object-deletion-contract-boundaries-final.txt`;
-it reports 316 catalog IDs, zero portable candidates, and 244 unmatched native
+`.build\cpp-tck-all\native-survey-standard-object-lifecycle-contracts-final.txt`;
+it reports 325 catalog IDs, zero portable candidates, and 244 unmatched native
 stems. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
@@ -1955,19 +1961,25 @@ source-resignation, Next Message Request, available-time-advance, Query
 GALT/LITS, ordinary attribute-value request/response, timestamped interaction
 delivery, timestamped interaction ordering/fan-out, timestamped attribute
 ordering/fan-out, timestamped attribute advance/re-enable, source-resignation,
-and Time Regulation re-enable contract slices are
+and Time Regulation re-enable contract slices, plus the ordinary and directed
+timestamped interaction re-enable contracts, source-resignation fan-out,
+joined-owner retraction cleanup, and mixed alternate-advance object-deletion
+contracts, and the pure object-name reservation and object registration/discovery
+lifecycle contracts, are
 recorded together in
-`.build\cpp-tck-all\verified-evidence-standard-timestamped-object-deletion-contract-boundaries-final.json`:
-CTest passed 620/620 runnable cases, while the direct lane passed 620 cases, skipped the two
-adapter-managed connection-loss cases, and reported no failures across 311
+`.build\cpp-tck-all\verified-evidence-standard-object-lifecycle-contracts-final.json`:
+CTest passed 638/638 runnable cases, while the direct lane passed 638 cases, skipped the two
+adapter-managed connection-loss cases, and reported no failures across 320
 scenario IDs in both callback models. Each slice uses only the official C++ API
 and standard library while taking the provider package, FOM, endpoint, and
 callback configuration from the adapter.
-The focused base and contract lanes each passed 6/6 callback-model cases and
-are recorded in
-`.build\cpp-tck-all\focused-standard-timestamped-object-deletion-contract-boundaries-base.json`
-and
-`.build\cpp-tck-all\focused-standard-timestamped-object-deletion-contract-boundaries-contracts.json`.
+The focused timestamped re-enable base and contract lanes each passed 8/8
+callback-model cases, and the focused object-lifecycle base and contract lanes
+each passed 4/4 callback-model cases. They are recorded in
+`.build\cpp-tck-all\focused-standard-timestamped-reenable-base.json`,
+`.build\cpp-tck-all\focused-standard-timestamped-reenable-contracts.json`,
+`.build\cpp-tck-all\focused-standard-object-lifecycle-base.json`, and
+`.build\cpp-tck-all\focused-standard-object-lifecycle-contracts.json`.
 The same artifact records the independent pure standard ownership,
 synchronization-point, federation save/restore, callback-servicing,
 timestamped ordinary update/deletion, including no-fanout, tombstone, and

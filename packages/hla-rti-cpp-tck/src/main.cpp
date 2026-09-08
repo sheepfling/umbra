@@ -36968,6 +36968,18 @@ void scenarioObjectAttributeSubscriptionLifecycleContract(
   scenarioObjectAttributeSubscriptionLifecycle(options, model);
 }
 
+void scenarioObjectNameReservationLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectNameReservationLifecycle(options, model);
+}
+
+void scenarioObjectRegistrationDiscoveryLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectRegistrationDiscoveryLifecycle(options, model);
+}
+
 void scenarioLocalDeleteObjectInstanceContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -52793,6 +52805,30 @@ void scenarioTimestampedInteractionRetractionFanoutContract(
   scenarioTimestampedInteractionRetractionFanout(options, model);
 }
 
+void scenarioTimestampedInteractionRegulationReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionRegulationReenable(options, model);
+}
+
+void scenarioTimestampedInteractionReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionReenable(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionReenable(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionRegulationReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionRegulationReenable(options, model);
+}
+
 void scenarioTimestampedAttributeOrderCohortContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -52869,6 +52905,24 @@ void scenarioTimestampedObjectDeletionRegulationReenableContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedObjectDeletionRegulationReenable(options, model);
+}
+
+void scenarioTimestampedObjectDeletionSourceResignationFanoutContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionSourceResignationFanout(options, model);
+}
+
+void scenarioTimestampedObjectDeletionJoinedOwnerRetractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionJoinedOwnerRetraction(options, model);
+}
+
+void scenarioTimestampedObjectDeletionMixedAdvancesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionMixedAdvances(options, model);
 }
 
 void scenarioAlternateTimeAdvancesContract(
@@ -53115,9 +53169,11 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.resign-unconditional-divestiture",
       "cpp-tck.resign-unconditional-divestiture-contract",
       "cpp-tck.object-name-reservation-lifecycle",
+      "cpp-tck.object-name-reservation-lifecycle-contract",
       "cpp-tck.final-federate-resignation-cleanup",
       "cpp-tck.final-federate-resignation-cleanup-contract",
       "cpp-tck.object-registration-discovery-lifecycle",
+      "cpp-tck.object-registration-discovery-lifecycle-contract",
       "cpp-tck.named-registration",
       "cpp-tck.named-registration-contract",
       "cpp-tck.local-delete-object-instance",
@@ -53159,6 +53215,10 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-cross-producer-order-contract",
       "cpp-tck.timestamped-interaction-no-fanout-contract",
       "cpp-tck.timestamped-interaction-retraction-fanout-contract",
+      "cpp-tck.timestamped-interaction-regulation-reenable-contract",
+      "cpp-tck.timestamped-interaction-reenable-contract",
+      "cpp-tck.timestamped-directed-interaction-reenable-contract",
+      "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract",
       "cpp-tck.timestamped-attribute-order-cohort-contract",
       "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract",
       "cpp-tck.timestamped-attribute-update-no-fanout-contract",
@@ -53220,8 +53280,11 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-object-deletion-regulation-reenable",
       "cpp-tck.timestamped-object-deletion-regulation-reenable-contract",
       "cpp-tck.timestamped-object-deletion-source-resignation-fanout",
+      "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract",
       "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
+      "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract",
       "cpp-tck.timestamped-object-deletion-mixed-advances",
+      "cpp-tck.timestamped-object-deletion-mixed-advances-contract",
       "cpp-tck.alternate-time-advances",
       "cpp-tck.timestamped-directed-alternate-advances",
       "cpp-tck.timestamped-directed-alternate-advances-contract",
@@ -53926,6 +53989,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.object-name-reservation-lifecycle") {
     return scenarioObjectNameReservationLifecycle;
   }
+  if (id == "cpp-tck.object-name-reservation-lifecycle-contract") {
+    return scenarioObjectNameReservationLifecycleContract;
+  }
   if (id == "cpp-tck.final-federate-resignation-cleanup") {
     return scenarioFinalFederateResignationCleanup;
   }
@@ -53934,6 +54000,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.object-registration-discovery-lifecycle") {
     return scenarioObjectRegistrationDiscoveryLifecycle;
+  }
+  if (id == "cpp-tck.object-registration-discovery-lifecycle-contract") {
+    return scenarioObjectRegistrationDiscoveryLifecycleContract;
   }
   if (id == "cpp-tck.named-registration") {
     return scenarioNamedRegistration;
@@ -54046,6 +54115,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-interaction-retraction-fanout-contract") {
     return scenarioTimestampedInteractionRetractionFanoutContract;
+  }
+  if (id == "cpp-tck.timestamped-interaction-regulation-reenable-contract") {
+    return scenarioTimestampedInteractionRegulationReenableContract;
+  }
+  if (id == "cpp-tck.timestamped-interaction-reenable-contract") {
+    return scenarioTimestampedInteractionReenableContract;
+  }
+  if (id == "cpp-tck.timestamped-directed-interaction-reenable-contract") {
+    return scenarioTimestampedDirectedInteractionReenableContract;
+  }
+  if (id == "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract") {
+    return scenarioTimestampedDirectedInteractionRegulationReenableContract;
   }
   if (id == "cpp-tck.timestamped-attribute-order-cohort-contract") {
     return scenarioTimestampedAttributeOrderCohortContract;
@@ -54230,11 +54311,20 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-object-deletion-source-resignation-fanout") {
     return scenarioTimestampedObjectDeletionSourceResignationFanout;
   }
+  if (id == "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract") {
+    return scenarioTimestampedObjectDeletionSourceResignationFanoutContract;
+  }
   if (id == "cpp-tck.timestamped-object-deletion-retraction-joined-owners") {
     return scenarioTimestampedObjectDeletionJoinedOwnerRetraction;
   }
+  if (id == "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract") {
+    return scenarioTimestampedObjectDeletionJoinedOwnerRetractionContract;
+  }
   if (id == "cpp-tck.timestamped-object-deletion-mixed-advances") {
     return scenarioTimestampedObjectDeletionMixedAdvances;
+  }
+  if (id == "cpp-tck.timestamped-object-deletion-mixed-advances-contract") {
+    return scenarioTimestampedObjectDeletionMixedAdvancesContract;
   }
   if (id == "cpp-tck.alternate-time-advances") {
     return scenarioAlternateTimeAdvances;
@@ -54834,8 +54924,12 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-retraction-fanout" ||
                   scenario == "cpp-tck.timestamped-interaction-regulation-reenable" ||
                   scenario == "cpp-tck.timestamped-interaction-reenable" ||
+                  scenario == "cpp-tck.timestamped-interaction-regulation-reenable-contract" ||
+                  scenario == "cpp-tck.timestamped-interaction-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-reenable" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-regulation-reenable" ||
+                  scenario == "cpp-tck.timestamped-directed-interaction-reenable-contract" ||
+                  scenario == "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-source-resignation" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-source-resignation-fanout" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-source-resignation-contract" ||
@@ -54911,6 +55005,9 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-object-deletion-no-fanout-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-tombstone-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-regulation-reenable-contract" ||
+                  scenario == "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract" ||
+                  scenario == "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract" ||
+                  scenario == "cpp-tck.timestamped-object-deletion-mixed-advances-contract" ||
                   scenario == "cpp-tck.alternate-time-advances-contract") &&
                  options.logicalTimeImplementationName.empty()) {
         result.status = "skipped";

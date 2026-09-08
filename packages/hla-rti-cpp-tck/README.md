@@ -112,9 +112,11 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.resign-unconditional-divestiture` | Unconditional resign-time divestiture of the value and delete-privilege attributes, ownership-assumption delivery, surviving-federate acquisition, and acquisition metadata |
 | `cpp-tck.resign-unconditional-divestiture-contract` | Standard adapter-backed resign-time unconditional-divestiture contract for ownership transfer, acquisition, metadata, and cleanup |
 | `cpp-tck.object-name-reservation-lifecycle` | Single and multiple object-name reservation and release, standard name validation, asynchronous contention results, atomic mixed-set release, reuse after release, and resignation cleanup |
+| `cpp-tck.object-name-reservation-lifecycle-contract` | Standard adapter-backed object-instance name reservation lifecycle contract for single and multiple reservation/release, contention, reuse, callbacks, and resignation cleanup |
 | `cpp-tck.final-federate-resignation-cleanup` | Final-federate `NO_ACTION` resignation cleanup, object-name release, rejoin, reservation success, and named-registration reuse |
 | `cpp-tck.final-federate-resignation-cleanup-contract` | Standard adapter-backed final-federate resignation cleanup contract for name release, rejoin, and named-registration reuse |
 | `cpp-tck.object-registration-discovery-lifecycle` | Rich-FOM hierarchy-aware registration/discovery, exact and superclass subscription identity, evoked callback cancellation, late subscription discovery, stable identity lookup, and duplicate-discovery suppression |
+| `cpp-tck.object-registration-discovery-lifecycle-contract` | Standard adapter-backed object registration/discovery contract for declaration, registration, discovery, class/name/instance lookups, callback servicing, and lifecycle boundaries |
 | `cpp-tck.named-registration` | Standard object-name reservation/release, multiple-name reservation, named registration, discovery and identity lookup, reservation contention, failed-registration reuse, and callback-model parity |
 | `cpp-tck.named-registration-contract` | Standard adapter-backed named object-registration contract for reservation/release and reuse, multiple-name lifecycle, discovery and identity lookup, contention, and invalid-name boundaries |
 | `cpp-tck.object-attribute-subscription-lifecycle-contract` | Standard adapter-backed ordinary object-attribute subscription lifecycle for passive/active discovery, reflection, downgrade/reactivation, unsubscription, and stable identity lookups |
@@ -153,7 +155,11 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-interaction-retraction-fanout` | Delivered timestamped interaction copies produce Request Retraction callbacks while still-queued fan-out copies are suppressed, including post-resignation immediate delivery |
 | `cpp-tck.timestamped-interaction-retraction-fanout-contract` | Standard adapter-backed timestamped interaction delivered/queued retraction fan-out contract with recipient cleanup |
 | `cpp-tck.timestamped-interaction-regulation-reenable` | Queued timestamped interaction survives Time Regulation disable/re-enable with changed lookahead, including Query Lookahead, grant ordering, metadata, and retraction |
+| `cpp-tck.timestamped-interaction-regulation-reenable-contract` | Standard adapter-backed timestamped interaction Time Regulation re-enable contract for changed lookahead, grant ordering, metadata, and retraction |
+| `cpp-tck.timestamped-interaction-reenable-contract` | Standard adapter-backed timestamped interaction Time Constrained re-enable contract for queued delivery, grant ordering, metadata, and retraction |
+| `cpp-tck.timestamped-directed-interaction-reenable-contract` | Standard adapter-backed timestamped directed-interaction Time Constrained re-enable contract for target routing, grant ordering, metadata, and retraction |
 | `cpp-tck.timestamped-directed-interaction-regulation-reenable` | Queued timestamped directed interaction survives Time Regulation disable/re-enable with changed lookahead, including target routing, Query Lookahead, grant ordering, metadata, and terminal retraction |
+| `cpp-tck.timestamped-directed-interaction-regulation-reenable-contract` | Standard adapter-backed timestamped directed-interaction Time Regulation re-enable contract for target routing, changed lookahead, grant ordering, metadata, and retraction |
 | `cpp-tck.timestamped-directed-interaction-source-resignation` | A queued timestamped directed interaction remains deliverable after producer resignation, preserving target, parameter, tag, producer, time/order, transport, and retraction metadata before the recipient TAR grant |
 | `cpp-tck.timestamped-directed-interaction-source-resignation-fanout` | One queued timestamped directed interaction is delivered independently to two constrained recipients after producer resignation, preserving target, payload, producer, time/order, transport, retraction, and each recipient's TAR frontier |
 | `cpp-tck.timestamped-directed-interaction-source-resignation-contract` | Standard adapter-backed queued timestamped directed-interaction source-resignation contract covering target routing, post-resignation delivery, metadata, and retraction boundaries |
@@ -200,6 +206,9 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-object-deletion-no-fanout-contract` | Standard adapter-backed no-recipient timestamped object-deletion contract for exact-boundary retraction, name/identity restoration, ownership restoration, and no retraction fan-out |
 | `cpp-tck.timestamped-object-deletion-tombstone-contract` | Standard adapter-backed timestamped object-deletion tombstone contract for terminal deletion, non-retractability, named registration reuse, and identity boundaries |
 | `cpp-tck.timestamped-object-deletion-regulation-reenable-contract` | Standard adapter-backed timestamped object-deletion Time Regulation re-enable contract for changed lookahead, removal-before-grant ordering, metadata, identity cleanup, and terminal retraction |
+| `cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract` | Standard adapter-backed timestamped object-deletion source-resignation fan-out contract for independent recipient grants, removal metadata, and retraction boundaries |
+| `cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract` | Standard adapter-backed timestamped object-deletion joined-owner retraction contract for ownership cleanup, departed-recipient suppression, identity restoration, and retraction boundaries |
+| `cpp-tck.timestamped-object-deletion-mixed-advances-contract` | Standard adapter-backed timestamped object-deletion contract for Flush Queue, Time Advance Request Available, and Next Message Request Available delivery paths |
 | `cpp-tck.timestamped-local-delete-object` | Local deletion suppresses one recipient's queued timestamped Remove Object Instance callback while an independent constrained recipient receives the original removal and grant |
 | `cpp-tck.timestamped-local-delete-attribute` | Local deletion suppresses one recipient's queued timestamped attribute reflection, while re-subscription restores discovery and a later update reaches both recipients |
 | `cpp-tck.timestamped-object-deletion-no-fanout` | Timestamped object deletion at the exact lookahead boundary is non-retractable, while a no-recipient deletion can be retracted to restore object-name lookup and local attribute ownership without Request Retraction fan-out |
@@ -793,9 +802,9 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 311 scenario IDs and 622 matrix cases. Run the later adapter-required
+    that is 320 scenario IDs and 640 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
-     complete set is 316 IDs and 632 matrix cases, including five candidates. The
+     complete set is 325 IDs and 650 matrix cases, including five candidates. The
   previously recorded candidate-inclusive adapter-owned lane contains 405 passes
   and five expected skips from the pre-value-contract 410-case matrix: the
   immediate callback-model cases for Willing-to-Acquire continuation, the
@@ -1006,6 +1015,18 @@ ownership/name restoration, terminal deletion tombstones and named
 re-registration, and Time Regulation re-enable with changed lookahead. They
 use only the official C++ API and standard library while taking provider, FOM,
 endpoint, callback, and logical-time configuration from the adapter. The
+promoted `cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract`,
+`cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract`, and
+`cpp-tck.timestamped-object-deletion-mixed-advances-contract` runners add
+independent post-resignation fan-out, joined-owner retraction cleanup, and
+Flush Queue/TAR-available/NMR-available delivery boundaries on the same pure
+standard surface. The
+promoted `cpp-tck.timestamped-interaction-regulation-reenable-contract`,
+`cpp-tck.timestamped-interaction-reenable-contract`,
+`cpp-tck.timestamped-directed-interaction-reenable-contract`, and
+`cpp-tck.timestamped-directed-interaction-regulation-reenable-contract` runners
+add ordinary and directed timestamped Time Constrained/Time Regulation
+re-enable boundaries with the same adapter-owned configuration. The
 promoted `cpp-tck.support-services-contract`,
 `cpp-tck.transport-order-contract`, and
 `cpp-tck.relevance-advisories-contract` runners similarly expose the standard
