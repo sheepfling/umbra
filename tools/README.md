@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 337 promoted scenario IDs (674 callback-model cases).
-`--scenario-set all` configures all 347 available IDs (694 cases), including
+The verified lane is 338 promoted scenario IDs (676 callback-model cases).
+`--scenario-set all` configures all 348 available IDs (696 cases), including
 ten candidates. The candidate-inclusive evidence figures below were recorded
 before the two ownership contract twins were promoted and cover the prior
 344-ID, 688-case catalog. With `--connection-loss-fixture <path>`, the Python adapter
@@ -183,10 +183,17 @@ The promoted `cpp-tck.region-lifecycle-contract` runner adds the independently
 selectable standard region and dimension lifecycle contract. Its focused
 base-and-contract lane passed 4/4 callback-model cases; the latest promoted
 aggregate is recorded in
-`.build/cpp-tck-all/verified-evidence-region-lifecycle-contract.json` and
-passed 672/672 ordinary CTest cases, with 672 direct passes and only the two
+`.build/cpp-tck-all/verified-evidence-regional-unpublish-region-release-contract.json` and
+passed 674/674 ordinary CTest cases, with 674 direct passes and only the two
 expected adapter-managed connection-loss skips. The strict catalog validator
 reported `valid=true`.
+The promoted `cpp-tck.regional-unpublish-region-release-contract` runner adds
+the independently selectable standard regional publication and region-release
+dependency contract. Its focused base-and-contract lane passed 4/4
+callback-model cases; the promoted aggregate above records the contract under
+both callback models against the installed package. The source uses only
+official IEEE C++ headers and the standard library; the provider, dimensional
+FOM, endpoint, callback, and logical-time configuration remain adapter-owned.
 The two ownership candidate contract twins recorded 4 passes and 4 explicit
 immediate-model skips in their focused eight-case lane; they remain candidates
 until an all-model verification fixture is available.

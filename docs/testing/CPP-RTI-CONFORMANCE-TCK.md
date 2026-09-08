@@ -602,10 +602,17 @@ queries, region-qualified service boundaries, and deletion. The source uses
 only official IEEE C++ headers and the standard library; the provider,
 dimensional FOM, endpoint, callback, and logical-time configuration remain
 adapter-owned.
-Its focused base-and-contract lane passed 4/4 callback-model cases, and the
-catalog-wide promoted gate passed 672/672 CTest cases with 672 direct passes
-and only the two expected adapter-managed connection-loss skips in
-`.build\cpp-tck-all\verified-evidence-region-lifecycle-contract.json`.
+Its focused base-and-contract lane passed 4/4 callback-model cases. The
+promoted `cpp-tck.regional-unpublish-region-release-contract` runner adds the
+standard regional publication and region-release dependency boundary as an
+independently selectable pure C++ contract. Together, the focused base-and-
+contract lane passed 4/4 callback-model cases, and the catalog-wide promoted
+gate passed 674/674 CTest cases with 674 direct passes and only the two
+expected adapter-managed connection-loss skips in
+`.build\cpp-tck-all\verified-evidence-regional-unpublish-region-release-contract.json`.
+Both sources use only official IEEE C++ headers and the standard library; the
+provider, FOM, endpoint, callback, and logical-time configuration remain
+adapter-owned.
 
 The promoted `cpp-tck.regional-multi-attribute-update` scenario uses a
 separate adapter-supplied two-dimensional FOM containing two attributes on one
@@ -1858,11 +1865,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 337 catalog
-entries with `promotion=promoted`, which produces 674 cases with
+configuration. The default `--scenario-set verified` selects the 338 catalog
+entries with `promotion=promoted`, which produces 676 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 347 IDs and 694 cases,
+adapter-required entries; the current catalog contains 348 IDs and 696 cases,
 including ten candidates. The candidate-inclusive evidence figures below were
 recorded before the two ownership contract twins were promoted and therefore
 cover the prior 344-ID, 688-case catalog. The no-fixture candidate-inclusive

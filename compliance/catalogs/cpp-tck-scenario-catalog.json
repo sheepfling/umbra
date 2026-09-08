@@ -10777,6 +10777,33 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-unpublish-region-release-contract",
+      "category": "regional-publication",
+      "title": "Exercise the standard regional publication and region-release dependency contract",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.getDimensionHandleSet"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-region-lifecycle"
+      ],
+      "contract_refs": [
+        "standard-regional-unpublish-region-release-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalUnpublishRegionReleaseContract",
+      "runner_id": "cpp-tck.regional-unpublish-region-release-contract",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-object-update",
       "category": "regional-object-management",
       "title": "Register, discover, request, update, reassociate, and filter regional object attributes",

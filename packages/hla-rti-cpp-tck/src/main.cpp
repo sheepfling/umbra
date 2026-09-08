@@ -39916,6 +39916,12 @@ void scenarioRegionalUnpublishRegionRelease(Options const& options, rti::Callbac
   owner.disconnect();
 }
 
+void scenarioRegionalUnpublishRegionReleaseContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalUnpublishRegionRelease(options, model);
+}
+
 void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "owner");
   Session overlap(options, model, "member");
@@ -53449,6 +53455,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.region-lifecycle",
       "cpp-tck.region-lifecycle-contract",
       "cpp-tck.regional-unpublish-region-release",
+      "cpp-tck.regional-unpublish-region-release-contract",
       "cpp-tck.regional-object-update",
       "cpp-tck.regional-attribute-value-update-response-recheck",
       "cpp-tck.regional-attribute-value-request-filtering",
@@ -54559,6 +54566,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-unpublish-region-release") {
     return scenarioRegionalUnpublishRegionRelease;
   }
+  if (id == "cpp-tck.regional-unpublish-region-release-contract") {
+    return scenarioRegionalUnpublishRegionReleaseContract;
+  }
   if (id == "cpp-tck.regional-object-update") return scenarioRegionalObjectUpdate;
   if (id == "cpp-tck.regional-attribute-value-update-response-recheck") {
     return scenarioRegionalAttributeValueUpdateResponseRecheck;
@@ -55097,6 +55107,7 @@ int run(Options const& options) {
       } else if (scenario == "cpp-tck.region-lifecycle" ||
                  scenario == "cpp-tck.region-lifecycle-contract" ||
                  scenario == "cpp-tck.regional-unpublish-region-release" ||
+                 scenario == "cpp-tck.regional-unpublish-region-release-contract" ||
                  scenario == "cpp-tck.regional-object-update" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering" ||

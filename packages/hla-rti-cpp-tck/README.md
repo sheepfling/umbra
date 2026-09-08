@@ -248,6 +248,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.region-lifecycle` | Pre-connect and pre-join region and region-qualified service boundaries, including timestamped regional send, two-dimensional region creation, dimension metadata and bounds, commit/query, and invalid/in-use/delete boundaries |
 | `cpp-tck.region-lifecycle-contract` | Standard adapter-backed region and dimension lifecycle contract for region-qualified service boundaries, metadata and bounds, range commit/query, validation, and deletion |
 | `cpp-tck.regional-unpublish-region-release` | Region-qualified object registration keeps a region in use until unpublishing the associated attribute releases it synchronously |
+| `cpp-tck.regional-unpublish-region-release-contract` | Standard adapter-backed regional publication and region-release dependency contract, including synchronous region deletion after unpublication |
 | `cpp-tck.regional-object-update` | Region-qualified publication/subscription, named registration, regional discovery and Update/Reflect, regional value requests, and region association changes |
 | `cpp-tck.regional-attribute-value-request-filtering` | Regional Request Attribute Value Update filtering across foreign, incompatible, uncommitted, empty, disjoint, overlapping, and callback-time moved regions |
 | `cpp-tck.regional-attribute-value-update-response-recheck` | Rechecks current regional overlap when a provider's attribute-value response is reflected, then verifies restored-overlap value, tag, transport, and producer metadata |
