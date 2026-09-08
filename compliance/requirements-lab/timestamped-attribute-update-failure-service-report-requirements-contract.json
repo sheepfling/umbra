@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "portable-standard-api-traceability",
+  "notes": "This contract records the portable timestamped UpdateAttributeValues failure-report matrix. It verifies standard HLAreportServiceInvocation delivery, typed supplied and returned arguments including the optional timestamp, exception identity, serial progression, logical-time lookahead validation, and application-callback suppression without provider-specific headers or registry access.",
+  "requirements": [
+    {
+      "id": "portable-timestamped-attribute-update-failure-service-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioServiceReportTimestampedAttributeUpdateFailure",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp#scenarioServiceReportTimestampedAttributeUpdateFailure"
+      ],
+      "notes": "The scenario enables time regulation using the adapter-selected logical-time factory, then drives unknown-object, undefined-attribute, and invalid-logical-time timestamped UpdateAttributeValues calls through the official C++ API. Both callback models decode all seven standard report parameters, verify the four standard supplied-argument records including the Optional timestamp record and Null returned argument, match exception names and serials zero through two, and prove no ordinary attribute reflection is delivered. Provider configuration and FOM/MIM paths are supplied by the adapter."
+    }
+  ]
+}

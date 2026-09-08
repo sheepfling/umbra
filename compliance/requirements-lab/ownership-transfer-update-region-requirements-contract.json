@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
       ]
     },
     {
@@ -22,7 +22,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
       ]
     },
     {
@@ -32,7 +32,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::clearUpdateRegionAssociation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
       ]
     },
     {
@@ -52,7 +52,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
       ]
     }
   ]

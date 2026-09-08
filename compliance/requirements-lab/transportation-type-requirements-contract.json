@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract traces only the mandatory IEEE 1516.1-2025 transportation-type lookup pair in Umbra's opt-in, non-installable development profile. The focused native case verifies HLAreliable and HLAbestEffort handles and names across connection, membership, invalid-input, and teardown boundaries. Declared custom transportation composition/delivery, transportation-type changes, service-reporting, remote transport, packaging, validation, protected review, and conformance remain separate.",
+  "requirements": [
+    {
+      "id": "umbra-transportation-type-handle-lookup",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-256-l152-37",
+      "clause_id": "clause-10.19",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getTransportationTypeHandle",
+      "tests": [
+        "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution"
+      ]
+    },
+    {
+      "id": "umbra-transportation-type-name-lookup",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-257-l108-25",
+      "clause_id": "clause-10.20.4",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::getTransportationTypeName",
+      "tests": [
+        "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution"
+      ]
+    }
+  ]
+}

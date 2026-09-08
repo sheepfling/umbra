@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for a queued timestamped directed interaction whose producing federate resigns before delivery. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the C++ standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies standard target-object routing, timestamped delivery, source-resignation queue retention, the post-resignation retraction boundary, and one directed receive callback with preserved target, payload, tag, producer, timestamp, order, transport, and retraction metadata before the recipient grant. DDM, provider-specific names, registries, headers, and implementation behavior remain outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-directed-interaction-source-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped directed-interaction, object-target, resignation, retraction, and time-advance services with FederateAmbassador directed receive and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped directed source-resignation declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedDirectedInteractionSourceResignationContract"
+      ]
+    }
+  ]
+}

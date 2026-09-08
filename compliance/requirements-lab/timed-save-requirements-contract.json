@@ -171,9 +171,9 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtTimeAdvanceBoundary",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
+        "cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
+        "cpp/tests/timed_restore_live_tso_default_region_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary",
+        "cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
       ],
       "notes": "The timed-save boundary cases retain timestamp-eight default-source attribute and interaction passels plus a target-qualified directed passel while both members cross a timestamp-six save boundary. Restore and FQR delivery are traced with the restore-control, default-region, and directed-interaction contracts; RL-141 records the Lab cross-service relation gap. These are not durable or general timed-restore evidence."
     }

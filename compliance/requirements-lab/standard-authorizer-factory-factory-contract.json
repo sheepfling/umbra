@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 HLAauthorizerFactoryFactory surface. It verifies standard-authorizer selection, factory and authorizer naming, authorizer creation, and rejection of an unsupported implementation name. It is an API contract check only and does not claim provider-specific authorization policy.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-authorizer-factory-factory",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "HLAauthorizerFactoryFactory selection and standard AuthorizerFactory/Authorizer creation",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 HLAauthorizerFactoryFactory declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardAuthorizerFactoryFactoryContract"
+      ]
+    }
+  ]
+}

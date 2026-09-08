@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 standard order and transportation lookup services. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies lifecycle admission, mandatory Receive and TimeStamp orders, mandatory reliable and best-effort transportation types, cross-federate handle stability, round trips, invalid-name and invalid-handle errors, and standard cleanup without asserting provider-specific behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-order-and-transportation-lookups",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador order and transportation type lookup, name round-trip, lifecycle admission, invalid-input, federation membership, and cleanup services",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador order and transportation declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioStandardOrderAndTransportationLookupsContract"
+      ]
+    }
+  ]
+}

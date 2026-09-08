@@ -15,7 +15,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceScopeChanges",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     },
@@ -29,7 +29,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceScopeChanges",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     },
@@ -43,7 +43,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAttributeScopeAdvisorySwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
@@ -58,7 +58,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAttributeScopeAdvisorySwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
@@ -73,7 +73,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     },
@@ -87,7 +87,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     },
@@ -101,7 +101,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     },
@@ -115,7 +115,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
+        "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     }

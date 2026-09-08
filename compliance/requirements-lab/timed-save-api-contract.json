@@ -25,9 +25,9 @@
       "source_symbol": "UmbraRtiAmbassador::requestFederationSave",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary",
+        "cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
+        "cpp/tests/timed_restore_live_tso_default_region_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary",
+        "cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",

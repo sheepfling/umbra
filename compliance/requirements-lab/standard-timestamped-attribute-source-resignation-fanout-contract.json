@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for preserving a queued timestamped ordinary attribute update for each constrained recipient after its source resigns. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies per-recipient reflection and grant ordering, value and timestamp metadata, and terminal retraction behavior without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-attribute-source-resignation-fanout",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped UpdateAttributeValues, unconditional-divest resignation, retraction, and FederateAmbassador discovery, reflection, time-role, and grant callbacks for multiple recipients",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped attribute, resignation, retraction, and time-management declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedAttributeSourceResignationFanoutContract"
+      ]
+    }
+  ]
+}

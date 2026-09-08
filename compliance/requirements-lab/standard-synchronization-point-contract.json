@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 federation synchronization-point surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies global and explicit-set registration, registration-result callbacks, announcement tags, late-join announcement, achievement success/failure, completion, duplicate-label and invalid-member failures, and pre-connect/pre-join service boundaries without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-synchronization-points",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador synchronization-point registration and achievement services with FederateAmbassador registration, announcement, and federation-synchronized callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador synchronization-point declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioSynchronizationPointContract"
+      ]
+    }
+  ]
+}

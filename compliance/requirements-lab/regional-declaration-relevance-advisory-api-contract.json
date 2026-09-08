@@ -15,6 +15,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
@@ -28,6 +29,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
@@ -41,6 +43,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
@@ -54,6 +57,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     }

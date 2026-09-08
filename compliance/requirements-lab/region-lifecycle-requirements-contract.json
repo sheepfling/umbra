@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::createRegion",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
@@ -26,7 +26,7 @@
       "source_symbol": "EmbeddedFederationRegistry::commitRegionModifications",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
@@ -49,7 +49,7 @@
       "source_symbol": "EmbeddedFederationRegistry::deleteRegion",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
       ]
     },
     {
@@ -95,7 +95,7 @@
       "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]

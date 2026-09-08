@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK Auto Provide FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-09-04</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 C++ conformance tests</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This FOM contains the adapter-supplied object declarations required by the portable Auto Provide callback slice.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckAutoProvideObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <attribute>
+                    <name>ProviderAValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable Auto Provide callback attribute.</semantics>
+                </attribute>
+                <attribute>
+                    <name>ProviderBValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable Auto Provide callback attribute.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <switches>
+        <autoProvide isEnabled="true"/>
+    </switches>
+</objectModel>

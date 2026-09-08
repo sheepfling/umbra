@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::attributeOwnedByFederate",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Is Attribute Owned By Federate reads 2025 ownership state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_modify_attribute_state_without_callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
       ]
@@ -26,7 +26,7 @@
       "source_symbol": "UmbraRtiAmbassador::isAttributeOwnedByFederate",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Is Attribute Owned By Federate reads 2025 ownership state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_modify_attribute_state_without_callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
       ]

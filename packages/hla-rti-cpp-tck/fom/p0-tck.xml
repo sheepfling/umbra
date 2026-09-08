@@ -12,7 +12,7 @@
         <releaseRestriction>NA</releaseRestriction>
         <purpose>Portable IEEE 1516.1-2025 C++ conformance tests</purpose>
         <applicationDomain>Conformance testing</applicationDomain>
-        <description>This FOM contains the ordinary object, interaction, and DivestAcquire attribute declarations required by the portable TCK slice.</description>
+        <description>This FOM contains the ordinary object, interaction, directed-interaction, transportation, order, and relevance-advisory declarations required by the portable TCK slice.</description>
     </modelIdentification>
     <objects>
         <objectClass>
@@ -21,6 +21,34 @@
             <objectClass>
                 <name>TckObject</name>
                 <sharing>PublishSubscribe</sharing>
+                <directedInteraction>
+                    <name>HLAinteractionRoot.TckInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                </directedInteraction>
+                <attribute>
+                    <name>Name</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable object-class relevance advisory attribute.</semantics>
+                </attribute>
+                <attribute>
+                    <name>PayRate</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable attribute relevance advisory attribute.</semantics>
+                </attribute>
                 <attribute>
                     <name>Value</name>
                     <dataType>HLAbyte</dataType>
@@ -53,4 +81,20 @@
             </interactionClass>
         </interactionClass>
     </interactions>
+    <switches>
+        <autoProvide isEnabled="false"/>
+        <attributeRelevanceAdvisory isEnabled="true"/>
+        <objectClassRelevanceAdvisory isEnabled="true"/>
+        <interactionRelevanceAdvisory isEnabled="true"/>
+        <nonRegulatedGrant isEnabled="false"/>
+        <allowRelaxedDDM isEnabled="false"/>
+        <advisoriesUseKnownClass isEnabled="false"/>
+    </switches>
+    <updateRates>
+        <updateRate>
+            <name>High</name>
+            <rate>1.0</rate>
+            <semantics>Portable update-rate designator for relevance advisories.</semantics>
+        </updateRate>
+    </updateRates>
 </objectModel>

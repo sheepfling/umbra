@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for timestamped ordinary object deletion when no recipient is eligible. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies the exact lookahead retraction boundary, no-recipient retraction, object-name and local-ownership restoration, and standard lifecycle cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-object-deletion-no-fanout",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped DeleteObjectInstance, Retract, object identity, ownership, and federation lifecycle declarations with FederateAmbassador time-role callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped object-deletion, retraction, lookup, ownership, and lifecycle declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedObjectDeletionNoFanoutContract"
+      ]
+    }
+  ]
+}

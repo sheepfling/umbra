@@ -29,7 +29,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update filters 2025 owner solicitations",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a 2025 provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
+        "cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Provide Attribute Value Update reports before callback delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_request_response"
       ]
@@ -49,7 +49,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update filters 2025 owner solicitations",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a 2025 provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
+        "cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Provide Attribute Value Update reports before callback delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_request_response"
       ]
@@ -74,7 +74,7 @@
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a 2025 provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
+        "cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_request_response"
       ]
     },
@@ -91,7 +91,7 @@
       "source_symbol": "queueReceiveOrderAttributeUpdate",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a 2025 provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
+        "cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_request_response"
       ]
     }

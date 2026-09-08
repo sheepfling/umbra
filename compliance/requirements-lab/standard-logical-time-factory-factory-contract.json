@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 logical-time factory-factory surface. It verifies standard default and HLAinteger64Time selection, forwarding through the reference time factory, unknown-name rejection, and construction of the standard initial value without asserting provider-specific configuration, endpoint, FOM, or federation service behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-logical-time-factory-factory",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory and LogicalTimeFactoryFactory::makeLogicalTimeFactory",
+      "source": "third_party/ieee1516.1-2025/include/RTI/time and RTI/libfedtime",
+      "source_symbol": "IEEE 1516.1 logical-time factory-factory declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardLogicalTimeFactoryFactoryContract"
+      ]
+    }
+  ]
+}

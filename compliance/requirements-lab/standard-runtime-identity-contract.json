@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 RTI runtime identity functions. It verifies that rtiName and rtiVersion are callable, non-empty, and stable within a process while intentionally leaving provider-specific identity strings unconstrained.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-runtime-identity",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "rtiName and rtiVersion runtime identity functions",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTI1516 declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardRuntimeIdentityContract"
+      ]
+    }
+  ]
+}

@@ -15,6 +15,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAvailableDimensionsForObjectClass",
       "tests": [
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
@@ -29,6 +30,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAvailableDimensionsForInteractionClass",
       "tests": [
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
@@ -43,6 +45,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionHandle",
       "tests": [
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting suppresses accepted services while the reporting switch is disabled"
@@ -58,6 +61,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionName",
       "tests": [
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
@@ -72,6 +76,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionUpperBound",
       "tests": [
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]

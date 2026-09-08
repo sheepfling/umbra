@@ -24,7 +24,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderDirectedInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
@@ -38,7 +38,7 @@
       "source_symbol": "receiveOrderDirectedInteractionRecipientFor",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation"
@@ -61,8 +61,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
+        "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
+        "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
       ]
     },
@@ -74,11 +74,11 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
+        "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
+        "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
@@ -93,11 +93,11 @@
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
+        "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
+        "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
@@ -132,7 +132,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
+        "cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
       ],
       "notes": "The bounded timed image captures a timestamp-eight target-qualified Send Directed Interaction while both members cross a timestamp-six save boundary, then restores the live directed recipient ledger and payload for Flush Queue delivery before post-delivery Request Retraction. It is a focused timed directed-interaction companion and does not claim durable or general timed restore, alternate advance modes, changed membership/ownership, transport, package/JUnit/protected-review evidence, or conformance; RL-141 records the missing cross-service save-boundary relation."
     },
@@ -144,11 +144,11 @@
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
+        "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
+        "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback"
@@ -161,7 +161,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup"
+        "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup"
       ]
     },
     {
@@ -256,7 +256,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderDirectedInteractionRecipientFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup"
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup"
       ]
     },
     {
@@ -323,7 +323,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
       ],
       "notes": "This entry keeps the two standard alternate-advance families queryable together: a direct pre-save directed interaction baseline and the public fresh-registry companion. Both require the Receive Directed Interaction callback to precede the applicable FQR, TARA, or NMRA grant at the inclusive timestamp frontier; broader mixed fanout, resignation, and directed-DDM combinations remain separate."

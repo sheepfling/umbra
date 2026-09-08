@@ -20,7 +20,7 @@
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
       ]

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 DataElement base surface. It verifies dynamic clone/type identity, encoded length and octet boundary, hash stability, complete append encoding, direct decode, and offset decode. It is an API contract check only and does not claim provider behavior or cross-RTI interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-data-element-base",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "DataElement clone, type, encoding, boundary, hash, and decode operations",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 DataElement declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardDataElementContract"
+      ]
+    }
+  ]
+}

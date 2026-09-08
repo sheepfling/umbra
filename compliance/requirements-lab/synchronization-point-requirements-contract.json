@@ -75,7 +75,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::announcePendingSynchronizationPoints",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
       ]
     },
     {
@@ -101,7 +102,8 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
       ]
     }
   ]

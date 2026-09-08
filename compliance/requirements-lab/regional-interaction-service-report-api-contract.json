@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the official C++ API surfaces exercised by the bounded accepted ordinary regional Send Interaction With Regions filesystem and MOM-interaction regressions. The paired cases keep report-before-callback ordering and source-region conveyance in focused HLA_EVOKED/HLA_IMMEDIATE slices; failure, timestamped, transport, and conformance evidence remain separate.",
+  "api_surfaces": [
+    {
+      "id": "umbra-embedded-regional-send-interaction-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteractionwithregions.dc826d06f8e1",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void sendInteractionWithRegions( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, RegionHandleSet const & regions, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ]
+    },
+    {
+      "id": "umbra-embedded-service-reporting-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setServiceReportingSwitch(bool switchValue) = 0",
+      "exception_types": [
+        "ReportServiceInvocationsAreSubscribed",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setServiceReportingSwitch",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ]
+    },
+    {
+      "id": "umbra-embedded-send-service-reports-to-file-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setSendServiceReportsToFileSwitch(bool switchValue) = 0",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setSendServiceReportsToFileSwitch",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback"
+      ]
+    },
+    {
+      "id": "umbra-embedded-regional-interaction-subscription",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions, bool active = true) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ]
+    },
+    {
+      "id": "umbra-embedded-convey-region-designator-sets-switch",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setconveyregiondesignatorsetsswitch.7f6cdda9211b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setConveyRegionDesignatorSetsSwitch(bool switchValue) = 0",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setConveyRegionDesignatorSetsSwitch",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ]
+    },
+    {
+      "id": "umbra-embedded-regional-receive-interaction-callback",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, const RegionHandleSet * optionalSentRegions) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueReceiveOrderInteraction",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ]
+    }
+  ]
+}

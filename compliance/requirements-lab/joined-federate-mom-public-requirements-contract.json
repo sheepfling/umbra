@@ -56,7 +56,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM HLAfederateState follows save and restore callbacks"
+        "cpp/tests/joined_federate_mom_federate_state_save_restore_catch2.cpp::Embedded joined-federate MOM HLAfederateState follows save and restore callbacks"
       ],
       "notes": "This is a bounded projection of the MIM HLAfederateState enumeration, driven by the embedded save/restore operation ledgers and reflected after Initiate/Federation Saved and Federation Restore Begun/Initiate/Federation Restored callback boundaries in both callback models. During save initiation the event-only MOM planner suppresses the state reflect at the saving federate itself while retaining direct Request Attribute Value Update access to the current value; observer reflections remain reliable and RTI-originated. It is not a claim that every conditional HLAfederate attribute, producer mapping, or conformance obligation is complete."
     },
@@ -372,7 +372,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesUpdatedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts",
+        "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesUpdated as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesUpdated response with HLAobjectClassBasedCounts. This bounded native-first slice consumes the request without ordinary publication validation, snapshots the target joined-federate update ledger by registered object class, encodes the official nested HLAvariableArray<HLAfixedRecord> value, and routes the reliable report through the target HLAfederate dimension point. The focused case proves two classes with one distinct object each after repeated updates, an empty user tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, class grouping, nested encoding, or the RTI producer route; RL-109 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
     },
@@ -383,7 +384,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesThatCanBeDeletedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts",
+        "cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesThatCanBeDeleted as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesThatCanBeDeleted response with HLAobjectClassBasedCounts. This bounded native-first slice derives live class-grouped counts from the authoritative HLAprivilegeToDeleteObject ownership ledger, encodes the official nested value, and routes a reliable report through the target HLAfederate dimension point. The focused case proves two registered classes initially report one deletable instance each, then deleting one instance removes only that class from the next report; the report has an empty tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, live ownership semantics, class grouping, nested encoding, or the RTI producer route; RL-110 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
     },
@@ -394,7 +396,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesReflectedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances",
+        "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesReflected as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesReflected response with HLAobjectClassBasedCounts. This bounded native-first slice derives joined-lifetime distinct reflected-instance counts from the accepted application Reflect Attribute Values callback ledger, groups them by registered object class, encodes the official nested value, and routes a reliable report through the target HLAfederate dimension point. The focused case proves two classes after two initial reflections plus a repeated reflection of one object, empty tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, callback-boundary ownership, distinct-object semantics, class grouping, nested encoding, or the RTI producer route; RL-111 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
     },
@@ -452,7 +455,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstanceInformationReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state",
+        "cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstanceInformation as a Subscribe-only MOM request carrying HLAobjectInstance and requires one RTI-originated HLAreportObjectInstanceInformation response. This bounded native-first slice snapshots the requesting joined federate's object knowledge at the request boundary, emits the requested HLAobjectInstance plus an official nested HLAattributeHandleList, and includes HLAregisteredClass/HLAknownClass only when the represented federate knows the object. The focused case proves the NULL response for an object removed from the observer's known-object ledger, the known response with no owned attributes, and the registering federate's response containing both Efficiency and the implicitly published HLAprivilegeToDeleteObject ownership. Reports use reliable transport, the target federate's private dimension point, empty tags, default-invalid RTI producers, and callback-gated delivery. The generic Lab candidate does not express request-object correlation, known-vs-NULL parameter omission, nested attribute-handle-list encoding, ownership/class snapshot semantics, private endpoint, or producer route; RL-119 records that refinement gap. Other MOM request/report families, remote transport, JUnit/protected review, and conformance remain open."
     },

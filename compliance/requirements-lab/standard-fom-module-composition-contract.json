@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard FOM module composition. The source uses only the standard C++ RTIambassador APIs and standard library; the adapter supplies the provider package, base and additional FOM modules, endpoint, and callback configuration. It verifies create-time module composition, join-time additional modules, declaration visibility, and stable handles across members without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-module-composition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador create/join FOM-module composition and declaration lookup declarations",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador FOM-module composition declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomModuleCompositionContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK three-dimensional DDM FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-09-04</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 three-dimensional DDM conformance tests</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This FOM supplies one object class with an attribute mapped across three dimensions.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckThreeDimensionalObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                    <dimension>TckDimensionY</dimension>
+                    <dimension>TckDimensionZ</dimension>
+                </dimensions>
+                <attribute>
+                    <name>Value</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable three-dimensional regional object attribute.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <dimensions>
+        <dimension>
+            <name>TckDimensionX</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable X coordinate.</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Portable X normalization.</normalization>
+            <outputDataSemantics>Portable X coordinate.</outputDataSemantics>
+            <value>[0..100)</value>
+        </dimension>
+        <dimension>
+            <name>TckDimensionY</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable Y coordinate.</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Portable Y normalization.</normalization>
+            <outputDataSemantics>Portable Y coordinate.</outputDataSemantics>
+            <value>[0..100)</value>
+        </dimension>
+        <dimension>
+            <name>TckDimensionZ</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable Z coordinate.</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Portable Z normalization.</normalization>
+            <outputDataSemantics>Portable Z coordinate.</outputDataSemantics>
+            <value>[0..100)</value>
+        </dimension>
+    </dimensions>
+</objectModel>

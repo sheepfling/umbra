@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 local object-instance deletion surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies pre-connect and pre-join service boundaries, ownership and pending-acquisition protection, successful local deletion from a fresh requester, rediscovery and stable identity lookups, continued ordinary attribute reflection, and standard resignation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-local-delete-object-instance",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador local object-instance deletion, object publication/subscription, ownership acquisition, update, lookup, and resignation services with FederateAmbassador discovery and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador local-delete-object-instance declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioLocalDeleteObjectInstanceContract"
+      ]
+    }
+  ]
+}

@@ -146,7 +146,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules saved pending time advances for multiple constrained members",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores route-free control and temporal state in a fresh registry",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
+        "cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry restores subscription-generation allocation with declaration state",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry",
@@ -395,7 +395,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary"
+        "cpp/tests/timed_restore_live_tso_default_region_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary"
       ],
       "notes": "The bounded timed image captures a timestamp-eight default-source Send Interaction while both members cross a timestamp-six save boundary, then restores the live recipient ledger and payload for Flush Queue delivery before post-delivery Request Retraction. It is a focused timed interaction companion and does not claim durable or general timed restore, alternate advance modes, changed membership/ownership, transport, package/JUnit/protected-review evidence, or conformance; RL-141 records the missing cross-service save-boundary relation."
     },
@@ -406,7 +406,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
+        "cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
       ],
       "notes": "The bounded timed image captures a timestamp-eight target-qualified Send Directed Interaction while both members cross a timestamp-six save boundary, then restores the live directed recipient ledger and payload for Flush Queue delivery before post-delivery Request Retraction. It is a focused timed directed-interaction companion and does not claim durable or general timed restore, alternate advance modes, changed membership/ownership, transport, package/JUnit/protected-review evidence, or conformance; RL-141 records the missing cross-service save-boundary relation."
     },

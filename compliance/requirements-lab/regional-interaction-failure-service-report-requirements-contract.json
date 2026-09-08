@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-traceability-not-conformance-evidence",
+  "notes": "This contract records the bounded ordinary regional Send Interaction With Regions failure-file evidence against the 2025 service-reporting requirement. The Requirements Lab candidate is cross-cutting and ends mid-sentence (RL-105); it does not model a row-level conditional failure/backend relation (RL-152).",
+  "requirements": [
+    {
+      "id": "umbra-regional-interaction-failure-service-report-file",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
+        "cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction"
+      ],
+      "notes": "The standalone C++ HLA_EVOKED matrix configures a real joined-federate filesystem report route, disables both switches during setup, then records invalid interaction-class, parameter, and region Send Interaction With Regions invocations after re-enablement. It verifies serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, Table 5 type-34 Null returned arguments, false indicators, exact public exception text, and no application callback. It remains non-installable development-profile traceability; public MOM interaction routing, accepted regional delivery, timestamped/re-enable/save/restore, remote transport, JUnit/protected review, Lab validation, and conformance are separate lanes."
+    },
+    {
+      "id": "umbra-regional-interaction-failure-service-report-mom-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction"
+      ],
+      "notes": "The standalone HLA_IMMEDIATE observer decodes the failed ordinary regional Send Interaction With Regions reports through HLAreportServiceInvocation after the publisher enables service reporting and keeps file reporting disabled. It verifies serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, the Table 5 type-34 Null returned argument, false indicators, exact public exception text, and no application Receive Interaction callback. The Lab candidate is cross-cutting and the conditional failure/backend relation is not modeled (RL-105/RL-152), so this remains development-profile interaction evidence rather than validation or conformance."
+    }
+  ]
+}

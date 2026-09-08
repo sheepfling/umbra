@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 connection and callback-control surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, endpoint, callback configuration, and optional standard RtiConfiguration inputs. It verifies all four connect overloads, unsupported callback-model rejection, pre-connect service boundaries, duplicate-connect rejection, callback enable/disable controls, empty-queue callback servicing, disconnect, and reconnect without asserting provider-specific names, registries, headers, or FOM behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-connection-callback",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador connect, disconnect, callback controls, and FederateAmbassador callback model",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador connection and callback declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioConnectionCallbackContract"
+      ]
+    }
+  ]
+}

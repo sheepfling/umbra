@@ -27,7 +27,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
+        "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members",
@@ -40,7 +40,11 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances",
+        "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
+        "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
+        "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates"
       ]
     },
     {
@@ -57,7 +61,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
+        "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members",
@@ -70,7 +74,11 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded accepted timestamped attribute update survives ownership transfer before constrained grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances",
+        "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
+        "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
+        "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates"
       ]
     },
     {
@@ -94,7 +102,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
+        "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members",

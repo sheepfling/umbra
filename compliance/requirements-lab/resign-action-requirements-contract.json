@@ -32,7 +32,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:153"
       ]
     },
     {
@@ -51,7 +52,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:153"
       ]
     },
     {

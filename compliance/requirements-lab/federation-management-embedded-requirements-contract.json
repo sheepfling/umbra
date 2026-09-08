@@ -91,7 +91,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation MOM exposes and refreshes HLAcurrentFDD"
+        "cpp/tests/federation_mom_current_fdd_catch2.cpp::Embedded federation MOM exposes and refreshes HLAcurrentFDD"
       ],
       "notes": "The federation-scoped HLAcurrentFDD MOM attribute is exposed as the official HLAunicodeString encoding of the materialized, schema-validated current FDD. A compatible additional-FOM Join updates the same RTI-owned HLAfederation object through a reliable conditional reflection, and a direct Request Attribute Value Update returns the refreshed value. The native case verifies default-invalid RTI producer metadata, no sent regions, and an empty tag. This remains development-profile traceability only; remote transport, the complete module/FDD access matrix, JUnit/protected review, and conformance remain open."
     },

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for a queued timestamped ordinary object deletion across Time Regulation disable and re-enable with a changed lookahead. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies Query Lookahead, removal-before-grant ordering, object identity cleanup, removal metadata, and terminal retraction without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-object-deletion-regulation-reenable",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped DeleteObjectInstance with DisableTimeRegulation/EnableTimeRegulation, Query Lookahead, and FederateAmbassador timestamped removal, time-role, and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped object-deletion/time-regulation declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedObjectDeletionRegulationReenableContract"
+      ]
+    }
+  ]
+}

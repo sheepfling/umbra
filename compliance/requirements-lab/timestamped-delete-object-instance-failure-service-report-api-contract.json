@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "portable-standard-api-traceability",
+  "notes": "This contract records the official C++ RTIambassador, logical-time, and FederateAmbassador surfaces exercised by the portable timestamped DeleteObjectInstance failure-report scenario. Provider selection, FOM composition, endpoint configuration, and callback delivery remain adapter-owned.",
+  "api_surfaces": [
+    {
+      "id": "portable-timestamped-delete-object-instance-failure-service-report",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual MessageRetractionHandle deleteObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, LogicalTime const & time) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "DeletePrivilegeNotHeld",
+        "InvalidLogicalTime",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioServiceReportTimestampedDeleteObjectInstanceFailure",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailure"
+      ]
+    },
+    {
+      "id": "portable-timestamped-delete-object-instance-time-regulation",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void enableTimeRegulation( LogicalTimeInterval const & lookahead) = 0; virtual std::unique_ptr<LogicalTimeFactory> getTimeFactory() const = 0",
+      "exception_types": [
+        "InvalidLookahead",
+        "TimeRegulationAlreadyEnabled",
+        "TimeAdvanceAlreadyInProgress",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioServiceReportTimestampedDeleteObjectInstanceFailure",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailure"
+      ]
+    },
+    {
+      "id": "portable-timestamped-delete-object-instance-failure-removal-callback",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void removeObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, FederateHandle const & producingFederate, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioServiceReportTimestampedDeleteObjectInstanceFailure",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailure"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 directed-interaction target lifecycle. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies object-class and directed-interaction lookup, publication, universal subscription, target registration and discovery, targeted delivery metadata, callback-model subscription removal and restoration, source publication removal and restoration, target deletion and removal cleanup, and standard federation lifecycle without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-directed-interaction-target-lifecycle",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object-class publication, universal directed-interaction subscription, targeted send, target deletion, unsubscription, unpublication, resignation, and disconnect services with FederateAmbassador discovery, receiveDirectedInteraction, and removeObjectInstance callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador directed-interaction target lifecycle declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioDirectedInteractionTargetLifecycleContract"
+      ]
+    }
+  ]
+}

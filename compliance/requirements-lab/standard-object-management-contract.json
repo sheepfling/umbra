@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 ordinary object-management surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies object registration and discovery, ordinary and multiple object-name reservation, named registration, identity lookups, attribute-value update requests and responses, local deletion, remote deletion, and pre-connect/pre-join negative boundaries without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-object-management",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object registration, name reservation, value-request, and deletion services with FederateAmbassador object callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador object-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioObjectManagementContract"
+      ]
+    }
+  ]
+}

@@ -33,7 +33,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-class subscription arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
       ]
     },
     {
@@ -113,7 +113,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
       ]
     },
     {
@@ -140,7 +140,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-class subscription arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
       ]
     }
   ]

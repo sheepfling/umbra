@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for a successful ReserveObjectInstanceName service report. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, and callback configuration. It verifies the standard HLAreportServiceInvocation payload and name-reservation callback without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-reserve-object-instance-name",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador service-reporting controls and ReserveObjectInstanceName with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador service-report and object-name declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportReserveObjectInstanceNameContract"
+      ]
+    }
+  ]
+}

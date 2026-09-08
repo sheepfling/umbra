@@ -55,7 +55,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_advance_callback_timing_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
@@ -73,7 +73,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
       ]
     },
     {
@@ -86,7 +87,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_advance_callback_timing_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
@@ -117,7 +118,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_advance_callback_timing_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",

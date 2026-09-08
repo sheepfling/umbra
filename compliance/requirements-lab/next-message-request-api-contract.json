@@ -20,7 +20,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules saved pending TARA, NMR, and NMRA requests",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
       ]
     }
   ]

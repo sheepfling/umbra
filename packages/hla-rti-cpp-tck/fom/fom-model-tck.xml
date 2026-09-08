@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK FOM model</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-09-02</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 FOM model and data-type conformance tests</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This module exercises standard FOM metadata, class inheritance, declarations, dimensions, transports, update rates, tags, switches, and data-type references.</description>
+        <useLimitation>NA</useLimitation>
+        <useHistory>Portable TCK validation.</useHistory>
+        <keyword>
+            <taxonomy>Portable TCK</taxonomy>
+            <keywordValue>FOM</keywordValue>
+        </keyword>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckTypedObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <directedInteraction>
+                    <name>HLAinteractionRoot.TckTypedInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                </directedInteraction>
+                <dimensions>
+                    <dimension>TckDimension</dimension>
+                </dimensions>
+                <attribute>
+                    <name>Identity</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Stable object identity used by the reference data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>IntegerValue</name>
+                    <dataType>TckInteger32</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Signed 32-bit simple data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>FloatValue</name>
+                    <dataType>TckFloat64</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>IEEE 754 64-bit simple data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>AsciiValue</name>
+                    <dataType>TckAscii</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When requested.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>ASCII string simple data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>UnicodeValue</name>
+                    <dataType>TckUnicode</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When requested.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Unicode string simple data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>EnumValue</name>
+                    <dataType>TckState</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When state changes.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Enumerated data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>FixedArrayValue</name>
+                    <dataType>TckFixedByteArray</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When changed.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Fixed array data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>VariableArrayValue</name>
+                    <dataType>TckVariableByteArray</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When changed.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Variable array data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>RecordValue</name>
+                    <dataType>TckRecord</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When changed.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Fixed record data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>ChoiceValue</name>
+                    <dataType>TckChoice</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When changed.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Variant record data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>ReferenceValue</name>
+                    <dataType>TckObjectReference</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When changed.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Reference data type.</semantics>
+                </attribute>
+                <attribute>
+                    <name>OpaqueValue</name>
+                    <dataType>TckOpaque</dataType>
+                    <updateType>Periodic</updateType>
+                    <updateCondition>At the configured update rate.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Opaque data type using the reliable transport.</semantics>
+                </attribute>
+                <objectClass>
+                    <name>TckTypedDerivedObject</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <attribute>
+                        <name>DerivedValue</name>
+                        <dataType>TckInteger32</dataType>
+                        <updateType>Static</updateType>
+                        <updateCondition>At registration.</updateCondition>
+                        <valueRequired>false</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Derived-class attribute.</semantics>
+                    </attribute>
+                </objectClass>
+            </objectClass>
+            <objectClass>
+                <name>TckTransportRegionalObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                    <dimension>TckDimensionY</dimension>
+                </dimensions>
+                <attribute>
+                    <name>RegionalValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>TckBestEffort</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable timestamped regional custom-transport attribute.</semantics>
+                </attribute>
+            </objectClass>
+            <objectClass>
+                <name>TckRateObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <attribute>
+                    <name>ReliableValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When changed.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Reliable value for update-rate reduction comparisons.</semantics>
+                </attribute>
+                <attribute>
+                    <name>BestEffortValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>When changed.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAbestEffort</transportation>
+                    <order>Receive</order>
+                    <semantics>Best-effort value subject to an active update-rate designator.</semantics>
+                </attribute>
+            </objectClass>
+            <objectClass>
+                <name>TckPublishOnlyObject</name>
+                <sharing>Publish</sharing>
+                <attribute>
+                    <name>PublishedValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>Publish</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Publication-only declaration.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <interactionClass>
+                <name>TckTypedInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimension</dimension>
+                </dimensions>
+                <transportation>TckBestEffort</transportation>
+                <order>Receive</order>
+                <semantics>Interaction carrying representative data types.</semantics>
+                <parameter>
+                    <name>IntegerParameter</name>
+                    <dataType>TckInteger32</dataType>
+                    <semantics>Signed 32-bit parameter.</semantics>
+                </parameter>
+                <parameter>
+                    <name>AsciiParameter</name>
+                    <dataType>TckAscii</dataType>
+                    <semantics>ASCII parameter.</semantics>
+                </parameter>
+                <parameter>
+                    <name>FixedArrayParameter</name>
+                    <dataType>TckFixedByteArray</dataType>
+                    <semantics>Fixed array parameter.</semantics>
+                </parameter>
+                <parameter>
+                    <name>RecordParameter</name>
+                    <dataType>TckRecord</dataType>
+                    <semantics>Fixed record parameter.</semantics>
+                </parameter>
+                <parameter>
+                    <name>ChoiceParameter</name>
+                    <dataType>TckChoice</dataType>
+                    <semantics>Variant record parameter.</semantics>
+                </parameter>
+                <interactionClass>
+                    <name>TckTypedDerivedInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <parameter>
+                        <name>DerivedParameter</name>
+                        <dataType>TckUnicode</dataType>
+                        <semantics>Derived-interaction parameter.</semantics>
+                    </parameter>
+                </interactionClass>
+            </interactionClass>
+            <interactionClass>
+                <name>TckTransportRegionalInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                    <dimension>TckDimensionY</dimension>
+                </dimensions>
+                <transportation>TckBestEffort</transportation>
+                <order>Receive</order>
+                <semantics>Portable regional custom-transport metadata companion.</semantics>
+                <parameter>
+                    <name>RegionalPayload</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Portable regional custom-transport parameter.</semantics>
+                </parameter>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+    <dimensions>
+        <dimension>
+            <name>TckDimension</name>
+            <inputDataTypes>
+                <dataType>TckInteger32</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Signed integer range selector.</inputDataDescription>
+            <upperBound>64</upperBound>
+            <normalization>linear (TckInteger32, 0, 64)</normalization>
+            <outputDataSemantics>Portable dimension fixture.</outputDataSemantics>
+            <value>[0..64)</value>
+        </dimension>
+        <dimension>
+            <name>TckDimensionX</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable X coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Portable X normalization.</normalization>
+            <outputDataSemantics>Portable X coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+        <dimension>
+            <name>TckDimensionY</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable Y coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Portable Y normalization.</normalization>
+            <outputDataSemantics>Portable Y coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+    </dimensions>
+    <time>
+        <logicalTime>
+            <dataType>HLAinteger64Time</dataType>
+            <semantics>Integer logical time for the portable model.</semantics>
+        </logicalTime>
+        <logicalTimeInterval>
+            <dataType>HLAinteger64Time</dataType>
+            <semantics>Integer logical interval for the portable model.</semantics>
+        </logicalTimeInterval>
+    </time>
+    <tags>
+        <updateReflectTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Tag for attribute updates and reflections.</semantics>
+        </updateReflectTag>
+        <sendReceiveTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Tag for interactions and deliveries.</semantics>
+        </sendReceiveTag>
+        <deleteRemoveTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Tag for object deletion and removal.</semantics>
+        </deleteRemoveTag>
+        <divestitureRequestTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Tag for ownership requests.</semantics>
+        </divestitureRequestTag>
+        <divestitureCompletionTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Tag for ownership completion.</semantics>
+        </divestitureCompletionTag>
+        <acquisitionRequestTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Tag for ownership acquisition.</semantics>
+        </acquisitionRequestTag>
+        <requestUpdateTag>
+            <dataType>HLAASCIIstring</dataType>
+            <semantics>Tag for value requests.</semantics>
+        </requestUpdateTag>
+    </tags>
+    <synchronizations>
+        <synchronizationPoint>
+            <label>TckReady</label>
+            <dataType>HLAASCIIstring</dataType>
+            <capability>Achieve</capability>
+            <semantics>Portable synchronization fixture.</semantics>
+        </synchronizationPoint>
+    </synchronizations>
+    <transportations>
+        <transportation>
+            <name>TckBestEffort</name>
+            <reliable>No</reliable>
+            <semantics>Custom best-effort transport used by the model.</semantics>
+        </transportation>
+    </transportations>
+    <switches>
+        <autoProvide isEnabled="false"/>
+        <attributeRelevanceAdvisory isEnabled="false"/>
+        <objectClassRelevanceAdvisory isEnabled="false"/>
+        <interactionRelevanceAdvisory isEnabled="false"/>
+        <delaySubscriptionEvaluation isEnabled="false"/>
+        <nonRegulatedGrant isEnabled="false"/>
+        <allowRelaxedDDM isEnabled="false"/>
+        <advisoriesUseKnownClass isEnabled="false"/>
+    </switches>
+    <updateRates>
+        <updateRate>
+            <name>TckFast</name>
+            <rate>25.0</rate>
+            <semantics>Portable update-rate lookup fixture.</semantics>
+        </updateRate>
+        <updateRate>
+            <name>TckSlow</name>
+            <rate>0.5</rate>
+            <semantics>Second portable update-rate lookup fixture.</semantics>
+        </updateRate>
+    </updateRates>
+    <dataTypes>
+        <simpleDataTypes>
+            <simpleData>
+                <name>TckInteger32</name>
+                <representation>HLAinteger32BE</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Signed 32-bit integer.</semantics>
+            </simpleData>
+            <simpleData>
+                <name>TckFloat64</name>
+                <representation>HLAfloat64BE</representation>
+                <units>NA</units>
+                <resolution>0.001</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>64-bit floating point value.</semantics>
+            </simpleData>
+            <simpleData>
+                <name>TckAscii</name>
+                <representation>HLAASCIIstring</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>ASCII text value.</semantics>
+            </simpleData>
+            <simpleData>
+                <name>TckUnicode</name>
+                <representation>HLAunicodeString</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Unicode text value.</semantics>
+            </simpleData>
+            <simpleData>
+                <name>TckOpaque</name>
+                <representation>HLAopaqueData</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Opaque byte sequence.</semantics>
+            </simpleData>
+        </simpleDataTypes>
+        <referenceDataTypes>
+            <referenceDataType>
+                <name>TckObjectReference</name>
+                <representation>HLAASCIIstring</representation>
+                <referenceClass>HLAobjectRoot.TckTypedObject</referenceClass>
+                <referencedAttribute>Identity</referencedAttribute>
+                <semantics>Reference to the identity attribute of a typed object.</semantics>
+            </referenceDataType>
+        </referenceDataTypes>
+        <enumeratedDataTypes>
+            <enumeratedData>
+                <name>TckState</name>
+                <representation>HLAinteger32BE</representation>
+                <semantics>Small state enumeration.</semantics>
+                <enumerator>
+                    <name>Ready</name>
+                    <value>0</value>
+                </enumerator>
+                <enumerator>
+                    <name>Busy</name>
+                    <value>1</value>
+                </enumerator>
+                <enumerator>
+                    <name>Done</name>
+                    <value>2</value>
+                </enumerator>
+            </enumeratedData>
+        </enumeratedDataTypes>
+        <arrayDataTypes>
+            <arrayData>
+                <name>TckFixedByteArray</name>
+                <dataType>HLAbyte</dataType>
+                <cardinality>3</cardinality>
+                <encoding>HLAfixedArray</encoding>
+                <semantics>Three byte fixed array.</semantics>
+            </arrayData>
+            <arrayData>
+                <name>TckVariableByteArray</name>
+                <dataType>HLAbyte</dataType>
+                <cardinality>Dynamic</cardinality>
+                <encoding>HLAvariableArray</encoding>
+                <semantics>Dynamic byte array.</semantics>
+            </arrayData>
+        </arrayDataTypes>
+        <fixedRecordDataTypes>
+            <fixedRecordData>
+                <name>TckRecord</name>
+                <encoding>HLAfixedRecord</encoding>
+                <semantics>Integer and boolean fixed record.</semantics>
+                <field>
+                    <name>Count</name>
+                    <dataType>TckInteger32</dataType>
+                    <semantics>Record count.</semantics>
+                </field>
+                <field>
+                    <name>Enabled</name>
+                    <dataType>HLAboolean</dataType>
+                    <semantics>Record state.</semantics>
+                </field>
+            </fixedRecordData>
+        </fixedRecordDataTypes>
+        <variantRecordDataTypes>
+            <variantRecordData>
+                <name>TckChoice</name>
+                <discriminant>State</discriminant>
+                <dataType>TckState</dataType>
+                <alternative>
+                    <enumerator>Ready</enumerator>
+                    <name>Count</name>
+                    <dataType>TckInteger32</dataType>
+                    <semantics>Ready count.</semantics>
+                </alternative>
+                <alternative>
+                    <enumerator>Busy</enumerator>
+                    <name>Message</name>
+                    <dataType>TckAscii</dataType>
+                    <semantics>Busy message.</semantics>
+                </alternative>
+                <alternative>
+                    <enumerator>HLAother</enumerator>
+                    <name>Opaque</name>
+                    <dataType>TckOpaque</dataType>
+                    <semantics>Fallback payload.</semantics>
+                </alternative>
+                <encoding>HLAvariantRecord</encoding>
+                <semantics>Representative variant record.</semantics>
+            </variantRecordData>
+        </variantRecordDataTypes>
+    </dataTypes>
+</objectModel>

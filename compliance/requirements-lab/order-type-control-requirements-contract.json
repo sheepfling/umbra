@@ -12,6 +12,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order"
       ]
     },
@@ -22,9 +23,12 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeAttributeOrderType",
       "tests": [
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
+        "cpp/tests/timestamped_attribute_update_alternate_advance_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances",
+        "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
+        "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor"
       ]
     },
     {
@@ -34,7 +38,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+        "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
       ]
     },
     {
@@ -44,7 +49,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginConfirmDivestiture",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
+        "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
       ]
     },
     {
@@ -54,10 +60,12 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeDefaultAttributeOrderType",
       "tests": [
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
+        "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup"
       ]
     },
     {
@@ -67,10 +75,12 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeDefaultAttributeOrderType",
       "tests": [
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
+        "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup"
       ]
     },
     {
@@ -80,9 +90,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup"
       ]
     },
     {
@@ -92,6 +104,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::interactionOrderType",
       "tests": [
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order"
       ]
     },
@@ -102,6 +115,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeInteractionOrderType",
       "tests": [
+        "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Interaction Order Type arguments"
       ]

@@ -20,6 +20,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getInteractionClassHandle",
       "tests": [
+        "cpp/tests/interaction_class_lookup_catch2.cpp::Embedded interaction-class lookup services use stable handles from the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction-class lookup services use stable handles from the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers interaction-class and parameter lookup return arguments through MOM interaction"
       ]
@@ -39,6 +40,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getInteractionClassName",
       "tests": [
+        "cpp/tests/interaction_class_lookup_catch2.cpp::Embedded interaction-class lookup services use stable handles from the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction-class lookup services use stable handles from the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers interaction-class and parameter lookup return arguments through MOM interaction"
       ]

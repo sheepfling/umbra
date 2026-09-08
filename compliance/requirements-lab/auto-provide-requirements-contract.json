@@ -12,8 +12,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
+        "cpp/tests/auto_provide_baseline_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
+        "cpp/tests/auto_provide_service_report_file_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
@@ -29,8 +29,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
+        "cpp/tests/auto_provide_baseline_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
+        "cpp/tests/auto_provide_service_report_file_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
@@ -60,8 +60,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeValueUpdateProvide",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
+        "cpp/tests/auto_provide_baseline_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
+        "cpp/tests/auto_provide_service_report_file_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide preserves a queued timestamped response across switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"

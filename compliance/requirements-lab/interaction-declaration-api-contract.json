@@ -66,7 +66,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions"
+        "cpp/tests/mom_service_reporting_interlock_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions"
       ]
     },
     {

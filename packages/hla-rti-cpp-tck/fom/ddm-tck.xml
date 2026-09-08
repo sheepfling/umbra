@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK DDM FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-09-04</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 data distribution management conformance tests</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This FOM contains generic two-dimensional object and interaction declarations for portable DDM tests.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <directedInteraction>
+                    <name>HLAinteractionRoot.TckInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                </directedInteraction>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                    <dimension>TckDimensionY</dimension>
+                </dimensions>
+                <attribute>
+                    <name>Value</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable regional object attribute.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <interactionClass>
+                <name>TckInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                    <dimension>TckDimensionY</dimension>
+                </dimensions>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <parameter>
+                    <name>Payload</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Portable regional interaction parameter.</semantics>
+                </parameter>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+    <dimensions>
+        <dimension>
+            <name>TckDimensionX</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable X coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Portable X normalization.</normalization>
+            <outputDataSemantics>Portable X coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+        <dimension>
+            <name>TckDimensionY</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable Y coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Portable Y normalization.</normalization>
+            <outputDataSemantics>Portable Y coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+    </dimensions>
+    <switches>
+        <autoProvide isEnabled="false"/>
+        <attributeRelevanceAdvisory isEnabled="false"/>
+        <objectClassRelevanceAdvisory isEnabled="false"/>
+        <interactionRelevanceAdvisory isEnabled="false"/>
+        <delaySubscriptionEvaluation isEnabled="false"/>
+        <nonRegulatedGrant isEnabled="false"/>
+        <allowRelaxedDDM isEnabled="false"/>
+        <advisoriesUseKnownClass isEnabled="false"/>
+    </switches>
+</objectModel>

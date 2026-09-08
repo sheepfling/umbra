@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins the official C++ surfaces used by the bounded changed-lookahead timestamped regional-interaction re-enable slice. A producer queues one overlap-qualified Send Interaction With Regions while regulating with lookahead one, moves the live source region out of overlap, disables regulation, re-enables it with lookahead three, verifies Query Lookahead, and advances to release the queued Receive Interaction before the constrained recipient's grant. The queued source-region snapshot, callback metadata, and retraction classification are preserved. This is development-profile evidence only; it does not claim relaxed DDM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, validation, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "tck-changed-lookahead-send-interaction-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteractionwithregions.1f6b7ed34513",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual MessageRetractionHandle sendInteractionWithRegions( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, RegionHandleSet const & regions, VariableLengthData const & userSuppliedTag, LogicalTime const & time) = 0",
+      "exception_types": ["InvalidLogicalTime", "InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "InteractionClassNotPublished", "InteractionParameterNotDefined", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-subscribe-interaction-class-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions, bool active = true) = 0",
+      "exception_types": ["InteractionClassNotDefined", "InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-create-region",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual RegionHandle createRegion( DimensionHandleSet const & dimensions) = 0",
+      "exception_types": ["InvalidDimensionHandle", "InvalidDimensionContext", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::createRegion",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-set-range-bounds",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setRangeBounds( RegionHandle const & region, DimensionHandle const & dimension, RangeBounds const & bounds) = 0",
+      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "InvalidDimensionHandle", "InvalidRange", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-commit-region-modifications",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void commitRegionModifications( RegionHandleSet const & regions) = 0",
+      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::commitRegionModifications",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-convey-region-designators",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setconveyregiondesignatorsetsswitch.7f6cdda9211b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void setConveyRegionDesignatorSetsSwitch( bool conveyRegionDesignatorSets) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::setConveyRegionDesignatorSetsSwitch",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-unsubscribe-interaction-class-with-regions",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeinteractionclasswithregions.3754796e79b3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions) = 0",
+      "exception_types": ["InteractionClassNotDefined", "InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-delete-region",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.deleteregion.6470d9fe34cf",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void deleteRegion( RegionHandle const & region) = 0",
+      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "RegionInUse", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::deleteRegion",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-enable-time-regulation",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void enableTimeRegulation( LogicalTimeInterval const & lookahead) = 0",
+      "exception_types": ["InvalidLookahead", "InTimeAdvancingState", "RequestForTimeRegulationPending", "TimeRegulationAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-disable-time-regulation",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void disableTimeRegulation() = 0",
+      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::disableTimeRegulation",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-query-lookahead",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.querylookahead.dd011292fd42",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void queryLookahead( LogicalTimeInterval & interval) = 0",
+      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::queryLookahead",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-enable-time-constrained",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void enableTimeConstrained() = 0",
+      "exception_types": ["InTimeAdvancingState", "RequestForTimeConstrainedPending", "TimeConstrainedAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-time-advance-request",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void timeAdvanceRequest( LogicalTime const & time) = 0",
+      "exception_types": ["LogicalTimeAlreadyPassed", "InvalidLogicalTime", "InTimeAdvancingState", "RequestForTimeRegulationPending", "RequestForTimeConstrainedPending", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-retract",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.retract.d2de2342935e",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void retract( MessageRetractionHandle const & handle) = 0",
+      "exception_types": ["InvalidMessageRetractionHandle", "MessageCanNoLongerBeRetracted", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::retract",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-receive-interaction",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "recipient.receiveInteraction",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-time-regulation-enabled",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.timeregulationenabled.ff68bfc39f00",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void timeRegulationEnabled( LogicalTime const & time) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "timeRegulationEnabled",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    },
+    {
+      "id": "tck-changed-lookahead-time-advance-grant",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void timeAdvanceGrant( LogicalTime const & time) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "timeAdvanceGrant",
+      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+    }
+  ]
+}

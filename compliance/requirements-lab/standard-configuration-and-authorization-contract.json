@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 configuration, federation-record, credential, authorization, and local Authorizer polymorphism value types. It verifies builder/accessor behavior, copy and assignment independence, credential storage and decoding, authorization results, and public authorizer/factory dispatch. It is an API contract check only and does not claim provider behavior or cross-RTI interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-configuration-and-authorization-values",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RtiConfiguration, ConfigurationResult, federation/restore information, Credentials, AuthorizationResult, Authorizer, and AuthorizerFactory",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 standard configuration and authorization declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardConfigurationAndAuthorizationContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "document_id": "hla-1516.1-2025",
+  "status": "portable-tck-standard-contract",
+  "notes": "This contract defines the portable C++ TCK boundary for timestamped attribute update-rate reduction. The case uses only official RTIambassador publication, active named/default subscription, update-rate query, timestamped update, time-advance, and retraction services plus the corresponding FederateAmbassador callbacks. FOM contents, logical-time implementation, endpoint, provider library, callback model, and declaration names are adapter inputs.",
+  "api_surfaces": [
+    {
+      "id": "portable-cpp-tck-timestamped-update-rate-publication",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "publishObjectClassAttributes(ObjectClassHandle const&, AttributeHandleSet const&)",
+      "standard_boundary": "IEEE 1516.1 RTIambassador object-management declaration"
+    },
+    {
+      "id": "portable-cpp-tck-timestamped-update-rate-subscription",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "subscribeObjectClassAttributes(ObjectClassHandle const&, AttributeHandleSet const&, bool, std::wstring const&)",
+      "standard_boundary": "IEEE 1516.1 RTIambassador active subscription and update-rate designator overload"
+    },
+    {
+      "id": "portable-cpp-tck-timestamped-update-rate-delivery",
+      "owner": "RTIambassador/FederateAmbassador",
+      "language": "cpp",
+      "signature": "updateAttributeValues(..., LogicalTime const&) / reflectAttributeValues(..., LogicalTime const&, ...)",
+      "standard_boundary": "IEEE 1516.1 timestamped object update and reflection callback"
+    },
+    {
+      "id": "portable-cpp-tck-timestamped-update-rate-queries",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "getUpdateRateValue(std::wstring const&) / getUpdateRateValueForAttribute(ObjectInstanceHandle const&, AttributeHandle const&)",
+      "standard_boundary": "IEEE 1516.1 update-rate metadata query"
+    },
+    {
+      "id": "portable-cpp-tck-timestamped-update-rate-terminalization",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "retract(MessageRetractionHandle const&)",
+      "standard_boundary": "IEEE 1516.1 message-retraction terminal boundary"
+    }
+  ]
+}

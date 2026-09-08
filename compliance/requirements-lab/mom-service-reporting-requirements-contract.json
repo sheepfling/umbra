@@ -35,7 +35,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
@@ -49,8 +49,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Discover Object Instance before its callback",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_reporting_file_boundary"
       ]
@@ -84,7 +84,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
@@ -98,8 +98,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Discover Object Instance before its callback",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_reporting_file_boundary",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_files_are_independent_per_join"
@@ -159,7 +159,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
@@ -174,12 +174,12 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service-report files have one immutable joined-federate lifetime",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Provide Attribute Value Update descriptor form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
+        "cpp/tests/delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments",
@@ -190,7 +190,7 @@
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Synchronization Point Achieved argument forms",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files preserve Register Federation Synchronization Point optional-set form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
+        "cpp/tests/service_report_file_synchronization_point_achieved_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Federate Save Begun no-argument form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Federate Save Begun invocation",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Federate Save Complete success-indicator forms",
@@ -223,7 +223,7 @@
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_request_attribute_update_report_precedes_callback",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_request_response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments"
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments"
       ]
     },
     {
@@ -235,7 +235,7 @@
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_reflection_callback",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_timestamped_reflection_callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
+        "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
       ]
     },
     {
@@ -576,7 +576,7 @@
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPointImpl",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Confirm Synchronization Point Registration result forms",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Confirm Synchronization Point Registration result forms",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting records Confirm Synchronization Point Registration result forms",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_sync_registration_callback"
       ]
     },
@@ -590,7 +590,7 @@
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Announce Synchronization Point argument form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Announce Synchronization Point at recipient files",
+        "cpp/tests/service_report_file_announce_synchronization_point_catch2.cpp::Embedded service reporting records Announce Synchronization Point at recipient files",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_sync_announcement_callback"
       ]
     },
@@ -603,8 +603,8 @@
       "notes": "The recipient route selects each joined federate's reporting switches, reserves its file serial only when selected, and writes the §4.18 type-53 synchronization-point label plus type-18 failed-federate set before the corresponding callback can be evoked. Focused regressions cover both normal all-achieved completion and completion after an unachieved member resigns.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Federation Synchronized argument form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized at recipient files",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation",
+        "cpp/tests/service_report_file_federation_synchronized_catch2.cpp::Embedded service reporting records Federation Synchronized at recipient files",
+        "cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_federation_synchronized_callback"
       ]
     },
@@ -912,7 +912,7 @@
       "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
       "notes": "The external Java/JPype vector now selects the private file sink for registration, confirmation, and achievement, then decodes the exact SynchronizationPointAchieved type-53 label and type-6 success indicator before any completion callback. The public interaction route remains covered separately by the synchronization lifecycle vector.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
+        "cpp/tests/service_report_file_synchronization_point_achieved_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_synchronization_achievement_file_report_preserves_payload"
       ]
     },
@@ -924,7 +924,7 @@
       "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
       "notes": "The external Java/JPype removal vector selects the publisher's private file, decodes the accepted type-37 object, type-63 tag, and type-34 null timestamp record, then verifies the induced RemoveObjectInstance callback remains deferred.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
+        "cpp/tests/delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_removal_callback"
       ]
     },
@@ -936,7 +936,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The non-timestamped §6.16 Delete Object Instance service now reports unknown-object failures through the configured filesystem. The matrix preserves type-37 ObjectInstanceHandle, type-63 User-supplied tag, type-34 Null Optional timestamp, Null returned argument, false indicator, exact ObjectInstanceNotKnown text, and serials zero and two around accepted serial-one deletion. Accepted emission occurs after the registry transition and outside native locks; timestamped delete remains separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed receive-order Delete Object Instance invocations"
+        "cpp/tests/delete_object_instance_failure_service_report_catch2.cpp::Embedded service reporting records failed receive-order Delete Object Instance invocations"
       ]
     },
     {
@@ -947,7 +947,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed non-timestamped §6.16 Delete Object Instance invocations through HLAreportServiceInvocation with object-management service type 2, type-37 ObjectInstanceHandle, type-63 User-supplied tag, and type-34 Null Optional timestamp supplied values, a Null returned argument, false indicators, exact ObjectInstanceNotKnown text, and serials zero and two around accepted serial-one deletion. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is bounded development-profile interaction evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed receive-order Delete Object Instance invocations through MOM interaction"
+        "cpp/tests/delete_object_instance_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed receive-order Delete Object Instance invocations through MOM interaction"
       ]
     },
     {
@@ -969,7 +969,7 @@
       "source_symbol": "UmbraRtiAmbassador::localDeleteObjectInstance",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_local_delete_service_report_arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
+        "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments"
       ]
     },
     {
@@ -980,7 +980,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The §6.18 Local Delete Object Instance service now reports unknown-object failures through the selected filesystem. The matrix preserves the type-37 ObjectInstanceHandle supplied form, Null returned argument, false indicator, exact ObjectInstanceNotKnown descriptions, and serials zero and two around an accepted local-forget record at serial one. Accepted emission occurs after the registry transition and outside native locks. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is C++ development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed local-delete object-instance invocations"
+        "cpp/tests/local_delete_object_instance_failure_service_report_catch2.cpp::Embedded service reporting records failed local-delete object-instance invocations"
       ]
     },
     {
@@ -991,7 +991,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers failed §6.18 Local Delete Object Instance invocations through HLAreportServiceInvocation with object-management service type 2, type-37 ObjectInstanceHandle supplied values, Null returned arguments, false indicators, exact ObjectInstanceNotKnown descriptions, and serials zero and two. The accepted local-forget record remains visible with a true indicator at serial one. This is bounded development-profile interaction evidence; the Lab has no row-level conditional failure mapping (RL-152), so no validation or conformance claim is made.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed local-delete object-instance invocations through MOM interaction"
+        "cpp/tests/local_delete_object_instance_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed local-delete object-instance invocations through MOM interaction"
       ]
     },
     {
@@ -1013,7 +1013,8 @@
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassAttributes",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_publish_unpublish_service_report_arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments"
       ]
     },
     {
@@ -1147,17 +1148,17 @@
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Unconditional Attribute Ownership Divestiture argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Provide Attribute Value Update descriptor form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Update Attribute Values argument forms",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
+        "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Send Interaction argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Send Directed Interaction argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Delete Object Instance argument forms",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
+        "cpp/tests/delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Remove Object Instance descriptor form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use timestamped Remove Object Instance descriptor form",
@@ -1280,6 +1281,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Send Directed Interaction argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Discover Object Instance descriptor form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Discover Object Instance before its callback",
@@ -1363,7 +1365,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_attribute_subscription_service_reports",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_request_attribute_update_report_precedes_callback"
@@ -1378,7 +1381,7 @@
       "notes": "The external Java/JPype reflection vector decodes the type-2 constrained attribute/value map, including the quoted AttributeHandle key and base-64 value, before reflectAttributeValues().",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Update Attribute Values argument forms",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
+        "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_reflection_callback"
       ]
     },
@@ -1418,14 +1421,14 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Provide Attribute Value Update descriptor form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Update Attribute Values argument forms",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
+        "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Delete Object Instance argument forms",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
+        "cpp/tests/delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Remove Object Instance descriptor form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use timestamped Remove Object Instance descriptor form",
@@ -1488,9 +1491,9 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Provide Attribute Value Update descriptor form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Cancel Attribute Ownership Acquisition argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Attribute Ownership Acquisition argument forms",
@@ -1560,7 +1563,7 @@
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_provide_attribute_callback",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Provide Attribute Value Update descriptor form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback"
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback"
       ]
     },
     {
@@ -1573,7 +1576,7 @@
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_auto_provide_report_precedes_callback",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files preserve the empty Auto Provide tag descriptor form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
+        "cpp/tests/auto_provide_service_report_file_catch2.cpp::Embedded Auto Provide service reporting records empty tag before its callback"
       ]
     },
     {
@@ -1615,6 +1618,7 @@
       "notes": "The registry retains each advisory recipient's private service-report route. Before queuing the §5.14 Start Registration For Object Class, §5.15 Stop Registration For Object Class, §5.16 Turn Interactions On, or §5.17 Turn Interactions Off callback, the adapter appends that recipient's selected-file successful-void record in declaration-management group 1. Object advisories use type-36 ObjectClassHandle and interaction advisories use type-27 InteractionClassHandle, preserving public handle text. The external Java/JPype vector now decodes all four advisory records from the publisher's selected file before evoking each standard callback. This private file boundary does not claim public MOM interaction delivery; RL-080/RL-002 remain the Lab source-ownership/provenance limitations for the service candidates, and Table 5 remains a private-text trace under RL-067/RL-076.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use declaration relevance advisory descriptor forms",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_declaration_and_relevance_advisories"
       ]
@@ -2139,7 +2143,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped §6.16 Delete Object Instance queue-admission path now uses the shared file-or-interaction selector. The focused production-filesystem matrix proves the type-37 ObjectInstanceHandle, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable sender-report-before-Remove Object Instance ordering. Time-regulated type-33 return records, regional deletion, recipient-local callback records, remote transport, and conformance remain separate; the Requirements Lab has no row-level report-backend relation (RL-105/RL-152), so this is development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Delete Object Instance before removal callback"
+        "cpp/tests/timestamped_delete_object_instance_service_report_catch2.cpp::Embedded service reporting records timestamped Delete Object Instance before removal callback"
       ]
     },
     {
@@ -2150,7 +2154,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.16 Delete Object Instance failure matrix now reports invalid object and lower-than-lookahead timestamp failures through the configured filesystem. It preserves type-37 ObjectInstanceHandle, type-63 User-supplied tag, type-31 LogicalTime supplied values, a Null returned argument, false indicators, exact ObjectInstanceNotKnown/InvalidLogicalTime descriptions, and serials zero and one. No accepted timestamped sender file record is claimed here; the existing public interaction success path and recipient-local §6.17 callback file path remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Delete Object Instance invocations"
+        "cpp/tests/timestamped_delete_object_instance_failure_service_report_catch2.cpp::Embedded service reporting records failed timestamped Delete Object Instance invocations"
       ]
     },
     {
@@ -2161,7 +2165,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.16 Delete Object Instance failures through HLAreportServiceInvocation with object-management service type 2, type-37/type-63/type-31 supplied forms, a Null returned argument, false indicators, exact ObjectInstanceNotKnown/InvalidLogicalTime descriptions, and serials zero and one. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is bounded development-profile interaction evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped Delete Object Instance invocations through MOM interaction"
+        "cpp/tests/timestamped_delete_object_instance_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed timestamped Delete Object Instance invocations through MOM interaction"
       ]
     },
     {
@@ -2172,7 +2176,8 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.10 Update Attribute Values failure matrix reports invalid object, invalid attribute, and lower-than-lookahead timestamp failures through the configured filesystem. It preserves type-37 ObjectInstanceHandle, type-2 AttributeHandleValueMap, type-63 User-supplied tag, type-31 LogicalTime supplied forms, Null returned arguments, false indicators, exact ObjectInstanceNotKnown/AttributeNotDefined/InvalidLogicalTime descriptions, and serials zero through two. No accepted timestamped sender file record is claimed; the existing public interaction success path and callback delivery remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Update Attribute Values invocations"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Update Attribute Values invocations",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Update Attribute Values invocations (restored baseline copy)"
       ]
     },
     {
@@ -2284,7 +2289,7 @@
       "notes": "Accepted object-instance and object-class Request Attribute Value Update invocations now use the standard RTI-originated HLAreportServiceInvocation path when interaction reporting is selected. The complete payload preserves object/class designator type 37 or 36, type-1 attribute set, type-63 user tag, object-management service type 2, success true, and the standard Null returned argument; the report is emitted after acceptance and before provider Provide Attribute Value Update callbacks. The regional class-request overload uses the analogous DDM service type and type-4 attribute/region pair list. The external Java/JPype vector decodes both nonregional forms; this remains development-profile evidence and does not claim producer-handle resolution, generic file ReturnArgument formatting, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_request_attribute_update_report_precedes_callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update filters 2025 owner solicitations"
       ]
     },
@@ -2870,7 +2875,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped Send Interaction With Regions service is recorded through the configured joined-federate filesystem before the constrained Receive Interaction callback. The focused C++ case verifies serial zero, type-27 interaction class, type-40 parameter map, type-43 source-region set, type-63 tag, type-31 timestamp, and type-33 MessageRetractionHandle return. This is development-profile file evidence; public MOM interaction routing, remote transport, the time-regulated/non-file matrix, JUnit/protected review, Lab validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback"
+        "cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback"
       ]
     },
     {
@@ -2881,7 +2886,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted timestamped Send Interaction With Regions service report is delivered through the public HLAreportServiceInvocation interaction to an HLA_IMMEDIATE observer before the constrained regional Receive Interaction callback. The focused C++ case decodes service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, the quoted type-33 MessageRetractionHandle return, success true, empty exception, and serial zero, then verifies source-region and timestamp/order/retraction callback metadata. This remains development-profile traceability; the Requirements Lab's RL-105/RL-152 backend/lifecycle gap, remote transport, JUnit/protected review, validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction"
+        "cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction"
       ]
     },
     {
@@ -2892,7 +2897,8 @@
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped Update Attribute Values service is recorded through the configured joined-federate filesystem even when regional object/attribute association drives recipient eligibility. The focused C++ case verifies serial zero, type-37 object, type-2 attribute/value map, type-63 tag, type-31 timestamp, and type-33 MessageRetractionHandle return before the constrained regional reflection callback, while the callback separately conveys the source RegionHandle. This remains development-profile file evidence; public MOM interaction delivery, other regional-update failure matrices, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped regional Update Attribute Values before reflection callback"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped regional Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped regional Update Attribute Values before reflection callback (restored baseline copy)"
       ]
     },
     {
@@ -2949,7 +2955,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped regional Send Interaction With Regions failure matrix records invalid interaction-class, parameter, region, and logical-time exceptions through the configured joined-federate filesystem. It preserves serials zero through three, interaction-management service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, Null returned arguments, false success indicators, and exact exception text without application callback delivery. This remains development-profile file evidence; public HLAreportServiceInvocation routing, re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance remain open, and RL-105/RL-152 provide no row-level failure/backend relation.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations"
+        "cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations"
       ]
     },
     {
@@ -2960,7 +2966,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped regional Send Interaction With Regions failures through HLAreportServiceInvocation. It decodes serials zero through three, interaction-management service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, the Table 5 type-34 Null return, false success indicators, and exact InteractionClassNotDefined, InteractionParameterNotDefined, InvalidRegion, and InvalidLogicalTime descriptions; no application Receive Interaction callback is expected. Requirements Lab RL-105/RL-152 leave the conditional failure relation unmodeled, so this remains development-profile interaction evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction"
+        "cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction"
       ]
     },
     {
@@ -2971,7 +2977,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The ordinary regional Send Interaction With Regions failure matrix records invalid interaction-class, parameter, and region exceptions through the configured joined-federate filesystem. It preserves serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, Null returned arguments, false success indicators, and exact exception text without application callback delivery. Public MOM routing, timestamped/re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance remain open; RL-105/RL-152 provide no row-level failure/backend relation.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations"
+        "cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations"
       ]
     },
     {
@@ -2982,7 +2988,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers ordinary regional Send Interaction With Regions failures through HLAreportServiceInvocation. It decodes serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, the Table 5 type-34 Null return, false success indicators, and exact InteractionClassNotDefined, InteractionParameterNotDefined, and InvalidRegion descriptions; no application Receive Interaction callback is expected. Requirements Lab RL-105/RL-152 leave the conditional failure relation unmodeled, so this remains development-profile interaction evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction"
+        "cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction"
       ]
     },
     {
@@ -2993,7 +2999,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "notes": "The accepted ordinary regional Send Interaction With Regions invocation is recorded through the configured joined-federate filesystem before the constrained Receive Interaction callback. The focused C++ case verifies serial zero, interaction-management service type 2, the type-27 interaction-class designator, type-40 parameter/value map, type-43 source-region set, type-63 tag, type-34 Null timestamp, Null returned argument, success true, and callback delivery of the same source RegionHandleSet. This is development-profile file evidence; lifecycle/re-enable, timestamped/retraction, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback"
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback"
       ]
     },
     {
@@ -3004,7 +3010,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted ordinary regional Send Interaction With Regions invocation is delivered through HLAreportServiceInvocation to an HLA_IMMEDIATE observer before the constrained Receive Interaction callback. The focused C++ case decodes service type 2, five supplied arguments of types 27/40/43/63/34, the Table 5 type-34 Null return, success true, empty exception, and serial zero, then verifies the application callback's source RegionHandleSet and payload. This remains development-profile interaction evidence; the Requirements Lab's RL-105/RL-152 backend/lifecycle gap, remote transport, JUnit/protected review, validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
       ]
     },
     {

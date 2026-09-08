@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025">
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <objectClass>
+                <name>TckInvalidObject</name>
+                <attribute>
+                    <name>DuplicateValue</name>
+                    <dataType>HLAbyte</dataType>
+                </attribute>
+                <attribute>
+                    <name>DuplicateValue</name>
+                    <dataType>HLAbyte</dataType>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+</objectModel>

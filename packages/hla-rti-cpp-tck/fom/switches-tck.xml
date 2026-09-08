@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK switch declarations</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-09-04</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 switch conformance tests</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This module enables the standard Delay Subscription Evaluation switch for focused portable interaction and attribute-update tests.</description>
+    </modelIdentification>
+    <switches>
+        <delaySubscriptionEvaluation isEnabled="true"/>
+        <allowRelaxedDDM isEnabled="true"/>
+    </switches>
+</objectModel>

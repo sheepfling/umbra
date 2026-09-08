@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/attribute_value_update_request_baseline_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
@@ -23,7 +23,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/attribute_value_update_request_baseline_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
@@ -34,7 +34,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/attribute_value_update_request_baseline_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
@@ -45,7 +45,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/attribute_value_update_request_baseline_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     },
@@ -56,7 +56,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateAttributeValueUpdateProvideRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners"
+        "cpp/tests/attribute_value_update_request_baseline_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners"
       ]
     },
     {
@@ -66,10 +66,10 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "provider.provideAttributeValueUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/attribute_value_update_request_baseline_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback"
+        "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback"
       ]
     },
     {
@@ -80,7 +80,7 @@
       "source_symbol": "queueAttributeValueUpdateProvide",
       "notes": "The direct page-137 source is §6.22, Provide Attribute Value Update: its provider callback carries the requesting federate's supplied tag. The Requirements Lab exports the immutable candidate with structural owner clause-6.23 because the page coalesces the later Turn Updates On heading; RL-078 records that extractor-boundary mismatch. Umbra keeps the checker-required owner without reclassifying the callback semantics.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback"
+        "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback"
       ]
     },
     {
@@ -90,7 +90,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
+        "cpp/tests/attribute_value_update_request_baseline_catch2.cpp::Embedded object-instance Request Attribute Value Update solicits 2025 owners",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response"
       ]
     }

@@ -21,6 +21,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getParameterHandle",
       "tests": [
+        "cpp/tests/parameter_lookup_catch2.cpp::Embedded parameter lookup resolves inherited definitions in the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded parameter lookup resolves inherited definitions in the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers interaction-class and parameter lookup return arguments through MOM interaction"
       ]
@@ -42,6 +43,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getParameterName",
       "tests": [
+        "cpp/tests/parameter_lookup_catch2.cpp::Embedded parameter lookup resolves inherited definitions in the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded parameter lookup resolves inherited definitions in the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers interaction-class and parameter lookup return arguments through MOM interaction"
       ]

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-traceability-not-conformance-evidence",
+  "notes": "This contract records the bounded accepted ordinary regional Send Interaction With Regions service-report file and MOM-interaction boundaries. The cross-cutting §11.5 candidate is retained as source-derived evidence; the Requirements Lab does not provide a row-level backend/lifecycle relation (RL-105/RL-152).",
+  "requirements": [
+    {
+      "id": "umbra-regional-interaction-service-report-file",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+      "clause_id": "clause-11.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ],
+      "notes": "The standalone C++ HLA_EVOKED case configures a real joined-federate filesystem, keeps reporting disabled during setup, and then records one accepted overlap-qualified ordinary regional Send Interaction With Regions invocation before the constrained Receive Interaction callback. It verifies service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, the type-34 Null returned argument, serial zero, source RegionHandleSet conveyance, payload, producer, and tag. It remains non-installable development-profile traceability; public MOM routing, failure families, timestamped/re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance are separate lanes."
+    },
+    {
+      "id": "umbra-regional-interaction-service-report-mom-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "tests": [
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+      ],
+      "notes": "The standalone C++ HLA_IMMEDIATE observer subscribes to HLAreportServiceInvocation while the publisher keeps file reporting disabled. One accepted overlap-qualified ordinary regional Send Interaction With Regions invocation is delivered as a MOM interaction during the service call, before the receiver's HLA_EVOKED application callback. The case verifies service type 2, serial zero, success, exact Table 5 type-27/type-40/type-43/type-63/type-34 supplied forms, the type-34 Null return, empty exception, source RegionHandleSet conveyance, payload, producer, and tag. It remains non-installable development-profile traceability; filesystem lifecycle, failure families, timestamped/remote transport, Lab validation, and conformance remain separate."
+    }
+  ]
+}

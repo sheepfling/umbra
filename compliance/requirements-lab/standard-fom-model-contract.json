@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for an adapter-supplied valid FOM model. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, model FOM, endpoint, and callback configuration. It verifies standard class and interaction hierarchy lookup, inherited handles, dimensions and metadata, update rates, transportation types, declarations, registration/discovery, attribute reflection, and interaction parameter delivery without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-model",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador FOM declaration, hierarchy, dimension, metadata, and delivery lookups with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador FOM-model declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomModelContract"
+      ]
+    }
+  ]
+}

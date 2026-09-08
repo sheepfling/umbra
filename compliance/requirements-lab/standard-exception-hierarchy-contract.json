@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 exception hierarchy. It verifies every imported standard derived exception constructor through the public Exception base, name and message accessors, copy and assignment, polymorphic behavior, and stream output. It is an API contract check only and does not claim provider behavior or cross-RTI interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-exception-hierarchy",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "Exception-derived constructors, Exception::name, Exception::what, and stream insertion",
+      "source": "third_party/ieee1516.1-2025/include/RTI/Exception.h",
+      "source_symbol": "rti::Exception",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardExceptionHierarchyContract"
+      ]
+    }
+  ]
+}

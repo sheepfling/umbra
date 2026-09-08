@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "portable-standard-api-traceability",
+  "notes": "This contract records the portable timestamped DeleteObjectInstance failure-report matrix. It verifies standard HLAreportServiceInvocation delivery, typed supplied and returned arguments including the optional timestamp, exception identity, serial progression, logical-time lookahead validation, and application-removal suppression without provider-specific headers or registry access.",
+  "requirements": [
+    {
+      "id": "portable-timestamped-delete-object-instance-failure-service-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioServiceReportTimestampedDeleteObjectInstanceFailure",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailure"
+      ],
+      "notes": "The scenario enables time regulation using the adapter-selected logical-time factory, then drives an unknown-object timestamped DeleteObjectInstance at time 6 and an invalid-logical-time deletion at time 4 through the official C++ API. Both callback models decode all seven standard report parameters, verify the three standard supplied-argument records including the Optional timestamp record and Null returned argument, match exception names and serials zero through one, and prove no application removal callback is delivered. Provider configuration and FOM/MIM paths are supplied by the adapter."
+    }
+  ]
+}

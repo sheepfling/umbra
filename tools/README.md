@@ -13,8 +13,7 @@ For command arguments, use:
 ### Run a route-aware CI lane
 
 The Python-first `tools.ci` module is the easiest path for a junior
-developer or a hosted runner. It fans out by standard and transport without
-requiring PowerShell:
+developer or a hosted runner. It fans out by standard and transport:
 
     python -m tools.ci list
     python -m tools.ci test --standard 2010 --route cpp
@@ -62,6 +61,480 @@ filter by its test name:
     python tools/ci.py native-catch2 --stage build
     ctest --test-dir out/cmake/catch2 -C Debug -R federation_registry --output-on-failure
 
+### Run the portable C++ TCK
+
+Use the standard-library-only Python orchestrator for an installed provider
+package. It configures and builds the CMake adapter, runs the configured CTest
+matrix, and can optionally invoke the executable for JSON/JUnit evidence. All
+child processes receive argument lists directly; the runner does not invoke a
+shell.
+
+    python tools/run_cpp_tck.py --package-prefix .build/package-smoke-install --build-directory .build/cpp-tck-python --scenario-set verified --callback-model both
+
+To run a focused scenario after the build gate, add `--scenario` and
+`--skip-ctest`; the resulting file is intentionally a focused artifact:
+
+    python tools/run_cpp_tck.py --package-prefix .build/package-smoke-install --build-directory .build/cpp-tck-python --scenario cpp-tck.regional-three-dimensional-overlap --skip-configure --skip-build --skip-ctest --results .build/cpp-tck-all/three-dimensional.json
+
+For the catalog-wide evidence check, omit `--scenario` and validate the full
+promoted artifact with:
+
+python tools/cpp_tck.py --results .build/cpp-tck-all/api-surface-inventory-full.json --promotion promoted
+
+The validator rejects failed or unapproved skipped cases; it permits only the
+explicit `cpp-tck.connection-loss-cleanup` skip whose message states that an
+adapter-managed connection-loss fixture is required.
+
+Use the standard-library-only API-surface audit to compare the official IEEE
+`RTIambassador` and `FederateAmbassador` headers with the portable catalog and
+source. It does not load a provider or require a shell:
+
+    python tools/audit_cpp_tck_api_surface.py
+
+Use the standard-library-only native-gap survey to compare the native Catch2
+inventory with the portable catalog. It records explicit semantic native-to-
+portable mappings, while its remaining portable-candidate list is a review
+queue, not promotion evidence. The private-boundary check follows local
+quoted includes and reports transitive private marker files, so a wrapper
+cannot hide a provider-specific harness. The survey does not compile or run
+provider-specific tests:
+
+    python tools/survey_cpp_tck_native_gaps.py
+
+The same validator requires every Java catalog entry marked `run` to have
+either a direct Java scenario ID or an explicit C++ parity mapping; entries
+marked unsupported remain excluded.
+
+The verified lane is 311 promoted scenario IDs (622 callback-model cases).
+`--scenario-set all` configures all 316 available IDs (632 cases), including
+five candidates. With `--connection-loss-fixture <path>`, the Python adapter
+owns the connection-loss fixture and merges its two callback-model results
+into the direct evidence; the current candidate-inclusive lane has 405 passes
+and five expected skips. The skips are the immediate callback-model cases for
+Willing-to-Acquire continuation, the ownership-acquisition cancellation
+transfer race, and the regular-candidate continuation, pre-delivery
+cancellation, and confirmation-cancellation cases.
+The promoted `cpp-tck.named-registration-contract` runner exposes standard
+object-instance name reservation/release and reuse, multiple-name lifecycle,
+named registration and discovery identity, contention, and invalid-name
+boundaries as an independently selectable pure C++ contract. The provider
+package, FOM, endpoint, callback model, and logical-time configuration remain
+adapter inputs.
+The promoted `cpp-tck.object-attribute-subscription-lifecycle-contract` runner
+exposes passive and active ordinary object-attribute subscriptions,
+activation-time discovery, reflection, downgrade/reactivation, unsubscription,
+and stable identity lookups as an independently selectable pure C++ contract.
+The provider package, FOM, endpoint, callback model, and logical-time
+configuration remain adapter inputs.
+The promoted `cpp-tck.local-delete-object-instance-contract` runner exposes
+the standard local-delete service boundaries, ownership and pending-acquisition
+protection, fresh-requester deletion, rediscovery, stable identity lookups, and
+continued ordinary reflection as an independently selectable pure C++ contract.
+The provider package, FOM, endpoint, callback model, and logical-time
+configuration remain adapter inputs.
+The promoted `cpp-tck.mixed-update-rate-subscriptions` case uses the
+adapter-supplied rich FOM to verify ordinary per-attribute update-rate gating.
+Its focused portable lane passed 2/2 callback-model cases, and the matching
+native oracle passed 37 assertions.
+The promoted `cpp-tck.fom-empty-module-validation` case checks empty-FOM
+rejection and same-name recovery with the adapter-supplied FOM using only the
+official C++ API.
+The promoted `cpp-tck.custom-transportation-interaction-delivery` case uses
+the adapter-declared rich FOM to verify custom transportation lookup/name
+round-trips, ordinary interaction delivery, received transportation identity,
+and the standard transportation query report. Its focused portable artifact
+passed 2/2 callback-model cases, and the matching native oracle passed 42
+assertions.
+The promoted `cpp-tck.custom-transportation-regional-attribute-delivery` case
+uses the adapter-declared rich FOM and DDM dimensions to verify ordinary
+regional attribute publication/subscription/update delivery, conveyed
+source-region metadata, overlap filtering, and custom transportation identity.
+Its focused portable artifact passed 2/2 callback-model cases, and the matching
+native oracle passed 51 assertions.
+The promoted `cpp-tck.custom-transportation-regional-interaction-delivery` case
+uses the same adapter-declared rich FOM and DDM dimensions to verify ordinary
+regional interaction publication/subscription/send delivery, parameter, tag,
+producer, conveyed source-region, and custom transportation metadata. Its
+focused portable artifact passed 2/2 callback-model cases, and the matching
+native oracle passed 40 assertions.
+The promoted `cpp-tck.custom-transportation-timestamped-delivery` case uses
+the adapter-declared rich FOM to verify timestamped interaction delivery,
+constrained grant timing, payload/tag/producer/time/order/retraction metadata,
+and custom transportation identity without region metadata. Its focused
+portable artifact passed 2/2 callback-model cases, and the matching native
+oracle passed 48 assertions.
+The promoted `cpp-tck.custom-transportation-timestamped-directed-delivery` case
+uses the adapter-declared rich FOM to verify timestamped directed-interaction
+delivery to a registered target, constrained grant timing,
+payload/tag/target/producer/time/order/retraction metadata, and custom
+transportation identity. Its focused portable artifact passed 2/2 callback-model
+cases, and the matching native oracle passed 42 assertions.
+The promoted `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery`
+case reuses the standard regional timestamped-attribute oracle with adapter-
+declared FOM and DDM names to verify timestamped regional attribute delivery,
+region metadata, retraction, and custom transportation identity. Its focused
+portable artifact passed 2/2 callback-model cases, and the matching native oracle
+passed 60 assertions.
+The promoted regional-interaction source-region snapshot case also verifies
+send-time source-region capture, disjoint suppression after source mutation,
+and restored-overlap delivery through the standard API.
+The promoted regional-interaction subscription-report case verifies standard
+MOM reports for `SubscribeInteractionClassWithRegions` and
+`UnsubscribeInteractionClassWithRegions`, including typed association
+arguments and the passive-subscription indicator.
+An adapter that supports fault injection can opt into the connection-loss case
+with the CMake cache settings
+`HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_MARKER` and
+`HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED`; the Python runner maps
+those options into the adapter configuration used by both CTest and direct
+execution. The portable executable only observes the standard callback; the
+adapter owns the fault fixture. The current-process adapter additionally provides the shell-free
+`packages/hla-rti-cpp-tck/adapters/current-process/run_connection_loss.py`
+harness; its evoked/immediate evidence is recorded in
+`.build/cpp-tck-all/connection-loss-current-process.json` and is kept
+adapter-specific until a generic fault-injection capability exists.
+
+The promoted timestamped
+Java-parity factory-discovery case checks that the standard C++
+`RTIambassadorFactory` returns an ambassador and that the official
+`HLAinteger32BE` encoder round-trips without provider-specific or private
+headers.
+
+The promoted Java-parity API-surface-inventory case checks the official C++
+ambassador, callback, logical-time, and byte-container types, then verifies
+factory creation and standard byte preservation without provider-specific
+headers or FOM assumptions.
+
+The promoted joined-federate MOM updates-sent-counts case uses only the adapter-supplied
+ordinary FOM plus standard reliable/best-effort transportation. It requests
+`HLArequestUpdatesSent` and verifies both `HLAreportUpdatesSent` transport
+buckets, nested `HLAobjectClassBasedCounts`, standard report metadata, and the
+empty response for a requester with no sent updates.
+The promoted joined-federate MOM interactions-received-counts case delivers
+one adapter interaction reliably and two after a standard best-effort change,
+then verifies `HLAreportInteractionsReceived` buckets and nested
+`HLAinteractionCounts`, including the empty response for a requester with no
+received interactions.
+The promoted joined-federate MOM interactions-sent-counts case sends one
+adapter interaction reliably and two after a standard best-effort change, then
+verifies `HLAreportInteractionsSent` buckets and nested `HLAinteractionCounts`,
+including the empty response for an idle joined federate.
+The promoted joined-federate MOM reflections-received-counts case delivers one
+adapter attribute reflection reliably and two after a standard best-effort
+change, then verifies `HLAreportReflectionsReceived` buckets and nested
+`HLAobjectClassBasedCounts`, including the empty response for a requester with
+no received reflections.
+The promoted joined-federate MOM reflection-counts case observes the standard
+`HLAobjectInstancesReflected` and `HLAreflectionsReceived` counters through
+direct attribute-value requests and periodic `HLAsetTiming` reflections. It
+distinguishes repeated reflections of one object from first reflections of
+another, includes a timestamped reflection, and covers both ordinary and
+timestamped callback paths using only adapter-supplied FOM/MIM and official
+IEEE C++ API types.
+The promoted joined-federate MOM directed-interactions-received case sends one
+ordinary and one directed interaction of the same adapter-supplied class,
+proves that ordinary receipt is excluded from
+`HLAreportDirectedInteractionsReceived`, and verifies the reliable directed
+bucket plus empty best-effort and idle buckets through nested standard
+`HLAinteractionCounts` using adapter-supplied FOM/MIM and official IEEE C++ API
+types.
+The promoted joined-federate MOM directed-interactions-sent case sends one
+ordinary and two directed interactions of the same adapter-supplied class,
+changes the class to best effort for an ordinary send, and proves that only
+the directed sends enter `HLAreportDirectedInteractionsSent`. It verifies the
+reliable directed bucket plus empty best-effort and idle buckets through nested
+standard `HLAinteractionCounts` using adapter-supplied FOM/MIM and official
+IEEE C++ API types.
+The promoted `cpp-tck.mom-transportation-type-change-request` case uses the
+standard MIM request interactions for attribute and interaction transportation-
+type changes, confirms both callbacks, verifies best-effort object and
+interaction delivery plus reliable per-federate isolation, and checks the
+RTI-originated `HLAreportServiceInvocation` report. Its request payloads use
+only official standard encodings; the adapter supplies the FOM, MIM, endpoint,
+callback model, and logical-time implementation.
+The promoted timestamped
+directed-interaction source-resignation fanout case verifies independent
+recipient-local TAR frontiers after the producer resigns, including target,
+payload, producer, timestamp/order, transport, retraction, and callback-before-
+grant metadata. The promoted timestamped
+directed-interaction TAR/NMR case sends one target-qualified message at time 7,
+then proves that independent TAR(7) and NMR(10) requests each receive their
+callback before their own grant, with the NMR grant returning at message time.
+The promoted federation MOM save-conditionals case observes the standard
+`HLAfederation` `HLAnextSaveName/Time` and `HLAlastSaveName/Time` attributes
+through pending timestamped-save, admission-clearing, and successful-completion
+reflections. It remains limited to the adapter-supplied standard MIM/FOM,
+logical-time implementation, and official IEEE C++ API.
+The promoted joined-federate MOM removed-object-count case first queries the
+standard `HLAfederateHandle` attribute and verifies the
+`FederateAmbassador::attributeIsOwnedByRTI` callback for the RTI-owned
+joined-federate MOM object. It then observes the standard
+`HLAobjectInstancesRemoved` counter after an ordinary receive-order object
+deletion and verifies its reliable RTI-originated reflection metadata. It uses
+only the adapter-supplied standard MIM/FOM and official IEEE C++ API.
+The promoted joined-federate MOM time-state-duration case observes
+`HLAtimeGrantedTime` and `HLAtimeAdvancingTime` through direct AVU and one
+`HLAsetTiming` periodic reflection with official `HLAinteger32BE` encodings in
+both callback models.
+The promoted joined-federate MOM GALT/LITS periodic case observes standard
+`HLAGALT` and `HLALITS` through direct AVU and `HLAsetTiming`, including the
+undefined-value boundary after disabling the sole time regulator. The promoted
+joined-federate MOM TSO-length periodic case observes standard `HLATSOlength`
+directly and periodically around a queued timestamped adapter interaction,
+then verifies that the count returns to zero after the grant. Both cases use
+only adapter-supplied FOM/MIM and official IEEE C++ API types in both callback
+models.
+The promoted timestamped attribute-update no-fanout case verifies a valid
+producer-side retraction handle, one legal retract, and the terminal
+`MessageCanNoLongerBeRetracted` result when no recipient is eligible, with no
+local delivery callbacks.
+The promoted timestamped
+attribute update-rate reduction case uses an adapter-supplied rich FOM to verify
+reliable delivery, named best-effort rate suppression, and standard retraction
+terminalization. FOM files,
+dimensions, endpoint settings, callback model, and logical-time implementation
+remain adapter inputs; the source stays on the official IEEE C++ API. The
+promoted `cpp-tck.timestamped-object-deletion-tombstone` case verifies the
+terminal timestamped deletion boundary and named object-instance reuse using
+the same adapter-supplied FOM and logical-time inputs. The promoted
+`cpp-tck.timestamped-object-deletion-no-fanout` case verifies the exact-lookahead
+terminal boundary plus no-recipient retraction and restoration of object-name
+lookup and local attribute ownership without Request Retraction fan-out. The
+promoted `cpp-tck.receive-order-attribute-update-callback-cancellation` case
+verifies that evoked queued reflection is suppressed by unsubscribe before
+callback servicing while immediate delivery is observed before unsubscribe.
+Both routes use only the adapter-selected ordinary FOM and official API
+callbacks. The
+promoted `cpp-tck.interaction-subscription-lifecycle` case verifies passive
+ordinary interaction suppression, active replacement without replay,
+downgrade back to passive, and final unsubscription under both callback
+models. The
+promoted `cpp-tck.interaction-subscription-lifecycle-contract` runner exposes
+the same declaration boundary as an independently selectable pure standard C++
+contract, with provider, FOM, endpoint, and callback configuration supplied by
+the adapter. The
+promoted `cpp-tck.object-attribute-subscription-lifecycle` case applies the same
+portable declaration lifecycle to ordinary object attributes: passive
+subscriptions suppress discovery and reflection, activation discovers the
+existing object, downgrade suppresses later updates, reactivation restores
+reflection, and unsubscribe removes delivery. The
+promoted `cpp-tck.object-publication-registration-fence` case verifies that
+whole-class unpublication fences ordinary object registration with
+`ObjectClassNotPublished`, while republishing restores registration,
+discovery, and stable object/class/name lookups. It uses only adapter-supplied
+FOM values and the official C++ API callbacks. The
+promoted `cpp-tck.object-publication-registration-fence-contract` runner
+exposes the same boundary as an independently selectable pure standard C++
+contract, with provider, FOM, endpoint, and callback configuration supplied by
+the adapter. The
+promoted `cpp-tck.interaction-publication-send-fence` case verifies that
+whole-class unpublication fences ordinary `sendInteraction` with
+`InteractionClassNotPublished`, while republication restores parameter
+delivery and standard producer/tag/transport metadata. It uses only
+adapter-supplied FOM values and official C++ API callbacks. The
+promoted `cpp-tck.interaction-publication-send-fence-contract` runner exposes
+the same publication boundary as an independently selectable pure standard C++
+contract, with provider, FOM, endpoint, and callback configuration supplied by
+the adapter. The
+promoted `cpp-tck.service-report-interaction` scenario additionally exercises
+the standard MOM `HLAreportServiceInvocation` interaction using an
+adapter-supplied standard MIM. The adjacent promoted
+`cpp-tck.service-report-attribute-update` scenario verifies the same standard
+reporting contract for an ordinary `UpdateAttributeValues` service. The
+promoted `cpp-tck.service-report-request-attribute-value-update` scenario
+verifies both standard `RequestAttributeValueUpdate` overloads, their MOM
+report serial progression, and the corresponding provider callbacks. The
+promoted `cpp-tck.service-report-request-attribute-value-update-contract`,
+`cpp-tck.service-report-release-multiple-object-instance-names-contract`,
+`cpp-tck.service-report-release-object-instance-name-contract`, and
+`cpp-tck.service-report-reserve-object-instance-name-contract` runners expose
+the same ordinary MOM success routes as independently selectable pure standard
+C++ contracts, with MIM, FOM, endpoint, and callback configuration supplied by
+the adapter. The
+promoted `cpp-tck.service-report-timestamped-interaction-contract` runner
+exposes the successful timestamped interaction MOM route as an independently
+selectable pure standard C++ contract, retaining typed report, constrained
+delivery, logical-time-grant, payload, retraction, and callback assertions with
+MIM, FOM, endpoint, callback, and logical-time configuration supplied by the
+adapter. The
+promoted `cpp-tck.timestamped-interactions-contract` runner exposes the
+standard timestamped Send/Receive, time-role, retraction, and Request Retraction
+surface as an independently selectable pure standard C++ contract, with FOM,
+endpoint, callback, and logical-time configuration supplied by the adapter. The
+promoted
+`cpp-tck.timestamped-interaction-source-resignation-contract` and
+`cpp-tck.timestamped-interaction-source-resignation-fanout-contract` runners
+expose standard queued timestamped interaction source-resignation and
+per-recipient fan-out delivery as independently selectable pure standard C++
+contracts. They retain the post-resignation retraction boundary, TAR/NMR
+servicing, payload/time/order/transport metadata, and callback ordering while
+taking FOM, endpoint, callback, and logical-time configuration from the adapter.
+The promoted `cpp-tck.directed-interaction-publication-send-fence-contract` and
+`cpp-tck.directed-interaction-target-lifecycle-contract` runners expose the
+standard targeted publication and target-lifecycle boundaries as independently
+selectable pure standard C++ contracts, with provider, FOM, endpoint, and
+callback configuration supplied by the adapter. The promoted
+`cpp-tck.directed-interaction-subscription-kind-contract` runner exposes the
+standard by-ownership and universal subscription-kind boundary as an
+independently selectable pure standard C++ contract, with provider, FOM,
+endpoint, and callback configuration supplied by the adapter. The promoted
+`cpp-tck.unnamed-join-overload-contract`,
+`cpp-tck.standard-order-and-transportation-lookups-contract`, and
+`cpp-tck.callback-controls-contract` runners expose standard federation
+membership, mandatory order/transportation lookup, and callback enable/disable
+boundaries as independently selectable pure standard C++ contracts, with
+provider, FOM, endpoint, and callback configuration supplied by the adapter.
+The promoted
+`cpp-tck.resign-delete-objects-contract`,
+`cpp-tck.resign-unconditional-divestiture-contract`, and
+`cpp-tck.final-federate-resignation-cleanup-contract` runners expose standard
+resignation-time deletion, unconditional divestiture, final-federate cleanup,
+ownership, object-name reuse, and identity boundaries as independently
+selectable pure standard C++ contracts, with provider, FOM, endpoint, and
+callback configuration supplied by the adapter.
+The promoted
+`cpp-tck.resign-pending-acquisition-rejection-contract`,
+`cpp-tck.resign-cancel-pending-acquisition-contract`,
+`cpp-tck.resign-cancel-if-available-pending-contract`, and
+`cpp-tck.resign-cancel-negotiated-pending-contract` runners expose standard
+pending-acquisition rejection and cancellation boundaries as independently
+selectable pure standard C++ contracts, with provider, FOM, endpoint, and
+callback configuration supplied by the adapter.
+The promoted
+`cpp-tck.negotiated-divestiture-cancellation-contract` and
+`cpp-tck.negotiated-divestiture-pre-delivery-cancellation-contract` runners
+expose negotiated ownership cancellation and pre-delivery callback suppression
+as independently selectable pure standard C++ contracts, with provider, FOM,
+endpoint, and callback configuration supplied by the adapter.
+The promoted `cpp-tck.update-rate-queries-contract` and
+`cpp-tck.handle-wire-formats-contract` runners expose named-rate state and
+standard handle wire-format boundaries as independently selectable pure standard
+C++ contracts, with provider, FOM, DDM, endpoint, logical-time, and callback
+configuration supplied by the adapter.
+The promoted `cpp-tck.timestamped-interaction-cross-producer-order-contract`,
+`cpp-tck.timestamped-interaction-no-fanout-contract`, and
+`cpp-tck.timestamped-interaction-retraction-fanout-contract` runners expose
+standard multi-producer ordering, no-fan-out terminalization, and delivered/
+queued retraction fan-out boundaries as independently selectable pure standard
+C++ contracts, with provider, FOM, endpoint, logical-time, and callback
+configuration supplied by the adapter.
+The promoted `cpp-tck.timestamped-attribute-order-cohort-contract`,
+`cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract`, and
+`cpp-tck.timestamped-attribute-update-no-fanout-contract` runners expose
+timestamped attribute ordering, queued passel retraction, and no-recipient
+terminalization as independently selectable pure standard C++ contracts, with
+provider, FOM, endpoint, logical-time, and callback configuration supplied by
+the adapter.
+The promoted `cpp-tck.timestamped-attribute-update-alternate-advances-contract`,
+`cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract`, and
+`cpp-tck.timestamped-attribute-update-reenable-contract` runners expose
+alternate advance servicing, future-input Flush Queue behavior, and Time
+Constrained re-enable as independently selectable pure standard C++ contracts,
+with provider, FOM, endpoint, logical-time, and callback configuration supplied
+by the adapter.
+The promoted `cpp-tck.timestamped-attribute-source-resignation-contract`,
+`cpp-tck.timestamped-attribute-source-resignation-fanout-contract`, and
+`cpp-tck.timestamped-attribute-update-regulation-reenable-contract` runners
+extend the same pure boundary to post-resignation ownership and queued
+delivery, per-recipient timestamped attribute fan-out, and Time Regulation
+re-enable with changed lookahead. They use only the standard C++ API and
+standard library while taking provider, FOM, endpoint, callback, and
+logical-time configuration from the adapter.
+The promoted `cpp-tck.timestamped-object-deletion-no-fanout-contract`,
+`cpp-tck.timestamped-object-deletion-tombstone-contract`, and
+`cpp-tck.timestamped-object-deletion-regulation-reenable-contract` runners
+extend that pure surface to no-recipient deletion retraction and
+name/ownership restoration, terminal deletion tombstones and named
+re-registration, and Time Regulation re-enable with changed lookahead. They
+use only the official C++ API and standard library; provider package, FOM,
+endpoint, callback, and logical-time configuration remains adapter-owned.
+The promoted `cpp-tck.federation-list-services-contract` and
+`cpp-tck.federate-lookup-lifecycle-contract` runners expose standard federation
+execution/member reports and federate identity lookup boundaries as independently
+selectable pure standard C++ contracts, with provider, FOM, endpoint, and callback
+configuration supplied by the adapter.
+The promoted `cpp-tck.order-type-controls-contract`,
+`cpp-tck.receive-order-attribute-update-callback-cancellation-contract`, and
+`cpp-tck.receive-order-interaction-callback-cancellation-contract` runners expose
+standard order-control and receive-order callback-cancellation boundaries as
+independently selectable pure standard C++ contracts, with provider, FOM, endpoint,
+logical-time, and callback configuration supplied by the adapter.
+The promoted `cpp-tck.next-message-request-contract`,
+`cpp-tck.available-time-advances-inclusive-galt-contract`, and
+`cpp-tck.time-bounds-queries-contract` runners expose standard Next Message Request,
+available time-advance, and Query GALT/Query LITS boundaries as independently
+selectable pure standard C++ contracts, with provider, FOM, endpoint,
+logical-time, and callback configuration supplied by the adapter.
+The promoted `cpp-tck.timestamped-interaction-mixed-advances-contract`,
+`cpp-tck.timestamped-interaction-flush-queue-future-input-contract`, and
+`cpp-tck.timestamped-interaction-tso-designator-terminalization-contract`
+runners expose standard timestamped-interaction alternate-advance, future-input,
+and retraction-terminalization boundaries as independently selectable pure
+standard C++ contracts, with provider, FOM, endpoint, logical-time, and callback
+configuration supplied by the adapter.
+The promoted `cpp-tck.attribute-value-update-request-baseline-contract`,
+`cpp-tck.object-class-attribute-value-update-request-baseline-contract`, and
+`cpp-tck.attribute-value-update-response-contract` runners expose standard
+object-instance/class request and ordinary provider-response boundaries as
+independently selectable pure standard C++ contracts, with provider, FOM,
+endpoint, and callback configuration supplied by the adapter.
+The promoted
+`cpp-tck.timestamped-directed-interactions-contract` runner exposes the
+standard timestamped directed-interaction target-routing, time-role, retraction,
+and Request Retraction surface as an independently selectable pure standard C++
+contract, with FOM, endpoint, callback, and logical-time configuration supplied
+by the adapter. The promoted
+`cpp-tck.timestamped-directed-interaction-source-resignation-contract` and
+`cpp-tck.timestamped-directed-interaction-source-resignation-fanout-contract`
+runners expose standard queued directed-interaction source-resignation,
+post-resignation retraction, target routing, and independent per-recipient fan-out
+delivery as independently selectable pure standard C++ contracts, with FOM,
+endpoint, callback, and logical-time configuration supplied by the adapter. The
+promoted
+`cpp-tck.timestamped-directed-alternate-advances-contract` runner exposes the
+standard directed-interaction Flush Queue, TAR-available, and NMR-available
+delivery surface as an independently selectable pure standard C++ contract, with
+FOM, endpoint, callback, and logical-time configuration supplied by the adapter.
+The
+promoted `cpp-tck.service-report-local-delete-object-instance-contract`,
+`cpp-tck.service-report-local-delete-object-instance-failure-contract`, and
+`cpp-tck.service-report-delete-object-instance-failure-contract` runners expose
+ordinary and local object-deletion MOM success/failure routes as independently
+selectable pure standard C++ contracts, with MIM, FOM, endpoint, and callback
+configuration supplied by the adapter. The
+promoted `cpp-tck.service-report-delete-object-instance-failure` scenario
+verifies standard MOM failure reports for invalid and stale object deletion,
+including failure status, exception text, returned-argument encoding, serial
+progression, and removal cleanup. The promoted
+`cpp-tck.service-report-local-delete-object-instance-failure` scenario applies
+the same standard MOM contract to invalid and stale `localDeleteObjectInstance`
+calls around a successful local deletion. The timestamped companion verifies
+that report delivery remains receive-order while
+the ordinary interaction follows timestamped delivery, retraction, and grant
+ordering.
+The promoted `cpp-tck.attribute-value-update-request-baseline` scenario isolates
+the standard object-instance request overload, verifies exact current-owner
+callbacks and request tags, and suppresses requester-owned or unowned attributes.
+The promoted `cpp-tck.object-class-attribute-value-update-request-baseline`
+scenario separately expands the class overload over concrete subclass instances,
+checks one callback per owner with inherited-attribute filtering, and verifies
+requester-owned suppression. Focused evidence is recorded in
+`.build/cpp-tck-all/attribute-value-update-request-baseline-focused.json` and
+`.build/cpp-tck-all/object-class-attribute-value-update-request-baseline-focused.json`.
+Both scenarios use only the official API and adapter-supplied FOM inputs.
+
+The promoted `cpp-tck.attribute-value-update-response` scenario completes the
+ordinary attribute-value request/response route, including provider callback
+metadata, pre-response reflection suppression, returned value/tag, reliable
+transport, producer identity, and empty region metadata through the official API.
+
+The promoted `cpp-tck.regional-attribute-value-update-response-recheck` scenario
+adds the standard DDM response-delivery boundary: moving the committed
+subscriber region out of overlap suppresses the pending provider response, and
+restoring overlap allows a fresh response with the expected value, tag,
+transport, and producer metadata. It uses only the official API and adapter
+inputs.
+
 ### Inspect or run one tool
 
 Do this before using a tool that can write files:
@@ -88,18 +561,306 @@ For day-to-day implementation selection, start with the short
 [roadmap and test query guide](../docs/planning/QUERY-GUIDE.md) only when the
 bounded command output points to a deeper reference:
 
+The fastest resume command is the bounded dashboard:
+
+    python tools/query_rti_work.py dashboard --summary --compact
+
+It prints live roadmap and Catch2/mapping counts, source health, snapshot
+freshness, the latest completed slice, one next work handoff, and only the
+first three open-family queue rows. Use `--limit N` for a different preview or
+`--json` for automation. It is read-only and does not reopen or rewrite the
+Requirements Lab.
+
+When the indexed source and planned-row queues are exhausted, the dashboard
+does not present the completed active pointer as new work. It presents a
+bounded family selector with requirement/canonical-2025-section counts and
+`ready --family <id>`/`work <id>` handles. The family-scoped `ready` response
+adds bounded ID previews and direct requirement-to-section pairs. This is the
+intended handoff for selecting the next C++ slice; the text card prints the
+first bounded family as a recommendation and JSON exposes the same
+`recommended_family_id`.
+
+`ready --summary --compact` is intentionally the active implementation handoff:
+it reports the next plan/test/lane, mapping counts, and a bounded preview of
+requirement and section ids. It labels the queued roadmap family as
+`roadmap_owner` and, when the broad active pointer differs, also prints
+`active_pointer`; this keeps cross-family handoffs legible. Use `ready --json`
+only when a script or review needs the complete mapping arrays; this keeps ordinary implementation resumes from expanding the
+unchanged Requirements Lab into the working context. `work` remains useful for
+family context and completed baselines, but it may intentionally retain a
+historical baseline while `ready` advances to the next queued source/test.
+When its source and planned-row queues are exhausted, `ready` prints up to
+three bounded open-family options with exact `work <family>` commands, while
+`next --pointer` prints the bounded family-selector command. Neither path
+requires reopening the unchanged Requirements Lab.
+The default `next --summary`/`next --json` form is a compatibility alias for
+that same `ready` handoff; it no longer reports the completed active pointer as
+new work. Use `next --pointer` only for the explicit historical source-pointer
+view.
+Once a family is selected, `ready --family <id>` keeps the handoff scoped to
+that exact roadmap family, including when its source/planned queues are
+exhausted. This avoids repeating the global shortlist during focused work.
+`status --summary --compact` and `queue --summary --compact` include live,
+plan-derived family counts for mapped cases, explicit no-standalone-surface
+dispositions, unclassified rows, source-unlocated rows, canonical 2025
+sections, and official C++ API surfaces. When a family names a baseline, the
+same row includes its derived assertion/requirement/2025-section/API counts and
+an exact `trace` command. This makes the first-pass family decision
+self-contained; use `trace` or `matrix` only when the individual requirement
+statements or complete arrays are needed.
+Queue rows additionally publish `action_state` (`implementation`, `mapping`,
+`source-reconciliation`, `external-review`, `new-case-needed`, or
+`evidence-complete`). The diagnostic `source_drift` total is paired with an
+`actionable_source_drift` count, so disabled/reconciled historical artifacts
+cannot become false implementation heads. JSON queue output includes aggregate
+`action_counts` and queued/evidence-complete family totals for scripts.
+Use `roadmap [<query>] --summary --compact` to search family ids, titles, tags,
+anchors, next-action text, Requirements-Lab ids, canonical 2025 subsections, or
+official C++ API surfaces. It returns one bounded row per matching open family
+with live Catch2 counts, next-test requirement/subsection previews, an exact
+`next_source` handoff when one is queued, and copyable `work`, `focus`, and
+family `matrix` commands. Add `--status all` only when historical completed
+families are required.
+Each exhausted-family row also includes a collapsed `next` action in
+compact/summary output, so the immediate implementation decision is available
+without reopening the long roadmap.
+The active restore slices are useful examples of the same handoff: query
+`timestamped-default-region-attribute-restore-multi-recipient` for its exact
+123-assertion, 18-requirement, 14-section mapping or
+`timestamped-regional-interaction-timed-restore` for its exact 55-assertion,
+12-requirement, 15-section mapping, then use `ready` to select the next
+unplanned source declaration. The source queue is authoritative; the historical
+completion ledger may retain superseded rows for auditability.
+Use `lanes --family <id> --unmapped --summary --compact` when a family needs a
+new exact tag: it groups the indexed plan rows by lane, reports mapping state,
+assertions, requirement/2025-section counts, and prints one next-test
+`trace`/`focus`/CTest handle. Add `--disposition unclassified` to select only
+rows that still need a Requirements-Lab mapping decision, or
+`--disposition explicit` to review intentional no-standalone-surface
+dispositions. This is bounded discovery over the checked-in index; it does not
+rescan the Requirements Lab. If a broad family has no single `next_lane`,
+`work <family-id>` emits the same bounded lane-discovery command plus a scoped
+`ready --family <family-id>` handoff so the next case is still selected locally.
+
+The implementation plan is queryable by heading without printing its prose:
+
+    python tools/query_rti_work.py plan --summary --compact
+    python tools/query_rti_work.py plan "current indexed" --summary --compact
+
+The filtered plan view returns heading line numbers and breadcrumb paths; use
+the reported line to open only the relevant portion of
+`docs/planning/IMPLEMENTATION-PLAN.md`.
+
+`focus` reports `needs-mapping` if any unclassified row remains, even when its
+source case is implemented; `complete` is reserved for lanes with no executable
+candidate, unclassified row, source drift, or indexed execution gate.
+`execution-blocked` records a source/build-integrity gate without discarding
+the trace handles. Explicit no-standalone-surface dispositions are still
+queryable. For example, the declared-custom-transport forms use one bounded
+taxonomy handle:
+
+    python tools/query_rti_work.py focus custom-transportation --summary --compact
+    python tools/query_rti_work.py unmapped --lane custom-transportation --disposition explicit --summary --compact
+
+For one test-to-standard lookup, keep the query exact and bounded. The Auto
+Provide service-report lane is the current example: `focus` prints its owner,
+source, requirements, clauses, and executable filter; `trace`/`matrix` then
+show the direct requirement-to-subsection rows. Both reverse views accept an
+exact C++ API surface id when you need to find every mapped test exercising a
+specific official method. Use the printed `ctest_filter`
+instead of a broad label when traceability checks carry historical selectors.
+The bounded `queue` and `next` views include the live indexed assertion total
+for any pointed lane, so a stale prose snapshot cannot obscure the current
+focused-test size.
+The canonical Catch2 plan mapping field is
+`selected_requirements_lab_requirement_ids`; the query check rejects the
+legacy `requirements_lab_requirement_ids` spelling so a mapped case cannot be
+silently counted as unclassified. The bounded filesystem/MOM lifecycle lane is
+queryable with `focus service-report-file-lifecycle`, and `matrix` prints its
+per-test source, assertion, requirement, subsection, and API counts. Matrix
+JSON rows additionally expose `requirement_section_mappings`, preserving each
+direct Lab-requirement → canonical 2025 subsection pair.
+The public fresh-registry application-value companion is likewise directly
+queryable with `focus public-process-restart-application-value-focused`; its
+dashboard/recent entry carries the source line, 82 assertions, nine
+Requirements-Lab anchors, five canonical sections, and 18 official C++ API
+surfaces.
+
     python tools/query_rti_work.py work --summary --compact
+    python tools/query_rti_work.py ready --summary --compact
     python tools/query_rti_work.py focus --summary --compact
     python tools/query_rti_work.py next --summary
+    python tools/query_rti_work.py next --pointer
     python tools/query_rti_work.py recent --summary --compact --limit 20
+    python tools/query_rti_work.py search timestamped-directed-retraction --summary --compact
+    python tools/query_rti_work.py trace "Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant" --summary --compact
+    python tools/query_rti_work.py matrix api.2025.cpp.rtiambassador.querylogicaltime.cb29c063787c --summary --compact
+    python tools/query_rti_work.py matrix header-binding-shell --summary --compact
+    python tools/query_rti_work.py matrix time-support --summary --compact
+    python tools/query_rti_work.py matrix hla-1516.1-2025:clause-9.12 --summary --compact --limit 20
+    python tools/query_rti_work.py trace "Embedded attribute relevance advisories use subscriptions when known-class policy is disabled" --summary --compact
+    python tools/query_rti_work.py search known-class-disabled --summary --compact
+    python tools/query_rti_work.py trace "Embedded attribute relevance advisories honor known class when the static policy is enabled" --summary --compact
+    python tools/query_rti_work.py search known-class-enabled --summary --compact
+    python tools/query_rti_work.py trace "Embedded update-rate lookup ignores passive regional subscriptions" --summary --compact
+    python tools/query_rti_work.py search update-rate-reduction --summary --compact
+    python tools/query_rti_work.py trace "Embedded custom transportation handles remain stable across an additional FOM join" --summary --compact
+    python tools/query_rti_work.py search transportation-handle-stability --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction (restored baseline copy)" --summary --compact
+    python tools/query_rti_work.py search restored-baseline-copy --summary --compact
+    python tools/query_rti_work.py trace "Embedded regional Provide Attribute Value Update reports before callback delivery (restored baseline copy)" --summary --compact
+    python tools/query_rti_work.py trace "Embedded three-dimensional regional object attributes require complete overlap" --summary --compact
+    python tools/query_rti_work.py search complete-overlap --summary --compact
+    python tools/query_rti_work.py trace "Embedded regional Request Attribute Value Update filters 2025 owner solicitations (restored baseline copy)" --summary --compact
+    python tools/query_rti_work.py search regional-request-filtering --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction (restored baseline copy)" --summary --compact
+    python tools/query_rti_work.py search timestamped-regional-attribute-update-failure --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped Update Attribute Values invocations (restored baseline copy)" --summary --compact
+    python tools/query_rti_work.py search timestamped-attribute-update-failure --summary --compact
     python tools/query_rti_work.py trace "RTIambassador removes a regional subscription through a configured process endpoint" --summary
     python tools/query_rti_work.py lane request-retraction-suppressed-interaction --summary --compact
     python tools/query_rti_work.py test "Embedded suppressed timestamped interaction callback does not request retraction" --summary --compact
+    python tools/query_rti_work_regression.py
     python tools/query_rti_work.py lane transport --summary --compact
     python tools/query_rti_work.py test "Private process transport exchanges framed data after endpoint handshake" --summary --compact
     python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
     python tools/query_rti_work.py test "Private registry-bound service exchanges federation traffic across independently launched processes" --summary --compact
     python tools/query_rti_work.py lane process-boundary --summary --compact
+    python tools/query_rti_work.py focus process-modify-lookahead-focused --summary --compact
+    python tools/query_rti_work.py trace "RTIambassador modifies lookahead through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix "RTIambassador modifies lookahead through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py check --lane process-modify-lookahead-focused --summary --compact
+    python tools/query_rti_work.py focus process-modify-lookahead-grant-focused --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors apply a deferred lower lookahead at a configured process grant" --summary --compact
+    python tools/query_rti_work.py matrix "RTIambassadors apply a deferred lower lookahead at a configured process grant" --summary --compact
+    python tools/query_rti_work.py check --lane process-modify-lookahead-grant-focused --summary --compact
+
+The process Available-form temporal lane has the same bounded handles:
+
+    python tools/query_rti_work.py focus process-time-advance-available-focused --summary --compact
+    python tools/query_rti_work.py trace "RTIambassador requests available time advance through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix "RTIambassador requests available time advance through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py check --lane process-time-advance-available-focused --summary --compact
+
+The process NMR/NMRA temporal lane is independently selectable:
+
+    python tools/query_rti_work.py focus process-time-advance-next-message-focused --summary --compact
+    python tools/query_rti_work.py trace "RTIambassador requests next message advances through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix "RTIambassador requests next message advances through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py check --lane process-time-advance-next-message-focused --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador requests next message advances through a configured process endpoint$" --output-on-failure
+
+The queued-TSO companion keeps the multi-federate scheduler proof separate:
+
+    python tools/query_rti_work.py focus process-time-advance-next-message-queued-focused --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors select queued timestamped process messages for next-message advances" --summary --compact
+    python tools/query_rti_work.py matrix "RTIambassadors select queued timestamped process messages for next-message advances" --summary --compact
+    python tools/query_rti_work.py check --lane process-time-advance-next-message-queued-focused --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors select queued timestamped process messages for next-message advances$" --output-on-failure
+
+The current public process object-instance lookup slice is independently
+queryable and deliberately small:
+
+    python tools/query_rti_work.py focus object-instance-lookup --summary --compact
+    python tools/query_rti_work.py trace "RTIambassador resolves known object-instance names and handles through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix object-instance-lookup --summary --compact
+    python tools/query_rti_work.py check --lane object-instance-lookup --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador resolves known object-instance names and handles through a configured process endpoint$" --output-on-failure
+
+It records 18 assertions under `HLA_EVOKED` and `HLA_IMMEDIATE`, five
+Requirements-Lab anchors, two canonical 2025 subsections, and six official C++
+API surfaces. Use the exact lane/title handles above; do not reopen the full
+Requirements-Lab plan to locate this slice.
+
+The current public process reverse-FOM lookup slice is independently queryable:
+
+    python tools/query_rti_work.py focus reverse-fom-lookup --summary --compact
+    python tools/query_rti_work.py trace "RTIambassador reports reverse FOM lookup errors through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix reverse-fom-lookup --summary --compact
+    python tools/query_rti_work.py check --lane reverse-fom-lookup --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador reports reverse FOM lookup errors through a configured process endpoint$" --output-on-failure
+
+The lane now records four source-located cases and 76 aggregate assertions
+(m102 contributes 20; m103 contributes 24; m104 contributes 16; m105
+contributes 16) under `HLA_EVOKED` and `HLA_IMMEDIATE`. The m105 case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13647` records 16 assertions,
+maps six Requirements-Lab anchors to canonical 2025 subsections `9.1.2`,
+`10.19`, and `10.20.4`, and exercises the unknown-name/invalid-handle error
+fence across four official C++ API surfaces. Use these exact lane/title handles
+for bounded declaration-management work; class, attribute, parameter,
+dimension, and transportation reverse lookups remain individually traceable.
+
+The newest process multi-recipient callback-ordering slice is independently
+queryable:
+
+    python tools/query_rti_work.py focus process-multi-recipient-callback-ordering --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors preserve per-recipient interaction FIFO through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix process-multi-recipient-callback-ordering --summary --compact
+    python tools/query_rti_work.py check --lane process-multi-recipient-callback-ordering --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors preserve per-recipient interaction FIFO through a configured process endpoint$" --output-on-failure
+
+The m107 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13968`
+records 79 assertions under `HLA_EVOKED` and `HLA_IMMEDIATE`, maps ten Requirements-Lab anchors to six
+canonical 2025 subsections and five official C++ API surfaces, and checks
+per-recipient FIFO interaction delivery, preserved tags/parameters/producer
+identity, one callback per Evoke Callback, and sender exclusion. Keep
+immediate, callback-disable, timestamped/region/directed fanout, package/JUnit,
+review, validation, interoperability, and conformance in separate lanes.
+
+The newest process TSO/DDM slice is independently queryable:
+
+    python tools/query_rti_work.py focus timestamped-process-regional-interaction --summary --compact
+    python tools/query_rti_work.py trace m109.embedded-process-tso-regional-interaction --summary --compact
+    python tools/query_rti_work.py matrix "RTIambassadors deliver a timestamped regional interaction through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py test "RTIambassadors deliver a timestamped regional interaction through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py check --lane timestamped-process-regional-interaction --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors deliver a timestamped regional interaction through a configured process endpoint$" --output-on-failure
+
+The m109 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:15057`
+records 71 `HLA_EVOKED` assertions, maps 28 Requirements-Lab anchors to 16
+canonical 2025 subsections, and exercises 20 official C++ API surfaces. It
+proves overlap-qualified timestamped regional process delivery, time-advance
+gating, conveyed source-region metadata, and timestamp/order/retraction
+reconstruction. Keep callback-disable, directed, relaxed-DDM, package/JUnit,
+review, validation, interoperability, and conformance in separate lanes.
+
+The preceding process DDM slice is independently queryable:
+
+    python tools/query_rti_work.py focus process-multi-recipient-regional-interaction --summary --compact
+    python tools/query_rti_work.py trace m108.embedded-process-multi-recipient-regional-interaction --summary --compact
+    python tools/query_rti_work.py matrix "RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py test "RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py check --lane process-multi-recipient-regional-interaction --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint$" --output-on-failure
+
+The m108 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:14414`
+records 126 assertions under `HLA_EVOKED` and `HLA_IMMEDIATE`, maps thirteen
+Requirements-Lab anchors to seven canonical 2025 subsections, and exercises
+thirteen official C++ API surfaces. It proves overlap-filtered delivery to two
+disjoint regional recipients, source-region metadata through Convey Region
+Designator Sets, and sender exclusion. Timestamped/retraction, directed,
+relaxed-DDM, callback-disable, package/JUnit, review, validation,
+interoperability, and conformance remain separate lanes.
+
+The preceding process available-dimensions hierarchy slice is independently queryable:
+
+    python tools/query_rti_work.py focus process-available-dimensions-hierarchy --summary --compact
+    python tools/query_rti_work.py trace process-available-dimensions-hierarchy --summary --compact
+    python tools/query_rti_work.py matrix process-available-dimensions-hierarchy --summary --compact
+    python tools/query_rti_work.py check --lane process-available-dimensions-hierarchy --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador resolves available FOM dimensions through a configured process endpoint$" --output-on-failure
+
+The m106 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13795`
+records 28 assertions under both callback models. It exercises the public
+object/interaction hierarchy queries through the process endpoint, including
+inherited object dimensions, an empty interaction dimension set, unknown-class
+results, and official invalid-handle mapping. The row maps four Lab anchors to
+`hla-1516.1-2025:clause-9.1.2` and two official C++ API surfaces. Keep process
+region behavior, multi-federate ordering, and conformance evidence as separate
+follow-on lanes; query this exact lane before opening another implementation
+slice.
+
     python tools/query_rti_work.py lane callback-controls --summary --compact
     python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
@@ -113,11 +874,32 @@ bounded command output points to a deeper reference:
     python tools/query_rti_work.py test "RTIambassador preserves a timestamped regional update through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py test "RTIambassador removes a regional subscription through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py test "RTIambassador suppresses a disjoint regional update through a configured process endpoint" --summary --compact
+     python tools/query_rti_work.py focus process-time-advance-malformed-encoding --summary --compact
+     python tools/query_rti_work.py trace "RTIambassador rejects malformed logical-time encoding through a configured process endpoint" --summary --compact
+     python tools/query_rti_work.py matrix "RTIambassador rejects malformed logical-time encoding through a configured process endpoint" --summary --compact
+     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador rejects malformed logical-time encoding through a configured process endpoint$" --output-on-failure
+     python tools/query_rti_work.py focus process-time-advance-federation-scheduler --summary --compact
+     python tools/query_rti_work.py trace "RTIambassadors coordinate deferred process time advances through the federation scheduler" --summary --compact
+     python tools/query_rti_work.py matrix "RTIambassadors coordinate deferred process time advances through the federation scheduler" --summary --compact
+     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors coordinate deferred process time advances through the federation scheduler$" --output-on-failure
+     python tools/query_rti_work.py focus process-tso-interaction-before-grant --summary --compact
+     python tools/query_rti_work.py trace "RTIambassadors deliver a deferred timestamped process interaction before the grant" --summary --compact
+     python tools/query_rti_work.py matrix "RTIambassadors deliver a deferred timestamped process interaction before the grant" --summary --compact
+     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors deliver a deferred timestamped process interaction before the grant$" --output-on-failure
+     python tools/query_rti_work.py focus process-tso-attribute-before-grant --summary --compact
+     python tools/query_rti_work.py trace "Private process service releases timestamped Update Attribute Values before a constrained grant" --summary --compact
+     python tools/query_rti_work.py trace "RTIambassadors deliver a deferred timestamped process attribute update before the grant" --summary --compact
+     python tools/query_rti_work.py matrix "RTIambassadors deliver a deferred timestamped process attribute update before the grant" --summary --compact
+     ctest --test-dir <build-dir> -C Debug -R "^(umbra\.process_boundary_private\.catch2\.Private process service releases timestamped Update Attribute Values before a constrained grant|umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors deliver a deferred timestamped process attribute update before the grant)$" --output-on-failure
     python tools/query_rti_work.py test "Private process service routes ordinary Update Attribute Values to a subscribed receiver" --summary --compact
     python tools/query_rti_work.py lane rti.service.subscribe-object-class-attributes --summary --compact
     python tools/query_rti_work.py test "RTIambassador routes public Update Attribute Values through a configured process endpoint" --summary --compact
-    python tools/query_rti_work.py test "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback" --summary --compact
-    python tools/query_rti_work.py coverage --lane process-boundary --summary --compact
+     python tools/query_rti_work.py test "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback" --summary --compact
+     python tools/query_rti_work.py source cpp/tests/external_2010_fom_catch2.cpp --summary --limit 20
+     python tools/query_rti_work.py requirement hla-1516.1-2025:clause-4.1.1 --summary --limit 20
+     python tools/query_rti_work.py section hla-1516.1-2025:clause-4.1.1 --summary --limit 20
+     python tools/query_rti_work.py unmapped --disposition unclassified --summary --limit 20
+     python tools/query_rti_work.py coverage --lane process-boundary --summary --compact
     cmake --build <build-dir> --config Debug --target umbra_test_installable_package
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process --output-on-failure
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-timestamped --output-on-failure
@@ -133,7 +915,7 @@ bounded command output points to a deeper reference:
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-attribute-update --output-on-failure
     python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --index docs/planning/ROADMAP-INDEX.json --config Debug
     python tools/query_rti_work.py test "Embedded transport loss applies the bounded automatic NoAction forced-resign policy" --summary --compact
-    python tools/query_rti_work.py next --summary --compact
+    python tools/query_rti_work.py next --pointer
     python tools/query_rti_work.py focus process-boundary --summary --compact
     python tools/query_rti_work.py test "Embedded terminal timestamped deletion tombstone releases its object name" --summary --compact
     python tools/query_rti_work.py test "Embedded Flush Queue Request admits TSO input queued after submission" --summary --compact
@@ -141,13 +923,76 @@ bounded command output points to a deeper reference:
     python tools/query_rti_work.py test "Embedded timestamped Update Attribute Values honors available and next-message available grants" --compact
     python tools/query_rti_work.py test "Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout" --compact
     python tools/query_rti_work.py test "Embedded regional timestamped attribute updates deliver before TAR and NMR grants" --compact
+    python tools/query_rti_work.py focus timestamped-regional-attribute-timed-restore --summary --compact
+    python tools/query_rti_work.py trace "Embedded timed federation restore restores a live explicit-source regional timestamped attribute update at the save boundary" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded timed federation restore restores a live explicit-source regional timestamped attribute update at the save boundary" --summary --compact
+    python tools/query_rti_work.py check --lane timestamped-regional-attribute-timed-restore --summary --compact
+    python tools/query_rti_work.py focus timestamped-regional-attribute-timed-restore-multi-recipient --summary --compact
+    python tools/query_rti_work.py trace "Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients" --summary --compact
+    python tools/query_rti_work.py check --lane timestamped-regional-attribute-timed-restore-multi-recipient --summary --compact
+    python tools/query_rti_work.py focus tso-regional-attribute-update-timed-multi-resignation-state --summary --compact
+    python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update survives source mutation and resignation after restore" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update survives source mutation and resignation after restore" --summary --compact
+    python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-multi-resignation-state --summary --compact
     python tools/query_rti_work.py recent --lane regional-automatic-provision-switch-mutation --summary --compact --limit 5
+    python tools/query_rti_work.py focus auto-provide-service-report --summary --compact
+    python tools/query_rti_work.py trace "Embedded Auto Provide service reporting records empty tag before its callback" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded Auto Provide service reporting records empty tag before its callback" --summary --compact
+    python tools/query_rti_work.py focus timestamped-directed-interaction-alternate-advance --summary --compact
+    python tools/query_rti_work.py trace "Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants" --summary --compact
+    python tools/query_rti_work.py focus joined-federate-mom-federate-state --summary --compact
+    python tools/query_rti_work.py trace "Embedded joined-federate MOM HLAfederateState follows save and restore callbacks" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded joined-federate MOM HLAfederateState follows save and restore callbacks" --summary --compact
+    python tools/query_rti_work.py focus timestamped-delete-object-instance-failure-service-report --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped Delete Object Instance invocations" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded service reporting records failed timestamped Delete Object Instance invocations" --summary --compact
+    python tools/query_rti_work.py focus timestamped-delete-object-instance-sender-file --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting records timestamped Delete Object Instance before removal callback" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded service reporting records timestamped Delete Object Instance before removal callback" --summary --compact
+    python tools/query_rti_work.py focus timestamped-delete-object-instance-time-regulated-sender-file --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting records time-regulated timestamped Delete Object Instance with retraction handle" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded service reporting records time-regulated timestamped Delete Object Instance with retraction handle" --summary --compact
+    python tools/query_rti_work.py check --lane timestamped-delete-object-instance-time-regulated-sender-file --summary --compact
+    python tools/query_rti_work.py focus timestamped-delete-object-instance-service-report-interaction --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting delivers accepted timestamped Delete Object Instance through MOM interaction" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded service reporting delivers accepted timestamped Delete Object Instance through MOM interaction" --summary --compact
+    python tools/query_rti_work.py check --lane timestamped-delete-object-instance-service-report-interaction --summary --compact
+    python tools/query_rti_work.py focus timestamped-delete-object-instance-failure-mom-interaction --summary --compact
+    python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped Delete Object Instance invocations through MOM interaction" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded service reporting delivers failed timestamped Delete Object Instance invocations through MOM interaction" --summary --compact
+    python tools/query_rti_work.py check --lane timestamped-delete-object-instance-failure-mom-interaction --summary --compact
     python tools/query_rti_work.py check --compact
 
-Use `coverage --lane <exact-tag> --summary --compact` to see the bounded
-requirement, subsection, and source-location counts for one focus lane; the
-source-location count keeps retained historical rows distinct from executable
-Catch2 cases.
+Use `coverage --lane <exact-tag> --summary --compact` (or
+`coverage --family <roadmap-family-id> --summary --compact`) to see bounded
+requirement, subsection, direct-pair, and source-location counts for one focus
+lane/family; the source-location count keeps retained historical rows distinct
+from executable Catch2 cases. Pair totals are deduplicated by
+`(lab_requirement_id, document_id:clause_id)` and JSON distinguishes resolved
+from unresolved rows.
+
+Use `matrix [<exact-handle>] --summary --compact` when the next question is
+"which tests cover this lane, requirement, or 2025 subsection?" It prints one
+bounded row per matching test with the exact source location, status, assertion
+count, requirement IDs, canonical `document_id:clause_id` subsection keys, and
+the direct `requirement_section_mappings` pairs. Omit the handle to use the
+active indexed lane. Use `--json` when a script needs the complete arrays and
+pairs; use `trace` for one direct test-to-requirement row.
+
+`status --summary --compact` reports the live plan/source queues and splits
+unmapped cases into explicit dispositions versus unclassified rows, so an
+intentional internal-boundary decision is not mistaken for missing traceability.
+It also reports the C++ source-index health; `attention` is a source-recovery
+signal (use the bounded `git diff --check` hint), not a reason to rescan or
+revise the unchanged Requirements Lab.
+
+When an indexed source lane is exhausted, `work` and `next --pointer` expose
+the global unplanned-source count and deterministic head when one exists. If
+that queue is empty, they expose the overlapping planned-row head with its plan
+id, requirement/section/API counts, and a copyable `trace` command; no full
+queue dump or Requirements-Lab rescan is needed.
 
 The Lab is optional for ordinary source work. When a requirement mapping or
 source-path contract changes, start with:
@@ -211,10 +1056,11 @@ entry.
 Use the read-only work index for a short next-step report and exact test-to-
 standard lookup. It joins the pinned Catch2 plan to the pinned 2025 bundle's
 clause/subsection and source metadata; it does not resync or modify the Lab:
-`next --summary` includes the exact next work query, lane, focused test selector,
-package target/test/label handles, canonical 2025 `standard_sections`, and
-mapping counts; `next --json` exposes the
-same bounded object to scripts. Run `check --compact` before a focused build to
+`next --summary` is the compact `ready` handoff: it includes one exact planned
+or source-backed slice (or bounded family choices), its lane/test selector,
+canonical 2025 mapping counts, and copyable trace/focus/check handles;
+`next --json` exposes the same bounded object to scripts. Use
+`next --pointer` only for the historical parent-pointer view. Run `check --compact` before a focused build to
 catch stale test/source, requirement, section, or lane handles. Its text output
 prints only a small sample when the checkout has many drift rows; use
 `check --json` for the complete diagnostic. If the selector is an existing
@@ -237,13 +1083,18 @@ indexed lane. Use `focus --json` for automation; it never triggers a Lab scan.
 
 For an iteration-local integrity gate, add `check --lane <exact-tag>`; it
 limits test/source and recent-slice validation to that lane and reports any
-unlocated historical rows as visible source drift. The unscoped `check` remains
-the strict whole-plan reconciliation check.
+unlocated historical rows as visible source drift. Historical line-number drift
+within the same source file is tolerated because query output derives the live
+`TEST_CASE` location; missing declarations, wrong-file pointers, and unknown
+sections still fail. The unscoped `check` remains the whole-plan
+reconciliation check.
 
 `test "<exact TEST_CASE title>" --summary --compact` is the bounded traceability
 view: it prints the source location, API-surface IDs, service/callback tags,
 Requirements-Lab IDs, and canonical 2025 section handles without expanding the
-full plan. For a direct one-record relationship, use `trace`: it accepts an
+full plan; long API-surface prose is abbreviated in this view. Use `--json` (or
+non-summary `--compact`) when the complete prose is required. For a direct
+one-record relationship, use `trace`: it accepts an
 exact plan id/title, Lab requirement id, canonical 2025 section key, or exact
 Catch2 lane tag and prints `lab_requirement_id -> document_id:clause_id` rows
 beside the C++ source location. It never falls back to fuzzy search; use
@@ -255,6 +1106,7 @@ tests.
     python tools/query_rti_work.py trace hla-1516.1-2025:clause-9.7.5 --summary --compact
 
     python tools/query_rti_work.py status --compact
+    python tools/query_rti_work.py ready --summary --compact
     python tools/query_rti_work.py work --summary --compact
     python tools/query_rti_work.py next --compact
     python tools/query_rti_work.py next --summary
@@ -509,7 +1361,8 @@ tests.
     python tools/query_rti_work.py check
 
 Append `--json` to any command for scripting (before or after the subcommand);
-`next` reports the highest-priority open indexed slice, while `item` joins one
+`next --pointer` reports the highest-priority open indexed parent pointer,
+while default `next` joins the single ready handoff and `item` joins one
 roadmap item to its tagged Catch2 cases and their standard mappings. `search`
 is the forgiving one-query path across test IDs, names, semantic tags, API
 surface IDs, Lab requirement IDs, and canonical 2025 clause/subsection keys.
@@ -519,13 +1372,30 @@ the package gate queryable beside the Catch2 lane without treating it as a
 synthetic Catch2 requirement row.
 It also reports the bounded JUnit target and artifact path for the active
 process lane.
-`section` is the exact standard-mapping path: it accepts a canonical
+`source <source-path-substring>` is the bounded reverse lookup for planned
+cases in a known C++ translation unit; each row keeps its source line, Lab IDs,
+and canonical 2025 sections. `requirement` accepts a Lab identifier, contract,
+or standard clause and returns the mapped tests. `section` is the exact
+standard-mapping path: it accepts a canonical
 `document-id:clause-id`, the renderer's space-separated form, or a clause-only
 key such as `clause-9.13.1`, and returns only tests mapped to that section.
+`matrix <roadmap-family-id>` is the aggregate reverse path when the starting
+handle is a roadmap family rather than a test or lane. Every summary row now
+also exposes compact `lab_requirement_id -> document_id:clause_id` pairs, so a
+caller does not need to zip separate requirement and section arrays.
+Use `coverage --family <roadmap-family-id> --summary --compact` when only the
+family totals are needed; `--lane` and `--family` are deliberately exclusive.
 Use `lanes --summary --limit 40` to discover the most-used exact tags without
 dumping the full inventory (use `--limit 0` when a complete list is intended),
-and use `unmapped` to make the remaining
-requirement-less planning cases explicit.
+and use `lanes --disposition unclassified` or
+`unmapped --disposition unclassified` to make the remaining
+requirement-less planning cases explicit. `unmapped --disposition explicit`
+shows rows that intentionally document why no standalone Requirements-Lab API
+surface exists; neither disposition is conformance evidence by itself.
+Both `unmapped` and `unlocated` accept `--family <roadmap-family-id>` in
+addition to an exact `--lane` for a bounded family backlog.
+The compact family queue also prints a deduplicated `direct_pairs` total so
+the family-to-standard mapping size is visible before selecting a test.
 Test, lane, requirement, and item results include a derived C++ source
 location (`cpp/tests/...cpp:line`). The location index is rebuilt from
 `TEST_CASE` declarations for each query, so it cannot drift into a second
@@ -534,10 +1404,11 @@ lane/test/requirement/section/item/search/unmapped output is capped at 20 cases 
 `--limit 0` available when a complete export is needed. Add `--compact` to
 retain each test's Lab requirement IDs and 2025 clause/subsection mappings
 while omitting repeated contract-symbol provenance; this is the preferred
-bounded traceability view. For roadmap selection, `next --compact` also keeps
-the output bounded by reporting only actionable lane/test/ctest handles plus
-standard-section and plan-id counts; use `next --json` or the noncompact view
-when the complete arrays are needed. Add `--summary` when selecting work to
+bounded traceability view. For roadmap selection, default `next --compact`
+follows the ready handoff and keeps the output bounded by reporting only
+actionable family/lane/test/ctest handles plus mapping counts; use
+`next --json` or a focused `trace`/`matrix` query when the complete arrays are
+needed. Add `--summary` when selecting work to
 keep one short record per case (status, mapping id, counts, and focus tags)
 without printing every requirement row. The canonical
 bounded command set is duplicated in
@@ -600,20 +1471,20 @@ For the official 2010 API artifacts and portable 1516e TCK catalog, run:
     python tools/python_tck_2010.py out/java-tck-2010/python-jpype-smoke.json \
       --provider "Umbra mock Java 1516e"
 
-For a real vendor Java provider, the checkout runner accepts the API JAR,
-provider JAR, optional dependency JARs, and JVM options, then verifies and
-exports the Python result:
+For a real vendor Java provider, use the cross-platform Python route runner with
+the API JAR, provider JAR, optional dependency JARs, and FOM path:
 
-    packages/umbra-rti-java-tck-2010/run-python.ps1 -ApiJar C:\\path\\to\\api.jar \
-      -ProviderJar C:\\path\\to\\vendor.jar \
-      -FomPath C:\\path\\to\\RestaurantFOMmodule.xml
+    python -m tools.ci test --standard 2010 --route java \
+      --api-jar C:\\path\\to\\api.jar \
+      --provider-jar C:\\path\\to\\vendor.jar \
+      --fom-path C:\\path\\to\\RestaurantFOMmodule.xml
 
-The same scenario runner can use the direct C++/pybind provider after it has
-been staged in wheel layout:
+The same Python entry point can exercise the direct JNI/native route after the
+native library has been staged:
 
-    packages/umbra-rti-native/run-2010-tck.ps1 \\
-      -NativePackageDirectory out\\native-2010-install \\
-      -CapabilityProfile packages\\umbra-rti-java-tck-2010\\profiles\\native-2010-provider.properties
+    python -m tools.ci test --standard 2010 --route jni \
+      --api-jar C:\\path\\to\\api.jar \
+      --native-library C:\\path\\to\\umbra_rti_jni_2010.dll
 
 The 2010 contract generators consume a locally staged official Java API source
 tree and write only the checked-in contract destinations when explicitly
