@@ -9110,6 +9110,38 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract",
+      "category": "ownership-management",
+      "title": "Exercise the standard mixed-acquirer Divestiture If Wanted contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-divestiture-if-wanted-mixed-acquirers-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDivestitureIfWantedMixedAcquirersContract",
+      "runner_id": "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract",
+      "parity": "cpp-tck.divestiture-if-wanted-mixed-acquirers",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.ownership-acquisition-cancellation-transfer-race",
       "category": "ownership-management",
       "title": "Resolve acquisition cancellation against a concurrent Divestiture If Wanted transfer",
@@ -9211,6 +9243,39 @@
       "cpp_test": "src/main.cpp#scenarioNegotiatedDivestiturePartialAcquisitionCancellation",
       "runner_id": "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract",
+      "category": "ownership-management",
+      "title": "Exercise the standard partial negotiated-divestiture cancellation contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-negotiated-divestiture-partial-acquisition-cancellation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioNegotiatedDivestiturePartialAcquisitionCancellationContract",
+      "runner_id": "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract",
+      "parity": "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

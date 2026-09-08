@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard Divestiture If Wanted with independently pending regular and If Available acquirers. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, multi-attribute FOM, endpoint, callback configuration, and logical-time implementation. It verifies exact attribute-set transfer, callback tags, ownership state, and cleanup without asserting provider-specific behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-divestiture-if-wanted-mixed-acquirers",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, attributeOwnershipAcquisitionIfAvailable, attributeOwnershipDivestitureIfWanted, ownership-query, publication, and resignation services with standard ownership callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioDivestitureIfWantedMixedAcquirersContract"
+      ]
+    }
+  ]
+}

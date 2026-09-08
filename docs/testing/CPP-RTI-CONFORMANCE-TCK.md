@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 334 promoted scenarios (668 callback-model
+The verified lane currently runs 336 promoted scenarios (672 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -423,6 +423,16 @@ acquisition, and the owner confirms only the retained second attribute. Both
 callback models verify the cancellation callback, exact transfer set,
 acquisition and confirmation tags, and final ownership state before canceling
 the residual negotiated divestiture.
+
+The promoted `cpp-tck.divestiture-if-wanted-mixed-acquirers-contract` and
+`cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract`
+runners expose those two green ownership paths as independently selectable
+pure standard C++ contract twins. Their focused four-case lane passed 4/4
+callback-model cases. The catalog-wide promoted gate passed 670/670 ordinary
+CTest cases and recorded 670 direct passes plus the two expected
+adapter-managed connection-loss skips; the strict catalog validator reported
+`valid=true` for
+`.build\cpp-tck-all\verified-evidence-ownership-contract-expansion.json`.
 
 The candidate `cpp-tck.ownership-acquisition-cancellation-transfer-race`
 translates the native standard-only race oracle using the ordinary object and
@@ -1835,12 +1845,15 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 334 catalog
-entries with `promotion=promoted`, which produces 668 cases with
+configuration. The default `--scenario-set verified` selects the 336 catalog
+entries with `promotion=promoted`, which produces 672 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the complete set is 344 IDs and 688 cases, including
-ten candidates. The no-fixture candidate-inclusive baseline completes 686/686
+adapter-required entries; the current catalog contains 346 IDs and 692 cases,
+including ten candidates. The candidate-inclusive evidence figures below were
+recorded before the two ownership contract twins were promoted and therefore
+cover the prior 344-ID, 688-case catalog. The no-fixture candidate-inclusive
+baseline completes 686/686
 CTest cases with no failures and records 676 direct passes plus 12 explicit
 skips: the ten immediate-model candidate skips and the two connection-loss
 skips. With `--connection-loss-fixture <path>`, the shell-free Python adapter

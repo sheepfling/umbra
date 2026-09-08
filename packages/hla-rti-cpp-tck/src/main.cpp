@@ -38019,6 +38019,12 @@ void scenarioDivestitureIfWantedMixedAcquirers(
   owner.disconnect();
 }
 
+void scenarioDivestitureIfWantedMixedAcquirersContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDivestitureIfWantedMixedAcquirers(options, model);
+}
+
 void scenarioNegotiatedDivestiturePartialAcquisitionCancellation(
     Options const& options,
     rti::CallbackModel model) {
@@ -38207,6 +38213,12 @@ void scenarioNegotiatedDivestiturePartialAcquisitionCancellation(
   owner.rtiAmbassador().destroyFederationExecution(federation);
   requester.disconnect();
   owner.disconnect();
+}
+
+void scenarioNegotiatedDivestiturePartialAcquisitionCancellationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNegotiatedDivestiturePartialAcquisitionCancellation(options, model);
 }
 
 void scenarioOwnershipAcquisitionCancellationTransferRace(
@@ -53497,7 +53509,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.partial-attribute-ownership-transfer",
       "cpp-tck.partial-attribute-ownership-transfer-contract",
       "cpp-tck.divestiture-if-wanted-mixed-acquirers",
+      "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract",
       "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
+      "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract",
       "cpp-tck.ownership-acquisition-cancellation-transfer-race",
       "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract",
       "cpp-tck.negotiated-divestiture-cancellation",
@@ -54734,8 +54748,14 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.divestiture-if-wanted-mixed-acquirers") {
     return scenarioDivestitureIfWantedMixedAcquirers;
   }
+  if (id == "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract") {
+    return scenarioDivestitureIfWantedMixedAcquirersContract;
+  }
   if (id == "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation") {
     return scenarioNegotiatedDivestiturePartialAcquisitionCancellation;
+  }
+  if (id == "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract") {
+    return scenarioNegotiatedDivestiturePartialAcquisitionCancellationContract;
   }
   if (id == "cpp-tck.ownership-acquisition-cancellation-transfer-race") {
     return scenarioOwnershipAcquisitionCancellationTransferRace;
@@ -55039,7 +55059,9 @@ int run(Options const& options) {
                   scenario == "cpp-tck.partial-attribute-ownership-transfer" ||
                   scenario == "cpp-tck.partial-attribute-ownership-transfer-contract" ||
                   scenario == "cpp-tck.divestiture-if-wanted-mixed-acquirers" ||
+                  scenario == "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract" ||
                   scenario == "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation" ||
+                  scenario == "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore" ||

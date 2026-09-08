@@ -105,9 +105,11 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 334 promoted scenario IDs (668 callback-model cases).
-`--scenario-set all` configures all 344 available IDs (688 cases), including
-ten candidates. With `--connection-loss-fixture <path>`, the Python adapter
+The verified lane is 336 promoted scenario IDs (672 callback-model cases).
+`--scenario-set all` configures all 346 available IDs (692 cases), including
+ten candidates. The candidate-inclusive evidence figures below were recorded
+before the two ownership contract twins were promoted and cover the prior
+344-ID, 688-case catalog. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
 into the direct evidence; the no-fixture candidate-inclusive baseline records
 676 direct passes plus 12 explicit skips, while the fixture-backed matrix
@@ -168,6 +170,15 @@ add the standard save/restore MOM contract twins. Their focused four-scenario
 lane passed 8/8 callback-model cases; the catalog-wide aggregate passed
 666/666 CTest cases plus 666 direct passes with only the two expected
 connection-loss skips.
+The promoted `cpp-tck.divestiture-if-wanted-mixed-acquirers-contract` and
+`cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract`
+runners add independently selectable pure-standard ownership contract twins.
+Their focused four-case lane passed 4/4 callback-model cases. The latest
+promoted aggregate is recorded in
+`.build/cpp-tck-all/verified-evidence-ownership-contract-expansion.json` and
+passed 670/670 ordinary CTest cases, with 670 direct passes and only the two
+expected adapter-managed connection-loss skips; the strict catalog validator
+reported `valid=true`.
 The two ownership candidate contract twins recorded 4 passes and 4 explicit
 immediate-model skips in their focused eight-case lane; they remain candidates
 until an all-model verification fixture is available.
