@@ -1336,8 +1336,8 @@ The promoted `cpp-tck.federation-mom-save-conditionals-contract` and
 `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` runners
 likewise expose the save/restore MOM routes as independently selectable pure
 standard C++ contracts. Their focused four-scenario lane passed 8/8
-callback-model cases; their catalog-wide aggregate was paused at this
-checkpoint.
+callback-model cases; the catalog-wide aggregate passed 666/666 CTest cases
+plus 666 direct passes with only the two expected connection-loss skips.
 The promoted `cpp-tck.service-report-regional-interaction-failure` scenario
 drives invalid interaction-class, parameter, and region inputs through the same
 standard API. It verifies typed failure reports, exception names, serial

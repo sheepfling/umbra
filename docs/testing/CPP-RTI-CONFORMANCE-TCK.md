@@ -320,8 +320,8 @@ The promoted `cpp-tck.federation-mom-save-conditionals-contract` and
 `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` runners
 make the standard save/restore MOM routes independently selectable. Their
 focused four-scenario lane passed 8/8 callback-model cases. The catalog-wide
-aggregate for this newest slice was paused at the checkpoint; the latest
-completed full aggregate remains the regional-service-report gate above.
+aggregate now passes 666/666 runnable CTest cases and records 666 direct passes
+plus the two expected connection-loss skips.
 The promoted `cpp-tck.fom-empty-module-validation` scenario verifies the
 standard `InvalidFOM` boundary for an empty create-module set and then proves
 that the rejected request did not reserve the federation name by creating and
@@ -1840,15 +1840,13 @@ as adapter options and are passed only through the standard `RtiConfiguration`
 API.
 
 The latest completed local installed-package evidence (2026-09-08) is recorded in
-`.build\cpp-tck-all\verified-evidence-standard-regional-service-report-contracts-final.json`:
-CTest passed 662/662 runnable cases, and the direct lane recorded 662 passes plus
+`.build\cpp-tck-all\verified-evidence-standard-mom-save-restore-contracts-final.json`:
+CTest passed 666/666 runnable cases, and the direct lane recorded 666 passes plus
 two expected connection-loss skips (one evoked and one immediate). The matching
 native survey is recorded in
-`.build\cpp-tck-all\native-survey-standard-regional-service-report-contracts-final.txt`;
-it reports 337 catalog IDs, zero portable candidates, and 244 unmatched native
-stems. The two MOM save/restore contract IDs are present in the current
-334-ID checkpoint and have focused evidence, but were not included in that
-completed catalog-wide aggregate. Earlier
+`.build\cpp-tck-all\native-survey-standard-mom-save-restore-contracts-final.txt`;
+it reports 339 catalog IDs, zero portable candidates, and 244 unmatched native
+stems. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
 `.build\cpp-tck-all\verified-evidence-auth.json`: CTest passed 398/398

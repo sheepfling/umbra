@@ -164,8 +164,9 @@ with only the two expected connection-loss skips.
 The promoted `cpp-tck.federation-mom-save-conditionals-contract` and
 `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` runners
 add the standard save/restore MOM contract twins. Their focused four-scenario
-lane passed 8/8 callback-model cases; the catalog-wide aggregate for this
-newest slice was paused at the checkpoint.
+lane passed 8/8 callback-model cases; the catalog-wide aggregate passed
+666/666 CTest cases plus 666 direct passes with only the two expected
+connection-loss skips.
 The promoted `cpp-tck.mixed-update-rate-subscriptions` case uses the
 adapter-supplied rich FOM to verify ordinary per-attribute update-rate gating.
 Its focused portable lane passed 2/2 callback-model cases, and the matching
