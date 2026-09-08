@@ -824,9 +824,13 @@ The installed-package adapter defaults to the verified scenario set: entries
     that is 334 scenario IDs and 668 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
      complete set is 344 IDs and 688 matrix cases, including ten candidates. The
-  latest candidate-inclusive matrix completes 686/686 CTest cases with no failures
-  and records 676 direct passes plus 12 explicit skips: ten candidate immediate
-  cases and two connection-loss cases. The
+  no-fixture candidate-inclusive baseline completes 686/686 CTest cases with no
+  failures and records 676 direct passes plus 12 explicit skips: ten candidate
+  immediate cases and two connection-loss cases. With `--connection-loss-fixture
+  <path>`, the shell-free Python adapter owns the external fault; the ordinary
+  matrix remains 686/686 CTest cases and the merged direct evidence records 678
+  passes plus only the ten documented candidate immediate-model skips across all
+  688 callback-model cases. The
 aggregate `hla_rti_cpp_tck_installed` CTest
 remains available for a single full-run check.
 

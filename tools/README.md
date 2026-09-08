@@ -109,9 +109,11 @@ The verified lane is 334 promoted scenario IDs (668 callback-model cases).
 `--scenario-set all` configures all 344 available IDs (688 cases), including
 ten candidates. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
-into the direct evidence; the latest candidate-inclusive matrix completes
-686/686 CTest cases with no failures and records 676 direct passes plus 12
-explicit skips (ten candidate immediate cases and two connection-loss cases).
+into the direct evidence; the no-fixture candidate-inclusive baseline records
+676 direct passes plus 12 explicit skips, while the fixture-backed matrix
+completes 686/686 ordinary CTest cases with no failures and records 678 direct
+passes plus only the ten documented candidate immediate-model skips across all
+688 callback-model cases.
 The latest promoted object
 management expansion includes independently selectable pure-standard contracts
 for object-name reservation and object registration/discovery lifecycle.
@@ -237,8 +239,9 @@ execution. The portable executable only observes the standard callback; the
 adapter owns the fault fixture. The current-process adapter additionally provides the shell-free
 `packages/hla-rti-cpp-tck/adapters/current-process/run_connection_loss.py`
 harness; its evoked/immediate evidence is recorded in
-`.build/cpp-tck-all/connection-loss-current-process.json` and is kept
-adapter-specific until a generic fault-injection capability exists.
+`.build/cpp-tck-all/connection-loss-current-process-python.json` and is kept
+adapter-specific because a generic fault-injection capability is outside the
+IEEE API.
 
 The promoted timestamped
 Java-parity factory-discovery case checks that the standard C++

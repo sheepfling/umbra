@@ -389,9 +389,10 @@ The current-package adapter carries that optional setup through
 `HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED`; the portable executable
 only observes the standard callback, while the adapter owns the fault fixture.
 The current-process adapter’s shell-free Python harness passed both callback
-models and recorded `.build\cpp-tck-all\connection-loss-current-process.json`;
-that is adapter-specific evidence and does not promote the scenario for the
-default installed-package baseline.
+models and recorded `.build\cpp-tck-all\connection-loss-current-process-python.json`;
+that is adapter-specific evidence: it makes the connection-loss case green for
+that adapter, while the default no-fixture installed-package baseline remains
+explicitly skipped because the IEEE API does not define fault injection.
 
 The ownership scenario is `java-tck.ownership`. It keeps the reusable source
 on the standard `RTIambassador`/`FederateAmbassador` boundary and uses only the
@@ -1839,9 +1840,13 @@ entries with `promotion=promoted`, which produces 668 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
 adapter-required entries; the complete set is 344 IDs and 688 cases, including
-ten candidates. The latest candidate-inclusive matrix completes 686/686 CTest
-cases with no failures and records 676 direct passes plus 12 explicit skips:
-the ten immediate-model candidate skips and the two connection-loss skips. The
+ten candidates. The no-fixture candidate-inclusive baseline completes 686/686
+CTest cases with no failures and records 676 direct passes plus 12 explicit
+skips: the ten immediate-model candidate skips and the two connection-loss
+skips. With `--connection-loss-fixture <path>`, the shell-free Python adapter
+owns the external fault; the ordinary matrix remains 686/686 CTest cases and
+the merged direct evidence records 678 passes plus only the ten documented
+candidate immediate-model skips across all 688 callback-model cases. The
 candidate skips cover Willing-to-Acquire continuation, the ownership-acquisition
 cancellation transfer race, and the regular-candidate continuation,
 pre-delivery-cancellation, and confirmation-cancellation twins. Supply
@@ -1858,10 +1863,15 @@ declaration.
 as adapter options and are passed only through the standard `RtiConfiguration`
 API.
 
-The latest completed local installed-package evidence (2026-09-08) is recorded in
-`.build\cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`:
-CTest passed 686/686 runnable cases, and the direct lane recorded 676 passes plus
-12 explicit skips (ten candidate immediate cases and two connection-loss cases).
+The no-fixture installed-package baseline (2026-09-08) remains recorded in
+`.build\cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`.
+The latest fixture-backed installed-package evidence is recorded in
+`.build\cpp-tck-all\all-candidate-evidence-with-connection-loss.json`:
+CTest passed 686/686 ordinary runnable cases, the direct lane recorded 678
+passes plus the ten documented candidate immediate-model skips, and the merged
+688-case JUnit artifact reported zero failures and zero skips. Both
+connection-loss callback-model cases passed through the shell-free Python
+adapter fixture.
 The matching native survey is recorded in
 `.build\cpp-tck-all\native-survey-standard-mom-save-restore-contracts-final.txt`;
 it reports 344 catalog IDs, zero portable candidates, and 244 unmatched native
@@ -2073,10 +2083,13 @@ contract slices;
 time-dependent slices additionally take the adapter-supplied
 logical-time implementation and use no provider-specific save format or header.
 The
-the latest candidate-inclusive direct lane passed 676 cases and explicitly
+the no-fixture candidate-inclusive direct lane passed 676 cases and explicitly
 skipped ten candidate immediate cases plus the two connection-loss cases (688
 total) in
-`.build\cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`; the focused regular-candidate
+`.build\cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`.
+The fixture-backed candidate-inclusive direct lane passed 678 cases and
+explicitly skipped only the ten candidate immediate cases in
+`.build\cpp-tck-all\all-candidate-evidence-with-connection-loss.json`; the focused regular-candidate
 continuation lane passed one evoked case and explicitly skipped its immediate
 case in `.build\cpp-tck-all\candidate-negotiated-regular-evidence.json`,
 with three independent evoked repeats also passing; the focused regular
@@ -2107,7 +2120,7 @@ timed-default-region-attribute-save-restore lane passed 2/2 in
 `.build\cpp-tck-all\timed-default-region-attribute-save-restore-candidate.json`,
 with three repeat focused runs also passing 2/2; the focused current-process
 connection-loss adapter lane passed 2/2 in
-`.build\cpp-tck-all\connection-loss-current-process.json`; the focused
+`.build\cpp-tck-all\connection-loss-current-process-python.json`; the focused
 API-surface inventory lane passed 2/2 in
 `.build\cpp-tck-all\api-surface-inventory-focused.json`; the focused
 regional declaration-relevance advisory lane passed 2/2 in
@@ -2552,9 +2565,10 @@ passed and the immediate case explicitly skipped. The
 focused late-join synchronization lane is recorded in
 `cpp-tck-all\synchronization-late-join-focused.json` with 2/2 passed cases. The
 candidate-inclusive direct artifact is
-`cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`;
-it contains 676 passed cases and the 12 explicitly skipped cases in the
-688-case all-scenario matrix.
+`cpp-tck-all\all-candidate-evidence-with-connection-loss.json`; it contains 678
+passed cases and the ten explicitly skipped candidate immediate cases in the
+688-case all-scenario matrix. The no-fixture comparison artifact remains
+`cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`.
 
 The catalog separates promotion from availability: `promotion=promoted` is the
 verified baseline, while `default_status` records whether a scenario is
