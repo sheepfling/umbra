@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 336 promoted scenario IDs (672 callback-model cases).
-`--scenario-set all` configures all 346 available IDs (692 cases), including
+The verified lane is 337 promoted scenario IDs (674 callback-model cases).
+`--scenario-set all` configures all 347 available IDs (694 cases), including
 ten candidates. The candidate-inclusive evidence figures below were recorded
 before the two ownership contract twins were promoted and cover the prior
 344-ID, 688-case catalog. With `--connection-loss-fixture <path>`, the Python adapter
@@ -178,6 +178,14 @@ promoted aggregate is recorded in
 `.build/cpp-tck-all/verified-evidence-ownership-contract-expansion.json` and
 passed 670/670 ordinary CTest cases, with 670 direct passes and only the two
 expected adapter-managed connection-loss skips; the strict catalog validator
+reported `valid=true`.
+The promoted `cpp-tck.region-lifecycle-contract` runner adds the independently
+selectable standard region and dimension lifecycle contract. Its focused
+base-and-contract lane passed 4/4 callback-model cases; the latest promoted
+aggregate is recorded in
+`.build/cpp-tck-all/verified-evidence-region-lifecycle-contract.json` and
+passed 672/672 ordinary CTest cases, with 672 direct passes and only the two
+expected adapter-managed connection-loss skips. The strict catalog validator
 reported `valid=true`.
 The two ownership candidate contract twins recorded 4 passes and 4 explicit
 immediate-model skips in their focused eight-case lane; they remain candidates

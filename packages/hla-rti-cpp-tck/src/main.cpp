@@ -39859,6 +39859,12 @@ void scenarioRegionLifecycle(Options const& options, rti::CallbackModel model) {
   member.disconnect();
 }
 
+void scenarioRegionLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionLifecycle(options, model);
+}
+
 void scenarioRegionalUnpublishRegionRelease(Options const& options, rti::CallbackModel model) {
   require(!options.ddmFom.empty(),
           "regional unpublish region release requires an adapter-supplied dimensional FOM");
@@ -53441,6 +53447,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.query-lits-source-resignation-contract",
       "cpp-tck.timestamped-directed-interactions",
       "cpp-tck.region-lifecycle",
+      "cpp-tck.region-lifecycle-contract",
       "cpp-tck.regional-unpublish-region-release",
       "cpp-tck.regional-object-update",
       "cpp-tck.regional-attribute-value-update-response-recheck",
@@ -54548,6 +54555,7 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioTimestampedDirectedInteractionsContract;
   }
   if (id == "cpp-tck.region-lifecycle") return scenarioRegionLifecycle;
+  if (id == "cpp-tck.region-lifecycle-contract") return scenarioRegionLifecycleContract;
   if (id == "cpp-tck.regional-unpublish-region-release") {
     return scenarioRegionalUnpublishRegionRelease;
   }
@@ -55087,6 +55095,7 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied switch-declaration FOM";
       } else if (scenario == "cpp-tck.region-lifecycle" ||
+                 scenario == "cpp-tck.region-lifecycle-contract" ||
                  scenario == "cpp-tck.regional-unpublish-region-release" ||
                  scenario == "cpp-tck.regional-object-update" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck" ||

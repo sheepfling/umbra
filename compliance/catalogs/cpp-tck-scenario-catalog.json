@@ -10706,6 +10706,49 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.region-lifecycle-contract",
+      "category": "data-distribution-management",
+      "title": "Exercise the standard region and dimension lifecycle contract",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.createRegion/getDimensionHandleSet/decodeRegionHandle(NotConnected/FederateNotExecutionMember boundaries)",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.region-qualified object, attribute, and interaction services(NotConnected/FederateNotExecutionMember boundaries)",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.associateRegionsForUpdates",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.sendInteractionWithRegions(time)(NotConnected/FederateNotExecutionMember boundaries)",
+        "RTIambassador.requestAttributeValueUpdateWithRegions",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
+        "RTIambassador.setRangeBounds"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-dimension-metadata",
+        "cpp-1516.1-ddm-region-lifecycle",
+        "cpp-1516.1-ddm-range-validation"
+      ],
+      "contract_refs": [
+        "standard-region-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionLifecycleContract",
+      "runner_id": "cpp-tck.region-lifecycle-contract",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-unpublish-region-release",
       "category": "regional-publication",
       "title": "Release a region's update-use dependency synchronously when its associated attribute is unpublished",
