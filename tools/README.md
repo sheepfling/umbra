@@ -109,11 +109,10 @@ The verified lane is 334 promoted scenario IDs (668 callback-model cases).
 `--scenario-set all` configures all 344 available IDs (688 cases), including
 ten candidates. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
-into the direct evidence; the current candidate-inclusive lane has 405 passes
-and five expected skips. The skips are the immediate callback-model cases for
-Willing-to-Acquire continuation, the ownership-acquisition cancellation
-transfer race, and the regular-candidate continuation, pre-delivery
-cancellation, and confirmation-cancellation cases. The latest promoted object
+into the direct evidence; the latest candidate-inclusive matrix completes
+686/686 CTest cases with no failures and records 676 direct passes plus 12
+explicit skips (ten candidate immediate cases and two connection-loss cases).
+The latest promoted object
 management expansion includes independently selectable pure-standard contracts
 for object-name reservation and object registration/discovery lifecycle.
 The promoted `cpp-tck.named-registration-contract` runner exposes standard

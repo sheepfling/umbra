@@ -1839,11 +1839,12 @@ entries with `promotion=promoted`, which produces 668 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
 adapter-required entries; the complete set is 344 IDs and 688 cases, including
-ten candidates. The previously recorded candidate-inclusive lane has 405
-passes and five expected skips from the pre-value-contract 410-case matrix: the immediate
-callback-model cases for Willing-to-Acquire continuation, the ownership-
-acquisition cancellation transfer race, the regular-candidate continuation,
-pre-delivery cancellation, and confirmation-cancellation cases. Supply
+ten candidates. The latest candidate-inclusive matrix completes 686/686 CTest
+cases with no failures and records 676 direct passes plus 12 explicit skips:
+the ten immediate-model candidate skips and the two connection-loss skips. The
+candidate skips cover Willing-to-Acquire continuation, the ownership-acquisition
+cancellation transfer race, and the regular-candidate continuation,
+pre-delivery-cancellation, and confirmation-cancellation twins. Supply
 `--connection-loss-fixture <path>` to `tools/run_cpp_tck.py`; it excludes that
 scenario from the ordinary CTest matrix and merges the Python adapter's two
 callback-model results into the direct evidence. The aggregate
@@ -1858,13 +1859,16 @@ as adapter options and are passed only through the standard `RtiConfiguration`
 API.
 
 The latest completed local installed-package evidence (2026-09-08) is recorded in
-`.build\cpp-tck-all\verified-evidence-standard-mom-save-restore-contracts-final.json`:
-CTest passed 666/666 runnable cases, and the direct lane recorded 666 passes plus
-two expected connection-loss skips (one evoked and one immediate). The matching
-native survey is recorded in
+`.build\cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`:
+CTest passed 686/686 runnable cases, and the direct lane recorded 676 passes plus
+12 explicit skips (ten candidate immediate cases and two connection-loss cases).
+The matching native survey is recorded in
 `.build\cpp-tck-all\native-survey-standard-mom-save-restore-contracts-final.txt`;
 it reports 344 catalog IDs, zero portable candidates, and 244 unmatched native
-stems. Earlier
+stems. The promoted-only aggregate remains recorded in
+`.build\cpp-tck-all\verified-evidence-standard-mom-save-restore-contracts-final.json`
+with 666/666 runnable CTest cases, 666 direct passes, and the two expected
+connection-loss skips. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
 `.build\cpp-tck-all\verified-evidence-auth.json`: CTest passed 398/398
@@ -2069,11 +2073,10 @@ contract slices;
 time-dependent slices additionally take the adapter-supplied
 logical-time implementation and use no provider-specific save format or header.
 The
-candidate-inclusive adapter-owned direct lane passed 405 cases and explicitly
-skipped the immediate Willing-to-Acquire continuation, ownership-acquisition
-cancellation transfer, regular-candidate continuation, regular pre-delivery
-cancellation, and regular confirmation-cancellation races (410 total) in
-`.build\cpp-tck-all\all-candidate-evidence-adapter-owned.json`; the focused regular-candidate
+the latest candidate-inclusive direct lane passed 676 cases and explicitly
+skipped ten candidate immediate cases plus the two connection-loss cases (688
+total) in
+`.build\cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`; the focused regular-candidate
 continuation lane passed one evoked case and explicitly skipped its immediate
 case in `.build\cpp-tck-all\candidate-negotiated-regular-evidence.json`,
 with three independent evoked repeats also passing; the focused regular
@@ -2516,8 +2519,8 @@ The promoted-only direct evidence passes the strict validator with
 `cpp-tck-all\verified-evidence-adapter-owned.json` and contains 400/400
 promoted cases under both callback models. Its ordinary CTest matrix contains
 398/398 passed cases, with the adapter-owned connection-loss pair run by the
-Python fixture harness. The candidate-inclusive adapter-owned direct matrix
-covered 410 cases with 405 passes and five explicit skips. The focused
+Python fixture harness. The earlier pre-contract candidate-inclusive adapter-owned
+direct matrix covered 410 cases with 405 passes and five explicit skips. The focused
 custom-transportation regional attribute lane passed 2/2
 in `cpp-tck-custom-transportation-regional\custom-transportation-regional-focused.json`,
 and the focused regional interaction lane passed 2/2 in the same artifact; the
@@ -2548,10 +2551,10 @@ focused Willing-to-Acquire continuation lane is recorded in
 passed and the immediate case explicitly skipped. The
 focused late-join synchronization lane is recorded in
 `cpp-tck-all\synchronization-late-join-focused.json` with 2/2 passed cases. The
-candidate-inclusive adapter-owned direct artifact is
-`cpp-tck-all\all-candidate-evidence-adapter-owned.json`;
-it contains 405 passed cases and the five explicitly skipped cases in the
-410-case all-scenario matrix.
+candidate-inclusive direct artifact is
+`cpp-tck-all\all-candidate-evidence-standard-timed-ownership-contracts-final.json`;
+it contains 676 passed cases and the 12 explicitly skipped cases in the
+688-case all-scenario matrix.
 
 The catalog separates promotion from availability: `promotion=promoted` is the
 verified baseline, while `default_status` records whether a scenario is

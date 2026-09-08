@@ -824,11 +824,9 @@ The installed-package adapter defaults to the verified scenario set: entries
     that is 334 scenario IDs and 668 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
      complete set is 344 IDs and 688 matrix cases, including ten candidates. The
-  previously recorded candidate-inclusive adapter-owned lane contains 405 passes
-  and five expected skips from the pre-value-contract 410-case matrix: the
-  immediate callback-model cases for Willing-to-Acquire continuation, the
-  ownership-acquisition cancellation transfer race, and the regular-candidate
-  continuation, pre-delivery cancellation, and confirmation-cancellation cases. The
+  latest candidate-inclusive matrix completes 686/686 CTest cases with no failures
+  and records 676 direct passes plus 12 explicit skips: ten candidate immediate
+  cases and two connection-loss cases. The
 aggregate `hla_rti_cpp_tck_installed` CTest
 remains available for a single full-run check.
 
