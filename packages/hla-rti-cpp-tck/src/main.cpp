@@ -52751,6 +52751,18 @@ void scenarioOwnershipManagementContract(
   scenarioOwnership(options, model);
 }
 
+void scenarioOwnershipAcquisitionCancellationTransferRaceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOwnershipAcquisitionCancellationTransferRace(options, model);
+}
+
+void scenarioNegotiatedWillingToAcquireContinuationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNegotiatedWillingToAcquireContinuation(options, model);
+}
+
 void scenarioSynchronizationPointContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -53463,11 +53475,13 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.divestiture-if-wanted-mixed-acquirers",
       "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
       "cpp-tck.ownership-acquisition-cancellation-transfer-race",
+      "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract",
       "cpp-tck.negotiated-divestiture-cancellation",
       "cpp-tck.negotiated-divestiture-cancellation-contract",
       "cpp-tck.negotiated-divestiture-pre-delivery-cancellation",
       "cpp-tck.negotiated-divestiture-pre-delivery-cancellation-contract",
       "cpp-tck.negotiated-willing-to-acquire-continuation",
+      "cpp-tck.negotiated-willing-to-acquire-continuation-contract",
       "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore",
       "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
       "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
@@ -54687,6 +54701,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.ownership-acquisition-cancellation-transfer-race") {
     return scenarioOwnershipAcquisitionCancellationTransferRace;
   }
+  if (id == "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract") {
+    return scenarioOwnershipAcquisitionCancellationTransferRaceContract;
+  }
   if (id == "cpp-tck.negotiated-divestiture-cancellation") {
     return scenarioNegotiatedDivestitureCancellation;
   }
@@ -54701,6 +54718,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.negotiated-willing-to-acquire-continuation") {
     return scenarioNegotiatedWillingToAcquireContinuation;
+  }
+  if (id == "cpp-tck.negotiated-willing-to-acquire-continuation-contract") {
+    return scenarioNegotiatedWillingToAcquireContinuationContract;
   }
   if (id == "cpp-tck.resign-pending-acquisition-rejection") {
     return scenarioResignPendingAcquisitionRejection;
@@ -54891,7 +54911,8 @@ int run(Options const& options) {
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
-      } else if (scenario == "cpp-tck.negotiated-willing-to-acquire-continuation" &&
+      } else if ((scenario == "cpp-tck.negotiated-willing-to-acquire-continuation" ||
+                  scenario == "cpp-tck.negotiated-willing-to-acquire-continuation-contract") &&
                  callback.first == "immediate") {
         result.status = "skipped";
         result.message =
@@ -54921,8 +54942,10 @@ int run(Options const& options) {
         result.message =
             "requires evoked callback servicing because immediate regular-candidate delivery "
             "closes the pre-delivery cancellation window before the first candidate resigns";
-      } else if (scenario ==
-                     "cpp-tck.ownership-acquisition-cancellation-transfer-race" &&
+      } else if ((scenario ==
+                     "cpp-tck.ownership-acquisition-cancellation-transfer-race" ||
+                  scenario ==
+                     "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract") &&
                  callback.first == "immediate") {
         result.status = "skipped";
         result.message =

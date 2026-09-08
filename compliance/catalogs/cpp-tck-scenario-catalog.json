@@ -9146,6 +9146,37 @@
       "promotion": "candidate"
     },
     {
+      "id": "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract",
+      "category": "ownership-management",
+      "title": "Pure standard C++ contract for acquisition cancellation against a Divestiture If Wanted transfer",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-ownership-acquisition-cancellation-transfer-race-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnershipAcquisitionCancellationTransferRaceContract",
+      "runner_id": "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract",
+      "parity": "cpp-tck.ownership-acquisition-cancellation-transfer-race",
+      "default_status": "run",
+      "promotion": "candidate"
+    },
+    {
       "id": "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
       "category": "ownership-management",
       "title": "Cancel one attribute of a negotiated multi-attribute divestiture and transfer only the retained attribute",
@@ -9354,6 +9385,39 @@
       "cpp_test": "src/main.cpp#scenarioNegotiatedWillingToAcquireContinuation",
       "runner_id": "cpp-tck.negotiated-willing-to-acquire-continuation",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "run",
+      "promotion": "candidate"
+    },
+    {
+      "id": "cpp-tck.negotiated-willing-to-acquire-continuation-contract",
+      "category": "ownership-management",
+      "title": "Pure standard C++ contract for negotiated willing-to-acquire continuation after candidate cancellation",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-negotiated-willing-to-acquire-continuation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioNegotiatedWillingToAcquireContinuationContract",
+      "runner_id": "cpp-tck.negotiated-willing-to-acquire-continuation-contract",
+      "parity": "cpp-tck.negotiated-willing-to-acquire-continuation",
       "default_status": "run",
       "promotion": "candidate"
     },

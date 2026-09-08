@@ -308,12 +308,14 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.partial-attribute-ownership-transfer-contract` | Standard adapter-backed partial attribute ownership-transfer contract for acquisition cancellation, Divestiture If Wanted, ownership callbacks, and lifecycle cleanup |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | Transfers independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted; immediate mode uses regular pending acquisition to preserve the standard pending boundary |
 | `cpp-tck.ownership-acquisition-cancellation-transfer-race` | Candidate evoked-callback race: cancellation begins from the owner release callback, Divestiture If Wanted wins the terminal race, and the requester receives only the acquisition notification; immediate mode is explicitly inapplicable because it closes the race window |
+| `cpp-tck.ownership-acquisition-cancellation-transfer-race-contract` | Candidate pure standard C++ contract for the acquisition-cancellation versus Divestiture If Wanted race; the adapter owns provider, FOM, endpoint, and callback configuration |
 | `cpp-tck.negotiated-divestiture-partial-acquisition-cancellation` | Cancels one attribute of a negotiated multi-attribute divestiture, confirms only the retained attribute, and verifies exact transfer, tags, cancellation, and ownership state under both callback models |
 | `cpp-tck.negotiated-divestiture-cancellation` | Negotiated divestiture confirmation for a pending acquisition, cancellation back to the ordinary release path, ownership preservation, and acquisition-cancellation confirmation |
 | `cpp-tck.negotiated-divestiture-cancellation-contract` | Standard adapter-backed negotiated divestiture cancellation contract |
 | `cpp-tck.negotiated-divestiture-pre-delivery-cancellation` | Cancels a pending acquisition before evoked negotiated-divestiture callback delivery, suppressing stale owner callbacks and preserving ownership |
 | `cpp-tck.negotiated-divestiture-pre-delivery-cancellation-contract` | Standard adapter-backed pre-delivery negotiated cancellation contract |
 | `cpp-tck.negotiated-willing-to-acquire-continuation` | Evoked-callback negotiated divestiture continuation to the second Willing-to-Acquire candidate after the first candidate supersedes and cancels its request, preserving tags and ownership state; immediate delivery is an expected callback-model skip |
+| `cpp-tck.negotiated-willing-to-acquire-continuation-contract` | Candidate pure standard C++ contract for negotiated willing-to-acquire continuation after cancellation of the first candidate; immediate If Available delivery remains an explicit skip |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore` | Candidate evoked-callback continuation of a regular multi-attribute ownership candidate across timed regional attribute save/restore, resignation, negotiated divestiture, retained queued delivery, and Flush Queue metadata; immediate delivery is intentionally skipped because it closes the continuation window |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore` | Candidate cancellation of a regular negotiated ownership transfer before confirmation callback delivery after timed regional attribute save/restore, preserving publisher ownership, canceling the surviving acquisition reservation, and retaining restored queued delivery; immediate delivery is intentionally skipped |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore` | Candidate regular-to-regular negotiated ownership cancellation after Request Divestiture Confirmation, preserving publisher ownership, rejecting stale Confirm Divestiture, canceling the surviving acquisition reservation, and retaining the restored queued regional update; immediate delivery is intentionally skipped |
@@ -818,7 +820,7 @@ The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
     that is 334 scenario IDs and 668 matrix cases. Run the later adapter-required
   set only after that gate is green by configuring `--scenario-set all`; the
-     complete set is 339 IDs and 678 matrix cases, including five candidates. The
+     complete set is 341 IDs and 682 matrix cases, including seven candidates. The
   previously recorded candidate-inclusive adapter-owned lane contains 405 passes
   and five expected skips from the pre-value-contract 410-case matrix: the
   immediate callback-model cases for Willing-to-Acquire continuation, the
@@ -1338,6 +1340,9 @@ likewise expose the save/restore MOM routes as independently selectable pure
 standard C++ contracts. Their focused four-scenario lane passed 8/8
 callback-model cases; the catalog-wide aggregate passed 666/666 CTest cases
 plus 666 direct passes with only the two expected connection-loss skips.
+The ownership candidate contract-twin lane recorded 4 passes and 4 explicit
+immediate-model skips across the two candidate scenarios; both remain
+`promotion=candidate` until an all-model verification fixture is available.
 The promoted `cpp-tck.service-report-regional-interaction-failure` scenario
 drives invalid interaction-class, parameter, and region inputs through the same
 standard API. It verifies typed failure reports, exception names, serial

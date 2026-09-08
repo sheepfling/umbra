@@ -1820,8 +1820,8 @@ configuration. The default `--scenario-set verified` selects the 334 catalog
 entries with `promotion=promoted`, which produces 668 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the complete set is 339 IDs and 678 cases, including
-five candidates. The previously recorded candidate-inclusive lane has 405
+adapter-required entries; the complete set is 341 IDs and 682 cases, including
+seven candidates. The previously recorded candidate-inclusive lane has 405
 passes and five expected skips from the pre-value-contract 410-case matrix: the immediate
 callback-model cases for Willing-to-Acquire continuation, the ownership-
 acquisition cancellation transfer race, the regular-candidate continuation,
@@ -1845,7 +1845,7 @@ CTest passed 666/666 runnable cases, and the direct lane recorded 666 passes plu
 two expected connection-loss skips (one evoked and one immediate). The matching
 native survey is recorded in
 `.build\cpp-tck-all\native-survey-standard-mom-save-restore-contracts-final.txt`;
-it reports 339 catalog IDs, zero portable candidates, and 244 unmatched native
+it reports 341 catalog IDs, zero portable candidates, and 244 unmatched native
 stems. Earlier
 focused gates remain recorded under their scenario-specific evidence files. The
 earlier installed-package standard-API inventory gate is recorded in
@@ -2099,6 +2099,9 @@ regional service-report contract-twin lane passed 8/8 in
 `.build\cpp-tck-all\focused-standard-regional-service-report-contracts.json`; the focused
 MOM save/restore contract-twin lane passed 8/8 in
 `.build\cpp-tck-all\focused-standard-mom-save-restore-contracts.json`; the focused
+ownership candidate contract-twin lane recorded 4 passes and 4 explicit
+immediate-model skips in
+`.build\cpp-tck-all\focused-standard-ownership-candidate-contracts.json`; the focused
 factory-discovery lane passed 2/2 in
 `.build\cpp-tck-all\factory-discovery-focused.json`; the focused
 MOM transportation-type-change request lane passed 2/2 in
