@@ -11656,6 +11656,36 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-interaction-source-region-snapshot-contract",
+      "category": "regional-interaction-management",
+      "title": "Exercise the standard regional interaction source-region snapshot contract",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "standard-regional-interaction-source-region-snapshot-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalInteractionSourceRegionSnapshotContract",
+      "runner_id": "cpp-tck.regional-interaction-source-region-snapshot-contract",
+      "parity": "cpp-tck.regional-interaction-source-region-snapshot",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-subscription-filtering",
       "category": "regional-interaction-subscription",
       "title": "Filter ordinary regional interactions across ordinary, empty, overlapping, disjoint, and invalid region declarations",

@@ -41839,6 +41839,12 @@ void scenarioRegionalInteractionSourceRegionSnapshot(
   subscriber.disconnect();
 }
 
+void scenarioRegionalInteractionSourceRegionSnapshotContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalInteractionSourceRegionSnapshot(options, model);
+}
+
 void scenarioRegionalInteractionSubscriptionFiltering(
     Options const& options,
     rti::CallbackModel model) {
@@ -53531,6 +53537,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-interaction-routing",
       "cpp-tck.regional-interaction-routing-contract",
       "cpp-tck.regional-interaction-source-region-snapshot",
+      "cpp-tck.regional-interaction-source-region-snapshot-contract",
       "cpp-tck.regional-interaction-subscription-filtering",
       "cpp-tck.timestamped-regional-interaction",
       "cpp-tck.timestamped-regional-interaction-alternate-advances",
@@ -54687,6 +54694,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-interaction-source-region-snapshot") {
     return scenarioRegionalInteractionSourceRegionSnapshot;
   }
+  if (id == "cpp-tck.regional-interaction-source-region-snapshot-contract") {
+    return scenarioRegionalInteractionSourceRegionSnapshotContract;
+  }
   if (id == "cpp-tck.regional-interaction-subscription-filtering") {
     return scenarioRegionalInteractionSubscriptionFiltering;
   }
@@ -55217,6 +55227,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-interaction-routing" ||
                  scenario == "cpp-tck.regional-interaction-routing-contract" ||
                  scenario == "cpp-tck.regional-interaction-source-region-snapshot" ||
+                 scenario == "cpp-tck.regional-interaction-source-region-snapshot-contract" ||
                  scenario == "cpp-tck.regional-interaction-subscription-filtering" ||
                  scenario == "cpp-tck.timestamped-regional-interaction" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances" ||
