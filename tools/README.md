@@ -130,8 +130,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 407 promoted scenario IDs (814 callback-model cases).
-`--scenario-set all` configures the same 407 available IDs (814 cases). The
+The verified lane is 409 promoted scenario IDs (818 callback-model cases).
+`--scenario-set all` configures the same 409 available IDs (818 cases). The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
@@ -208,6 +208,17 @@ subscription after a receive-order removal is queued. An already-discovered
 recipient still receives exactly one terminal removal with object, tag, and
 producer metadata; immediate mode records the same delivery before withdrawal.
 Its focused lane passed 4/4 callback-model cases.
+The latest promoted `cpp-tck.regional-attribute-update-callback-ddm-recheck`
+slice and its pure standard contract twin recheck direct regional Update/Reflect
+eligibility at callback delivery after a committed subscription-region mutation.
+They cover evoked queued-callback suppression, immediate-delivery boundaries,
+restored-overlap delivery, source-region designators, and standard value/tag/
+producer/transportation metadata. Their focused lane passed 4/4 callback-model
+cases; the candidate-inclusive catalog gate passed all 818 CTest cases and
+recorded 816 direct passes plus the two expected adapter-managed connection-loss
+skips. The source remains official IEEE C++ API plus the standard library, with
+provider, FOM, endpoint, callback, and logical-time configuration owned by the
+adapter.
 The latest promoted object
 management expansion includes independently selectable pure-standard contracts
 for object-name reservation and object registration/discovery lifecycle.

@@ -43045,6 +43045,293 @@ void scenarioRegionalAttributeValueUpdateResponseRecheckContract(
   scenarioRegionalAttributeValueUpdateResponseRecheck(options, model);
 }
 
+void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Regional attribute callback DDM recheck requires an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "publisher");
+  Session active(options, model, "active");
+  Session rechecked(options, model, "rechecked");
+  auto const federation = federationName(
+      options,
+      "regional-attribute-update-callback-ddm-recheck");
+  connectAndJoin(publisher, active, options, federation, options.ddmFom);
+  rechecked.connect();
+  rechecked.join(
+      options.memberFederateName + L"-regional-rechecked",
+      options.federateType,
+      federation);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const activeHandles = ddmHandles(active, options);
+  auto const recheckedHandles = ddmHandles(rechecked, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "regional attribute callback DDM publisher");
+
+  rti::AttributeHandleSet const publisherAttributes{
+      publisherHandles.attribute};
+  rti::AttributeHandleSet const activeAttributes{activeHandles.attribute};
+  rti::AttributeHandleSet const recheckedAttributes{
+      recheckedHandles.attribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherHandles.objectClass,
+      publisherAttributes);
+
+  auto const sourceRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      1UL,
+      5UL,
+      1UL,
+      5UL);
+  auto const activeRegion = createDdmRegion(
+      active,
+      activeHandles,
+      2UL,
+      6UL,
+      2UL,
+      6UL);
+  auto const recheckedRegion = createDdmRegion(
+      rechecked,
+      recheckedHandles,
+      2UL,
+      6UL,
+      2UL,
+      6UL);
+  rti::AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
+      publisherAttributes,
+      rti::RegionHandleSet{sourceRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const activePair{{
+      activeAttributes,
+      rti::RegionHandleSet{activeRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const recheckedPair{{
+      recheckedAttributes,
+      rti::RegionHandleSet{recheckedRegion},
+  }};
+
+  active.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  rechecked.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  active.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      activeHandles.objectClass,
+      activePair,
+      true,
+      L"");
+  rechecked.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      recheckedHandles.objectClass,
+      recheckedPair,
+      true,
+      L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstanceWithRegions(
+      publisherHandles.objectClass,
+      sourcePair);
+  require(
+      object.isValid(),
+      "regional attribute callback DDM registration returned an invalid object handle");
+  waitForSessions(
+      {&active, &rechecked},
+      [&] {
+        return active.recorder().hasDiscovery(object) &&
+            rechecked.recorder().hasDiscovery(object);
+      },
+      options,
+      "regional attribute callback DDM discovery");
+
+  auto sendUpdate = [&](std::vector<std::uint8_t> value,
+                        std::vector<std::uint8_t> tag) {
+    rti::AttributeHandleValueMap values;
+    values.emplace(
+        publisherHandles.attribute,
+        rti::VariableLengthData(value.data(), value.size()));
+    publisher.rtiAmbassador().updateAttributeValues(
+        object,
+        values,
+        rti::VariableLengthData(tag.data(), tag.size()));
+  };
+  auto moveRecheckedRegion = [&](bool overlap) {
+    auto const bounds = overlap
+        ? rti::RangeBounds(2UL, 6UL)
+        : rti::RangeBounds(7UL, 9UL);
+    rechecked.rtiAmbassador().setRangeBounds(
+        recheckedRegion,
+        recheckedHandles.firstDimension,
+        bounds);
+    rechecked.rtiAmbassador().setRangeBounds(
+        recheckedRegion,
+        recheckedHandles.secondDimension,
+        bounds);
+    rechecked.rtiAmbassador().commitRegionModifications(
+        rti::RegionHandleSet{recheckedRegion});
+  };
+  auto requireReflection = [&](Session& receiver,
+                               rti::AttributeHandle const& attribute,
+                               std::vector<std::uint8_t> const& value,
+                               std::vector<std::uint8_t> const& tag,
+                               std::string const& description) {
+    auto const reflection = receiver.recorder().reflection();
+    auto const reliable = receiver.rtiAmbassador().getTransportationTypeHandle(
+        L"HLAreliable");
+    require(
+        reliable.isValid(),
+        description + " could not resolve HLAreliable");
+    require(
+        reflection.present &&
+            reflection.object == object &&
+            reflection.values.size() == 1U &&
+            reflection.values.count(attribute) == 1U &&
+            copyBytes(reflection.values.at(attribute)) == value &&
+            reflection.tag == tag &&
+            reflection.transportation == reliable &&
+            reflection.producer == publisher.federateHandle(),
+        description + " returned the wrong object, value, or delivery metadata");
+    require(
+        reflection.regions.has_value() &&
+            reflection.regions->size() == 1U &&
+            reflection.regions->count(sourceRegion) == 1U,
+        description + " omitted the source region designator");
+  };
+
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const firstValue{0x41U, 0x31U};
+  std::vector<std::uint8_t> const firstTag{0x52U, 0x31U};
+  sendUpdate(firstValue, firstTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        active.recorder().reflectionCount() == 0U &&
+            rechecked.recorder().reflectionCount() == 0U,
+        "regional attribute callback DDM update delivered before callback servicing");
+    moveRecheckedRegion(false);
+    waitFor(
+        active,
+        [&] { return active.recorder().reflectionCount() >= 1U; },
+        options,
+        "regional attribute callback DDM active reflection");
+    for (int pass = 0; pass != 8; ++pass) {
+      rechecked.pump();
+    }
+    require(
+        rechecked.recorder().reflectionCount() == 0U,
+        "regional attribute callback DDM delivered a stale disjoint reflection");
+  } else {
+    waitFor(
+        active,
+        [&] { return active.recorder().reflectionCount() >= 1U; },
+        options,
+        "immediate regional attribute callback DDM active reflection");
+    waitFor(
+        rechecked,
+        [&] { return rechecked.recorder().reflectionCount() >= 1U; },
+        options,
+        "immediate regional attribute callback DDM rechecked reflection");
+    moveRecheckedRegion(false);
+  }
+  requireReflection(
+      active,
+      activeHandles.attribute,
+      firstValue,
+      firstTag,
+      "regional attribute callback DDM active reflection");
+  if (model == rti::HLA_IMMEDIATE) {
+    requireReflection(
+        rechecked,
+        recheckedHandles.attribute,
+        firstValue,
+        firstTag,
+        "immediate regional attribute callback DDM rechecked reflection");
+  }
+  require(
+      publisher.recorder().reflectionCount() == 0U,
+      "regional attribute callback DDM looped a reflection to the publisher");
+
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const secondValue{0x41U, 0x32U};
+  std::vector<std::uint8_t> const secondTag{0x52U, 0x32U};
+  sendUpdate(secondValue, secondTag);
+  waitFor(
+      active,
+      [&] { return active.recorder().reflectionCount() >= 1U; },
+      options,
+      "regional attribute callback DDM surviving reflection");
+  for (int pass = 0; pass != 8; ++pass) {
+    rechecked.pump();
+  }
+  require(
+      rechecked.recorder().reflectionCount() == 0U,
+      "regional attribute callback DDM delivered while the region was disjoint");
+  requireReflection(
+      active,
+      activeHandles.attribute,
+      secondValue,
+      secondTag,
+      "regional attribute callback DDM surviving reflection");
+
+  moveRecheckedRegion(true);
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const restoredValue{0x41U, 0x33U};
+  std::vector<std::uint8_t> const restoredTag{0x52U, 0x33U};
+  sendUpdate(restoredValue, restoredTag);
+  waitFor(
+      active,
+      [&] { return active.recorder().reflectionCount() >= 1U; },
+      options,
+      "regional attribute callback DDM restored active reflection");
+  waitFor(
+      rechecked,
+      [&] { return rechecked.recorder().reflectionCount() >= 1U; },
+      options,
+      "regional attribute callback DDM restored rechecked reflection");
+  requireReflection(
+      active,
+      activeHandles.attribute,
+      restoredValue,
+      restoredTag,
+      "regional attribute callback DDM restored active reflection");
+  requireReflection(
+      rechecked,
+      recheckedHandles.attribute,
+      restoredValue,
+      restoredTag,
+      "regional attribute callback DDM restored rechecked reflection");
+
+  active.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      activeHandles.objectClass,
+      activePair);
+  rechecked.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      recheckedHandles.objectClass,
+      recheckedPair);
+  publisher.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherHandles.objectClass,
+      publisherAttributes);
+  active.rtiAmbassador().deleteRegion(activeRegion);
+  rechecked.rtiAmbassador().deleteRegion(recheckedRegion);
+  publisher.rtiAmbassador().deleteRegion(sourceRegion);
+  active.resign(rti::NO_ACTION);
+  rechecked.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  active.disconnect();
+  rechecked.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioRegionalAttributeUpdateCallbackDdmRecheckContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalAttributeUpdateCallbackDdmRecheck(options, model);
+}
+
 void scenarioRegionalAttributeValueRequestFiltering(
     Options const& options,
     rti::CallbackModel model) {
@@ -56368,6 +56655,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-object-update-contract",
       "cpp-tck.regional-attribute-value-update-response-recheck",
       "cpp-tck.regional-attribute-value-update-response-recheck-contract",
+      "cpp-tck.regional-attribute-update-callback-ddm-recheck",
+      "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract",
       "cpp-tck.regional-attribute-value-request-filtering",
       "cpp-tck.regional-attribute-value-request-filtering-contract",
       "cpp-tck.default-region-object-routing",
@@ -57628,6 +57917,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-attribute-value-update-response-recheck-contract") {
     return scenarioRegionalAttributeValueUpdateResponseRecheckContract;
   }
+  if (id == "cpp-tck.regional-attribute-update-callback-ddm-recheck") {
+    return scenarioRegionalAttributeUpdateCallbackDdmRecheck;
+  }
+  if (id == "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract") {
+    return scenarioRegionalAttributeUpdateCallbackDdmRecheckContract;
+  }
   if (id == "cpp-tck.regional-attribute-value-request-filtering") {
     return scenarioRegionalAttributeValueRequestFiltering;
   }
@@ -58169,6 +58464,8 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-object-update-contract" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck-contract" ||
+                 scenario == "cpp-tck.regional-attribute-update-callback-ddm-recheck" ||
+                 scenario == "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering-contract" ||
                  scenario == "cpp-tck.default-region-object-routing" ||

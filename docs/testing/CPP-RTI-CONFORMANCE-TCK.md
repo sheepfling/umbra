@@ -282,7 +282,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 407 promoted scenarios (814 callback-model
+The verified lane currently runs 409 promoted scenarios (818 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -636,6 +636,18 @@ fresh request then verifies the returned value, tag, reliable transport, and
 producer identity. It uses only the official
 `RTIambassador`/`FederateAmbassador` API and adapter-supplied DDM FOM.
 
+The promoted `cpp-tck.regional-attribute-update-callback-ddm-recheck` scenario
+and its pure contract twin cover direct ordinary regional Update/Reflect
+eligibility at callback delivery after a committed subscription-region mutation.
+They verify evoked queued-callback suppression, immediate-delivery boundary
+behavior, restored-overlap delivery, source-region designators, producer, tag,
+value, and transportation metadata, and standard cleanup. Their focused lane
+passed 4/4 callback-model cases; the candidate-inclusive catalog gate passed
+all 818 CTest cases and recorded 816 direct passes plus the two expected
+adapter-managed connection-loss skips. The source uses only official IEEE C++
+headers and the standard library; provider, dimensional FOM, endpoint,
+callback, and logical-time configuration remain adapter-owned.
+
 The promoted `cpp-tck.resign-cancel-pending-acquisition` scenario isolates
 the standard `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` resignation action. It
 leaves an ordinary acquisition pending, resigns the requester, verifies that
@@ -734,6 +746,14 @@ and only the two expected adapter-managed connection-loss skips in
 The source uses only official IEEE C++ headers and the standard library; the
 provider, dimensional FOM, endpoint, callback, and logical-time configuration
 remain adapter-owned.
+The promoted `cpp-tck.regional-attribute-update-callback-ddm-recheck-contract`
+runner exposes that callback-time direct regional Update/Reflect eligibility
+recheck as an independently selectable pure standard C++ contract. Its focused
+base-and-contract lane passed 4/4 callback-model cases; the promoted aggregate
+passed all 818 CTest cases and recorded 816 direct passes plus the two expected
+adapter-managed connection-loss skips. The source uses only official IEEE C++
+headers and the standard library; provider, dimensional FOM, endpoint,
+callback, and logical-time configuration remain adapter-owned.
 The promoted `cpp-tck.default-region-object-routing-contract` runner adds the
 standard ordinary/default-region object routing and association-replacement
 boundary as an independently selectable pure C++ contract. Its focused
@@ -2201,11 +2221,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 407 catalog
-entries with `promotion=promoted`, which produces 814 cases with
+configuration. The default `--scenario-set verified` selects the 409 catalog
+entries with `promotion=promoted`, which produces 818 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 407 IDs and 814 cases,
+adapter-required entries; the current catalog contains 409 IDs and 818 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

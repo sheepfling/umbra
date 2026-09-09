@@ -12591,6 +12591,85 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-attribute-update-callback-ddm-recheck",
+      "category": "regional-attribute-update-callback-ddm-recheck",
+      "title": "Recheck direct regional attribute-update eligibility at callback delivery after a region mutation",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-region-designator-callback",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "object-attribute-region-api-contract.json",
+        "object-attribute-region-requirements-contract.json",
+        "attribute-value-update-with-regions-api-contract.json",
+        "attribute-value-update-with-regions-requirements-contract.json",
+        "convey-region-designator-callback-requirements-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "standard-regional-attribute-update-callback-ddm-recheck-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "runner_id": "cpp-tck.regional-attribute-update-callback-ddm-recheck",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract",
+      "category": "regional-attribute-update-callback-ddm-recheck",
+      "title": "Portable standard contract for callback-time regional attribute-update eligibility rechecking",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-region-designator-callback",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-regional-attribute-update-callback-ddm-recheck-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalAttributeUpdateCallbackDdmRecheckContract",
+      "runner_id": "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract",
+      "parity": "cpp-tck.regional-attribute-update-callback-ddm-recheck",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-attribute-value-request-filtering",
       "category": "regional-attribute-value-request",
       "title": "Filter regional Request Attribute Value Update solicitations by source-region scope",

@@ -296,6 +296,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-attribute-value-request-filtering-contract` | Standard adapter-backed regional Request Attribute Value Update filtering contract, including validation, source-region scope, default-region eligibility, and callback-time re-evaluation |
 | `cpp-tck.regional-attribute-value-update-response-recheck` | Rechecks current regional overlap when a provider's attribute-value response is reflected, then verifies restored-overlap value, tag, transport, and producer metadata |
 | `cpp-tck.regional-attribute-value-update-response-recheck-contract` | Standard adapter-backed regional attribute-value response eligibility and restored reflection metadata contract |
+| `cpp-tck.regional-attribute-update-callback-ddm-recheck` | Rechecks direct ordinary regional Update/Reflect eligibility after a callback-time region mutation, suppresses disjoint delivery, and verifies restored overlap |
+| `cpp-tck.regional-attribute-update-callback-ddm-recheck-contract` | Standard adapter-backed callback-time regional attribute-update DDM recheck contract using only official C++ APIs and adapter-owned configuration |
 | `cpp-tck.default-region-object-routing` | Ordinary and explicit regional subscriptions, default-source discovery/reflection, association replacement/restoration, and supplied-empty default-region metadata |
 | `cpp-tck.default-region-object-routing-contract` | Standard adapter-backed ordinary/default-region object routing and association replacement contract |
 | `cpp-tck.passive-regional-subscription` | Passive regional subscription suppression, activation-triggered discovery, and ordinary regional Update/Reflect with conveyed source-region metadata |
@@ -1599,6 +1601,18 @@ region out of overlap before the provider responds, and verifies that the
 response is suppressed. After restoring overlap, a fresh request proves the
 value, tag, reliable transport, and producer metadata through only the official
 `RTIambassador`/`FederateAmbassador` API and adapter-supplied DDM FOM.
+
+The promoted `cpp-tck.regional-attribute-update-callback-ddm-recheck` scenario
+and its pure contract twin cover direct ordinary regional Update/Reflect
+eligibility at callback delivery after a committed subscription-region mutation.
+They verify evoked queued-callback suppression, immediate-delivery boundaries,
+restored-overlap delivery, source-region designators, and value/tag/producer/
+transportation metadata. The focused lane passed 4/4 callback-model cases; the
+candidate-inclusive catalog gate passed all 818 CTest cases and recorded 816
+direct passes plus the two expected adapter-managed connection-loss skips. The
+source uses only official IEEE C++ headers and the standard library, with
+provider, dimensional FOM, endpoint, callback, and logical-time configuration
+supplied by the adapter.
 
 The promoted `cpp-tck.object-attribute-subscription-lifecycle` scenario
 verifies the same passive/active/downgrade/unsubscribe lifecycle for ordinary

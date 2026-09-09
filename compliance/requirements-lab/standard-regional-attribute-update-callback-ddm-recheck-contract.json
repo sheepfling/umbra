@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for direct ordinary regional attribute-update delivery. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and any logical-time implementation. It verifies object registration with regions, source-region designators, current-overlap re-evaluation at callback delivery, receive-order evoked suppression after a region mutation, immediate delivery boundaries, restored overlap, and lifecycle cleanup without provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-attribute-update-callback-ddm-recheck",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional publication, subscription, registration, region modification, and Update Attribute Values services with FederateAmbassador discovery and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional attribute-update declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    }
+  ]
+}
