@@ -10984,6 +10984,41 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-attribute-value-update-response-recheck-contract",
+      "category": "regional-attribute-value-request",
+      "title": "Exercise the standard regional attribute-value response recheck contract",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.requestAttributeValueUpdateWithRegions",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-value-request",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-region-designator-callback",
+        "cpp-1516.1-attribute-value-update-response"
+      ],
+      "contract_refs": [
+        "standard-regional-attribute-value-update-response-recheck-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalAttributeValueUpdateResponseRecheckContract",
+      "runner_id": "cpp-tck.regional-attribute-value-update-response-recheck-contract",
+      "parity": "cpp-tck.regional-attribute-value-update-response-recheck",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.default-region-object-routing",
       "category": "default-region-object-management",
       "title": "Route ordinary and regional object attributes across default-source association changes",

@@ -40346,6 +40346,12 @@ void scenarioRegionalAttributeValueUpdateResponseRecheck(
   owner.disconnect();
 }
 
+void scenarioRegionalAttributeValueUpdateResponseRecheckContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalAttributeValueUpdateResponseRecheck(options, model);
+}
+
 void scenarioRegionalAttributeValueRequestFiltering(
     Options const& options,
     rti::CallbackModel model) {
@@ -53471,6 +53477,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-object-update",
       "cpp-tck.regional-object-update-contract",
       "cpp-tck.regional-attribute-value-update-response-recheck",
+      "cpp-tck.regional-attribute-value-update-response-recheck-contract",
       "cpp-tck.regional-attribute-value-request-filtering",
       "cpp-tck.regional-attribute-value-request-filtering-contract",
       "cpp-tck.default-region-object-routing",
@@ -54590,6 +54597,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-attribute-value-update-response-recheck") {
     return scenarioRegionalAttributeValueUpdateResponseRecheck;
   }
+  if (id == "cpp-tck.regional-attribute-value-update-response-recheck-contract") {
+    return scenarioRegionalAttributeValueUpdateResponseRecheckContract;
+  }
   if (id == "cpp-tck.regional-attribute-value-request-filtering") {
     return scenarioRegionalAttributeValueRequestFiltering;
   }
@@ -55131,6 +55141,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-object-update" ||
                  scenario == "cpp-tck.regional-object-update-contract" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck" ||
+                 scenario == "cpp-tck.regional-attribute-value-update-response-recheck-contract" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering-contract" ||
                  scenario == "cpp-tck.allow-relaxed-ddm" ||
