@@ -5060,6 +5060,80 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.ordinary-multi-attribute-subscription-projection",
+      "category": "ordinary-multi-attribute-subscription-projection",
+      "title": "Project ordinary multi-attribute updates to each subscriber's declared attribute set",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-ordinary-multi-attribute-subscription-projection-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeSubscriptionProjection",
+      "runner_id": "cpp-tck.ordinary-multi-attribute-subscription-projection",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
+      "category": "ordinary-multi-attribute-subscription-projection",
+      "title": "Portable standard contract for ordinary multi-attribute subscription projection",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-ordinary-multi-attribute-subscription-projection-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeSubscriptionProjectionContract",
+      "runner_id": "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
+      "parity": "cpp-tck.ordinary-multi-attribute-subscription-projection",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.object-removal-multi-recipient-fifo",
       "category": "ordinary-object-removal-multi-recipient-fifo",
       "title": "Deliver ordinary object removals to two active subscribers without owner loopback",

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for ordinary multi-attribute Update/Reflect projection. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, multi-attribute FOM, endpoint, and callback configuration. It verifies a publisher's two-attribute update, complete projection for a subscriber declaring both attributes, selective projection for first-only and second-only subscribers, per-update user tags and producer metadata, owner loopback exclusion, and standard federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ordinary-multi-attribute-subscription-projection",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object publication, registration, and multi-attribute update with FederateAmbassador discovery and reflection callbacks projected by each subscription attribute set",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador object-attribute declaration/update declarations and FederateAmbassador discovery/reflection declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioOrdinaryMultiAttributeSubscriptionProjectionContract"
+      ]
+    }
+  ]
+}

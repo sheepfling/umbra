@@ -27467,6 +27467,288 @@ void scenarioAttributeMultiRecipientFifo(
   publisher.disconnect();
 }
 
+void scenarioOrdinaryMultiAttributeSubscriptionProjection(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "ordinary multi-attribute projection requires an adapter-supplied FOM");
+  Session publisher(options, model, "ordinary-multi-attribute-publisher");
+  Session both(options, model, "ordinary-multi-attribute-both");
+  Session firstOnly(options, model, "ordinary-multi-attribute-first");
+  Session secondOnly(options, model, "ordinary-multi-attribute-second");
+  auto const federation = federationName(
+      options,
+      "ordinary-multi-attribute-subscription-projection");
+  connectAndJoin(publisher, both, options, federation, options.multiAttributeFom);
+  firstOnly.connect();
+  firstOnly.join(
+      options.memberFederateName + L"-first",
+      options.federateType,
+      federation);
+  secondOnly.connect();
+  secondOnly.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const bothClass = both.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const firstClass = firstOnly.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const secondClass = secondOnly.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const publisherFirst = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.multiAttributeFirstName);
+  auto const publisherSecond = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.multiAttributeSecondName);
+  auto const bothFirst = both.rtiAmbassador().getAttributeHandle(
+      bothClass,
+      options.multiAttributeFirstName);
+  auto const bothSecond = both.rtiAmbassador().getAttributeHandle(
+      bothClass,
+      options.multiAttributeSecondName);
+  auto const firstOnlyAttribute = firstOnly.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.multiAttributeFirstName);
+  auto const secondOnlyAttribute = secondOnly.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.multiAttributeSecondName);
+  require(
+      publisherClass.isValid() && bothClass.isValid() && firstClass.isValid() &&
+          secondClass.isValid() && publisherFirst.isValid() &&
+          publisherSecond.isValid() && bothFirst.isValid() &&
+          bothSecond.isValid() && firstOnlyAttribute.isValid() &&
+          secondOnlyAttribute.isValid(),
+      "ordinary multi-attribute projection lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{
+      publisherFirst,
+      publisherSecond};
+  rti::AttributeHandleSet const bothAttributes{bothFirst, bothSecond};
+  rti::AttributeHandleSet const firstOnlyAttributes{firstOnlyAttribute};
+  rti::AttributeHandleSet const secondOnlyAttributes{secondOnlyAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  both.rtiAmbassador().subscribeObjectClassAttributes(
+      bothClass,
+      bothAttributes,
+      true,
+      L"");
+  firstOnly.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstOnlyAttributes,
+      true,
+      L"");
+  secondOnly.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondOnlyAttributes,
+      true,
+      L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "ordinary multi-attribute projection registration returned an invalid object");
+  waitForSessions(
+      {&both, &firstOnly, &secondOnly},
+      [&] {
+        return both.recorder().hasDiscovery(object) &&
+            firstOnly.recorder().hasDiscovery(object) &&
+            secondOnly.recorder().hasDiscovery(object);
+      },
+      options,
+      "ordinary multi-attribute projection discovery");
+  both.recorder().clearReflection();
+  firstOnly.recorder().clearReflection();
+  secondOnly.recorder().clearReflection();
+
+  auto update = [&](bool includeFirst,
+                    bool includeSecond,
+                    std::uint8_t firstValue,
+                    std::uint8_t secondValue,
+                    std::vector<std::uint8_t> const& tagBytes) {
+    rti::AttributeHandleValueMap values;
+    std::vector<std::uint8_t> firstBytes{firstValue};
+    std::vector<std::uint8_t> secondBytes{secondValue};
+    if (includeFirst) {
+      values.emplace(
+          publisherFirst,
+          rti::VariableLengthData(firstBytes.data(), firstBytes.size()));
+    }
+    if (includeSecond) {
+      values.emplace(
+          publisherSecond,
+          rti::VariableLengthData(secondBytes.data(), secondBytes.size()));
+    }
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().updateAttributeValues(object, values, tag);
+  };
+
+  std::vector<std::uint8_t> const bothTag{0xB1U, 0x01U};
+  std::vector<std::uint8_t> const firstTag{0xF1U, 0x02U};
+  std::vector<std::uint8_t> const secondTag{0x51U, 0x03U};
+  update(true, true, 0x11U, 0x22U, bothTag);
+  waitForSessions(
+      {&both, &firstOnly, &secondOnly},
+      [&] {
+        return both.recorder().reflections().size() >= 1U &&
+            firstOnly.recorder().reflections().size() >= 1U &&
+            secondOnly.recorder().reflections().size() >= 1U;
+      },
+      options,
+      "ordinary multi-attribute projection first delivery");
+
+  auto assertMetadata = [&](ReflectionRecord const& record,
+                            std::vector<std::uint8_t> const& expectedTag,
+                            std::string const& description) {
+    require(
+        record.object == object && record.tag == expectedTag &&
+            record.producer == publisher.federateHandle() &&
+            record.transportation.isValid(),
+        description + " returned the wrong delivery metadata");
+  };
+  auto const bothFirstDelivery = both.recorder().reflections().at(0);
+  assertMetadata(
+      bothFirstDelivery,
+      bothTag,
+      "both-attribute subscriber first delivery");
+  require(
+      bothFirstDelivery.values.size() == 2U &&
+          bothFirstDelivery.values.count(bothFirst) == 1U &&
+          bothFirstDelivery.values.count(bothSecond) == 1U &&
+          copyBytes(bothFirstDelivery.values.at(bothFirst)) ==
+              std::vector<std::uint8_t>{0x11U} &&
+          copyBytes(bothFirstDelivery.values.at(bothSecond)) ==
+              std::vector<std::uint8_t>{0x22U},
+      "both-attribute subscriber did not receive the complete attribute map");
+
+  auto const firstOnlyDelivery = firstOnly.recorder().reflections().at(0);
+  assertMetadata(
+      firstOnlyDelivery,
+      bothTag,
+      "first-only subscriber first delivery");
+  require(
+      firstOnlyDelivery.values.size() == 1U &&
+          firstOnlyDelivery.values.count(firstOnlyAttribute) == 1U &&
+          copyBytes(firstOnlyDelivery.values.at(firstOnlyAttribute)) ==
+              std::vector<std::uint8_t>{0x11U},
+      "first-only subscriber received an unrequested attribute");
+
+  auto const secondOnlyDelivery = secondOnly.recorder().reflections().at(0);
+  assertMetadata(
+      secondOnlyDelivery,
+      bothTag,
+      "second-only subscriber first delivery");
+  require(
+      secondOnlyDelivery.values.size() == 1U &&
+          secondOnlyDelivery.values.count(secondOnlyAttribute) == 1U &&
+          copyBytes(secondOnlyDelivery.values.at(secondOnlyAttribute)) ==
+              std::vector<std::uint8_t>{0x22U},
+      "second-only subscriber received an unrequested attribute");
+
+  update(true, false, 0x33U, 0x00U, firstTag);
+  waitForSessions(
+      {&both, &firstOnly},
+      [&] {
+        return both.recorder().reflections().size() >= 2U &&
+            firstOnly.recorder().reflections().size() >= 2U;
+      },
+      options,
+      "ordinary multi-attribute projection first-only delivery");
+  for (int pass = 0; pass != 8; ++pass) {
+    secondOnly.pump();
+  }
+  require(
+      secondOnly.recorder().reflections().size() == 1U,
+      "second-only subscriber received an unrequested first-attribute update");
+  auto const bothFirstOnlyDelivery = both.recorder().reflections().at(1);
+  require(
+      bothFirstOnlyDelivery.values.size() == 1U &&
+          bothFirstOnlyDelivery.values.count(bothFirst) == 1U &&
+          copyBytes(bothFirstOnlyDelivery.values.at(bothFirst)) ==
+              std::vector<std::uint8_t>{0x33U},
+      "both-attribute subscriber did not project the first-only update");
+  auto const firstOnlySecondDelivery = firstOnly.recorder().reflections().at(1);
+  require(
+      firstOnlySecondDelivery.values.size() == 1U &&
+          firstOnlySecondDelivery.values.count(firstOnlyAttribute) == 1U &&
+          copyBytes(firstOnlySecondDelivery.values.at(firstOnlyAttribute)) ==
+              std::vector<std::uint8_t>{0x33U},
+      "first-only subscriber did not receive the first-only update");
+  require(
+      bothFirstOnlyDelivery.tag == firstTag &&
+          firstOnlySecondDelivery.tag == firstTag,
+      "first-only update did not preserve its user tag");
+
+  update(false, true, 0x00U, 0x44U, secondTag);
+  waitForSessions(
+      {&both, &secondOnly},
+      [&] {
+        return both.recorder().reflections().size() >= 3U &&
+            secondOnly.recorder().reflections().size() >= 2U;
+      },
+      options,
+      "ordinary multi-attribute projection second-only delivery");
+  require(
+      firstOnly.recorder().reflections().size() == 2U,
+      "first-only subscriber received an unrequested second-attribute update");
+  auto const bothSecondOnlyDelivery = both.recorder().reflections().at(2);
+  require(
+      bothSecondOnlyDelivery.values.size() == 1U &&
+          bothSecondOnlyDelivery.values.count(bothSecond) == 1U &&
+          copyBytes(bothSecondOnlyDelivery.values.at(bothSecond)) ==
+              std::vector<std::uint8_t>{0x44U},
+      "both-attribute subscriber did not project the second-only update");
+  auto const secondOnlySecondDelivery = secondOnly.recorder().reflections().at(1);
+  require(
+      secondOnlySecondDelivery.values.size() == 1U &&
+          secondOnlySecondDelivery.values.count(secondOnlyAttribute) == 1U &&
+          copyBytes(secondOnlySecondDelivery.values.at(secondOnlyAttribute)) ==
+              std::vector<std::uint8_t>{0x44U},
+      "second-only subscriber did not receive the second-only update");
+  require(
+      bothSecondOnlyDelivery.tag == secondTag &&
+          secondOnlySecondDelivery.tag == secondTag,
+      "second-only update did not preserve its user tag");
+  require(
+      publisher.recorder().reflections().empty(),
+      "ordinary multi-attribute projection delivered a reflection to its owner");
+
+  both.rtiAmbassador().unsubscribeObjectClassAttributes(
+      bothClass,
+      bothAttributes);
+  firstOnly.rtiAmbassador().unsubscribeObjectClassAttributes(
+      firstClass,
+      firstOnlyAttributes);
+  secondOnly.rtiAmbassador().unsubscribeObjectClassAttributes(
+      secondClass,
+      secondOnlyAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  secondOnly.resign(rti::NO_ACTION);
+  firstOnly.resign(rti::NO_ACTION);
+  both.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  secondOnly.disconnect();
+  firstOnly.disconnect();
+  both.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioOrdinaryMultiAttributeSubscriptionProjectionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOrdinaryMultiAttributeSubscriptionProjection(options, model);
+}
+
 void scenarioObjectRemovalMultiRecipientFifo(
     Options const& options,
     rti::CallbackModel model) {
@@ -55504,6 +55786,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.interaction-multi-recipient-fifo-contract",
       "cpp-tck.attribute-multi-recipient-fifo",
       "cpp-tck.attribute-multi-recipient-fifo-contract",
+      "cpp-tck.ordinary-multi-attribute-subscription-projection",
+      "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
       "cpp-tck.object-removal-multi-recipient-fifo",
       "cpp-tck.object-removal-multi-recipient-fifo-contract",
       "cpp-tck.receive-order-object-removal-subscription-withdrawal",
@@ -56485,6 +56769,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.attribute-multi-recipient-fifo-contract") {
     return scenarioAttributeMultiRecipientFifoContract;
+  }
+  if (id == "cpp-tck.ordinary-multi-attribute-subscription-projection") {
+    return scenarioOrdinaryMultiAttributeSubscriptionProjection;
+  }
+  if (id == "cpp-tck.ordinary-multi-attribute-subscription-projection-contract") {
+    return scenarioOrdinaryMultiAttributeSubscriptionProjectionContract;
   }
   if (id == "cpp-tck.object-removal-multi-recipient-fifo") {
     return scenarioObjectRemovalMultiRecipientFifo;

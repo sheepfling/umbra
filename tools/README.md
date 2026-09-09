@@ -130,8 +130,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 401 promoted scenario IDs (802 callback-model cases).
-`--scenario-set all` configures the same 401 available IDs (802 cases). The
+The verified lane is 403 promoted scenario IDs (806 callback-model cases).
+`--scenario-set all` configures the same 403 available IDs (806 cases). The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
@@ -145,6 +145,12 @@ The latest promoted ordinary attribute fan-out slice adds
 `cpp-tck.attribute-multi-recipient-fifo` and its pure standard contract twin.
 Its focused lane passed 4/4 callback-model cases, and the catalog-wide gate
 now includes the promoted object-removal fan-out slice below.
+The promoted `cpp-tck.ordinary-multi-attribute-subscription-projection` slice
+and its pure standard contract twin project a two-attribute ordinary update to
+both-, first-only-, and second-only subscribers, then verify selective updates,
+delivery metadata, and owner loopback exclusion. Their focused lane passed 4/4
+callback-model cases; the candidate-inclusive catalog-wide gate passed 804/806
+cases, with the two expected adapter-managed connection-loss skips.
 The promoted `cpp-tck.object-removal-multi-recipient-fifo` slice and its pure
 standard contract twin pass two ordinary removals in producer order to two
 active subscribers, preserve object/tag/producer metadata, and exclude the
@@ -157,9 +163,9 @@ callback-model cases. The promoted
 standard contract twin preserve independent request tags from two active
 requesters, verify two provider callbacks without loopback, and fan the
 provider's ordinary response out to both subscribers. Their focused lane
-passed 4/4 callback-model cases; the current catalog-wide gate completed 802
-configured CTest cases with 800 passes and two expected adapter-managed
-connection-loss skips, plus 800 direct passes and the same two skips. The
+passed 4/4 callback-model cases; the current catalog-wide gate completed 806
+configured CTest cases with 804 passes and two expected adapter-managed
+connection-loss skips, plus 804 direct passes and the same two skips. The
 promoted `cpp-tck.object-registration-discovery-multi-recipient` slice and its
 pure standard contract twin register two ordinary objects, deliver both
 discoveries to two active subscribers, preserve object name/handle/class
@@ -179,8 +185,8 @@ its pure standard contract twin combine one by-ownership subscriber, two
 universal subscribers, and one unsubscribed observer. They verify producer
 order and complete callback metadata for the shared target, then verify that a
 second target reaches only the universal subscribers. Its focused lane passed
-4/4 callback-model cases, bringing the catalog-wide gate to 802 configured
-cases with 800 passes and two expected adapter-managed connection-loss skips.
+4/4 callback-model cases, bringing the catalog-wide gate to 806 configured
+cases with 804 passes and two expected adapter-managed connection-loss skips.
 The latest promoted `cpp-tck.receive-order-object-removal-subscription-withdrawal`
 slice and its pure standard contract twin withdraw one active attribute
 subscription after a receive-order removal is queued. An already-discovered
