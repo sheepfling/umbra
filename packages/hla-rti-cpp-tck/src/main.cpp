@@ -27749,6 +27749,198 @@ void scenarioOrdinaryMultiAttributeSubscriptionProjectionContract(
   scenarioOrdinaryMultiAttributeSubscriptionProjection(options, model);
 }
 
+void scenarioOrdinaryMultiAttributeValueUpdateRequestResponse(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "ordinary multi-attribute value-request response requires an adapter-supplied FOM");
+  Session owner(options, model, "ordinary-multi-attribute-request-owner");
+  Session requester(options, model, "ordinary-multi-attribute-requester");
+  auto const federation = federationName(
+      options,
+      "ordinary-multi-attribute-value-update-request-response");
+  connectAndJoin(owner, requester, options, federation, options.multiAttributeFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeSecondName);
+  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeFirstName);
+  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeSecondName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() && ownerFirst.isValid() &&
+          ownerSecond.isValid() && requesterFirst.isValid() && requesterSecond.isValid(),
+      "ordinary multi-attribute value-request response lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst, ownerSecond};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  rti::AttributeHandleSet const ownerFirstOnly{ownerFirst};
+  rti::AttributeHandleSet const requesterFirstOnly{requesterFirst};
+  rti::AttributeHandleSet const ownerSecondOnly{ownerSecond};
+  rti::AttributeHandleSet const requesterSecondOnly{requesterSecond};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "ordinary multi-attribute value-request response registration returned an invalid object");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "ordinary multi-attribute value-request response discovery");
+  auto const knownObject = requester.recorder().discovery().object;
+  require(
+      knownObject == object,
+      "ordinary multi-attribute value-request response discovery returned the wrong object");
+
+  auto const reliable = requester.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(
+      reliable.isValid(),
+      "ordinary multi-attribute value-request response could not resolve HLAreliable");
+
+  auto requestAndReflect = [&](rti::AttributeHandleSet const& requested,
+                               rti::AttributeHandleSet const& expectedOwner,
+                               std::vector<std::uint8_t> const& requestTagBytes,
+                               rti::AttributeHandleValueMap const& responseValues,
+                               std::vector<std::pair<rti::AttributeHandle, std::vector<std::uint8_t>>> const& expectedValues,
+                               std::vector<std::uint8_t> const& responseTagBytes,
+                               std::string const& description) {
+    owner.recorder().clearProvidedUpdates();
+    requester.recorder().clearReflection();
+    rti::VariableLengthData const requestTag(
+        requestTagBytes.data(),
+        requestTagBytes.size());
+    requester.rtiAmbassador().requestAttributeValueUpdate(
+        knownObject,
+        requested,
+        requestTag);
+    waitFor(
+        owner,
+        [&] {
+          auto const requests = owner.recorder().providedUpdates();
+          return requests.size() >= 1U && requests.back().object == object &&
+              requests.back().attributes == expectedOwner &&
+              requests.back().tag == requestTagBytes;
+        },
+        options,
+        description + " provider callback");
+    auto const requests = owner.recorder().providedUpdates();
+    require(
+        requests.size() == 1U && requests.front().object == object &&
+            requests.front().attributes == expectedOwner &&
+            requests.front().tag == requestTagBytes,
+        description + " provider callback returned the wrong object, attributes, or tag");
+    require(
+        requester.recorder().reflectionCount() == 0U,
+        description + " was reflected before the provider answered");
+
+    rti::VariableLengthData const responseTag(
+        responseTagBytes.data(),
+        responseTagBytes.size());
+    owner.rtiAmbassador().updateAttributeValues(object, responseValues, responseTag);
+    waitFor(
+        requester,
+        [&] { return requester.recorder().reflection().present; },
+        options,
+        description + " reflection");
+    auto const reflection = requester.recorder().reflection();
+    require(
+        reflection.object == knownObject &&
+            reflection.values.size() == expectedValues.size() &&
+            reflection.tag == responseTagBytes && reflection.transportation == reliable &&
+            reflection.producer == owner.federateHandle() && !reflection.regions.has_value(),
+        description + " reflection returned the wrong object, metadata, or attribute count");
+    for (auto const& [attribute, expected] : expectedValues) {
+      require(
+          reflection.values.count(attribute) == 1U &&
+              copyBytes(reflection.values.at(attribute)) == expected,
+          description + " reflection returned the wrong attribute value");
+    }
+  };
+
+  rti::AttributeHandleValueMap bothResponse;
+  std::vector<std::uint8_t> const firstValue{0x11U};
+  std::vector<std::uint8_t> const secondValue{0x22U};
+  bothResponse.emplace(
+      ownerFirst,
+      rti::VariableLengthData(firstValue.data(), firstValue.size()));
+  bothResponse.emplace(
+      ownerSecond,
+      rti::VariableLengthData(secondValue.data(), secondValue.size()));
+  requestAndReflect(
+      requesterAttributes,
+      ownerAttributes,
+      {0x52U, 0x31U},
+      bothResponse,
+      {{requesterFirst, firstValue}, {requesterSecond, secondValue}},
+      {0x52U, 0x41U},
+      "ordinary multi-attribute full value request");
+
+  rti::AttributeHandleValueMap firstResponse;
+  std::vector<std::uint8_t> const firstReplacement{0x33U};
+  firstResponse.emplace(
+      ownerFirst,
+      rti::VariableLengthData(firstReplacement.data(), firstReplacement.size()));
+  requestAndReflect(
+      requesterFirstOnly,
+      ownerFirstOnly,
+      {0x52U, 0x32U},
+      firstResponse,
+      {{requesterFirst, firstReplacement}},
+      {0x52U, 0x42U},
+      "ordinary multi-attribute first-only value request");
+
+  rti::AttributeHandleValueMap secondResponse;
+  std::vector<std::uint8_t> const secondReplacement{0x44U};
+  secondResponse.emplace(
+      ownerSecond,
+      rti::VariableLengthData(secondReplacement.data(), secondReplacement.size()));
+  requestAndReflect(
+      requesterSecondOnly,
+      ownerSecondOnly,
+      {0x52U, 0x33U},
+      secondResponse,
+      {{requesterSecond, secondReplacement}},
+      {0x52U, 0x43U},
+      "ordinary multi-attribute second-only value request");
+
+  require(
+      owner.recorder().reflectionCount() == 0U,
+      "ordinary multi-attribute value-request response looped back to the provider");
+  requester.rtiAmbassador().unsubscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioOrdinaryMultiAttributeValueUpdateRequestResponseContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOrdinaryMultiAttributeValueUpdateRequestResponse(options, model);
+}
+
 void scenarioObjectRemovalMultiRecipientFifo(
     Options const& options,
     rti::CallbackModel model) {
@@ -55788,6 +55980,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-multi-recipient-fifo-contract",
       "cpp-tck.ordinary-multi-attribute-subscription-projection",
       "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
+      "cpp-tck.ordinary-multi-attribute-value-update-request-response",
+      "cpp-tck.ordinary-multi-attribute-value-update-request-response-contract",
       "cpp-tck.object-removal-multi-recipient-fifo",
       "cpp-tck.object-removal-multi-recipient-fifo-contract",
       "cpp-tck.receive-order-object-removal-subscription-withdrawal",
@@ -56775,6 +56969,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.ordinary-multi-attribute-subscription-projection-contract") {
     return scenarioOrdinaryMultiAttributeSubscriptionProjectionContract;
+  }
+  if (id == "cpp-tck.ordinary-multi-attribute-value-update-request-response") {
+    return scenarioOrdinaryMultiAttributeValueUpdateRequestResponse;
+  }
+  if (id == "cpp-tck.ordinary-multi-attribute-value-update-request-response-contract") {
+    return scenarioOrdinaryMultiAttributeValueUpdateRequestResponseContract;
   }
   if (id == "cpp-tck.object-removal-multi-recipient-fifo") {
     return scenarioObjectRemovalMultiRecipientFifo;

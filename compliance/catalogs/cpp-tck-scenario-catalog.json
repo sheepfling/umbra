@@ -5134,6 +5134,88 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.ordinary-multi-attribute-value-update-request-response",
+      "category": "ordinary-multi-attribute-value-update-request-response",
+      "title": "Request and reflect full and selective ordinary multi-attribute values",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "attribute-value-update-request-api-contract.json",
+        "attribute-value-update-request-requirements-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-ordinary-multi-attribute-value-update-request-response-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeValueUpdateRequestResponse",
+      "runner_id": "cpp-tck.ordinary-multi-attribute-value-update-request-response",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ordinary-multi-attribute-value-update-request-response-contract",
+      "category": "ordinary-multi-attribute-value-update-request-response",
+      "title": "Portable standard contract for ordinary multi-attribute value requests and responses",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-ordinary-multi-attribute-value-update-request-response-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeValueUpdateRequestResponseContract",
+      "runner_id": "cpp-tck.ordinary-multi-attribute-value-update-request-response-contract",
+      "parity": "cpp-tck.ordinary-multi-attribute-value-update-request-response",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.object-removal-multi-recipient-fifo",
       "category": "ordinary-object-removal-multi-recipient-fifo",
       "title": "Deliver ordinary object removals to two active subscribers without owner loopback",
