@@ -1300,21 +1300,27 @@ class Recorder final : public rti::FederateAmbassador {
       rti::AttributeHandleSet const& attributes,
       rti::FederateHandle const& owner) override {
     std::lock_guard<std::mutex> lock(mutex_);
-    ownershipInformation_ = OwnershipInformationRecord{object, attributes, owner};
+    auto record = OwnershipInformationRecord{object, attributes, owner};
+    ownershipInformation_ = record;
+    ownershipInformationEvents_.push_back(std::move(record));
   }
 
   void attributeIsNotOwned(
       rti::ObjectInstanceHandle const& object,
       rti::AttributeHandleSet const& attributes) override {
     std::lock_guard<std::mutex> lock(mutex_);
-    ownershipNotOwned_ = OwnershipEventRecord{object, attributes, {}};
+    auto record = OwnershipEventRecord{object, attributes, {}};
+    ownershipNotOwned_ = record;
+    ownershipNotOwnedEvents_.push_back(std::move(record));
   }
 
   void attributeIsOwnedByRTI(
       rti::ObjectInstanceHandle const& object,
       rti::AttributeHandleSet const& attributes) override {
     std::lock_guard<std::mutex> lock(mutex_);
-    ownershipOwnedByRti_ = OwnershipEventRecord{object, attributes, {}};
+    auto record = OwnershipEventRecord{object, attributes, {}};
+    ownershipOwnedByRti_ = record;
+    ownershipOwnedByRtiEvents_.push_back(std::move(record));
   }
 
   void timeRegulationEnabled(rti::LogicalTime const& time) override {
@@ -1720,6 +1726,11 @@ class Recorder final : public rti::FederateAmbassador {
     return ownershipInformation_;
   }
 
+  std::vector<OwnershipInformationRecord> ownershipInformationEvents() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return ownershipInformationEvents_;
+  }
+
   std::optional<OwnershipEventRecord> ownershipAssumption() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return ownershipAssumption_;
@@ -1769,14 +1780,25 @@ class Recorder final : public rti::FederateAmbassador {
     return ownershipNotOwned_;
   }
 
+  std::vector<OwnershipEventRecord> ownershipNotOwnedEvents() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return ownershipNotOwnedEvents_;
+  }
+
   std::optional<OwnershipEventRecord> ownershipOwnedByRti() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return ownershipOwnedByRti_;
   }
 
+  std::vector<OwnershipEventRecord> ownershipOwnedByRtiEvents() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return ownershipOwnedByRtiEvents_;
+  }
+
   void clearOwnershipRecords() {
     std::lock_guard<std::mutex> lock(mutex_);
     ownershipInformation_.reset();
+    ownershipInformationEvents_.clear();
     ownershipAssumption_.reset();
     divestitureConfirmation_.reset();
     ownershipAcquisition_.reset();
@@ -1785,7 +1807,9 @@ class Recorder final : public rti::FederateAmbassador {
     ownershipReleaseRequest_.reset();
     ownershipAcquisitionCancellation_.reset();
     ownershipNotOwned_.reset();
+    ownershipNotOwnedEvents_.clear();
     ownershipOwnedByRti_.reset();
+    ownershipOwnedByRtiEvents_.clear();
   }
 
   void clearReservations() {
@@ -1959,6 +1983,7 @@ class Recorder final : public rti::FederateAmbassador {
   std::vector<std::string> callbackOrder_;
   std::vector<AttributeValueRequestRecord> providedUpdates_;
   std::optional<OwnershipInformationRecord> ownershipInformation_;
+  std::vector<OwnershipInformationRecord> ownershipInformationEvents_;
   std::optional<OwnershipEventRecord> ownershipAssumption_;
   std::optional<OwnershipEventRecord> divestitureConfirmation_;
   std::optional<OwnershipEventRecord> ownershipAcquisition_;
@@ -1971,7 +1996,9 @@ class Recorder final : public rti::FederateAmbassador {
       rti::VariableLengthData const&)> ownershipReleaseHook_;
   std::optional<OwnershipEventRecord> ownershipAcquisitionCancellation_;
   std::optional<OwnershipEventRecord> ownershipNotOwned_;
+  std::vector<OwnershipEventRecord> ownershipNotOwnedEvents_;
   std::optional<OwnershipEventRecord> ownershipOwnedByRti_;
+  std::vector<OwnershipEventRecord> ownershipOwnedByRtiEvents_;
 };
 
 class Session final {
@@ -40807,6 +40834,156 @@ void scenarioOwnershipAcquisitionPublicationFence(
   owner.disconnect();
 }
 
+void scenarioOwnershipQueryPartitionCleanup(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Ownership-query testing requires an adapter-supplied multi-attribute FOM");
+
+  Session owner(options, model, "ownership-query-owner");
+  Session requester(options, model, "ownership-query-requester");
+  auto const federation = federationName(
+      options,
+      "ownership-query-partition-cleanup");
+  connectAndJoin(owner, requester, options, federation, options.multiAttributeFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeSecondName);
+  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeFirstName);
+  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeSecondName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid(),
+      "Ownership-query object-class lookup returned an invalid handle");
+  require(
+      ownerFirst.isValid() && ownerSecond.isValid() && requesterFirst.isValid() &&
+          requesterSecond.isValid(),
+      "Ownership-query attribute lookup returned an invalid handle");
+  require(
+      ownerFirst != ownerSecond,
+      "Ownership-query adapter supplied duplicate attribute names");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Ownership-query registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "Ownership-query object discovery");
+
+  rti::ObjectInstanceHandle const invalidObject;
+  rti::AttributeHandle const invalidAttribute;
+  rti::AttributeHandleSet const invalidAttributes{invalidAttribute};
+  requireException(
+      [&] {
+        requester.rtiAmbassador().queryAttributeOwnership(
+            invalidObject,
+            requesterAttributes);
+      },
+      L"ObjectInstanceNotKnown",
+      "querying ownership for an unknown object instance");
+  requireException(
+      [&] {
+        requester.rtiAmbassador().queryAttributeOwnership(
+            object,
+            invalidAttributes);
+      },
+      L"AttributeNotDefined",
+      "querying ownership for an undefined attribute");
+
+  // A query over mixed ownership is reported as exact owned and unowned
+  // attribute subsets. Callback order is intentionally not part of the check.
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().queryAttributeOwnership(object, requesterAttributes);
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().ownershipInformationEvents().size() == 1U &&
+            requester.recorder().ownershipNotOwnedEvents().size() == 1U;
+      },
+      options,
+      "the partitioned ownership query result");
+  auto const ownershipInformation = requester.recorder().ownershipInformationEvents();
+  auto const ownershipNotOwned = requester.recorder().ownershipNotOwnedEvents();
+  require(
+      ownershipInformation.front().object == object &&
+          ownershipInformation.front().attributes ==
+              rti::AttributeHandleSet{requesterFirst} &&
+          ownershipInformation.front().owner == owner.federateHandle(),
+      "ownership query did not report the exact owned attribute subset");
+  require(
+      ownershipNotOwned.front().object == object &&
+          ownershipNotOwned.front().attributes ==
+              rti::AttributeHandleSet{requesterSecond},
+      "ownership query did not report the exact unowned attribute subset");
+  require(
+      requester.recorder().ownershipOwnedByRtiEvents().empty(),
+      "ownership query reported an ordinary unowned attribute as RTI-owned");
+
+  // Removing the object invalidates any query result that has not yet crossed
+  // the callback boundary. Immediate delivery may already have produced the
+  // result; in either model removal must not append a stale second result.
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().queryAttributeOwnership(object, requesterAttributes);
+  auto const informationBeforeRemoval =
+      requester.recorder().ownershipInformationEvents().size();
+  auto const notOwnedBeforeRemoval =
+      requester.recorder().ownershipNotOwnedEvents().size();
+  owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] { return requester.recorder().removals().size() == 1U; },
+      options,
+      "the removed object after an ownership query");
+  for (int pass = 0; pass != 4; ++pass) {
+    requester.pump();
+  }
+  require(
+      requester.recorder().ownershipInformationEvents().size() ==
+          informationBeforeRemoval &&
+          requester.recorder().ownershipNotOwnedEvents().size() ==
+              notOwnedBeforeRemoval,
+      "object removal delivered stale ownership-query results");
+  require(
+      requester.recorder().removals().front().object == object,
+      "object removal after an ownership query returned the wrong object");
+
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioOwnershipQueryPartitionCleanupContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOwnershipQueryPartitionCleanup(options, model);
+}
+
 void scenarioOwnershipAcquisitionPublicationFenceContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -57140,6 +57317,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.partial-attribute-ownership-transfer-contract",
       "cpp-tck.ownership-acquisition-publication-fence",
       "cpp-tck.ownership-acquisition-publication-fence-contract",
+      "cpp-tck.ownership-query-partition-cleanup",
+      "cpp-tck.ownership-query-partition-cleanup-contract",
       "cpp-tck.divestiture-if-wanted-mixed-acquirers",
       "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract",
       "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
@@ -58573,6 +58752,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.ownership-acquisition-publication-fence-contract") {
     return scenarioOwnershipAcquisitionPublicationFenceContract;
+  }
+  if (id == "cpp-tck.ownership-query-partition-cleanup") {
+    return scenarioOwnershipQueryPartitionCleanup;
+  }
+  if (id == "cpp-tck.ownership-query-partition-cleanup-contract") {
+    return scenarioOwnershipQueryPartitionCleanupContract;
   }
   if (id == "cpp-tck.divestiture-if-wanted-mixed-acquirers") {
     return scenarioDivestitureIfWantedMixedAcquirers;

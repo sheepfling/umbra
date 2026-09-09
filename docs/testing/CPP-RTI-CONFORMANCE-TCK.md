@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 413 promoted scenarios (826 callback-model
+The verified lane currently runs 415 promoted scenarios (830 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -397,10 +397,10 @@ four-scenario lane passed 8/8 callback-model cases, including typed report
 parameters, metadata, callback-boundary revalidation, and malformed-request
 failure. The source uses only the official IEEE C++ API and standard library;
 provider, FOM, endpoint, and callback configuration remain adapter inputs. The
-full installed-package verified matrix reported 100% for 826 configured CTest
-cases: 824 passed and the two connection-loss cases were explicitly skipped
+full installed-package verified matrix reported 100% for 830 configured CTest
+cases: 828 passed and the two connection-loss cases were explicitly skipped
 because no adapter fault fixture was supplied. The direct evidence run likewise
-recorded 824 passes, two approved skips, and zero failures.
+recorded 828 passes, two approved skips, and zero failures.
 The newly promoted
 `cpp-tck.ownership-acquisition-publication-fence` scenario and its pure
 standard contract twin isolate the publication fence and pending-state rules
@@ -409,10 +409,20 @@ unpublished/undefined acquisition failures, partial acquisition, overlapping
 pending requests, exact release and unavailable callback subsets/tags,
 ownership splitting, and the standard unpublish-pending boundary. Their
 focused installed-package lane passed 4/4 callback-model cases; the complete
-verified matrix passed 824/826 cases with the two expected adapter-managed
+verified matrix passed 828/830 cases with the two expected adapter-managed
 connection-loss skips and zero failures. The source uses only the official
 IEEE C++ API and standard library, with provider, multi-attribute FOM,
 endpoint, and callback configuration supplied by the adapter.
+The newly promoted
+`cpp-tck.ownership-query-partition-cleanup` scenario and its pure standard
+contract twin isolate mixed owned/unowned `queryAttributeOwnership` results,
+invalid object and attribute-handle failures, and suppression of stale pending
+query results after object removal. Their focused installed-package lane
+passed 4/4 callback-model cases; the complete verified matrix passed 828/830
+cases with the two expected adapter-managed connection-loss skips and zero
+failures. The source uses only the official IEEE C++ API and standard library,
+with provider, multi-attribute FOM, endpoint, and callback configuration
+supplied by the adapter.
 The promoted
 `cpp-tck.service-report-regional-interaction-contract` and
 `cpp-tck.service-report-regional-interaction-subscription-contract` runners add

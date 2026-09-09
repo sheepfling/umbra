@@ -10715,6 +10715,73 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.ownership-query-partition-cleanup",
+      "category": "ownership-management",
+      "title": "Partition mixed ownership query results and suppress stale results after object removal",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.informAttributeOwnership",
+        "FederateAmbassador.attributeIsNotOwned",
+        "FederateAmbassador.attributeIsOwnedByRTI",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-ownership-query-partition-cleanup-contract.json",
+        "attribute-ownership-query-api-contract.json",
+        "attribute-ownership-query-requirements-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "cpp-tck.attribute-ownership-query"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnershipQueryPartitionCleanup",
+      "runner_id": "cpp-tck.ownership-query-partition-cleanup",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-query-partition-cleanup-contract",
+      "category": "ownership-management",
+      "title": "Standard adapter-backed ownership query partition and cleanup contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.informAttributeOwnership",
+        "FederateAmbassador.attributeIsNotOwned",
+        "FederateAmbassador.attributeIsOwnedByRTI",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-ownership-query-partition-cleanup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnershipQueryPartitionCleanupContract",
+      "runner_id": "cpp-tck.ownership-query-partition-cleanup-contract",
+      "parity": "cpp-tck.ownership-query-partition-cleanup",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.divestiture-if-wanted-mixed-acquirers",
       "category": "ownership-management",
       "title": "Transfer independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted",

@@ -130,8 +130,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 413 promoted scenario IDs (826 callback-model cases).
-`--scenario-set all` currently configures the same 413 available IDs (826
+The verified lane is 415 promoted scenario IDs (830 callback-model cases).
+`--scenario-set all` currently configures the same 415 available IDs (830
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -147,10 +147,19 @@ pure standard contract twin cover ownership-acquisition publication fences,
 partial and overlapping pending acquisition, release denial, exact callback
 subsets/tags, ownership splitting, and the unpublish-pending boundary. Their
 focused installed-package lane passed 4/4 callback-model cases; the complete
-verified matrix passed 824/826 cases with two expected adapter-managed
+verified matrix passed 828/830 cases with two expected adapter-managed
 connection-loss skips and zero failures. The portable source remains limited
 to the official IEEE C++ API and standard library, with provider, FOM,
 endpoint, and callback configuration supplied by the adapter.
+The promoted `cpp-tck.ownership-query-partition-cleanup` slice and its pure
+standard contract twin cover mixed owned/unowned query partitions, invalid
+object and attribute-handle boundaries, and suppression of stale pending query
+results after object removal. Their focused installed-package lane passed 4/4
+callback-model cases; the complete verified matrix passed 828/830 cases with
+two expected adapter-managed connection-loss skips and zero failures. The
+portable source remains limited to the official IEEE C++ API and standard
+library, with provider, multi-attribute FOM, endpoint, and callback
+configuration supplied by the adapter.
 The latest promoted ordinary attribute fan-out slice adds
 `cpp-tck.attribute-multi-recipient-fifo` and its pure standard contract twin.
 Its focused lane passed 4/4 callback-model cases, and the catalog-wide gate

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for mixed ordinary attribute ownership queries. The source uses only the official IEEE RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, two-attribute FOM, endpoint, and callback configuration. It verifies exact owned and unowned attribute partitions, invalid object and attribute failures, and suppression of ownership-query results that have not crossed the callback boundary when the object is removed. It does not assert provider-specific names, registries, headers, callback ordering, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-query-partition-cleanup",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::queryAttributeOwnership with ownership-query FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::queryAttributeOwnership, FederateAmbassador::informAttributeOwnership, FederateAmbassador::attributeIsNotOwned, and FederateAmbassador::removeObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioOwnershipQueryPartitionCleanup"
+      ]
+    }
+  ]
+}

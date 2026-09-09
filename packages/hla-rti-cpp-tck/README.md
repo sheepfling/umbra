@@ -373,6 +373,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.partial-attribute-ownership-transfer-contract` | Standard adapter-backed partial attribute ownership-transfer contract for acquisition cancellation, Divestiture If Wanted, ownership callbacks, and lifecycle cleanup |
 | `cpp-tck.ownership-acquisition-publication-fence` | Publication, pending-state, and partial-result boundaries for regular and If Available ownership acquisition, including direct acquisition of an unowned attribute, release denial, and callback metadata |
 | `cpp-tck.ownership-acquisition-publication-fence-contract` | Standard adapter-backed ownership-acquisition publication-fence contract using only the official API and adapter-supplied multi-attribute FOM |
+| `cpp-tck.ownership-query-partition-cleanup` | Partition mixed owned/unowned attribute-query results, reject invalid query handles, and suppress stale query results after object removal |
+| `cpp-tck.ownership-query-partition-cleanup-contract` | Standard adapter-backed ownership-query partition and cleanup contract using only the official API and adapter-supplied multi-attribute FOM |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | Transfers independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted; immediate mode uses regular pending acquisition to preserve the standard pending boundary |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers-contract` | Standard adapter-backed mixed-acquirer Divestiture If Wanted contract with exact attribute-set transfer, callback tags, ownership state, and cleanup |
 | `cpp-tck.ownership-acquisition-cancellation-transfer-race` | Standard two-model ownership transfer: evoked cancellation begins from the owner release callback and Divestiture If Wanted wins the terminal race; immediate mode verifies the same transfer through a deterministic pending acquisition |
@@ -466,10 +468,20 @@ undefined acquisition failures, partial `If Available` and regular acquisition,
 pending-acquisition overlap, release denial, exact callback attribute subsets
 and tags, ownership splits, and the `OwnershipAcquisitionPending` unpublish
 boundary. The focused installed-package lane passed 4/4 callback-model cases;
-the complete verified matrix passed 824/826 cases, with only the two
+the complete verified matrix passed 828/830 cases, with only the two
 adapter-required connection-loss cases skipped and zero failures. The portable
 source uses only the official IEEE C++ API and standard library; provider, FOM,
 endpoint, and callback configuration remain adapter inputs.
+
+The promoted `cpp-tck.ownership-query-partition-cleanup` scenario and its
+contract twin isolate mixed owned/unowned `queryAttributeOwnership` results,
+invalid object and attribute-handle failures, and suppression of stale pending
+query results after object removal. The focused installed-package lane passed
+4/4 callback-model cases, and the complete verified matrix passed 828/830
+cases with two expected adapter-managed connection-loss skips and zero
+failures. The portable source uses only the official IEEE C++ API and standard
+library; provider, multi-attribute FOM, endpoint, and callback configuration
+remain adapter inputs.
 
 The promoted ownership-transfer/update-region case uses the same adapter-supplied
 DDM FOM with three federates. It verifies that a source-region association does
@@ -954,8 +966,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 413 scenario IDs and 826 matrix cases. `--scenario-set all` currently
-  configures the same 413 available IDs (826 cases); there are no unpromoted
+    that is 415 scenario IDs and 830 matrix cases. `--scenario-set all` currently
+  configures the same 415 available IDs (830 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
