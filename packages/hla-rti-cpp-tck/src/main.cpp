@@ -32438,6 +32438,231 @@ void scenarioDirectedInteractionContract(
   scenarioDirectedInteractions(options, model);
 }
 
+void scenarioDirectedInteractionMultiRecipientFifo(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "directed-interaction-fanout-publisher");
+  Session first(options, model, "directed-interaction-fanout-first");
+  Session second(options, model, "directed-interaction-fanout-second");
+  auto const federation = federationName(
+      options,
+      "directed-interaction-multi-recipient-fifo");
+  connectAndJoin(publisher, first, options, federation, options.fom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const firstClass = first.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondClass = second.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const firstAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.attributeName);
+  auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.attributeName);
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const firstInteraction = first.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const secondInteraction = second.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const firstParameter = first.rtiAmbassador().getParameterHandle(
+      firstInteraction,
+      options.parameterName);
+  auto const secondParameter = second.rtiAmbassador().getParameterHandle(
+      secondInteraction,
+      options.parameterName);
+  require(
+      publisherClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+          publisherAttribute.isValid() && firstAttribute.isValid() &&
+          secondAttribute.isValid() && publisherInteraction.isValid() &&
+          firstInteraction.isValid() && secondInteraction.isValid() &&
+          publisherParameter.isValid() && firstParameter.isValid() &&
+          secondParameter.isValid(),
+      "directed interaction multi-recipient FIFO lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const firstAttributes{firstAttribute};
+  rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes,
+      true,
+      L"");
+  second.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes,
+      true,
+      L"");
+
+  rti::InteractionClassHandleSet const publisherDirected{publisherInteraction};
+  rti::InteractionClassHandleSet const firstDirected{firstInteraction};
+  rti::InteractionClassHandleSet const secondDirected{secondInteraction};
+  publisher.rtiAmbassador().publishObjectClassDirectedInteractions(
+      publisherClass,
+      publisherDirected);
+  first.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      firstClass,
+      firstDirected,
+      true);
+  second.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      secondClass,
+      secondDirected,
+      true);
+
+  auto const target = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      target.isValid(),
+      "directed interaction multi-recipient FIFO registration returned an invalid target");
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasDiscovery(target) &&
+            second.recorder().hasDiscovery(target);
+      },
+      options,
+      "directed interaction multi-recipient FIFO target discovery");
+
+  publisher.recorder().clearDirectedInteractions();
+  first.recorder().clearDirectedInteractions();
+  second.recorder().clearDirectedInteractions();
+  auto send = [&](std::vector<std::uint8_t> const& value,
+                  std::vector<std::uint8_t> const& tagBytes) {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherParameter,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().sendDirectedInteraction(
+        publisherInteraction,
+        target,
+        parameters,
+        tag);
+  };
+
+  std::vector<std::uint8_t> const firstValue{
+      0x46U, 0x49U, 0x52U, 0x53U, 0x54U};
+  std::vector<std::uint8_t> const firstTag{0x31U};
+  std::vector<std::uint8_t> const secondValue{
+      0x53U, 0x45U, 0x43U, 0x4FU, 0x4EU, 0x44U};
+  std::vector<std::uint8_t> const secondTag{0x32U};
+  send(firstValue, firstTag);
+  send(secondValue, secondTag);
+
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().directedInteractions().size() >= 2U &&
+            second.recorder().directedInteractions().size() >= 2U;
+      },
+      options,
+      "directed interaction multi-recipient FIFO delivery");
+  require(
+      publisher.recorder().directedInteractions().empty(),
+      "directed interaction multi-recipient FIFO delivered an interaction back to its sender");
+
+  auto assertDelivery = [&](Session& receiver,
+                            rti::InteractionClassHandle const& interaction,
+                            rti::ParameterHandle const& parameter,
+                            std::string const& description) {
+    auto const received = receiver.recorder().directedInteractions();
+    require(
+        received.size() == 2U,
+        description + " returned an unexpected callback count");
+    auto assertRecord = [&](DirectedInteractionRecord const& record,
+                            std::vector<std::uint8_t> const& expectedValue,
+                            std::vector<std::uint8_t> const& expectedTag,
+                            std::string const& orderDescription) {
+      require(
+          record.interaction == interaction && record.object == target &&
+              record.parameters.size() == 1U &&
+              record.parameters.count(parameter) == 1U &&
+              copyBytes(record.parameters.at(parameter)) == expectedValue,
+          orderDescription + " returned the wrong target or parameter value");
+      require(
+          record.tag == expectedTag,
+          orderDescription + " returned the wrong user tag");
+      require(
+          record.producer == publisher.federateHandle(),
+          orderDescription + " returned the wrong producing federate");
+      require(
+          record.transportation.isValid() &&
+              !receiver.rtiAmbassador()
+                   .getTransportationTypeName(record.transportation)
+                   .empty(),
+          orderDescription + " returned an unknown transportation type");
+    };
+    assertRecord(
+        received.front(),
+        firstValue,
+        firstTag,
+        description + " first receive-order callback");
+    assertRecord(
+        received.back(),
+        secondValue,
+        secondTag,
+        description + " second receive-order callback");
+  };
+  assertDelivery(
+      first,
+      firstInteraction,
+      firstParameter,
+      "first directed interaction recipient");
+  assertDelivery(
+      second,
+      secondInteraction,
+      secondParameter,
+      "second directed interaction recipient");
+
+  first.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      firstClass,
+      firstDirected);
+  second.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      secondClass,
+      secondDirected);
+  publisher.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      publisherClass,
+      publisherDirected);
+  first.rtiAmbassador().unsubscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes);
+  second.rtiAmbassador().unsubscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  second.resign(rti::NO_ACTION);
+  first.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  second.disconnect();
+  first.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioDirectedInteractionMultiRecipientFifoContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDirectedInteractionMultiRecipientFifo(options, model);
+}
+
 void scenarioDirectedInteractionPublicationSendFence(
     Options const& options,
     rti::CallbackModel model) {
@@ -54765,6 +54990,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.resign-delete-objects-multi-recipient-fifo",
       "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
       "java-tck.directed-interactions",
+      "cpp-tck.directed-interaction-multi-recipient-fifo",
+      "cpp-tck.directed-interaction-multi-recipient-fifo-contract",
       "cpp-tck.directed-interaction-publication-send-fence",
       "cpp-tck.directed-interaction-publication-send-fence-contract",
       "cpp-tck.directed-interaction-target-lifecycle",
@@ -55743,6 +55970,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioResignDeleteObjectsMultiRecipientFifoContract;
   }
   if (id == "java-tck.directed-interactions") return scenarioDirectedInteractions;
+  if (id == "cpp-tck.directed-interaction-multi-recipient-fifo") {
+    return scenarioDirectedInteractionMultiRecipientFifo;
+  }
+  if (id == "cpp-tck.directed-interaction-multi-recipient-fifo-contract") {
+    return scenarioDirectedInteractionMultiRecipientFifoContract;
+  }
   if (id == "cpp-tck.directed-interaction-publication-send-fence") {
     return scenarioDirectedInteractionPublicationSendFence;
   }

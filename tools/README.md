@@ -10,6 +10,26 @@ For command arguments, use:
 
 ## Common recipes
 
+### Query the roadmap and test traceability
+
+Use the bounded query tool as the first stop for roadmap work. It resolves
+one family, lane, or exact Catch2 case without reopening the full Requirements
+Lab extraction. The `case` card is the shortest handoff: it includes the C++
+source, selected 2025 requirement IDs, direct standard sections/subsections,
+API surfaces, owner, and focused execution commands.
+
+    python tools/query_rti_work.py dashboard --summary --compact
+    python tools/query_rti_work.py next --summary --compact
+    python tools/query_rti_work.py case <plan-id-or-exact-catch2-title> --summary --compact
+    python tools/query_rti_work.py focus <lane-tag> --summary --compact
+    python tools/query_rti_work.py trace <exact-catch2-title> --summary --compact
+    python tools/query_rti_work.py matrix <lane-or-exact-catch2-title> --summary --compact
+    python tools/query_rti_work.py check --lane <lane-tag> --summary --compact
+
+Use `test <substring>` or `search <term>` only to discover a candidate; once
+selected, switch to the exact `case`, `trace`, and `matrix` commands so the
+next work item stays bounded and reproducible.
+
 ### Run a route-aware CI lane
 
 The Python-first `tools.ci` module is the easiest path for a junior
@@ -105,8 +125,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 395 promoted scenario IDs (790 callback-model cases).
-`--scenario-set all` configures the same 395 available IDs (790 cases). The
+The verified lane is 397 promoted scenario IDs (794 callback-model cases).
+`--scenario-set all` configures the same 397 available IDs (794 cases). The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
@@ -132,9 +152,9 @@ callback-model cases. The promoted
 standard contract twin preserve independent request tags from two active
 requesters, verify two provider callbacks without loopback, and fan the
 provider's ordinary response out to both subscribers. Their focused lane
-passed 4/4 callback-model cases; the current catalog-wide gate completed 790
-configured CTest cases with 788 passes and two expected adapter-managed
-connection-loss skips, plus 788 direct passes and the same two skips. The
+passed 4/4 callback-model cases; the current catalog-wide gate completed 794
+configured CTest cases with 792 passes and two expected adapter-managed
+connection-loss skips, plus 792 direct passes and the same two skips. The
 promoted `cpp-tck.object-registration-discovery-multi-recipient` slice and its
 pure standard contract twin register two ordinary objects, deliver both
 discoveries to two active subscribers, preserve object name/handle/class
@@ -143,7 +163,12 @@ callback-model cases. The promoted `cpp-tck.named-registration-multi-recipient`
 slice and its pure standard contract twin reserve two explicit object names,
 register both named objects, deliver both discoveries to two active subscribers,
 preserve name/handle/class identity, and suppress owner loopback. Its focused
-lane passed 4/4 callback-model cases.
+lane passed 4/4 callback-model cases. The promoted
+`cpp-tck.directed-interaction-multi-recipient-fifo` slice and its pure standard
+contract twin send two ordinary targeted interactions to one registered object,
+deliver both in producer order to two active universal subscribers, preserve
+target/parameter/tag/producer/transportation metadata, and exclude the sender.
+Its focused lane passed 4/4 callback-model cases.
 The latest promoted object
 management expansion includes independently selectable pure-standard contracts
 for object-name reservation and object registration/discovery lifecycle.

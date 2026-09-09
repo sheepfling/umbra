@@ -271,6 +271,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.directed-interaction-publication-send-fence-contract` | Standard adapter-backed directed-interaction publication, unpublication, targeted send, republication, delivery metadata, and lifecycle contract |
 | `cpp-tck.directed-interaction-target-lifecycle` | Directed delivery across universal subscription, target discovery, callback-model subscription changes, publication changes, target deletion, and removal cleanup |
 | `cpp-tck.directed-interaction-target-lifecycle-contract` | Standard adapter-backed directed-interaction target lifecycle contract for subscription/publication fences, target deletion, removal, and cleanup |
+| `cpp-tck.directed-interaction-multi-recipient-fifo` | Two active universal subscribers receive two ordinary targeted interactions in producer order, preserving target, parameter, tag, producer, and transportation metadata while excluding the sender |
+| `cpp-tck.directed-interaction-multi-recipient-fifo-contract` | Standard adapter-backed directed-interaction fan-out and receive-order FIFO contract across two universal subscribers |
 | `cpp-tck.directed-interaction-subscription-kind-contract` | Standard adapter-backed directed-interaction subscription-kind contract for by-ownership/universal declarations, target routing, delivery metadata, and cleanup |
 | `cpp-tck.timestamped-directed-interactions` | Timestamped directed Send/Receive, invalid class/target/retraction-handle boundaries, selective and universal target routing, constrained grant delivery, timestamp/order metadata, and retraction lifecycle |
 | `cpp-tck.timestamped-directed-interactions-contract` | Standard adapter-backed timestamped directed-interaction and retraction contract using official target-routing, time-role, and callback APIs |
@@ -1641,6 +1643,15 @@ deletion/removal cleanup. The promoted
 same target lifecycle as an independently selectable pure standard C++ contract
 with provider, FOM, endpoint, and callback configuration supplied by the
 adapter.
+
+The promoted `cpp-tck.directed-interaction-multi-recipient-fifo` scenario sends
+two ordinary directed interactions to one registered target and verifies that
+two active universal subscribers receive both in producer order with stable
+target, parameter, tag, producer, and transportation metadata; the sender
+receives no loopback. The corresponding
+`cpp-tck.directed-interaction-multi-recipient-fifo-contract` runner exposes the
+same fan-out behavior as an independently selectable pure standard C++ contract
+using only adapter-supplied provider, FOM, endpoint, and callback configuration.
 
 The promoted `cpp-tck.directed-interaction-subscription-kind-contract`
 runner exposes the by-ownership and universal directed-interaction
