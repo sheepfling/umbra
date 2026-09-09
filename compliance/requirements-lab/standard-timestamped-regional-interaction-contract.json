@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 timestamped regional interaction surface. The source uses only the standard C++ RTIambassador/FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and logical-time implementation. It verifies timestamped region-qualified interaction delivery through time-constrained grants, timestamp/order/transportation/producer metadata, conveyed source-region designators, request retraction and terminal retraction behavior, and independent time, region, federation, and connection cleanup without provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-regional-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped regional interaction send, retraction, time-management, regional subscription, and cleanup services with FederateAmbassador receiveInteraction(time) and requestRetraction delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped regional interaction declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionContract"
+      ]
+    }
+  ]
+}

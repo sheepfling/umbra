@@ -43230,6 +43230,12 @@ void scenarioTimestampedRegionalInteraction(
   disjoint.disconnect();
 }
 
+void scenarioTimestampedRegionalInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedRegionalInteraction(options, model);
+}
+
 void scenarioTimestampedRegionalInteractionRegulationReenable(
     Options const& options,
     rti::CallbackModel model) {
@@ -53547,6 +53553,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-interaction-subscription-filtering",
       "cpp-tck.regional-interaction-subscription-filtering-contract",
       "cpp-tck.timestamped-regional-interaction",
+      "cpp-tck.timestamped-regional-interaction-contract",
       "cpp-tck.timestamped-regional-interaction-alternate-advances",
       "cpp-tck.timestamped-regional-interaction-no-overlap",
       "cpp-tck.timestamped-regional-interaction-subscription-replacement",
@@ -54713,6 +54720,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-regional-interaction") {
     return scenarioTimestampedRegionalInteraction;
   }
+  if (id == "cpp-tck.timestamped-regional-interaction-contract") {
+    return scenarioTimestampedRegionalInteractionContract;
+  }
   if (id == "cpp-tck.timestamped-regional-interaction-alternate-advances") {
     return scenarioTimestampedRegionalInteractionAlternateAdvances;
   }
@@ -55241,6 +55251,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-interaction-subscription-filtering" ||
                  scenario == "cpp-tck.regional-interaction-subscription-filtering-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction" ||
+                 scenario == "cpp-tck.timestamped-regional-interaction-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-no-overlap" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement" ||
@@ -55261,6 +55272,7 @@ int run(Options const& options) {
           result.status = "skipped";
           result.message = "requires an adapter-supplied switch-declaration FOM";
         } else if ((scenario == "cpp-tck.timestamped-regional-interaction" ||
+                    scenario == "cpp-tck.timestamped-regional-interaction-contract" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-no-overlap" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement" ||

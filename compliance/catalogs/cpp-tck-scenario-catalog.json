@@ -11792,6 +11792,34 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-regional-interaction-contract",
+      "category": "timestamped-regional-interaction-contract",
+      "title": "Standard adapter-backed contract for timestamped regional interaction delivery and retraction",
+      "api_methods": [
+        "RTIambassador.sendInteractionWithRegions(time)",
+        "RTIambassador.retract",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-retraction",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionContract",
+      "runner_id": "cpp-tck.timestamped-regional-interaction-contract",
+      "parity": "cpp-tck.timestamped-regional-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-interaction-regulation-reenable",
       "category": "timestamped-regional-interaction-regulation-reenable",
       "title": "Preserve a queued timestamped regional interaction across Time Regulation re-enable with changed lookahead",
