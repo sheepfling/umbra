@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 371 promoted scenarios (742 callback-model
+The verified lane currently runs 375 promoted scenarios (750 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -434,14 +434,19 @@ adapter-managed connection-loss skips; the strict catalog validator reported
 `valid=true` for
 `.build\cpp-tck-all\verified-evidence-ownership-contract-expansion.json`.
 
-The candidate `cpp-tck.ownership-acquisition-cancellation-transfer-race`
-translates the native standard-only race oracle using the ordinary object and
-ownership API. In evoked mode, cancellation starts from the owner’s release
-callback and `attributeOwnershipDivestitureIfWanted` wins the terminal race;
-the requester receives only the acquisition notification with the divestiture
-tag. Immediate mode is retained as an explicit skip because synchronous
-delivery closes the concurrent pending-transfer window before the service can
-win that race.
+The promoted `cpp-tck.ownership-acquisition-cancellation-transfer-race` and
+`cpp-tck.negotiated-willing-to-acquire-continuation` runners expose the standard
+ownership cancellation and negotiated-continuation boundaries as independently
+selectable pure C++ contracts. Their focused four-scenario lane passed 8/8
+callback-model cases; the promoted aggregate passed 748/748 CTest cases with
+748 direct passes and only the two expected adapter-managed connection-loss
+skips in
+`.build\\cpp-tck-all\\verified-evidence-standard-ownership-cancellation-continuation.json`.
+Evoked mode retains the concurrent and Willing-to-Acquire callback boundaries;
+immediate mode uses deterministic standard pending-acquisition paths rather than
+asserting an asynchronous race. The source uses only official IEEE C++ headers
+and the standard library; provider, FOM, endpoint, and callback configuration
+remain adapter-owned.
 
 The candidate timed regular-candidate continuation contract twin exercises the
 same standard API boundary across regional timestamped update, timed save and
@@ -2102,14 +2107,14 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 371 catalog
-entries with `promotion=promoted`, which produces 742 cases with
+configuration. The default `--scenario-set verified` selects the 375 catalog
+entries with `promotion=promoted`, which produces 750 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
 adapter-required entries; the current catalog contains 381 IDs and 762 cases,
-including ten candidates. The candidate-inclusive evidence figures below were
-recorded before the two ownership contract twins were promoted and therefore
-cover the prior 344-ID, 688-case catalog. The no-fixture candidate-inclusive
+including six candidates. The candidate-inclusive evidence figures below are
+historical artifacts from an earlier 344-ID, 688-case catalog and are not the
+promoted gate. The no-fixture candidate-inclusive
 baseline completes 686/686
 CTest cases with no failures and records 676 direct passes plus 12 explicit
 skips: the ten immediate-model candidate skips and the two connection-loss

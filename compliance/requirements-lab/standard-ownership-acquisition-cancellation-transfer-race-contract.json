@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for the standard ownership acquisition-cancellation transfer race. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador ownership APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies cancellation completion against a concurrent Divestiture If Wanted transfer, ownership state, callback tags, and cleanup without provider-specific headers, registries, names, or diagnostics. The immediate callback-model case remains an explicit candidate skip because the synchronous delivery closes the concurrent window.",
+  "notes": "This contract records the portable C++ TCK check for the standard ownership acquisition-cancellation transfer boundary. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador ownership APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. Evoked delivery verifies cancellation completion against a concurrent Divestiture If Wanted transfer; immediate delivery verifies the same standard transfer through a deterministic pending acquisition. Both paths check ownership state, callback tags, and cleanup without provider-specific headers, registries, names, or diagnostics.",
   "api_surfaces": [
     {
       "id": "standard-cpp-ownership-acquisition-cancellation-transfer-race",

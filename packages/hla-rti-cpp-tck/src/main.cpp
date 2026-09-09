@@ -38372,6 +38372,52 @@ void scenarioOwnershipAcquisitionCancellationTransferRace(
   owner.recorder().clearOwnershipRecords();
   requester.recorder().clearOwnershipRecords();
 
+  if (model == rti::HLA_IMMEDIATE) {
+    requester.rtiAmbassador().attributeOwnershipAcquisition(
+        object,
+        requesterAttributes,
+        acquisitionTag);
+    rti::AttributeHandleSet divestedAttributes;
+    owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+        object,
+        ownerAttributes,
+        divestitureTag,
+        divestedAttributes);
+    require(
+        divestedAttributes == ownerAttributes,
+        "Immediate ownership cancellation race returned the wrong divested set");
+    waitFor(
+        requester,
+        [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+        options,
+        "immediate ownership transfer notification");
+    require(
+        !requester.recorder().ownershipAcquisitionCancellation().has_value(),
+        "Immediate ownership transfer delivered a stale cancellation confirmation");
+    auto const notification = requester.recorder().ownershipAcquisition();
+    require(
+        notification->object == object &&
+            notification->attributes == requesterAttributes &&
+            notification->tag == divestitureTagBytes,
+        "Immediate ownership transfer notification returned the wrong data");
+    require(
+        !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+            requester.rtiAmbassador().isAttributeOwnedByFederate(
+                object,
+                requesterAttribute),
+        "Immediate ownership transfer did not transfer ownership");
+
+    requester.rtiAmbassador().unpublishObjectClassAttributes(
+        requesterClass,
+        requesterAttributes);
+    owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+    requester.resign(rti::NO_ACTION);
+    owner.rtiAmbassador().destroyFederationExecution(federation);
+    requester.disconnect();
+    owner.disconnect();
+    return;
+  }
+
   std::mutex coordinationMutex;
   std::condition_variable coordination;
   bool releaseCallbackEntered = false;
@@ -38895,18 +38941,29 @@ void scenarioNegotiatedWillingToAcquireContinuation(
         "Canceled Willing-to-Acquire candidate received an acquisition notification");
   };
 
-  // Both candidates remain Willing to Acquire until the owner-side
-  // negotiated-divestiture callback is delivered. This retained reservation
-  // is intentionally an evoked-callback scenario; immediate delivery reports
-  // the unavailable state at the If Available callback boundary.
-  firstCandidate.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
-      object,
-      firstAttributes,
-      firstWillingTag);
-  secondCandidate.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
-      object,
-      secondAttributes,
-      secondWillingTag);
+  // Evoked delivery retains both Willing-to-Acquire reservations until the
+  // owner-side negotiated-divestiture callback is delivered. Immediate
+  // delivery reports the unavailable state at the If Available boundary, so
+  // it verifies the same continuation through a regular pending acquisition
+  // after canceling the first candidate.
+  if (model == rti::HLA_IMMEDIATE) {
+    cancelFirstCandidate();
+    firstCandidate.recorder().clearOwnershipRecords();
+    owner.recorder().clearOwnershipRecords();
+    secondCandidate.rtiAmbassador().attributeOwnershipAcquisition(
+        object,
+        secondAttributes,
+        secondWillingTag);
+  } else {
+    firstCandidate.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        object,
+        firstAttributes,
+        firstWillingTag);
+    secondCandidate.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        object,
+        secondAttributes,
+        secondWillingTag);
+  }
   require(
       !firstCandidate.recorder().ownershipAcquisition().has_value() &&
           !secondCandidate.recorder().ownershipAcquisition().has_value(),
@@ -38943,10 +39000,12 @@ void scenarioNegotiatedWillingToAcquireContinuation(
       confirmation->object == object && confirmation->attributes == ownerAttributes &&
           confirmation->tag == secondWillingTagBytes,
       "Continuation confirmation did not select the second Willing-to-Acquire tag");
-  require(
-      !owner.recorder().ownershipReleaseRequest().has_value() &&
-          !secondCandidate.recorder().ownershipAcquisition().has_value(),
-      "Stale first-candidate work produced an owner release or early acquisition callback");
+  if (model == rti::HLA_EVOKED) {
+    require(
+        !owner.recorder().ownershipReleaseRequest().has_value() &&
+            !secondCandidate.recorder().ownershipAcquisition().has_value(),
+        "Stale first-candidate work produced an owner release or early acquisition callback");
+  }
 
   owner.rtiAmbassador().confirmDivestiture(
       object,
@@ -55316,13 +55375,6 @@ int run(Options const& options) {
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
-      } else if ((scenario == "cpp-tck.negotiated-willing-to-acquire-continuation" ||
-                  scenario == "cpp-tck.negotiated-willing-to-acquire-continuation-contract") &&
-                 callback.first == "immediate") {
-        result.status = "skipped";
-        result.message =
-            "requires evoked callback servicing because immediate If Available delivery "
-            "reports the unavailable state before a negotiated continuation can exist";
       } else if (
           (scenario ==
                "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore" ||
@@ -55353,15 +55405,6 @@ int run(Options const& options) {
         result.message =
             "requires evoked callback servicing because immediate regular-candidate delivery "
             "closes the pre-delivery cancellation window before the first candidate resigns";
-      } else if ((scenario ==
-                     "cpp-tck.ownership-acquisition-cancellation-transfer-race" ||
-                  scenario ==
-                     "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract") &&
-                 callback.first == "immediate") {
-        result.status = "skipped";
-        result.message =
-            "requires evoked callback servicing because immediate delivery closes the "
-            "concurrent acquisition-transfer window before Divestiture If Wanted";
       } else if ((scenario == "cpp-tck.fom-model" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||

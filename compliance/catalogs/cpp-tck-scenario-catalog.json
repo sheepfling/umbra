@@ -9827,7 +9827,7 @@
       "runner_id": "cpp-tck.ownership-acquisition-cancellation-transfer-race",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract",
@@ -9858,7 +9858,7 @@
       "runner_id": "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract",
       "parity": "cpp-tck.ownership-acquisition-cancellation-transfer-race",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
@@ -10103,7 +10103,7 @@
       "runner_id": "cpp-tck.negotiated-willing-to-acquire-continuation",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.negotiated-willing-to-acquire-continuation-contract",
@@ -10136,7 +10136,7 @@
       "runner_id": "cpp-tck.negotiated-willing-to-acquire-continuation-contract",
       "parity": "cpp-tck.negotiated-willing-to-acquire-continuation",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.resign-pending-acquisition-rejection",
