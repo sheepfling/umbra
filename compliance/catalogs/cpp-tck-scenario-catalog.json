@@ -5216,6 +5216,80 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.receive-order-multi-attribute-update-callback-cancellation",
+      "category": "receive-order-multi-attribute-update-callback-cancellation",
+      "title": "Cancel a queued receive-order multi-attribute reflection by removing its active subscription",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-receive-order-multi-attribute-update-callback-cancellation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioReceiveOrderMultiAttributeUpdateCallbackCancellation",
+      "runner_id": "cpp-tck.receive-order-multi-attribute-update-callback-cancellation",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.receive-order-multi-attribute-update-callback-cancellation-contract",
+      "category": "receive-order-multi-attribute-update-callback-cancellation",
+      "title": "Portable standard contract for canceling a queued receive-order multi-attribute reflection",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-receive-order-multi-attribute-update-callback-cancellation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioReceiveOrderMultiAttributeUpdateCallbackCancellationContract",
+      "runner_id": "cpp-tck.receive-order-multi-attribute-update-callback-cancellation-contract",
+      "parity": "cpp-tck.receive-order-multi-attribute-update-callback-cancellation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.object-removal-multi-recipient-fifo",
       "category": "ordinary-object-removal-multi-recipient-fifo",
       "title": "Deliver ordinary object removals to two active subscribers without owner loopback",

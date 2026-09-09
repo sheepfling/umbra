@@ -282,7 +282,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 405 promoted scenarios (810 callback-model
+The verified lane currently runs 407 promoted scenarios (814 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -310,6 +310,15 @@ tags, and the ordinary response reflects exact values with response tags,
 producer, and transportation metadata. Its focused lane passed 4/4
 callback-model cases; the candidate-inclusive catalog-wide gate passed 808/810
 cases, with the two expected adapter-managed connection-loss skips.
+The promoted receive-order multi-attribute update slice adds
+`cpp-tck.receive-order-multi-attribute-update-callback-cancellation` and its
+pure contract twin. One ordinary two-attribute update is projected to a full
+subscriber and a selective subscriber; `HLA_EVOKED` withdraws the selective
+declaration before callback servicing and verifies no stale reflection, while
+`HLA_IMMEDIATE` records synchronous delivery. A later update verifies the
+withdrawn declaration remains inactive. Its focused lane passed 4/4
+callback-model cases; the candidate-inclusive catalog-wide gate passed
+812/814 cases, with the two expected adapter-managed connection-loss skips.
 The promoted ordinary object-removal fan-out slice adds
 `cpp-tck.object-removal-multi-recipient-fifo` and its pure contract twin. It
 delivers two ordinary removals in producer order to two active subscribers,
@@ -322,9 +331,9 @@ The promoted `cpp-tck.attribute-value-update-request-multi-requester` slice and
 its pure contract twin preserve independent request tags from two active
 requesters, verify two provider callbacks without loopback, and fan the
 provider's ordinary response out to both subscribers; their focused lane
-passed 4/4 callback-model cases. The current catalog-wide gate completed 810
-configured CTest cases with 808 passes and two expected adapter-managed
-connection-loss skips, plus 808 direct passes and the same two skips. The
+passed 4/4 callback-model cases. The current catalog-wide gate completed 814
+configured CTest cases with 812 passes and two expected adapter-managed
+connection-loss skips, plus 812 direct passes and the same two skips. The
 promoted `cpp-tck.object-registration-discovery-multi-recipient` slice and its
 pure standard contract twin register two ordinary objects, deliver both
 discoveries to two active subscribers, preserve object name/handle/class
@@ -344,8 +353,8 @@ its pure standard contract twin combine one by-ownership subscriber, two
 universal subscribers, and one unsubscribed observer. They verify producer
 order and complete callback metadata for the shared target, then verify that a
 second target reaches only the universal subscribers. Its focused lane passed
-4/4 callback-model cases, bringing the catalog-wide gate to 810 configured
-cases with 808 passes and two expected adapter-managed connection-loss skips.
+4/4 callback-model cases, bringing the catalog-wide gate to 814 configured
+cases with 812 passes and two expected adapter-managed connection-loss skips.
 The promoted `cpp-tck.receive-order-object-removal-subscription-withdrawal`
 slice and its pure standard contract twin withdraw one active attribute
 subscription after a receive-order removal is queued. The already-discovered
@@ -2192,11 +2201,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 405 catalog
-entries with `promotion=promoted`, which produces 810 cases with
+configuration. The default `--scenario-set verified` selects the 407 catalog
+entries with `promotion=promoted`, which produces 814 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 405 IDs and 810 cases,
+adapter-required entries; the current catalog contains 407 IDs and 814 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive
