@@ -28,14 +28,14 @@ Directed/relevance scenarios default to
 `HLAinteractionRoot.ServerAction.TakeOrder`. Supply a compatible FOM or
 override these names with the `hla.rti.tck.*` system properties.
 
-## Compile
+## Build
 
-PowerShell:
+From the repository root, use the shell-free Python runner:
 
-```powershell
-.\build.ps1 `
-  -ApiJar C:\path\to\hla-1516e-2025-api.jar `
-  -OutputDirectory ..\..\out\java-tck\classes
+```text
+python tools/run_java_tck.py build \
+  --api-jar C:/path/to/hla-1516e-2025-api.jar \
+  --output-directory out/java-tck/classes
 ```
 
 Only the API JAR is needed at compile time.
@@ -45,29 +45,35 @@ Only the API JAR is needed at compile time.
 At runtime, place the provider JAR and any provider dependencies on the class
 path. The FOM module is required for lifecycle and ordinary data scenarios.
 
-```powershell
-$api = 'C:\path\to\hla-1516e-2025-api.jar'
-$provider = 'C:\path\to\provider-rti.jar'
-$fom = 'C:\path\to\RestaurantFOMmodule-2025.xml'
-
-.\run.ps1 `
-  -ApiJar $api `
-  -ProviderJar $provider `
-  -FactoryName 'Provider RTI' `
-  -FomPath $fom `
-  -CapabilityProfile .\profiles\provider.properties `
-  -ClassesDirectory ..\..\out\java-tck\classes
+```text
+python tools/run_java_tck.py run \
+  --api-jar C:/path/to/hla-1516e-2025-api.jar \
+  --provider-jar C:/path/to/provider-rti.jar \
+  --factory-name "Provider RTI" \
+  --fom-path C:/path/to/RestaurantFOMmodule-2025.xml \
+  --capability-profile packages/hla-rti-java-tck/profiles/provider.properties \
+  --classes-directory out/java-tck/classes \
+  --results-path out/java-tck/provider.results.json \
+  --junit-path out/java-tck/provider.junit.xml
 ```
 
-Use `-DependencyJar` for additional provider dependencies and
-`-JvmArgument` for provider-owned JVM flags. The reusable runner does not
+Use `--dependency-jar` for additional provider dependencies and
+`--jvm-argument` for provider-owned JVM flags. The reusable runner does not
 interpret those flags.
 
-`run-matrix.ps1` runs the same compiled classes against two or more provider
-configurations. `run-jpype.ps1` is an optional handoff check for environments
-that use JPype.
+`matrix` runs the same compiled classes against two or more provider
+configurations. `matrix.example.json` shows the portable configuration shape:
+
+```text
+python tools/run_java_tck.py matrix \
+  --configuration packages/hla-rti-java-tck/matrix.example.json \
+  --classes-directory out/java-tck/classes \
+  --output-directory out/java-tck/matrix
+```
+
+The optional JPype handoff is available directly as
+`python packages/hla-rti-java-tck/jpype_smoke.py`.
 
 Scenario/API/requirement traceability is maintained in
 `compliance/catalogs/java-tck-scenario-catalog.json` and validated by
 `tools/java_tck.py`.
-

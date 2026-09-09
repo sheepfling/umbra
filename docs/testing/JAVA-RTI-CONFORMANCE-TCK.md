@@ -43,12 +43,13 @@ override names with the `hla.rti.tck.*` system properties.
 
 ## Build
 
-PowerShell:
+The portable entry point is Python's standard-library runner; it starts
+`javac` without a shell and works across supported host shells:
 
-```powershell
-.\packages\hla-rti-java-tck\build.ps1 `
-  -ApiJar C:\deps\hla-1516e-2025-api.jar `
-  -OutputDirectory .\out\java-tck\classes
+```text
+python tools/run_java_tck.py build \
+  --api-jar C:/deps/hla-1516e-2025-api.jar \
+  --output-directory out/java-tck/classes
 ```
 
 Only the official API JAR is needed at compile time.
@@ -58,26 +59,33 @@ Only the official API JAR is needed at compile time.
 At runtime, put the provider JAR and any provider dependencies on the class
 path. The FOM module is required for lifecycle and ordinary data scenarios.
 
-```powershell
-.\packages\hla-rti-java-tck\run.ps1 `
-  -ApiJar C:\deps\hla-1516e-2025-api.jar `
-  -ProviderJar C:\deps\provider-rti.jar `
-  -FactoryName 'Provider RTI' `
-  -FomPath C:\fom\RestaurantFOMmodule-2025.xml `
-  -CapabilityProfile C:\fom\provider.properties `
-  -ClassesDirectory .\out\java-tck\classes `
-  -ResultsPath .\out\java-tck\provider.results.json `
-  -JUnitPath .\out\java-tck\provider.junit.xml
+```text
+python tools/run_java_tck.py run \
+  --api-jar C:/deps/hla-1516e-2025-api.jar \
+  --provider-jar C:/deps/provider-rti.jar \
+  --factory-name "Provider RTI" \
+  --fom-path C:/fom/RestaurantFOMmodule-2025.xml \
+  --capability-profile C:/fom/provider.properties \
+  --classes-directory out/java-tck/classes \
+  --results-path out/java-tck/provider.results.json \
+  --junit-path out/java-tck/provider.junit.xml
 ```
 
-Use `-DependencyJar` for additional provider JARs and `-JvmArgument` for
+Use `--dependency-jar` for additional provider JARs and `--jvm-argument` for
 provider-owned JVM flags. The reusable runner passes those flags through
 without interpreting them.
 
-`run-matrix.ps1` runs the same compiled classes against two or more provider
+`matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape;
 each provider supplies its own JAR paths, factory name, FOM, profile, and
-optional JVM arguments.
+optional JVM arguments:
+
+```text
+python tools/run_java_tck.py matrix \
+  --configuration packages/hla-rti-java-tck/matrix.example.json \
+  --classes-directory out/java-tck/classes \
+  --output-directory out/java-tck/matrix
+```
 
 ## Traceability
 
@@ -85,15 +93,15 @@ optional JVM arguments.
 scenario IDs, standard Java API methods, requirements IDs, and contract files.
 Validate the source boundary and catalog with:
 
-```powershell
+```text
 python tools/java_tck.py validate
 ```
 
 The export command joins provider result artifacts to the catalog:
 
-```powershell
-python tools/java_tck.py export `
-  --results .\out\java-tck\provider.results.json
+```text
+python tools/java_tck.py export \
+  --results out/java-tck/provider.results.json
 ```
 
 The result contains stable scenario IDs, provider identity, capability profile,
@@ -104,12 +112,13 @@ standard API linkage, JUnit/evidence paths, and explicit portable exclusions.
 After a direct Java run passes, the same API/provider JARs can be checked
 through JPype:
 
-```powershell
-.\packages\hla-rti-java-tck\run-jpype.ps1 `
-  -DirectResults .\out\java-tck\provider.results.json `
-  -ApiJar C:\deps\hla-1516e-2025-api.jar `
-  -ProviderJar C:\deps\provider-rti.jar `
-  -FactoryName 'Provider RTI'
+```text
+python packages/hla-rti-java-tck/jpype_smoke.py \
+  --direct-results out/java-tck/provider.results.json \
+  --api-jar C:/deps/hla-1516e-2025-api.jar \
+  --provider-jar C:/deps/provider-rti.jar \
+  --factory-name "Provider RTI" \
+  --output out/java-tck/jpype-evidence.json
 ```
 
 This handoff is an integration check; it does not add provider code to the

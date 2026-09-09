@@ -1906,8 +1906,14 @@ portable catalog and Requirements Lab contracts:
     python tools/java_tck.py validate
     python tools/java_tck.py export --help
 
-See the [Java TCK guide](../docs/testing/JAVA-RTI-CONFORMANCE-TCK.md) for
-compile, run, matrix, and JPype-handoff commands.
+Build, run, or compare Java providers with the shell-free Python entry point:
+
+    python tools/run_java_tck.py build --api-jar C:\path\to\api.jar
+    python tools/run_java_tck.py run --help
+    python tools/run_java_tck.py matrix --help
+
+See the [Java TCK guide](../docs/testing/JAVA-RTI-CONFORMANCE-TCK.md) for the
+complete provider, FOM, matrix, and JPype-handoff commands.
 
 ## Generators and inventories
 
@@ -1926,6 +1932,7 @@ compile, run, matrix, and JPype-handoff commands.
 | requirements_lab.py | Exports and validates Umbra-owned baselines, implementation contracts, and the native Catch2 plan against the adjacent Requirements Lab. |
 | requirements_lab_sidecar.py | Prepares, records, and verifies sidecar evidence without importing Lab code at runtime. |
 | java_tck.py | Validates and exports portable Java TCK traceability and provider evidence. |
+| run_java_tck.py | Builds and runs the portable 2025 Java TCK without a shell-specific launcher. |
 | java_tck_2010.py | Validates and exports 2010 Java TCK results against the exact 1516e scenario/Requirements Lab catalog. |
 | python_tck_2010.py | Validates and exports 2010 provider-neutral Python smoke results (JPype or native) with the same Requirements Lab linkage. |
 | verify_external_2025_fom_corpus.py | Verifies a configured external 2025-native FOM snapshot against its manifest. |
