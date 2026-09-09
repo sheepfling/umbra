@@ -11418,6 +11418,37 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-scope-advisories-contract",
+      "category": "attribute-scope-advisory",
+      "title": "Exercise the standard attribute scope advisory contract",
+      "api_methods": [
+        "RTIambassador.getAttributeScopeAdvisorySwitch",
+        "RTIambassador.setAttributeScopeAdvisorySwitch",
+        "RTIambassador.createRegion",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.associateRegionsForUpdates",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "FederateAmbassador.attributesInScope",
+        "FederateAmbassador.attributesOutOfScope"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-attribute-scope-advisory",
+        "cpp-1516.1-ddm-attribute-scope-switch",
+        "cpp-1516.1-ddm-attribute-scope-stale-callback"
+      ],
+      "contract_refs": [
+        "standard-attribute-scope-advisories-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeScopeAdvisoriesContract",
+      "runner_id": "cpp-tck.attribute-scope-advisories-contract",
+      "parity": "cpp-tck.attribute-scope-advisories",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-declaration-relevance-advisories",
       "category": "declaration-relevance",
       "title": "Exercise active and passive regional declaration relevance advisories",

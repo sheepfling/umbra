@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 344 promoted scenarios (688 callback-model
+The verified lane currently runs 345 promoted scenarios (690 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -713,6 +713,17 @@ and only the two expected adapter-managed connection-loss skips in
 uses only official IEEE C++ headers and the standard library; the Auto Provide
 FOM, provider, endpoint, callback, and logical-time configuration remain
 adapter-owned.
+
+The promoted `cpp-tck.attribute-scope-advisories-contract` runner exposes the
+standard attribute-scope switch, regional transition, and stale-callback
+boundary as an independently selectable pure C++ contract. Its focused
+base-and-contract lane passed 4/4 callback-model cases; the catalog-wide
+promoted gate passed 688/688 CTest cases with 688 direct passes and only the
+two expected adapter-managed connection-loss skips in
+`.build\cpp-tck-all\verified-evidence-attribute-scope-advisories-contract.json`.
+The source uses only official IEEE C++ headers and the standard library; the
+dimensional FOM, provider, endpoint, callback, and logical-time configuration
+remain adapter-owned.
 
 The promoted `cpp-tck.regional-attribute-value-request-filtering` scenario
 exercises the standard regional Request Attribute Value Update filter. It
@@ -1925,11 +1936,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 344 catalog
-entries with `promotion=promoted`, which produces 688 cases with
+configuration. The default `--scenario-set verified` selects the 345 catalog
+entries with `promotion=promoted`, which produces 690 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 354 IDs and 708 cases,
+adapter-required entries; the current catalog contains 355 IDs and 710 cases,
 including ten candidates. The candidate-inclusive evidence figures below were
 recorded before the two ownership contract twins were promoted and therefore
 cover the prior 344-ID, 688-case catalog. The no-fixture candidate-inclusive

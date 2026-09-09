@@ -41364,6 +41364,12 @@ void scenarioAttributeScopeAdvisories(
   member.disconnect();
 }
 
+void scenarioAttributeScopeAdvisoriesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeScopeAdvisories(options, model);
+}
+
 void scenarioRegionalDeclarationRelevanceAdvisories(
     Options const& options,
     rti::CallbackModel model) {
@@ -53507,6 +53513,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.allow-relaxed-ddm",
       "cpp-tck.ownership-transfer-regional-update",
       "cpp-tck.attribute-scope-advisories",
+      "cpp-tck.attribute-scope-advisories-contract",
       "cpp-tck.regional-declaration-relevance-advisories",
       "cpp-tck.regional-interaction-routing",
       "cpp-tck.regional-interaction-source-region-snapshot",
@@ -54648,6 +54655,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.attribute-scope-advisories") {
     return scenarioAttributeScopeAdvisories;
   }
+  if (id == "cpp-tck.attribute-scope-advisories-contract") {
+    return scenarioAttributeScopeAdvisoriesContract;
+  }
   if (id == "cpp-tck.regional-declaration-relevance-advisories") {
     return scenarioRegionalDeclarationRelevanceAdvisories;
   }
@@ -55181,6 +55191,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.allow-relaxed-ddm" ||
                  scenario == "cpp-tck.ownership-transfer-regional-update" ||
                  scenario == "cpp-tck.attribute-scope-advisories" ||
+                 scenario == "cpp-tck.attribute-scope-advisories-contract" ||
                  scenario == "cpp-tck.regional-declaration-relevance-advisories" ||
                  scenario == "cpp-tck.regional-interaction-routing" ||
                  scenario == "cpp-tck.regional-interaction-source-region-snapshot" ||

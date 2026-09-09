@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 attribute scope advisory surface. The source uses only the standard C++ RTIambassador/FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and any logical-time implementation. It verifies switch enable/disable behavior, regional source reassociation, regional subscription removal and restoration, grouped attributesInScope and attributesOutOfScope callbacks, stale evoked-callback suppression after a committed region change, and independent region and federation cleanup without provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-attribute-scope-advisories",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attribute-scope advisory switches, regional object registration and association, regional subscription and unsubscription, region modification, and cleanup services with FederateAmbassador scope callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador attribute scope advisory declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioAttributeScopeAdvisoriesContract"
+      ]
+    }
+  ]
+}
