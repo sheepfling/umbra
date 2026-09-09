@@ -7925,6 +7925,12 @@ void scenarioTimestampedDefaultRegionInteraction(
   publisher.disconnect();
 }
 
+void scenarioTimestampedDefaultRegionInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionInteraction(options, model);
+}
+
 void scenarioTimestampedDefaultRegionInteractionAlternateAdvances(
     Options const& options,
     rti::CallbackModel model) {
@@ -8266,6 +8272,12 @@ void scenarioTimestampedDefaultRegionInteractionAlternateAdvances(
   publisher.disconnect();
 }
 
+void scenarioTimestampedDefaultRegionInteractionAlternateAdvancesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionInteractionAlternateAdvances(options, model);
+}
+
 void scenarioTimestampedDefaultRegionInteractionMixedFanout(
     Options const& options,
     rti::CallbackModel model) {
@@ -8506,6 +8518,12 @@ void scenarioTimestampedDefaultRegionInteractionMixedFanout(
   immediate.disconnect();
   constrained.disconnect();
   publisher.disconnect();
+}
+
+void scenarioTimestampedDefaultRegionInteractionMixedFanoutContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionInteractionMixedFanout(options, model);
 }
 
 void scenarioTimestampedDefaultRegionInteractionSourceResignation(
@@ -8783,6 +8801,12 @@ void scenarioTimestampedDefaultRegionInteractionSourceResignation(
   clock.disconnect();
 }
 
+void scenarioTimestampedDefaultRegionInteractionSourceResignationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionInteractionSourceResignation(options, model);
+}
+
 void scenarioTimestampedDefaultRegionInteractionReenable(
     Options const& options,
     rti::CallbackModel model) {
@@ -8977,6 +9001,12 @@ void scenarioTimestampedDefaultRegionInteractionReenable(
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   receiver.disconnect();
   publisher.disconnect();
+}
+
+void scenarioTimestampedDefaultRegionInteractionReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionInteractionReenable(options, model);
 }
 
 void scenarioTimestampedDefaultRegionInteractionRegulationReenable(
@@ -11107,6 +11137,12 @@ void scenarioTimestampedObjectDeletionJoinedOwnerRetraction(
   constrained.disconnect();
   formerOwner.disconnect();
   publisher.disconnect();
+}
+
+void scenarioTimestampedDefaultRegionInteractionRegulationReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionInteractionRegulationReenable(options, model);
 }
 
 void scenarioTimestampedLocalDeleteObject(
@@ -53589,13 +53625,19 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-default-region-attribute-regulation-reenable",
       "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract",
       "cpp-tck.timestamped-default-region-interaction",
+      "cpp-tck.timestamped-default-region-interaction-contract",
       "cpp-tck.timestamped-default-region-interaction-alternate-advances",
+      "cpp-tck.timestamped-default-region-interaction-alternate-advances-contract",
       "cpp-tck.timestamped-default-region-attribute-mixed-fanout",
       "cpp-tck.timestamped-default-region-attribute-mixed-fanout-contract",
       "cpp-tck.timestamped-default-region-interaction-mixed-fanout",
+      "cpp-tck.timestamped-default-region-interaction-mixed-fanout-contract",
       "cpp-tck.timestamped-default-region-interaction-source-resignation",
+      "cpp-tck.timestamped-default-region-interaction-source-resignation-contract",
       "cpp-tck.timestamped-default-region-interaction-reenable",
+      "cpp-tck.timestamped-default-region-interaction-reenable-contract",
       "cpp-tck.timestamped-default-region-interaction-regulation-reenable",
+      "cpp-tck.timestamped-default-region-interaction-regulation-reenable-contract",
       "cpp-tck.timestamped-object-deletion",
       "cpp-tck.timestamped-local-delete-object",
       "cpp-tck.timestamped-local-delete-attribute",
@@ -54678,20 +54720,38 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-default-region-interaction") {
     return scenarioTimestampedDefaultRegionInteraction;
   }
+  if (id == "cpp-tck.timestamped-default-region-interaction-contract") {
+    return scenarioTimestampedDefaultRegionInteractionContract;
+  }
   if (id == "cpp-tck.timestamped-default-region-interaction-alternate-advances") {
     return scenarioTimestampedDefaultRegionInteractionAlternateAdvances;
+  }
+  if (id == "cpp-tck.timestamped-default-region-interaction-alternate-advances-contract") {
+    return scenarioTimestampedDefaultRegionInteractionAlternateAdvancesContract;
   }
   if (id == "cpp-tck.timestamped-default-region-interaction-mixed-fanout") {
     return scenarioTimestampedDefaultRegionInteractionMixedFanout;
   }
+  if (id == "cpp-tck.timestamped-default-region-interaction-mixed-fanout-contract") {
+    return scenarioTimestampedDefaultRegionInteractionMixedFanoutContract;
+  }
   if (id == "cpp-tck.timestamped-default-region-interaction-source-resignation") {
     return scenarioTimestampedDefaultRegionInteractionSourceResignation;
+  }
+  if (id == "cpp-tck.timestamped-default-region-interaction-source-resignation-contract") {
+    return scenarioTimestampedDefaultRegionInteractionSourceResignationContract;
   }
   if (id == "cpp-tck.timestamped-default-region-interaction-reenable") {
     return scenarioTimestampedDefaultRegionInteractionReenable;
   }
+  if (id == "cpp-tck.timestamped-default-region-interaction-reenable-contract") {
+    return scenarioTimestampedDefaultRegionInteractionReenableContract;
+  }
   if (id == "cpp-tck.timestamped-default-region-interaction-regulation-reenable") {
     return scenarioTimestampedDefaultRegionInteractionRegulationReenable;
+  }
+  if (id == "cpp-tck.timestamped-default-region-interaction-regulation-reenable-contract") {
+    return scenarioTimestampedDefaultRegionInteractionRegulationReenableContract;
   }
   if (id == "cpp-tck.timestamped-object-deletion") {
     return scenarioTimestampedObjectDeletion;

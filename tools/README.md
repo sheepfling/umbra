@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 365 promoted scenario IDs (730 callback-model cases).
-`--scenario-set all` configures all 375 available IDs (750 cases), including
+The verified lane is 371 promoted scenario IDs (742 callback-model cases).
+`--scenario-set all` configures all 381 available IDs (762 cases), including
 ten candidates. The candidate-inclusive evidence figures below were recorded
 before the two ownership contract twins were promoted and cover the prior
 344-ID, 688-case catalog. With `--connection-loss-fixture <path>`, the Python adapter
@@ -361,6 +361,20 @@ base-and-contract lane passed 16/16 callback-model cases; the promoted aggregate
 passed 728/728 CTest cases with 728 direct passes and only the two expected
 adapter-managed connection-loss skips in
 `.build\\cpp-tck-all\\verified-evidence-timestamped-default-region-attribute-contracts.json`.
+The source uses only official IEEE C++ headers and the standard library; FOM,
+provider, endpoint, callback, and logical-time configuration remain adapter-owned.
+The promoted `cpp-tck.timestamped-default-region-interaction-contract`,
+`cpp-tck.timestamped-default-region-interaction-alternate-advances-contract`,
+`cpp-tck.timestamped-default-region-interaction-mixed-fanout-contract`,
+`cpp-tck.timestamped-default-region-interaction-source-resignation-contract`,
+`cpp-tck.timestamped-default-region-interaction-reenable-contract`, and
+`cpp-tck.timestamped-default-region-interaction-regulation-reenable-contract`
+runners add independently selectable standard contracts for baseline delivery,
+alternate advances, mixed fanout, source resignation, Time Constrained re-enable,
+and Time Regulation re-enable. Their focused base-and-contract lane passed
+24/24 callback-model cases; the promoted aggregate passed 740/740 CTest cases
+with 740 direct passes and only the two expected adapter-managed connection-loss
+skips in `.build\\cpp-tck-all\\verified-evidence-timestamped-default-region-interaction-contracts.json`.
 The source uses only official IEEE C++ headers and the standard library; FOM,
 provider, endpoint, callback, and logical-time configuration remain adapter-owned.
 The two ownership candidate contract twins recorded 4 passes and 4 explicit

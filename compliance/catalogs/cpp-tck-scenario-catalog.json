@@ -7948,6 +7948,48 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-default-region-interaction-contract",
+      "category": "timestamped-default-region-interaction-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region interaction delivery",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-interaction-retraction",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionContract",
+      "runner_id": "cpp-tck.timestamped-default-region-interaction-contract",
+      "parity": "cpp-tck.timestamped-default-region-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-default-region-interaction-alternate-advances",
       "category": "timestamped-default-region-interaction-alternate-advances",
       "title": "Deliver timestamped default-region interactions through alternate time advances",
@@ -8009,6 +8051,53 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-default-region-interaction-alternate-advances-contract",
+      "category": "timestamped-default-region-interaction-alternate-advances-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region interaction alternate advances",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-interaction-retraction",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-time-advance-request-available",
+        "cpp-1516.1-next-message-request-available",
+        "cpp-1516.1-logical-time-query-boundaries"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-interaction-alternate-advances-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionAlternateAdvancesContract",
+      "runner_id": "cpp-tck.timestamped-default-region-interaction-alternate-advances-contract",
+      "parity": "cpp-tck.timestamped-default-region-interaction-alternate-advances",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-default-region-interaction-mixed-fanout",
       "category": "timestamped-default-region-interaction-mixed-fanout",
       "title": "Split timestamped default-region interaction delivery between immediate and constrained recipients",
@@ -8055,6 +8144,48 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionMixedFanout",
       "runner_id": "cpp-tck.timestamped-default-region-interaction-mixed-fanout",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-default-region-interaction-mixed-fanout-contract",
+      "category": "timestamped-default-region-interaction-mixed-fanout-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region interaction mixed fanout",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-interaction-retraction",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-interaction-mixed-fanout-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionMixedFanoutContract",
+      "runner_id": "cpp-tck.timestamped-default-region-interaction-mixed-fanout-contract",
+      "parity": "cpp-tck.timestamped-default-region-interaction-mixed-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8112,6 +8243,49 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-default-region-interaction-source-resignation-contract",
+      "category": "timestamped-default-region-interaction-source-resignation-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region interaction source resignation",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-interaction-retraction",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-interaction-source-resignation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionSourceResignationContract",
+      "runner_id": "cpp-tck.timestamped-default-region-interaction-source-resignation-contract",
+      "parity": "cpp-tck.timestamped-default-region-interaction-source-resignation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-default-region-interaction-reenable",
       "category": "timestamped-default-region-interaction-reenable",
       "title": "Preserve a queued timestamped default-region interaction across Time Constrained re-enable",
@@ -8161,6 +8335,49 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionReenable",
       "runner_id": "cpp-tck.timestamped-default-region-interaction-reenable",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-default-region-interaction-reenable-contract",
+      "category": "timestamped-default-region-interaction-reenable-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region interaction Time Constrained re-enable",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction",
+        "cpp-1516.1-timestamped-interaction-receive",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-interaction-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionReenableContract",
+      "runner_id": "cpp-tck.timestamped-default-region-interaction-reenable-contract",
+      "parity": "cpp-tck.timestamped-default-region-interaction-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8219,6 +8436,52 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionRegulationReenable",
       "runner_id": "cpp-tck.timestamped-default-region-interaction-regulation-reenable",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-default-region-interaction-regulation-reenable-contract",
+      "category": "timestamped-default-region-interaction-regulation-reenable-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region interaction Time Regulation re-enable",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction",
+        "cpp-1516.1-timestamped-interaction-receive",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-regulation-reenable-changed-lookahead",
+        "cpp-1516.1-query-lookahead",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-interaction-regulation-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionInteractionRegulationReenableContract",
+      "runner_id": "cpp-tck.timestamped-default-region-interaction-regulation-reenable-contract",
+      "parity": "cpp-tck.timestamped-default-region-interaction-regulation-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
