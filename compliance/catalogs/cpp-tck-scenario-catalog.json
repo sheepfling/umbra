@@ -3543,6 +3543,100 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-value-update-request-multi-requester",
+      "category": "ordinary-attribute-value-update-request-multi-requester",
+      "title": "Deliver independent ordinary attribute-value requests from two active requesters and fan out the provider response",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.requestAttributeValueUpdate(instance)",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-attribute-value-update-response",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "attribute-value-update-request-requirements-contract.json",
+        "attribute-value-update-response-api-contract.json",
+        "attribute-value-update-response-requirements-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-attribute-value-update-request-multi-requester-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeValueUpdateRequestMultiRequester",
+      "runner_id": "cpp-tck.attribute-value-update-request-multi-requester",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-value-update-request-multi-requester-contract",
+      "category": "ordinary-attribute-value-update-request-multi-requester",
+      "title": "Portable standard adapter-backed contract for independent ordinary attribute-value requests and response fan-out",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.requestAttributeValueUpdate(instance)",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-attribute-value-update-response",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-attribute-value-update-request-multi-requester-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeValueUpdateRequestMultiRequesterContract",
+      "runner_id": "cpp-tck.attribute-value-update-request-multi-requester-contract",
+      "parity": "cpp-tck.attribute-value-update-request-multi-requester",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.resign-delete-objects",
       "category": "federation-management",
       "title": "Enforce resign-time deletion of delete-privileged objects and ordinary removal delivery",
@@ -3894,6 +3988,84 @@
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.object-registration-discovery-multi-recipient",
+      "category": "ordinary-object-registration-discovery-multi-recipient",
+      "title": "Deliver two registered ordinary objects to two active subscribers and preserve identity",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-object-registration-discovery-multi-recipient-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioObjectRegistrationDiscoveryMultiRecipient",
+      "runner_id": "cpp-tck.object-registration-discovery-multi-recipient",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "candidate"
+    },
+    {
+      "id": "cpp-tck.object-registration-discovery-multi-recipient-contract",
+      "category": "ordinary-object-registration-discovery-multi-recipient",
+      "title": "Portable standard adapter-backed ordinary object registration and discovery fan-out contract",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-object-registration-discovery-multi-recipient-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioObjectRegistrationDiscoveryMultiRecipientContract",
+      "runner_id": "cpp-tck.object-registration-discovery-multi-recipient-contract",
+      "parity": "cpp-tck.object-registration-discovery-multi-recipient",
+      "default_status": "adapter-required",
+      "promotion": "candidate"
     },
     {
       "id": "cpp-tck.named-registration",
@@ -4726,6 +4898,232 @@
       "cpp_test": "src/main.cpp#scenarioInteractionMultiRecipientFifoContract",
       "runner_id": "cpp-tck.interaction-multi-recipient-fifo-contract",
       "parity": "cpp-tck.interaction-multi-recipient-fifo",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-multi-recipient-fifo",
+      "category": "ordinary-attribute-multi-recipient-fifo",
+      "title": "Deliver ordinary attribute updates to two active subscribers in producer order",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-attribute-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeMultiRecipientFifo",
+      "runner_id": "cpp-tck.attribute-multi-recipient-fifo",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-multi-recipient-fifo-contract",
+      "category": "ordinary-attribute-multi-recipient-fifo",
+      "title": "Portable standard adapter-backed ordinary attribute multi-recipient FIFO contract",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-attribute-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeMultiRecipientFifoContract",
+      "runner_id": "cpp-tck.attribute-multi-recipient-fifo-contract",
+      "parity": "cpp-tck.attribute-multi-recipient-fifo",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.object-removal-multi-recipient-fifo",
+      "category": "ordinary-object-removal-multi-recipient-fifo",
+      "title": "Deliver ordinary object removals to two active subscribers without owner loopback",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-instance-deletion",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-instance-deletion-api-contract.json",
+        "object-instance-deletion-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-object-removal-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioObjectRemovalMultiRecipientFifo",
+      "runner_id": "cpp-tck.object-removal-multi-recipient-fifo",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.object-removal-multi-recipient-fifo-contract",
+      "category": "ordinary-object-removal-multi-recipient-fifo",
+      "title": "Portable standard adapter-backed ordinary object-removal multi-recipient FIFO contract",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-instance-deletion",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-object-removal-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioObjectRemovalMultiRecipientFifoContract",
+      "runner_id": "cpp-tck.object-removal-multi-recipient-fifo-contract",
+      "parity": "cpp-tck.object-removal-multi-recipient-fifo",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
+      "category": "ordinary-resign-delete-objects-multi-recipient-fifo",
+      "title": "Deliver resign-time ordinary object removals to two active subscribers in producer order",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.resignFederationExecution(DELETE_OBJECTS)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-instance-deletion"
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "resign-action-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-instance-deletion-api-contract.json",
+        "object-instance-deletion-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "standard-resign-delete-objects-contract.json",
+        "standard-resign-delete-objects-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioResignDeleteObjectsMultiRecipientFifo",
+      "runner_id": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
+      "category": "ordinary-resign-delete-objects-multi-recipient-fifo",
+      "title": "Portable standard adapter-backed resign-time object-removal fan-out contract",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.resignFederationExecution(DELETE_OBJECTS)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-instance-deletion"
+      ],
+      "contract_refs": [
+        "standard-resign-delete-objects-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioResignDeleteObjectsMultiRecipientFifoContract",
+      "runner_id": "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
+      "parity": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

@@ -105,17 +105,36 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 383 promoted scenario IDs (766 callback-model cases).
-`--scenario-set all` configures all 383 available IDs (766 cases), including
-no candidates. The candidate-inclusive evidence figures below are historical
-artifacts from an earlier 344-ID, 688-case catalog and are not the promoted
-gate. With `--connection-loss-fixture <path>`, the Python adapter
+The verified lane is 391 promoted scenario IDs (782 callback-model cases).
+`--scenario-set all` configures the same 391 available IDs (782 cases). The
+candidate-inclusive evidence figures below are historical artifacts from an
+earlier 344-ID, 688-case catalog and are not the promoted gate. With
+`--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
 into the direct evidence; the no-fixture candidate-inclusive baseline records
 676 direct passes plus 12 explicit skips, while the fixture-backed matrix
 completes 686/686 ordinary CTest cases with no failures and records 678 direct
 passes plus only the ten documented candidate immediate-model skips across all
 688 callback-model cases.
+The latest promoted ordinary attribute fan-out slice adds
+`cpp-tck.attribute-multi-recipient-fifo` and its pure standard contract twin.
+Its focused lane passed 4/4 callback-model cases, and the catalog-wide gate
+now includes the promoted object-removal fan-out slice below.
+The promoted `cpp-tck.object-removal-multi-recipient-fifo` slice and its pure
+standard contract twin pass two ordinary removals in producer order to two
+active subscribers, preserve object/tag/producer metadata, and exclude the
+owner from removal callbacks. Its focused lane passed 4/4 callback-model
+cases. The promoted `cpp-tck.resign-delete-objects-multi-recipient-fifo` slice
+and its pure standard contract twin apply the same recipient and metadata
+checks to resign-time `DELETE_OBJECTS` cleanup. Their focused lane passed 4/4
+callback-model cases. The promoted
+`cpp-tck.attribute-value-update-request-multi-requester` slice and its pure
+standard contract twin preserve independent request tags from two active
+requesters, verify two provider callbacks without loopback, and fan the
+provider's ordinary response out to both subscribers. Their focused lane
+passed 4/4 callback-model cases; the current catalog-wide gate completed 782
+configured CTest cases with 780 passes and two expected adapter-managed
+connection-loss skips, plus 780 direct passes and the same two skips.
 The latest promoted object
 management expansion includes independently selectable pure-standard contracts
 for object-name reservation and object registration/discovery lifecycle.

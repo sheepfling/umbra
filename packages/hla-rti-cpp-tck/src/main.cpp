@@ -26276,6 +26276,195 @@ void scenarioAttributeValueUpdateResponseContract(
   scenarioAttributeValueUpdateResponse(options, model);
 }
 
+void scenarioAttributeValueUpdateRequestMultiRequester(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "request-fanout-owner");
+  Session first(options, model, "request-fanout-first");
+  Session second(options, model, "request-fanout-second");
+  auto const federation = federationName(
+      options,
+      "attribute-value-update-request-multi-requester");
+  connectAndJoin(owner, first, options, federation, options.fom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const firstClass = first.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondClass = second.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const firstAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.attributeName);
+  auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+          ownerAttribute.isValid() && firstAttribute.isValid() &&
+          secondAttribute.isValid(),
+      "multi-requester attribute-value request lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const firstAttributes{firstAttribute};
+  rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  first.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes,
+      true,
+      L"");
+  second.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "multi-requester attribute-value request registration returned an invalid object");
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasDiscovery(object) &&
+            second.recorder().hasDiscovery(object);
+      },
+      options,
+      "multi-requester attribute-value request discovery");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      !objectName.empty() &&
+          first.rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+          second.rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+          first.rtiAmbassador().getKnownObjectClassHandle(object) == firstClass &&
+          second.rtiAmbassador().getKnownObjectClassHandle(object) == secondClass,
+      "multi-requester attribute-value request discovery did not establish stable identity");
+
+  std::vector<std::uint8_t> const firstRequestTag{0x51U, 0x52U, 0x31U};
+  std::vector<std::uint8_t> const secondRequestTag{0x51U, 0x52U, 0x32U};
+  rti::VariableLengthData const firstRequestTagData(
+      firstRequestTag.data(),
+      firstRequestTag.size());
+  rti::VariableLengthData const secondRequestTagData(
+      secondRequestTag.data(),
+      secondRequestTag.size());
+  owner.recorder().clearProvidedUpdates();
+  first.recorder().clearProvidedUpdates();
+  second.recorder().clearProvidedUpdates();
+  first.rtiAmbassador().requestAttributeValueUpdate(
+      first.recorder().discovery().object,
+      firstAttributes,
+      firstRequestTagData);
+  second.rtiAmbassador().requestAttributeValueUpdate(
+      second.recorder().discovery().object,
+      secondAttributes,
+      secondRequestTagData);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().providedUpdates().size() >= 2U; },
+      options,
+      "multi-requester attribute-value request provider callbacks");
+  auto const requests = owner.recorder().providedUpdates();
+  require(
+      requests.size() == 2U,
+      "multi-requester attribute-value request returned duplicate provider callbacks");
+  bool firstRequestObserved = false;
+  bool secondRequestObserved = false;
+  for (auto const& request : requests) {
+    require(
+        request.object == object && request.attributes == ownerAttributes,
+        "multi-requester attribute-value request returned the wrong provider metadata");
+    if (request.tag == firstRequestTag) {
+      require(
+          !firstRequestObserved,
+          "multi-requester attribute-value request duplicated the first request tag");
+      firstRequestObserved = true;
+    } else if (request.tag == secondRequestTag) {
+      require(
+          !secondRequestObserved,
+          "multi-requester attribute-value request duplicated the second request tag");
+      secondRequestObserved = true;
+    } else {
+      throw std::runtime_error(
+          "multi-requester attribute-value request returned an unknown request tag");
+    }
+  }
+  require(
+      firstRequestObserved && secondRequestObserved,
+      "multi-requester attribute-value request lost one requester callback");
+  require(
+      first.recorder().providedUpdates().empty() &&
+          second.recorder().providedUpdates().empty(),
+      "multi-requester attribute-value request looped a provider callback to a requester");
+
+  std::vector<std::uint8_t> const responseValue{0x41U, 0x56U, 0x52U, 0x31U};
+  std::vector<std::uint8_t> const responseTag{0x52U, 0x53U, 0x50U};
+  rti::AttributeHandleValueMap responseValues;
+  responseValues.emplace(
+      ownerAttribute,
+      rti::VariableLengthData(responseValue.data(), responseValue.size()));
+  rti::VariableLengthData const responseTagData(
+      responseTag.data(),
+      responseTag.size());
+  first.recorder().clearReflection();
+  second.recorder().clearReflection();
+  owner.rtiAmbassador().updateAttributeValues(
+      object,
+      responseValues,
+      responseTagData);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().reflection().present &&
+            second.recorder().reflection().present;
+      },
+      options,
+      "multi-requester attribute-value response fan-out");
+
+  auto assertResponse = [&](Session& receiver,
+                            rti::AttributeHandle const& receiverAttribute,
+                            std::string const& description) {
+    auto const reflection = receiver.recorder().reflection();
+    require(
+        reflection.object == object && reflection.values.size() == 1U &&
+            reflection.values.count(receiverAttribute) == 1U &&
+            copyBytes(reflection.values.at(receiverAttribute)) == responseValue &&
+            reflection.tag == responseTag &&
+            reflection.producer == owner.federateHandle() &&
+            reflection.transportation.isValid() &&
+            !reflection.regions.has_value(),
+        description + " returned the wrong response metadata");
+  };
+  assertResponse(first, firstAttribute, "first multi-requester response");
+  assertResponse(second, secondAttribute, "second multi-requester response");
+
+  first.rtiAmbassador().unsubscribeObjectClassAttributes(firstClass, firstAttributes);
+  second.rtiAmbassador().unsubscribeObjectClassAttributes(secondClass, secondAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  first.resign(rti::NO_ACTION);
+  second.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  second.disconnect();
+  first.disconnect();
+  owner.disconnect();
+}
+
+void scenarioAttributeValueUpdateRequestMultiRequesterContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeValueUpdateRequestMultiRequester(options, model);
+}
+
 void scenarioAttributeUpdate(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "owner");
   Session member(options, model, "member");
@@ -27097,6 +27286,468 @@ void scenarioInteractionMultiRecipientFifo(
   first.resign(rti::NO_ACTION);
   publisher.resign(rti::NO_ACTION);
   publisher.rtiAmbassador().destroyFederationExecution(federation);
+  second.disconnect();
+  first.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioAttributeMultiRecipientFifo(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "ordinary-attribute-fanout-publisher");
+  Session first(options, model, "ordinary-attribute-fanout-first");
+  Session second(options, model, "ordinary-attribute-fanout-second");
+  auto const federation = federationName(
+      options,
+      "ordinary-attribute-multi-recipient-fifo");
+  connectAndJoin(publisher, first, options, federation, options.fom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const firstClass = first.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondClass = second.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const firstAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.attributeName);
+  auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+          publisherAttribute.isValid() && firstAttribute.isValid() &&
+          secondAttribute.isValid(),
+      "ordinary attribute multi-recipient FIFO lookup returned an invalid handle");
+
+  rti::AttributeHandleSet publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet firstAttributes{firstAttribute};
+  rti::AttributeHandleSet secondAttributes{secondAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes,
+      true,
+      L"");
+  second.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes,
+      true,
+      L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "ordinary attribute multi-recipient FIFO registration returned an invalid object");
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasDiscovery(object) &&
+            second.recorder().hasDiscovery(object);
+      },
+      options,
+      "ordinary attribute multi-recipient FIFO discovery");
+  first.recorder().clearReflection();
+  second.recorder().clearReflection();
+
+  auto send = [&](std::vector<std::uint8_t> const& value,
+                  std::vector<std::uint8_t> const& tagBytes) {
+    rti::AttributeHandleValueMap values;
+    values.emplace(
+        publisherAttribute,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().updateAttributeValues(object, values, tag);
+  };
+
+  std::vector<std::uint8_t> const firstValue{
+      0x46U, 0x49U, 0x52U, 0x53U, 0x54U};
+  std::vector<std::uint8_t> const firstTag{0x31U};
+  std::vector<std::uint8_t> const secondValue{
+      0x53U, 0x45U, 0x43U, 0x4FU, 0x4EU, 0x44U};
+  std::vector<std::uint8_t> const secondTag{0x32U};
+  send(firstValue, firstTag);
+  send(secondValue, secondTag);
+
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().reflections().size() >= 2U &&
+            second.recorder().reflections().size() >= 2U;
+      },
+      options,
+      "ordinary attribute multi-recipient FIFO delivery");
+  require(
+      publisher.recorder().reflections().empty(),
+      "ordinary attribute multi-recipient FIFO delivered a reflection back to its owner");
+
+  auto assertDelivery = [&](Session& receiver,
+                            rti::ObjectClassHandle const& objectClass,
+                            rti::AttributeHandle const& attribute,
+                            std::string const& description) {
+    auto const discovery = receiver.recorder().discovery();
+    require(
+        discovery.present && discovery.object == object &&
+            discovery.objectClass == objectClass &&
+            discovery.producer == publisher.federateHandle(),
+        description + " returned the wrong discovery metadata");
+    auto const received = receiver.recorder().reflections();
+    require(
+        received.size() == 2U,
+        description + " returned an unexpected callback count");
+    auto assertRecord = [&](ReflectionRecord const& record,
+                            std::vector<std::uint8_t> const& expectedValue,
+                            std::vector<std::uint8_t> const& expectedTag,
+                            std::string const& orderDescription) {
+      require(
+          record.object == object && record.values.size() == 1U &&
+              record.values.count(attribute) == 1U &&
+              copyBytes(record.values.at(attribute)) == expectedValue,
+          orderDescription + " returned the wrong object or attribute value");
+      require(
+          record.tag == expectedTag,
+          orderDescription + " returned the wrong user tag");
+      require(
+          record.producer == publisher.federateHandle(),
+          orderDescription + " returned the wrong producing federate");
+      require(
+          record.transportation.isValid() &&
+              !receiver.rtiAmbassador()
+                   .getTransportationTypeName(record.transportation)
+                   .empty(),
+          orderDescription + " returned an unknown transportation type");
+    };
+    assertRecord(
+        received.front(),
+        firstValue,
+        firstTag,
+        description + " first receive-order reflection");
+    assertRecord(
+        received.back(),
+        secondValue,
+        secondTag,
+        description + " second receive-order reflection");
+  };
+  assertDelivery(
+      first,
+      firstClass,
+      firstAttribute,
+      "first ordinary attribute recipient");
+  assertDelivery(
+      second,
+      secondClass,
+      secondAttribute,
+      "second ordinary attribute recipient");
+
+  first.rtiAmbassador().unsubscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes);
+  second.rtiAmbassador().unsubscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  second.resign(rti::NO_ACTION);
+  first.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  second.disconnect();
+  first.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioObjectRemovalMultiRecipientFifo(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "ordinary-removal-fanout-publisher");
+  Session first(options, model, "ordinary-removal-fanout-first");
+  Session second(options, model, "ordinary-removal-fanout-second");
+  auto const federation = federationName(
+      options,
+      "ordinary-object-removal-multi-recipient-fifo");
+  connectAndJoin(publisher, first, options, federation, options.fom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const firstClass = first.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondClass = second.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const firstAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.attributeName);
+  auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+          publisherAttribute.isValid() && firstAttribute.isValid() &&
+          secondAttribute.isValid(),
+      "ordinary object-removal multi-recipient FIFO lookup returned an invalid handle");
+
+  rti::AttributeHandleSet publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet firstAttributes{firstAttribute};
+  rti::AttributeHandleSet secondAttributes{secondAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes,
+      true,
+      L"");
+  second.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes,
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid(),
+      "ordinary object-removal multi-recipient FIFO registration returned an invalid object");
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasDiscovery(firstObject) &&
+            first.recorder().hasDiscovery(secondObject) &&
+            second.recorder().hasDiscovery(firstObject) &&
+            second.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "ordinary object-removal multi-recipient FIFO discovery");
+  first.recorder().clearRemovals();
+  second.recorder().clearRemovals();
+  publisher.recorder().clearRemovals();
+
+  std::vector<std::uint8_t> const firstRemovalTagBytes{
+      0xD1U,
+      0xE2U,
+      0xF3U};
+  std::vector<std::uint8_t> const secondRemovalTagBytes{
+      0xA4U,
+      0xB5U,
+      0xC6U};
+  rti::VariableLengthData firstRemovalTag(
+      firstRemovalTagBytes.data(),
+      firstRemovalTagBytes.size());
+  rti::VariableLengthData secondRemovalTag(
+      secondRemovalTagBytes.data(),
+      secondRemovalTagBytes.size());
+  publisher.rtiAmbassador().deleteObjectInstance(firstObject, firstRemovalTag);
+  publisher.rtiAmbassador().deleteObjectInstance(secondObject, secondRemovalTag);
+
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasRemoval(
+                   firstObject,
+                   firstRemovalTagBytes,
+                   publisher.federateHandle()) &&
+            first.recorder().hasRemoval(
+                secondObject,
+                secondRemovalTagBytes,
+                publisher.federateHandle()) &&
+            second.recorder().hasRemoval(
+                firstObject,
+                firstRemovalTagBytes,
+                publisher.federateHandle()) &&
+            second.recorder().hasRemoval(
+                secondObject,
+                secondRemovalTagBytes,
+                publisher.federateHandle());
+      },
+      options,
+      "ordinary object-removal multi-recipient FIFO delivery");
+  require(
+      publisher.recorder().removals().empty(),
+      "ordinary object-removal multi-recipient FIFO delivered a removal back to its owner");
+
+  auto assertRemoval = [&](Session& receiver, std::string const& description) {
+    auto const received = receiver.recorder().removals();
+    require(
+        received.size() == 2U,
+        description + " returned an unexpected callback count");
+    require(
+        received.front().object == firstObject &&
+            received.front().tag == firstRemovalTagBytes &&
+            received.front().producer == publisher.federateHandle(),
+        description + " returned the wrong first removal metadata");
+    require(
+        received.back().object == secondObject &&
+            received.back().tag == secondRemovalTagBytes &&
+            received.back().producer == publisher.federateHandle(),
+        description + " returned the wrong second removal metadata");
+  };
+  assertRemoval(first, "first ordinary object-removal recipient");
+  assertRemoval(second, "second ordinary object-removal recipient");
+
+  first.rtiAmbassador().unsubscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes);
+  second.rtiAmbassador().unsubscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  second.resign(rti::NO_ACTION);
+  first.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  second.disconnect();
+  first.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioResignDeleteObjectsMultiRecipientFifo(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "resign-removal-fanout-publisher");
+  Session first(options, model, "resign-removal-fanout-first");
+  Session second(options, model, "resign-removal-fanout-second");
+  auto const federation = federationName(
+      options,
+      "ordinary-resign-delete-objects-multi-recipient-fifo");
+  connectAndJoin(publisher, first, options, federation, options.fom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const firstClass = first.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondClass = second.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const firstAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.attributeName);
+  auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+          publisherAttribute.isValid() && firstAttribute.isValid() &&
+          secondAttribute.isValid(),
+      "ordinary resign-delete multi-recipient FIFO lookup returned an invalid handle");
+
+  rti::AttributeHandleSet publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet firstAttributes{firstAttribute};
+  rti::AttributeHandleSet secondAttributes{secondAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes,
+      true,
+      L"");
+  second.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes,
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid(),
+      "ordinary resign-delete multi-recipient FIFO registration returned an invalid object");
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasDiscovery(firstObject) &&
+            first.recorder().hasDiscovery(secondObject) &&
+            second.recorder().hasDiscovery(firstObject) &&
+            second.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "ordinary resign-delete multi-recipient FIFO discovery");
+  first.recorder().clearRemovals();
+  second.recorder().clearRemovals();
+  publisher.recorder().clearRemovals();
+
+  publisher.resign(rti::DELETE_OBJECTS);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasRemoval(
+                   firstObject,
+                   {},
+                   publisher.federateHandle()) &&
+            first.recorder().hasRemoval(
+                secondObject,
+                {},
+                publisher.federateHandle()) &&
+            second.recorder().hasRemoval(
+                firstObject,
+                {},
+                publisher.federateHandle()) &&
+            second.recorder().hasRemoval(
+                secondObject,
+                {},
+                publisher.federateHandle());
+      },
+      options,
+      "ordinary resign-delete multi-recipient FIFO delivery");
+  require(
+      publisher.recorder().removals().empty(),
+      "ordinary resign-delete multi-recipient FIFO delivered a removal back to its owner");
+
+  auto assertRemoval = [&](Session& receiver, std::string const& description) {
+    auto const received = receiver.recorder().removals();
+    require(
+        received.size() == 2U,
+        description + " returned an unexpected callback count");
+    require(
+        received.front().object == firstObject &&
+            received.front().tag.empty() &&
+            received.front().producer == publisher.federateHandle(),
+        description + " returned the wrong first removal metadata");
+    require(
+        received.back().object == secondObject &&
+            received.back().tag.empty() &&
+            received.back().producer == publisher.federateHandle(),
+        description + " returned the wrong second removal metadata");
+  };
+  assertRemoval(first, "first ordinary resign-delete recipient");
+  assertRemoval(second, "second ordinary resign-delete recipient");
+
+  first.rtiAmbassador().unsubscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes);
+  second.rtiAmbassador().unsubscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes);
+  first.resign(rti::NO_ACTION);
+  second.resign(rti::NO_ACTION);
+  first.rtiAmbassador().destroyFederationExecution(federation);
   second.disconnect();
   first.disconnect();
   publisher.disconnect();
@@ -37191,6 +37842,124 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
   publisher.disconnect();
 }
 
+void scenarioObjectRegistrationDiscoveryMultiRecipient(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "registration-fanout-publisher");
+  Session first(options, model, "registration-fanout-first");
+  Session second(options, model, "registration-fanout-second");
+  auto const federation = federationName(
+      options,
+      "object-registration-discovery-multi-recipient");
+  connectAndJoin(publisher, first, options, federation, options.fom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const firstClass = first.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondClass = second.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const firstAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.attributeName);
+  auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+          publisherAttribute.isValid() && firstAttribute.isValid() &&
+          secondAttribute.isValid(),
+      "multi-recipient registration lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const firstAttributes{firstAttribute};
+  rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes,
+      true,
+      L"");
+  second.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes,
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() && firstObject != secondObject,
+      "multi-recipient registration returned invalid or duplicate object handles");
+  auto const firstName = publisher.rtiAmbassador().getObjectInstanceName(firstObject);
+  auto const secondName = publisher.rtiAmbassador().getObjectInstanceName(secondObject);
+  require(
+      !firstName.empty() && !secondName.empty() && firstName != secondName,
+      "multi-recipient registration returned invalid or duplicate object names");
+
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasDiscovery(firstObject) &&
+            first.recorder().hasDiscovery(secondObject) &&
+            second.recorder().hasDiscovery(firstObject) &&
+            second.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "multi-recipient object registration discovery");
+  require(
+      publisher.recorder().discoveryCount() == 0U &&
+          first.recorder().discoveryCount() == 2U &&
+          second.recorder().discoveryCount() == 2U,
+      "multi-recipient registration delivered the wrong discovery callback counts");
+
+  auto assertIdentity = [&](Session& receiver,
+                            rti::ObjectClassHandle const& receiverClass,
+                            std::string const& description) {
+    require(
+        receiver.rtiAmbassador().getObjectInstanceHandle(firstName) == firstObject &&
+            receiver.rtiAmbassador().getObjectInstanceHandle(secondName) == secondObject &&
+            receiver.rtiAmbassador().getObjectInstanceName(firstObject) == firstName &&
+            receiver.rtiAmbassador().getObjectInstanceName(secondObject) == secondName &&
+            receiver.rtiAmbassador().getKnownObjectClassHandle(firstObject) == receiverClass &&
+            receiver.rtiAmbassador().getKnownObjectClassHandle(secondObject) == receiverClass,
+        description + " did not preserve both standard object identities");
+    auto const latest = receiver.recorder().discovery();
+    require(
+        latest.present && latest.object == secondObject &&
+            latest.objectClass == receiverClass && latest.name == secondName &&
+            latest.producer == publisher.federateHandle(),
+        description + " returned the wrong final discovery metadata");
+  };
+  assertIdentity(first, firstClass, "first registration recipient");
+  assertIdentity(second, secondClass, "second registration recipient");
+
+  first.rtiAmbassador().unsubscribeObjectClassAttributes(firstClass, firstAttributes);
+  second.rtiAmbassador().unsubscribeObjectClassAttributes(secondClass, secondAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.resign(rti::NO_ACTION);
+  second.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  second.disconnect();
+  first.disconnect();
+  publisher.disconnect();
+}
+
 void scenarioObjectManagement(Options const& options, rti::CallbackModel model) {
   scenarioObjectRegistration(options, model);
   scenarioNamedRegistration(options, model);
@@ -37233,6 +38002,12 @@ void scenarioObjectRegistrationDiscoveryLifecycleContract(
   scenarioObjectRegistrationDiscoveryLifecycle(options, model);
 }
 
+void scenarioObjectRegistrationDiscoveryMultiRecipientContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectRegistrationDiscoveryMultiRecipient(options, model);
+}
+
 void scenarioLocalDeleteObjectInstanceContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -37261,6 +38036,24 @@ void scenarioInteractionMultiRecipientFifoContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioInteractionMultiRecipientFifo(options, model);
+}
+
+void scenarioAttributeMultiRecipientFifoContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeMultiRecipientFifo(options, model);
+}
+
+void scenarioObjectRemovalMultiRecipientFifoContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectRemovalMultiRecipientFifo(options, model);
+}
+
+void scenarioResignDeleteObjectsMultiRecipientFifoContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignDeleteObjectsMultiRecipientFifo(options, model);
 }
 
 void scenarioDirectedInteractionPublicationSendFenceContract(
@@ -53790,6 +54583,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.object-class-attribute-value-update-request-baseline-contract",
       "cpp-tck.attribute-value-update-response",
       "cpp-tck.attribute-value-update-response-contract",
+      "cpp-tck.attribute-value-update-request-multi-requester",
+      "cpp-tck.attribute-value-update-request-multi-requester-contract",
       "cpp-tck.resign-delete-objects",
       "cpp-tck.resign-delete-objects-contract",
       "cpp-tck.resign-unconditional-divestiture",
@@ -53800,6 +54595,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.final-federate-resignation-cleanup-contract",
       "cpp-tck.object-registration-discovery-lifecycle",
       "cpp-tck.object-registration-discovery-lifecycle-contract",
+      "cpp-tck.object-registration-discovery-multi-recipient",
+      "cpp-tck.object-registration-discovery-multi-recipient-contract",
       "cpp-tck.named-registration",
       "cpp-tck.named-registration-contract",
       "cpp-tck.local-delete-object-instance",
@@ -53823,6 +54620,12 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.interaction-publication-send-fence-contract",
       "cpp-tck.interaction-multi-recipient-fifo",
       "cpp-tck.interaction-multi-recipient-fifo-contract",
+      "cpp-tck.attribute-multi-recipient-fifo",
+      "cpp-tck.attribute-multi-recipient-fifo-contract",
+      "cpp-tck.object-removal-multi-recipient-fifo",
+      "cpp-tck.object-removal-multi-recipient-fifo-contract",
+      "cpp-tck.resign-delete-objects-multi-recipient-fifo",
+      "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
       "java-tck.directed-interactions",
       "cpp-tck.directed-interaction-publication-send-fence",
       "cpp-tck.directed-interaction-publication-send-fence-contract",
@@ -54672,6 +55475,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.attribute-value-update-response-contract") {
     return scenarioAttributeValueUpdateResponseContract;
   }
+  if (id == "cpp-tck.attribute-value-update-request-multi-requester") {
+    return scenarioAttributeValueUpdateRequestMultiRequester;
+  }
+  if (id == "cpp-tck.attribute-value-update-request-multi-requester-contract") {
+    return scenarioAttributeValueUpdateRequestMultiRequesterContract;
+  }
   if (id == "cpp-tck.resign-delete-objects") return scenarioResignDeleteObjects;
   if (id == "cpp-tck.resign-delete-objects-contract") {
     return scenarioResignDeleteObjectsContract;
@@ -54699,6 +55508,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.object-registration-discovery-lifecycle-contract") {
     return scenarioObjectRegistrationDiscoveryLifecycleContract;
+  }
+  if (id == "cpp-tck.object-registration-discovery-multi-recipient") {
+    return scenarioObjectRegistrationDiscoveryMultiRecipient;
+  }
+  if (id == "cpp-tck.object-registration-discovery-multi-recipient-contract") {
+    return scenarioObjectRegistrationDiscoveryMultiRecipientContract;
   }
   if (id == "cpp-tck.named-registration") {
     return scenarioNamedRegistration;
@@ -54764,6 +55579,24 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.interaction-multi-recipient-fifo-contract") {
     return scenarioInteractionMultiRecipientFifoContract;
+  }
+  if (id == "cpp-tck.attribute-multi-recipient-fifo") {
+    return scenarioAttributeMultiRecipientFifo;
+  }
+  if (id == "cpp-tck.attribute-multi-recipient-fifo-contract") {
+    return scenarioAttributeMultiRecipientFifoContract;
+  }
+  if (id == "cpp-tck.object-removal-multi-recipient-fifo") {
+    return scenarioObjectRemovalMultiRecipientFifo;
+  }
+  if (id == "cpp-tck.object-removal-multi-recipient-fifo-contract") {
+    return scenarioObjectRemovalMultiRecipientFifoContract;
+  }
+  if (id == "cpp-tck.resign-delete-objects-multi-recipient-fifo") {
+    return scenarioResignDeleteObjectsMultiRecipientFifo;
+  }
+  if (id == "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract") {
+    return scenarioResignDeleteObjectsMultiRecipientFifoContract;
   }
   if (id == "java-tck.directed-interactions") return scenarioDirectedInteractions;
   if (id == "cpp-tck.directed-interaction-publication-send-fence") {

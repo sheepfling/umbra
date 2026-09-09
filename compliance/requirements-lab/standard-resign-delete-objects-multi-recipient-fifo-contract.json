@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for resign-time ordinary object-removal fan-out. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies two registered objects discovered by two active subscribers, publisher resignation with DELETE_OBJECTS, two removal callbacks per subscriber in producer order with empty resign tags, preservation of object and producing-federate metadata, and suppression of owner loopback. Timestamped removal, regions/DDM, custom transportation, MOM, save/restore, and provider-private behavior remain outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-resign-delete-objects-multi-recipient-fifo",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object-class lookup, publication, active subscription, object registration, DELETE_OBJECTS resignation, unsubscription, federation destruction, and disconnect services with FederateAmbassador discovery and ordinary removal callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador resign-time object-removal fan-out declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioResignDeleteObjectsMultiRecipientFifoContract"
+      ]
+    }
+  ]
+}

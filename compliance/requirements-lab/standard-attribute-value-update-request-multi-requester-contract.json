@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for independent ordinary attribute-value requests from two active requesters. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies shared object discovery and identity lookups, preserves each requester tag in separate provideAttributeValueUpdate callbacks, prevents provider-callback loopback to requesters, and verifies that the provider's ordinary response reaches both active subscribers with standard object, value, tag, producer, transportation, and no-region metadata. Timestamped delivery, regions/DDM, ownership, custom transportation, MOM, save/restore, and provider-private behavior remain outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ordinary-attribute-value-update-request-multi-requester",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object-class lookup, publication, active subscription, object registration, object identity lookup, ordinary Request Attribute Value Update, ordinary Update Attribute Values, unsubscription, unpublication, resignation, and disconnect services with FederateAmbassador discovery, provide-attribute-value-update, and reflect-attribute-values callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ordinary multi-requester value-update declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioAttributeValueUpdateRequestMultiRequesterContract"
+      ]
+    }
+  ]
+}

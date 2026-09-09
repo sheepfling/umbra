@@ -100,6 +100,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.object-class-attribute-value-update-request-baseline-contract` | Standard adapter-backed object-class Request Attribute Value Update contract over concrete subclass instances and provider callbacks |
 | `cpp-tck.attribute-value-update-response` | Ordinary attribute-value request/response metadata, provider callback ordering, returned value/tag, reliable transport, producer identity, and empty region metadata |
 | `cpp-tck.attribute-value-update-response-contract` | Standard adapter-backed ordinary attribute-value request, provider response, Update/Reflect metadata, transportation identity, and cleanup contract |
+| `cpp-tck.attribute-value-update-request-multi-requester` | Two active requesters preserve independent Request Attribute Value Update tags, receive separate provider callbacks without loopback, and receive the provider response fan-out |
+| `cpp-tck.attribute-value-update-request-multi-requester-contract` | Standard adapter-backed contract for independent ordinary value requests and response fan-out across two active subscribers |
 | `cpp-tck.service-report-delete-object-instance` | Standard MOM service-report callback for successful object deletion, paired with ordinary removal delivery and the same seven-parameter report contract |
 | `cpp-tck.service-report-delete-object-instance-contract` | Standard adapter-backed ordinary object-deletion service-report contract using the official MIM and removal callback |
 | `cpp-tck.service-report-delete-object-instance-failure` | Standard MOM failure reports for invalid and stale object deletion, including failure status, exception, returned-argument encoding, serial progression, and removal cleanup |
@@ -130,6 +132,12 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.local-delete-object-instance-contract` | Standard adapter-backed local object deletion contract for service boundaries, ownership protection, fresh-session deletion, rediscovery, stable identity, and continued ordinary reflection |
 | `java-tck.attribute-interaction` | Pre-connect and pre-join ordinary interaction-send boundaries plus active and passive attribute Update/Reflect and interaction Send/Receive, values, parameters, tags, producer, and transportation |
 | `cpp-tck.attribute-interaction-contract` | Standard adapter-backed ordinary attribute Update/Reflect and interaction Send/Receive contract with values, parameters, tags, producer identity, transportation, and lifecycle boundaries |
+| `cpp-tck.attribute-multi-recipient-fifo` | Two active subscribers each receive ordinary attribute updates in producer send order, with owner exclusion and preserved object, attribute, tag, producer, and transportation metadata |
+| `cpp-tck.attribute-multi-recipient-fifo-contract` | Standard adapter-backed ordinary attribute fan-out and receive-order FIFO contract across two active subscribers |
+| `cpp-tck.object-removal-multi-recipient-fifo` | Two active subscribers each receive the owner’s ordinary object removal with preserved object, tag, and producer metadata, while the owner receives no loopback removal |
+| `cpp-tck.object-removal-multi-recipient-fifo-contract` | Standard adapter-backed ordinary object-removal fan-out and owner-exclusion contract across two active subscribers |
+| `cpp-tck.resign-delete-objects-multi-recipient-fifo` | Publisher resignation with `DELETE_OBJECTS` delivers two ordinary removals to both active subscribers in producer order, with empty resign tags and no owner loopback |
+| `cpp-tck.resign-delete-objects-multi-recipient-fifo-contract` | Standard adapter-backed resign-time object-removal fan-out and owner-exclusion contract across two active subscribers |
 | `cpp-tck.order-type-controls-contract` | Standard adapter-backed prospective attribute and interaction order-control contract with logical-time delivery and receive-order callbacks |
 | `cpp-tck.receive-order-attribute-update-callback-cancellation` | In evoked mode, cancel a queued receive-order attribute reflection by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
 | `cpp-tck.receive-order-attribute-update-callback-cancellation-contract` | Standard adapter-backed receive-order attribute-reflection cancellation contract across evoked and immediate callback boundaries |
@@ -1532,6 +1540,17 @@ object, attribute-set, and request-tag metadata, confirms that no reflection
 arrives before the provider responds, and checks the returned value, response
 tag, reliable transport, producer identity, and empty region metadata through
 the official API and adapter-supplied ordinary FOM.
+
+The promoted `cpp-tck.attribute-value-update-request-multi-requester` scenario
+extends that route to two active requesters. It preserves their independent
+request tags in separate provider callbacks, verifies that the provider
+callback does not loop back to either requester, and checks that the ordinary
+response reaches both subscribers with standard value, tag, producer,
+transportation, and no-region metadata. Its corresponding
+`cpp-tck.attribute-value-update-request-multi-requester-contract` runner
+exposes the same boundary as an independently selectable pure standard C++
+contract while taking provider, FOM, endpoint, and callback configuration from
+the adapter.
 
 The corresponding `cpp-tck.attribute-value-update-request-baseline-contract`,
 `cpp-tck.object-class-attribute-value-update-request-baseline-contract`, and
