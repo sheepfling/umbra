@@ -52661,10 +52661,11 @@ void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationImpl(
   publisher.recorder().clearCallbackOrder();
 
   bool immediateOwnershipTransfer = false;
-  if (model == rti::HLA_IMMEDIATE && !cancelBeforeConfirmation) {
-    // Immediate delivery closes the negotiated-candidate window. Verify the
-    // standard unavailable boundary before the saved timestamped update is
-    // released; the ownership handoff is checked after that delivery.
+  if (model == rti::HLA_IMMEDIATE) {
+    // Immediate delivery closes every pre-confirmation cancellation window.
+    // Verify the standard unavailable boundary before the saved timestamped
+    // update is released; the ownership handoff is checked after that
+    // delivery.
     firstReceiver.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
         object,
         firstAttributes,
@@ -52858,7 +52859,7 @@ void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationImpl(
       secondReceiver.rtiAmbassador().getObjectInstanceHandle(secondDiscovery.name) == object,
       "timed negotiated regional attribute changed the object identity after restore");
 
-  if (model == rti::HLA_IMMEDIATE && !cancelBeforeConfirmation) {
+  if (model == rti::HLA_IMMEDIATE) {
     publisher.recorder().clearOwnershipRecords();
     clock.recorder().clearOwnershipRecords();
     clock.rtiAmbassador().attributeOwnershipAcquisition(
@@ -52905,7 +52906,7 @@ void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationImpl(
     immediateOwnershipTransfer = true;
   }
 
-  if (cancelAfterConfirmation) {
+  if (cancelAfterConfirmation && !immediateOwnershipTransfer) {
     publisher.rtiAmbassador().cancelNegotiatedAttributeOwnershipDivestiture(
         object,
         publisherAttributes);
@@ -55440,26 +55441,6 @@ int run(Options const& options) {
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
-      } else if (
-          (scenario ==
-               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore" ||
-           scenario ==
-               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract") &&
-          callback.first == "immediate") {
-        result.status = "skipped";
-        result.message =
-            "requires evoked callback servicing because immediate regular-candidate delivery "
-            "closes the cancellation window before the first candidate resigns";
-      } else if (
-          (scenario ==
-               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore" ||
-           scenario ==
-               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract") &&
-          callback.first == "immediate") {
-        result.status = "skipped";
-        result.message =
-            "requires evoked callback servicing because immediate regular-candidate delivery "
-            "closes the pre-delivery cancellation window before the first candidate resigns";
       } else if ((scenario == "cpp-tck.fom-model" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||

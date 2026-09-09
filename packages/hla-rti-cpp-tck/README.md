@@ -355,10 +355,10 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.negotiated-willing-to-acquire-continuation-contract` | Pure standard C++ contract for negotiated willing-to-acquire continuation under both callback models; the adapter owns provider, FOM, endpoint, and callback configuration |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore` | Two-model timed regional ownership continuation: evoked delivery retains the regular candidate through negotiated divestiture, while immediate delivery verifies the standard If Available boundary and synchronous ordinary ownership-release/divestiture after queued delivery |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract` | Pure standard C++ contract for the timed regional ownership continuation; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs under both callback models |
-| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore` | Candidate cancellation of a regular negotiated ownership transfer before confirmation callback delivery after timed regional attribute save/restore, preserving publisher ownership, canceling the surviving acquisition reservation, and retaining restored queued delivery; immediate delivery is intentionally skipped |
-| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract` | Candidate pure standard C++ contract for the same pre-delivery negotiated cancellation after timed regional restore; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs, and immediate delivery is intentionally skipped |
-| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore` | Candidate regular-to-regular negotiated ownership cancellation after Request Divestiture Confirmation, preserving publisher ownership, rejecting stale Confirm Divestiture, canceling the surviving acquisition reservation, and retaining the restored queued regional update; immediate delivery is intentionally skipped |
-| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract` | Candidate pure standard C++ contract for the same post-confirmation negotiated cancellation after timed regional restore; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs, and immediate delivery is intentionally skipped |
+| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore` | Promoted two-model cancellation of a regular negotiated ownership transfer before confirmation callback delivery after timed regional attribute save/restore: evoked mode preserves publisher ownership and cancels the surviving acquisition reservation, while immediate mode verifies the standard unavailable cancellation window and synchronous ordinary ownership handoff |
+| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract` | Promoted pure standard C++ contract for pre-delivery negotiated cancellation after timed regional restore; evoked mode covers the cancellation route and immediate mode covers the standard callback-window boundary, with provider, FOM, endpoint, logical-time, and callback configuration remaining adapter inputs |
+| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore` | Promoted two-model regular-to-regular negotiated ownership cancellation after Request Divestiture Confirmation: evoked mode preserves publisher ownership, rejects stale Confirm Divestiture, and cancels the surviving acquisition reservation, while immediate mode verifies the standard unavailable cancellation window and synchronous ordinary ownership handoff |
+| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract` | Promoted pure standard C++ contract for post-confirmation negotiated cancellation after timed regional restore; evoked mode covers the full cancellation route and immediate mode covers the standard callback-window boundary, with provider, FOM, endpoint, logical-time, and callback configuration remaining adapter inputs |
 | `cpp-tck.resign-pending-acquisition-rejection` | Rejects unconditional resignation while ownership acquisition is pending, then cancels that work during standard cancel-then-delete-then-divest resignation |
 | `cpp-tck.resign-pending-acquisition-rejection-contract` | Standard adapter-backed pending-acquisition resignation rejection contract |
 | `cpp-tck.resign-cancel-pending-acquisition` | Cancels pending ownership-acquisition work during standard resignation and prevents a stale owner-release callback under both callback models |
@@ -797,16 +797,18 @@ standard-API base case `cpp-tck.timed-live-tso-regional-attribute-update-multi-r
 its focused installed-package lane passed 4/4 callback-model cases. Evoked mode
 retains the regular candidate through negotiated divestiture; immediate mode
 verifies the standard unavailable boundary before queued delivery and a
-synchronous ordinary ownership-release/divestiture handoff afterward. The catalog
-also contains the separate regular-to-regular confirmation-cancellation case
+synchronous ordinary ownership-release/divestiture handoff afterward.
+The promoted regular-to-regular confirmation-cancellation case
 `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore`:
-it passed one evoked run and three independent evoked repeats, with an explicit
-immediate-model skip for the same callback-window boundary.
+passed 4/4 callback-model cases in its focused lane. Evoked mode covers the
+full post-confirmation cancellation route; immediate mode verifies the standard
+unavailable cancellation window before queued delivery and a synchronous
+ordinary ownership-release/divestiture handoff afterward.
 The pre-delivery cancellation case
 `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore`
-also passed one focused evoked run and three independent evoked repeats; its
-immediate model is explicitly skipped because callback servicing closes the
-pre-delivery cancellation window.
+also passed 4/4 callback-model cases. Evoked mode covers the full pre-delivery
+cancellation route; immediate mode verifies the same standard callback-window
+boundary and ordinary handoff.
 
 The translated slice now includes the ordinary, non-regional timestamped
 object-management and alternate-advance frontier, including backward-time
@@ -1405,20 +1407,14 @@ likewise expose the save/restore MOM routes as independently selectable pure
 standard C++ contracts. Their focused four-scenario lane passed 8/8
 callback-model cases; the catalog-wide aggregate passed 666/666 CTest cases
 plus 666 direct passes with only the two expected connection-loss skips.
-The ownership candidate contract-twin lane recorded 4 passes and 4 explicit
-immediate-model skips across the two candidate scenarios; both remain
-`promotion=candidate` until an all-model verification fixture is available.
+The ownership contract-twin lane passed 8/8 callback-model cases in
+`.build\\cpp-tck-all\\verified-evidence-standard-ownership-cancellation-continuation.json`.
 The promoted timed regular-candidate contract twin passed 4/4 callback-model
-cases in its focused lane. The timed pre-delivery cancellation contract twin
-recorded 2 evoked passes and 2 explicit immediate-model skips in its focused
-four-case lane; it remains `promotion=candidate` pending broader adapter
-coverage.
-The timed pre-delivery cancellation contract twin recorded 2 evoked passes and
-2 explicit immediate-model skips in its focused four-case lane; it also remains
-`promotion=candidate` pending broader adapter coverage.
-The timed confirmation-cancellation contract twin recorded 2 evoked passes and
-2 explicit immediate-model skips in its focused four-case lane; it also remains
-`promotion=candidate` pending broader adapter coverage.
+cases in its focused lane. The timed confirmation-cancellation contract twin
+also passed 4/4 callback-model cases, and the timed pre-delivery cancellation
+contract twin passed 4/4. Evoked mode retains each full cancellation route;
+immediate mode verifies the standard unavailable cancellation-window boundary
+and synchronous ordinary ownership handoff after queued delivery.
 The promoted `cpp-tck.service-report-regional-interaction-failure` scenario
 drives invalid interaction-class, parameter, and region inputs through the same
 standard API. It verifies typed failure reports, exception names, serial

@@ -13924,7 +13924,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract",
       "parity": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
@@ -14020,7 +14020,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract",
@@ -14093,7 +14093,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract",
       "parity": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
@@ -14191,7 +14191,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.federation-mom-save-conditionals",

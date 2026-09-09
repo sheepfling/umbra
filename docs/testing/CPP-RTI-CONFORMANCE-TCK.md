@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 377 promoted scenarios (754 callback-model
+The verified lane currently runs 381 promoted scenarios (762 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -438,10 +438,10 @@ The promoted `cpp-tck.ownership-acquisition-cancellation-transfer-race` and
 `cpp-tck.negotiated-willing-to-acquire-continuation` runners expose the standard
 ownership cancellation and negotiated-continuation boundaries as independently
 selectable pure C++ contracts. Their focused four-scenario lane passed 8/8
-callback-model cases; the promoted aggregate passed 752/752 CTest cases with
-752 direct passes and only the two expected adapter-managed connection-loss
+callback-model cases; the promoted aggregate passed 760/760 CTest cases with
+760 direct passes and only the two expected adapter-managed connection-loss
 skips in
-`.build\\cpp-tck-all\\verified-evidence-standard-timed-regional-candidate-continuation-after-restore.json`.
+`.build\\cpp-tck-all\\verified-evidence-standard-timed-regional-ownership-cancellation-continuation-contracts.json`.
 Evoked mode retains the concurrent and Willing-to-Acquire callback boundaries;
 immediate mode uses deterministic standard pending-acquisition paths rather than
 asserting an asynchronous race. The source uses only official IEEE C++ headers
@@ -457,17 +457,21 @@ synchronous ordinary ownership-release/divestiture handoff after queued
 delivery. Provider, FOM, endpoint, logical-time, and callback configuration
 remain adapter inputs.
 
-The candidate timed pre-delivery cancellation contract twin exercises the same
+The promoted timed pre-delivery cancellation contract twin exercises the same
 standard API boundary through negotiated cancellation before confirmation
-delivery after restore. Its focused lane recorded 2 evoked passes and 2
-explicit immediate-model skips; provider, FOM, endpoint, logical-time, and
-callback configuration remain adapter inputs.
+delivery after restore. Its focused lane passed 4/4 callback-model cases;
+evoked mode covers the full cancellation route, while immediate mode verifies
+the standard unavailable cancellation window before queued delivery and a
+synchronous ordinary ownership-release/divestiture handoff afterward. Provider,
+FOM, endpoint, logical-time, and callback configuration remain adapter inputs.
 
-The candidate timed confirmation-cancellation contract twin exercises the same
+The promoted timed confirmation-cancellation contract twin exercises the same
 standard API boundary through cancellation after confirmation request delivery
-and restore. Its focused lane recorded 2 evoked passes and 2 explicit
-immediate-model skips; provider, FOM, endpoint, logical-time, and callback
-configuration remain adapter inputs.
+and restore. Its focused lane passed 4/4 callback-model cases; evoked mode
+covers the full cancellation route, while immediate mode verifies the standard
+unavailable cancellation window before queued delivery and a synchronous
+ordinary ownership-release/divestiture handoff afterward. Provider, FOM,
+endpoint, logical-time, and callback configuration remain adapter inputs.
 
 The promoted `cpp-tck.unnamed-join-overload` scenario isolates the standard
 unnamed federation Join overload. It verifies that a federate can join without
@@ -2115,7 +2119,7 @@ entries with `promotion=promoted`, which produces 750 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
 adapter-required entries; the current catalog contains 381 IDs and 762 cases,
-including four candidates. The candidate-inclusive evidence figures below are
+including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive
 baseline completes 686/686
@@ -2416,14 +2420,14 @@ ownership contract-twin lane passed 8/8 callback-model cases in
 timed regular-candidate contract-twin lane passed 4/4 callback-model cases in
 `.build\cpp-tck-all\focused-standard-timed-regional-candidate-continuation-after-restore.json`
 and is promoted. The focused
-timed pre-delivery cancellation contract-twin lane recorded 2 evoked passes and
-2 explicit immediate-model skips in
-`.build\cpp-tck-all\focused-standard-timed-ownership-candidate-pre-delivery-contract.json`; it
-also remains `promotion=candidate` pending broader adapter coverage. The focused
-timed confirmation-cancellation contract-twin lane recorded 2 evoked passes and
-2 explicit immediate-model skips in
-`.build\cpp-tck-all\focused-standard-timed-ownership-candidate-confirmation-contract.json`; it
-also remains `promotion=candidate` pending broader adapter coverage. The focused
+timed pre-delivery cancellation contract-twin lane passed 4/4 callback-model cases in
+`.build\cpp-tck-all\focused-standard-timed-regional-candidate-pre-delivery-cancel-after-restore.json`; it
+is promoted. The timed confirmation-cancellation contract-twin lane also
+passed 4/4 callback-model cases in
+`.build\cpp-tck-all\focused-standard-timed-regional-candidate-confirmation-cancel-after-restore.json`; it
+is promoted. Evoked mode covers each full cancellation route; immediate mode
+verifies the standard unavailable cancellation-window boundary and synchronous
+ordinary ownership handoff after queued delivery. The focused
 factory-discovery lane passed 2/2 in
 `.build\cpp-tck-all\factory-discovery-focused.json`; the focused
 MOM transportation-type-change request lane passed 2/2 in
