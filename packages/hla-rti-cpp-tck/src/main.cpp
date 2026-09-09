@@ -41517,6 +41517,12 @@ void scenarioRegionalDeclarationRelevanceAdvisories(
   subscriber.disconnect();
 }
 
+void scenarioRegionalDeclarationRelevanceAdvisoriesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalDeclarationRelevanceAdvisories(options, model);
+}
+
 void scenarioRegionalInteractionRouting(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "owner");
   Session overlap(options, model, "member");
@@ -53515,6 +53521,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-scope-advisories",
       "cpp-tck.attribute-scope-advisories-contract",
       "cpp-tck.regional-declaration-relevance-advisories",
+      "cpp-tck.regional-declaration-relevance-advisories-contract",
       "cpp-tck.regional-interaction-routing",
       "cpp-tck.regional-interaction-source-region-snapshot",
       "cpp-tck.regional-interaction-subscription-filtering",
@@ -54661,6 +54668,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-declaration-relevance-advisories") {
     return scenarioRegionalDeclarationRelevanceAdvisories;
   }
+  if (id == "cpp-tck.regional-declaration-relevance-advisories-contract") {
+    return scenarioRegionalDeclarationRelevanceAdvisoriesContract;
+  }
   if (id == "cpp-tck.regional-interaction-routing") {
     return scenarioRegionalInteractionRouting;
   }
@@ -55193,6 +55203,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.attribute-scope-advisories" ||
                  scenario == "cpp-tck.attribute-scope-advisories-contract" ||
                  scenario == "cpp-tck.regional-declaration-relevance-advisories" ||
+                 scenario == "cpp-tck.regional-declaration-relevance-advisories-contract" ||
                  scenario == "cpp-tck.regional-interaction-routing" ||
                  scenario == "cpp-tck.regional-interaction-source-region-snapshot" ||
                  scenario == "cpp-tck.regional-interaction-subscription-filtering" ||

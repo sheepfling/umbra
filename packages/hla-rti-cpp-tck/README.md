@@ -267,6 +267,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.attribute-scope-advisories` | Attribute In/Out Of Scope callbacks, regional source and subscription transitions, switch suppression, and stale evoked-callback handling |
 | `cpp-tck.attribute-scope-advisories-contract` | Standard adapter-backed attribute-scope switch, transition, and stale-callback contract |
 | `cpp-tck.regional-declaration-relevance-advisories` | Active and passive regional object and interaction subscriptions, with standard start/stop-registration and turn-interactions-on/off advisories |
+| `cpp-tck.regional-declaration-relevance-advisories-contract` | Standard adapter-backed regional declaration-relevance advisory contract |
 | `cpp-tck.regional-interaction-routing` | Region-qualified ordinary interaction publication/subscription, overlap routing, disjoint suppression, conveyed region designators, and declaration changes |
 | `cpp-tck.regional-interaction-source-region-snapshot` | Send-time source-region capture for queued ordinary regional interactions, disjoint suppression after source mutation, restored-overlap routing, and conveyed source-region metadata |
 | `cpp-tck.regional-interaction-subscription-filtering` | Ordinary receive-order regional interaction filtering, explicit empty-region no-op behavior, overlap and disjoint delivery, callback-time subscription movement, conveyed source-region metadata, and standard region failures |

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 regional declaration-relevance advisory surface. The source uses only the standard C++ RTIambassador/FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and any logical-time implementation. It verifies object-class and interaction relevance advisory switches, active versus passive regional object subscriptions, start and stop registration advisories, active versus passive regional interaction subscriptions, turn-interactions-on and turn-interactions-off advisories, and independent region and federation cleanup without provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-declaration-relevance-advisories",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object-class and interaction relevance advisory switches, regional publication and subscription declarations, region creation and modification, and FederateAmbassador registration and interaction-relevance callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador declaration-relevance advisory declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    }
+  ]
+}

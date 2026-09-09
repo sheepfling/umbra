@@ -11516,6 +11516,54 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-declaration-relevance-advisories-contract",
+      "category": "declaration-relevance",
+      "title": "Exercise the standard regional declaration relevance advisory contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setObjectClassRelevanceAdvisorySwitch",
+        "RTIambassador.getObjectClassRelevanceAdvisorySwitch",
+        "RTIambassador.setInteractionRelevanceAdvisorySwitch",
+        "RTIambassador.getInteractionRelevanceAdvisorySwitch",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.startRegistrationForObjectClass",
+        "FederateAmbassador.stopRegistrationForObjectClass",
+        "FederateAmbassador.turnInteractionsOn",
+        "FederateAmbassador.turnInteractionsOff"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-declaration-relevance-advisories",
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-interaction-subscription"
+      ],
+      "contract_refs": [
+        "standard-regional-declaration-relevance-advisories-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalDeclarationRelevanceAdvisoriesContract",
+      "runner_id": "cpp-tck.regional-declaration-relevance-advisories-contract",
+      "parity": "cpp-tck.regional-declaration-relevance-advisories",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-routing",
       "category": "regional-interaction-management",
       "title": "Publish, subscribe, unsubscribe, route, and filter ordinary regional interactions",

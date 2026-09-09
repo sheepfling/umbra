@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 345 promoted scenarios (690 callback-model
+The verified lane currently runs 346 promoted scenarios (692 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -721,6 +721,17 @@ base-and-contract lane passed 4/4 callback-model cases; the catalog-wide
 promoted gate passed 688/688 CTest cases with 688 direct passes and only the
 two expected adapter-managed connection-loss skips in
 `.build\cpp-tck-all\verified-evidence-attribute-scope-advisories-contract.json`.
+The source uses only official IEEE C++ headers and the standard library; the
+dimensional FOM, provider, endpoint, callback, and logical-time configuration
+remain adapter-owned.
+
+The promoted `cpp-tck.regional-declaration-relevance-advisories-contract`
+runner exposes the standard object-class and interaction relevance advisory
+surface as an independently selectable pure C++ contract. Its focused
+base-and-contract lane passed 4/4 callback-model cases; the catalog-wide
+promoted gate passed 690/690 CTest cases with 690 direct passes and only the
+two expected adapter-managed connection-loss skips in
+`.build\cpp-tck-all\verified-evidence-regional-declaration-relevance-advisories-contract.json`.
 The source uses only official IEEE C++ headers and the standard library; the
 dimensional FOM, provider, endpoint, callback, and logical-time configuration
 remain adapter-owned.
@@ -1847,8 +1858,9 @@ promotion. The promoted default-region attribute save/restore scenario extends
 that boundary to timestamped object-attribute reflection, including empty
 conveyed source-region metadata, Flush Queue ordering, and restored retraction
 state; three repeat focused runs passed all 6/6 callback-model cases before
-promotion. The promoted attribute-scope scenario
-adds regional scope-transition callbacks and switch gating. All remain on the public
+promotion. The promoted attribute-scope scenario adds regional scope-transition
+callbacks and switch gating. The promoted declaration-relevance scenario adds
+active/passive regional declaration advisories. All remain on the public
 `RTIambassador`/`FederateAmbassador` boundary.
 
 This boundary deliberately does not claim to test private XML parser/schema
@@ -1936,11 +1948,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 345 catalog
-entries with `promotion=promoted`, which produces 690 cases with
+configuration. The default `--scenario-set verified` selects the 346 catalog
+entries with `promotion=promoted`, which produces 692 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 355 IDs and 710 cases,
+adapter-required entries; the current catalog contains 356 IDs and 712 cases,
 including ten candidates. The candidate-inclusive evidence figures below were
 recorded before the two ownership contract twins were promoted and therefore
 cover the prior 344-ID, 688-case catalog. The no-fixture candidate-inclusive
