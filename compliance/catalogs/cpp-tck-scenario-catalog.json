@@ -13609,6 +13609,88 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.default-region-interaction-routing",
+      "category": "regional-interaction-management",
+      "title": "Resolve ordinary interaction delivery through explicit and implicit default regions",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-default-region-interaction",
+        "cpp-1516.1-ddm-default-region-interaction-region-metadata",
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "interaction-region-api-contract.json",
+        "interaction-region-requirements-contract.json",
+        "convey-region-designator-callback-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDefaultRegionInteractionRouting",
+      "runner_id": "cpp-tck.default-region-interaction-routing",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.default-region-interaction-routing-contract",
+      "category": "regional-interaction-management",
+      "title": "Standard adapter-backed explicit and implicit default-region interaction routing contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-default-region-interaction",
+        "cpp-1516.1-ddm-default-region-interaction-region-metadata",
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "standard-default-region-interaction-routing-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDefaultRegionInteractionRoutingContract",
+      "runner_id": "cpp-tck.default-region-interaction-routing-contract",
+      "parity": "cpp-tck.default-region-interaction-routing",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-source-region-snapshot",
       "category": "regional-interaction-management",
       "title": "Preserve the send-time source region for queued ordinary regional interactions",

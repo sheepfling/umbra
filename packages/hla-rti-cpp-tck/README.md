@@ -315,6 +315,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-declaration-relevance-advisories-contract` | Standard adapter-backed regional declaration-relevance advisory contract |
 | `cpp-tck.regional-interaction-routing` | Region-qualified ordinary interaction publication/subscription, overlap routing, disjoint suppression, conveyed region designators, and declaration changes |
 | `cpp-tck.regional-interaction-routing-contract` | Standard adapter-backed regional interaction routing contract |
+| `cpp-tck.default-region-interaction-routing` | Ordinary interaction routing across explicit regional subscriptions and the implicit default region, including disjoint suppression, restoration, and conveyed empty region metadata |
+| `cpp-tck.default-region-interaction-routing-contract` | Standard adapter-backed explicit and implicit default-region interaction routing contract |
 | `cpp-tck.regional-interaction-source-region-snapshot` | Send-time source-region capture for queued ordinary regional interactions, disjoint suppression after source mutation, restored-overlap routing, and conveyed source-region metadata |
 | `cpp-tck.regional-interaction-source-region-snapshot-contract` | Standard adapter-backed regional interaction source-region snapshot contract |
 | `cpp-tck.regional-interaction-subscription-filtering` | Ordinary receive-order regional interaction filtering, explicit empty-region no-op behavior, overlap and disjoint delivery, callback-time subscription movement, conveyed source-region metadata, and standard region failures |
@@ -482,6 +484,17 @@ cases with two expected adapter-managed connection-loss skips and zero
 failures. The portable source uses only the official IEEE C++ API and standard
 library; provider, multi-attribute FOM, endpoint, and callback configuration
 remain adapter inputs.
+
+The promoted `cpp-tck.default-region-interaction-routing` scenario and its
+pure standard contract twin cover ordinary interaction routing across explicit
+regional subscriptions and the implicit default region. They verify overlap
+delivery, disjoint suppression, restoration after regional unsubscription,
+ordinary default-region delivery, and conveyed empty source-region metadata.
+The focused installed-package lane passed 4/4 callback-model cases; the current
+verified matrix passed 832/834 cases with only the two expected adapter-managed
+connection-loss cases skipped and zero failures. The portable source uses only
+the official IEEE C++ API and standard library; provider, dimensional FOM,
+endpoint, and callback configuration remain adapter inputs.
 
 The promoted ownership-transfer/update-region case uses the same adapter-supplied
 DDM FOM with three federates. It verifies that a source-region association does
@@ -966,8 +979,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 415 scenario IDs and 830 matrix cases. `--scenario-set all` currently
-  configures the same 415 available IDs (830 cases); there are no unpromoted
+    that is 417 scenario IDs and 834 matrix cases. `--scenario-set all` currently
+  configures the same 417 available IDs (834 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

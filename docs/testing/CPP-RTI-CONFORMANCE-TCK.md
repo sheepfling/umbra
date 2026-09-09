@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 415 promoted scenarios (830 callback-model
+The verified lane currently runs 417 promoted scenarios (834 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -397,10 +397,10 @@ four-scenario lane passed 8/8 callback-model cases, including typed report
 parameters, metadata, callback-boundary revalidation, and malformed-request
 failure. The source uses only the official IEEE C++ API and standard library;
 provider, FOM, endpoint, and callback configuration remain adapter inputs. The
-full installed-package verified matrix reported 100% for 830 configured CTest
-cases: 828 passed and the two connection-loss cases were explicitly skipped
+full installed-package verified matrix reported 100% for 834 configured CTest
+cases: 832 passed and the two connection-loss cases were explicitly skipped
 because no adapter fault fixture was supplied. The direct evidence run likewise
-recorded 828 passes, two approved skips, and zero failures.
+recorded 832 passes, two approved skips, and zero failures.
 The newly promoted
 `cpp-tck.ownership-acquisition-publication-fence` scenario and its pure
 standard contract twin isolate the publication fence and pending-state rules
@@ -836,6 +836,18 @@ ordinary discovery, and that removing and restoring an explicit source
 association switches delivery between the supplied source-region designator
 and the supplied-empty default projection. The source uses only the official
 `RTIambassador`/`FederateAmbassador` API and adapter-supplied FOM names.
+
+The promoted `cpp-tck.default-region-interaction-routing` scenario exercises
+the ordinary/default-region boundary for interactions with three federates. It
+proves overlap delivery through explicit regional subscriptions, suppression by
+a disjoint regional subscription, restoration after regional unsubscription,
+ordinary delivery through the implicit default region, and conveyed empty
+source-region metadata. Its pure standard contract twin is independently
+selectable. The focused installed-package lane passed 4/4 callback-model cases;
+the current promoted matrix passed 832/834 cases with only the two expected
+adapter-managed connection-loss cases skipped and zero failures. The source
+uses only official IEEE C++ headers and the standard library, with provider,
+dimensional FOM, endpoint, and callback configuration supplied by the adapter.
 
 The promoted `cpp-tck.passive-regional-subscription` scenario exercises the
 regional passive-subscription boundary. It proves that a regional

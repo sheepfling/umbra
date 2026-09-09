@@ -130,8 +130,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 415 promoted scenario IDs (830 callback-model cases).
-`--scenario-set all` currently configures the same 415 available IDs (830
+The verified lane is 417 promoted scenario IDs (834 callback-model cases).
+`--scenario-set all` currently configures the same 417 available IDs (834
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -160,6 +160,16 @@ two expected adapter-managed connection-loss skips and zero failures. The
 portable source remains limited to the official IEEE C++ API and standard
 library, with provider, multi-attribute FOM, endpoint, and callback
 configuration supplied by the adapter.
+The promoted `cpp-tck.default-region-interaction-routing` slice and its pure
+standard contract twin cover ordinary interaction routing across explicit
+regional subscriptions and the implicit default region, including overlap
+delivery, disjoint suppression, restoration after regional unsubscription, and
+conveyed empty source-region metadata. Their focused installed-package lane
+passed 4/4 callback-model cases; the current promoted matrix passed 832/834
+cases with only the two expected adapter-managed connection-loss cases skipped
+and zero failures. The portable source remains limited to the official IEEE C++
+API and standard library, with provider, dimensional FOM, endpoint, and
+callback configuration supplied by the adapter.
 The latest promoted ordinary attribute fan-out slice adds
 `cpp-tck.attribute-multi-recipient-fifo` and its pure standard contract twin.
 Its focused lane passed 4/4 callback-model cases, and the catalog-wide gate

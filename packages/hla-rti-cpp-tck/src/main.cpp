@@ -45226,6 +45226,229 @@ void scenarioRegionalInteractionRoutingContract(
   scenarioRegionalInteractionRouting(options, model);
 }
 
+void scenarioDefaultRegionInteractionRouting(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Default-region interaction routing requires an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "default-region-interaction-publisher");
+  Session regional(options, model, "default-region-interaction-regional");
+  Session mixed(options, model, "default-region-interaction-mixed");
+  auto const federation = federationName(options, "default-region-interaction-routing");
+  connectAndJoin(publisher, regional, options, federation, options.ddmFom);
+  mixed.connect();
+  mixed.join(
+      options.memberFederateName + L"-default-region-interaction-mixed",
+      options.federateType,
+      federation);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const regionalHandles = ddmHandles(regional, options);
+  auto const mixedHandles = ddmHandles(mixed, options);
+  require(
+      publisherHandles.interactionClass == regionalHandles.interactionClass &&
+          publisherHandles.interactionClass == mixedHandles.interactionClass &&
+          publisherHandles.parameter == regionalHandles.parameter &&
+          publisherHandles.parameter == mixedHandles.parameter,
+      "default-region interaction members resolved different declaration handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherHandles.interactionClass);
+  auto const sourceRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      0UL,
+      1UL,
+      0UL,
+      1UL);
+  auto const regionalRegion = createDdmRegion(
+      regional,
+      regionalHandles,
+      0UL,
+      1UL,
+      0UL,
+      1UL);
+  auto const mixedRegion = createDdmRegion(
+      mixed,
+      mixedHandles,
+      2UL,
+      3UL,
+      2UL,
+      3UL);
+  auto const sourceRegionSet = rti::RegionHandleSet{sourceRegion};
+  auto const regionalRegionSet = rti::RegionHandleSet{regionalRegion};
+  auto const mixedRegionSet = rti::RegionHandleSet{mixedRegion};
+
+  regional.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  mixed.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  regional.rtiAmbassador().subscribeInteractionClassWithRegions(
+      regionalHandles.interactionClass,
+      regionalRegionSet,
+      true);
+  mixed.rtiAmbassador().subscribeInteractionClass(
+      mixedHandles.interactionClass,
+      true);
+  mixed.rtiAmbassador().subscribeInteractionClassWithRegions(
+      mixedHandles.interactionClass,
+      mixedRegionSet,
+      true);
+
+  std::vector<std::uint8_t> firstValue{0xd1U, 0x04U};
+  std::vector<std::uint8_t> firstTag{0x01U, 0x02U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(firstValue.data(), firstValue.size()));
+  rti::VariableLengthData firstUserTag(firstTag.data(), firstTag.size());
+
+  publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      parameters,
+      sourceRegionSet,
+      firstUserTag);
+  waitFor(
+      regional,
+      [&] { return regional.recorder().interactions().size() >= 1U; },
+      options,
+      "default-region interaction overlap delivery");
+  auto const firstRegionalInteractions = regional.recorder().interactions();
+  require(
+      firstRegionalInteractions.size() == 1U,
+      "default-region interaction overlap delivered a duplicate callback");
+  auto const& firstRegional = firstRegionalInteractions.front();
+  require(
+      firstRegional.interaction == regionalHandles.interactionClass &&
+          firstRegional.parameters.size() == 1U &&
+          firstRegional.parameters.count(regionalHandles.parameter) == 1U &&
+          copyBytes(firstRegional.parameters.at(regionalHandles.parameter)) == firstValue &&
+          firstRegional.tag == firstTag &&
+          firstRegional.producer == publisher.federateHandle() &&
+          firstRegional.transportation.isValid(),
+      "default-region interaction overlap changed ordinary delivery metadata");
+  require(
+      firstRegional.regions.has_value() &&
+          firstRegional.regions->size() == 1U &&
+          firstRegional.regions->count(sourceRegion) == 1U,
+      "default-region interaction overlap did not convey the source region");
+  for (int pass = 0; pass != 8; ++pass) {
+    mixed.pump();
+  }
+  require(
+      mixed.recorder().interactions().empty(),
+      "disjoint explicit regional interaction subscription received a message");
+
+  mixed.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      mixedHandles.interactionClass,
+      mixedRegionSet);
+  std::vector<std::uint8_t> secondValue{0x71U, 0x72U};
+  std::vector<std::uint8_t> secondTag{0x03U, 0x04U};
+  rti::ParameterHandleValueMap secondParameters;
+  secondParameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(secondValue.data(), secondValue.size()));
+  rti::VariableLengthData secondUserTag(secondTag.data(), secondTag.size());
+  publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      secondParameters,
+      sourceRegionSet,
+      secondUserTag);
+  waitFor(
+      regional,
+      mixed,
+      [&] {
+        return regional.recorder().interactions().size() >= 2U &&
+            mixed.recorder().interactions().size() >= 1U;
+      },
+      options,
+      "default-region interaction restoration after regional unsubscription");
+  auto const secondRegionalInteractions = regional.recorder().interactions();
+  auto const secondMixedInteractions = mixed.recorder().interactions();
+  require(
+      secondRegionalInteractions.size() == 2U &&
+          secondMixedInteractions.size() == 1U,
+      "default-region interaction restoration delivered an unexpected callback count");
+  auto const& secondMixed = secondMixedInteractions.front();
+  require(
+      secondMixed.interaction == mixedHandles.interactionClass &&
+          secondMixed.parameters.size() == 1U &&
+          secondMixed.parameters.count(mixedHandles.parameter) == 1U &&
+          copyBytes(secondMixed.parameters.at(mixedHandles.parameter)) == secondValue &&
+          secondMixed.tag == secondTag &&
+          secondMixed.producer == publisher.federateHandle() &&
+          secondMixed.transportation.isValid(),
+      "default-region interaction restoration changed ordinary delivery metadata");
+
+  mixed.rtiAmbassador().subscribeInteractionClassWithRegions(
+      mixedHandles.interactionClass,
+      mixedRegionSet,
+      true);
+  std::vector<std::uint8_t> thirdValue{0x05U, 0x06U};
+  std::vector<std::uint8_t> thirdTag{0x07U, 0x08U};
+  rti::ParameterHandleValueMap thirdParameters;
+  thirdParameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(thirdValue.data(), thirdValue.size()));
+  rti::VariableLengthData thirdUserTag(thirdTag.data(), thirdTag.size());
+  publisher.rtiAmbassador().sendInteraction(
+      publisherHandles.interactionClass,
+      thirdParameters,
+      thirdUserTag);
+  waitFor(
+      regional,
+      mixed,
+      [&] {
+        return regional.recorder().interactions().size() >= 3U &&
+            mixed.recorder().interactions().size() >= 2U;
+      },
+      options,
+      "default-region interaction ordinary send delivery");
+  auto const thirdRegionalInteractions = regional.recorder().interactions();
+  auto const thirdMixedInteractions = mixed.recorder().interactions();
+  require(
+      thirdRegionalInteractions.size() == 3U && thirdMixedInteractions.size() == 2U,
+      "default-region interaction ordinary send delivered an unexpected callback count");
+  auto const& thirdRegional = thirdRegionalInteractions.back();
+  auto const& thirdMixed = thirdMixedInteractions.back();
+  require(
+      copyBytes(thirdRegional.parameters.at(regionalHandles.parameter)) == thirdValue &&
+          thirdRegional.tag == thirdTag &&
+          copyBytes(thirdMixed.parameters.at(mixedHandles.parameter)) == thirdValue &&
+          thirdMixed.tag == thirdTag,
+      "default-region interaction ordinary send changed payload or tag");
+  require(
+      thirdRegional.regions.has_value() && thirdRegional.regions->empty() &&
+          thirdMixed.regions.has_value() && thirdMixed.regions->empty(),
+      "default-region interaction ordinary send did not convey an empty source region");
+
+  mixed.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      mixedHandles.interactionClass,
+      mixedRegionSet);
+  mixed.rtiAmbassador().unsubscribeInteractionClass(mixedHandles.interactionClass);
+  regional.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      regionalHandles.interactionClass,
+      regionalRegionSet);
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherHandles.interactionClass);
+  publisher.rtiAmbassador().deleteRegion(sourceRegion);
+  regional.rtiAmbassador().deleteRegion(regionalRegion);
+  mixed.rtiAmbassador().deleteRegion(mixedRegion);
+  mixed.resign(rti::NO_ACTION);
+  regional.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  mixed.disconnect();
+  regional.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioDefaultRegionInteractionRoutingContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDefaultRegionInteractionRouting(options, model);
+}
+
 void scenarioRegionalInteractionSourceRegionSnapshot(
     Options const& options,
     rti::CallbackModel model) {
@@ -57251,6 +57474,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-declaration-relevance-advisories-contract",
       "cpp-tck.regional-interaction-routing",
       "cpp-tck.regional-interaction-routing-contract",
+      "cpp-tck.default-region-interaction-routing",
+      "cpp-tck.default-region-interaction-routing-contract",
       "cpp-tck.regional-interaction-source-region-snapshot",
       "cpp-tck.regional-interaction-source-region-snapshot-contract",
       "cpp-tck.regional-interaction-subscription-filtering",
@@ -58552,6 +58777,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.regional-interaction-routing-contract") {
     return scenarioRegionalInteractionRoutingContract;
+  }
+  if (id == "cpp-tck.default-region-interaction-routing") {
+    return scenarioDefaultRegionInteractionRouting;
+  }
+  if (id == "cpp-tck.default-region-interaction-routing-contract") {
+    return scenarioDefaultRegionInteractionRoutingContract;
   }
   if (id == "cpp-tck.regional-interaction-source-region-snapshot") {
     return scenarioRegionalInteractionSourceRegionSnapshot;
