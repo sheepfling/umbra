@@ -12052,6 +12052,42 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-regional-interaction-no-overlap-contract",
+      "category": "timestamped-regional-interaction-no-overlap-contract",
+      "title": "Standard adapter-backed contract for timestamped regional interaction retraction without overlapping subscribers",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions(time)",
+        "RTIambassador.retract",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-retraction"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-interaction-no-overlap-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionNoOverlapContract",
+      "runner_id": "cpp-tck.timestamped-regional-interaction-no-overlap-contract",
+      "parity": "cpp-tck.timestamped-regional-interaction-no-overlap",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-interaction-subscription-replacement",
       "category": "timestamped-regional-interaction-subscription-replacement",
       "title": "Suppress a queued timestamped regional interaction when its subscription is replaced, then deliver the replacement source",

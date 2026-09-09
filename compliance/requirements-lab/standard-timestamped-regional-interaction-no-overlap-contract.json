@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 timestamped regional interaction no-overlap and retraction surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and logical-time implementation. It verifies that a timestamped region-qualified send remains retractable when its source region does not overlap the receiver subscription, that legal pre-delivery retraction terminalizes, that an expired handle rejects retraction after producer progress, and that no filtered interaction callback is delivered without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-regional-interaction-no-overlap",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped regional interaction and retraction with non-overlapping region filtering, time advancement, and FederateAmbassador receive and time-advance-grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped regional interaction and retraction declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionNoOverlapContract"
+      ]
+    }
+  ]
+}

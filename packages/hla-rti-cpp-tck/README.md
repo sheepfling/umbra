@@ -281,6 +281,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-regional-interaction-alternate-advances` | Timestamped regional interaction delivery through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, with source-region metadata, grant/query bounds, callback ordering, and backward-time failures |
 | `cpp-tck.timestamped-regional-interaction-alternate-advances-contract` | Standard adapter-backed timestamped regional interaction alternate-advance contract |
 | `cpp-tck.timestamped-regional-interaction-no-overlap` | Timestamped regional interaction retraction handles remain valid and terminalize correctly when the published source region has no overlapping subscriber |
+| `cpp-tck.timestamped-regional-interaction-no-overlap-contract` | Standard adapter-backed timestamped regional interaction no-overlap and retraction contract |
 | `cpp-tck.timestamped-regional-interaction-subscription-replacement` | Queued timestamped regional interaction is suppressed rather than retargeted when the receiver replaces region A with disjoint region B, then a later source-B interaction is delivered once with replacement region metadata |
 | `cpp-tck.timestamped-regional-interaction-source-resignation` | A queued timestamped regional interaction remains deliverable after its producer resigns, preserving producer, source-region, payload, time, order, and retraction metadata |
 | `cpp-tck.timestamped-regional-interaction-tar-nmr` | Timestamped regional interactions are delivered before the matching ordinary TAR and NMR grants, with source-region metadata and independent recipient query times |
@@ -422,6 +423,13 @@ The promoted `cpp-tck.timestamped-regional-interaction-alternate-advances-contra
 runner exposes that same alternate-advance path as an independently selectable
 pure standard C++ contract. It retains the source-region metadata,
 callback-before-grant, grant/query-bound, backward-time, retraction, and cleanup
+assertions while taking provider, dimensional FOM, endpoint, callback, and
+logical-time configuration from the adapter.
+
+The promoted `cpp-tck.timestamped-regional-interaction-no-overlap-contract`
+runner exposes the non-overlap and retraction boundary as an independently
+selectable pure standard C++ contract. It retains the valid-handle,
+pre-delivery-retraction, terminal-handle, no-callback, and lifecycle-cleanup
 assertions while taking provider, dimensional FOM, endpoint, callback, and
 logical-time configuration from the adapter.
 
