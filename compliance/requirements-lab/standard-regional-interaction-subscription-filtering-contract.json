@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 ordinary regional interaction subscription-filtering surface. The source uses only the standard C++ RTIambassador/FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and any logical-time implementation. It verifies independent ordinary and regional declarations, explicit empty-region no-op behavior, overlap delivery, disjoint suppression, conveyed source-region designators, callback-time re-evaluation after a subscription-region move, ordinary and region-qualified sends, standard region validation failures, and independent region and federation cleanup without provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-interaction-subscription-filtering",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador ordinary and regional interaction publication, subscription, unsubscription, send, region mutation, and cleanup services with FederateAmbassador receiveInteraction delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional interaction subscription filtering declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    }
+  ]
+}

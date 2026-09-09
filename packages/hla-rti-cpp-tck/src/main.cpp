@@ -42939,6 +42939,12 @@ void scenarioRegionalThreeDimensionalOverlap(
   publisher.disconnect();
 }
 
+void scenarioRegionalInteractionSubscriptionFilteringContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalInteractionSubscriptionFiltering(options, model);
+}
+
 void scenarioTimestampedRegionalInteraction(
     Options const& options,
     rti::CallbackModel model) {
@@ -53539,6 +53545,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-interaction-source-region-snapshot",
       "cpp-tck.regional-interaction-source-region-snapshot-contract",
       "cpp-tck.regional-interaction-subscription-filtering",
+      "cpp-tck.regional-interaction-subscription-filtering-contract",
       "cpp-tck.timestamped-regional-interaction",
       "cpp-tck.timestamped-regional-interaction-alternate-advances",
       "cpp-tck.timestamped-regional-interaction-no-overlap",
@@ -54700,6 +54707,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-interaction-subscription-filtering") {
     return scenarioRegionalInteractionSubscriptionFiltering;
   }
+  if (id == "cpp-tck.regional-interaction-subscription-filtering-contract") {
+    return scenarioRegionalInteractionSubscriptionFilteringContract;
+  }
   if (id == "cpp-tck.timestamped-regional-interaction") {
     return scenarioTimestampedRegionalInteraction;
   }
@@ -55229,6 +55239,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-interaction-source-region-snapshot" ||
                  scenario == "cpp-tck.regional-interaction-source-region-snapshot-contract" ||
                  scenario == "cpp-tck.regional-interaction-subscription-filtering" ||
+                 scenario == "cpp-tck.regional-interaction-subscription-filtering-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-no-overlap" ||

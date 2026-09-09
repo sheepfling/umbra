@@ -11724,6 +11724,40 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-interaction-subscription-filtering-contract",
+      "category": "regional-interaction-subscription",
+      "title": "Exercise the standard regional interaction subscription filtering contract",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-ddm-range-validation"
+      ],
+      "contract_refs": [
+        "standard-regional-interaction-subscription-filtering-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalInteractionSubscriptionFilteringContract",
+      "runner_id": "cpp-tck.regional-interaction-subscription-filtering-contract",
+      "parity": "cpp-tck.regional-interaction-subscription-filtering",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-interaction",
       "category": "timestamped-regional-interaction",
       "title": "Queue and deliver timestamped regional interactions, preserve region metadata, and exercise retraction",
