@@ -12130,6 +12130,45 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract",
+      "category": "timestamped-regional-interaction-subscription-replacement-contract",
+      "title": "Standard adapter-backed contract for timestamped regional interaction subscription replacement",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.getConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.getTransportationTypeName",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-interaction-subscription-replacement-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionSubscriptionReplacementContract",
+      "runner_id": "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract",
+      "parity": "cpp-tck.timestamped-regional-interaction-subscription-replacement",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-interaction-source-resignation",
       "category": "timestamped-regional-interaction-source-resignation",
       "title": "Deliver a queued timestamped regional interaction after producer resignation",

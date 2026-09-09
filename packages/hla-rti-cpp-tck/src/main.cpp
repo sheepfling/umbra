@@ -44251,6 +44251,12 @@ void scenarioTimestampedRegionalInteractionSubscriptionReplacement(
   publisher.disconnect();
 }
 
+void scenarioTimestampedRegionalInteractionSubscriptionReplacementContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedRegionalInteractionSubscriptionReplacement(options, model);
+}
+
 void scenarioTimestampedRegionalInteractionSourceResignation(
     Options const& options,
     rti::CallbackModel model) {
@@ -53577,6 +53583,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-regional-interaction-no-overlap",
       "cpp-tck.timestamped-regional-interaction-no-overlap-contract",
       "cpp-tck.timestamped-regional-interaction-subscription-replacement",
+      "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract",
       "cpp-tck.timestamped-regional-interaction-source-resignation",
       "cpp-tck.timestamped-regional-interaction-tar-nmr",
       "cpp-tck.timestamped-regional-interaction-regulation-reenable",
@@ -54759,6 +54766,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-regional-interaction-subscription-replacement") {
     return scenarioTimestampedRegionalInteractionSubscriptionReplacement;
   }
+  if (id == "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract") {
+    return scenarioTimestampedRegionalInteractionSubscriptionReplacementContract;
+  }
   if (id == "cpp-tck.timestamped-regional-interaction-source-resignation") {
     return scenarioTimestampedRegionalInteractionSourceResignation;
   }
@@ -55287,6 +55297,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.timestamped-regional-interaction-no-overlap" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-no-overlap-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement" ||
+                 scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract" ||
                  scenario == "cpp-tck.timestamped-regional-attribute-update" ||
@@ -55311,6 +55322,7 @@ int run(Options const& options) {
                     scenario == "cpp-tck.timestamped-regional-interaction-no-overlap" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-no-overlap-contract" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement" ||
+                    scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract" ||
                     scenario == "cpp-tck.timestamped-regional-attribute-update" ||
