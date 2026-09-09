@@ -11966,6 +11966,49 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-regional-interaction-alternate-advances-contract",
+      "category": "timestamped-regional-interaction-alternate-advances-contract",
+      "title": "Standard adapter-backed contract for timestamped regional interactions across alternate advance services",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions(time)",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-time-advance-request-available",
+        "cpp-1516.1-next-message-request-available",
+        "cpp-1516.1-logical-time-query-boundaries"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-interaction-alternate-advances-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionAlternateAdvancesContract",
+      "runner_id": "cpp-tck.timestamped-regional-interaction-alternate-advances-contract",
+      "parity": "cpp-tck.timestamped-regional-interaction-alternate-advances",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-interaction-no-overlap",
       "category": "timestamped-regional-interaction-no-overlap",
       "title": "Return and terminalize timestamped regional interaction retraction handles without overlapping subscribers",

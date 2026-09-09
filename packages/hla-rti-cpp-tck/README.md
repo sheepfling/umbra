@@ -279,6 +279,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-regional-interaction-regulation-reenable` | Queued timestamped regional interaction survives Time Regulation disable/re-enable with changed lookahead, preserving the source-region snapshot, Query Lookahead, grant ordering, metadata, and terminal retraction |
 | `cpp-tck.timestamped-regional-interaction-regulation-reenable-contract` | Standard adapter-backed timestamped regional interaction Time Regulation re-enable contract with changed lookahead |
 | `cpp-tck.timestamped-regional-interaction-alternate-advances` | Timestamped regional interaction delivery through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, with source-region metadata, grant/query bounds, callback ordering, and backward-time failures |
+| `cpp-tck.timestamped-regional-interaction-alternate-advances-contract` | Standard adapter-backed timestamped regional interaction alternate-advance contract |
 | `cpp-tck.timestamped-regional-interaction-no-overlap` | Timestamped regional interaction retraction handles remain valid and terminalize correctly when the published source region has no overlapping subscriber |
 | `cpp-tck.timestamped-regional-interaction-subscription-replacement` | Queued timestamped regional interaction is suppressed rather than retargeted when the receiver replaces region A with disjoint region B, then a later source-B interaction is delivered once with replacement region metadata |
 | `cpp-tck.timestamped-regional-interaction-source-resignation` | A queued timestamped regional interaction remains deliverable after its producer resigns, preserving producer, source-region, payload, time, order, and retraction metadata |
@@ -416,6 +417,13 @@ explicit-source DDM update through Flush Queue Request, Time Advance Request
 Available, and Next Message Request Available. It checks reflection-before-grant
 ordering, grant and logical-time query consistency, backward-time failures, and
 the delivered message-retraction boundary under both callback models.
+
+The promoted `cpp-tck.timestamped-regional-interaction-alternate-advances-contract`
+runner exposes that same alternate-advance path as an independently selectable
+pure standard C++ contract. It retains the source-region metadata,
+callback-before-grant, grant/query-bound, backward-time, retraction, and cleanup
+assertions while taking provider, dimensional FOM, endpoint, callback, and
+logical-time configuration from the adapter.
 
 The promoted source-association replacement case keeps a queued timestamped
 update from being retargeted when its source region is unassociated and a

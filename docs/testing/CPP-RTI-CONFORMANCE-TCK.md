@@ -279,7 +279,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 351 promoted scenarios (702 callback-model
+The verified lane currently runs 352 promoted scenarios (704 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -792,7 +792,7 @@ The promoted `cpp-tck.timestamped-regional-interaction-regulation-reenable-contr
 runner exposes the standard timestamped regional interaction Time Regulation
 re-enable surface as an independently selectable pure C++ contract. Its
 focused base-and-contract lane passed 4/4 callback-model cases; the
-catalog-wide promoted gate passed 700/700 CTest cases with 700 direct passes
+catalog-wide promoted gate passed 702/702 CTest cases with 702 direct passes
 and only the two expected adapter-managed connection-loss skips in
 `.build\cpp-tck-all\verified-evidence-timestamped-regional-interaction-regulation-reenable-contract.json`.
 The source uses only official IEEE C++ headers and the standard library; the
@@ -1580,6 +1580,17 @@ verifies source-region designator metadata, interaction-before-grant ordering,
 grant/query bounds, backward-time failures, and the terminal retraction
 boundary through the official DDM, interaction, and time-management API.
 
+The promoted `cpp-tck.timestamped-regional-interaction-alternate-advances-contract`
+runner exposes that same alternate-advance surface as an independently
+selectable pure C++ contract. Its focused base-and-contract lane passed 4/4
+callback-model cases; the promoted aggregate passed 702/702 CTest cases with
+702 direct passes and only the two expected adapter-managed connection-loss
+skips in
+`.build\cpp-tck-all\verified-evidence-timestamped-regional-interaction-alternate-advances-contract.json`.
+The source uses only official IEEE C++ headers and the standard library; the
+dimensional FOM, provider, endpoint, callback, and logical-time configuration
+remain adapter-owned.
+
 The promoted `cpp-tck.timestamped-regional-interaction-no-overlap` scenario
 covers the complementary negative-routing boundary. It sends through an
 explicit source region that has no overlapping subscription, proves that the
@@ -2003,11 +2014,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 351 catalog
-entries with `promotion=promoted`, which produces 702 cases with
+configuration. The default `--scenario-set verified` selects the 352 catalog
+entries with `promotion=promoted`, which produces 704 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 361 IDs and 722 cases,
+adapter-required entries; the current catalog contains 362 IDs and 724 cases,
 including ten candidates. The candidate-inclusive evidence figures below were
 recorded before the two ownership contract twins were promoted and therefore
 cover the prior 344-ID, 688-case catalog. The no-fixture candidate-inclusive
