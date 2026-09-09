@@ -11594,6 +11594,32 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-interaction-routing-contract",
+      "category": "regional-interaction-management",
+      "title": "Exercise the standard regional interaction routing contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "standard-regional-interaction-routing-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalInteractionRoutingContract",
+      "runner_id": "cpp-tck.regional-interaction-routing-contract",
+      "parity": "cpp-tck.regional-interaction-routing",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-source-region-snapshot",
       "category": "regional-interaction-management",
       "title": "Preserve the send-time source region for queued ordinary regional interactions",

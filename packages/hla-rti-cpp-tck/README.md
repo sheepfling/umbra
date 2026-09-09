@@ -269,6 +269,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-declaration-relevance-advisories` | Active and passive regional object and interaction subscriptions, with standard start/stop-registration and turn-interactions-on/off advisories |
 | `cpp-tck.regional-declaration-relevance-advisories-contract` | Standard adapter-backed regional declaration-relevance advisory contract |
 | `cpp-tck.regional-interaction-routing` | Region-qualified ordinary interaction publication/subscription, overlap routing, disjoint suppression, conveyed region designators, and declaration changes |
+| `cpp-tck.regional-interaction-routing-contract` | Standard adapter-backed regional interaction routing contract |
 | `cpp-tck.regional-interaction-source-region-snapshot` | Send-time source-region capture for queued ordinary regional interactions, disjoint suppression after source mutation, restored-overlap routing, and conveyed source-region metadata |
 | `cpp-tck.regional-interaction-subscription-filtering` | Ordinary receive-order regional interaction filtering, explicit empty-region no-op behavior, overlap and disjoint delivery, callback-time subscription movement, conveyed source-region metadata, and standard region failures |
 | `cpp-tck.timestamped-regional-interaction` | Timestamped region-qualified interaction delivery, constrained grants, retraction, timestamp/order metadata, and conveyed region designators |
