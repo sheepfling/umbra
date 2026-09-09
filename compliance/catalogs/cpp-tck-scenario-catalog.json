@@ -4163,6 +4163,90 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.named-registration-multi-recipient",
+      "category": "object-instance-named-registration-multi-recipient",
+      "title": "Deliver two named ordinary objects to two active subscribers and preserve identity",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(active)",
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.registerObjectInstance(named)",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution(DELETE_OBJECTS)",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-named-object-registration",
+        "cpp-1516.1-object-instance-name-lifecycle"
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-instance-name-reservation-api-contract.json",
+        "object-instance-name-reservation-requirements-contract.json",
+        "object-instance-named-registration-api-contract.json",
+        "object-instance-named-registration-requirements-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-named-registration-multi-recipient-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioNamedRegistrationMultiRecipient",
+      "runner_id": "cpp-tck.named-registration-multi-recipient",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.named-registration-multi-recipient-contract",
+      "category": "object-instance-named-registration-multi-recipient",
+      "title": "Portable standard adapter-backed named object-registration fan-out contract",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(active)",
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.registerObjectInstance(named)",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution(DELETE_OBJECTS)",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-named-object-registration",
+        "cpp-1516.1-object-instance-name-lifecycle"
+      ],
+      "contract_refs": [
+        "standard-named-registration-multi-recipient-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioNamedRegistrationMultiRecipientContract",
+      "runner_id": "cpp-tck.named-registration-multi-recipient-contract",
+      "parity": "cpp-tck.named-registration-multi-recipient",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.object-attribute-subscription-lifecycle",
       "category": "object-attribute-subscription-lifecycle",
       "title": "Exercise passive, active, downgraded, and withdrawn ordinary object-attribute subscriptions",

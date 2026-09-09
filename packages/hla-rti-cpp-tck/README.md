@@ -129,6 +129,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.object-registration-discovery-multi-recipient-contract` | Standard adapter-backed ordinary object registration/discovery fan-out contract across two active subscribers with owner loopback suppression |
 | `cpp-tck.named-registration` | Standard object-name reservation/release, multiple-name reservation, named registration, discovery and identity lookup, reservation contention, failed-registration reuse, and callback-model parity |
 | `cpp-tck.named-registration-contract` | Standard adapter-backed named object-registration contract for reservation/release and reuse, multiple-name lifecycle, discovery and identity lookup, contention, and invalid-name boundaries |
+| `cpp-tck.named-registration-multi-recipient` | Two active subscribers discover two explicitly reserved/named objects, preserve object name/handle/class identity, and exclude the registering owner from discovery callbacks |
+| `cpp-tck.named-registration-multi-recipient-contract` | Standard adapter-backed named object-registration fan-out contract across two active subscribers with owner loopback suppression |
 | `cpp-tck.object-attribute-subscription-lifecycle-contract` | Standard adapter-backed ordinary object-attribute subscription lifecycle for passive/active discovery, reflection, downgrade/reactivation, unsubscription, and stable identity lookups |
 | `cpp-tck.local-delete-object-instance` | Standard local object deletion boundaries, ownership protection, pending-acquisition protection, fresh-session deletion, rediscovery, and continued ordinary attribute reflection |
 | `cpp-tck.local-delete-object-instance-contract` | Standard adapter-backed local object deletion contract for service boundaries, ownership protection, fresh-session deletion, rediscovery, stable identity, and continued ordinary reflection |
@@ -608,6 +610,14 @@ contract. It retains reservation/release and reuse, multiple-name lifecycle,
 named registration and discovery identity, contention, and invalid-name
 assertions while taking the provider package, FOM, endpoint, and callback
 configuration from the adapter.
+
+The promoted `cpp-tck.named-registration-multi-recipient` scenario reserves two
+explicit object names, registers both named objects, and verifies that two active
+subscribers each discover both objects with stable name, instance, and class
+identity; the owner receives no discovery loopback. The corresponding
+`cpp-tck.named-registration-multi-recipient-contract` runner exposes the same
+fan-out behavior as an independently selectable pure standard C++ contract
+using only adapter-supplied provider, FOM, endpoint, and callback configuration.
 
 The promoted `cpp-tck.object-registration-discovery-multi-recipient` scenario
 registers two ordinary objects and verifies that two active subscribers each

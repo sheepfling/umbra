@@ -37960,6 +37960,136 @@ void scenarioObjectRegistrationDiscoveryMultiRecipient(
   publisher.disconnect();
 }
 
+void scenarioNamedRegistrationMultiRecipient(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "named-registration-fanout-publisher");
+  Session first(options, model, "named-registration-fanout-first");
+  Session second(options, model, "named-registration-fanout-second");
+  auto const federation = federationName(options, "named-registration-multi-recipient");
+  connectAndJoin(publisher, first, options, federation, options.fom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-second",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const firstClass = first.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondClass = second.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const firstAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.attributeName);
+  auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+          publisherAttribute.isValid() && firstAttribute.isValid() &&
+          secondAttribute.isValid(),
+      "multi-recipient named registration lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const firstAttributes{firstAttribute};
+  rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.rtiAmbassador().subscribeObjectClassAttributes(
+      firstClass,
+      firstAttributes,
+      true,
+      L"");
+  second.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass,
+      secondAttributes,
+      true,
+      L"");
+
+  auto const firstName = federation + L"-named-first";
+  auto const secondName = federation + L"-named-second";
+  publisher.recorder().clearReservations();
+  publisher.rtiAmbassador().reserveObjectInstanceName(firstName);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().reservationSucceeded(firstName); },
+      options,
+      "first named-registration fan-out reservation");
+  publisher.recorder().clearReservations();
+  publisher.rtiAmbassador().reserveObjectInstanceName(secondName);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().reservationSucceeded(secondName); },
+      options,
+      "second named-registration fan-out reservation");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass,
+      firstName);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass,
+      secondName);
+  require(
+      firstObject.isValid() && secondObject.isValid() && firstObject != secondObject,
+      "multi-recipient named registration returned invalid or duplicate object handles");
+  require(
+      publisher.rtiAmbassador().getObjectInstanceHandle(firstName) == firstObject &&
+          publisher.rtiAmbassador().getObjectInstanceHandle(secondName) == secondObject &&
+          publisher.rtiAmbassador().getObjectInstanceName(firstObject) == firstName &&
+          publisher.rtiAmbassador().getObjectInstanceName(secondObject) == secondName,
+      "publisher named-registration identity lookup did not round-trip");
+
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.recorder().hasDiscovery(firstObject) &&
+            first.recorder().hasDiscovery(secondObject) &&
+            second.recorder().hasDiscovery(firstObject) &&
+            second.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "multi-recipient named registration discovery");
+  require(
+      publisher.recorder().discoveryCount() == 0U &&
+          first.recorder().discoveryCount() == 2U &&
+          second.recorder().discoveryCount() == 2U,
+      "multi-recipient named registration delivered the wrong discovery callback counts");
+
+  auto assertIdentity = [&](Session& receiver,
+                            rti::ObjectClassHandle const& receiverClass,
+                            std::string const& description) {
+    require(
+        receiver.rtiAmbassador().getObjectInstanceHandle(firstName) == firstObject &&
+            receiver.rtiAmbassador().getObjectInstanceHandle(secondName) == secondObject &&
+            receiver.rtiAmbassador().getObjectInstanceName(firstObject) == firstName &&
+            receiver.rtiAmbassador().getObjectInstanceName(secondObject) == secondName &&
+            receiver.rtiAmbassador().getKnownObjectClassHandle(firstObject) == receiverClass &&
+            receiver.rtiAmbassador().getKnownObjectClassHandle(secondObject) == receiverClass,
+        description + " did not preserve both named object identities");
+  };
+  assertIdentity(first, firstClass, "first named-registration recipient");
+  assertIdentity(second, secondClass, "second named-registration recipient");
+
+  first.rtiAmbassador().unsubscribeObjectClassAttributes(firstClass, firstAttributes);
+  second.rtiAmbassador().unsubscribeObjectClassAttributes(secondClass, secondAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  first.resign(rti::NO_ACTION);
+  second.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  second.disconnect();
+  first.disconnect();
+  publisher.disconnect();
+}
+
 void scenarioObjectManagement(Options const& options, rti::CallbackModel model) {
   scenarioObjectRegistration(options, model);
   scenarioNamedRegistration(options, model);
@@ -38006,6 +38136,12 @@ void scenarioObjectRegistrationDiscoveryMultiRecipientContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioObjectRegistrationDiscoveryMultiRecipient(options, model);
+}
+
+void scenarioNamedRegistrationMultiRecipientContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNamedRegistrationMultiRecipient(options, model);
 }
 
 void scenarioLocalDeleteObjectInstanceContract(
@@ -54599,6 +54735,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.object-registration-discovery-multi-recipient-contract",
       "cpp-tck.named-registration",
       "cpp-tck.named-registration-contract",
+      "cpp-tck.named-registration-multi-recipient",
+      "cpp-tck.named-registration-multi-recipient-contract",
       "cpp-tck.local-delete-object-instance",
       "cpp-tck.local-delete-object-instance-contract",
       "cpp-tck.object-attribute-subscription-lifecycle",
@@ -55520,6 +55658,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.named-registration-contract") {
     return scenarioNamedRegistrationContract;
+  }
+  if (id == "cpp-tck.named-registration-multi-recipient") {
+    return scenarioNamedRegistrationMultiRecipient;
+  }
+  if (id == "cpp-tck.named-registration-multi-recipient-contract") {
+    return scenarioNamedRegistrationMultiRecipientContract;
   }
   if (id == "cpp-tck.local-delete-object-instance") {
     return scenarioLocalDeleteObjectInstance;
