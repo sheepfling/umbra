@@ -7084,6 +7084,46 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-regional-attribute-update-contract",
+      "category": "timestamped-regional-attribute-update-contract",
+      "title": "Standard adapter-backed contract for timestamped regional attribute update and retraction",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.retract",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.requestRetraction",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-attribute-update-retraction",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-timestamped-attribute-update",
+        "cpp-1516.1-ddm-timestamped-attribute-region-metadata"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-attribute-update-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalAttributeUpdateContract",
+      "runner_id": "cpp-tck.timestamped-regional-attribute-update-contract",
+      "parity": "cpp-tck.timestamped-regional-attribute-update",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-attribute-alternate-advances",
       "category": "timestamped-regional-attribute-alternate-advances",
       "title": "Deliver timestamped regional attribute updates through alternate time advances with bounded grant and query behavior",
@@ -7135,6 +7175,49 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedRegionalAttributeAlternateAdvances",
       "runner_id": "cpp-tck.timestamped-regional-attribute-alternate-advances",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-regional-attribute-alternate-advances-contract",
+      "category": "timestamped-regional-attribute-alternate-advances-contract",
+      "title": "Standard adapter-backed contract for timestamped regional attribute alternate advances",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.retract",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-timestamped-attribute-update",
+        "cpp-1516.1-ddm-timestamped-attribute-region-metadata",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-attribute-update-retraction",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-time-advance-request-available",
+        "cpp-1516.1-next-message-request-available",
+        "cpp-1516.1-logical-time-query-boundaries"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-attribute-alternate-advances-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalAttributeAlternateAdvancesContract",
+      "runner_id": "cpp-tck.timestamped-regional-attribute-alternate-advances-contract",
+      "parity": "cpp-tck.timestamped-regional-attribute-alternate-advances",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

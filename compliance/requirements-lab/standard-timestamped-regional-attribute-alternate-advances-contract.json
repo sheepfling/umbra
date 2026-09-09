@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 timestamped regional attribute alternate-advance surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and logical-time implementation. It verifies one regional attribute passel through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, preserves source-region and retraction metadata, checks reflection-before-grant and logical-time bounds, and rejects invalid backward requests without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-regional-attribute-alternate-advances",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped regional attribute delivery through Flush Queue Request, Time Advance Request Available, and Next Message Request Available with FederateAmbassador reflection and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped regional attribute alternate-advance declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalAttributeAlternateAdvancesContract"
+      ]
+    }
+  ]
+}
