@@ -4660,6 +4660,76 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.interaction-multi-recipient-fifo",
+      "category": "ordinary-interaction-multi-recipient-fifo",
+      "title": "Deliver ordinary receive-order interactions to two active subscribers in producer order",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-interaction-parameter-delivery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json",
+        "publish-interaction-class-api-contract.json",
+        "publish-interaction-class-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "subscribe-interaction-class-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-interaction-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioInteractionMultiRecipientFifo",
+      "runner_id": "cpp-tck.interaction-multi-recipient-fifo",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-multi-recipient-fifo-contract",
+      "category": "ordinary-interaction-multi-recipient-fifo",
+      "title": "Portable standard adapter-backed ordinary interaction multi-recipient FIFO contract",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-interaction-parameter-delivery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-interaction-multi-recipient-fifo-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioInteractionMultiRecipientFifoContract",
+      "runner_id": "cpp-tck.interaction-multi-recipient-fifo-contract",
+      "parity": "cpp-tck.interaction-multi-recipient-fifo",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-interactions",
       "category": "timestamped-interaction",
       "title": "Queue timestamped interactions, enforce class and retraction-handle boundaries, and exercise retraction",

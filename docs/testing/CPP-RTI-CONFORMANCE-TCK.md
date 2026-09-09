@@ -279,10 +279,15 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 381 promoted scenarios (762 callback-model
+The verified lane currently runs 383 promoted scenarios (766 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
+The newly promoted ordinary interaction fan-out slice adds
+`cpp-tck.interaction-multi-recipient-fifo` and its pure contract twin. The
+focused lane passed 4/4 callback-model cases, and the full direct aggregate
+passed 764 cases with only the two expected adapter-managed connection-loss
+skips.
 The promoted `cpp-tck.federation-teardown-isolation` scenario creates two
 similarly named executions, establishes independent active named update-rate
 histories, destroys only the first execution, and confirms that the surviving
@@ -1358,6 +1363,15 @@ exposes that publication boundary as an independently selectable pure standard
 C++ contract. It uses only official IEEE C++ headers and the standard library;
 provider, FOM, endpoint, and callback configuration remain adapter-owned.
 
+The promoted `cpp-tck.interaction-multi-recipient-fifo` scenario verifies that
+two active subscribers each receive two ordinary interactions in producer
+send order, while the sender receives no loopback callback. It also preserves
+the interaction class, parameter value, tag, producer identity, and
+transportation metadata at both recipients. The promoted
+`cpp-tck.interaction-multi-recipient-fifo-contract` runner exposes that
+two-recipient receive-order fan-out boundary as an independently selectable
+pure standard C++ contract.
+
 The promoted `cpp-tck.directed-interaction-publication-send-fence` scenario
 verifies the corresponding directed boundary. Whole-class directed
 unpublication makes `sendDirectedInteraction` fail with
@@ -2114,11 +2128,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 375 catalog
-entries with `promotion=promoted`, which produces 750 cases with
+configuration. The default `--scenario-set verified` selects the 383 catalog
+entries with `promotion=promoted`, which produces 766 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 381 IDs and 762 cases,
+adapter-required entries; the current catalog contains 383 IDs and 766 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive
@@ -2496,6 +2510,11 @@ ordinary interaction-publication send-fence lane passed 2/2 in
 `.build\cpp-tck-all\interaction-publication-send-fence-focused.json`; the focused
 ordinary interaction-publication send-fence contract lane passed 2/2 in
 `.build\cpp-tck-all\focused-publication-contract.json`; the focused
+ordinary interaction multi-recipient FIFO lane passed 4/4 in
+`.build\cpp-tck-next-ordinary-interaction-fanout\focused-results.json`; the
+full direct aggregate passed 764 cases with two expected connection-loss
+skips in
+`.build\cpp-tck-next-ordinary-interaction-fanout\aggregate-results.json`;
 directed interaction-publication send-fence lane passed 2/2 in
 `.build\cpp-tck-all\directed-interaction-publication-send-fence-focused.json`; the focused
 directed interaction-publication send-fence contract lane passed 2/2 in

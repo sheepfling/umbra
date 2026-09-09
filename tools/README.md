@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 381 promoted scenario IDs (762 callback-model cases).
-`--scenario-set all` configures all 381 available IDs (762 cases), including
+The verified lane is 383 promoted scenario IDs (766 callback-model cases).
+`--scenario-set all` configures all 383 available IDs (766 cases), including
 no candidates. The candidate-inclusive evidence figures below are historical
 artifacts from an earlier 344-ID, 688-case catalog and are not the promoted
 gate. With `--connection-loss-fixture <path>`, the Python adapter
@@ -597,6 +597,13 @@ delivery and standard producer/tag/transport metadata. It uses only
 adapter-supplied FOM values and official C++ API callbacks. The
 promoted `cpp-tck.interaction-publication-send-fence-contract` runner exposes
 the same publication boundary as an independently selectable pure standard C++
+contract, with provider, FOM, endpoint, and callback configuration supplied by
+the adapter. The promoted `cpp-tck.interaction-multi-recipient-fifo` case
+then verifies ordinary receive-order fan-out to two active subscribers,
+sender exclusion, and preservation of parameter, tag, producer, and
+transportation metadata. Its
+`cpp-tck.interaction-multi-recipient-fifo-contract` twin exposes the same
+two-recipient FIFO boundary as an independently selectable pure standard C++
 contract, with provider, FOM, endpoint, and callback configuration supplied by
 the adapter. The
 promoted `cpp-tck.service-report-interaction` scenario additionally exercises

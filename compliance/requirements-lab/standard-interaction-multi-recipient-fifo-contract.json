@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for ordinary receive-order interaction fan-out. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies that two active subscribers each receive two ordinary interactions in the producer's send order, that the sender is excluded, and that interaction class, parameter value, user tag, producing federate, and transportation metadata are preserved. Timestamped delivery, directed interaction, regions/DDM, custom transportation, MOM, save/restore, and provider-private behavior remain outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ordinary-interaction-multi-recipient-fifo",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador interaction lookup, publication, active subscription, ordinary Send Interaction, unsubscription, unpublication, resignation, and disconnect services with FederateAmbassador Receive Interaction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ordinary interaction fan-out declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioInteractionMultiRecipientFifoContract"
+      ]
+    }
+  ]
+}
