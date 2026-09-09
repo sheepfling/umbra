@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 361 promoted scenario IDs (722 callback-model cases).
-`--scenario-set all` configures all 371 available IDs (742 cases), including
+The verified lane is 365 promoted scenario IDs (730 callback-model cases).
+`--scenario-set all` configures all 375 available IDs (750 cases), including
 ten candidates. The candidate-inclusive evidence figures below were recorded
 before the two ownership contract twins were promoted and cover the prior
 344-ID, 688-case catalog. With `--connection-loss-fixture <path>`, the Python adapter
@@ -351,6 +351,18 @@ expected adapter-managed connection-loss skips in
 The source uses only official IEEE C++ headers and the standard library;
 dimensional FOM, provider, endpoint, callback, and logical-time configuration
 remain adapter-owned.
+The promoted `cpp-tck.timestamped-default-region-attribute-alternate-advances-contract`,
+`cpp-tck.timestamped-default-region-attribute-reenable-contract`,
+`cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract`, and
+`cpp-tck.timestamped-default-region-attribute-mixed-fanout-contract` runners add
+independently selectable standard contracts for alternate advances, Time
+Constrained and Time Regulation re-enable, and mixed fanout. Their focused
+base-and-contract lane passed 16/16 callback-model cases; the promoted aggregate
+passed 728/728 CTest cases with 728 direct passes and only the two expected
+adapter-managed connection-loss skips in
+`.build\\cpp-tck-all\\verified-evidence-timestamped-default-region-attribute-contracts.json`.
+The source uses only official IEEE C++ headers and the standard library; FOM,
+provider, endpoint, callback, and logical-time configuration remain adapter-owned.
 The two ownership candidate contract twins recorded 4 passes and 4 explicit
 immediate-model skips in their focused eight-case lane; they remain candidates
 until an all-model verification fixture is available.

@@ -7027,6 +7027,12 @@ void scenarioTimestampedDefaultRegionAttributeAlternateAdvances(
   publisher.disconnect();
 }
 
+void scenarioTimestampedDefaultRegionAttributeAlternateAdvancesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionAttributeAlternateAdvances(options, model);
+}
+
 void scenarioTimestampedDefaultRegionAttributeReenable(
     Options const& options,
     rti::CallbackModel model) {
@@ -7220,6 +7226,12 @@ void scenarioTimestampedDefaultRegionAttributeReenable(
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   receiver.disconnect();
   publisher.disconnect();
+}
+
+void scenarioTimestampedDefaultRegionAttributeReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionAttributeReenable(options, model);
 }
 
 void scenarioTimestampedDefaultRegionAttributeRegulationReenable(
@@ -7432,6 +7444,12 @@ void scenarioTimestampedDefaultRegionAttributeRegulationReenable(
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   receiver.disconnect();
   publisher.disconnect();
+}
+
+void scenarioTimestampedDefaultRegionAttributeRegulationReenableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionAttributeRegulationReenable(options, model);
 }
 
 void scenarioTimestampedDefaultRegionAttributeMixedFanout(
@@ -7705,6 +7723,12 @@ void scenarioTimestampedDefaultRegionAttributeMixedFanout(
   immediate.disconnect();
   constrained.disconnect();
   publisher.disconnect();
+}
+
+void scenarioTimestampedDefaultRegionAttributeMixedFanoutContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDefaultRegionAttributeMixedFanout(options, model);
 }
 
 void scenarioTimestampedDefaultRegionInteraction(
@@ -53559,11 +53583,15 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-regional-attribute-source-resignation",
       "cpp-tck.timestamped-regional-attribute-source-resignation-contract",
       "cpp-tck.timestamped-default-region-attribute-alternate-advances",
+      "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract",
       "cpp-tck.timestamped-default-region-attribute-reenable",
+      "cpp-tck.timestamped-default-region-attribute-reenable-contract",
       "cpp-tck.timestamped-default-region-attribute-regulation-reenable",
+      "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract",
       "cpp-tck.timestamped-default-region-interaction",
       "cpp-tck.timestamped-default-region-interaction-alternate-advances",
       "cpp-tck.timestamped-default-region-attribute-mixed-fanout",
+      "cpp-tck.timestamped-default-region-attribute-mixed-fanout-contract",
       "cpp-tck.timestamped-default-region-interaction-mixed-fanout",
       "cpp-tck.timestamped-default-region-interaction-source-resignation",
       "cpp-tck.timestamped-default-region-interaction-reenable",
@@ -54626,14 +54654,26 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-default-region-attribute-alternate-advances") {
     return scenarioTimestampedDefaultRegionAttributeAlternateAdvances;
   }
+  if (id == "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract") {
+    return scenarioTimestampedDefaultRegionAttributeAlternateAdvancesContract;
+  }
   if (id == "cpp-tck.timestamped-default-region-attribute-reenable") {
     return scenarioTimestampedDefaultRegionAttributeReenable;
+  }
+  if (id == "cpp-tck.timestamped-default-region-attribute-reenable-contract") {
+    return scenarioTimestampedDefaultRegionAttributeReenableContract;
   }
   if (id == "cpp-tck.timestamped-default-region-attribute-regulation-reenable") {
     return scenarioTimestampedDefaultRegionAttributeRegulationReenable;
   }
+  if (id == "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract") {
+    return scenarioTimestampedDefaultRegionAttributeRegulationReenableContract;
+  }
   if (id == "cpp-tck.timestamped-default-region-attribute-mixed-fanout") {
     return scenarioTimestampedDefaultRegionAttributeMixedFanout;
+  }
+  if (id == "cpp-tck.timestamped-default-region-attribute-mixed-fanout-contract") {
+    return scenarioTimestampedDefaultRegionAttributeMixedFanoutContract;
   }
   if (id == "cpp-tck.timestamped-default-region-interaction") {
     return scenarioTimestampedDefaultRegionInteraction;
@@ -55383,8 +55423,11 @@ int run(Options const& options) {
                  scenario == "cpp-tck.timestamped-regional-attribute-regulation-reenable" ||
                  scenario == "cpp-tck.timestamped-regional-attribute-regulation-reenable-contract" ||
                  scenario == "cpp-tck.timestamped-default-region-attribute-alternate-advances" ||
+                 scenario == "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract" ||
                  scenario == "cpp-tck.timestamped-default-region-attribute-reenable" ||
+                 scenario == "cpp-tck.timestamped-default-region-attribute-reenable-contract" ||
                  scenario == "cpp-tck.timestamped-default-region-attribute-regulation-reenable" ||
+                 scenario == "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract" ||
                  scenario == "cpp-tck.regional-boundaries") {
         if (options.ddmFom.empty()) {
           result.status = "skipped";
@@ -55416,8 +55459,11 @@ int run(Options const& options) {
                     scenario == "cpp-tck.timestamped-regional-attribute-regulation-reenable" ||
                     scenario == "cpp-tck.timestamped-regional-attribute-regulation-reenable-contract" ||
                     scenario == "cpp-tck.timestamped-default-region-attribute-alternate-advances" ||
+                    scenario == "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract" ||
                     scenario == "cpp-tck.timestamped-default-region-attribute-reenable" ||
-                    scenario == "cpp-tck.timestamped-default-region-attribute-regulation-reenable") &&
+                    scenario == "cpp-tck.timestamped-default-region-attribute-reenable-contract" ||
+                    scenario == "cpp-tck.timestamped-default-region-attribute-regulation-reenable" ||
+                    scenario == "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract") &&
                    options.logicalTimeImplementationName.empty()) {
           result.status = "skipped";
           result.message = "requires an adapter-supplied logical-time implementation";
@@ -55491,8 +55537,11 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-regional-attribute-regulation-reenable" ||
                   scenario == "cpp-tck.timestamped-regional-attribute-regulation-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-default-region-attribute-alternate-advances" ||
+                  scenario == "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract" ||
                   scenario == "cpp-tck.timestamped-default-region-attribute-reenable" ||
+                  scenario == "cpp-tck.timestamped-default-region-attribute-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-default-region-attribute-regulation-reenable" ||
+                  scenario == "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract" ||
                    scenario == "cpp-tck.timestamped-object-deletion" ||
                    scenario == "cpp-tck.timestamped-local-delete-object" ||
                    scenario == "cpp-tck.timestamped-local-delete-attribute" ||

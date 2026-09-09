@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 timestamped default-region attribute Time Regulation re-enable surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies queued timestamped Update/Reflect delivery across Time Regulation disable/re-enable with changed lookahead, Query Lookahead, supplied-empty source-region metadata, grant ordering, Request Retraction, and cleanup without asserting provider-specific behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-default-region-attribute-regulation-reenable",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Time Regulation and timestamped default-region attribute services with FederateAmbassador regulation, reflection, and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped default-region attribute Time Regulation declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedDefaultRegionAttributeRegulationReenableContract"
+      ]
+    }
+  ]
+}

@@ -7562,6 +7562,52 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract",
+      "category": "timestamped-default-region-attribute-alternate-advances-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region attribute alternate advances",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.retract",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-ddm-default-region-attribute-update",
+        "cpp-1516.1-ddm-default-region-attribute-region-metadata",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-time-advance-request-available",
+        "cpp-1516.1-next-message-request-available",
+        "cpp-1516.1-logical-time-query-boundaries"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-attribute-alternate-advances-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionAttributeAlternateAdvancesContract",
+      "runner_id": "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract",
+      "parity": "cpp-tck.timestamped-default-region-attribute-alternate-advances",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-default-region-attribute-reenable",
       "category": "timestamped-default-region-attribute-reenable",
       "title": "Preserve a queued timestamped default-region attribute update across Time Constrained re-enable",
@@ -7609,6 +7655,49 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionAttributeReenable",
       "runner_id": "cpp-tck.timestamped-default-region-attribute-reenable",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-default-region-attribute-reenable-contract",
+      "category": "timestamped-default-region-attribute-reenable-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region attribute Time Constrained re-enable",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.retract",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-ddm-default-region-attribute-update",
+        "cpp-1516.1-ddm-default-region-attribute-region-metadata",
+        "cpp-1516.1-timestamped-attribute-reenable",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-attribute-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionAttributeReenableContract",
+      "runner_id": "cpp-tck.timestamped-default-region-attribute-reenable-contract",
+      "parity": "cpp-tck.timestamped-default-region-attribute-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -7668,6 +7757,51 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract",
+      "category": "timestamped-default-region-attribute-regulation-reenable-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region attribute Time Regulation re-enable with changed lookahead",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.retract",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-ddm-default-region-attribute-update",
+        "cpp-1516.1-ddm-default-region-attribute-region-metadata",
+        "cpp-1516.1-time-regulation-reenable-changed-lookahead",
+        "cpp-1516.1-query-lookahead",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-attribute-regulation-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionAttributeRegulationReenableContract",
+      "runner_id": "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract",
+      "parity": "cpp-tck.timestamped-default-region-attribute-regulation-reenable",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-default-region-attribute-mixed-fanout",
       "category": "timestamped-default-region-attribute-mixed-fanout",
       "title": "Split timestamped default-region attribute delivery between immediate and constrained recipients",
@@ -7716,6 +7850,50 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionAttributeMixedFanout",
       "runner_id": "cpp-tck.timestamped-default-region-attribute-mixed-fanout",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-default-region-attribute-mixed-fanout-contract",
+      "category": "timestamped-default-region-attribute-mixed-fanout-contract",
+      "title": "Standard adapter-backed contract for timestamped default-region attribute mixed fanout",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-ddm-default-region-attribute-update",
+        "cpp-1516.1-ddm-default-region-attribute-region-metadata",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-default-region-attribute-mixed-fanout-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedDefaultRegionAttributeMixedFanoutContract",
+      "runner_id": "cpp-tck.timestamped-default-region-attribute-mixed-fanout-contract",
+      "parity": "cpp-tck.timestamped-default-region-attribute-mixed-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
