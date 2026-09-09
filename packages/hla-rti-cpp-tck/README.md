@@ -56,6 +56,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.explicit-mim-creation-contract` | Pure standard C++ contract for adapter-supplied MIM composition, reserved standard designators, shared MOM declarations, and ordinary FOM preservation |
 | `cpp-tck.federation-mom-current-fdd` | Standard federation MOM discovery, `HLAcurrentFDD` request/reflection, reliable transportation reporting, and refresh after an additional-FOM join |
 | `cpp-tck.federation-mom-current-fdd-contract` | Pure standard C++ contract for federation-MOM `HLAcurrentFDD` discovery, request/reflection, transportation reporting, and additional-FOM refresh |
+| `cpp-tck.federation-mom-content-reports` | Standard federation MOM FOM-module and MIM content requests/reports, typed data decoding, callback-boundary behavior, and malformed-request failure |
+| `cpp-tck.federation-mom-content-reports-contract` | Pure standard C++ contract for federation MOM FOM-module and MIM content reports using adapter-supplied provider, FOM, endpoint, and callback configuration |
 | `cpp-tck.federation-mom-save-conditionals-contract` | Pure standard C++ contract for federation MOM save-conditionals, timed save initiation/completion, and adapter-supplied logical-time/MIM inputs |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
@@ -432,6 +434,16 @@ and records combined evidence in
 `.build/cpp-tck-all/connection-loss-current-process.json`. That adapter lane
 passed 2/2 cases and is now the promoted adapter-required connection-loss
 scenario. Other adapters must provide the same fixture contract to run it.
+
+The promoted `cpp-tck.federation-mom-content-reports` scenario and its pure
+standard contract twin request and decode the standard federation MOM
+`HLAreportFOMmoduleData` and `HLAreportMIMdata` reports. They check typed
+indicator/data parameters, reliable transport, empty tags, producer and region
+metadata, callback-boundary subscription revalidation, and the standard
+malformed-request exception. The focused installed-package lane passed 4/4
+callback-model cases; the source uses only the official IEEE C++ API and the
+standard library, with provider, FOM, endpoint, and callback configuration
+supplied by the adapter.
 
 The ownership case uses the ordinary `DivestAcquire` attribute in the portable
 FOM and runs the same transfer, denial, cancellation, ownership-query, and

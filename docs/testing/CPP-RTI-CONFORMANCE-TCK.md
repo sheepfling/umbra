@@ -32,6 +32,10 @@ The initial green slice exercises:
   public-service action;
 - explicit standard-MIM federation creation through an adapter-supplied MIM
   module, shared MOM declaration handles, and caller-FOM preservation;
+- standard federation MOM FOM-module and MIM content requests and reports,
+  including typed indicator/data decoding, reliable transport and callback
+  metadata, callback-boundary subscription revalidation, and malformed-request
+  failure;
 - standard MOM service reporting for successful ordinary `SendInteraction`,
   regional `SendInteractionWithRegions`,
   `UpdateAttributeValues`, `RequestAttributeValueUpdate`, `ReleaseMultipleObjectInstanceNames`, `ReleaseObjectInstanceName`, `ReserveObjectInstanceName`, `RegisterObjectInstance`, `DeleteObjectInstance`,
@@ -282,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 409 promoted scenarios (818 callback-model
+The verified lane currently runs 411 promoted scenarios (822 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -386,6 +390,18 @@ focused six-scenario lane passed 12/12 callback-model cases. The pure
 standard-only boundary for adapter-supplied MIM composition and the federation
 MOM current-FDD surface; their focused four-scenario lane passed 8/8
 callback-model cases. The promoted
+`cpp-tck.federation-mom-content-reports` and
+`cpp-tck.federation-mom-content-reports-contract` runners add the standard
+federation MOM FOM-module and MIM content-report surface. Their focused
+four-scenario lane passed 8/8 callback-model cases, including typed report
+parameters, metadata, callback-boundary revalidation, and malformed-request
+failure. The source uses only the official IEEE C++ API and standard library;
+provider, FOM, endpoint, and callback configuration remain adapter inputs. The
+full installed-package verified matrix reported 100% for 822 configured CTest
+cases: 820 passed and the two connection-loss cases were explicitly skipped
+because no adapter fault fixture was supplied. The direct evidence run likewise
+recorded 820 passes, two approved skips, and zero failures.
+The promoted
 `cpp-tck.service-report-regional-interaction-contract` and
 `cpp-tck.service-report-regional-interaction-subscription-contract` runners add
 the same standard-only boundary for successful regional interaction service
@@ -2221,11 +2237,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 409 catalog
-entries with `promotion=promoted`, which produces 818 cases with
+configuration. The default `--scenario-set verified` selects the 411 catalog
+entries with `promotion=promoted`, which produces 822 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 409 IDs and 818 cases,
+adapter-required entries; the current catalog contains 411 IDs and 822 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

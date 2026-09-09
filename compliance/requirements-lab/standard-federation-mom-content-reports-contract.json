@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard federation MOM FOM-module and MIM content-report surfaces. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies standard MOM handle lookup, reliable report subscription, FOM-module and MIM request/report payload decoding, callback-time subscription revalidation for HLA_EVOKED, immediate callback delivery for HLA_IMMEDIATE, and the public InteractionParameterNotDefined behavior for a malformed MIM request. It deliberately avoids provider-specific names, registries, headers, source fixtures, and exception behavior not required by the standard.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-content-reports",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation MOM FOM-module and MIM request/report lookup, subscription, and send services with FederateAmbassador interaction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador federation MOM content-report declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFederationMomContentReportsContract"
+      ]
+    }
+  ]
+}

@@ -19835,6 +19835,173 @@ void scenarioFederationMomCurrentFdd(
   owner.disconnect();
 }
 
+void scenarioFederationMomContentReports(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session subject(options, model, "federation-mom-content-subject");
+  Session observer(options, model, "federation-mom-content-observer");
+  auto const federation = federationName(options, "federation-mom-content-reports");
+  connectAndJoin(subject, observer, options, federation, options.fom);
+
+  auto const fomRequestClass = subject.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestFOMmoduleData");
+  auto const fomRequestIndicator = subject.rtiAmbassador().getParameterHandle(
+      fomRequestClass,
+      L"HLAFOMmoduleIndicator");
+  auto const fomReportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportFOMmoduleData");
+  auto const fomReportIndicator = observer.rtiAmbassador().getParameterHandle(
+      fomReportClass,
+      L"HLAFOMmoduleIndicator");
+  auto const fomReportData = observer.rtiAmbassador().getParameterHandle(
+      fomReportClass,
+      L"HLAFOMmoduleData");
+  auto const mimRequestClass = subject.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestMIMdata");
+  auto const mimReportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportMIMdata");
+  auto const mimReportData = observer.rtiAmbassador().getParameterHandle(
+      mimReportClass,
+      L"HLAMIMdata");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      fomRequestClass.isValid() && fomRequestIndicator.isValid() &&
+          fomReportClass.isValid() && fomReportIndicator.isValid() &&
+          fomReportData.isValid() && mimRequestClass.isValid() &&
+          mimReportClass.isValid() && mimReportData.isValid() && reliable.isValid(),
+      "Federation MOM content-report lookup returned an invalid standard handle");
+
+  observer.rtiAmbassador().subscribeInteractionClass(fomReportClass);
+  observer.rtiAmbassador().subscribeInteractionClass(mimReportClass);
+
+  auto const hasInteraction = [&](rti::InteractionClassHandle const& expected) {
+    auto const record = observer.recorder().interaction();
+    return record.present && record.interaction == expected;
+  };
+  auto const sendFomRequest = [&] {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(fomRequestIndicator, rti::HLAinteger32BE{0}.encode());
+    subject.rtiAmbassador().sendInteraction(
+        fomRequestClass,
+        parameters,
+        rti::VariableLengthData{});
+  };
+
+  // In evoked mode this first request exercises subscription revalidation at
+  // callback time. In immediate mode the callback boundary has already been
+  // crossed, so it establishes the corresponding immediate-delivery contract.
+  observer.recorder().clearInteraction();
+  sendFomRequest();
+  if (model == rti::HLA_EVOKED) {
+    observer.rtiAmbassador().unsubscribeInteractionClass(fomReportClass);
+    for (int pass = 0; pass != 8; ++pass) {
+      observer.pump();
+    }
+    require(
+        observer.recorder().interactions().empty(),
+        "evoked MOM FOM-module report survived callback-time unsubscription");
+    observer.rtiAmbassador().subscribeInteractionClass(fomReportClass);
+  } else {
+    waitFor(
+        observer,
+        [&] { return hasInteraction(fomReportClass); },
+        options,
+        "the immediate federation MOM FOM-module content report");
+    require(
+        observer.recorder().interactions().size() == 1U,
+        "immediate MOM FOM-module request delivered more than one report");
+    observer.rtiAmbassador().unsubscribeInteractionClass(fomReportClass);
+    observer.rtiAmbassador().subscribeInteractionClass(fomReportClass);
+  }
+
+  observer.recorder().clearInteraction();
+  sendFomRequest();
+  waitFor(
+      observer,
+      [&] { return hasInteraction(fomReportClass); },
+      options,
+      "the federation MOM FOM-module content report");
+  auto const fomReport = observer.recorder().interaction();
+  require(
+      fomReport.parameters.size() == 2U &&
+          fomReport.parameters.count(fomReportIndicator) == 1U &&
+          fomReport.parameters.count(fomReportData) == 1U,
+      "federation MOM FOM-module report returned the wrong parameter set");
+  require(
+      fomReport.tag.empty() && fomReport.transportation == reliable &&
+          !fomReport.producer.isValid() && !fomReport.regions.has_value(),
+      "federation MOM FOM-module report returned non-standard callback metadata");
+  rti::HLAinteger32BE decodedIndicator;
+  decodedIndicator.decode(fomReport.parameters.at(fomReportIndicator));
+  require(
+      decodedIndicator.get() == 0,
+      "federation MOM FOM-module report returned the wrong module indicator");
+  rti::HLAunicodeString decodedFom;
+  decodedFom.decode(fomReport.parameters.at(fomReportData));
+  require(
+      !decodedFom.get().empty() &&
+          decodedFom.get().find(L"objectModel") != std::wstring::npos,
+      "federation MOM FOM-module report did not carry standard FOM XML");
+
+  observer.recorder().clearInteraction();
+  subject.rtiAmbassador().sendInteraction(
+      mimRequestClass,
+      rti::ParameterHandleValueMap{},
+      rti::VariableLengthData{});
+  waitFor(
+      observer,
+      [&] { return hasInteraction(mimReportClass); },
+      options,
+      "the federation MOM MIM content report");
+  auto const mimReport = observer.recorder().interaction();
+  require(
+      mimReport.parameters.size() == 1U &&
+          mimReport.parameters.count(mimReportData) == 1U,
+      "federation MOM MIM report returned the wrong parameter set");
+  require(
+      mimReport.tag.empty() && mimReport.transportation == reliable &&
+          !mimReport.producer.isValid() && !mimReport.regions.has_value(),
+      "federation MOM MIM report returned non-standard callback metadata");
+  rti::HLAunicodeString decodedMim;
+  decodedMim.decode(mimReport.parameters.at(mimReportData));
+  require(
+      !decodedMim.get().empty() &&
+          decodedMim.get().find(L"HLArequestMIMdata") != std::wstring::npos &&
+          decodedMim.get().find(L"HLAreportMIMdata") != std::wstring::npos,
+      "federation MOM MIM report did not carry standard MIM XML");
+
+  // The request class has no parameters. Supplying a parameter from the
+  // FOM-module request must therefore fail with the standard public exception
+  // and must not synthesize an application-level report.
+  observer.recorder().clearInteraction();
+  rti::ParameterHandleValueMap invalidMimParameters;
+  invalidMimParameters.emplace(fomRequestIndicator, rti::HLAinteger32BE{0}.encode());
+  requireException(
+      [&] {
+        subject.rtiAmbassador().sendInteraction(
+            mimRequestClass,
+            invalidMimParameters,
+            rti::VariableLengthData{});
+      },
+      L"InteractionParameterNotDefined",
+      "MOM MIM request with an undefined parameter");
+  for (int pass = 0; pass != 8; ++pass) {
+    observer.pump();
+  }
+  require(
+      observer.recorder().interactions().empty(),
+      "malformed MOM MIM request produced an application-level report");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(fomReportClass);
+  observer.rtiAmbassador().unsubscribeInteractionClass(mimReportClass);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
 void scenarioServiceReportInteraction(Options const& options, rti::CallbackModel model) {
   require(
       !options.mimFom.empty(),
@@ -56103,6 +56270,12 @@ void scenarioFederationMomCurrentFddContract(
   scenarioFederationMomCurrentFdd(options, model);
 }
 
+void scenarioFederationMomContentReportsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomContentReports(options, model);
+}
+
 void scenarioTimestampedAttributeOrderCohortContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -56431,6 +56604,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.explicit-mim-creation-contract",
       "cpp-tck.federation-mom-current-fdd",
       "cpp-tck.federation-mom-current-fdd-contract",
+      "cpp-tck.federation-mom-content-reports",
+      "cpp-tck.federation-mom-content-reports-contract",
       "cpp-tck.federation-mom-save-conditionals",
       "cpp-tck.federation-mom-save-conditionals-contract",
       "cpp-tck.joined-federate-mom-federate-state-save-restore",
@@ -57276,6 +57451,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.federation-mom-current-fdd-contract") {
     return scenarioFederationMomCurrentFddContract;
+  }
+  if (id == "cpp-tck.federation-mom-content-reports") {
+    return scenarioFederationMomContentReports;
+  }
+  if (id == "cpp-tck.federation-mom-content-reports-contract") {
+    return scenarioFederationMomContentReportsContract;
   }
   if (id == "cpp-tck.federation-mom-save-conditionals-contract") {
     return scenarioFederationMomSaveConditionalsContract;

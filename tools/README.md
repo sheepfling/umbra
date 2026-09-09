@@ -130,8 +130,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 409 promoted scenario IDs (818 callback-model cases).
-`--scenario-set all` configures the same 409 available IDs (818 cases). The
+The verified lane is 411 promoted scenario IDs (822 callback-model cases).
+`--scenario-set all` configures the same 411 available IDs (822 cases). The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
@@ -260,6 +260,13 @@ focused six-scenario lane passed 12/12 callback-model cases. The promoted
 standard-only boundary for adapter-supplied MIM composition and the federation
 MOM current-FDD surface; their focused four-scenario lane passed 8/8
 callback-model cases. The promoted
+`cpp-tck.federation-mom-content-reports` and
+`cpp-tck.federation-mom-content-reports-contract` runners add the standard
+federation MOM FOM-module and MIM content-report surface. Their focused
+four-scenario lane passed 8/8 callback-model cases, and the source uses only
+the official IEEE C++ API and standard library. Provider, FOM, endpoint, and
+callback configuration remain adapter inputs.
+The promoted
 `cpp-tck.service-report-regional-interaction-contract` and
 `cpp-tck.service-report-regional-interaction-subscription-contract` runners add
 the same standard-only boundary for successful regional interaction service

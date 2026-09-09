@@ -964,6 +964,71 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federation-mom-content-reports",
+      "category": "federation-mom",
+      "title": "Request and receive standard federation MOM FOM-module and MIM content reports",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAunicodeString"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom-content-reports",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-federation-mom-content-reports-contract.json",
+        "federation-execution-api-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationMomContentReports",
+      "runner_id": "cpp-tck.federation-mom-content-reports",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federation-mom-content-reports-contract",
+      "category": "federation-mom",
+      "title": "Portable standard contract for federation MOM FOM-module and MIM content reports",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAunicodeString"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom-content-reports",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-federation-mom-content-reports-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationMomContentReportsContract",
+      "runner_id": "cpp-tck.federation-mom-content-reports-contract",
+      "parity": "cpp-tck.federation-mom-content-reports",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.service-report-interaction",
       "category": "mom-service-reporting",
       "title": "Deliver a standard HLAreportServiceInvocation for a successful interaction service",
