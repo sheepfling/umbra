@@ -40619,6 +40619,12 @@ void scenarioRegionalAttributeValueRequestFiltering(
   requester.disconnect();
 }
 
+void scenarioRegionalAttributeValueRequestFilteringContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalAttributeValueRequestFiltering(options, model);
+}
+
 void scenarioDefaultRegionObjectRouting(
     Options const& options,
     rti::CallbackModel model) {
@@ -53466,6 +53472,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-object-update-contract",
       "cpp-tck.regional-attribute-value-update-response-recheck",
       "cpp-tck.regional-attribute-value-request-filtering",
+      "cpp-tck.regional-attribute-value-request-filtering-contract",
       "cpp-tck.default-region-object-routing",
       "cpp-tck.passive-regional-subscription",
       "cpp-tck.auto-provide",
@@ -54586,6 +54593,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-attribute-value-request-filtering") {
     return scenarioRegionalAttributeValueRequestFiltering;
   }
+  if (id == "cpp-tck.regional-attribute-value-request-filtering-contract") {
+    return scenarioRegionalAttributeValueRequestFilteringContract;
+  }
   if (id == "cpp-tck.default-region-object-routing") {
     return scenarioDefaultRegionObjectRouting;
   }
@@ -55122,6 +55132,7 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-object-update-contract" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering" ||
+                 scenario == "cpp-tck.regional-attribute-value-request-filtering-contract" ||
                  scenario == "cpp-tck.allow-relaxed-ddm" ||
                  scenario == "cpp-tck.ownership-transfer-regional-update" ||
                  scenario == "cpp-tck.attribute-scope-advisories" ||

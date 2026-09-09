@@ -252,6 +252,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-object-update` | Region-qualified publication/subscription, named registration, regional discovery and Update/Reflect, regional value requests, and region association changes |
 | `cpp-tck.regional-object-update-contract` | Standard adapter-backed regional object publication, subscription, discovery, Update/Reflect, value-request, and region-reassociation contract |
 | `cpp-tck.regional-attribute-value-request-filtering` | Regional Request Attribute Value Update filtering across foreign, incompatible, uncommitted, empty, disjoint, overlapping, and callback-time moved regions |
+| `cpp-tck.regional-attribute-value-request-filtering-contract` | Standard adapter-backed regional Request Attribute Value Update filtering contract, including validation, source-region scope, default-region eligibility, and callback-time re-evaluation |
 | `cpp-tck.regional-attribute-value-update-response-recheck` | Rechecks current regional overlap when a provider's attribute-value response is reflected, then verifies restored-overlap value, tag, transport, and producer metadata |
 | `cpp-tck.default-region-object-routing` | Ordinary and explicit regional subscriptions, default-source discovery/reflection, association replacement/restoration, and supplied-empty default-region metadata |
 | `cpp-tck.passive-regional-subscription` | Passive regional subscription suppression, activation-triggered discovery, and ordinary regional Update/Reflect with conveyed source-region metadata |

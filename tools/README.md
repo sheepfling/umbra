@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 339 promoted scenario IDs (678 callback-model cases).
-`--scenario-set all` configures all 349 available IDs (698 cases), including
+The verified lane is 340 promoted scenario IDs (680 callback-model cases).
+`--scenario-set all` configures all 350 available IDs (700 cases), including
 ten candidates. The candidate-inclusive evidence figures below were recorded
 before the two ownership contract twins were promoted and cover the prior
 344-ID, 688-case catalog. With `--connection-loss-fixture <path>`, the Python adapter
@@ -202,6 +202,14 @@ aggregate records 676/676 CTest cases with 676 direct passes and only the two
 expected adapter-managed connection-loss skips. The source uses only official
 IEEE C++ headers and the standard library; the provider, dimensional FOM,
 endpoint, callback, and logical-time configuration remain adapter-owned.
+The promoted `cpp-tck.regional-attribute-value-request-filtering-contract`
+runner adds the independently selectable standard regional Request Attribute
+Value Update filtering contract. Its focused base-and-contract lane passed
+4/4 callback-model cases; the promoted aggregate records 678/678 CTest cases
+with 678 direct passes and only the two expected adapter-managed connection-
+loss skips. The source uses only official IEEE C++ headers and the standard
+library; the provider, dimensional FOM, endpoint, callback, and logical-time
+configuration remain adapter-owned.
 The two ownership candidate contract twins recorded 4 passes and 4 explicit
 immediate-model skips in their focused eight-case lane; they remain candidates
 until an all-model verification fixture is available.

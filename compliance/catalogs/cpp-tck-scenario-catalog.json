@@ -10912,6 +10912,35 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-attribute-value-request-filtering-contract",
+      "category": "regional-attribute-value-request",
+      "title": "Exercise the standard regional Request Attribute Value Update filtering contract",
+      "api_methods": [
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.requestAttributeValueUpdateWithRegions",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "FederateAmbassador.provideAttributeValueUpdate"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-value-request",
+        "cpp-1516.1-ddm-range-validation"
+      ],
+      "contract_refs": [
+        "standard-regional-attribute-value-request-filtering-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalAttributeValueRequestFilteringContract",
+      "runner_id": "cpp-tck.regional-attribute-value-request-filtering-contract",
+      "parity": "cpp-tck.regional-attribute-value-request-filtering",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-attribute-value-update-response-recheck",
       "category": "regional-attribute-value-request",
       "title": "Recheck regional attribute-value response eligibility at reflection delivery",
