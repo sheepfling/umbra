@@ -11869,6 +11869,48 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract",
+      "category": "timestamped-regional-interaction-regulation-reenable-contract",
+      "title": "Standard adapter-backed contract for timestamped regional interaction Time Regulation re-enable with changed lookahead",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-regulation-reenable-changed-lookahead",
+        "cpp-1516.1-query-lookahead",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-interaction-regulation-reenable-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionRegulationReenableContract",
+      "runner_id": "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract",
+      "parity": "cpp-tck.timestamped-regional-interaction-regulation-reenable",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-interaction-alternate-advances",
       "category": "timestamped-regional-interaction-alternate-advances",
       "title": "Deliver timestamped regional interactions through Flush Queue Request, Time Advance Request Available, and Next Message Request Available",
