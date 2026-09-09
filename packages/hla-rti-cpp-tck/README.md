@@ -256,6 +256,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-attribute-value-update-response-recheck` | Rechecks current regional overlap when a provider's attribute-value response is reflected, then verifies restored-overlap value, tag, transport, and producer metadata |
 | `cpp-tck.regional-attribute-value-update-response-recheck-contract` | Standard adapter-backed regional attribute-value response eligibility and restored reflection metadata contract |
 | `cpp-tck.default-region-object-routing` | Ordinary and explicit regional subscriptions, default-source discovery/reflection, association replacement/restoration, and supplied-empty default-region metadata |
+| `cpp-tck.default-region-object-routing-contract` | Standard adapter-backed ordinary/default-region object routing and association replacement contract |
 | `cpp-tck.passive-regional-subscription` | Passive regional subscription suppression, activation-triggered discovery, and ordinary regional Update/Reflect with conveyed source-region metadata |
 | `cpp-tck.auto-provide` | Adapter-supplied Auto Provide FOM, switch verification, provider-owned object discovery, and grouped `provideAttributeValueUpdate` solicitation |
 | `cpp-tck.allow-relaxed-ddm` | Adapter-supplied `Allow Relaxed DDM` switch composition, touching-region admission for ordinary regional object updates and interactions, strict positive-gap suppression, and conveyed source-region metadata |

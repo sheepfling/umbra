@@ -11057,6 +11057,38 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.default-region-object-routing-contract",
+      "category": "default-region-object-management",
+      "title": "Exercise the standard default-region object routing contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.associateRegionsForUpdates",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-region-designator-callback"
+      ],
+      "contract_refs": [
+        "standard-default-region-object-routing-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDefaultRegionObjectRoutingContract",
+      "runner_id": "cpp-tck.default-region-object-routing-contract",
+      "parity": "cpp-tck.default-region-object-routing",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.passive-regional-subscription",
       "category": "passive-regional-subscription",
       "title": "Suppress regional discovery and reflection for passive subscriptions until activation",
