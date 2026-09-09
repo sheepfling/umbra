@@ -13680,7 +13680,7 @@
       "promotion": "promoted"
     },
     {
-      "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore",
+    "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore",
       "category": "timed-regional-attribute-ownership-save-restore",
       "title": "Continue a negotiated regular ownership candidate after timed regional attribute save and restore",
       "api_methods": [
@@ -13775,10 +13775,10 @@
       ],
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+    "promotion": "promoted"
     },
     {
-      "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract",
+    "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract",
       "category": "timed-regional-attribute-ownership-save-restore",
       "title": "Pure standard C++ contract for negotiated regular ownership candidate continuation after timed regional restore",
       "api_methods": [
@@ -13848,7 +13848,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract",
       "parity": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+    "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract",

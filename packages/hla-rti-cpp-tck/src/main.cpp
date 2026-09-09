@@ -52660,127 +52660,145 @@ void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationImpl(
   clock.recorder().clearOwnershipRecords();
   publisher.recorder().clearCallbackOrder();
 
-  firstReceiver.rtiAmbassador().attributeOwnershipAcquisition(
-      object,
-      firstAttributes,
-      firstAcquisitionTag);
-  clock.rtiAmbassador().attributeOwnershipAcquisition(
-      object,
-      clockAttributes,
-      secondAcquisitionTag);
-  require(
-      !firstReceiver.recorder().ownershipAcquisition().has_value(),
-      "timed negotiated regional attribute first regular candidate completed too early");
-  require(
-      !clock.recorder().ownershipAcquisition().has_value(),
-      "timed negotiated regional attribute clock regular candidate completed too early");
-  require(
-      !publisher.recorder().divestitureConfirmation().has_value(),
-      "timed negotiated regional attribute owner received confirmation too early");
-  // A regular acquisition is allowed to request an ordinary release before
-  // the owner starts negotiated divestiture. Clear that delivered callback so
-  // the continuation assertion below observes the surviving candidate's
-  // request rather than the first candidate's earlier request.
-  publisher.recorder().clearOwnershipRecords();
-  publisher.recorder().clearCallbackOrder();
-
-  publisher.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
-      object,
-      publisherAttributes,
-      negotiatedTag);
-  require(
-      publisher.rtiAmbassador().isAttributeOwnedByFederate(
-          object,
-          publisherHandles.firstAttribute),
-      "timed negotiated regional attribute divestiture changed publisher ownership too early");
-  require(
-      !clock.rtiAmbassador().isAttributeOwnedByFederate(
-          object,
-          clockHandles.firstAttribute),
-      "timed negotiated regional attribute divestiture transferred to the retained candidate too early");
-  require(
-      !publisher.recorder().divestitureConfirmation().has_value(),
-      "timed negotiated regional attribute divestiture delivered confirmation too early");
-
-  firstReceiver.resign(rti::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS);
-  for (int pass = 0; pass != 8; ++pass) {
-    publisher.pump();
-  }
-  auto const releaseRequest = publisher.recorder().ownershipReleaseRequest();
-  if (releaseRequest.has_value()) {
+  bool immediateOwnershipTransfer = false;
+  if (model == rti::HLA_IMMEDIATE && !cancelBeforeConfirmation) {
+    // Immediate delivery closes the negotiated-candidate window. Verify the
+    // standard unavailable boundary before the saved timestamped update is
+    // released; the ownership handoff is checked after that delivery.
+    firstReceiver.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        object,
+        firstAttributes,
+        firstAcquisitionTag);
     require(
-        releaseRequest->object == object &&
-            releaseRequest->attributes == publisherAttributes &&
-            releaseRequest->tag == secondAcquisitionTagBytes,
-        "timed negotiated regional attribute release request returned the retained candidate");
-  }
-  auto const releaseCallbackOrder = publisher.recorder().callbackOrder();
-  require(
-      releaseCallbackOrder.empty() ||
-          std::find(
-              releaseCallbackOrder.begin(),
-              releaseCallbackOrder.end(),
-              "ownership-release") != releaseCallbackOrder.end(),
-      "timed negotiated regional attribute owner callback order changed after resignation");
-  require(
-      !publisher.recorder().divestitureConfirmation().has_value(),
-      "timed negotiated regional attribute delivered a stale confirmation after resignation");
-  require(
-      !clock.recorder().ownershipAcquisition().has_value(),
-      "timed negotiated regional attribute delivered a stale acquisition after resignation");
-
-  publisher.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
-      object,
-      publisherAttributes,
-      negotiatedTag);
-  if (cancelBeforeConfirmation) {
+        !firstReceiver.recorder().ownershipAcquisition().has_value() &&
+            !firstReceiver.rtiAmbassador().isAttributeOwnedByFederate(
+                object,
+                firstHandles.firstAttribute),
+        "timed negotiated regional attribute unavailable first candidate changed ownership");
+    firstReceiver.resign(rti::NO_ACTION);
+  } else {
+    firstReceiver.rtiAmbassador().attributeOwnershipAcquisition(
+        object,
+        firstAttributes,
+        firstAcquisitionTag);
+    clock.rtiAmbassador().attributeOwnershipAcquisition(
+        object,
+        clockAttributes,
+        secondAcquisitionTag);
+    require(
+        !firstReceiver.recorder().ownershipAcquisition().has_value(),
+        "timed negotiated regional attribute first regular candidate completed too early");
+    require(
+        !clock.recorder().ownershipAcquisition().has_value(),
+        "timed negotiated regional attribute clock regular candidate completed too early");
     require(
         !publisher.recorder().divestitureConfirmation().has_value(),
-        "timed negotiated regional attribute pre-delivery cancellation crossed the callback boundary");
-    publisher.rtiAmbassador().cancelNegotiatedAttributeOwnershipDivestiture(
+        "timed negotiated regional attribute owner received confirmation too early");
+    // A regular acquisition is allowed to request an ordinary release before
+    // the owner starts negotiated divestiture. Clear that delivered callback so
+    // the continuation assertion below observes the surviving candidate's
+    // request rather than the first candidate's earlier request.
+    publisher.recorder().clearOwnershipRecords();
+    publisher.recorder().clearCallbackOrder();
+
+    publisher.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
         object,
-        publisherAttributes);
+        publisherAttributes,
+        negotiatedTag);
     require(
         publisher.rtiAmbassador().isAttributeOwnedByFederate(
             object,
-            publisherHandles.firstAttribute) &&
-            !clock.rtiAmbassador().isAttributeOwnedByFederate(
-                object,
-                clockHandles.firstAttribute),
-        "timed negotiated regional attribute pre-delivery cancellation changed ownership");
+            publisherHandles.firstAttribute),
+        "timed negotiated regional attribute divestiture changed publisher ownership too early");
     require(
-        !publisher.recorder().divestitureConfirmation().has_value() &&
-            !clock.recorder().ownershipAcquisition().has_value(),
-        "timed negotiated regional attribute pre-delivery cancellation delivered stale ownership callbacks");
-    clock.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+        !clock.rtiAmbassador().isAttributeOwnedByFederate(
+            object,
+            clockHandles.firstAttribute),
+        "timed negotiated regional attribute divestiture transferred to the retained candidate too early");
+    require(
+        !publisher.recorder().divestitureConfirmation().has_value(),
+        "timed negotiated regional attribute divestiture delivered confirmation too early");
+
+    firstReceiver.resign(rti::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS);
+    for (int pass = 0; pass != 8; ++pass) {
+      publisher.pump();
+    }
+    auto const releaseRequest = publisher.recorder().ownershipReleaseRequest();
+    if (releaseRequest.has_value()) {
+      require(
+          releaseRequest->object == object &&
+              releaseRequest->attributes == publisherAttributes &&
+              releaseRequest->tag == secondAcquisitionTagBytes,
+          "timed negotiated regional attribute release request returned the retained candidate");
+    }
+    auto const releaseCallbackOrder = publisher.recorder().callbackOrder();
+    require(
+        releaseCallbackOrder.empty() ||
+            std::find(
+                releaseCallbackOrder.begin(),
+                releaseCallbackOrder.end(),
+                "ownership-release") != releaseCallbackOrder.end(),
+        "timed negotiated regional attribute owner callback order changed after resignation");
+    require(
+        !publisher.recorder().divestitureConfirmation().has_value(),
+        "timed negotiated regional attribute delivered a stale confirmation after resignation");
+    require(
+        !clock.recorder().ownershipAcquisition().has_value(),
+        "timed negotiated regional attribute delivered a stale acquisition after resignation");
+
+    publisher.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
         object,
-        clockAttributes);
-    waitFor(
-        clock,
-        [&] { return clock.recorder().ownershipAcquisitionCancellation().has_value(); },
-        options,
-        "timed negotiated regional attribute pre-delivery acquisition cancellation");
-    auto const acquisitionCancellation = clock.recorder().ownershipAcquisitionCancellation();
-    require(
-        acquisitionCancellation->object == object &&
-            acquisitionCancellation->attributes == clockAttributes,
-        "timed negotiated regional attribute pre-delivery cancellation returned the wrong metadata");
-  } else {
-    waitFor(
-        publisher,
-        [&] { return publisher.recorder().divestitureConfirmation().has_value(); },
-        options,
-        "timed negotiated regional attribute retained-candidate confirmation request");
-    auto const confirmation = publisher.recorder().divestitureConfirmation();
-    require(
-        confirmation->object == object &&
-            confirmation->attributes == publisherAttributes &&
-            confirmation->tag == secondAcquisitionTagBytes &&
-            publisher.rtiAmbassador().isAttributeOwnedByFederate(
-                object,
-                publisherHandles.firstAttribute) &&
-            !clock.recorder().ownershipAcquisition().has_value(),
-        "timed negotiated regional attribute confirmation selected the wrong candidate");
+        publisherAttributes,
+        negotiatedTag);
+    if (cancelBeforeConfirmation) {
+      require(
+          !publisher.recorder().divestitureConfirmation().has_value(),
+          "timed negotiated regional attribute pre-delivery cancellation crossed the callback boundary");
+      publisher.rtiAmbassador().cancelNegotiatedAttributeOwnershipDivestiture(
+          object,
+          publisherAttributes);
+      require(
+          publisher.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              publisherHandles.firstAttribute) &&
+              !clock.rtiAmbassador().isAttributeOwnedByFederate(
+                  object,
+                  clockHandles.firstAttribute),
+          "timed negotiated regional attribute pre-delivery cancellation changed ownership");
+      require(
+          !publisher.recorder().divestitureConfirmation().has_value() &&
+              !clock.recorder().ownershipAcquisition().has_value(),
+          "timed negotiated regional attribute pre-delivery cancellation delivered stale ownership callbacks");
+      clock.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+          object,
+          clockAttributes);
+      waitFor(
+          clock,
+          [&] { return clock.recorder().ownershipAcquisitionCancellation().has_value(); },
+          options,
+          "timed negotiated regional attribute pre-delivery acquisition cancellation");
+      auto const acquisitionCancellation = clock.recorder().ownershipAcquisitionCancellation();
+      require(
+          acquisitionCancellation->object == object &&
+              acquisitionCancellation->attributes == clockAttributes,
+          "timed negotiated regional attribute pre-delivery cancellation returned the wrong metadata");
+    } else {
+      waitFor(
+          publisher,
+          [&] { return publisher.recorder().divestitureConfirmation().has_value(); },
+          options,
+          "timed negotiated regional attribute retained-candidate confirmation request");
+      auto const confirmation = publisher.recorder().divestitureConfirmation();
+      require(
+          confirmation->object == object &&
+              confirmation->attributes == publisherAttributes &&
+              confirmation->tag == secondAcquisitionTagBytes &&
+              publisher.rtiAmbassador().isAttributeOwnedByFederate(
+                  object,
+                  publisherHandles.firstAttribute) &&
+              !clock.recorder().ownershipAcquisition().has_value(),
+          "timed negotiated regional attribute confirmation selected the wrong candidate");
+    }
   }
 
   secondReceiver.recorder().clearTimedReflections();
@@ -52840,6 +52858,53 @@ void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationImpl(
       secondReceiver.rtiAmbassador().getObjectInstanceHandle(secondDiscovery.name) == object,
       "timed negotiated regional attribute changed the object identity after restore");
 
+  if (model == rti::HLA_IMMEDIATE && !cancelBeforeConfirmation) {
+    publisher.recorder().clearOwnershipRecords();
+    clock.recorder().clearOwnershipRecords();
+    clock.rtiAmbassador().attributeOwnershipAcquisition(
+        object,
+        clockAttributes,
+        secondAcquisitionTag);
+    waitFor(
+        publisher,
+        [&] { return publisher.recorder().ownershipReleaseRequest().has_value(); },
+        options,
+        "timed negotiated regional attribute immediate ownership-release request");
+    auto const releaseRequest = publisher.recorder().ownershipReleaseRequest();
+    require(
+        releaseRequest->object == object &&
+            releaseRequest->attributes == publisherAttributes &&
+            releaseRequest->tag == secondAcquisitionTagBytes,
+        "timed negotiated regional attribute immediate release request returned the wrong candidate");
+    rti::AttributeHandleSet divestedAttributes;
+    publisher.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+        object,
+        publisherAttributes,
+        negotiatedTag,
+        divestedAttributes);
+    require(
+        divestedAttributes == publisherAttributes,
+        "timed negotiated regional attribute immediate divestiture returned the wrong attributes");
+    waitFor(
+        clock,
+        [&] { return clock.recorder().ownershipAcquisition().has_value(); },
+        options,
+        "timed negotiated regional attribute immediate ownership notification");
+    auto const immediateAcquisition = clock.recorder().ownershipAcquisition();
+    require(
+        immediateAcquisition->object == object &&
+            immediateAcquisition->attributes == clockAttributes &&
+            immediateAcquisition->tag == negotiatedTagBytes &&
+            !publisher.rtiAmbassador().isAttributeOwnedByFederate(
+                object,
+                publisherHandles.firstAttribute) &&
+            clock.rtiAmbassador().isAttributeOwnedByFederate(
+                object,
+                clockHandles.firstAttribute),
+        "timed negotiated regional attribute immediate ownership transfer returned the wrong state");
+    immediateOwnershipTransfer = true;
+  }
+
   if (cancelAfterConfirmation) {
     publisher.rtiAmbassador().cancelNegotiatedAttributeOwnershipDivestiture(
         object,
@@ -52878,7 +52943,7 @@ void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationImpl(
         acquisitionCancellation->object == object &&
             acquisitionCancellation->attributes == clockAttributes,
         "timed negotiated regional attribute cancellation returned the wrong metadata");
-  } else if (!cancelBeforeConfirmation) {
+  } else if (!cancelBeforeConfirmation && !immediateOwnershipTransfer) {
     publisher.rtiAmbassador().confirmDivestiture(
         object,
         publisherAttributes,
@@ -55375,16 +55440,6 @@ int run(Options const& options) {
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
-      } else if (
-          (scenario ==
-               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore" ||
-           scenario ==
-               "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract") &&
-          callback.first == "immediate") {
-        result.status = "skipped";
-        result.message =
-            "requires evoked callback servicing because immediate regular-candidate delivery "
-            "closes the negotiated continuation window before the first candidate resigns";
       } else if (
           (scenario ==
                "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore" ||

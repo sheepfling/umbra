@@ -105,9 +105,9 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 375 promoted scenario IDs (750 callback-model cases).
+The verified lane is 377 promoted scenario IDs (754 callback-model cases).
 `--scenario-set all` configures all 381 available IDs (762 cases), including
-six candidates. The candidate-inclusive evidence figures below are historical
+four candidates. The candidate-inclusive evidence figures below are historical
 artifacts from an earlier 344-ID, 688-case catalog and are not the promoted
 gate. With `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results
@@ -380,12 +380,14 @@ provider, endpoint, callback, and logical-time configuration remain adapter-owne
 The promoted `cpp-tck.ownership-acquisition-cancellation-transfer-race` and
 `cpp-tck.negotiated-willing-to-acquire-continuation` contract twins passed 8/8
 callback-model cases in their focused four-scenario lane. The promoted aggregate
-passed 748/748 CTest cases with 748 direct passes and only the two expected
+passed 752/752 CTest cases with 752 direct passes and only the two expected
 adapter-managed connection-loss skips in
-`.build\\cpp-tck-all\\verified-evidence-standard-ownership-cancellation-continuation.json`.
-The timed regular-candidate contract twin recorded 2 evoked passes and 2
-explicit immediate-model skips in its focused four-case lane; it remains a
-candidate pending broader adapter coverage.
+`.build\\cpp-tck-all\\verified-evidence-standard-timed-regional-candidate-continuation-after-restore.json`.
+The promoted timed regular-candidate contract twin passed 4/4 callback-model
+cases in its focused four-case lane. Evoked mode retains negotiated
+continuation; immediate mode verifies the standard unavailable boundary and a
+synchronous ordinary ownership-release/divestiture handoff after queued
+delivery.
 The timed pre-delivery cancellation contract twin recorded 2 evoked passes and
 2 explicit immediate-model skips in its focused four-case lane; it remains a
 candidate pending broader adapter coverage.

@@ -353,8 +353,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.negotiated-divestiture-pre-delivery-cancellation-contract` | Standard adapter-backed pre-delivery negotiated cancellation contract |
 | `cpp-tck.negotiated-willing-to-acquire-continuation` | Negotiated divestiture continuation to the second candidate after the first candidate cancels, preserving tags and ownership state; evoked mode uses Willing-to-Acquire reservations and immediate mode verifies the standard unavailable boundary with a regular pending continuation |
 | `cpp-tck.negotiated-willing-to-acquire-continuation-contract` | Pure standard C++ contract for negotiated willing-to-acquire continuation under both callback models; the adapter owns provider, FOM, endpoint, and callback configuration |
-| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore` | Candidate evoked-callback continuation of a regular multi-attribute ownership candidate across timed regional attribute save/restore, resignation, negotiated divestiture, retained queued delivery, and Flush Queue metadata; immediate delivery is intentionally skipped because it closes the continuation window |
-| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract` | Candidate pure standard C++ contract for the same timed regional ownership-candidate continuation; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs, and immediate delivery is intentionally skipped |
+| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore` | Two-model timed regional ownership continuation: evoked delivery retains the regular candidate through negotiated divestiture, while immediate delivery verifies the standard If Available boundary and synchronous ordinary ownership-release/divestiture after queued delivery |
+| `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract` | Pure standard C++ contract for the timed regional ownership continuation; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs under both callback models |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore` | Candidate cancellation of a regular negotiated ownership transfer before confirmation callback delivery after timed regional attribute save/restore, preserving publisher ownership, canceling the surviving acquisition reservation, and retaining restored queued delivery; immediate delivery is intentionally skipped |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract` | Candidate pure standard C++ contract for the same pre-delivery negotiated cancellation after timed regional restore; provider, FOM, endpoint, logical-time, and callback configuration remain adapter inputs, and immediate delivery is intentionally skipped |
 | `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore` | Candidate regular-to-regular negotiated ownership cancellation after Request Divestiture Confirmation, preserving publisher ownership, rejecting stale Confirm Divestiture, canceling the surviving acquisition reservation, and retaining the restored queued regional update; immediate delivery is intentionally skipped |
@@ -792,11 +792,12 @@ lane are covered by existing pure scenarios. Three remaining native fixtures
 are mixed or retained ownership continuation/cancellation races that issue an
 `If Available` request while the attribute is still owned; standard HLA reports
 that request unavailable rather than treating it as a pending continuation,
-so they are not force-mapped into the portable TCK. The catalog now also contains the unpromoted
+so they are not force-mapped into the portable TCK. The catalog now promotes the
 standard-API base case `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore`:
-its focused installed-package evidence passed three independent evoked repeats;
-the immediate model is an explicit expected skip because it closes the
-negotiated continuation window before the first candidate resigns. The catalog
+its focused installed-package lane passed 4/4 callback-model cases. Evoked mode
+retains the regular candidate through negotiated divestiture; immediate mode
+verifies the standard unavailable boundary before queued delivery and a
+synchronous ordinary ownership-release/divestiture handoff afterward. The catalog
 also contains the separate regular-to-regular confirmation-cancellation case
 `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore`:
 it passed one evoked run and three independent evoked repeats, with an explicit
@@ -1407,9 +1408,11 @@ plus 666 direct passes with only the two expected connection-loss skips.
 The ownership candidate contract-twin lane recorded 4 passes and 4 explicit
 immediate-model skips across the two candidate scenarios; both remain
 `promotion=candidate` until an all-model verification fixture is available.
-The timed regular-candidate contract twin recorded 2 evoked passes and 2
-explicit immediate-model skips in its focused four-case lane; it also remains
-`promotion=candidate` pending broader adapter coverage.
+The promoted timed regular-candidate contract twin passed 4/4 callback-model
+cases in its focused lane. The timed pre-delivery cancellation contract twin
+recorded 2 evoked passes and 2 explicit immediate-model skips in its focused
+four-case lane; it remains `promotion=candidate` pending broader adapter
+coverage.
 The timed pre-delivery cancellation contract twin recorded 2 evoked passes and
 2 explicit immediate-model skips in its focused four-case lane; it also remains
 `promotion=candidate` pending broader adapter coverage.
