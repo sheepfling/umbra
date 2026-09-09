@@ -140,6 +140,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.attribute-multi-recipient-fifo-contract` | Standard adapter-backed ordinary attribute fan-out and receive-order FIFO contract across two active subscribers |
 | `cpp-tck.object-removal-multi-recipient-fifo` | Two active subscribers each receive the owner’s ordinary object removal with preserved object, tag, and producer metadata, while the owner receives no loopback removal |
 | `cpp-tck.object-removal-multi-recipient-fifo-contract` | Standard adapter-backed ordinary object-removal fan-out and owner-exclusion contract across two active subscribers |
+| `cpp-tck.receive-order-object-removal-subscription-withdrawal` | A queued terminal object removal remains deliverable after one active subscriber withdraws before callback servicing, with immediate and evoked callback-model checks |
+| `cpp-tck.receive-order-object-removal-subscription-withdrawal-contract` | Standard adapter-backed terminal object-removal delivery contract across subscription withdrawal and callback-model boundaries |
 | `cpp-tck.resign-delete-objects-multi-recipient-fifo` | Publisher resignation with `DELETE_OBJECTS` delivers two ordinary removals to both active subscribers in producer order, with empty resign tags and no owner loopback |
 | `cpp-tck.resign-delete-objects-multi-recipient-fifo-contract` | Standard adapter-backed resign-time object-removal fan-out and owner-exclusion contract across two active subscribers |
 | `cpp-tck.order-type-controls-contract` | Standard adapter-backed prospective attribute and interaction order-control contract with logical-time delivery and receive-order callbacks |

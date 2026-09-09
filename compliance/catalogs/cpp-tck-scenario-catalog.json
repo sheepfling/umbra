@@ -5138,6 +5138,84 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.receive-order-object-removal-subscription-withdrawal",
+      "category": "receive-order-object-removal-subscription-withdrawal",
+      "title": "Deliver a queued terminal object removal after withdrawing its active subscription",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-instance-deletion",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-instance-deletion-api-contract.json",
+        "object-instance-deletion-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json",
+        "standard-receive-order-object-removal-subscription-withdrawal-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioReceiveOrderObjectRemovalSubscriptionWithdrawal",
+      "runner_id": "cpp-tck.receive-order-object-removal-subscription-withdrawal",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.receive-order-object-removal-subscription-withdrawal-contract",
+      "category": "receive-order-object-removal-subscription-withdrawal",
+      "title": "Portable standard contract for delivering a queued terminal object removal after subscription withdrawal",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-instance-deletion",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-receive-order-object-removal-subscription-withdrawal-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioReceiveOrderObjectRemovalSubscriptionWithdrawalContract",
+      "runner_id": "cpp-tck.receive-order-object-removal-subscription-withdrawal-contract",
+      "parity": "cpp-tck.receive-order-object-removal-subscription-withdrawal",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
       "category": "ordinary-resign-delete-objects-multi-recipient-fifo",
       "title": "Deliver resign-time ordinary object removals to two active subscribers in producer order",

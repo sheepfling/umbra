@@ -27620,6 +27620,170 @@ void scenarioObjectRemovalMultiRecipientFifo(
   publisher.disconnect();
 }
 
+void scenarioReceiveOrderObjectRemovalSubscriptionWithdrawal(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "receive-order-removal-publisher");
+  Session active(options, model, "receive-order-removal-active");
+  Session withdrawn(options, model, "receive-order-removal-withdrawn");
+  auto const federation = federationName(
+      options,
+      "receive-order-object-removal-subscription-withdrawal");
+  connectAndJoin(publisher, active, options, federation, options.fom);
+  withdrawn.connect();
+  withdrawn.join(
+      options.memberFederateName + L"-withdrawn",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const activeClass = active.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const withdrawnClass = withdrawn.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const activeAttribute = active.rtiAmbassador().getAttributeHandle(
+      activeClass,
+      options.attributeName);
+  auto const withdrawnAttribute = withdrawn.rtiAmbassador().getAttributeHandle(
+      withdrawnClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && activeClass.isValid() && withdrawnClass.isValid() &&
+          publisherAttribute.isValid() && activeAttribute.isValid() &&
+          withdrawnAttribute.isValid(),
+      "receive-order object-removal subscription-withdrawal lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const activeAttributes{activeAttribute};
+  rti::AttributeHandleSet const withdrawnAttributes{withdrawnAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  active.rtiAmbassador().subscribeObjectClassAttributes(
+      activeClass,
+      activeAttributes,
+      true,
+      L"");
+  withdrawn.rtiAmbassador().subscribeObjectClassAttributes(
+      withdrawnClass,
+      withdrawnAttributes,
+      true,
+      L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "receive-order object-removal subscription-withdrawal registration returned an invalid object");
+  waitForSessions(
+      {&active, &withdrawn},
+      [&] {
+        return active.recorder().hasDiscovery(object) &&
+            withdrawn.recorder().hasDiscovery(object);
+      },
+      options,
+      "receive-order object-removal subscription-withdrawal discovery");
+  publisher.recorder().clearRemovals();
+  active.recorder().clearRemovals();
+  withdrawn.recorder().clearRemovals();
+
+  std::vector<std::uint8_t> const tagBytes{0x4FU, 0x42, 0x4AU};
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  publisher.rtiAmbassador().deleteObjectInstance(object, tag);
+
+  if (model == rti::HLA_EVOKED) {
+    require(
+        active.recorder().removals().empty() &&
+            withdrawn.recorder().removals().empty(),
+        "evoked object removal arrived before callback servicing");
+    withdrawn.rtiAmbassador().unsubscribeObjectClassAttributes(
+        withdrawnClass,
+        withdrawnAttributes);
+    waitFor(
+        active,
+        [&] {
+          return active.recorder().hasRemoval(
+              object,
+              tagBytes,
+              publisher.federateHandle());
+        },
+        options,
+        "receive-order object-removal subscription-withdrawal active removal");
+    waitFor(
+        withdrawn,
+        [&] {
+          return withdrawn.recorder().hasRemoval(
+              object,
+              tagBytes,
+              publisher.federateHandle());
+        },
+        options,
+        "receive-order object-removal subscription-withdrawal withdrawn removal");
+  } else {
+    waitFor(
+        active,
+        [&] {
+          return active.recorder().hasRemoval(
+              object,
+              tagBytes,
+              publisher.federateHandle());
+        },
+        options,
+        "immediate object-removal subscription-withdrawal active removal");
+    waitFor(
+        withdrawn,
+        [&] {
+          return withdrawn.recorder().hasRemoval(
+              object,
+              tagBytes,
+              publisher.federateHandle());
+        },
+        options,
+        "immediate object-removal subscription-withdrawal withdrawn removal");
+    withdrawn.rtiAmbassador().unsubscribeObjectClassAttributes(
+        withdrawnClass,
+        withdrawnAttributes);
+  }
+
+  auto requireRemoval = [&](Session& receiver, std::string const& description) {
+    auto const removals = receiver.recorder().removals();
+    require(
+        removals.size() == 1U &&
+            removals.front().object == object &&
+            removals.front().tag == tagBytes &&
+            removals.front().producer == publisher.federateHandle(),
+        description + " returned the wrong removal metadata");
+  };
+  requireRemoval(active, "active object-removal recipient");
+  requireRemoval(withdrawn, "subscription-withdrawal object-removal recipient");
+  require(
+      publisher.recorder().removals().empty(),
+      "object-removal subscription-withdrawal delivered a removal back to its owner");
+
+  active.rtiAmbassador().unsubscribeObjectClassAttributes(
+      activeClass,
+      activeAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  withdrawn.resign(rti::NO_ACTION);
+  active.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  withdrawn.disconnect();
+  active.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioReceiveOrderObjectRemovalSubscriptionWithdrawalContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioReceiveOrderObjectRemovalSubscriptionWithdrawal(options, model);
+}
+
 void scenarioResignDeleteObjectsMultiRecipientFifo(
     Options const& options,
     rti::CallbackModel model) {
@@ -55342,6 +55506,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-multi-recipient-fifo-contract",
       "cpp-tck.object-removal-multi-recipient-fifo",
       "cpp-tck.object-removal-multi-recipient-fifo-contract",
+      "cpp-tck.receive-order-object-removal-subscription-withdrawal",
+      "cpp-tck.receive-order-object-removal-subscription-withdrawal-contract",
       "cpp-tck.resign-delete-objects-multi-recipient-fifo",
       "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
       "java-tck.directed-interactions",
@@ -56283,6 +56449,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.receive-order-attribute-update-callback-cancellation-contract") {
     return scenarioReceiveOrderAttributeUpdateCallbackCancellationContract;
+  }
+  if (id == "cpp-tck.receive-order-object-removal-subscription-withdrawal") {
+    return scenarioReceiveOrderObjectRemovalSubscriptionWithdrawal;
+  }
+  if (id == "cpp-tck.receive-order-object-removal-subscription-withdrawal-contract") {
+    return scenarioReceiveOrderObjectRemovalSubscriptionWithdrawalContract;
   }
   if (id == "cpp-tck.receive-order-interaction-callback-cancellation") {
     return scenarioReceiveOrderInteractionCallbackCancellation;
