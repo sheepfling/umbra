@@ -260,6 +260,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.passive-regional-subscription` | Passive regional subscription suppression, activation-triggered discovery, and ordinary regional Update/Reflect with conveyed source-region metadata |
 | `cpp-tck.passive-regional-subscription-contract` | Standard adapter-backed passive regional subscription suppression and activation contract |
 | `cpp-tck.auto-provide` | Adapter-supplied Auto Provide FOM, switch verification, provider-owned object discovery, and grouped `provideAttributeValueUpdate` solicitation |
+| `cpp-tck.auto-provide-contract` | Standard adapter-backed Auto Provide switch and grouped solicitation contract |
 | `cpp-tck.allow-relaxed-ddm` | Adapter-supplied `Allow Relaxed DDM` switch composition, touching-region admission for ordinary regional object updates and interactions, strict positive-gap suppression, and conveyed source-region metadata |
 | `cpp-tck.regional-multi-attribute-update` | Adapter-supplied multi-attribute DDM FOM, independent per-attribute source regions, X-only/Y-only filtering, restoration, and conveyed source-region metadata |
 | `cpp-tck.regional-three-dimensional-overlap` | Adapter-supplied three-dimensional DDM FOM, complete-overlap discovery/reflection, one-dimension-at-a-time suppression, restoration, and conveyed source-region metadata |

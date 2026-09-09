@@ -11192,6 +11192,34 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.auto-provide-contract",
+      "category": "auto-provide",
+      "title": "Exercise the standard Auto Provide contract",
+      "api_methods": [
+        "RTIambassador.getAutoProvideSwitch",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-support-switch-accessors",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-attribute-value-update-response"
+      ],
+      "contract_refs": [
+        "standard-auto-provide-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAutoProvideContract",
+      "runner_id": "cpp-tck.auto-provide-contract",
+      "parity": "cpp-tck.auto-provide",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.allow-relaxed-ddm",
       "category": "data-distribution-management",
       "title": "Verify Allow Relaxed DDM admits touching regions and retains strict positive-gap filtering",

@@ -40989,6 +40989,12 @@ void scenarioAutoProvide(
   owner.disconnect();
 }
 
+void scenarioAutoProvideContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAutoProvide(options, model);
+}
+
 void scenarioDefaultRegionObjectRoutingContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -53497,6 +53503,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.passive-regional-subscription",
       "cpp-tck.passive-regional-subscription-contract",
       "cpp-tck.auto-provide",
+      "cpp-tck.auto-provide-contract",
       "cpp-tck.allow-relaxed-ddm",
       "cpp-tck.ownership-transfer-regional-update",
       "cpp-tck.attribute-scope-advisories",
@@ -54633,6 +54640,7 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioPassiveRegionalSubscriptionContract;
   }
   if (id == "cpp-tck.auto-provide") return scenarioAutoProvide;
+  if (id == "cpp-tck.auto-provide-contract") return scenarioAutoProvideContract;
   if (id == "cpp-tck.allow-relaxed-ddm") return scenarioAllowRelaxedDdm;
   if (id == "cpp-tck.ownership-transfer-regional-update") {
     return scenarioOwnershipTransferRegionalUpdate;
@@ -55114,7 +55122,9 @@ int run(Options const& options) {
                  options.mimFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied standard MIM";
-      } else if (scenario == "cpp-tck.auto-provide" && options.autoProvideFom.empty()) {
+      } else if ((scenario == "cpp-tck.auto-provide" ||
+                  scenario == "cpp-tck.auto-provide-contract") &&
+                 options.autoProvideFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied Auto Provide FOM";
       } else if (scenario == "cpp-tck.regional-multi-attribute-update" &&
