@@ -11124,6 +11124,35 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.passive-regional-subscription-contract",
+      "category": "passive-regional-subscription",
+      "title": "Exercise the standard passive regional subscription contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-region-designator-callback"
+      ],
+      "contract_refs": [
+        "standard-passive-regional-subscription-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioPassiveRegionalSubscriptionContract",
+      "runner_id": "cpp-tck.passive-regional-subscription-contract",
+      "parity": "cpp-tck.passive-regional-subscription",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.auto-provide",
       "category": "auto-provide",
       "title": "Solicit provider-owned attributes through the standard Auto Provide callback",
