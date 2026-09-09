@@ -12220,6 +12220,48 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-regional-interaction-source-resignation-contract",
+      "category": "timestamped-regional-interaction-source-resignation-contract",
+      "title": "Standard adapter-backed contract for timestamped regional interaction delivery after source resignation",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.retract",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.getTransportationTypeName",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-interaction-source-resignation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionSourceResignationContract",
+      "runner_id": "cpp-tck.timestamped-regional-interaction-source-resignation-contract",
+      "parity": "cpp-tck.timestamped-regional-interaction-source-resignation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-regional-interaction-tar-nmr",
       "category": "timestamped-regional-interaction-tar-nmr",
       "title": "Deliver timestamped regional interactions before ordinary TAR and NMR grants",
@@ -12266,6 +12308,49 @@
       "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionTarNmr",
       "runner_id": "cpp-tck.timestamped-regional-interaction-tar-nmr",
       "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-regional-interaction-tar-nmr-contract",
+      "category": "timestamped-regional-interaction-tar-nmr-contract",
+      "title": "Standard adapter-backed contract for timestamped regional interaction TAR and NMR delivery",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.getTransportationTypeName",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-ddm-timestamped-interaction-delivery",
+        "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+        "cpp-1516.1-time-advance-request",
+        "cpp-1516.1-next-message-request"
+      ],
+      "contract_refs": [
+        "standard-timestamped-regional-interaction-tar-nmr-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimestampedRegionalInteractionTarNmrContract",
+      "runner_id": "cpp-tck.timestamped-regional-interaction-tar-nmr-contract",
+      "parity": "cpp-tck.timestamped-regional-interaction-tar-nmr",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

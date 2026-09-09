@@ -44476,6 +44476,12 @@ void scenarioTimestampedRegionalInteractionSourceResignation(
   clock.disconnect();
 }
 
+void scenarioTimestampedRegionalInteractionSourceResignationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedRegionalInteractionSourceResignation(options, model);
+}
+
 void scenarioTimestampedRegionalInteractionTarNmr(
     Options const& options,
     rti::CallbackModel model) {
@@ -44733,6 +44739,12 @@ void scenarioTimestampedRegionalInteractionTarNmr(
   nmr.disconnect();
   tar.disconnect();
   publisher.disconnect();
+}
+
+void scenarioTimestampedRegionalInteractionTarNmrContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedRegionalInteractionTarNmr(options, model);
 }
 
 void scenarioRegionalBoundaries(Options const& options, rti::CallbackModel model) {
@@ -53585,7 +53597,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-regional-interaction-subscription-replacement",
       "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract",
       "cpp-tck.timestamped-regional-interaction-source-resignation",
+      "cpp-tck.timestamped-regional-interaction-source-resignation-contract",
       "cpp-tck.timestamped-regional-interaction-tar-nmr",
+      "cpp-tck.timestamped-regional-interaction-tar-nmr-contract",
       "cpp-tck.timestamped-regional-interaction-regulation-reenable",
       "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract",
       "cpp-tck.regional-boundaries",
@@ -54772,8 +54786,14 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-regional-interaction-source-resignation") {
     return scenarioTimestampedRegionalInteractionSourceResignation;
   }
+  if (id == "cpp-tck.timestamped-regional-interaction-source-resignation-contract") {
+    return scenarioTimestampedRegionalInteractionSourceResignationContract;
+  }
   if (id == "cpp-tck.timestamped-regional-interaction-tar-nmr") {
     return scenarioTimestampedRegionalInteractionTarNmr;
+  }
+  if (id == "cpp-tck.timestamped-regional-interaction-tar-nmr-contract") {
+    return scenarioTimestampedRegionalInteractionTarNmrContract;
   }
   if (id == "cpp-tck.timestamped-regional-interaction-regulation-reenable") {
     return scenarioTimestampedRegionalInteractionRegulationReenable;
@@ -55298,6 +55318,10 @@ int run(Options const& options) {
                  scenario == "cpp-tck.timestamped-regional-interaction-no-overlap-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract" ||
+                 scenario == "cpp-tck.timestamped-regional-interaction-source-resignation" ||
+                 scenario == "cpp-tck.timestamped-regional-interaction-source-resignation-contract" ||
+                 scenario == "cpp-tck.timestamped-regional-interaction-tar-nmr" ||
+                 scenario == "cpp-tck.timestamped-regional-interaction-tar-nmr-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract" ||
                  scenario == "cpp-tck.timestamped-regional-attribute-update" ||
@@ -55323,6 +55347,10 @@ int run(Options const& options) {
                     scenario == "cpp-tck.timestamped-regional-interaction-no-overlap-contract" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract" ||
+                    scenario == "cpp-tck.timestamped-regional-interaction-source-resignation" ||
+                    scenario == "cpp-tck.timestamped-regional-interaction-source-resignation-contract" ||
+                    scenario == "cpp-tck.timestamped-regional-interaction-tar-nmr" ||
+                    scenario == "cpp-tck.timestamped-regional-interaction-tar-nmr-contract" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract" ||
                     scenario == "cpp-tck.timestamped-regional-attribute-update" ||

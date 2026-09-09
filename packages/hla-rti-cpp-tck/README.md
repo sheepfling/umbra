@@ -285,7 +285,9 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-regional-interaction-subscription-replacement` | Queued timestamped regional interaction is suppressed rather than retargeted when the receiver replaces region A with disjoint region B, then a later source-B interaction is delivered once with replacement region metadata |
 | `cpp-tck.timestamped-regional-interaction-subscription-replacement-contract` | Standard adapter-backed timestamped regional interaction subscription-replacement contract |
 | `cpp-tck.timestamped-regional-interaction-source-resignation` | A queued timestamped regional interaction remains deliverable after its producer resigns, preserving producer, source-region, payload, time, order, and retraction metadata |
+| `cpp-tck.timestamped-regional-interaction-source-resignation-contract` | Standard adapter-backed timestamped regional interaction source-resignation contract |
 | `cpp-tck.timestamped-regional-interaction-tar-nmr` | Timestamped regional interactions are delivered before the matching ordinary TAR and NMR grants, with source-region metadata and independent recipient query times |
+| `cpp-tck.timestamped-regional-interaction-tar-nmr-contract` | Standard adapter-backed timestamped regional interaction TAR/NMR contract |
 | `cpp-tck.regional-boundaries` | Zero-dimensional and partial regions, wrong-context and foreign-region failures, and region-in-use cleanup boundaries |
 | `cpp-tck.synchronization-points` | Pre-connect and pre-join synchronization-service boundaries, global and explicit-set registration, late-join announcement, invalid-member failure, duplicate-label failure, achievement, and federation synchronization completion |
 | `cpp-tck.synchronization-point-contract` | Standard adapter-backed federation synchronization-point contract for global and explicit-set registration, announcement, achievement, completion, callback delivery, and lifecycle boundaries |
