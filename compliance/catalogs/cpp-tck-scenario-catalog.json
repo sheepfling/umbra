@@ -10648,6 +10648,73 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.ownership-acquisition-publication-fence",
+      "category": "ownership-management",
+      "title": "Enforce publication, pending-state, and partial-result boundaries for ownership acquisition",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.attributeOwnershipUnavailable"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-ownership-acquisition-publication-fence-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "cpp-tck.attribute-ownership-acquisition"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnershipAcquisitionPublicationFence",
+      "runner_id": "cpp-tck.ownership-acquisition-publication-fence",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-acquisition-publication-fence-contract",
+      "category": "ownership-management",
+      "title": "Standard adapter-backed ownership-acquisition publication fence contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.attributeOwnershipUnavailable"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-ownership-acquisition-publication-fence-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnershipAcquisitionPublicationFenceContract",
+      "runner_id": "cpp-tck.ownership-acquisition-publication-fence-contract",
+      "parity": "cpp-tck.ownership-acquisition-publication-fence",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.divestiture-if-wanted-mixed-acquirers",
       "category": "ownership-management",
       "title": "Transfer independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted",

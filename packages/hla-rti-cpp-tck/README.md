@@ -371,6 +371,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.ownership-management-contract` | Standard adapter-backed ordinary attribute-ownership contract for queries, assumption offers, negotiated and If Wanted acquisition/divestiture, If Available acquisition, unconditional divestiture, denial, cancellation, callbacks, and lifecycle boundaries |
 | `cpp-tck.partial-attribute-ownership-transfer` | Multi-attribute ownership acquisition and cancellation with an If Wanted transfer of only the uncanceled attribute, including release, cancellation, acquisition, tag, and ownership-state assertions |
 | `cpp-tck.partial-attribute-ownership-transfer-contract` | Standard adapter-backed partial attribute ownership-transfer contract for acquisition cancellation, Divestiture If Wanted, ownership callbacks, and lifecycle cleanup |
+| `cpp-tck.ownership-acquisition-publication-fence` | Publication, pending-state, and partial-result boundaries for regular and If Available ownership acquisition, including direct acquisition of an unowned attribute, release denial, and callback metadata |
+| `cpp-tck.ownership-acquisition-publication-fence-contract` | Standard adapter-backed ownership-acquisition publication-fence contract using only the official API and adapter-supplied multi-attribute FOM |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | Transfers independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted; immediate mode uses regular pending acquisition to preserve the standard pending boundary |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers-contract` | Standard adapter-backed mixed-acquirer Divestiture If Wanted contract with exact attribute-set transfer, callback tags, ownership state, and cleanup |
 | `cpp-tck.ownership-acquisition-cancellation-transfer-race` | Standard two-model ownership transfer: evoked cancellation begins from the owner release callback and Divestiture If Wanted wins the terminal race; immediate mode verifies the same transfer through a deterministic pending acquisition |
@@ -456,6 +458,18 @@ two-attribute FOM with ordinary publication and subscription. It requests both
 attributes, cancels exactly one request, and verifies that `Divestiture If
 Wanted` transfers only the remaining attribute, preserving callback tags and
 ownership state under both callback models.
+
+The promoted `cpp-tck.ownership-acquisition-publication-fence` scenario and
+its pure standard contract twin use the adapter-supplied two-attribute FOM to
+verify that subscription does not replace publication, unpublished and
+undefined acquisition failures, partial `If Available` and regular acquisition,
+pending-acquisition overlap, release denial, exact callback attribute subsets
+and tags, ownership splits, and the `OwnershipAcquisitionPending` unpublish
+boundary. The focused installed-package lane passed 4/4 callback-model cases;
+the complete verified matrix passed 824/826 cases, with only the two
+adapter-required connection-loss cases skipped and zero failures. The portable
+source uses only the official IEEE C++ API and standard library; provider, FOM,
+endpoint, and callback configuration remain adapter inputs.
 
 The promoted ownership-transfer/update-region case uses the same adapter-supplied
 DDM FOM with three federates. It verifies that a source-region association does
@@ -940,16 +954,11 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 334 scenario IDs and 668 matrix cases. Run the later adapter-required
-  set only after that gate is green by configuring `--scenario-set all`; the
-     complete set is 344 IDs and 688 matrix cases, including ten candidates. The
-  no-fixture candidate-inclusive baseline completes 686/686 CTest cases with no
-  failures and records 676 direct passes plus 12 explicit skips: ten candidate
-  immediate cases and two connection-loss cases. With `--connection-loss-fixture
-  <path>`, the shell-free Python adapter owns the external fault; the ordinary
-  matrix remains 686/686 CTest cases and the merged direct evidence records 678
-  passes plus only the ten documented candidate immediate-model skips across all
-  688 callback-model cases. The
+    that is 413 scenario IDs and 826 matrix cases. `--scenario-set all` currently
+  configures the same 413 available IDs (826 cases); there are no unpromoted
+  candidates in the current catalog. The candidate-inclusive figures later in
+  this document are historical artifacts from the earlier 344-ID, 688-case
+  catalog. The
 aggregate `hla_rti_cpp_tck_installed` CTest
 remains available for a single full-run check.
 

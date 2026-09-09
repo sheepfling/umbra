@@ -40587,6 +40587,232 @@ void scenarioPartialAttributeOwnershipTransferContract(
   scenarioPartialAttributeOwnershipTransfer(options, model);
 }
 
+void scenarioOwnershipAcquisitionPublicationFence(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Ownership-acquisition publication testing requires an adapter-supplied multi-attribute FOM");
+
+  Session owner(options, model, "ownership-publication-owner");
+  Session requester(options, model, "ownership-publication-requester");
+  auto const federation = federationName(
+      options,
+      "ownership-acquisition-publication-fence");
+  owner.connect();
+  requester.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.multiAttributeFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(
+      options.ownerFederateName + L"-ownership-publication-owner",
+      options.federateType,
+      federation);
+  requester.join(
+      options.memberFederateName + L"-ownership-publication-requester",
+      options.federateType,
+      federation);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeSecondName);
+  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeFirstName);
+  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeSecondName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid(),
+      "Ownership-acquisition publication object-class lookup returned an invalid handle");
+  require(
+      ownerFirst.isValid() && ownerSecond.isValid() && requesterFirst.isValid() &&
+          requesterSecond.isValid(),
+      "Ownership-acquisition publication attribute lookup returned an invalid handle");
+  require(
+      ownerFirst != ownerSecond,
+      "Ownership-acquisition publication adapter supplied duplicate attribute names");
+
+  rti::AttributeHandleSet const ownerFirstOnly{ownerFirst};
+  rti::AttributeHandleSet const ownerSecondOnly{ownerSecond};
+  rti::AttributeHandleSet const requesterFirstOnly{requesterFirst};
+  rti::AttributeHandleSet const requesterSecondOnly{requesterSecond};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerFirstOnly);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Ownership-acquisition publication registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "Ownership-acquisition publication object discovery");
+
+  std::vector<std::uint8_t> const initialTagBytes{0x11U, 0x22U};
+  std::vector<std::uint8_t> const acquisitionTagBytes{0x33U, 0x44U, 0x55U};
+  std::vector<std::uint8_t> const denialTagBytes{0x66U, 0x77U};
+  rti::VariableLengthData const initialTag(
+      initialTagBytes.data(),
+      initialTagBytes.size());
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  rti::VariableLengthData const denialTag(
+      denialTagBytes.data(),
+      denialTagBytes.size());
+
+  // A requester cannot acquire an attribute until it publishes that
+  // attribute. Subscription and object discovery do not replace publication.
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisition(
+            object,
+            requesterSecondOnly,
+            initialTag);
+      },
+      L"ObjectClassNotPublished",
+      "acquiring an unpublished ownership attribute");
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+
+  rti::AttributeHandle const invalidAttribute;
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisition(
+            object,
+            rti::AttributeHandleSet{invalidAttribute},
+            acquisitionTag);
+      },
+      L"AttributeNotDefined",
+      "acquiring an undefined ownership attribute");
+  requireException(
+      [&] {
+        owner.rtiAmbassador().attributeOwnershipReleaseDenied(
+            object,
+            ownerSecondOnly,
+            denialTag);
+      },
+      L"AttributeNotOwned",
+      "denying release for an attribute not owned by the owner");
+
+  // If Available reserves the owned attribute, then the regular request for
+  // both attributes supersedes that reservation. The still-unowned second
+  // attribute is acquired directly, while the owner is asked to release only
+  // the first attribute that it actually owns.
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      object,
+      requesterFirstOnly,
+      initialTag);
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      requesterAttributes,
+      acquisitionTag);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+            object,
+            requesterFirstOnly,
+            initialTag);
+      },
+      L"AttributeAlreadyBeingAcquired",
+      "repeating an If Available request after regular acquisition began");
+
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+      options,
+      "Ownership-acquisition publication release request");
+  auto const releaseRequest = owner.recorder().ownershipReleaseRequest();
+  require(
+      releaseRequest->object == object &&
+          releaseRequest->attributes == ownerFirstOnly &&
+          releaseRequest->tag == acquisitionTagBytes,
+      "Ownership-acquisition publication release request returned the wrong subset or tag");
+
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "Ownership-acquisition publication direct acquisition");
+  auto const acquisition = requester.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == requesterSecondOnly &&
+          acquisition->tag == acquisitionTagBytes,
+      "Ownership-acquisition publication notification returned the wrong unowned subset or tag");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterFirst) &&
+          requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterSecond),
+      "Ownership-acquisition publication established the wrong split ownership state");
+
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass,
+      requesterSecondOnly);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().unpublishObjectClassAttributes(
+            requesterClass,
+            requesterFirstOnly);
+      },
+      L"OwnershipAcquisitionPending",
+      "unpublishing an attribute with a pending regular acquisition");
+
+  requester.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().attributeOwnershipReleaseDenied(
+      object,
+      ownerFirstOnly,
+      denialTag);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipUnavailable().has_value(); },
+      options,
+      "Ownership-acquisition publication denial");
+  auto const unavailable = requester.recorder().ownershipUnavailable();
+  require(
+      unavailable->object == object &&
+          unavailable->attributes == requesterFirstOnly &&
+          unavailable->tag == denialTagBytes,
+      "Ownership-acquisition publication denial returned the wrong subset or tag");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterFirst),
+      "Ownership-acquisition publication denial changed ownership");
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass,
+      requesterFirstOnly);
+
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioOwnershipAcquisitionPublicationFenceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOwnershipAcquisitionPublicationFence(options, model);
+}
+
 void scenarioDivestitureIfWantedMixedAcquirers(
     Options const& options,
     rti::CallbackModel model) {
@@ -56912,6 +57138,8 @@ std::vector<std::string> allScenarioIds() {
       "java-tck.ownership",
       "cpp-tck.partial-attribute-ownership-transfer",
       "cpp-tck.partial-attribute-ownership-transfer-contract",
+      "cpp-tck.ownership-acquisition-publication-fence",
+      "cpp-tck.ownership-acquisition-publication-fence-contract",
       "cpp-tck.divestiture-if-wanted-mixed-acquirers",
       "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract",
       "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
@@ -58339,6 +58567,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.partial-attribute-ownership-transfer-contract") {
     return scenarioPartialAttributeOwnershipTransferContract;
+  }
+  if (id == "cpp-tck.ownership-acquisition-publication-fence") {
+    return scenarioOwnershipAcquisitionPublicationFence;
+  }
+  if (id == "cpp-tck.ownership-acquisition-publication-fence-contract") {
+    return scenarioOwnershipAcquisitionPublicationFenceContract;
   }
   if (id == "cpp-tck.divestiture-if-wanted-mixed-acquirers") {
     return scenarioDivestitureIfWantedMixedAcquirers;

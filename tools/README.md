@@ -130,8 +130,9 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 411 promoted scenario IDs (822 callback-model cases).
-`--scenario-set all` configures the same 411 available IDs (822 cases). The
+The verified lane is 413 promoted scenario IDs (826 callback-model cases).
+`--scenario-set all` currently configures the same 413 available IDs (826
+cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
@@ -141,6 +142,15 @@ into the direct evidence; the no-fixture candidate-inclusive baseline records
 completes 686/686 ordinary CTest cases with no failures and records 678 direct
 passes plus only the ten documented candidate immediate-model skips across all
 688 callback-model cases.
+The promoted `cpp-tck.ownership-acquisition-publication-fence` slice and its
+pure standard contract twin cover ownership-acquisition publication fences,
+partial and overlapping pending acquisition, release denial, exact callback
+subsets/tags, ownership splitting, and the unpublish-pending boundary. Their
+focused installed-package lane passed 4/4 callback-model cases; the complete
+verified matrix passed 824/826 cases with two expected adapter-managed
+connection-loss skips and zero failures. The portable source remains limited
+to the official IEEE C++ API and standard library, with provider, FOM,
+endpoint, and callback configuration supplied by the adapter.
 The latest promoted ordinary attribute fan-out slice adds
 `cpp-tck.attribute-multi-recipient-fifo` and its pure standard contract twin.
 Its focused lane passed 4/4 callback-model cases, and the catalog-wide gate

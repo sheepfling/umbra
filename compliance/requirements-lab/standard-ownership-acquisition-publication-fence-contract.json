@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 ownership-acquisition publication and pending-state boundaries. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, multi-attribute FOM, endpoint, callback configuration, and logical-time implementation. It verifies that subscription and discovery do not replace publication, that an undefined attribute and release denial for an unowned attribute are rejected, that regular acquisition supersedes an overlapping If Available reservation, that an unowned published attribute is acquired directly while only the owning attribute produces a release request, and that denial preserves ownership and the pending-publication boundary. It does not assert provider-specific names, registries, headers, transport, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-acquisition-publication-fence",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador publication, subscription, ownership acquisition, ownership status, unpublication, release denial, and resignation services with FederateAmbassador discovery and ownership callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-acquisition declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioOwnershipAcquisitionPublicationFenceContract"
+      ]
+    }
+  ]
+}
