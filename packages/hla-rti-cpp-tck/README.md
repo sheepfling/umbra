@@ -273,6 +273,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.directed-interaction-target-lifecycle-contract` | Standard adapter-backed directed-interaction target lifecycle contract for subscription/publication fences, target deletion, removal, and cleanup |
 | `cpp-tck.directed-interaction-multi-recipient-fifo` | Two active universal subscribers receive two ordinary targeted interactions in producer order, preserving target, parameter, tag, producer, and transportation metadata while excluding the sender |
 | `cpp-tck.directed-interaction-multi-recipient-fifo-contract` | Standard adapter-backed directed-interaction fan-out and receive-order FIFO contract across two universal subscribers |
+| `cpp-tck.directed-interaction-mixed-subscription-fanout` | One by-ownership subscriber and two universal subscribers receive the shared target's ordinary directed interactions, while only the universal subscribers receive a second target |
+| `cpp-tck.directed-interaction-mixed-subscription-fanout-contract` | Standard adapter-backed mixed directed-interaction subscription fan-out contract with target, parameter, tag, producer, transportation, and filtering metadata |
 | `cpp-tck.directed-interaction-subscription-kind-contract` | Standard adapter-backed directed-interaction subscription-kind contract for by-ownership/universal declarations, target routing, delivery metadata, and cleanup |
 | `cpp-tck.timestamped-directed-interactions` | Timestamped directed Send/Receive, invalid class/target/retraction-handle boundaries, selective and universal target routing, constrained grant delivery, timestamp/order metadata, and retraction lifecycle |
 | `cpp-tck.timestamped-directed-interactions-contract` | Standard adapter-backed timestamped directed-interaction and retraction contract using official target-routing, time-role, and callback APIs |
@@ -1652,6 +1654,14 @@ receives no loopback. The corresponding
 `cpp-tck.directed-interaction-multi-recipient-fifo-contract` runner exposes the
 same fan-out behavior as an independently selectable pure standard C++ contract
 using only adapter-supplied provider, FOM, endpoint, and callback configuration.
+
+The promoted `cpp-tck.directed-interaction-mixed-subscription-fanout` scenario
+combines one by-ownership subscriber, two universal subscribers, and one
+unsubscribed observer. It verifies ordered metadata-preserving delivery for a
+shared target and confirms that a second target reaches only the universal
+subscribers. Its corresponding contract runner remains limited to official API
+headers, the standard library, and adapter-supplied provider/FOM/endpoint/
+callback configuration.
 
 The promoted `cpp-tck.directed-interaction-subscription-kind-contract`
 runner exposes the by-ownership and universal directed-interaction

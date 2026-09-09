@@ -32663,6 +32663,361 @@ void scenarioDirectedInteractionMultiRecipientFifoContract(
   scenarioDirectedInteractionMultiRecipientFifo(options, model);
 }
 
+void scenarioDirectedInteractionMixedSubscriptionFanout(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "directed-interaction-mixed-publisher");
+  Session owner(options, model, "directed-interaction-mixed-owner");
+  Session universalFirst(options, model, "directed-interaction-mixed-universal-first");
+  Session universalSecond(options, model, "directed-interaction-mixed-universal-second");
+  Session silent(options, model, "directed-interaction-mixed-silent");
+  auto const federation = federationName(
+      options,
+      "directed-interaction-mixed-subscription-fanout");
+  connectAndJoin(publisher, owner, options, federation, options.fom);
+  universalFirst.connect();
+  universalFirst.join(
+      options.memberFederateName + L"-universal-first",
+      options.federateType,
+      federation);
+  universalSecond.connect();
+  universalSecond.join(
+      options.memberFederateName + L"-universal-second",
+      options.federateType,
+      federation);
+  silent.connect();
+  silent.join(
+      options.memberFederateName + L"-silent",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const universalFirstClass = universalFirst.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const universalSecondClass = universalSecond.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const silentClass = silent.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const universalFirstAttribute = universalFirst.rtiAmbassador().getAttributeHandle(
+      universalFirstClass,
+      options.attributeName);
+  auto const universalSecondAttribute = universalSecond.rtiAmbassador().getAttributeHandle(
+      universalSecondClass,
+      options.attributeName);
+  auto const silentAttribute = silent.rtiAmbassador().getAttributeHandle(
+      silentClass,
+      options.attributeName);
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const ownerInteraction = owner.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const universalFirstInteraction =
+      universalFirst.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const universalSecondInteraction =
+      universalSecond.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const ownerParameter = owner.rtiAmbassador().getParameterHandle(
+      ownerInteraction,
+      options.parameterName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const universalFirstParameter = universalFirst.rtiAmbassador().getParameterHandle(
+      universalFirstInteraction,
+      options.parameterName);
+  auto const universalSecondParameter = universalSecond.rtiAmbassador().getParameterHandle(
+      universalSecondInteraction,
+      options.parameterName);
+  require(
+      publisherClass.isValid() && ownerClass.isValid() &&
+          universalFirstClass.isValid() && universalSecondClass.isValid() &&
+          silentClass.isValid() && publisherAttribute.isValid() &&
+          ownerAttribute.isValid() && universalFirstAttribute.isValid() &&
+          universalSecondAttribute.isValid() && silentAttribute.isValid() &&
+          publisherInteraction.isValid() && ownerInteraction.isValid() &&
+          universalFirstInteraction.isValid() && universalSecondInteraction.isValid() &&
+          publisherParameter.isValid() && ownerParameter.isValid() &&
+          universalFirstParameter.isValid() && universalSecondParameter.isValid(),
+      "directed interaction mixed subscription fan-out lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const universalFirstAttributes{universalFirstAttribute};
+  rti::AttributeHandleSet const universalSecondAttributes{universalSecondAttribute};
+  rti::AttributeHandleSet const silentAttributes{silentAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      publisherClass,
+      publisherAttributes,
+      true,
+      L"");
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  universalFirst.rtiAmbassador().subscribeObjectClassAttributes(
+      universalFirstClass,
+      universalFirstAttributes,
+      true,
+      L"");
+  universalSecond.rtiAmbassador().subscribeObjectClassAttributes(
+      universalSecondClass,
+      universalSecondAttributes,
+      true,
+      L"");
+  silent.rtiAmbassador().subscribeObjectClassAttributes(
+      silentClass,
+      silentAttributes,
+      true,
+      L"");
+
+  rti::InteractionClassHandleSet const publisherDirected{publisherInteraction};
+  rti::InteractionClassHandleSet const ownerDirected{ownerInteraction};
+  rti::InteractionClassHandleSet const universalFirstDirected{universalFirstInteraction};
+  rti::InteractionClassHandleSet const universalSecondDirected{universalSecondInteraction};
+  publisher.rtiAmbassador().publishObjectClassDirectedInteractions(
+      publisherClass,
+      publisherDirected);
+  owner.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      ownerClass,
+      ownerDirected,
+      false);
+  universalFirst.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      universalFirstClass,
+      universalFirstDirected,
+      true);
+  universalSecond.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      universalSecondClass,
+      universalSecondDirected,
+      true);
+
+  auto const ownerTarget = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  auto const publisherTarget = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      ownerTarget.isValid() && publisherTarget.isValid(),
+      "directed interaction mixed subscription fan-out registration returned an invalid target");
+  waitForSessions(
+      {&publisher, &universalFirst, &universalSecond, &silent},
+      [&] {
+        return publisher.recorder().hasDiscovery(ownerTarget) &&
+            universalFirst.recorder().hasDiscovery(ownerTarget) &&
+            universalFirst.recorder().hasDiscovery(publisherTarget) &&
+            universalSecond.recorder().hasDiscovery(ownerTarget) &&
+            universalSecond.recorder().hasDiscovery(publisherTarget) &&
+            silent.recorder().hasDiscovery(ownerTarget) &&
+            silent.recorder().hasDiscovery(publisherTarget);
+      },
+      options,
+      "directed interaction mixed subscription fan-out target discovery");
+
+  publisher.recorder().clearDirectedInteractions();
+  owner.recorder().clearDirectedInteractions();
+  universalFirst.recorder().clearDirectedInteractions();
+  universalSecond.recorder().clearDirectedInteractions();
+  silent.recorder().clearDirectedInteractions();
+  auto send = [&](rti::ObjectInstanceHandle const& target,
+                  std::vector<std::uint8_t> const& value,
+                  std::vector<std::uint8_t> const& tagBytes) {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherParameter,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().sendDirectedInteraction(
+        publisherInteraction,
+        target,
+        parameters,
+        tag);
+  };
+
+  std::vector<std::uint8_t> const ownerFirstValue{0x4fU, 0x31U};
+  std::vector<std::uint8_t> const ownerFirstTag{0x61U};
+  std::vector<std::uint8_t> const ownerSecondValue{0x4fU, 0x32U};
+  std::vector<std::uint8_t> const ownerSecondTag{0x62U};
+  send(ownerTarget, ownerFirstValue, ownerFirstTag);
+  send(ownerTarget, ownerSecondValue, ownerSecondTag);
+  waitForSessions(
+      {&owner, &universalFirst, &universalSecond},
+      [&] {
+        return owner.recorder().directedInteractions().size() >= 2U &&
+            universalFirst.recorder().directedInteractions().size() >= 2U &&
+            universalSecond.recorder().directedInteractions().size() >= 2U;
+      },
+      options,
+      "directed interaction mixed subscription fan-out owner-target delivery");
+
+  auto assertDelivery = [&](Session& receiver,
+                            DirectedInteractionRecord const& record,
+                            rti::InteractionClassHandle const& expectedInteraction,
+                            rti::ParameterHandle const& expectedParameter,
+                            rti::ObjectInstanceHandle const& expectedTarget,
+                            std::vector<std::uint8_t> const& expectedValue,
+                            std::vector<std::uint8_t> const& expectedTag,
+                            std::string const& description) {
+    require(
+        record.interaction == expectedInteraction && record.object == expectedTarget &&
+            record.parameters.size() == 1U &&
+            record.parameters.count(expectedParameter) == 1U &&
+            copyBytes(record.parameters.at(expectedParameter)) == expectedValue,
+        description + " returned the wrong target or parameter value");
+    require(
+        record.tag == expectedTag,
+        description + " did not preserve the user tag");
+    require(
+        record.producer == publisher.federateHandle(),
+        description + " returned the wrong producing federate");
+    require(
+        record.transportation.isValid() &&
+            !receiver.rtiAmbassador()
+                 .getTransportationTypeName(record.transportation)
+                 .empty(),
+        description + " returned an unknown transportation type");
+  };
+  auto assertOwnerTargetDeliveries = [&](Session& receiver,
+                                         rti::InteractionClassHandle const& interaction,
+                                         rti::ParameterHandle const& parameter,
+                                         std::string const& description) {
+    auto const received = receiver.recorder().directedInteractions();
+    require(
+        received.size() == 2U,
+        description + " returned an unexpected owner-target callback count");
+    assertDelivery(
+        receiver,
+        received.at(0),
+        interaction,
+        parameter,
+        ownerTarget,
+        ownerFirstValue,
+        ownerFirstTag,
+        description + " first callback");
+    assertDelivery(
+        receiver,
+        received.at(1),
+        interaction,
+        parameter,
+        ownerTarget,
+        ownerSecondValue,
+        ownerSecondTag,
+        description + " second callback");
+  };
+  assertOwnerTargetDeliveries(
+      owner,
+      ownerInteraction,
+      ownerParameter,
+      "by-ownership directed subscriber");
+  assertOwnerTargetDeliveries(
+      universalFirst,
+      universalFirstInteraction,
+      universalFirstParameter,
+      "first universal directed subscriber");
+  assertOwnerTargetDeliveries(
+      universalSecond,
+      universalSecondInteraction,
+      universalSecondParameter,
+      "second universal directed subscriber");
+  require(
+      publisher.recorder().directedInteractions().empty() &&
+          silent.recorder().directedInteractions().empty(),
+      "directed interaction mixed subscription fan-out delivered to an unrelated subscriber");
+
+  std::vector<std::uint8_t> const publisherValue{0x50U, 0x31U};
+  std::vector<std::uint8_t> const publisherTag{0x71U};
+  send(publisherTarget, publisherValue, publisherTag);
+  waitForSessions(
+      {&universalFirst, &universalSecond},
+      [&] {
+        return universalFirst.recorder().directedInteractions().size() >= 3U &&
+            universalSecond.recorder().directedInteractions().size() >= 3U;
+      },
+      options,
+      "directed interaction mixed subscription fan-out second-target delivery");
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+    silent.pump();
+  }
+  require(
+      owner.recorder().directedInteractions().size() == 2U &&
+          silent.recorder().directedInteractions().empty(),
+      "directed interaction mixed subscription fan-out ignored subscription kind");
+  assertDelivery(
+      universalFirst,
+      universalFirst.recorder().directedInteractions().at(2),
+      universalFirstInteraction,
+      universalFirstParameter,
+      publisherTarget,
+      publisherValue,
+      publisherTag,
+      "first universal second-target callback");
+  assertDelivery(
+      universalSecond,
+      universalSecond.recorder().directedInteractions().at(2),
+      universalSecondInteraction,
+      universalSecondParameter,
+      publisherTarget,
+      publisherValue,
+      publisherTag,
+      "second universal second-target callback");
+  require(
+      publisher.recorder().directedInteractions().empty(),
+      "directed interaction mixed subscription fan-out delivered back to publisher");
+
+  owner.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      ownerClass,
+      ownerDirected);
+  universalFirst.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      universalFirstClass,
+      universalFirstDirected);
+  universalSecond.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      universalSecondClass,
+      universalSecondDirected);
+  publisher.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      publisherClass,
+      publisherDirected);
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  universalFirst.rtiAmbassador().unsubscribeObjectClassAttributes(
+      universalFirstClass,
+      universalFirstAttributes);
+  universalSecond.rtiAmbassador().unsubscribeObjectClassAttributes(
+      universalSecondClass,
+      universalSecondAttributes);
+  silent.rtiAmbassador().unsubscribeObjectClassAttributes(
+      silentClass,
+      silentAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  silent.resign(rti::NO_ACTION);
+  universalSecond.resign(rti::NO_ACTION);
+  universalFirst.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  silent.disconnect();
+  universalSecond.disconnect();
+  universalFirst.disconnect();
+  owner.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioDirectedInteractionMixedSubscriptionFanoutContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDirectedInteractionMixedSubscriptionFanout(options, model);
+}
+
 void scenarioDirectedInteractionPublicationSendFence(
     Options const& options,
     rti::CallbackModel model) {
@@ -54992,6 +55347,8 @@ std::vector<std::string> allScenarioIds() {
       "java-tck.directed-interactions",
       "cpp-tck.directed-interaction-multi-recipient-fifo",
       "cpp-tck.directed-interaction-multi-recipient-fifo-contract",
+      "cpp-tck.directed-interaction-mixed-subscription-fanout",
+      "cpp-tck.directed-interaction-mixed-subscription-fanout-contract",
       "cpp-tck.directed-interaction-publication-send-fence",
       "cpp-tck.directed-interaction-publication-send-fence-contract",
       "cpp-tck.directed-interaction-target-lifecycle",
@@ -55975,6 +56332,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.directed-interaction-multi-recipient-fifo-contract") {
     return scenarioDirectedInteractionMultiRecipientFifoContract;
+  }
+  if (id == "cpp-tck.directed-interaction-mixed-subscription-fanout") {
+    return scenarioDirectedInteractionMixedSubscriptionFanout;
+  }
+  if (id == "cpp-tck.directed-interaction-mixed-subscription-fanout-contract") {
+    return scenarioDirectedInteractionMixedSubscriptionFanoutContract;
   }
   if (id == "cpp-tck.directed-interaction-publication-send-fence") {
     return scenarioDirectedInteractionPublicationSendFence;
