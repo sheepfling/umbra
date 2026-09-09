@@ -105,8 +105,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 391 promoted scenario IDs (782 callback-model cases).
-`--scenario-set all` configures the same 391 available IDs (782 cases). The
+The verified lane is 393 promoted scenario IDs (786 callback-model cases).
+`--scenario-set all` configures the same 393 available IDs (786 cases). The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
@@ -132,9 +132,14 @@ callback-model cases. The promoted
 standard contract twin preserve independent request tags from two active
 requesters, verify two provider callbacks without loopback, and fan the
 provider's ordinary response out to both subscribers. Their focused lane
-passed 4/4 callback-model cases; the current catalog-wide gate completed 782
-configured CTest cases with 780 passes and two expected adapter-managed
-connection-loss skips, plus 780 direct passes and the same two skips.
+passed 4/4 callback-model cases; the current catalog-wide gate completed 786
+configured CTest cases with 784 passes and two expected adapter-managed
+connection-loss skips, plus 784 direct passes and the same two skips. The
+promoted `cpp-tck.object-registration-discovery-multi-recipient` slice and its
+pure standard contract twin register two ordinary objects, deliver both
+discoveries to two active subscribers, preserve object name/handle/class
+identity, and suppress owner loopback. Its focused lane passed 4/4
+callback-model cases.
 The latest promoted object
 management expansion includes independently selectable pure-standard contracts
 for object-name reservation and object registration/discovery lifecycle.

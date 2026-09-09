@@ -125,6 +125,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.final-federate-resignation-cleanup-contract` | Standard adapter-backed final-federate resignation cleanup contract for name release, rejoin, and named-registration reuse |
 | `cpp-tck.object-registration-discovery-lifecycle` | Rich-FOM hierarchy-aware registration/discovery, exact and superclass subscription identity, evoked callback cancellation, late subscription discovery, stable identity lookup, and duplicate-discovery suppression |
 | `cpp-tck.object-registration-discovery-lifecycle-contract` | Standard adapter-backed object registration/discovery contract for declaration, registration, discovery, class/name/instance lookups, callback servicing, and lifecycle boundaries |
+| `cpp-tck.object-registration-discovery-multi-recipient` | Two active subscribers discover two ordinary registered objects, preserve object name/handle/class identity, and exclude the registering owner from discovery callbacks |
+| `cpp-tck.object-registration-discovery-multi-recipient-contract` | Standard adapter-backed ordinary object registration/discovery fan-out contract across two active subscribers with owner loopback suppression |
 | `cpp-tck.named-registration` | Standard object-name reservation/release, multiple-name reservation, named registration, discovery and identity lookup, reservation contention, failed-registration reuse, and callback-model parity |
 | `cpp-tck.named-registration-contract` | Standard adapter-backed named object-registration contract for reservation/release and reuse, multiple-name lifecycle, discovery and identity lookup, contention, and invalid-name boundaries |
 | `cpp-tck.object-attribute-subscription-lifecycle-contract` | Standard adapter-backed ordinary object-attribute subscription lifecycle for passive/active discovery, reflection, downgrade/reactivation, unsubscription, and stable identity lookups |
@@ -606,6 +608,15 @@ contract. It retains reservation/release and reuse, multiple-name lifecycle,
 named registration and discovery identity, contention, and invalid-name
 assertions while taking the provider package, FOM, endpoint, and callback
 configuration from the adapter.
+
+The promoted `cpp-tck.object-registration-discovery-multi-recipient` scenario
+registers two ordinary objects and verifies that two active subscribers each
+discover both objects with stable object name, instance, and class identity;
+the owner receives no discovery loopback. The corresponding
+`cpp-tck.object-registration-discovery-multi-recipient-contract` runner exposes
+the same two-recipient behavior as an independently selectable pure standard
+C++ contract using only adapter-supplied provider, FOM, endpoint, and callback
+configuration.
 
 The promoted `cpp-tck.object-attribute-subscription-lifecycle-contract` runner
 exposes the ordinary object-attribute declaration lifecycle as an independently
