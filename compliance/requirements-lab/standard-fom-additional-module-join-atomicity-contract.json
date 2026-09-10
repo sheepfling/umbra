@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for atomic rejection of invalid additional FOM modules during Join Federation Execution. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, base and valid or invalid FOM modules, endpoint, and callback configuration. It verifies that rejected joins do not mutate membership or the composed declaration set and that a valid follow-up join composes shared declarations without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-additional-module-join-atomicity",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador additional-FOM Join Federation Execution, declaration lookup, and federation lifecycle boundaries",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador additional-FOM join and FOM lookup declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomAdditionalModuleJoinAtomicityContract"
+      ]
+    }
+  ]
+}

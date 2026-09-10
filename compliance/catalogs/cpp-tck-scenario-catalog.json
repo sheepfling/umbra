@@ -18528,6 +18528,66 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-additional-module-join-atomicity",
+      "category": "fom-composition",
+      "title": "Reject invalid additional FOM modules atomically during Join Federation Execution",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution(additionalFomModules)",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-malformed-fom-input",
+        "cpp-1516.1-fom-module-composition",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.2-fom-composition-and-reference-resolution"
+      ],
+      "contract_refs": [
+        "fom-composition-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-fom-additional-module-join-atomicity-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomAdditionalModuleJoinAtomicity",
+      "runner_id": "cpp-tck.fom-additional-module-join-atomicity",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-additional-module-join-atomicity-contract",
+      "category": "fom-composition",
+      "title": "Exercise the standard atomic additional-FOM join rejection contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution(additionalFomModules)",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-malformed-fom-input",
+        "cpp-1516.1-fom-module-composition",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.2-fom-composition-and-reference-resolution"
+      ],
+      "contract_refs": [
+        "standard-fom-additional-module-join-atomicity-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomAdditionalModuleJoinAtomicityContract",
+      "runner_id": "cpp-tck.fom-additional-module-join-atomicity-contract",
+      "parity": "cpp-tck.fom-additional-module-join-atomicity",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.fom-empty-module-validation",
       "category": "fom-lifecycle",
       "title": "Reject an empty FOM module set without reserving a federation execution",

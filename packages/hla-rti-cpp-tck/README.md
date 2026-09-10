@@ -462,6 +462,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery` | Adapter-declared custom transportation with timestamped regional attribute publication/subscription/update delivery, region metadata, retraction, DDM overlap, and both callback models |
 | `cpp-tck.fom-module-composition` | Create-time FOM module composition and join-time module addition with shared declaration handles |
 | `cpp-tck.fom-module-composition-contract` | Standard adapter-backed FOM module-composition contract for create-time and join-time module addition with shared declaration handles |
+| `cpp-tck.fom-additional-module-join-atomicity` | Reject invalid additional FOM modules without mutating membership or declarations, then compose shared handles on a valid follow-up join |
+| `cpp-tck.fom-additional-module-join-atomicity-contract` | Standard adapter-backed atomic additional-FOM join rejection contract |
 | `cpp-tck.connection-loss-cleanup` | Adapter-triggered Connection Lost callback, fault description, survivor service, and cleanup |
 
 The shared ordinary-service cases reuse the Java TCK scenario IDs. The
@@ -1045,8 +1047,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-      that is 463 scenario IDs and 926 matrix cases. `--scenario-set all` currently
-       configures the same 463 available IDs (926 cases); there are no unpromoted
+      that is 465 scenario IDs and 930 matrix cases. `--scenario-set all` currently
+       configures the same 465 available IDs (930 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1090,6 +1092,12 @@ The promoted `cpp-tck.fom-empty-module-validation` scenario checks the
 standard empty-FOM rejection boundary, then creates and joins the same
 federation name with the adapter-supplied FOM to prove that the rejected
 request did not reserve partial state. It uses only the official C++ API.
+The promoted `cpp-tck.fom-additional-module-join-atomicity` scenario and its
+contract twin reject each adapter-supplied invalid additional FOM with a
+standard exception, verify that membership and declaration lookups remain
+unchanged, and then verify a valid follow-up join composes shared handles. The
+focused installed-package lane passed 4/4 callback-model cases using only the
+official C++ API and standard library.
 
 The promoted `cpp-tck.explicit-mim-creation-contract` and
 `cpp-tck.federation-mom-current-fdd-contract` runners expose the standard MIM
@@ -1313,7 +1321,8 @@ promoted `cpp-tck.support-services-contract`,
 support lookup, ordinary order/transport, and advisory-switch surfaces as
 independently selectable pure C++ slices.
 The promoted `cpp-tck.fom-model-contract`,
-`cpp-tck.fom-module-composition-contract`, and
+`cpp-tck.fom-module-composition-contract`,
+`cpp-tck.fom-additional-module-join-atomicity-contract`, and
 `cpp-tck.fom-empty-module-validation-contract` runners similarly expose the
 standard FOM model, module-composition, and empty-module validation surfaces as
 independently selectable pure C++ slices.
