@@ -88,6 +88,8 @@ The executable covers these ordinary public-API workflows, under both
     | `cpp-tck.service-report-timestamped-directed-interaction-contract` | Standard adapter-backed timestamped directed-interaction service-report contract using the official MIM, logical-time API, and separate application/report callbacks |
     | `cpp-tck.service-report-timestamped-attribute-update` | Standard MOM service report paired with time-regulated timestamped `UpdateAttributeValues`, typed timestamp/retraction arguments, and reflection-before-grant ordering |
     | `cpp-tck.service-report-timestamped-attribute-update-contract` | Standard adapter-backed timestamped attribute-update service-report contract using the official MIM, logical-time API, and separate application/report callbacks |
+    | `cpp-tck.service-report-timestamped-delete-object-instance` | Standard MOM service report paired with time-regulated timestamped `DeleteObjectInstance`, typed timestamp/retraction arguments, and removal-before-grant ordering |
+    | `cpp-tck.service-report-timestamped-delete-object-instance-contract` | Standard adapter-backed timestamped object-deletion service-report contract using the official MIM, logical-time API, and separate application/report callbacks |
    | `cpp-tck.service-report-interlock` | Standard MOM service-reporting switch and HLAreportServiceInvocation active/passive subscription interlocks, including recovery after unsubscribe |
  | `cpp-tck.service-report-interlock-contract` | Standard adapter-backed service-reporting interlock contract using the official MIM and public switch/subscription APIs |
  | `cpp-tck.service-report-synchronization` | Standard MOM service reports for synchronization-point registration, confirmation, announcement, achievement, and completion callbacks |
@@ -1043,8 +1045,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-      that is 461 scenario IDs and 922 matrix cases. `--scenario-set all` currently
-       configures the same 461 available IDs (922 cases); there are no unpromoted
+      that is 463 scenario IDs and 926 matrix cases. `--scenario-set all` currently
+       configures the same 463 available IDs (926 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1571,6 +1573,15 @@ verifying typed MOM supplied and returned arguments, the optional timestamp,
 retraction identity, timestamped reflection metadata, and reflection-before-
 grant ordering. The source remains limited to the official IEEE C++ API,
 standard MIM data elements, and the standard library.
+The promoted `cpp-tck.service-report-timestamped-delete-object-instance`
+scenario and its contract twin extend that boundary through a time-regulated
+timestamped `DeleteObjectInstance`. Their focused installed-package lane passed
+4/4 cases across `HLA_EVOKED` and `HLA_IMMEDIATE` in
+`.build\\cpp-tck-timestamped-delete-service-report\\timestamped-delete-service-report.json`,
+verifying typed MOM supplied and returned arguments, the optional timestamp,
+retraction identity, timestamped removal metadata, and removal-before-grant
+ordering. The source remains limited to the official IEEE C++ API, standard MIM
+data elements, and the standard library.
 The promoted `cpp-tck.service-report-timestamped-interaction` scenario verifies
 the successful standard MOM report for a timestamped `SendInteraction` call and
 independently checks constrained delivery, logical-time grant ordering,

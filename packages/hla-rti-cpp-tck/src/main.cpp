@@ -21327,6 +21327,349 @@ void scenarioServiceReportTimestampedAttributeUpdateContract(
   scenarioServiceReportTimestampedAttributeUpdate(options, model);
 }
 
+void scenarioServiceReportTimestampedDeleteObjectInstance(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Timestamped delete-object service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Timestamped delete-object service-report testing requires an adapter-supplied standard MIM");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Timestamped delete-object service-report testing requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "service-report-timestamped-delete-publisher");
+  Session receiver(options, model, "service-report-timestamped-delete-receiver");
+  Session observer(options, model, "service-report-timestamped-delete-observer");
+  auto const federation = federationName(options, "service-report-timestamped-delete-object-instance");
+  publisher.connect();
+  receiver.connect();
+  observer.connect();
+  publisher.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(
+      options.ownerFederateName + L"-service-report-timestamped-delete-publisher",
+      options.federateType,
+      federation);
+  receiver.join(
+      options.memberFederateName + L"-service-report-timestamped-delete-receiver",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-timestamped-delete-observer",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid(),
+      "Timestamped delete-object service-report lookup returned an invalid object or attribute handle");
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Timestamped delete-object service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Timestamped delete-object service-report parameter lookup returned an invalid handle");
+    reportParameters.push_back(parameter);
+  }
+  auto const observerReliable =
+      observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(
+      observerReliable.isValid(),
+      "Timestamped delete-object service-report lookup returned an invalid reliable transportation handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "Timestamped delete-object service-report registration returned an invalid object handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "timestamped delete-object service-report object discovery");
+
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  receiver.rtiAmbassador().setServiceReportingSwitch(false);
+  receiver.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.recorder().clearInteraction();
+  receiver.recorder().clearTimedRemovals();
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Timestamped delete-object service-report members selected different logical-time factories");
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "timestamped delete-object service-report time-constrained callback");
+  auto const lookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(
+      lookahead != nullptr,
+      "Timestamped delete-object service-report could not allocate a lookahead interval");
+  lookahead->setToDifference(*lookaheadTime, *publisherTime.initial);
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "timestamped delete-object service-report time-regulation callback");
+
+  auto const timestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const tagBytes{'t', 's', 'o'};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  publisher.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const retraction = publisher.rtiAmbassador().deleteObjectInstance(
+      object,
+      tag,
+      *timestamp);
+  require(
+      retraction.isValid(),
+      "Timestamped delete-object service-report delete returned an invalid retraction handle");
+
+  if (model == rti::HLA_IMMEDIATE) {
+    require(
+        observer.recorder().interactions().size() == 1U,
+        "Immediate timestamped delete-object service report was not delivered synchronously");
+  } else {
+    require(
+        observer.recorder().interactions().empty(),
+        "Evoked timestamped delete-object service report was delivered before callback servicing");
+    waitFor(
+        observer,
+        [&] { return observer.recorder().interactions().size() == 1U; },
+        options,
+        "timestamped delete-object service-report callback");
+  }
+  require(
+      receiver.recorder().timedRemovals().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "Timestamped object deletion was delivered before its time advance");
+
+  auto const report = observer.recorder().interactions().at(0U);
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          report.tag.empty() && !report.producer.isValid() &&
+          !report.regions.has_value() && report.transportation == observerReliable,
+      "Timestamped delete-object service report returned non-standard metadata");
+  for (auto const& parameter : reportParameters) {
+    require(
+        report.parameters.count(parameter) == 1U,
+        "Timestamped delete-object service report omitted a standard parameter");
+  }
+
+  rti::HLAunicodeString decodedService;
+  decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+  require(
+      decodedService.get() == L"DeleteObjectInstance",
+      "Timestamped delete-object service report returned the wrong service name");
+  rti::HLAinteger16BE decodedServiceType;
+  decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
+  require(
+      decodedServiceType.get() == 2,
+      "Timestamped delete-object service report returned the wrong service type");
+  rti::HLAboolean decodedSuccess;
+  decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
+  require(
+      decodedSuccess.get(),
+      "Timestamped delete-object service report was not successful");
+
+  auto const quoted = [](std::wstring const& valueText) {
+    return std::wstring{L"\""} + valueText + L"\"";
+  };
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 3U,
+      "Timestamped delete-object service report returned the wrong supplied-argument count");
+  auto const verifyArgument = [&](std::size_t index,
+                                  rti::Integer32 type,
+                                  std::wstring const& name,
+                                  std::wstring const& valueText) {
+    auto const& argument = dynamic_cast<rti::HLAfixedRecord const&>(
+        suppliedArguments.get(index));
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(argument.get(0U)).get() == type &&
+            dynamic_cast<rti::HLAunicodeString const&>(argument.get(1U)).get() == name &&
+            dynamic_cast<rti::HLAunicodeString const&>(argument.get(2U)).get() == valueText,
+        "Timestamped delete-object service report returned a wrong supplied argument");
+  };
+  verifyArgument(
+      0U,
+      37,
+      L"Object instance designator",
+      quoted(object.toString()));
+  verifyArgument(1U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(
+      2U,
+      31,
+      L"Optional timestamp",
+      quoted(timestamp->toString()));
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 33 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get() ==
+              L"Message retraction designator",
+      "Timestamped delete-object service report returned the wrong retraction argument");
+  auto const retractionText = retraction.toString();
+  auto const retractionOpen = retractionText.find(L'(');
+  auto const retractionClose = retractionText.find(L')');
+  require(
+      retractionOpen != std::wstring::npos &&
+          retractionClose > retractionOpen + 1U,
+      "Timestamped delete-object retraction had no standard text payload");
+  auto const momRetraction = dynamic_cast<rti::HLAunicodeString const&>(
+                                 returnedArgument.get(2U))
+                                 .get();
+  constexpr std::wstring_view momRetractionPrefix = L"\"MessageRetractionHandle<";
+  require(
+      momRetraction.rfind(std::wstring{momRetractionPrefix}, 0U) == 0U &&
+          momRetraction.size() > momRetractionPrefix.size() + 1U &&
+          momRetraction[momRetraction.size() - 2U] == L'>' &&
+          momRetraction.back() == L'\"' &&
+          momRetraction.substr(
+              momRetractionPrefix.size(),
+              momRetraction.size() - momRetractionPrefix.size() - 2U) ==
+              retractionText.substr(
+                  retractionOpen + 1U,
+                  retractionClose - retractionOpen - 1U),
+      "Timestamped delete-object service report returned a mismatched retraction handle");
+  rti::HLAunicodeString decodedException;
+  decodedException.decode(report.parameters.at(reportParameters.at(5U)));
+  require(
+      decodedException.get().empty(),
+      "Successful timestamped delete-object service report carried an exception");
+  rti::HLAinteger32BE decodedSerial;
+  decodedSerial.decode(report.parameters.at(reportParameters.at(6U)));
+  require(
+      decodedSerial.get() == 0,
+      "Timestamped delete-object service report did not start at serial zero");
+
+  receiver.recorder().clearCallbackOrder();
+  publisher.recorder().clearCallbackOrder();
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  receiver.rtiAmbassador().timeAdvanceRequest(*timestamp);
+  require(
+      receiver.recorder().timedRemovals().empty(),
+      "Timestamped object deletion was delivered before the regulating federate advanced");
+  auto const publisherAdvance = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAdvance);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timedRemovals().size() == 1U;
+      },
+      options,
+      "timestamped delete-object service-report delivery and grants");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"remove", "grant"},
+      "Timestamped delete-object service report route delivered after its grant");
+
+  auto const removal = receiver.recorder().timedRemovals().at(0U);
+  require(
+      removal.object == object &&
+          removal.tag == tagBytes &&
+          removal.producer == publisher.federateHandle() &&
+          removal.time == encodeTime(*timestamp) &&
+          removal.timeText == timestamp->toString() &&
+          removal.sentOrder == rti::TIMESTAMP &&
+          removal.receivedOrder == rti::TIMESTAMP &&
+          removal.retractionPresent &&
+          removal.retraction == copyBytes(retraction.encode()),
+      "Timestamped delete-object removal returned non-standard metadata");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  receiver.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioServiceReportTimestampedDeleteObjectInstanceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedDeleteObjectInstance(options, model);
+}
+
 void scenarioServiceReportInterlock(
     Options const& options,
     rti::CallbackModel model) {
@@ -62497,6 +62840,8 @@ std::vector<std::string> allScenarioIds() {
        "cpp-tck.service-report-timestamped-directed-interaction-contract",
        "cpp-tck.service-report-timestamped-attribute-update",
        "cpp-tck.service-report-timestamped-attribute-update-contract",
+       "cpp-tck.service-report-timestamped-delete-object-instance",
+       "cpp-tck.service-report-timestamped-delete-object-instance-contract",
        "cpp-tck.service-report-interaction-failure",
       "cpp-tck.service-report-interlock",
       "cpp-tck.service-report-interlock-contract",
@@ -63448,6 +63793,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.service-report-timestamped-attribute-update-contract") {
     return scenarioServiceReportTimestampedAttributeUpdateContract;
+  }
+  if (id == "cpp-tck.service-report-timestamped-delete-object-instance") {
+    return scenarioServiceReportTimestampedDeleteObjectInstance;
+  }
+  if (id == "cpp-tck.service-report-timestamped-delete-object-instance-contract") {
+    return scenarioServiceReportTimestampedDeleteObjectInstanceContract;
   }
   if (id == "cpp-tck.service-report-interlock") {
     return scenarioServiceReportInterlock;

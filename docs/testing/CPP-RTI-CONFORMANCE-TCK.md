@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-  The verified lane currently runs 461 promoted scenarios (922 callback-model
+  The verified lane currently runs 463 promoted scenarios (926 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -713,6 +713,17 @@ headers and the standard library; provider, dimensional FOM, endpoint,
   grant ordering. The source uses only the official IEEE C++ API, standard MIM
   data elements, and the standard library; FOM, endpoint, provider, callback,
   and logical-time configuration remain adapter-owned.
+
+  The promoted `cpp-tck.service-report-timestamped-delete-object-instance`
+  scenario and its contract twin extend the same MOM boundary through a
+  time-regulated timestamped `DeleteObjectInstance`. The focused
+  installed-package lane passed 4/4 callback-model cases in
+  `.build\\cpp-tck-timestamped-delete-service-report\\timestamped-delete-service-report.json`,
+  verifying typed supplied and returned arguments, the optional timestamp,
+  retraction identity, timestamped removal metadata, and removal-before-grant
+  ordering. The source uses only the official IEEE C++ API, standard MIM data
+  elements, and the standard library; FOM, endpoint, provider, callback, and
+  logical-time configuration remain adapter-owned.
 
 The promoted `cpp-tck.resign-cancel-pending-acquisition` scenario isolates
 the standard `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` resignation action. It
@@ -2071,7 +2082,7 @@ The interaction survey maps the Java parity cases to the standard C++ surface:
 | Timestamped regional interactions | Region-qualified timestamped `Send/Receive Interaction`, overlap filtering, conveyed source-region metadata, no-overlap retraction boundaries, producer resignation, ordinary TAR/NMR and FQR/TARA/NMRA advances, producer Time Regulation re-enable with changed lookahead, and subscription replacement | Regional save/restore and broader mixed-fanout cases |
 | Timestamped default-region interactions | Default-region timestamped `Send/Receive Interaction` with explicit subscriber regions, supplied-empty source-region metadata, constrained delivery, default-region save/restore with queued retraction recovery, bounded immediate/constrained mixed fanout with Request Retraction, FQR/TARA/NMRA advances, query bounds, and retraction | Broader mixed-fanout cases |
 | Directed interactions | Pre-connect/pre-join declaration and send boundaries, `publishObjectClassDirectedInteractions`, selective or universal `subscribeObjectClassDirectedInteractions`, target routing, withdrawal, `receiveDirectedInteraction`, timestamped grant delivery, producer Time Regulation re-enable with changed lookahead, and retraction | Regional routing |
-| MOM service reporting | Adapter-supplied standard MIM, `HLAreportServiceInvocation`, seven standard report parameters, typed successful `SendInteraction`, `UpdateAttributeValues`, `RequestAttributeValueUpdate`, `ReleaseMultipleObjectInstanceNames`, `ReleaseObjectInstanceName`, `ReserveObjectInstanceName`, `RegisterObjectInstance`, `DeleteObjectInstance`, `LocalDeleteObjectInstance`, and timestamped `SendInteraction` and `UpdateAttributeValues` report values, reliable transport, and RTI-generated producer metadata | Provider-specific MOM storage, file formats, and diagnostics |
+| MOM service reporting | Adapter-supplied standard MIM, `HLAreportServiceInvocation`, seven standard report parameters, typed successful `SendInteraction`, `UpdateAttributeValues`, `RequestAttributeValueUpdate`, `ReleaseMultipleObjectInstanceNames`, `ReleaseObjectInstanceName`, `ReserveObjectInstanceName`, `RegisterObjectInstance`, `DeleteObjectInstance`, `LocalDeleteObjectInstance`, and timestamped `SendInteraction`, `UpdateAttributeValues`, and `DeleteObjectInstance` report values, reliable transport, and RTI-generated producer metadata | Provider-specific MOM storage, file formats, and diagnostics |
 | Federation listing | `listFederationExecutions`/`listFederationExecutionMembers`, execution/member report callbacks, missing-execution reporting, callback-model boundaries, and disconnected evoked-report cleanup | Provider registry and transport internals |
 | Federate lookup | `getFederateHandle`/`getFederateName`, pre-connect/pre-join boundaries, same-execution and foreign-handle identity, and active-name versus departed-designator behavior | Provider-specific identity internals |
 | Object-name reservation | Single and multiple reservation/release, standard name validation, asynchronous contention results, mixed-set release atomicity, reuse after release, and resignation cleanup | Provider-specific name allocation and registry internals |
@@ -2439,11 +2450,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-  configuration. The default `--scenario-set verified` selects the 461 catalog
-  entries with `promotion=promoted`, which produces 922 cases with
+  configuration. The default `--scenario-set verified` selects the 463 catalog
+  entries with `promotion=promoted`, which produces 926 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-  adapter-required entries; the current catalog contains 461 IDs and 922 cases,
+  adapter-required entries; the current catalog contains 463 IDs and 926 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive
