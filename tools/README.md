@@ -111,15 +111,19 @@ shell.
 
     python tools/run_cpp_tck.py --package-prefix .build/package-smoke-install --build-directory .build/cpp-tck-python --scenario-set verified --callback-model both
 
-To run a focused scenario after the build gate, add `--scenario` and
-`--skip-ctest`; the resulting file is intentionally a focused artifact:
+To run a focused scenario, repeat `--scenario`; the selected IDs constrain both
+the adapter's CTest matrix and the direct evidence run. After that focused CTest
+gate has passed, add `--skip-ctest` when only a direct evidence refresh is needed:
 
     python tools/run_cpp_tck.py --package-prefix .build/package-smoke-install --build-directory .build/cpp-tck-python --scenario cpp-tck.regional-three-dimensional-overlap --skip-configure --skip-build --skip-ctest --results .build/cpp-tck-all/three-dimensional.json
 
-For the catalog-wide evidence check, omit `--scenario` and validate the full
-promoted artifact with:
+For a focused evidence check, repeat the same IDs on the validator. For the
+catalog-wide evidence check, omit `--scenario` and validate the full promoted
+artifact with:
 
-python tools/cpp_tck.py --results .build/cpp-tck-all/api-surface-inventory-full.json --promotion promoted
+    python tools/cpp_tck.py --results .build/cpp-tck-all/three-dimensional.json --promotion promoted --scenario cpp-tck.regional-three-dimensional-overlap
+
+    python tools/cpp_tck.py --results .build/cpp-tck-all/api-surface-inventory-full.json --promotion promoted
 
 The validator rejects failed or unapproved skipped cases; it permits only the
 explicit `cpp-tck.connection-loss-cleanup` skip whose message states that an

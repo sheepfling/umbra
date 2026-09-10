@@ -32,6 +32,24 @@ cases passed with no skips or failures. Repeating `--scenario` values now
 constrains the adapter's CTest matrix as well as the direct evidence run, so a
 focused slice can be verified without launching unrelated scenarios.
 
+The untimed federation save/restore slice, including active save/restore
+interlocks, passed 6/6 callback-model cases against the same installed package.
+The related save/restore callback-control, failure, and restore-request-failure
+slice passed 12/12 cases. Their machine-readable evidence is recorded at
+`.build/cpp-tck-save-restore/results-with-interlocks.json` and
+`.build/cpp-tck-callback-save-restore/results.json`; each artifact passes the
+focused `python tools/cpp_tck.py --results ... --promotion promoted --scenario
+...` gate.
+
+The next independently verified standard slices are also green against the
+installed package: timestamped federation save/restore passed 2/2 cases, and
+timestamped regional/default-region save/restore passed 6/6 cases. The FOM
+composition, lifecycle, and model slice passed 40/40 callback-model cases; the
+federation and joined-federate MOM content/state slice passed 20/20; and the
+ordinary ownership/divestment family, including the Java parity anchor and
+contract coverage, passed 60/60. Each focused artifact was checked with the
+same scenario-aware promoted-evidence validator.
+
 ## Green P0–P6 ordinary-service, time, FOM, DDM, synchronization, callback, and save/restore boundary coverage
 
 The initial green slice exercises:
@@ -2742,6 +2760,10 @@ That focused artifact intentionally contains one scenario under both callback
 models. For the catalog-wide evidence check, omit `--scenario` and validate the
 resulting full promoted artifact with
 `python tools/cpp_tck.py --results <file> --promotion promoted`.
+For a focused artifact, repeat `--scenario` with the selected catalog IDs and
+keep `--promotion promoted` to apply the same passing-case rules to only that
+slice. Omitting `--scenario` remains the catalog-wide gate and therefore still
+rejects a focused artifact as incomplete.
 The validator rejects failed or unapproved skipped cases; it permits only the
 explicit `cpp-tck.connection-loss-cleanup` skip whose message states that an
 adapter-managed connection-loss fixture is required.

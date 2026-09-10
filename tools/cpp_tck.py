@@ -332,6 +332,7 @@ def validate_results(
     path: Path,
     catalog: dict[str, Any],
     promotion: str | None = None,
+    scenario_ids: list[str] | None = None,
 ) -> list[str]:
     data = load_json(path)
     findings: list[str] = []
@@ -345,6 +346,23 @@ def validate_results(
         for item in catalog["scenarios"]
         if promotion is None or item["promotion"] == promotion
     ]
+    if scenario_ids:
+        if len(set(scenario_ids)) != len(scenario_ids):
+            raise ValueError("--scenario values must be unique")
+        by_id = {item["id"]: item for item in catalog["scenarios"]}
+        unknown = [scenario_id for scenario_id in scenario_ids if scenario_id not in by_id]
+        if unknown:
+            raise ValueError("unknown catalog scenario(s): " + ", ".join(unknown))
+        selected = [by_id[scenario_id] for scenario_id in scenario_ids]
+        if promotion is not None:
+            wrong_promotion = [
+                item["id"] for item in selected if item["promotion"] != promotion
+            ]
+            if wrong_promotion:
+                raise ValueError(
+                    "scenario(s) do not belong to requested promotion set: "
+                    + ", ".join(wrong_promotion)
+                )
     expected = {item["runner_id"] for item in selected}
     actual = {item.get("id") for item in records}
     missing = sorted(expected - actual)
@@ -398,6 +416,12 @@ def main() -> int:
         default="all",
         help="Evidence set to validate; promoted requires passing evoked and immediate results",
     )
+    parser.add_argument(
+        "--scenario",
+        action="append",
+        default=[],
+        help="Validate this catalog scenario in the evidence; repeat for a focused slice",
+    )
     arguments = parser.parse_args()
     try:
         result = validate(arguments.catalog)
@@ -405,7 +429,12 @@ def main() -> int:
             catalog = load_catalog(arguments.catalog)
             selected_promotion = None if arguments.promotion == "all" else arguments.promotion
             result["findings"].extend(
-                validate_results(arguments.results, catalog, selected_promotion)
+                validate_results(
+                    arguments.results,
+                    catalog,
+                    selected_promotion,
+                    arguments.scenario,
+                )
             )
             result["valid"] = not result["findings"]
         print(json.dumps(result, indent=2, sort_keys=True))
