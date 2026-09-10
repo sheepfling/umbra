@@ -55457,6 +55457,193 @@ void scenarioCallbackControlsObjectNameReservationFailureContract(
   scenarioCallbackControlsObjectNameReservationFailure(options, model);
 }
 
+void scenarioCallbackControlsDeclarationAdvisories(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "owner");
+  Session subscriber(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-declaration-advisories");
+  connectAndJoin(publisher, subscriber, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const subscriberClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      L"Name");
+  auto const subscriberAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      L"Name");
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const subscriberInteraction = subscriber.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  require(
+      publisherClass.isValid() && subscriberClass.isValid() &&
+          publisherAttribute.isValid() && subscriberAttribute.isValid() &&
+          publisherInteraction.isValid() && subscriberInteraction.isValid() &&
+          publisherClass == subscriberClass &&
+          publisherAttribute == subscriberAttribute &&
+          publisherInteraction == subscriberInteraction,
+      "callback-control declaration-advisory handles did not retain identity across members");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const subscriberAttributes{subscriberAttribute};
+  publisher.recorder().clearAdvisories();
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributes,
+      true,
+      L"");
+  publisher.rtiAmbassador().disableCallbacks();
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending start-registration advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().registrationStarts().empty(),
+      "disabled callbacks exposed a start-registration advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().registrationStarts().size() == 1U; },
+      options,
+      "re-enabled start-registration advisory");
+  require(
+      publisher.recorder().registrationStarts().front() == publisherClass,
+      "re-enabled start-registration advisory lost the object-class handle");
+
+  publisher.rtiAmbassador().disableCallbacks();
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributes);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending stop-registration advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().registrationStops().empty(),
+      "disabled callbacks exposed a stop-registration advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().registrationStops().size() == 1U; },
+      options,
+      "re-enabled stop-registration advisory");
+  require(
+      publisher.recorder().registrationStops().front() == publisherClass,
+      "re-enabled stop-registration advisory lost the object-class handle");
+
+  publisher.recorder().clearAdvisories();
+  publisher.rtiAmbassador().disableCallbacks();
+  subscriber.rtiAmbassador().subscribeInteractionClass(
+      subscriberInteraction,
+      true);
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending interaction turn-on advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().interactionsOn().empty(),
+      "disabled callbacks exposed an interaction turn-on advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOn().size() == 1U; },
+      options,
+      "re-enabled interaction turn-on advisory");
+  require(
+      publisher.recorder().interactionsOn().front() == publisherInteraction,
+      "re-enabled interaction turn-on advisory lost the interaction handle");
+
+  publisher.rtiAmbassador().disableCallbacks();
+  subscriber.rtiAmbassador().unsubscribeInteractionClass(subscriberInteraction);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending interaction turn-off advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().interactionsOff().empty(),
+      "disabled callbacks exposed an interaction turn-off advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOff().size() == 1U; },
+      options,
+      "re-enabled interaction turn-off advisory");
+  require(
+      publisher.recorder().interactionsOff().front() == publisherInteraction,
+      "re-enabled interaction turn-off advisory lost the interaction handle");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClass(subscriberClass);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsDeclarationAdvisoriesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsDeclarationAdvisories(options, model);
+}
+
 void scenarioCallbackControlsAttributeValueRequest(
     Options const& options,
     rti::CallbackModel model) {
@@ -64154,6 +64341,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-object-name-reservation-contract",
       "cpp-tck.callback-controls-object-name-reservation-failure",
       "cpp-tck.callback-controls-object-name-reservation-failure-contract",
+      "cpp-tck.callback-controls-declaration-advisories",
+      "cpp-tck.callback-controls-declaration-advisories-contract",
       "cpp-tck.callback-controls-attribute-value-request",
       "cpp-tck.callback-controls-attribute-value-request-contract",
       "cpp-tck.asynchronous-delivery",
@@ -65685,6 +65874,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-object-name-reservation-failure-contract") {
     return scenarioCallbackControlsObjectNameReservationFailureContract;
+  }
+  if (id == "cpp-tck.callback-controls-declaration-advisories") {
+    return scenarioCallbackControlsDeclarationAdvisories;
+  }
+  if (id == "cpp-tck.callback-controls-declaration-advisories-contract") {
+    return scenarioCallbackControlsDeclarationAdvisoriesContract;
   }
   if (id == "cpp-tck.callback-controls-attribute-value-request") {
     return scenarioCallbackControlsAttributeValueRequest;
