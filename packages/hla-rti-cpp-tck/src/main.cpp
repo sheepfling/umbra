@@ -57385,6 +57385,100 @@ void scenarioCallbackControlsSynchronizationContract(
   scenarioCallbackControlsSynchronization(options, model);
 }
 
+void scenarioCallbackControlsTimeAdvance(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control time-advance testing requires an adapter-supplied logical-time implementation");
+
+  Session regulator(options, model, "regulator");
+  Session constrained(options, model, "constrained");
+  auto const federation = federationName(
+      options,
+      "callback-controls-time-advance");
+  connectAndJoin(regulator, constrained, options, federation, options.fom);
+
+  auto regulatorTime = makeTimeContext(regulator);
+  auto constrainedTime = makeTimeContext(constrained);
+  regulator.rtiAmbassador().enableTimeRegulation(*regulatorTime.epsilon);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "callback-control time-regulation enablement");
+  constrained.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      constrained,
+      [&] { return constrained.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "callback-control time-constrained enablement");
+
+  auto const regulatorTarget = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      4U);
+  auto const constrainedTarget = timeAfter(
+      *constrainedTime.factory,
+      *constrainedTime.initial,
+      *constrainedTime.epsilon,
+      4U);
+  constrained.rtiAmbassador().disableCallbacks();
+  regulator.rtiAmbassador().timeAdvanceRequest(*regulatorTarget);
+  constrained.rtiAmbassador().timeAdvanceRequest(*constrainedTarget);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "callback-control regulator time-advance grant");
+
+  if (model == rti::HLA_EVOKED) {
+    require(
+        constrained.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending time-advance grant");
+  } else {
+    static_cast<void>(constrained.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      constrained.recorder().timeAdvanceGrants().empty(),
+      "disabled callbacks exposed a time-advance grant");
+
+  constrained.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(constrained.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(constrained.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      constrained,
+      [&] { return constrained.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "re-enabled callback-control time-advance grant");
+  auto const regulatorGrants = regulator.recorder().timeAdvanceGrants();
+  auto const constrainedGrants = constrained.recorder().timeAdvanceGrants();
+  require(
+      regulatorGrants.front().encoded == encodeTime(*regulatorTarget) &&
+          constrainedGrants.front().encoded == encodeTime(*constrainedTarget),
+      "re-enabled time-advance callbacks returned the wrong target time");
+
+  constrained.rtiAmbassador().disableTimeConstrained();
+  regulator.rtiAmbassador().disableTimeRegulation();
+  constrained.resign(rti::NO_ACTION);
+  regulator.resign(rti::NO_ACTION);
+  regulator.rtiAmbassador().destroyFederationExecution(federation);
+  constrained.disconnect();
+  regulator.disconnect();
+}
+
+void scenarioCallbackControlsTimeAdvanceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsTimeAdvance(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -66012,6 +66106,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-ownership-query-contract",
       "cpp-tck.callback-controls-synchronization",
       "cpp-tck.callback-controls-synchronization-contract",
+      "cpp-tck.callback-controls-time-advance",
+      "cpp-tck.callback-controls-time-advance-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -67625,6 +67721,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-synchronization-contract") {
     return scenarioCallbackControlsSynchronizationContract;
+  }
+  if (id == "cpp-tck.callback-controls-time-advance") {
+    return scenarioCallbackControlsTimeAdvance;
+  }
+  if (id == "cpp-tck.callback-controls-time-advance-contract") {
+    return scenarioCallbackControlsTimeAdvanceContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
