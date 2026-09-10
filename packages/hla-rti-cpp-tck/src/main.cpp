@@ -56196,6 +56196,118 @@ void scenarioCallbackControlsAutoProvideContract(
   scenarioCallbackControlsAutoProvide(options, model);
 }
 
+void scenarioCallbackControlsOwnershipAssumption(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(options, "callback-controls-ownership-assumption");
+  connectAndJoin(owner, peer, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const peerClass = peer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const peerAttribute = peer.rtiAmbassador().getAttributeHandle(
+      peerClass,
+      options.attributeName);
+  auto const privilegeToDelete = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      L"HLAprivilegeToDeleteObject");
+  require(
+      ownerClass.isValid() && peerClass.isValid() && ownerAttribute.isValid() &&
+          peerAttribute.isValid() && privilegeToDelete.isValid() &&
+          ownerClass == peerClass,
+      "callback-control ownership-assumption lookup returned invalid or inconsistent handles");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const peerAttributes{peerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  peer.rtiAmbassador().publishObjectClassAttributes(peerClass, peerAttributes);
+  peer.rtiAmbassador().subscribeObjectClassAttributes(
+      peerClass,
+      peerAttributes,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control ownership-assumption registration returned an invalid object handle");
+  waitFor(
+      peer,
+      [&] { return peer.recorder().hasDiscovery(object); },
+      options,
+      "callback-control ownership-assumption discovery");
+
+  peer.recorder().clearOwnershipRecords();
+  peer.rtiAmbassador().disableCallbacks();
+  owner.resign(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        peer.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending ownership-assumption event");
+  } else {
+    static_cast<void>(peer.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !peer.recorder().ownershipAssumption().has_value(),
+      "disabled callbacks exposed an ownership-assumption callback");
+
+  peer.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(peer.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(peer.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      peer,
+      [&] { return peer.recorder().ownershipAssumption().has_value(); },
+      options,
+      "re-enabled callback-control ownership-assumption callback");
+  auto const assumption = peer.recorder().ownershipAssumption();
+  require(
+      assumption->object == object && assumption->attributes.count(peerAttribute) == 1U &&
+          assumption->tag.empty(),
+      "re-enabled ownership-assumption callback lost standard object, attribute, or tag data");
+
+  std::vector<std::uint8_t> const acquisitionTagBytes{0x41U, 0x53U, 0x53U};
+  rti::VariableLengthData acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  peer.recorder().clearOwnershipRecords();
+  peer.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      peerAttributes,
+      acquisitionTag);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "callback-control ownership acquisition notification");
+  auto const acquisition = peer.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object && acquisition->attributes == peerAttributes &&
+          acquisition->tag == acquisitionTagBytes &&
+          peer.rtiAmbassador().isAttributeOwnedByFederate(object, peerAttribute),
+      "ownership acquisition after callback release returned the wrong standard state");
+
+  peer.resign(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  peer.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  peer.disconnect();
+}
+
+void scenarioCallbackControlsOwnershipAssumptionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsOwnershipAssumption(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -64805,6 +64917,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-attribute-value-request-contract",
       "cpp-tck.callback-controls-auto-provide",
       "cpp-tck.callback-controls-auto-provide-contract",
+      "cpp-tck.callback-controls-ownership-assumption",
+      "cpp-tck.callback-controls-ownership-assumption-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -66364,6 +66478,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-auto-provide-contract") {
     return scenarioCallbackControlsAutoProvideContract;
+  }
+  if (id == "cpp-tck.callback-controls-ownership-assumption") {
+    return scenarioCallbackControlsOwnershipAssumption;
+  }
+  if (id == "cpp-tck.callback-controls-ownership-assumption-contract") {
+    return scenarioCallbackControlsOwnershipAssumptionContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
