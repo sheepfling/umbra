@@ -424,6 +424,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-time-advance-contract` | Standard adapter-backed callback enable and disable contract for time-advance grants, callback servicing, and time-management cleanup |
 | `cpp-tck.callback-controls-save-restore` | Callback disable/enable gating around federation save/restore lifecycle, status, and completion callbacks under both callback models |
 | `cpp-tck.callback-controls-save-restore-contract` | Standard adapter-backed callback-control contract for federation save/restore callbacks, status responses, and lifecycle cleanup |
+| `cpp-tck.callback-controls-save-restore-failures` | Callback disable/enable gating around standard federation save and restore failure callbacks under both callback models |
+| `cpp-tck.callback-controls-save-restore-failures-contract` | Standard adapter-backed callback-control contract for federation save and restore failure reasons, callback servicing, and lifecycle cleanup |
 | `cpp-tck.callback-controls-timestamped-attribute-update` | Callback disable/enable gating around timestamped attribute reflection and its time-advance grant under both callback models |
 | `cpp-tck.callback-controls-timestamped-attribute-update-contract` | Standard adapter-backed callback-control contract for timestamped attribute reflection, exact delivery metadata, and grant ordering |
 | `cpp-tck.callback-controls-timestamped-object-removal` | Callback disable/enable gating around timestamped object removal and its time-advance grant under both callback models |
@@ -1170,6 +1172,14 @@ metadata, callback-model servicing, and federation cleanup. Its focused
 installed-package lane passed 4/4 callback-model cases across three repeats
 using only the official C++ API and standard library.
 
+The newly promoted callback-control save/restore-failure slice adds
+`cpp-tck.callback-controls-save-restore-failures` and its pure contract twin. It
+verifies suppression and release of `federationNotSaved` and
+`federationNotRestored`, exact standard failure reasons, callback-model
+servicing, and federation cleanup. Its focused installed-package lane passed
+4/4 callback-model cases across three repeats using only the official C++ API
+and standard library.
+
 The newly promoted callback-control timestamped-attribute slice adds
 `cpp-tck.callback-controls-timestamped-attribute-update` and its pure contract
 twin. It verifies suppression and release of timestamped reflection and the
@@ -1369,8 +1379,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 537 scenario IDs and 1074 matrix cases. `--scenario-set all` currently
-          configures the same 537 available IDs (1074 cases); there are no unpromoted
+          that is 539 scenario IDs and 1078 matrix cases. `--scenario-set all` currently
+          configures the same 539 available IDs (1078 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

@@ -57724,6 +57724,177 @@ void scenarioCallbackControlsSaveRestoreContract(
   scenarioCallbackControlsSaveRestore(options, model);
 }
 
+void scenarioCallbackControlsSaveRestoreFailures(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-save-restore-failures");
+  connectAndJoin(owner, peer, options, federation, options.fom);
+
+  auto serviceCallbacks = [&](Session& session) {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(session.evokeMultipleCallbacks(0.0, 1.0));
+    } else {
+      static_cast<void>(session.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+  };
+
+  auto const failedSaveLabel = L"tck-callback-controls-failed-save";
+  auto const ownerSaveBefore = owner.federateSaveInitiations().size();
+  auto const peerSaveBefore = peer.federateSaveInitiations().size();
+  peer.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().requestFederationSave(failedSaveLabel);
+  waitFor(
+      owner,
+      [&] {
+        return owner.federateSaveInitiations().size() > ownerSaveBefore;
+      },
+      options,
+      "callback-control failed-save initiation for owner");
+  serviceCallbacks(peer);
+  require(
+      peer.federateSaveInitiations().size() == peerSaveBefore,
+      "disabled callbacks exposed a failed-save initiation");
+  peer.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(peer);
+  waitFor(
+      peer,
+      [&] {
+        return peer.federateSaveInitiations().size() > peerSaveBefore;
+      },
+      options,
+      "re-enabled callback-control failed-save initiation");
+
+  owner.rtiAmbassador().federateSaveBegun();
+  peer.rtiAmbassador().federateSaveBegun();
+  auto const ownerSaveFailureBefore = owner.federationNotSavedReasons().size();
+  auto const peerSaveFailureBefore = peer.federationNotSavedReasons().size();
+  peer.rtiAmbassador().disableCallbacks();
+  peer.rtiAmbassador().federateSaveNotComplete();
+  waitFor(
+      owner,
+      [&] {
+        return owner.federationNotSavedReasons().size() > ownerSaveFailureBefore;
+      },
+      options,
+      "callback-control federation-not-saved owner callback");
+  serviceCallbacks(peer);
+  require(
+      peer.federationNotSavedReasons().size() == peerSaveFailureBefore,
+      "disabled callbacks exposed federation-not-saved");
+  peer.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(peer);
+  waitFor(
+      peer,
+      [&] {
+        return peer.federationNotSavedReasons().size() > peerSaveFailureBefore;
+      },
+      options,
+      "re-enabled callback-control federation-not-saved callback");
+  require(
+      owner.federationNotSavedReasons().back() ==
+              rti::FEDERATE_REPORTED_FAILURE_DURING_SAVE &&
+          peer.federationNotSavedReasons().back() ==
+              rti::FEDERATE_REPORTED_FAILURE_DURING_SAVE,
+      "federation-not-saved returned the wrong failure reason");
+
+  auto const successfulSaveLabel = L"tck-callback-controls-restore-source";
+  auto const ownerSuccessfulSaveBefore = owner.federateSaveInitiations().size();
+  auto const peerSuccessfulSaveBefore = peer.federateSaveInitiations().size();
+  owner.rtiAmbassador().requestFederationSave(successfulSaveLabel);
+  waitForSessions(
+      {&owner, &peer},
+      [&] {
+        return owner.federateSaveInitiations().size() > ownerSuccessfulSaveBefore &&
+            peer.federateSaveInitiations().size() > peerSuccessfulSaveBefore;
+      },
+      options,
+      "callback-control restore-source save initiation");
+  owner.rtiAmbassador().federateSaveBegun();
+  peer.rtiAmbassador().federateSaveBegun();
+  auto const ownerSavedBefore = owner.federationSavedCount();
+  auto const peerSavedBefore = peer.federationSavedCount();
+  owner.rtiAmbassador().federateSaveComplete();
+  peer.rtiAmbassador().federateSaveComplete();
+  waitForSessions(
+      {&owner, &peer},
+      [&] {
+        return owner.federationSavedCount() > ownerSavedBefore &&
+            peer.federationSavedCount() > peerSavedBefore;
+      },
+      options,
+      "callback-control restore-source save completion");
+
+  auto const ownerRestoreRequestBefore =
+      owner.federationRestoreRequestsSucceeded().size();
+  auto const ownerRestoreBegunBefore = owner.federationRestoreBegunCount();
+  auto const peerRestoreBegunBefore = peer.federationRestoreBegunCount();
+  auto const ownerRestoreInitiationBefore = owner.federateRestoreInitiations().size();
+  auto const peerRestoreInitiationBefore = peer.federateRestoreInitiations().size();
+  owner.rtiAmbassador().requestFederationRestore(successfulSaveLabel);
+  waitForSessions(
+      {&owner, &peer},
+      [&] {
+        return owner.federationRestoreRequestsSucceeded().size() >
+                ownerRestoreRequestBefore &&
+            owner.federationRestoreBegunCount() > ownerRestoreBegunBefore &&
+            peer.federationRestoreBegunCount() > peerRestoreBegunBefore &&
+            owner.federateRestoreInitiations().size() >
+                ownerRestoreInitiationBefore &&
+            peer.federateRestoreInitiations().size() > peerRestoreInitiationBefore;
+      },
+      options,
+      "callback-control restore-failure initiation");
+
+  owner.rtiAmbassador().federateRestoreComplete();
+  auto const ownerRestoreFailureBefore = owner.federationNotRestoredReasons().size();
+  auto const peerRestoreFailureBefore = peer.federationNotRestoredReasons().size();
+  peer.rtiAmbassador().disableCallbacks();
+  peer.rtiAmbassador().federateRestoreNotComplete();
+  waitFor(
+      owner,
+      [&] {
+        return owner.federationNotRestoredReasons().size() > ownerRestoreFailureBefore;
+      },
+      options,
+      "callback-control federation-not-restored owner callback");
+  serviceCallbacks(peer);
+  require(
+      peer.federationNotRestoredReasons().size() == peerRestoreFailureBefore,
+      "disabled callbacks exposed federation-not-restored");
+  peer.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(peer);
+  waitFor(
+      peer,
+      [&] {
+        return peer.federationNotRestoredReasons().size() > peerRestoreFailureBefore;
+      },
+      options,
+      "re-enabled callback-control federation-not-restored callback");
+  require(
+      owner.federationNotRestoredReasons().back() ==
+              rti::FEDERATE_REPORTED_FAILURE_DURING_RESTORE &&
+          peer.federationNotRestoredReasons().back() ==
+              rti::FEDERATE_REPORTED_FAILURE_DURING_RESTORE,
+      "federation-not-restored returned the wrong failure reason");
+
+  peer.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  peer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsSaveRestoreFailuresContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsSaveRestoreFailures(options, model);
+}
+
 void scenarioCallbackControlsTimestampedAttributeUpdate(
     Options const& options,
     rti::CallbackModel model) {
@@ -68178,6 +68349,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-time-advance-contract",
       "cpp-tck.callback-controls-save-restore",
       "cpp-tck.callback-controls-save-restore-contract",
+      "cpp-tck.callback-controls-save-restore-failures",
+      "cpp-tck.callback-controls-save-restore-failures-contract",
       "cpp-tck.callback-controls-timestamped-attribute-update",
       "cpp-tck.callback-controls-timestamped-attribute-update-contract",
       "cpp-tck.callback-controls-timestamped-object-removal",
@@ -69823,6 +69996,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-save-restore-contract") {
     return scenarioCallbackControlsSaveRestoreContract;
+  }
+  if (id == "cpp-tck.callback-controls-save-restore-failures") {
+    return scenarioCallbackControlsSaveRestoreFailures;
+  }
+  if (id == "cpp-tck.callback-controls-save-restore-failures-contract") {
+    return scenarioCallbackControlsSaveRestoreFailuresContract;
   }
   if (id == "cpp-tck.callback-controls-timestamped-attribute-update") {
     return scenarioCallbackControlsTimestampedAttributeUpdate;
