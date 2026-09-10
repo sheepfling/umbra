@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for IEEE 1516.1-2025 no-time regional interaction subscription and unsubscription with empty RegionHandleSet values. The source uses only the official RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, and callback configuration. It verifies that an empty regional subscription does not create an eligible route, that a later empty regional unsubscription does not remove an existing non-empty route, and that the corresponding non-empty unsubscription does remove it. The check also verifies ordinary interaction payload, tag, producer, transportation, and conveyed source-region metadata. No provider-specific names, registries, headers, or implementation behavior are required.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-interaction-empty-subscription-sets",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional interaction publication, region creation and commit, empty and non-empty regional subscription and unsubscription, regional Send Interaction With Regions, cleanup, and FederateAmbassador receiveInteraction delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional interaction empty RegionHandleSet declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionEmptySubscriptionSetsContract"
+      ]
+    }
+  ]
+}

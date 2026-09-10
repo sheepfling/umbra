@@ -130,8 +130,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 421 promoted scenario IDs (842 callback-model cases).
-`--scenario-set all` currently configures the same 421 available IDs (842
+The verified lane is 423 promoted scenario IDs (846 callback-model cases).
+`--scenario-set all` currently configures the same 423 available IDs (846
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -186,6 +186,13 @@ source-region set, while a disjoint subscription remains silent. Their focused
 installed-package lane passed 4/4 callback-model cases. The portable source
 remains limited to the official IEEE C++ API and standard library, with
 provider, FOM, endpoint, and callback configuration supplied by the adapter.
+The promoted `cpp-tck.regional-interaction-empty-subscription-sets` slice and
+its pure standard contract twin verify that empty regional subscription and
+unsubscription sets are no-ops, while a corresponding non-empty
+unsubscription removes the route. Their focused installed-package lane
+passed 4/4 callback-model cases. The portable source remains limited to the
+official IEEE C++ API and standard library, with provider, FOM, endpoint, and
+callback configuration supplied by the adapter.
 The latest promoted ordinary attribute fan-out slice adds
 `cpp-tck.attribute-multi-recipient-fifo` and its pure standard contract twin.
 Its focused lane passed 4/4 callback-model cases, and the catalog-wide gate

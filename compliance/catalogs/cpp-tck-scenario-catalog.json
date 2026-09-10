@@ -13831,6 +13831,77 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.regional-interaction-empty-subscription-sets",
+      "category": "regional-interaction-management",
+      "title": "Treat empty regional interaction subscription and unsubscription sets as no-ops",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "interaction-region-api-contract.json",
+        "interaction-region-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalInteractionEmptySubscriptionSets",
+      "runner_id": "cpp-tck.regional-interaction-empty-subscription-sets",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.regional-interaction-empty-subscription-sets-contract",
+      "category": "regional-interaction-management",
+      "title": "Standard adapter-backed regional interaction empty subscription-set contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "standard-regional-interaction-empty-subscription-sets-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalInteractionEmptySubscriptionSetsContract",
+      "runner_id": "cpp-tck.regional-interaction-empty-subscription-sets-contract",
+      "parity": "cpp-tck.regional-interaction-empty-subscription-sets",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-source-region-snapshot",
       "category": "regional-interaction-management",
       "title": "Preserve the send-time source region for queued ordinary regional interactions",

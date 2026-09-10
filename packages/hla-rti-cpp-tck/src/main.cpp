@@ -45894,6 +45894,176 @@ void scenarioMultiRegionInteractionRoutingContract(
   scenarioMultiRegionInteractionRouting(options, model);
 }
 
+void scenarioRegionalInteractionEmptySubscriptionSets(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Regional interaction empty subscription-set semantics require an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "owner");
+  Session subscriber(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "regional-interaction-empty-subscription-sets");
+  connectAndJoin(publisher, subscriber, options, federation, options.ddmFom);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const subscriberHandles = ddmHandles(subscriber, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "regional interaction empty subscription sets");
+  require(
+      publisherHandles.interactionClass == subscriberHandles.interactionClass &&
+          publisherHandles.parameter == subscriberHandles.parameter,
+      "regional interaction empty subscription-set members resolved different declaration handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherHandles.interactionClass);
+  auto const sourceRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      0UL,
+      2UL,
+      0UL,
+      2UL);
+  auto const subscriptionRegion = createDdmRegion(
+      subscriber,
+      subscriberHandles,
+      0UL,
+      2UL,
+      0UL,
+      2UL);
+  auto const sourceRegionSet = rti::RegionHandleSet{sourceRegion};
+  auto const subscriptionRegionSet = rti::RegionHandleSet{subscriptionRegion};
+
+  subscriber.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+
+  std::vector<std::uint8_t> const valueBytes{0x52U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+
+  auto send = [&](std::vector<std::uint8_t> const& tagBytes) {
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().sendInteractionWithRegions(
+        publisherHandles.interactionClass,
+        parameters,
+        sourceRegionSet,
+        tag);
+  };
+
+  auto pumpSubscriber = [&] {
+    for (int pass = 0; pass != 8; ++pass) {
+      subscriber.pump();
+    }
+  };
+
+  auto verifyInteraction = [&](std::size_t index,
+                                std::vector<std::uint8_t> const& expectedTag,
+                                std::string const& description) {
+    auto const records = subscriber.recorder().interactions();
+    require(
+        records.size() > index,
+        description + " did not produce the expected callback");
+    auto const& record = records.at(index);
+    require(
+        record.interaction == subscriberHandles.interactionClass &&
+            record.parameters.size() == 1U &&
+            record.parameters.count(subscriberHandles.parameter) == 1U &&
+            copyBytes(record.parameters.at(subscriberHandles.parameter)) == valueBytes,
+        description + " changed the interaction class, parameter, or value");
+    require(
+        record.tag == expectedTag &&
+            record.producer == publisher.federateHandle() &&
+            record.transportation.isValid(),
+        description + " changed ordinary interaction metadata");
+    require(
+        record.regions.has_value() &&
+            record.regions->size() == 1U &&
+            record.regions->count(sourceRegion) == 1U,
+        description + " did not convey the source-region designator set");
+  };
+
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      rti::RegionHandleSet{},
+      true);
+  send(std::vector<std::uint8_t>{0x45U, 0x53U, 0x55U});
+  pumpSubscriber();
+  require(
+      subscriber.recorder().interactions().empty(),
+      "an empty regional interaction subscription created an eligible route");
+
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      subscriptionRegionSet,
+      true);
+  auto const subscribedTag = std::vector<std::uint8_t>{0x53U, 0x55U, 0x42U};
+  send(subscribedTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().interactions().size() >= 1U; },
+      options,
+      "regional interaction delivery after non-empty subscription");
+  require(
+      subscriber.recorder().interactions().size() == 1U,
+      "non-empty regional interaction subscription delivered a duplicate callback");
+  verifyInteraction(
+      0U,
+      subscribedTag,
+      "regional interaction delivery after non-empty subscription");
+
+  subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      rti::RegionHandleSet{});
+  auto const emptyUnsubscribeTag =
+      std::vector<std::uint8_t>{0x45U, 0x55U, 0x4EU};
+  send(emptyUnsubscribeTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().interactions().size() >= 2U; },
+      options,
+      "regional interaction delivery after empty unsubscription");
+  require(
+      subscriber.recorder().interactions().size() == 2U,
+      "empty regional interaction unsubscription changed the active route unexpectedly");
+  verifyInteraction(
+      1U,
+      emptyUnsubscribeTag,
+      "regional interaction delivery after empty unsubscription");
+
+  subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      subscriptionRegionSet);
+  auto const unsubscribedTag =
+      std::vector<std::uint8_t>{0x55U, 0x4EU, 0x53U};
+  send(unsubscribedTag);
+  pumpSubscriber();
+  require(
+      subscriber.recorder().interactions().size() == 2U,
+      "non-empty regional interaction unsubscription failed to remove the route");
+
+  subscriber.rtiAmbassador().deleteRegion(subscriptionRegion);
+  publisher.rtiAmbassador().deleteRegion(sourceRegion);
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherHandles.interactionClass);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioRegionalInteractionEmptySubscriptionSetsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalInteractionEmptySubscriptionSets(options, model);
+}
+
 void scenarioRegionalInteractionSourceRegionSnapshot(
     Options const& options,
     rti::CallbackModel model) {
@@ -57925,6 +58095,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.zero-dimensional-regional-interaction-contract",
       "cpp-tck.multi-region-interaction-routing",
       "cpp-tck.multi-region-interaction-routing-contract",
+      "cpp-tck.regional-interaction-empty-subscription-sets",
+      "cpp-tck.regional-interaction-empty-subscription-sets-contract",
       "cpp-tck.regional-interaction-source-region-snapshot",
       "cpp-tck.regional-interaction-source-region-snapshot-contract",
       "cpp-tck.regional-interaction-subscription-filtering",
@@ -59244,6 +59416,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.multi-region-interaction-routing-contract") {
     return scenarioMultiRegionInteractionRoutingContract;
+  }
+  if (id == "cpp-tck.regional-interaction-empty-subscription-sets") {
+    return scenarioRegionalInteractionEmptySubscriptionSets;
+  }
+  if (id == "cpp-tck.regional-interaction-empty-subscription-sets-contract") {
+    return scenarioRegionalInteractionEmptySubscriptionSetsContract;
   }
   if (id == "cpp-tck.regional-interaction-source-region-snapshot") {
     return scenarioRegionalInteractionSourceRegionSnapshot;
