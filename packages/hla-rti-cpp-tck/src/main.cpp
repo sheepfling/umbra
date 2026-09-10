@@ -57263,6 +57263,128 @@ void scenarioCallbackControlsOwnershipQueryContract(
   scenarioCallbackControlsOwnershipQuery(options, model);
 }
 
+void scenarioCallbackControlsSynchronization(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session registrar(options, model, "registrar");
+  Session member(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-synchronization");
+  connectAndJoin(registrar, member, options, federation, options.fom);
+
+  std::vector<std::uint8_t> const tagBytes{0x53U, 0x59U, 0x4EU, 0x43U};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  std::wstring const label = L"tck-callback-controls-synchronization";
+
+  // The announcement is generated while the member's callback gate is
+  // closed. Servicing the underlying transport must not enter the standard
+  // FederateAmbassador callback until enableCallbacks is called.
+  member.rtiAmbassador().disableCallbacks();
+  registrar.rtiAmbassador().registerFederationSynchronizationPoint(label, tag);
+  waitFor(
+      registrar,
+      [&] {
+        return registrar.synchronizationPointRegistrations().size() == 1U &&
+            registrar.synchronizationPointAnnouncements().size() == 1U;
+      },
+      options,
+      "callback-control synchronization registration and announcement");
+  auto const registrarRegistration = registrar.synchronizationPointRegistrations().front();
+  require(
+      registrarRegistration.succeeded && registrarRegistration.label == label,
+      "callback-control synchronization registration returned the wrong result");
+  auto const registrarAnnouncements = registrar.synchronizationPointAnnouncements();
+  require(
+      registrarAnnouncements.front().label == label &&
+          registrarAnnouncements.front().tag == tagBytes,
+      "callback-control synchronization announcement returned the wrong metadata");
+
+  if (model == rti::HLA_EVOKED) {
+    require(
+        member.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending synchronization announcement");
+  } else {
+    static_cast<void>(member.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      member.synchronizationPointAnnouncements().empty(),
+      "disabled callbacks exposed a synchronization announcement");
+
+  member.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(member.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(member.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      member,
+      [&] { return member.synchronizationPointAnnouncements().size() == 1U; },
+      options,
+      "re-enabled callback-control synchronization announcement");
+  auto const memberAnnouncements = member.synchronizationPointAnnouncements();
+  require(
+      memberAnnouncements.front().label == label &&
+          memberAnnouncements.front().tag == tagBytes,
+      "re-enabled synchronization announcement returned the wrong metadata");
+
+  // Both members achieve the announced point while the member's completion
+  // callback gate is closed. The registrar may complete independently, but
+  // the member must not enter FederationSynchronized until re-enabled.
+  member.rtiAmbassador().disableCallbacks();
+  registrar.rtiAmbassador().synchronizationPointAchieved(label, true);
+  member.rtiAmbassador().synchronizationPointAchieved(label, true);
+  waitFor(
+      registrar,
+      [&] { return registrar.federationSynchronized().size() == 1U; },
+      options,
+      "callback-control synchronization completion for registrar");
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(member.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(member.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      member.federationSynchronized().empty(),
+      "disabled callbacks exposed a federation-synchronized callback");
+
+  member.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(member.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(member.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      member,
+      [&] { return member.federationSynchronized().size() == 1U; },
+      options,
+      "re-enabled callback-control synchronization completion");
+  auto const registrarCompletions = registrar.federationSynchronized();
+  auto const memberCompletions = member.federationSynchronized();
+  require(
+      registrarCompletions.front().label == label &&
+          registrarCompletions.front().failedToSyncSet.empty() &&
+          memberCompletions.front().label == label &&
+          memberCompletions.front().failedToSyncSet.empty(),
+      "re-enabled synchronization completion returned the wrong metadata");
+
+  member.resign(rti::NO_ACTION);
+  registrar.resign(rti::NO_ACTION);
+  registrar.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  registrar.disconnect();
+}
+
+void scenarioCallbackControlsSynchronizationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsSynchronization(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -65888,6 +66010,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-ownership-divestiture-confirmation-contract",
       "cpp-tck.callback-controls-ownership-query",
       "cpp-tck.callback-controls-ownership-query-contract",
+      "cpp-tck.callback-controls-synchronization",
+      "cpp-tck.callback-controls-synchronization-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -67495,6 +67619,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-ownership-query-contract") {
     return scenarioCallbackControlsOwnershipQueryContract;
+  }
+  if (id == "cpp-tck.callback-controls-synchronization") {
+    return scenarioCallbackControlsSynchronization;
+  }
+  if (id == "cpp-tck.callback-controls-synchronization-contract") {
+    return scenarioCallbackControlsSynchronizationContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;

@@ -418,6 +418,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-ownership-divestiture-confirmation-contract` | Standard adapter-backed callback enable and disable contract for negotiated-divestiture confirmation and callback servicing |
 | `cpp-tck.callback-controls-ownership-query` | Callback disable/enable gating around mixed ordinary ownership-query results and the RTI-owned joined-federate MOM query callback under both callback models |
 | `cpp-tck.callback-controls-ownership-query-contract` | Standard adapter-backed callback enable and disable contract for ordinary and RTI-owned ownership-query results, MOM discovery, and callback servicing |
+| `cpp-tck.callback-controls-synchronization` | Callback disable/enable gating around synchronization-point announcement and Federation Synchronized completion under both callback models |
+| `cpp-tck.callback-controls-synchronization-contract` | Standard adapter-backed callback enable and disable contract for synchronization-point callbacks, callback servicing, and completion metadata |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
@@ -1120,6 +1122,14 @@ adapter-supplied MIM setup, and federation cleanup. Its focused installed-
 package lane passed 4/4 callback-model cases across three repeats using only
 the official C++ API and standard library.
 
+The newly promoted callback-control synchronization slice adds
+`cpp-tck.callback-controls-synchronization` and its pure contract twin. It
+verifies suppression and release of synchronization-point announcements and
+Federation Synchronized completion, exact label/tag and failure-set metadata,
+callback-model servicing, and federation cleanup. Its focused installed-
+package lane passed 4/4 callback-model cases across three repeats using only
+the official C++ API and standard library.
+
 The promoted `cpp-tck.timed-regional-interaction-save-restore` expansion uses the
 adapter-supplied DDM FOM to save at time 6, roll back a live retraction, restore
 the queued timestamped regional interaction at time 8, and deliver it through
@@ -1237,8 +1247,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 511 scenario IDs and 1022 matrix cases. `--scenario-set all` currently
-          configures the same 511 available IDs (1022 cases); there are no unpromoted
+          that is 513 scenario IDs and 1026 matrix cases. `--scenario-set all` currently
+          configures the same 513 available IDs (1026 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
