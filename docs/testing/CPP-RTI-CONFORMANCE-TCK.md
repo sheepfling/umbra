@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 431 promoted scenarios (862 callback-model
+The verified lane currently runs 433 promoted scenarios (866 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -993,6 +993,21 @@ focused installed-package lane passed 4/4 callback-model cases; its JSON and
 JUnit results are in
 `.build\cpp-tck-next-regional-interaction-validation\regional-interaction-validation.json`
 and `.build\cpp-tck-next-regional-interaction-validation\regional-interaction-validation.xml`.
+The source uses only official IEEE C++ headers and the standard library; the
+rich model FOM, provider, endpoint, callback, and logical-time configuration
+remain adapter-owned.
+
+The newly promoted `cpp-tck.inherited-object-attribute-projection` scenario
+and its pure standard contract twin translate the native inherited-attribute
+projection boundary. They verify that a derived instance is discovered through
+base and derived subscriptions, that a base-only declaration receives only its
+inherited attribute, and that a derived declaration receives inherited plus
+declared attributes with ordinary payload, tag, producer, and transportation
+metadata. The focused installed-package lane passed 4/4 callback-model cases;
+its JSON and JUnit results are in
+`.build\cpp-tck-next-inherited-object-attribute-projection\inherited-object-attribute-projection.json`
+and
+`.build\cpp-tck-next-inherited-object-attribute-projection\inherited-object-attribute-projection.xml`.
 The source uses only official IEEE C++ headers and the standard library; the
 rich model FOM, provider, endpoint, callback, and logical-time configuration
 remain adapter-owned.

@@ -18254,6 +18254,77 @@
       "parity": "cpp-tck.regional-interaction-region-validation",
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.inherited-object-attribute-projection",
+      "category": "object-attribute-inheritance",
+      "title": "Project inherited and derived attributes through base and derived subscriptions",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-attribute-declarations",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.2-fom-root-hierarchy"
+      ],
+      "contract_refs": [
+        "object-class-attribute-declaration-api-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioInheritedObjectAttributeProjection",
+      "runner_id": "cpp-tck.inherited-object-attribute-projection",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.inherited-object-attribute-projection-contract",
+      "category": "object-attribute-inheritance",
+      "title": "Exercise the standard inherited object-attribute projection contract",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-object-attribute-declarations",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.2-fom-root-hierarchy"
+      ],
+      "contract_refs": [
+        "standard-inherited-object-attribute-projection-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioInheritedObjectAttributeProjectionContract",
+      "runner_id": "cpp-tck.inherited-object-attribute-projection-contract",
+      "parity": "cpp-tck.inherited-object-attribute-projection",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

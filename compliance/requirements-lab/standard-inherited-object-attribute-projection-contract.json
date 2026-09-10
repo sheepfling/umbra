@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for inherited object-attribute projection. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich model FOM, endpoint, callback configuration, and object class and attribute names. It verifies that a derived object instance is discovered through both a base-class subscription and a derived-class subscription, that a base-only subscription receives only its inherited attribute from a multi-attribute update, and that the derived subscription receives inherited plus declared attributes with the ordinary delivery metadata. It does not assert provider-specific names, registries, headers, or fixture behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-inherited-object-attribute-projection",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object-class hierarchy lookup, attribute publication and subscription, object registration, ordinary attribute update, and FederateAmbassador discovery and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador inherited object-class attribute publication, subscription, and projection declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioInheritedObjectAttributeProjectionContract"
+      ]
+    }
+  ]
+}

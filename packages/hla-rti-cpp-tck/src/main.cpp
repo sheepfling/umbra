@@ -18477,6 +18477,195 @@ void scenarioFomModel(Options const& options, rti::CallbackModel model) {
   member.resign(rti::NO_ACTION);
 }
 
+void scenarioInheritedObjectAttributeProjection(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Inherited object attribute projection requires an adapter-supplied model FOM");
+
+  Session publisher(options, model, "owner");
+  Session baseSubscriber(options, model, "member-base");
+  Session derivedSubscriber(options, model, "member-derived");
+  auto const federation = federationName(
+      options,
+      "inherited-object-attribute-projection");
+  connectAndJoin(
+      publisher,
+      baseSubscriber,
+      options,
+      federation,
+      options.modelFom);
+  derivedSubscriber.connect();
+  derivedSubscriber.join(
+      options.memberFederateName + L"-derived",
+      options.federateType,
+      federation);
+
+  auto const publisherDerivedClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const baseClass = baseSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const derivedClass = derivedSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  require(
+      publisherDerivedClass.isValid() && baseClass.isValid() && derivedClass.isValid(),
+      "inherited object attribute projection returned an invalid object class handle");
+
+  auto const publisherIdentity = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.typedIdentityAttributeName);
+  auto const publisherDerived = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.typedDerivedAttributeName);
+  auto const baseIdentity = baseSubscriber.rtiAmbassador().getAttributeHandle(
+      baseClass,
+      options.typedIdentityAttributeName);
+  auto const derivedIdentity = derivedSubscriber.rtiAmbassador().getAttributeHandle(
+      derivedClass,
+      options.typedIdentityAttributeName);
+  auto const derivedAttribute = derivedSubscriber.rtiAmbassador().getAttributeHandle(
+      derivedClass,
+      options.typedDerivedAttributeName);
+  require(
+      publisherIdentity.isValid() && publisherDerived.isValid() &&
+          baseIdentity.isValid() && derivedIdentity.isValid() &&
+          derivedAttribute.isValid(),
+      "inherited object attribute projection returned an invalid attribute handle");
+  require(
+      publisher.rtiAmbassador().getAttributeHandle(
+          publisher.rtiAmbassador().getObjectClassHandle(
+              options.typedObjectClassName),
+          options.typedIdentityAttributeName) == publisherIdentity &&
+          baseIdentity == publisherIdentity && derivedIdentity == publisherIdentity,
+      "inherited object attribute projection changed the base attribute handle");
+  require(
+      publisherDerived != publisherIdentity && derivedAttribute != derivedIdentity,
+      "inherited object attribute projection returned duplicate base and derived handles");
+
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherDerivedClass,
+      rti::AttributeHandleSet{publisherIdentity, publisherDerived});
+  baseSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      baseClass,
+      rti::AttributeHandleSet{baseIdentity},
+      true,
+      L"");
+  derivedSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      derivedClass,
+      rti::AttributeHandleSet{derivedIdentity, derivedAttribute},
+      true,
+      L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(
+      publisherDerivedClass);
+  require(
+      object.isValid(),
+      "inherited object attribute projection registration returned an invalid object handle");
+  auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      !objectName.empty() &&
+          publisher.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "inherited object attribute projection registration did not round-trip its identity");
+
+  waitFor(
+      baseSubscriber,
+      [&] { return baseSubscriber.recorder().hasDiscovery(object); },
+      options,
+      "inherited object attribute base-class discovery");
+  waitFor(
+      derivedSubscriber,
+      [&] { return derivedSubscriber.recorder().hasDiscovery(object); },
+      options,
+      "inherited object attribute derived-class discovery");
+  require(
+      baseSubscriber.recorder().discoveryCount() == 1U &&
+          derivedSubscriber.recorder().discoveryCount() == 1U,
+      "inherited object attribute projection delivered duplicate discovery callbacks");
+  for (auto* subscriber : {&baseSubscriber, &derivedSubscriber}) {
+    auto const discovery = subscriber->recorder().discovery();
+    require(
+        discovery.object == object && !discovery.name.empty() &&
+            discovery.producer == publisher.federateHandle(),
+        "inherited object attribute projection changed discovery identity metadata");
+    require(
+        subscriber->rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+            subscriber->rtiAmbassador().getObjectInstanceName(object) == objectName,
+        "inherited object attribute projection did not establish subscriber identity lookups");
+  }
+
+  std::vector<std::uint8_t> const identityBytes{0x49U, 0x44U};
+  std::vector<std::uint8_t> const derivedBytes{0x44U, 0x56U};
+  std::vector<std::uint8_t> const tagBytes{0x50U, 0x52U, 0x4AU};
+  rti::AttributeHandleValueMap values;
+  values.emplace(
+      publisherIdentity,
+      rti::VariableLengthData(identityBytes.data(), identityBytes.size()));
+  values.emplace(
+      publisherDerived,
+      rti::VariableLengthData(derivedBytes.data(), derivedBytes.size()));
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  publisher.rtiAmbassador().updateAttributeValues(object, values, tag);
+
+  waitFor(
+      baseSubscriber,
+      [&] { return baseSubscriber.recorder().reflectionCount() >= 1U; },
+      options,
+      "inherited object attribute base-class projection");
+  waitFor(
+      derivedSubscriber,
+      [&] { return derivedSubscriber.recorder().reflectionCount() >= 1U; },
+      options,
+      "inherited object attribute derived-class projection");
+  auto const baseReflection = baseSubscriber.recorder().reflection();
+  auto const derivedReflection = derivedSubscriber.recorder().reflection();
+  require(
+      baseReflection.object == object && baseReflection.tag == tagBytes &&
+          baseReflection.producer == publisher.federateHandle() &&
+          baseReflection.transportation.isValid() &&
+          baseReflection.values.size() == 1U &&
+          baseReflection.values.count(baseIdentity) == 1U &&
+          copyBytes(baseReflection.values.at(baseIdentity)) == identityBytes &&
+          baseReflection.values.count(derivedAttribute) == 0U,
+      "base-class subscription did not project only inherited attributes");
+  require(
+      derivedReflection.object == object && derivedReflection.tag == tagBytes &&
+          derivedReflection.producer == publisher.federateHandle() &&
+          derivedReflection.transportation.isValid() &&
+          derivedReflection.values.size() == 2U &&
+          derivedReflection.values.count(derivedIdentity) == 1U &&
+          derivedReflection.values.count(derivedAttribute) == 1U &&
+          copyBytes(derivedReflection.values.at(derivedIdentity)) == identityBytes &&
+          copyBytes(derivedReflection.values.at(derivedAttribute)) == derivedBytes,
+      "derived-class subscription did not retain inherited and declared attributes");
+  require(
+      publisher.recorder().reflectionCount() == 0U,
+      "inherited object attribute projection looped the update back to its publisher");
+
+  baseSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      baseClass,
+      rti::AttributeHandleSet{baseIdentity});
+  derivedSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      derivedClass,
+      rti::AttributeHandleSet{derivedIdentity, derivedAttribute});
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherDerivedClass,
+      rti::AttributeHandleSet{publisherIdentity, publisherDerived});
+  baseSubscriber.resign(rti::NO_ACTION);
+  derivedSubscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  derivedSubscriber.disconnect();
+  baseSubscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioInheritedObjectAttributeProjectionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInheritedObjectAttributeProjection(options, model);
+}
+
 void scenarioCustomTransportationInteractionDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -58880,6 +59069,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.transport-order-contract",
       "cpp-tck.relevance-advisories-contract",
       "cpp-tck.fom-model-contract",
+      "cpp-tck.inherited-object-attribute-projection",
+      "cpp-tck.inherited-object-attribute-projection-contract",
       "cpp-tck.fom-module-composition-contract",
       "cpp-tck.fom-empty-module-validation-contract",
       "cpp-tck.service-report-interaction-contract",
@@ -60793,6 +60984,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "java-tck.ordinary-edges") return scenarioOrdinaryEdges;
   if (id == "cpp-tck.fom-model") return scenarioFomModel;
+  if (id == "cpp-tck.inherited-object-attribute-projection") {
+    return scenarioInheritedObjectAttributeProjection;
+  }
+  if (id == "cpp-tck.inherited-object-attribute-projection-contract") {
+    return scenarioInheritedObjectAttributeProjectionContract;
+  }
   if (id == "cpp-tck.custom-transportation-interaction-delivery") {
     return scenarioCustomTransportationInteractionDelivery;
   }
@@ -60957,6 +61154,8 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
       } else if ((scenario == "cpp-tck.fom-model" ||
+                  scenario == "cpp-tck.inherited-object-attribute-projection" ||
+                  scenario == "cpp-tck.inherited-object-attribute-projection-contract" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery" ||

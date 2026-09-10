@@ -421,6 +421,8 @@ The executable covers these ordinary public-API workflows, under both
 | `java-tck.ordinary-edges` | Passive-delivery boundaries, idempotent object/interaction declarations, unsubscribed delivery suppression, and standard invalid-class/object/attribute/publication/parameter failures |
 | `cpp-tck.fom-model` | Rich valid FOM hierarchy, inheritance, dimensions, update rates, transportation, advisory switches, declarations, and representative typed delivery |
 | `cpp-tck.fom-model-contract` | Standard adapter-backed FOM model contract for hierarchy, inheritance, dimensions, update rates, transportation, declarations, and representative typed delivery |
+| `cpp-tck.inherited-object-attribute-projection` | Derived object discovery through base and derived subscriptions, base-only inherited-attribute projection, derived-attribute retention, and ordinary reflection metadata |
+| `cpp-tck.inherited-object-attribute-projection-contract` | Standard adapter-backed inherited object-attribute projection contract |
 | `cpp-tck.fom-empty-module-validation-contract` | Standard adapter-backed empty-module validation contract for valid and invalid FOM module boundaries |
 | `cpp-tck.custom-transportation-interaction-delivery` | Adapter-declared custom transportation lookup, ordinary interaction publication/subscription/send delivery, received transportation identity, and standard transportation query reporting |
 | `cpp-tck.custom-transportation-regional-attribute-delivery` | Adapter-declared custom transportation with ordinary regional attribute publication/subscription/update delivery, conveyed source-region metadata, overlap filtering, and both callback models |
@@ -1013,8 +1015,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 431 scenario IDs and 862 matrix cases. `--scenario-set all` currently
-    configures the same 431 available IDs (862 cases); there are no unpromoted
+    that is 433 scenario IDs and 866 matrix cases. `--scenario-set all` currently
+     configures the same 433 available IDs (866 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1027,6 +1029,15 @@ then verify that an explicit committed region with no dimensions does not
 overlap the ordinary/default subscription. Their focused installed-package
 lane passed 4/4 callback-model cases. The source uses only official IEEE C++
 API headers and the standard library; provider, FOM, endpoint, and callback
+configuration remain adapter inputs.
+
+The newly promoted `cpp-tck.inherited-object-attribute-projection` scenario
+and its pure standard contract twin verify discovery of a derived object through
+both base and derived subscriptions, base-only inherited-attribute projection,
+and derived-subscription delivery of inherited plus declared attributes with
+ordinary reflection metadata. Their focused installed-package lane passed 4/4
+callback-model cases. The source uses only official IEEE C++ API headers and the
+standard library; the rich model FOM, provider, endpoint, and callback
 configuration remain adapter inputs.
 
 The newly promoted `cpp-tck.multi-region-interaction-routing` scenario and its

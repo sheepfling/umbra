@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 431 promoted scenario IDs (862 callback-model cases).
-`--scenario-set all` currently configures the same 431 available IDs (862
+The verified lane is 433 promoted scenario IDs (866 callback-model cases).
+`--scenario-set all` currently configures the same 433 available IDs (866
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -483,6 +483,12 @@ Its focused base-and-contract lane passed 4/4 callback-model cases. The source
 uses only official IEEE C++ headers and the standard library; the rich model
 FOM, provider, endpoint, callback, and logical-time configuration remain
 adapter-owned.
+The promoted `cpp-tck.inherited-object-attribute-projection-contract` runner
+adds the independently selectable standard inherited object-attribute
+projection contract. Its focused base-and-contract lane passed 4/4
+callback-model cases; the source uses only official IEEE C++ headers and the
+standard library, while the rich model FOM, provider, endpoint, callback, and
+logical-time configuration remain adapter-owned.
 The promoted `cpp-tck.timestamped-regional-interaction-contract` runner adds
 the independently selectable standard timestamped regional interaction
 delivery and retraction contract. Its focused base-and-contract lane passed
