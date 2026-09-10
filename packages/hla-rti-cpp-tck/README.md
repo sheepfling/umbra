@@ -331,6 +331,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-interaction-source-region-snapshot-contract` | Standard adapter-backed regional interaction source-region snapshot contract |
 | `cpp-tck.regional-interaction-subscription-filtering` | Ordinary receive-order regional interaction filtering, explicit empty-region no-op behavior, overlap and disjoint delivery, callback-time subscription movement, conveyed source-region metadata, and standard region failures |
 | `cpp-tck.regional-interaction-subscription-filtering-contract` | Standard adapter-backed regional interaction subscription-filtering contract |
+| `cpp-tck.regional-interaction-region-validation` | Atomic rejection of region-qualified interaction sends and subscriptions that contain dimensions unavailable to the interaction class, followed by valid delivery |
+| `cpp-tck.regional-interaction-region-validation-contract` | Standard adapter-backed regional interaction region-context validation contract |
 | `cpp-tck.timestamped-regional-interaction` | Timestamped region-qualified interaction delivery, constrained grants, retraction, timestamp/order metadata, and conveyed region designators |
 | `cpp-tck.timestamped-regional-interaction-contract` | Standard adapter-backed timestamped regional interaction delivery and retraction contract |
 | `cpp-tck.timestamped-regional-interaction-regulation-reenable` | Queued timestamped regional interaction survives Time Regulation disable/re-enable with changed lookahead, preserving the source-region snapshot, Query Lookahead, grant ordering, metadata, and terminal retraction |
@@ -1011,8 +1013,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 429 scenario IDs and 858 matrix cases. `--scenario-set all` currently
-    configures the same 429 available IDs (858 cases); there are no unpromoted
+    that is 431 scenario IDs and 862 matrix cases. `--scenario-set all` currently
+    configures the same 431 available IDs (862 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

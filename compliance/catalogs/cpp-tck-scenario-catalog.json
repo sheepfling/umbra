@@ -18180,6 +18180,80 @@
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.regional-interaction-region-validation",
+      "category": "regional-interaction-validation",
+      "title": "Reject regional interaction region sets that contain unavailable dimensions atomically",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-ddm-range-validation"
+      ],
+      "contract_refs": [
+        "interaction-region-api-contract.json",
+        "interaction-region-requirements-contract.json",
+        "convey-region-designator-callback-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalInteractionRegionValidation",
+      "runner_id": "cpp-tck.regional-interaction-region-validation",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.regional-interaction-region-validation-contract",
+      "category": "regional-interaction-validation",
+      "title": "Exercise the standard regional interaction region-context validation contract",
+      "api_methods": [
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-ddm-range-validation"
+      ],
+      "contract_refs": [
+        "standard-regional-interaction-region-validation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegionalInteractionRegionValidationContract",
+      "runner_id": "cpp-tck.regional-interaction-region-validation-contract",
+      "parity": "cpp-tck.regional-interaction-region-validation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

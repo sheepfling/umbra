@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 429 promoted scenarios (858 callback-model
+The verified lane currently runs 431 promoted scenarios (862 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -980,6 +980,21 @@ connection-loss skips in
 `.build\cpp-tck-all\verified-evidence-regional-interaction-subscription-filtering-contract.json`.
 The source uses only official IEEE C++ headers and the standard library; the
 dimensional FOM, provider, endpoint, callback, and logical-time configuration
+remain adapter-owned.
+
+The newly promoted `cpp-tck.regional-interaction-region-validation` scenario
+and its pure standard contract twin translate the native mixed-dimensional
+validation oracle. They verify that a region-qualified interaction send fails
+with `InvalidRegionContext` before any partial delivery, that a regional
+subscription using an unavailable dimension fails without leaving a partial
+declaration, and that valid regional delivery still preserves the payload,
+tag, producer, transportation, and conveyed source-region metadata. The
+focused installed-package lane passed 4/4 callback-model cases; its JSON and
+JUnit results are in
+`.build\cpp-tck-next-regional-interaction-validation\regional-interaction-validation.json`
+and `.build\cpp-tck-next-regional-interaction-validation\regional-interaction-validation.xml`.
+The source uses only official IEEE C++ headers and the standard library; the
+rich model FOM, provider, endpoint, callback, and logical-time configuration
 remain adapter-owned.
 
 The promoted `cpp-tck.timestamped-regional-interaction-contract`

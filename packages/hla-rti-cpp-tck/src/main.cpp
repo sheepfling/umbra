@@ -2958,6 +2958,55 @@ struct DdmHandles {
   rti::DimensionHandle secondDimension;
 };
 
+struct ModelRegionalInteractionHandles {
+  rti::InteractionClassHandle interactionClass;
+  rti::ParameterHandle parameter;
+  rti::DimensionHandle firstDimension;
+  rti::DimensionHandle secondDimension;
+  rti::DimensionHandle unrelatedDimension;
+};
+
+ModelRegionalInteractionHandles modelRegionalInteractionHandles(
+    Session& session,
+    Options const& options) {
+  require(
+      options.ddmDimensionNames.size() >= 2U,
+      "model regional interaction testing requires two adapter-supplied interaction dimensions");
+  auto& rtiAmbassador = session.rtiAmbassador();
+  ModelRegionalInteractionHandles result;
+  result.interactionClass = rtiAmbassador.getInteractionClassHandle(
+      options.customRegionalInteractionClassName);
+  result.parameter = rtiAmbassador.getParameterHandle(
+      result.interactionClass,
+      options.customRegionalParameterName);
+  result.firstDimension = rtiAmbassador.getDimensionHandle(
+      options.ddmDimensionNames.at(0));
+  result.secondDimension = rtiAmbassador.getDimensionHandle(
+      options.ddmDimensionNames.at(1));
+  result.unrelatedDimension = rtiAmbassador.getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      result.interactionClass.isValid() && result.parameter.isValid(),
+      "model regional interaction lookup returned an invalid class or parameter handle");
+  require(
+      result.firstDimension.isValid() && result.secondDimension.isValid() &&
+          result.unrelatedDimension.isValid(),
+      "model regional interaction lookup returned an invalid dimension handle");
+  require(
+      result.firstDimension != result.secondDimension &&
+          result.firstDimension != result.unrelatedDimension &&
+          result.secondDimension != result.unrelatedDimension,
+      "model regional interaction adapter supplied duplicate dimensions");
+  auto const availableDimensions =
+      rtiAmbassador.getAvailableDimensionsForInteractionClass(result.interactionClass);
+  require(
+      availableDimensions.count(result.firstDimension) == 1U &&
+          availableDimensions.count(result.secondDimension) == 1U &&
+          availableDimensions.count(result.unrelatedDimension) == 0U,
+      "model regional interaction FOM did not separate available and unrelated dimensions");
+  return result;
+}
+
 DdmHandles ddmHandles(Session& session, Options const& options) {
   DdmHandles result;
   handles(
@@ -48070,6 +48119,290 @@ void scenarioRegionalInteractionSubscriptionFilteringContract(
   scenarioRegionalInteractionSubscriptionFiltering(options, model);
 }
 
+void scenarioRegionalInteractionRegionValidation(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Regional interaction region validation requires an adapter-supplied model FOM");
+
+  auto runInvalidSend = [&] {
+    Session publisher(options, model, "owner");
+    Session subscriber(options, model, "member");
+    auto const federation = federationName(
+        options,
+        "regional-interaction-region-validation-send");
+    connectAndJoin(publisher, subscriber, options, federation, options.modelFom);
+
+    auto const publisherHandles = modelRegionalInteractionHandles(publisher, options);
+    auto const subscriberHandles = modelRegionalInteractionHandles(subscriber, options);
+    require(
+        publisherHandles.interactionClass == subscriberHandles.interactionClass &&
+            publisherHandles.parameter == subscriberHandles.parameter,
+        "regional interaction validation members resolved different declaration handles");
+    publisher.rtiAmbassador().publishInteractionClass(
+        publisherHandles.interactionClass);
+    subscriber.rtiAmbassador().subscribeInteractionClass(
+        subscriberHandles.interactionClass);
+    subscriber.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+
+    auto const validRegion = publisher.rtiAmbassador().createRegion(
+        rti::DimensionHandleSet{
+            publisherHandles.firstDimension,
+            publisherHandles.secondDimension});
+    auto const unrelatedRegion = publisher.rtiAmbassador().createRegion(
+        rti::DimensionHandleSet{publisherHandles.unrelatedDimension});
+    require(
+        validRegion.isValid() && unrelatedRegion.isValid(),
+        "regional interaction validation returned an invalid source region handle");
+    publisher.rtiAmbassador().setRangeBounds(
+        validRegion,
+        publisherHandles.firstDimension,
+        rti::RangeBounds(0UL, 10UL));
+    publisher.rtiAmbassador().setRangeBounds(
+        validRegion,
+        publisherHandles.secondDimension,
+        rti::RangeBounds(0UL, 10UL));
+    publisher.rtiAmbassador().setRangeBounds(
+        unrelatedRegion,
+        publisherHandles.unrelatedDimension,
+        rti::RangeBounds(0UL, 4UL));
+    publisher.rtiAmbassador().commitRegionModifications(
+        rti::RegionHandleSet{validRegion, unrelatedRegion});
+
+    std::vector<std::uint8_t> const parameterBytes{0x01U};
+    std::vector<std::uint8_t> const invalidTagBytes{
+        0x6dU,
+        0x69U,
+        0x78U,
+        0x65U,
+        0x64U};
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherHandles.parameter,
+        rti::VariableLengthData(parameterBytes.data(), parameterBytes.size()));
+    rti::VariableLengthData const invalidTag(
+        invalidTagBytes.data(),
+        invalidTagBytes.size());
+
+    requireException(
+        [&] {
+          publisher.rtiAmbassador().sendInteractionWithRegions(
+              publisherHandles.interactionClass,
+              parameters,
+              rti::RegionHandleSet{validRegion, unrelatedRegion},
+              invalidTag);
+        },
+        L"InvalidRegionContext",
+        "regional interaction send with an unavailable dimension");
+    for (int pass = 0; pass != 8; ++pass) {
+      subscriber.pump();
+    }
+    require(
+        subscriber.recorder().interactions().empty(),
+        "invalid regional interaction send left a partial delivery behind");
+
+    std::vector<std::uint8_t> const validTagBytes{
+        0x76U,
+        0x61U,
+        0x6cU,
+        0x69U,
+        0x64U};
+    rti::VariableLengthData const validTag(
+        validTagBytes.data(),
+        validTagBytes.size());
+    publisher.rtiAmbassador().sendInteractionWithRegions(
+        publisherHandles.interactionClass,
+        parameters,
+        rti::RegionHandleSet{validRegion},
+        validTag);
+    waitFor(
+        subscriber,
+        [&] { return subscriber.recorder().interactions().size() >= 1U; },
+        options,
+        "valid regional interaction after rejected mixed region set");
+    auto const interactions = subscriber.recorder().interactions();
+    require(
+        interactions.size() == 1U,
+        "valid regional interaction after rejected mixed region set duplicated delivery");
+    auto const& interaction = interactions.front();
+    require(
+        interaction.interaction == subscriberHandles.interactionClass &&
+            interaction.parameters.size() == 1U &&
+            interaction.parameters.count(subscriberHandles.parameter) == 1U &&
+            copyBytes(interaction.parameters.at(subscriberHandles.parameter)) == parameterBytes &&
+            interaction.tag == validTagBytes &&
+            interaction.producer == publisher.federateHandle() &&
+            interaction.transportation.isValid(),
+        "valid regional interaction changed the delivered payload or metadata");
+    require(
+        interaction.regions.has_value() && interaction.regions->size() == 1U,
+        "valid regional interaction did not convey exactly one source region");
+
+    subscriber.rtiAmbassador().unsubscribeInteractionClass(
+        subscriberHandles.interactionClass);
+    publisher.rtiAmbassador().unpublishInteractionClass(
+        publisherHandles.interactionClass);
+    publisher.rtiAmbassador().deleteRegion(unrelatedRegion);
+    publisher.rtiAmbassador().deleteRegion(validRegion);
+    subscriber.resign(rti::NO_ACTION);
+    publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+    publisher.rtiAmbassador().destroyFederationExecution(federation);
+    subscriber.disconnect();
+    publisher.disconnect();
+  };
+
+  auto runInvalidSubscription = [&] {
+    Session publisher(options, model, "owner");
+    Session subscriber(options, model, "member");
+    auto const federation = federationName(
+        options,
+        "regional-interaction-region-validation-subscription");
+    connectAndJoin(publisher, subscriber, options, federation, options.modelFom);
+
+    auto const publisherHandles = modelRegionalInteractionHandles(publisher, options);
+    auto const subscriberHandles = modelRegionalInteractionHandles(subscriber, options);
+    require(
+        publisherHandles.interactionClass == subscriberHandles.interactionClass &&
+            publisherHandles.parameter == subscriberHandles.parameter,
+        "regional subscription validation members resolved different declaration handles");
+    publisher.rtiAmbassador().publishInteractionClass(
+        publisherHandles.interactionClass);
+    subscriber.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+
+    auto const sourceRegion = publisher.rtiAmbassador().createRegion(
+        rti::DimensionHandleSet{
+            publisherHandles.firstDimension,
+            publisherHandles.secondDimension});
+    auto const validSubscriptionRegion = subscriber.rtiAmbassador().createRegion(
+        rti::DimensionHandleSet{
+            subscriberHandles.firstDimension,
+            subscriberHandles.secondDimension});
+    auto const unrelatedSubscriptionRegion = subscriber.rtiAmbassador().createRegion(
+        rti::DimensionHandleSet{subscriberHandles.unrelatedDimension});
+    require(
+        sourceRegion.isValid() && validSubscriptionRegion.isValid() &&
+            unrelatedSubscriptionRegion.isValid(),
+        "regional subscription validation returned an invalid region handle");
+    publisher.rtiAmbassador().setRangeBounds(
+        sourceRegion,
+        publisherHandles.firstDimension,
+        rti::RangeBounds(0UL, 2UL));
+    publisher.rtiAmbassador().setRangeBounds(
+        sourceRegion,
+        publisherHandles.secondDimension,
+        rti::RangeBounds(0UL, 2UL));
+    subscriber.rtiAmbassador().setRangeBounds(
+        validSubscriptionRegion,
+        subscriberHandles.firstDimension,
+        rti::RangeBounds(0UL, 2UL));
+    subscriber.rtiAmbassador().setRangeBounds(
+        validSubscriptionRegion,
+        subscriberHandles.secondDimension,
+        rti::RangeBounds(0UL, 2UL));
+    subscriber.rtiAmbassador().setRangeBounds(
+        unrelatedSubscriptionRegion,
+        subscriberHandles.unrelatedDimension,
+        rti::RangeBounds(0UL, 2UL));
+    publisher.rtiAmbassador().commitRegionModifications(
+        rti::RegionHandleSet{sourceRegion});
+    subscriber.rtiAmbassador().commitRegionModifications(
+        rti::RegionHandleSet{
+            validSubscriptionRegion,
+            unrelatedSubscriptionRegion});
+
+    std::vector<std::uint8_t> const parameterBytes{0x01U};
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherHandles.parameter,
+        rti::VariableLengthData(parameterBytes.data(), parameterBytes.size()));
+    auto send = [&](std::vector<std::uint8_t> const& tagBytes) {
+      rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+      publisher.rtiAmbassador().sendInteractionWithRegions(
+          publisherHandles.interactionClass,
+          parameters,
+          rti::RegionHandleSet{sourceRegion},
+          tag);
+      for (int pass = 0; pass != 8; ++pass) {
+        subscriber.pump();
+      }
+    };
+
+    requireException(
+        [&] {
+          subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+              subscriberHandles.interactionClass,
+              rti::RegionHandleSet{unrelatedSubscriptionRegion});
+        },
+        L"InvalidRegionContext",
+        "regional interaction subscription with an unavailable dimension");
+    send({0x61U, 0x66U, 0x74U, 0x65U, 0x72U});
+    require(
+        subscriber.recorder().interactions().empty(),
+        "rejected regional interaction subscription left a partial declaration behind");
+
+    subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+        subscriberHandles.interactionClass,
+        rti::RegionHandleSet{validSubscriptionRegion});
+    std::vector<std::uint8_t> const validTagBytes{
+        0x76U,
+        0x61U,
+        0x6cU,
+        0x69U,
+        0x64U,
+        0x2dU,
+        0x73U,
+        0x75U,
+        0x62U};
+    send(validTagBytes);
+    waitFor(
+        subscriber,
+        [&] { return subscriber.recorder().interactions().size() >= 1U; },
+        options,
+        "valid regional interaction after rejected subscription");
+    auto const interactions = subscriber.recorder().interactions();
+    require(
+        interactions.size() == 1U,
+        "valid regional interaction after rejected subscription duplicated delivery");
+    auto const& interaction = interactions.front();
+    require(
+        interaction.interaction == subscriberHandles.interactionClass &&
+            interaction.parameters.size() == 1U &&
+            interaction.parameters.count(subscriberHandles.parameter) == 1U &&
+            copyBytes(interaction.parameters.at(subscriberHandles.parameter)) == parameterBytes &&
+            interaction.tag == validTagBytes &&
+            interaction.producer == publisher.federateHandle() &&
+            interaction.transportation.isValid(),
+        "valid regional subscription changed the delivered payload or metadata");
+    require(
+        interaction.regions.has_value() && interaction.regions->size() == 1U,
+        "valid regional subscription did not convey exactly one source region");
+
+    subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+        subscriberHandles.interactionClass,
+        rti::RegionHandleSet{validSubscriptionRegion});
+    publisher.rtiAmbassador().unpublishInteractionClass(
+        publisherHandles.interactionClass);
+    subscriber.rtiAmbassador().deleteRegion(unrelatedSubscriptionRegion);
+    subscriber.rtiAmbassador().deleteRegion(validSubscriptionRegion);
+    publisher.rtiAmbassador().deleteRegion(sourceRegion);
+    subscriber.resign(rti::NO_ACTION);
+    publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+    publisher.rtiAmbassador().destroyFederationExecution(federation);
+    subscriber.disconnect();
+    publisher.disconnect();
+  };
+
+  runInvalidSend();
+  runInvalidSubscription();
+}
+
+void scenarioRegionalInteractionRegionValidationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionalInteractionRegionValidation(options, model);
+}
+
 void scenarioTimestampedRegionalInteraction(
     Options const& options,
     rti::CallbackModel model) {
@@ -58844,6 +59177,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-interaction-source-region-snapshot-contract",
       "cpp-tck.regional-interaction-subscription-filtering",
       "cpp-tck.regional-interaction-subscription-filtering-contract",
+      "cpp-tck.regional-interaction-region-validation",
+      "cpp-tck.regional-interaction-region-validation-contract",
       "cpp-tck.timestamped-regional-interaction",
       "cpp-tck.timestamped-regional-interaction-contract",
       "cpp-tck.timestamped-regional-interaction-alternate-advances",
@@ -60196,6 +60531,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.regional-interaction-subscription-filtering-contract") {
     return scenarioRegionalInteractionSubscriptionFilteringContract;
   }
+  if (id == "cpp-tck.regional-interaction-region-validation") {
+    return scenarioRegionalInteractionRegionValidation;
+  }
+  if (id == "cpp-tck.regional-interaction-region-validation-contract") {
+    return scenarioRegionalInteractionRegionValidationContract;
+  }
   if (id == "cpp-tck.timestamped-regional-interaction") {
     return scenarioTimestampedRegionalInteraction;
   }
@@ -60622,6 +60963,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.custom-transportation-timestamped-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-directed-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery" ||
+                  scenario == "cpp-tck.regional-interaction-region-validation" ||
+                  scenario == "cpp-tck.regional-interaction-region-validation-contract" ||
                   scenario == "cpp-tck.object-registration-discovery-lifecycle" ||
                   scenario == "cpp-tck.federation-teardown-isolation" ||
                   scenario == "cpp-tck.federation-teardown-isolation-contract" ||

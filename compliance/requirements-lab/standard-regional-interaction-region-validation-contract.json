@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for atomic regional interaction region-context validation. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich model FOM, endpoint, callback configuration, interaction and parameter names, and dimension names. It verifies that a send using a region set containing a dimension unavailable to the interaction class fails with InvalidRegionContext before delivery, that a rejected regional subscription leaves no partial declaration, and that valid regional sends and subscriptions still deliver their payload, tag, producer, transportation, and conveyed source-region metadata. It does not assert provider-specific region encodings, registries, headers, or fixture names.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-interaction-region-validation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador interaction dimension lookup, regional interaction publication and subscription, region creation and modification, region-qualified interaction send, and FederateAmbassador receiveInteraction delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional interaction region-context validation declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRegionValidationContract"
+      ]
+    }
+  ]
+}
