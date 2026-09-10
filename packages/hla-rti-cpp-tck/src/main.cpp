@@ -58683,6 +58683,119 @@ void scenarioCallbackControlsDirectedInteractionContract(
   scenarioCallbackControlsDirectedInteraction(options, model);
 }
 
+void scenarioCallbackControlsFederationReports(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session observer(options, model, "observer");
+  auto const federation = federationName(
+      options,
+      "callback-controls-federation-reports");
+  auto const missingFederation = federationName(
+      options,
+      "callback-controls-federation-reports-missing");
+  owner.connect();
+  observer.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+  observer.join(options.memberFederateName, options.federateType, federation);
+
+  auto serviceObserverCallbacks = [&] {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(observer.evokeMultipleCallbacks(0.0, 1.0));
+    } else {
+      static_cast<void>(observer.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+  };
+  auto requireFederationReport = [&](std::string const& description) {
+    waitFor(
+        observer,
+        [&] {
+          return observer.recorder().listsFederation(
+              federation,
+              options.logicalTimeImplementationName);
+        },
+        options,
+        description);
+  };
+  auto requireMemberReport = [&](std::set<std::wstring> const& names,
+                                 std::size_t exactCount,
+                                 std::string const& description) {
+    waitFor(
+        observer,
+        [&] {
+          return observer.recorder().listsMembers(
+              federation,
+              names,
+              exactCount) &&
+              observer.recorder().listsMember(
+                  federation,
+                  options.memberFederateName,
+                  options.federateType);
+        },
+        options,
+        description);
+  };
+
+  observer.rtiAmbassador().disableCallbacks();
+  observer.rtiAmbassador().listFederationExecutions();
+  serviceObserverCallbacks();
+  require(
+      !observer.recorder().listsFederation(
+          federation,
+          options.logicalTimeImplementationName),
+      "disabled callbacks exposed a federation execution report");
+  observer.rtiAmbassador().enableCallbacks();
+  serviceObserverCallbacks();
+  requireFederationReport("re-enabled federation execution report");
+
+  observer.rtiAmbassador().disableCallbacks();
+  observer.rtiAmbassador().listFederationExecutionMembers(federation);
+  serviceObserverCallbacks();
+  require(
+      !observer.recorder().listsMembers(
+          federation,
+          {options.ownerFederateName, options.memberFederateName},
+          2U),
+      "disabled callbacks exposed a federation member report");
+  observer.rtiAmbassador().enableCallbacks();
+  serviceObserverCallbacks();
+  requireMemberReport(
+      {options.ownerFederateName, options.memberFederateName},
+      2U,
+      "re-enabled federation member report");
+
+  observer.rtiAmbassador().disableCallbacks();
+  observer.rtiAmbassador().listFederationExecutionMembers(missingFederation);
+  serviceObserverCallbacks();
+  require(
+      !observer.recorder().reportsMissing(missingFederation),
+      "disabled callbacks exposed a federation-does-not-exist report");
+  observer.rtiAmbassador().enableCallbacks();
+  serviceObserverCallbacks();
+  waitFor(
+      observer,
+      [&] { return observer.recorder().reportsMissing(missingFederation); },
+      options,
+      "re-enabled federation-does-not-exist report");
+
+  observer.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsFederationReportsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsFederationReports(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -67324,6 +67437,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-transportation-contract",
       "cpp-tck.callback-controls-directed-interaction",
       "cpp-tck.callback-controls-directed-interaction-contract",
+      "cpp-tck.callback-controls-federation-reports",
+      "cpp-tck.callback-controls-federation-reports-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -68979,6 +69094,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-directed-interaction-contract") {
     return scenarioCallbackControlsDirectedInteractionContract;
+  }
+  if (id == "cpp-tck.callback-controls-federation-reports") {
+    return scenarioCallbackControlsFederationReports;
+  }
+  if (id == "cpp-tck.callback-controls-federation-reports-contract") {
+    return scenarioCallbackControlsFederationReportsContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;

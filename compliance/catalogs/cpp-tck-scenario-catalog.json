@@ -17798,6 +17798,84 @@
     "promotion": "promoted"
   },
   {
+    "id": "cpp-tck.callback-controls-federation-reports",
+    "category": "callback-controls",
+    "title": "Gate standard federation execution and member reports with callback enable and disable services",
+    "api_methods": [
+      "RTIambassador.listFederationExecutions",
+      "RTIambassador.listFederationExecutionMembers",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.createFederationExecution",
+      "RTIambassador.joinFederationExecution",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.reportFederationExecutions",
+      "FederateAmbassador.reportFederationExecutionMembers",
+      "FederateAmbassador.reportFederationExecutionDoesNotExist"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-federation-create-join-resign-destroy",
+      "cpp-1516.1-federation-query-reports"
+    ],
+    "contract_refs": [
+      "connection-callback-api-contract.json",
+      "connection-implementation-contract.json",
+      "federation-execution-api-contract.json",
+      "federation-listing-api-contract.json",
+      "federation-listing-requirements-contract.json",
+      "federation-management-preparation-requirements-contract.json",
+      "standard-callback-controls-federation-reports-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsFederationReports",
+    "runner_id": "cpp-tck.callback-controls-federation-reports",
+    "parity": "cpp-extension-no-java-counterpart",
+    "default_status": "run",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-federation-reports-contract",
+    "category": "callback-controls",
+    "title": "Standard adapter-backed callback-control contract for federation execution and member reports",
+    "api_methods": [
+      "RTIambassador.listFederationExecutions",
+      "RTIambassador.listFederationExecutionMembers",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.createFederationExecution",
+      "RTIambassador.joinFederationExecution",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.reportFederationExecutions",
+      "FederateAmbassador.reportFederationExecutionMembers",
+      "FederateAmbassador.reportFederationExecutionDoesNotExist"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-federation-create-join-resign-destroy",
+      "cpp-1516.1-federation-query-reports"
+    ],
+    "contract_refs": [
+      "standard-callback-controls-federation-reports-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsFederationReportsContract",
+    "runner_id": "cpp-tck.callback-controls-federation-reports-contract",
+    "parity": "cpp-tck.callback-controls-federation-reports",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
+  {
     "id": "cpp-tck.federation-save-restore",
       "category": "federation-save-restore",
       "title": "Enforce save/restore-service lifecycle boundaries and coordinate standard federation save and restore lifecycle, status, and boundaries",
