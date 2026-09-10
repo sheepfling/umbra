@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for synchronization-point service reporting. The test composes an adapter-supplied application FOM and standard MIM, subscribes to HLAreportServiceInvocation through the public API, and verifies the standard Federation Management service reports for registration, confirmation, announcement, achievement, and completion, including report identity, reliable transportation, service type, supplied-argument shapes, Null return arguments, exception state, and serial progression. It also verifies the corresponding synchronization-point callbacks and failure-set semantics. Provider libraries, endpoint selection, callback model, and FOM/MIM paths remain adapter-owned; file-backed report storage and private implementation seams are outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-synchronization-service-reporting",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador explicit-MIM federation creation, service-report switch control, synchronization-point registration and achievement, and FederateAmbassador service-report and synchronization callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador synchronization services and FederateAmbassador HLAreportServiceInvocation delivery declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportSynchronizationContract"
+      ]
+    }
+  ]
+}

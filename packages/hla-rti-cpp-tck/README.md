@@ -56,14 +56,24 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.explicit-mim-creation-contract` | Pure standard C++ contract for adapter-supplied MIM composition, reserved standard designators, shared MOM declarations, and ordinary FOM preservation |
 | `cpp-tck.federation-mom-current-fdd` | Standard federation MOM discovery, `HLAcurrentFDD` request/reflection, reliable transportation reporting, and refresh after an additional-FOM join |
 | `cpp-tck.federation-mom-current-fdd-contract` | Pure standard C++ contract for federation-MOM `HLAcurrentFDD` discovery, request/reflection, transportation reporting, and additional-FOM refresh |
-| `cpp-tck.federation-mom-content-reports` | Standard federation MOM FOM-module and MIM content requests/reports, typed data decoding, callback-boundary behavior, and malformed-request failure |
-| `cpp-tck.federation-mom-content-reports-contract` | Pure standard C++ contract for federation MOM FOM-module and MIM content reports using adapter-supplied provider, FOM, endpoint, and callback configuration |
-| `cpp-tck.federation-mom-save-conditionals-contract` | Pure standard C++ contract for federation MOM save-conditionals, timed save initiation/completion, and adapter-supplied logical-time/MIM inputs |
+ | `cpp-tck.federation-mom-content-reports` | Standard federation MOM FOM-module and MIM content requests/reports, typed data decoding, callback-boundary behavior, and malformed-request failure |
+ | `cpp-tck.federation-mom-content-reports-contract` | Pure standard C++ contract for federation MOM FOM-module and MIM content reports using adapter-supplied provider, FOM, endpoint, and callback configuration |
+ | `cpp-tck.federation-mom-synchronization-queries` | Standard federation MOM synchronization-point list and per-federate status queries across pending, partial, missing, and completed states |
+ | `cpp-tck.federation-mom-synchronization-queries-contract` | Pure standard C++ contract for federation MOM synchronization-point list/status queries using adapter-supplied MIM, FOM, endpoint, and callbacks |
+ | `cpp-tck.service-report-order-transportation-lookups` | Standard MOM service reports for order and transportation lookup return values, typed arguments, reliable metadata, and serial progression |
+ | `cpp-tck.service-report-order-transportation-lookups-contract` | Standard adapter-backed order/transportation lookup service-report contract using the official MIM and public APIs |
+ | `cpp-tck.service-report-order-transportation-lookup-failures` | Standard MOM failure reports for invalid order and transportation lookups, including typed null returns, exception classes, and serial progression |
+ | `cpp-tck.service-report-order-transportation-lookup-failures-contract` | Standard adapter-backed order/transportation lookup failure-report contract using provider-neutral invalid inputs |
+ | `cpp-tck.federation-mom-save-conditionals-contract` | Pure standard C++ contract for federation MOM save-conditionals, timed save initiation/completion, and adapter-supplied logical-time/MIM inputs |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
-| `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
-| `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
-| `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
+ | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
+ | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
+ | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
+ | `cpp-tck.service-report-interlock` | Standard MOM service-reporting switch and HLAreportServiceInvocation active/passive subscription interlocks, including recovery after unsubscribe |
+ | `cpp-tck.service-report-interlock-contract` | Standard adapter-backed service-reporting interlock contract using the official MIM and public switch/subscription APIs |
+ | `cpp-tck.service-report-synchronization` | Standard MOM service reports for synchronization-point registration, confirmation, announcement, achievement, and completion callbacks |
+| `cpp-tck.service-report-synchronization-contract` | Standard adapter-backed synchronization service-report contract using the official MIM and synchronization callbacks |
 | `cpp-tck.service-report-regional-interaction` | Standard MOM service-report callback for regional `SendInteractionWithRegions`, paired with overlap-qualified regional application delivery and conveyed source-region metadata |
 | `cpp-tck.service-report-regional-interaction-contract` | Pure standard C++ contract for successful regional interaction service reporting, typed MOM invocation metadata, and overlap-qualified delivery using adapter-supplied MIM/DDM inputs |
 | `cpp-tck.service-report-regional-interaction-subscription` | Standard MOM service-report callbacks for regional `SubscribeInteractionClassWithRegions` and `UnsubscribeInteractionClassWithRegions`, including the passive-subscription indicator, typed association arguments, serial progression, and standard MIM/DDM setup |
@@ -1015,8 +1025,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 433 scenario IDs and 866 matrix cases. `--scenario-set all` currently
-     configures the same 433 available IDs (866 cases); there are no unpromoted
+     that is 443 scenario IDs and 886 matrix cases. `--scenario-set all` currently
+      configures the same 443 available IDs (886 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1293,6 +1303,17 @@ The promoted `cpp-tck.service-report-interaction-contract`,
 `cpp-tck.service-report-delete-object-instance-contract` runners expose the
 ordinary MOM service-report success routes as independently selectable pure C++
 slices using adapter-supplied standard MIM/FOM inputs.
+The promoted `cpp-tck.service-report-synchronization-contract` runner adds the
+same pure standard boundary for synchronization-point registration,
+confirmation, announcement, achievement, and completion reports. Its focused
+installed-package lane passed 4/4 callback-model cases; the source uses only
+official IEEE C++ API headers, standard MIM data elements, and the standard
+library.
+The promoted `cpp-tck.service-report-interlock-contract` runner adds the same
+pure standard boundary for the service-reporting switch and
+`HLAreportServiceInvocation` subscription interlocks. Its focused
+installed-package lane passed 4/4 callback-model cases; the provider package,
+FOM, endpoint, and callback configuration remain adapter-owned.
 The promoted `cpp-tck.null-federate-ambassador-contract` runner exposes the
 official C++ `NullFederateAmbassador` callback and overload contract as an
 independently selectable, provider- and FOM-independent slice; its parity

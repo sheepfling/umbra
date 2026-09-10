@@ -18325,6 +18325,365 @@
       "parity": "cpp-tck.inherited-object-attribute-projection",
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-synchronization",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard HLAreportServiceInvocation records for synchronization-point services",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.synchronizationPointRegistrationSucceeded",
+        "FederateAmbassador.synchronizationPointRegistrationFailed",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-synchronization-point-registration",
+        "cpp-1516.1-synchronization-point-announcement",
+        "cpp-1516.1-synchronization-point-achievement"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "synchronization-point-api-contract.json",
+        "synchronization-point-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportSynchronization",
+      "runner_id": "cpp-tck.service-report-synchronization",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-synchronization-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed synchronization service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.synchronizationPointRegistrationSucceeded",
+        "FederateAmbassador.synchronizationPointRegistrationFailed",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-synchronization-point-registration",
+        "cpp-1516.1-synchronization-point-announcement",
+        "cpp-1516.1-synchronization-point-achievement"
+      ],
+      "contract_refs": [
+        "standard-synchronization-service-report-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportSynchronizationContract",
+      "runner_id": "cpp-tck.service-report-synchronization-contract",
+      "parity": "cpp-tck.service-report-synchronization",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interlock",
+      "category": "mom-service-reporting",
+      "title": "Enforce standard HLAreportServiceInvocation and service-reporting-switch interlocks",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getServiceReportingSwitch",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "standard-service-reporting-interlock-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInterlock",
+      "runner_id": "cpp-tck.service-report-interlock",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interlock-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed service-reporting interlock contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getServiceReportingSwitch",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-service-reporting-interlock-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInterlockContract",
+      "runner_id": "cpp-tck.service-report-interlock-contract",
+      "parity": "cpp-tck.service-report-interlock",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federation-mom-synchronization-queries",
+      "category": "federation-mom",
+      "title": "Request standard federation-MOM synchronization-point lists and per-federate status",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeFederateHandle",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.synchronizationPointRegistrationSucceeded",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized",
+        "HLAunicodeString",
+        "HLAinteger32BE",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-synchronization-point-registration",
+        "cpp-1516.1-synchronization-point-announcement",
+        "cpp-1516.1-synchronization-point-achievement"
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "synchronization-point-api-contract.json",
+        "synchronization-point-requirements-contract.json",
+        "standard-federation-mom-synchronization-queries-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationSynchronizationMomQueries",
+      "runner_id": "cpp-tck.federation-mom-synchronization-queries",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federation-mom-synchronization-queries-contract",
+      "category": "federation-mom",
+      "title": "Exercise the standard adapter-backed federation-MOM synchronization query contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeFederateHandle",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.synchronizationPointRegistrationSucceeded",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-synchronization-point-registration",
+        "cpp-1516.1-synchronization-point-announcement",
+        "cpp-1516.1-synchronization-point-achievement"
+      ],
+      "contract_refs": [
+        "standard-federation-mom-synchronization-queries-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFederationSynchronizationMomQueriesContract",
+      "runner_id": "cpp-tck.federation-mom-synchronization-queries-contract",
+      "parity": "cpp-tck.federation-mom-synchronization-queries",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-order-transportation-lookups",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM service reports for order and transportation lookup return values",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getOrderType",
+        "RTIambassador.getOrderName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-service-report-order-transportation-lookups-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookups",
+      "runner_id": "cpp-tck.service-report-order-transportation-lookups",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-order-transportation-lookups-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed order and transportation lookup report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getOrderType",
+        "RTIambassador.getOrderName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-order-transportation-lookups-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookupsContract",
+      "runner_id": "cpp-tck.service-report-order-transportation-lookups-contract",
+      "parity": "cpp-tck.service-report-order-transportation-lookups",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-order-transportation-lookup-failures",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM failure reports for invalid order and transportation lookups",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getOrderType",
+        "RTIambassador.getOrderName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-service-report-order-transportation-lookups-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookupFailures",
+      "runner_id": "cpp-tck.service-report-order-transportation-lookup-failures",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-order-transportation-lookup-failures-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed order and transportation lookup failure contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getOrderType",
+        "RTIambassador.getOrderName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-order-transportation-lookups-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookupFailuresContract",
+      "runner_id": "cpp-tck.service-report-order-transportation-lookup-failures-contract",
+      "parity": "cpp-tck.service-report-order-transportation-lookup-failures",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

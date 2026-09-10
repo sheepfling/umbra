@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK checks for service reports emitted through the standard HLAreportServiceInvocation interaction when the public order and transportation lookup services are invoked. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, application FOM, standard MIM, endpoint, callback model, and logical-time configuration. It verifies typed supplied and returned argument records, service classification, reliable delivery metadata, success and failure state, standard exception classes, and serial progression for both successful and invalid lookups. Provider-private headers, registries, file sinks, names, and diagnostics are outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-order-transportation-lookups",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador order/transportation lookup services and FederateAmbassador HLAreportServiceInvocation delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador support-service lookup declarations and standard MIM service-report interaction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportOrderTransportationLookupsContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportOrderTransportationLookupFailuresContract"
+      ]
+    }
+  ]
+}

@@ -36,11 +36,15 @@ The initial green slice exercises:
   including typed indicator/data decoding, reliable transport and callback
   metadata, callback-boundary subscription revalidation, and malformed-request
   failure;
+- standard federation MOM synchronization-point list and per-federate status
+  queries across pending, partial, missing, and completed states, including
+  callback subscription gating;
 - standard MOM service reporting for successful ordinary `SendInteraction`,
   regional `SendInteractionWithRegions`,
   `UpdateAttributeValues`, `RequestAttributeValueUpdate`, `ReleaseMultipleObjectInstanceNames`, `ReleaseObjectInstanceName`, `ReserveObjectInstanceName`, `RegisterObjectInstance`, `DeleteObjectInstance`,
   `LocalDeleteObjectInstance`,
-  and timestamped `SendInteraction` services, plus ordinary
+  and timestamped `SendInteraction` services, plus order/transportation lookup
+  services and their failure reports, plus ordinary
   `UpdateAttributeValues` failure reports,
   including `HLAreportServiceInvocation`, all seven standard report parameters,
   RTI-generated producer metadata, reliable transport, and typed report values;
@@ -286,11 +290,11 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 433 promoted scenarios (866 callback-model
+ The verified lane currently runs 441 promoted scenarios (882 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
-The newly promoted ordinary interaction fan-out slice adds
+ The newly promoted ordinary interaction fan-out slice adds
 `cpp-tck.interaction-multi-recipient-fifo` and its pure contract twin. The
 focused lane passed 4/4 callback-model cases.
 The promoted ordinary attribute fan-out slice adds
@@ -1359,6 +1363,18 @@ four ordinary MOM service-report success routes as independently selectable
 pure C++ contracts. Each uses only the official IEEE C++ API, standard MIM
 data elements, and standard library; the adapter supplies the provider package,
 FOM, MIM, endpoint, and callback configuration.
+The promoted `cpp-tck.service-report-synchronization-contract` runner adds the
+same pure standard boundary for synchronization-point registration,
+confirmation, announcement, achievement, and completion reports. Its focused
+installed-package lane passed 4/4 callback-model cases; the source uses only
+official IEEE C++ API headers, standard MIM data elements, and the standard
+library while the provider package, FOM, endpoint, and callback configuration
+remain adapter-owned.
+The promoted `cpp-tck.service-report-interlock-contract` runner adds the same
+pure standard boundary for the service-reporting switch and
+`HLAreportServiceInvocation` active/passive subscription interlocks. Its
+focused installed-package lane passed 4/4 callback-model cases; provider,
+FOM, endpoint, and callback configuration remain adapter-owned.
 
 The promoted `cpp-tck.service-report-regional-interaction` scenario applies
 the same public MOM interaction route to `SendInteractionWithRegions`. It uses
@@ -2210,6 +2226,25 @@ federation-MOM boundaries as independently selectable pure standard C++
 contracts. They use only official IEEE C++ API headers and the standard
 library; the provider package, FOM/MIM modules, endpoint, callback model, and
 logical-time implementation remain adapter inputs.
+
+The promoted `cpp-tck.federation-mom-synchronization-queries` and
+`cpp-tck.federation-mom-synchronization-queries-contract` runners add the
+standard synchronization-point list and per-federate status queries. Their
+focused lane passed 4/4 callback-model cases; the source uses only the public
+IEEE C++ API, standard MIM interactions/data elements, and the standard
+library, while provider, FOM, endpoint, callback, and logical-time settings
+remain adapter-owned.
+
+The promoted `cpp-tck.service-report-order-transportation-lookups` and
+`cpp-tck.service-report-order-transportation-lookups-contract` runners add
+typed MOM reports for the public order and transportation lookup services.
+Their focused lane passed 4/4 callback-model cases; the source uses only the
+official IEEE C++ API, standard MIM data elements, and the standard library.
+The promoted `cpp-tck.service-report-order-transportation-lookup-failures` and
+`cpp-tck.service-report-order-transportation-lookup-failures-contract` runners
+add the corresponding typed failure reports, provider-neutral invalid inputs,
+standard exception classes, null return arguments, and serial progression.
+Their focused lane passed 4/4 callback-model cases.
 
 `cpp-tck.joined-federate-mom-federate-state-save-restore` observes the standard
 `HLAfederateState` MOM attribute from a joined federate across save initiation,

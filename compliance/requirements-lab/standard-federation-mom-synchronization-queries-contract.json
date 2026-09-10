@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the federation MOM synchronization query surface. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM synchronization interactions and data elements, and the standard library; the adapter supplies the provider package, application FOM, standard MIM, endpoint, callback model, and logical-time configuration. It verifies active synchronization-point listing, per-federate status before and after achievement, missing-label behavior, callback subscription gating, and removal after completion. Provider-private headers, registries, file sinks, names, and diagnostics are outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-synchronization-queries",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador synchronization-point services with standard HLArequestSynchronizationPoints, HLArequestSynchronizationPointStatus, HLAreportSynchronizationPoints, and HLAreportSynchronizationPointStatus interactions",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 synchronization services and FederateAmbassador interaction-delivery declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFederationSynchronizationMomQueriesContract"
+      ]
+    }
+  ]
+}

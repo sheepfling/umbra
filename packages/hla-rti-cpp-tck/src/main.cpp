@@ -20394,6 +20394,1139 @@ void scenarioServiceReportInteraction(Options const& options, rti::CallbackModel
   subject.disconnect();
 }
 
+void scenarioServiceReportInterlock(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Service-report interlock testing requires an adapter-supplied standard MIM");
+
+  Session session(options, model, "service-report-interlock");
+  auto const federation = federationName(options, "service-report-interlock");
+  session.connect();
+  session.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  session.join(
+      options.ownerFederateName + L"-service-report-interlock",
+      options.federateType,
+      federation);
+
+  auto const reportClass = session.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Service-report interlock lookup returned an invalid HLAreportServiceInvocation handle");
+  require(
+      !session.rtiAmbassador().getServiceReportingSwitch(),
+      "Service-report interlock did not start with reporting disabled");
+
+  session.rtiAmbassador().setServiceReportingSwitch(true);
+  require(
+      session.rtiAmbassador().getServiceReportingSwitch(),
+      "Service-report interlock did not enable service reporting");
+  requireException(
+      [&] { session.rtiAmbassador().subscribeInteractionClass(reportClass); },
+      L"FederateServiceInvocationsAreBeingReportedViaMOM",
+      "active HLAreportServiceInvocation subscription while reporting is enabled");
+  requireException(
+      [&] { session.rtiAmbassador().subscribeInteractionClass(reportClass, false); },
+      L"FederateServiceInvocationsAreBeingReportedViaMOM",
+      "passive HLAreportServiceInvocation subscription while reporting is enabled");
+  require(
+      session.rtiAmbassador().getServiceReportingSwitch(),
+      "Rejected HLAreportServiceInvocation subscriptions changed the reporting switch");
+
+  session.rtiAmbassador().setServiceReportingSwitch(false);
+  require(
+      !session.rtiAmbassador().getServiceReportingSwitch(),
+      "Service-report interlock did not disable service reporting");
+  session.rtiAmbassador().subscribeInteractionClass(reportClass);
+  requireException(
+      [&] { session.rtiAmbassador().setServiceReportingSwitch(true); },
+      L"ReportServiceInvocationsAreSubscribed",
+      "enabling reporting with an active HLAreportServiceInvocation subscription");
+  require(
+      !session.rtiAmbassador().getServiceReportingSwitch(),
+      "Rejected active HLAreportServiceInvocation subscription changed the reporting switch");
+  session.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+
+  session.rtiAmbassador().subscribeInteractionClass(reportClass, false);
+  requireException(
+      [&] { session.rtiAmbassador().setServiceReportingSwitch(true); },
+      L"ReportServiceInvocationsAreSubscribed",
+      "enabling reporting with a passive HLAreportServiceInvocation subscription");
+  require(
+      !session.rtiAmbassador().getServiceReportingSwitch(),
+      "Rejected passive HLAreportServiceInvocation subscription changed the reporting switch");
+  session.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+
+  session.rtiAmbassador().setServiceReportingSwitch(true);
+  require(
+      session.rtiAmbassador().getServiceReportingSwitch(),
+      "Service-report interlock did not re-enable reporting after unsubscribe");
+  session.rtiAmbassador().setServiceReportingSwitch(false);
+  session.resign(rti::NO_ACTION);
+  session.rtiAmbassador().destroyFederationExecution(federation);
+  session.disconnect();
+}
+
+void scenarioServiceReportInterlockContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInterlock(options, model);
+}
+
+void scenarioServiceReportSynchronization(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Synchronization service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-synchronization-subject");
+  Session observer(options, model, "service-report-synchronization-observer");
+  Session reportSink(options, model, "service-report-synchronization-report-sink");
+  auto const federation = federationName(options, "service-report-synchronization");
+  subject.connect();
+  observer.connect();
+  reportSink.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-synchronization-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-synchronization-observer",
+      options.federateType,
+      federation);
+  reportSink.join(
+      options.memberFederateName + L"-service-report-synchronization-report-sink",
+      options.federateType,
+      federation);
+
+  auto const reportClass = reportSink.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Synchronization service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = reportSink.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Synchronization service-report lookup returned an invalid report parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+  auto const reliable = reportSink.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+
+  // Service-report routing is enabled only after all setup declarations have
+  // completed, so the asserted serial stream starts with the registration
+  // service itself.  MOM serial numbers are scoped to the reported federate;
+  // leave the observer switch disabled so this no-region subscription exposes
+  // one complete, unambiguous subject stream.
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  reportSink.rtiAmbassador().setServiceReportingSwitch(false);
+  reportSink.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  reportSink.rtiAmbassador().subscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+
+  auto const reportService = [&](InteractionRecord const& report) {
+    rti::HLAunicodeString service;
+    service.decode(report.parameters.at(reportParameters.at(0U)));
+    return service.get();
+  };
+  auto const reportCount = [&](std::wstring const& expectedService) {
+    std::size_t count = 0U;
+    for (auto const& report : reportSink.recorder().interactions()) {
+      if (report.interaction == reportClass && reportService(report) == expectedService) {
+        ++count;
+      }
+    }
+    return count;
+  };
+  auto const latestReport = [&](std::wstring const& expectedService) {
+    auto const reports = reportSink.recorder().interactions();
+    for (auto iterator = reports.rbegin(); iterator != reports.rend(); ++iterator) {
+      if (iterator->interaction == reportClass && reportService(*iterator) == expectedService) {
+        return *iterator;
+      }
+    }
+    throw std::runtime_error("missing synchronization service report");
+  };
+  auto const verifyReport = [&](InteractionRecord const& report,
+                                std::wstring const& expectedService,
+                                std::vector<std::int32_t> const& expectedTypes,
+                                std::vector<std::wstring> const& expectedNames,
+                                std::int32_t expectedSerial,
+                                std::optional<std::wstring> expectedLastArgumentValue) {
+    require(
+        report.interaction == reportClass &&
+            report.parameters.size() == reportParameters.size() &&
+            !report.producer.isValid() && report.tag.empty() &&
+            !report.regions.has_value() && report.transportation == reliable,
+        "Synchronization service report returned non-standard identity or metadata");
+    require(
+        reportService(report) == expectedService,
+        "Synchronization service report returned the wrong service name");
+
+    rti::HLAinteger16BE serviceType;
+    serviceType.decode(report.parameters.at(reportParameters.at(1U)));
+    require(
+        serviceType.get() == 0,
+        "Synchronization service report returned the wrong Federation Management type");
+    rti::HLAboolean success;
+    success.decode(report.parameters.at(reportParameters.at(2U)));
+    require(success.get(), "Successful synchronization service report was not marked successful");
+
+    rti::HLAfixedRecord suppliedArgumentPrototype;
+    suppliedArgumentPrototype.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    rti::HLAvariableArray suppliedArguments{suppliedArgumentPrototype};
+    suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+    require(
+        suppliedArguments.size() == expectedTypes.size() &&
+            expectedTypes.size() == expectedNames.size(),
+        "Synchronization service report returned the wrong supplied-argument count");
+    for (std::size_t index = 0U; index != expectedTypes.size(); ++index) {
+      auto const& supplied = dynamic_cast<rti::HLAfixedRecord const&>(
+          suppliedArguments.get(index));
+      auto const actualType =
+          dynamic_cast<rti::HLAinteger32BE const&>(supplied.get(0U)).get();
+      auto const actualName =
+          dynamic_cast<rti::HLAunicodeString const&>(supplied.get(1U)).get();
+      auto const actualValue =
+          dynamic_cast<rti::HLAunicodeString const&>(supplied.get(2U)).get();
+      require(
+          actualType == expectedTypes.at(index) &&
+              actualName == expectedNames.at(index),
+          "Synchronization service report returned the wrong supplied-argument shape");
+      if (expectedLastArgumentValue.has_value() && index == 2U) {
+        require(
+            actualValue == expectedLastArgumentValue.value(),
+            "Synchronization service report returned the wrong failure reason value");
+      }
+    }
+
+    rti::HLAfixedRecord returnedArgument;
+    returnedArgument.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+            dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+            dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+                L"null",
+        "Synchronization service report returned a non-Null return argument");
+    rti::HLAunicodeString exception;
+    exception.decode(report.parameters.at(reportParameters.at(5U)));
+    require(
+        exception.get().empty(),
+        "Successful synchronization service report carried an exception");
+    rti::HLAinteger32BE serial;
+    serial.decode(report.parameters.at(reportParameters.at(6U)));
+    require(
+        serial.get() == expectedSerial,
+        "Synchronization service report returned the wrong serial number (expected " +
+            std::to_string(expectedSerial) + ", got " + std::to_string(serial.get()) + ")");
+  };
+
+  std::vector<std::uint8_t> const tagBytes{0x53U, 0x59U, 0x4EU, 0x43U};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  std::wstring const label = L"service-report-synchronization-point";
+  rti::FederateHandleSet const synchronizationSet{
+      subject.federateHandle(),
+      observer.federateHandle()};
+  subject.rtiAmbassador().registerFederationSynchronizationPoint(
+      label,
+      tag,
+      synchronizationSet);
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] { return subject.synchronizationPointRegistrations().size() == 1U; },
+      options,
+      "synchronization registration callback");
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] { return observer.synchronizationPointAnnouncements().size() == 1U; },
+      options,
+      "synchronization announcement callback");
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] { return reportCount(L"RegisterFederationSynchronizationPoint") == 1U; },
+      options,
+      "RegisterFederationSynchronizationPoint service report");
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] { return reportCount(L"ConfirmSynchronizationPointRegistration") == 1U; },
+      options,
+      "ConfirmSynchronizationPointRegistration service report");
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] { return reportCount(L"AnnounceSynchronizationPoint") == 1U; },
+      options,
+      "AnnounceSynchronizationPoint service report");
+  verifyReport(
+      latestReport(L"RegisterFederationSynchronizationPoint"),
+      L"RegisterFederationSynchronizationPoint",
+      {53, 63, 18},
+      {L"Synchronization point label",
+       L"User-supplied tag",
+       L"Optional set of joined federate designators"},
+      0,
+      std::nullopt);
+  verifyReport(
+      latestReport(L"ConfirmSynchronizationPointRegistration"),
+      L"ConfirmSynchronizationPointRegistration",
+      {53, 6, 34},
+      {L"Synchronization point label",
+       L"Registration-success indicator",
+       L"Optional failure reason"},
+      1,
+      std::nullopt);
+  verifyReport(
+      latestReport(L"AnnounceSynchronizationPoint"),
+      L"AnnounceSynchronizationPoint",
+      {53, 63},
+      {L"Synchronization point label", L"User-supplied tag"},
+      2,
+      std::nullopt);
+  auto const registration = subject.synchronizationPointRegistrations().front();
+  require(
+      registration.succeeded && registration.label == label,
+      "Synchronization service-report registration callback returned the wrong result");
+  auto const announcement = observer.synchronizationPointAnnouncements().front();
+  require(
+      announcement.label == label && announcement.tag == tagBytes,
+      "Synchronization service-report announcement returned the wrong label or tag");
+
+  // A duplicate label is accepted as a service invocation and reported as a
+  // failed confirmation callback, matching the standard two-stage API.
+  subject.rtiAmbassador().registerFederationSynchronizationPoint(
+      label,
+      tag,
+      synchronizationSet);
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] {
+        return subject.synchronizationPointRegistrations().size() == 2U &&
+            reportCount(L"RegisterFederationSynchronizationPoint") == 2U &&
+            reportCount(L"ConfirmSynchronizationPointRegistration") == 2U;
+      },
+      options,
+      "duplicate synchronization registration service reports");
+  verifyReport(
+      latestReport(L"RegisterFederationSynchronizationPoint"),
+      L"RegisterFederationSynchronizationPoint",
+      {53, 63, 18},
+      {L"Synchronization point label",
+       L"User-supplied tag",
+       L"Optional set of joined federate designators"},
+      3,
+      std::nullopt);
+  verifyReport(
+      latestReport(L"ConfirmSynchronizationPointRegistration"),
+      L"ConfirmSynchronizationPointRegistration",
+       {53, 6, 56},
+      {L"Synchronization point label",
+       L"Registration-success indicator",
+       L"Optional failure reason"},
+      4,
+      L"\"SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE\"");
+  auto const duplicate = subject.synchronizationPointRegistrations().back();
+  require(
+      !duplicate.succeeded && duplicate.label == label &&
+          duplicate.failureReason.has_value() &&
+          duplicate.failureReason.value() == rti::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE,
+      "Duplicate synchronization registration returned the wrong callback result");
+
+  subject.rtiAmbassador().synchronizationPointAchieved(label, true);
+  observer.rtiAmbassador().synchronizationPointAchieved(label, false);
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] {
+        return subject.federationSynchronized().size() == 1U &&
+            observer.federationSynchronized().size() == 1U;
+      },
+      options,
+      "synchronization completion callbacks");
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] { return reportCount(L"SynchronizationPointAchieved") == 1U; },
+      options,
+      "SynchronizationPointAchieved service report");
+  waitForSessions(
+      {&subject, &observer, &reportSink},
+      [&] { return reportCount(L"FederationSynchronized") == 1U; },
+      options,
+      "FederationSynchronized service report");
+  verifyReport(
+      latestReport(L"SynchronizationPointAchieved"),
+      L"SynchronizationPointAchieved",
+      {53, 6},
+      {L"Synchronization point label", L"Optional synchronization-success indicator"},
+      5,
+      std::nullopt);
+  verifyReport(
+      latestReport(L"FederationSynchronized"),
+      L"FederationSynchronized",
+      {53, 18},
+      {L"Synchronization point label", L"Set of joined federate designators"},
+      6,
+      std::nullopt);
+  for (auto* session : {&subject, &observer}) {
+    auto const completions = session->federationSynchronized();
+    require(
+        completions.size() == 1U && completions.front().label == label &&
+            completions.front().failedToSyncSet.count(observer.federateHandle()) == 1U,
+        "Synchronization service-report completion returned the wrong failure set");
+  }
+  require(
+      reportSink.recorder().interactions().size() == 7U,
+      "Synchronization service-report sink received an unexpected report count");
+
+  reportSink.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  reportSink.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+  reportSink.disconnect();
+}
+
+void scenarioServiceReportSynchronizationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSynchronization(options, model);
+}
+
+void scenarioFederationSynchronizationMomQueries(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Federation synchronization MOM queries require an adapter-supplied standard MIM");
+
+  Session subject(options, model, "federation-synchronization-mom-subject");
+  Session observer(options, model, "federation-synchronization-mom-observer");
+  auto const federation = federationName(options, "federation-synchronization-mom-queries");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-federation-synchronization-mom-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-federation-synchronization-mom-observer",
+      options.federateType,
+      federation);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+
+  std::vector<std::uint8_t> tagBytes{0x4DU, 0x4FU, 0x4DU, 0x53U};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  rti::VariableLengthData const emptyTag;
+  std::wstring const label = L"mom-synchronization-query";
+  subject.rtiAmbassador().registerFederationSynchronizationPoint(label, tag);
+  waitFor(
+      subject,
+      observer,
+      [&] {
+        return subject.synchronizationPointRegistrations().size() == 1U &&
+            observer.synchronizationPointAnnouncements().size() == 1U;
+      },
+      options,
+      "MOM synchronization-point registration and announcement");
+  auto const registration = subject.synchronizationPointRegistrations().front();
+  require(
+      registration.succeeded && registration.label == label,
+      "MOM synchronization query setup returned the wrong registration result");
+  auto const announcement = observer.synchronizationPointAnnouncements().front();
+  require(
+      announcement.label == label && announcement.tag == tagBytes,
+      "MOM synchronization query setup returned the wrong announcement");
+
+  auto const pointsRequestClass = subject.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPoints");
+  auto const pointsReportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportSynchronizationPoints");
+  auto const pointsReportParameter = observer.rtiAmbassador().getParameterHandle(
+      pointsReportClass,
+      L"HLAsyncPoints");
+  auto const statusRequestClass = subject.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus");
+  auto const statusRequestParameter = subject.rtiAmbassador().getParameterHandle(
+      statusRequestClass,
+      L"HLAsyncPointName");
+  auto const statusReportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportSynchronizationPointStatus");
+  auto const statusReportNameParameter = observer.rtiAmbassador().getParameterHandle(
+      statusReportClass,
+      L"HLAsyncPointName");
+  auto const statusReportFederatesParameter = observer.rtiAmbassador().getParameterHandle(
+      statusReportClass,
+      L"HLAsyncPointFederates");
+  require(
+      pointsRequestClass.isValid() && pointsReportClass.isValid() &&
+          pointsReportParameter.isValid() && statusRequestClass.isValid() &&
+          statusRequestParameter.isValid() && statusReportClass.isValid() &&
+          statusReportNameParameter.isValid() &&
+          statusReportFederatesParameter.isValid(),
+      "MOM synchronization query lookup returned an invalid handle");
+  observer.rtiAmbassador().subscribeInteractionClass(pointsReportClass);
+  observer.rtiAmbassador().subscribeInteractionClass(statusReportClass);
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(reliable.isValid(), "MOM synchronization query could not resolve HLAreliable");
+
+  auto const decodePointList = [](rti::VariableLengthData const& encoded) {
+    rti::HLAunicodeString pointPrototype;
+    rti::HLAvariableArray points{
+        static_cast<rti::DataElement const&>(pointPrototype)};
+    points.decode(encoded);
+    std::vector<std::wstring> result;
+    result.reserve(points.size());
+    for (std::size_t index = 0U; index < points.size(); ++index) {
+      result.push_back(dynamic_cast<rti::HLAunicodeString const&>(points.get(index)).get());
+    }
+    return result;
+  };
+  auto const decodeStatuses = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArrayT<rti::HLAoctet> federatePrototype;
+    rti::HLAfixedRecord recordPrototype;
+    recordPrototype.appendElement(federatePrototype)
+        .appendElement(rti::HLAinteger32BE{});
+    rti::HLAvariableArray statuses{recordPrototype};
+    statuses.decode(encoded);
+    std::map<rti::FederateHandle, rti::Integer32> result;
+    for (std::size_t index = 0U; index < statuses.size(); ++index) {
+      auto const& record = dynamic_cast<rti::HLAfixedRecord const&>(statuses.get(index));
+      auto const& federateReference = dynamic_cast<rti::HLAvariableArray const&>(
+          record.get(0U));
+      auto const federate = observer.rtiAmbassador().decodeFederateHandle(
+          federateReference.encode());
+      auto const status = dynamic_cast<rti::HLAinteger32BE const&>(record.get(1U)).get();
+      result.emplace(federate, status);
+    }
+    return result;
+  };
+  auto const verifyReport = [&](InteractionRecord const& report,
+                                rti::InteractionClassHandle const& expectedClass,
+                                std::size_t expectedParameterCount) {
+    require(
+        report.interaction == expectedClass &&
+            report.parameters.size() == expectedParameterCount &&
+            report.tag.empty() && !report.producer.isValid() &&
+            !report.regions.has_value() && report.transportation == reliable,
+        "MOM synchronization query returned non-standard interaction metadata");
+  };
+
+  auto const requestPointList = [&] {
+    observer.recorder().clearInteraction();
+    subject.rtiAmbassador().sendInteraction(
+        pointsRequestClass,
+        rti::ParameterHandleValueMap{},
+        emptyTag);
+    waitFor(
+        subject,
+        observer,
+        [&] { return observer.recorder().interactions().size() == 1U; },
+        options,
+        "MOM synchronization-point list report");
+    auto const report = observer.recorder().interactions().front();
+    verifyReport(report, pointsReportClass, 1U);
+    require(
+        report.parameters.count(pointsReportParameter) == 1U,
+        "MOM synchronization-point list report omitted HLAsyncPoints");
+    return decodePointList(report.parameters.at(pointsReportParameter));
+  };
+
+  auto const requestStatus = [&](std::wstring const& requestedLabel) {
+    observer.recorder().clearInteraction();
+    subject.rtiAmbassador().sendInteraction(
+        statusRequestClass,
+        rti::ParameterHandleValueMap{{
+            statusRequestParameter,
+            rti::HLAunicodeString{requestedLabel}.encode()}},
+        emptyTag);
+    waitFor(
+        subject,
+        observer,
+        [&] { return observer.recorder().interactions().size() == 1U; },
+        options,
+        "MOM synchronization-point status report");
+    auto const report = observer.recorder().interactions().front();
+    verifyReport(report, statusReportClass, 2U);
+    require(
+        report.parameters.count(statusReportNameParameter) == 1U &&
+            report.parameters.count(statusReportFederatesParameter) == 1U,
+        "MOM synchronization-point status report omitted a standard parameter");
+    rti::HLAunicodeString returnedLabel;
+    returnedLabel.decode(report.parameters.at(statusReportNameParameter));
+    require(
+        returnedLabel.get() == requestedLabel,
+        "MOM synchronization-point status report returned the wrong label");
+    return decodeStatuses(report.parameters.at(statusReportFederatesParameter));
+  };
+
+  require(
+      requestPointList() == std::vector<std::wstring>{label},
+      "MOM synchronization-point list report returned the wrong active points");
+  auto const beforeAchievement = requestStatus(label);
+  require(
+      beforeAchievement.size() == 2U &&
+          beforeAchievement.at(subject.federateHandle()) == 2 &&
+          beforeAchievement.at(observer.federateHandle()) == 2,
+      "MOM synchronization-point status report returned the wrong pending state");
+
+  subject.rtiAmbassador().synchronizationPointAchieved(label);
+  for (int pass = 0; pass != 8; ++pass) {
+    subject.pump();
+    observer.pump();
+  }
+  auto const afterSubjectAchievement = requestStatus(label);
+  require(
+      afterSubjectAchievement.size() == 2U &&
+          afterSubjectAchievement.at(subject.federateHandle()) == 3 &&
+          afterSubjectAchievement.at(observer.federateHandle()) == 2,
+      "MOM synchronization-point status report returned the wrong partial state");
+  require(
+      requestStatus(L"missing-mom-synchronization-point").empty(),
+      "MOM synchronization-point status report returned a stale missing label");
+
+  // Under HLA_EVOKED the report is queued and subscriber-gated at delivery;
+  // under HLA_IMMEDIATE it is delivered synchronously before unsubscribe.
+  observer.recorder().clearInteraction();
+  subject.rtiAmbassador().sendInteraction(
+      pointsRequestClass,
+      rti::ParameterHandleValueMap{},
+      emptyTag);
+  if (model == rti::HLA_EVOKED) {
+    observer.rtiAmbassador().unsubscribeInteractionClass(pointsReportClass);
+    while (subject.evokeMultipleCallbacks(0.0, 0.0) ||
+           observer.evokeMultipleCallbacks(0.0, 0.0)) {
+    }
+    require(
+        observer.recorder().interactions().empty(),
+        "MOM synchronization-point report was delivered after an evoked unsubscribe");
+  } else {
+    require(
+        observer.recorder().interactions().size() == 1U,
+        "Immediate MOM synchronization-point report was not delivered synchronously");
+    observer.rtiAmbassador().unsubscribeInteractionClass(pointsReportClass);
+  }
+  observer.rtiAmbassador().subscribeInteractionClass(pointsReportClass);
+
+  observer.rtiAmbassador().synchronizationPointAchieved(label);
+  waitFor(
+      subject,
+      observer,
+      [&] {
+        return subject.federationSynchronized().size() == 1U &&
+            observer.federationSynchronized().size() == 1U;
+      },
+      options,
+      "MOM synchronization-point completion");
+  observer.recorder().clearInteraction();
+  require(
+      requestPointList().empty(),
+      "MOM synchronization-point list retained a completed point");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(pointsReportClass);
+  observer.rtiAmbassador().unsubscribeInteractionClass(statusReportClass);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioFederationSynchronizationMomQueriesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationSynchronizationMomQueries(options, model);
+}
+
+void scenarioServiceReportOrderTransportationLookups(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Order/transportation service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-order-transportation-subject");
+  Session observer(options, model, "service-report-order-transportation-observer");
+  auto const federation = federationName(options, "service-report-order-transportation-lookups");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-order-transportation-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-order-transportation-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Order/transportation service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Order/transportation service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const reliable = subject.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(reliable.isValid(), "Order/transportation lookup could not resolve HLAreliable");
+  require(
+      subject.rtiAmbassador().getOrderType(L"Receive") == rti::RECEIVE,
+      "Order/transportation lookup did not resolve the standard Receive order");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const timestampOrder = subject.rtiAmbassador().getOrderType(L"TimeStamp");
+  auto const receiveOrderName = subject.rtiAmbassador().getOrderName(rti::RECEIVE);
+  auto const reliableByName = subject.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  auto const reliableName = subject.rtiAmbassador().getTransportationTypeName(reliable);
+  require(
+      timestampOrder == rti::TIMESTAMP && receiveOrderName == L"Receive" &&
+          reliableByName == reliable && reliableName == L"HLAreliable",
+      "Order/transportation lookup returned the wrong standard value");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 4U; },
+      options,
+      "order/transportation service-report callbacks");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  struct ExpectedArgument final {
+    rti::Integer32 type;
+    std::wstring name;
+    std::wstring value;
+  };
+  auto const decodeArgument = [](rti::HLAfixedRecord const& record,
+                                 ExpectedArgument const& expected) {
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(record.get(0U)).get() == expected.type,
+        "Order/transportation service report returned the wrong argument type");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(1U)).get() == expected.name,
+        "Order/transportation service report returned the wrong argument name");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(2U)).get() == expected.value,
+        "Order/transportation service report returned the wrong argument value");
+  };
+  auto const decodeReport = [&](InteractionRecord const& report,
+                                std::wstring const& service,
+                                std::vector<ExpectedArgument> const& expectedSupplied,
+                                ExpectedArgument const& expectedReturned,
+                                std::int32_t expectedSerial) {
+    require(
+        report.interaction == reportClass &&
+            report.parameters.size() == reportParameters.size() && report.tag.empty() &&
+            !report.producer.isValid() && !report.regions.has_value() &&
+            report.transportation == observer.rtiAmbassador().getTransportationTypeHandle(
+                L"HLAreliable"),
+        "Order/transportation service report returned non-standard metadata");
+    for (auto const& parameter : reportParameters) {
+      require(
+          report.parameters.count(parameter) == 1U,
+          "Order/transportation service report omitted a standard parameter");
+    }
+    rti::HLAunicodeString decodedService;
+    decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+    require(
+        decodedService.get() == service,
+        "Order/transportation service report returned the wrong service name");
+    rti::HLAinteger16BE decodedServiceType;
+    decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
+    require(
+        decodedServiceType.get() == 6,
+        "Order/transportation service report returned the wrong service type");
+    rti::HLAboolean decodedSuccess;
+    decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
+    require(
+        decodedSuccess.get(),
+        "Order/transportation service report was not marked successful");
+
+    rti::HLAfixedRecord argumentPrototype;
+    argumentPrototype.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    rti::HLAvariableArray suppliedArguments{argumentPrototype};
+    suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+    require(
+        suppliedArguments.size() == expectedSupplied.size(),
+        "Order/transportation service report returned the wrong supplied-argument count");
+    for (std::size_t index = 0U; index != expectedSupplied.size(); ++index) {
+      auto const& supplied = dynamic_cast<rti::HLAfixedRecord const&>(
+          suppliedArguments.get(index));
+      decodeArgument(supplied, expectedSupplied.at(index));
+    }
+
+    rti::HLAfixedRecord returnedArgument;
+    returnedArgument.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+    decodeArgument(returnedArgument, expectedReturned);
+    rti::HLAunicodeString decodedException;
+    decodedException.decode(report.parameters.at(reportParameters.at(5U)));
+    require(
+        decodedException.get().empty(),
+        "Successful order/transportation service report carried an exception");
+    rti::HLAinteger32BE decodedSerial;
+    decodedSerial.decode(report.parameters.at(reportParameters.at(6U)));
+    require(
+        decodedSerial.get() == expectedSerial,
+        "Order/transportation service report returned the wrong serial number");
+  };
+
+  auto const reports = observer.recorder().interactions();
+  require(reports.size() == 4U, "Order/transportation service report count was unstable");
+  decodeReport(
+      reports.at(0U),
+      L"GetOrderType",
+      {{53, L"Order name", quoted(L"TimeStamp")}},
+      {38, L"Order type", quoted(L"TIMESTAMP")},
+      0);
+  decodeReport(
+      reports.at(1U),
+      L"GetOrderName",
+      {{38, L"Order type", quoted(L"RECEIVE")}},
+      {53, L"Order name", quoted(receiveOrderName)},
+      1);
+  decodeReport(
+      reports.at(2U),
+      L"GetTransportationTypeHandle",
+      {{53, L"Transportation type name", quoted(L"HLAreliable")}},
+      {59, L"Transportation type handle", quoted(reliableByName.toString())},
+      2);
+  decodeReport(
+      reports.at(3U),
+      L"GetTransportationTypeName",
+      {{59, L"Transportation type handle", quoted(reliable.toString())}},
+      {53, L"Transportation type name", quoted(reliableName)},
+      3);
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportOrderTransportationLookupsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportOrderTransportationLookups(options, model);
+}
+
+void scenarioServiceReportOrderTransportationLookupFailures(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Order/transportation failure service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-order-transportation-failure-subject");
+  Session observer(options, model, "service-report-order-transportation-failure-observer");
+  auto const federation = federationName(options, "service-report-order-transportation-failures");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-order-transportation-failure-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-order-transportation-failure-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Order/transportation failure report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Order/transportation failure report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+  auto const reliable = subject.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(reliable.isValid(), "Order/transportation failure lookup could not resolve HLAreliable");
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  struct ExpectedArgument final {
+    rti::Integer32 type;
+    std::wstring name;
+    std::wstring value;
+  };
+  auto const decodeArgument = [](rti::HLAfixedRecord const& record,
+                                 ExpectedArgument const& expected) {
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(record.get(0U)).get() == expected.type,
+        "Order/transportation failure report returned the wrong argument type");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(1U)).get() == expected.name,
+        "Order/transportation failure report returned the wrong argument name");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(2U)).get() == expected.value,
+        "Order/transportation failure report returned the wrong argument value");
+  };
+  auto const verifyReport = [&](InteractionRecord const& report,
+                                std::wstring const& service,
+                                ExpectedArgument const& expectedSupplied,
+                                ExpectedArgument const& expectedReturned,
+                                bool expectedSuccess,
+                                std::wstring const& expectedException,
+                                std::int32_t expectedSerial) {
+    require(
+        report.interaction == reportClass &&
+            report.parameters.size() == reportParameters.size() && report.tag.empty() &&
+            !report.producer.isValid() && !report.regions.has_value() &&
+            report.transportation == reliable,
+        "Order/transportation failure report returned non-standard metadata");
+    for (auto const& parameter : reportParameters) {
+      require(
+          report.parameters.count(parameter) == 1U,
+          "Order/transportation failure report omitted a standard parameter");
+    }
+    rti::HLAunicodeString decodedService;
+    decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+    require(
+        decodedService.get() == service,
+        "Order/transportation failure report returned the wrong service name");
+    rti::HLAinteger16BE decodedServiceType;
+    decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
+    require(
+        decodedServiceType.get() == 6,
+        "Order/transportation failure report returned the wrong service type");
+    rti::HLAboolean decodedSuccess;
+    decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
+    require(
+        decodedSuccess.get() == expectedSuccess,
+        "Order/transportation failure report returned the wrong success indicator");
+
+    rti::HLAfixedRecord argumentPrototype;
+    argumentPrototype.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    rti::HLAvariableArray suppliedArguments{argumentPrototype};
+    suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+    require(
+        suppliedArguments.size() == 1U,
+        "Order/transportation failure report returned the wrong supplied-argument count");
+    decodeArgument(
+        dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(0U)),
+        expectedSupplied);
+
+    rti::HLAfixedRecord returnedArgument;
+    returnedArgument.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+    decodeArgument(returnedArgument, expectedReturned);
+    rti::HLAunicodeString decodedException;
+    decodedException.decode(report.parameters.at(reportParameters.at(5U)));
+    if (expectedSuccess) {
+      require(
+          decodedException.get().empty(),
+          "Successful order/transportation lookup report carried an exception");
+    } else {
+      require(
+          decodedException.get().find(expectedException) != std::wstring::npos,
+          "Failed order/transportation lookup report omitted its standard exception class");
+    }
+    rti::HLAinteger32BE decodedSerial;
+    decodedSerial.decode(report.parameters.at(reportParameters.at(6U)));
+    require(
+        decodedSerial.get() == expectedSerial,
+        "Order/transportation failure report returned the wrong serial number");
+  };
+
+  std::wstring const unsupportedOrder = L"TckUnsupportedOrder";
+  std::wstring const unsupportedTransportation = L"TckUnsupportedTransportation";
+  requireException(
+      [&] { subject.rtiAmbassador().getOrderType(unsupportedOrder); },
+      L"InvalidOrderName",
+      "lookup of an unsupported order name with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getOrderName(
+            static_cast<rti::OrderType>(0x7f));
+      },
+      L"InvalidOrderType",
+      "lookup of an unsupported order type with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getTransportationTypeHandle(unsupportedTransportation);
+      },
+      L"InvalidTransportationName",
+      "lookup of an unsupported transportation name with service reporting enabled");
+  rti::TransportationTypeHandle const invalidTransportation;
+  requireException(
+      [&] { subject.rtiAmbassador().getTransportationTypeName(invalidTransportation); },
+      L"InvalidTransportationTypeHandle",
+      "lookup of an invalid transportation handle with service reporting enabled");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 4U; },
+      options,
+      "order/transportation failure service-report callbacks");
+
+  auto const failureReports = observer.recorder().interactions();
+  require(
+      failureReports.size() == 4U,
+      "Order/transportation failure service report count was unstable");
+  verifyReport(
+      failureReports.at(0U),
+      L"GetOrderType",
+      {53, L"Order name", quoted(unsupportedOrder)},
+      {34, L"", L"null"},
+      false,
+      L"InvalidOrderName",
+      0);
+  verifyReport(
+      failureReports.at(1U),
+      L"GetOrderName",
+      {38, L"Order type", quoted(L"UNSUPPORTED")},
+      {34, L"", L"null"},
+      false,
+      L"InvalidOrderType",
+      1);
+  verifyReport(
+      failureReports.at(2U),
+      L"GetTransportationTypeHandle",
+      {53, L"Transportation type name", quoted(unsupportedTransportation)},
+      {34, L"", L"null"},
+      false,
+      L"InvalidTransportationName",
+      2);
+  verifyReport(
+      failureReports.at(3U),
+      L"GetTransportationTypeName",
+      {59, L"Transportation type handle", quoted(invalidTransportation.toString())},
+      {34, L"", L"null"},
+      false,
+      L"InvalidTransportationTypeHandle",
+      3);
+
+  require(
+      subject.rtiAmbassador().getOrderType(L"Receive") == rti::RECEIVE,
+      "Order/transportation lookup failed after reported failures");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 5U; },
+      options,
+      "successful order lookup after failure service reports");
+  auto const reports = observer.recorder().interactions();
+  verifyReport(
+      reports.at(4U),
+      L"GetOrderType",
+      {53, L"Order name", quoted(L"Receive")},
+      {38, L"Order type", quoted(L"RECEIVE")},
+      true,
+      L"",
+      4);
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportOrderTransportationLookupFailuresContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportOrderTransportationLookupFailures(options, model);
+}
+
 void scenarioServiceReportInteractionFailure(
     Options const& options,
     rti::CallbackModel model) {
@@ -59108,12 +60241,22 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.federation-mom-current-fdd-contract",
       "cpp-tck.federation-mom-content-reports",
       "cpp-tck.federation-mom-content-reports-contract",
+      "cpp-tck.federation-mom-synchronization-queries",
+      "cpp-tck.federation-mom-synchronization-queries-contract",
+      "cpp-tck.service-report-order-transportation-lookups",
+      "cpp-tck.service-report-order-transportation-lookups-contract",
+      "cpp-tck.service-report-order-transportation-lookup-failures",
+      "cpp-tck.service-report-order-transportation-lookup-failures-contract",
       "cpp-tck.federation-mom-save-conditionals",
       "cpp-tck.federation-mom-save-conditionals-contract",
       "cpp-tck.joined-federate-mom-federate-state-save-restore",
       "cpp-tck.joined-federate-mom-federate-state-save-restore-contract",
       "cpp-tck.service-report-interaction",
       "cpp-tck.service-report-interaction-failure",
+      "cpp-tck.service-report-interlock",
+      "cpp-tck.service-report-interlock-contract",
+      "cpp-tck.service-report-synchronization",
+      "cpp-tck.service-report-synchronization-contract",
       "cpp-tck.service-report-regional-interaction",
       "cpp-tck.service-report-regional-interaction-contract",
       "cpp-tck.service-report-regional-interaction-subscription",
@@ -59980,6 +61123,24 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.federation-mom-content-reports-contract") {
     return scenarioFederationMomContentReportsContract;
   }
+  if (id == "cpp-tck.federation-mom-synchronization-queries") {
+    return scenarioFederationSynchronizationMomQueries;
+  }
+  if (id == "cpp-tck.federation-mom-synchronization-queries-contract") {
+    return scenarioFederationSynchronizationMomQueriesContract;
+  }
+  if (id == "cpp-tck.service-report-order-transportation-lookups") {
+    return scenarioServiceReportOrderTransportationLookups;
+  }
+  if (id == "cpp-tck.service-report-order-transportation-lookups-contract") {
+    return scenarioServiceReportOrderTransportationLookupsContract;
+  }
+  if (id == "cpp-tck.service-report-order-transportation-lookup-failures") {
+    return scenarioServiceReportOrderTransportationLookupFailures;
+  }
+  if (id == "cpp-tck.service-report-order-transportation-lookup-failures-contract") {
+    return scenarioServiceReportOrderTransportationLookupFailuresContract;
+  }
   if (id == "cpp-tck.federation-mom-save-conditionals-contract") {
     return scenarioFederationMomSaveConditionalsContract;
   }
@@ -59988,6 +61149,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.service-report-interaction") {
     return scenarioServiceReportInteraction;
+  }
+  if (id == "cpp-tck.service-report-interlock") {
+    return scenarioServiceReportInterlock;
+  }
+  if (id == "cpp-tck.service-report-interlock-contract") {
+    return scenarioServiceReportInterlockContract;
+  }
+  if (id == "cpp-tck.service-report-synchronization") {
+    return scenarioServiceReportSynchronization;
+  }
+  if (id == "cpp-tck.service-report-synchronization-contract") {
+    return scenarioServiceReportSynchronizationContract;
   }
   if (id == "cpp-tck.service-report-interaction-failure") {
     return scenarioServiceReportInteractionFailure;
