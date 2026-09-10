@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-  The verified lane currently runs 473 promoted scenarios (946 callback-model
+  The verified lane currently runs 475 promoted scenarios (950 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -472,13 +472,20 @@ standard contract twin exercise invalid MIM modules through the standard
 Create Federation Execution with MIM service, verify atomic rejection, and
 complete a valid FOM/MIM create, join, lookup, resign, and destroy lifecycle.
 Their focused installed-package CTest lane passed 4/4 callback-model cases in
-`.build\cpp-tck-fom-invalid-mim-create-atomicity\invalid-mim-create-atomicity-candidate.json`.
+`.build\cpp-tck-fom-invalid-mim-create-atomicity\invalid-mim-create-atomicity-promoted.json`.
 The promoted `cpp-tck.fom-invalid-composite-mim-create-atomicity` scenario and
 its pure standard contract twin exercise a mixed valid-plus-invalid FOM module
 vector through Create Federation Execution with MIM, verify atomic rejection,
 and complete a valid FOM/MIM create, join, lookup, resign, and destroy lifecycle.
 Their focused installed-package CTest lane passed 4/4 callback-model cases in
-`.build\cpp-tck-fom-invalid-composite-mim-create-atomicity\invalid-composite-mim-create-atomicity-candidate.json`.
+`.build\cpp-tck-fom-invalid-composite-mim-create-atomicity\invalid-composite-mim-create-atomicity-promoted.json`.
+The promoted `cpp-tck.fom-empty-mim-create-atomicity` scenario and its pure
+standard contract twin exercise the empty FOM module vector boundary through
+Create Federation Execution with MIM, require standard `InvalidFOM` rejection
+without reserving the federation name, and complete a valid FOM/MIM create,
+join, lookup, resign, and destroy lifecycle. Their focused installed-package
+CTest lane passed 4/4 callback-model cases in
+`.build\cpp-tck-fom-empty-mim-create-atomicity\empty-mim-create-atomicity-promoted.json`.
 The promoted `cpp-tck.custom-transportation-interaction-delivery` scenario
 uses the adapter-declared rich FOM to verify custom transportation handle/name
 round-trips, ordinary interaction publication/subscription/send delivery,
@@ -2481,11 +2488,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-  configuration. The default `--scenario-set verified` selects the 473 catalog
-  entries with `promotion=promoted`, which produces 946 cases with
+  configuration. The default `--scenario-set verified` selects the 475 catalog
+  entries with `promotion=promoted`, which produces 950 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-  adapter-required entries; the current catalog contains 473 IDs and 946 cases,
+  adapter-required entries; the current catalog contains 475 IDs and 950 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

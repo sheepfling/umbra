@@ -18814,6 +18814,62 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-empty-mim-create-atomicity",
+      "category": "fom-lifecycle",
+      "title": "Reject an empty FOM module vector atomically during Create Federation Execution with MIM",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-malformed-fom-input",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "fom-composition-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-fom-empty-mim-create-atomicity-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomEmptyMimCreateAtomicity",
+      "runner_id": "cpp-tck.fom-empty-mim-create-atomicity",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-empty-mim-create-atomicity-contract",
+      "category": "fom-lifecycle",
+      "title": "Exercise the standard empty-FOM-vector MIM create atomicity contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-malformed-fom-input",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-fom-empty-mim-create-atomicity-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomEmptyMimCreateAtomicityContract",
+      "runner_id": "cpp-tck.fom-empty-mim-create-atomicity-contract",
+      "parity": "cpp-tck.fom-empty-mim-create-atomicity",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.fom-empty-module-validation",
       "category": "fom-lifecycle",
       "title": "Reject an empty FOM module set without reserving a federation execution",

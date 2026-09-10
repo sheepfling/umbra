@@ -472,6 +472,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-invalid-mim-create-atomicity-contract` | Standard adapter-backed invalid-MIM create atomicity contract |
 | `cpp-tck.fom-invalid-composite-mim-create-atomicity` | Reject mixed valid and invalid FOM modules atomically during FOM/MIM federation creation, then recover through a valid lifecycle |
 | `cpp-tck.fom-invalid-composite-mim-create-atomicity-contract` | Standard adapter-backed mixed FOM-module and MIM create atomicity contract |
+| `cpp-tck.fom-empty-mim-create-atomicity` | Reject an empty FOM module vector atomically during FOM/MIM federation creation, then recover through a valid lifecycle |
+| `cpp-tck.fom-empty-mim-create-atomicity-contract` | Standard adapter-backed empty-FOM-vector MIM create atomicity contract |
 | `cpp-tck.connection-loss-cleanup` | Adapter-triggered Connection Lost callback, fault description, survivor service, and cleanup |
 
 The shared ordinary-service cases reuse the Java TCK scenario IDs. The
@@ -1055,8 +1057,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-      that is 473 scenario IDs and 946 matrix cases. `--scenario-set all` currently
-       configures the same 473 available IDs (946 cases); there are no unpromoted
+      that is 475 scenario IDs and 950 matrix cases. `--scenario-set all` currently
+       configures the same 475 available IDs (950 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1131,6 +1133,12 @@ when creating with the standard MIM, then reuse the same federation name for a
 valid FOM/MIM create, join, lookup, resign, and destroy lifecycle. Its focused
 installed-package CTest lane passed 4/4 callback-model cases using only the
 official C++ API and standard library.
+
+The promoted `cpp-tck.fom-empty-mim-create-atomicity` scenario and its contract
+twin reject an empty FOM module vector with standard `InvalidFOM`, then reuse the
+same federation name for a valid FOM/MIM create, join, lookup, resign, and destroy
+lifecycle. Its focused installed-package CTest lane passed 4/4 callback-model
+cases using only the official C++ API and standard library.
 
 The promoted `cpp-tck.explicit-mim-creation-contract` and
 `cpp-tck.federation-mom-current-fdd-contract` runners expose the standard MIM
