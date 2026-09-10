@@ -16358,6 +16358,90 @@
     "promotion": "promoted"
   },
   {
+    "id": "cpp-tck.callback-controls-ownership-unavailable",
+    "category": "callback-controls",
+    "title": "Gate the standard ownership-unavailable callback with callback enable and disable services",
+    "api_methods": [
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.getAttributeHandle",
+      "RTIambassador.publishObjectClassAttributes",
+      "RTIambassador.subscribeObjectClassAttributes",
+      "RTIambassador.registerObjectInstance",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+      "RTIambassador.isAttributeOwnedByFederate",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.discoverObjectInstance",
+      "FederateAmbassador.attributeOwnershipUnavailable"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-object-registration-discovery",
+      "cpp-1516.1-ownership-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "connection-callback-api-contract.json",
+      "connection-implementation-contract.json",
+      "federation-execution-api-contract.json",
+      "object-instance-registration-api-contract.json",
+      "object-instance-registration-requirements-contract.json",
+      "attribute-ownership-acquisition-if-available-api-contract.json",
+      "attribute-ownership-acquisition-if-available-requirements-contract.json",
+      "attribute-ownership-query-requirements-contract.json",
+      "standard-callback-controls-ownership-unavailable-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsOwnershipUnavailable",
+    "runner_id": "cpp-tck.callback-controls-ownership-unavailable",
+    "parity": "cpp-extension-no-java-counterpart",
+    "default_status": "run",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-ownership-unavailable-contract",
+    "category": "callback-controls",
+    "title": "Standard adapter-backed callback-control contract for ownership unavailable",
+    "api_methods": [
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.getAttributeHandle",
+      "RTIambassador.publishObjectClassAttributes",
+      "RTIambassador.subscribeObjectClassAttributes",
+      "RTIambassador.registerObjectInstance",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+      "RTIambassador.isAttributeOwnedByFederate",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.discoverObjectInstance",
+      "FederateAmbassador.attributeOwnershipUnavailable"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-object-registration-discovery",
+      "cpp-1516.1-ownership-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "standard-callback-controls-ownership-unavailable-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsOwnershipUnavailableContract",
+    "runner_id": "cpp-tck.callback-controls-ownership-unavailable-contract",
+    "parity": "cpp-tck.callback-controls-ownership-unavailable",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
+  {
     "id": "cpp-tck.asynchronous-delivery",
       "category": "asynchronous-delivery",
       "title": "Gate receive-order callbacks with asynchronous delivery and callback servicing",
