@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 505 promoted scenario IDs (1010 callback-model cases).
-`--scenario-set all` currently configures the same 505 available IDs (1010
+The verified lane is 507 promoted scenario IDs (1014 callback-model cases).
+`--scenario-set all` currently configures the same 507 available IDs (1014
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -1030,6 +1030,11 @@ The promoted `cpp-tck.callback-controls-ownership-release-denied` and
 the same standard callback gate to ownership-release denial and the resulting
 ownership-unavailable callback; their focused installed-package lane passed 4/4
 callback-model cases.
+The promoted `cpp-tck.callback-controls-ownership-acquisition-notification` and
+`cpp-tck.callback-controls-ownership-acquisition-notification-contract` runners
+extend the same standard callback gate to ownership-acquisition notification
+and handoff; their focused installed-package lane passed 4/4 callback-model
+cases.
 The promoted `cpp-tck.callback-controls-attribute-value-request` and
 `cpp-tck.callback-controls-attribute-value-request-contract` runners extend the
 same standard callback gate to ordinary attribute-value requests; their focused
