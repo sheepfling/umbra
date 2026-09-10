@@ -55396,6 +55396,67 @@ void scenarioCallbackControlsObjectNameReservationContract(
   scenarioCallbackControlsObjectNameReservation(options, model);
 }
 
+void scenarioCallbackControlsObjectNameReservationFailure(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-object-name-reservation-failure");
+  connectAndJoin(owner, requester, options, federation, options.fom);
+
+  auto const objectName = federation + L"-callback-controlled-contended-name";
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().reserveObjectInstanceName(objectName);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().reservationSucceeded(objectName); },
+      options,
+      "callback-control object-name reservation baseline");
+
+  requester.recorder().clearReservations();
+  requester.rtiAmbassador().disableCallbacks();
+  requester.rtiAmbassador().reserveObjectInstanceName(objectName);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        requester.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending object-name reservation failure event");
+  } else {
+    static_cast<void>(requester.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !requester.recorder().reservationFailed(objectName),
+      "disabled callbacks exposed an object-name reservation failure callback");
+
+  requester.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(requester.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(requester.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      requester,
+      [&] { return requester.recorder().reservationFailed(objectName); },
+      options,
+      "re-enabled callback-control object-name reservation failure");
+
+  owner.rtiAmbassador().releaseObjectInstanceName(objectName);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsObjectNameReservationFailureContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsObjectNameReservationFailure(options, model);
+}
+
 void scenarioCallbackControlsAttributeValueRequest(
     Options const& options,
     rti::CallbackModel model) {
@@ -64091,6 +64152,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-object-discovery-contract",
       "cpp-tck.callback-controls-object-name-reservation",
       "cpp-tck.callback-controls-object-name-reservation-contract",
+      "cpp-tck.callback-controls-object-name-reservation-failure",
+      "cpp-tck.callback-controls-object-name-reservation-failure-contract",
       "cpp-tck.callback-controls-attribute-value-request",
       "cpp-tck.callback-controls-attribute-value-request-contract",
       "cpp-tck.asynchronous-delivery",
@@ -65616,6 +65679,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-object-name-reservation-contract") {
     return scenarioCallbackControlsObjectNameReservationContract;
+  }
+  if (id == "cpp-tck.callback-controls-object-name-reservation-failure") {
+    return scenarioCallbackControlsObjectNameReservationFailure;
+  }
+  if (id == "cpp-tck.callback-controls-object-name-reservation-failure-contract") {
+    return scenarioCallbackControlsObjectNameReservationFailureContract;
   }
   if (id == "cpp-tck.callback-controls-attribute-value-request") {
     return scenarioCallbackControlsAttributeValueRequest;
