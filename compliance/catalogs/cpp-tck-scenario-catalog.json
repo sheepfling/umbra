@@ -16590,6 +16590,94 @@
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
+  {
+    "id": "cpp-tck.callback-controls-ownership-acquisition-cancellation",
+    "category": "callback-controls",
+    "title": "Gate the standard ownership-acquisition cancellation callback with callback enable and disable services",
+    "api_methods": [
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.getAttributeHandle",
+      "RTIambassador.publishObjectClassAttributes",
+      "RTIambassador.subscribeObjectClassAttributes",
+      "RTIambassador.registerObjectInstance",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.attributeOwnershipAcquisition",
+      "RTIambassador.cancelAttributeOwnershipAcquisition",
+      "RTIambassador.isAttributeOwnedByFederate",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.discoverObjectInstance",
+      "FederateAmbassador.requestAttributeOwnershipRelease",
+      "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-object-registration-discovery",
+      "cpp-1516.1-ownership-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "connection-callback-api-contract.json",
+      "connection-implementation-contract.json",
+      "federation-execution-api-contract.json",
+      "object-instance-registration-api-contract.json",
+      "object-instance-registration-requirements-contract.json",
+      "attribute-ownership-acquisition-api-contract.json",
+      "attribute-ownership-acquisition-requirements-contract.json",
+      "standard-ownership-management-contract.json",
+      "standard-callback-controls-ownership-acquisition-cancellation-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsOwnershipAcquisitionCancellation",
+    "runner_id": "cpp-tck.callback-controls-ownership-acquisition-cancellation",
+    "parity": "cpp-extension-no-java-counterpart",
+    "default_status": "run",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-ownership-acquisition-cancellation-contract",
+    "category": "callback-controls",
+    "title": "Standard adapter-backed callback-control contract for ownership-acquisition cancellation",
+    "api_methods": [
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.getAttributeHandle",
+      "RTIambassador.publishObjectClassAttributes",
+      "RTIambassador.subscribeObjectClassAttributes",
+      "RTIambassador.registerObjectInstance",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.attributeOwnershipAcquisition",
+      "RTIambassador.cancelAttributeOwnershipAcquisition",
+      "RTIambassador.isAttributeOwnedByFederate",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.discoverObjectInstance",
+      "FederateAmbassador.requestAttributeOwnershipRelease",
+      "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-object-registration-discovery",
+      "cpp-1516.1-ownership-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "standard-callback-controls-ownership-acquisition-cancellation-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsOwnershipAcquisitionCancellationContract",
+    "runner_id": "cpp-tck.callback-controls-ownership-acquisition-cancellation-contract",
+    "parity": "cpp-tck.callback-controls-ownership-acquisition-cancellation",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
     {
       "id": "cpp-tck.federation-save-restore",
       "category": "federation-save-restore",
