@@ -50,6 +50,20 @@ ordinary ownership/divestment family, including the Java parity anchor and
 contract coverage, passed 60/60. Each focused artifact was checked with the
 same scenario-aware promoted-evidence validator.
 
+The expanded 2026-09-10 verification pass now has green direct evidence for
+533 of the 546 catalog scenario IDs (1,066 scenario/callback-model cases).
+This includes the ordinary and directed interaction fan-out cases, receive-order
+callback cancellation, custom transportation, timestamped attribute ordering
+and source-resignation, default-region timestamped attribute/interaction
+behavior, delayed subscription evaluation, the joined-federate MOM statistics
+cohort, and the adapter-backed connection-loss case. Every focused runnable
+cohort passed its CTest and direct lanes under both `HLA_EVOKED` and
+`HLA_IMMEDIATE`; the connection-loss case passed through the adapter fixture.
+The remaining 13 IDs are held as explicit follow-up: four passive/ordinary-edge
+cases with known provider behavior, three regional ownership-transfer cases,
+and six timed regional ownership-after-restore cases. They are not counted as
+green until their provider behavior or fixture boundary is resolved.
+
 ## Green P0–P6 ordinary-service, time, FOM, DDM, synchronization, callback, and save/restore boundary coverage
 
 The initial green slice exercises:
