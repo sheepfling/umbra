@@ -57897,6 +57897,175 @@ void scenarioCallbackControlsTimestampedAttributeUpdateContract(
   scenarioCallbackControlsTimestampedAttributeUpdate(options, model);
 }
 
+void scenarioCallbackControlsTimestampedObjectRemoval(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control timestamped object-removal testing requires an adapter-supplied logical-time implementation");
+
+  Session owner(options, model, "owner");
+  Session constrained(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-timestamped-object-removal");
+  connectAndJoin(owner, constrained, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const constrainedClass = constrained.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const constrainedAttribute = constrained.rtiAmbassador().getAttributeHandle(
+      constrainedClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && constrainedClass.isValid() &&
+          ownerAttribute.isValid() && constrainedAttribute.isValid(),
+      "callback-control timestamped object-removal lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const constrainedAttributes{constrainedAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  constrained.rtiAmbassador().subscribeObjectClassAttributes(
+      constrainedClass,
+      constrainedAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control timestamped object-removal registration returned an invalid object");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      !objectName.empty(),
+      "callback-control timestamped object-removal registration returned an empty name");
+  waitFor(
+      constrained,
+      [&] { return constrained.recorder().discovery().present; },
+      options,
+      "callback-control timestamped object-removal discovery");
+  require(
+      constrained.recorder().discovery().object == object,
+      "callback-control timestamped object-removal discovery returned the wrong object");
+
+  auto ownerTime = makeTimeContext(owner);
+  auto constrainedTime = makeTimeContext(constrained);
+  enableTimestampedRoles(
+      owner,
+      constrained,
+      ownerTime,
+      constrainedTime,
+      options,
+      "callback-control timestamped object-removal");
+  auto const target = timeAfter(
+      *ownerTime.factory,
+      *ownerTime.initial,
+      *ownerTime.epsilon,
+      4U);
+  auto const constrainedTarget = timeAfter(
+      *constrainedTime.factory,
+      *constrainedTime.initial,
+      *constrainedTime.epsilon,
+      4U);
+  std::vector<std::uint8_t> const tagBytes{0x52U, 0x4DU, 0x56U};
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+
+  constrained.rtiAmbassador().disableCallbacks();
+  auto const retraction = owner.rtiAmbassador().deleteObjectInstance(
+      object,
+      tag,
+      *target);
+  require(
+      retraction.isValid(),
+      "callback-control timestamped object removal returned an invalid retraction handle");
+  constrained.rtiAmbassador().timeAdvanceRequest(*constrainedTarget);
+  owner.rtiAmbassador().timeAdvanceRequest(*target);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "callback-control timestamped object-removal owner grant");
+
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(constrained.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(constrained.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      constrained.recorder().timedRemovals().empty() &&
+          constrained.recorder().timeAdvanceGrants().empty(),
+      "disabled callbacks exposed timestamped object removal or its grant");
+  require(
+      constrained.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "disabled timestamped object removal changed object identity before delivery");
+
+  constrained.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(constrained.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(constrained.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      constrained,
+      [&] {
+        return constrained.recorder().timedRemovals().size() == 1U &&
+            constrained.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "re-enabled callback-control timestamped object removal");
+  auto const removals = constrained.recorder().timedRemovals();
+  require(
+      removals.size() == 1U,
+      "re-enabled callback-control timestamped object removal delivered duplicates");
+  auto const& removal = removals.front();
+  require(
+      removal.object == object &&
+          removal.tag == tagBytes &&
+          removal.producer == owner.federateHandle() &&
+          removal.time == encodeTime(*target) &&
+          removal.sentOrder == rti::TIMESTAMP &&
+          removal.receivedOrder == rti::TIMESTAMP &&
+          removal.retractionPresent &&
+          removal.retraction == copyBytes(retraction.encode()),
+      "re-enabled timestamped object removal returned the wrong metadata");
+  require(
+      constrained.recorder().callbackOrder() ==
+          std::vector<std::string>{"remove", "grant"},
+      "re-enabled timestamped object removal crossed its grant boundary");
+  requireException(
+      [&] {
+        static_cast<void>(constrained.rtiAmbassador().getObjectInstanceHandle(objectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "timestamped object removal did not retire the object name after delivery");
+
+  constrained.rtiAmbassador().disableTimeConstrained();
+  owner.rtiAmbassador().disableTimeRegulation();
+  constrained.rtiAmbassador().unsubscribeObjectClassAttributes(
+      constrainedClass,
+      constrainedAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  constrained.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  constrained.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsTimestampedObjectRemovalContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsTimestampedObjectRemoval(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -66530,6 +66699,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-save-restore-contract",
       "cpp-tck.callback-controls-timestamped-attribute-update",
       "cpp-tck.callback-controls-timestamped-attribute-update-contract",
+      "cpp-tck.callback-controls-timestamped-object-removal",
+      "cpp-tck.callback-controls-timestamped-object-removal-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -68162,6 +68333,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.callback-controls-timestamped-attribute-update-contract") {
     return scenarioCallbackControlsTimestampedAttributeUpdateContract;
   }
+  if (id == "cpp-tck.callback-controls-timestamped-object-removal") {
+    return scenarioCallbackControlsTimestampedObjectRemoval;
+  }
+  if (id == "cpp-tck.callback-controls-timestamped-object-removal-contract") {
+    return scenarioCallbackControlsTimestampedObjectRemovalContract;
+  }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
   if (id == "cpp-tck.federation-save-restore-interlocks") {
@@ -68898,6 +69075,8 @@ int run(Options const& options) {
                    scenario == "cpp-tck.callback-controls-time-advance-contract" ||
                    scenario == "cpp-tck.callback-controls-timestamped-attribute-update" ||
                    scenario == "cpp-tck.callback-controls-timestamped-attribute-update-contract" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-object-removal" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-object-removal-contract" ||
                    scenario == "cpp-tck.asynchronous-delivery-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-contract" ||

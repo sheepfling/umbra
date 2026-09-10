@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for callback enable and disable around a standard timestamped object-removal callback. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, logical-time implementation, and callback configuration. It verifies suppression and release of timestamped object removal and time-advance grant callbacks, exact object/tag/time/order/retraction metadata, object-name retirement after delivery, callback ordering at the grant boundary, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-callback-controls-timestamped-object-removal",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador callback enable/disable and callback-servicing controls with publishObjectClassAttributes/registerObjectInstance/deleteObjectInstance(time)/timeAdvanceRequest and FederateAmbassador removeObjectInstance(time)/timeAdvanceGrant delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador callback-control and timestamped object-removal declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackControlsTimestampedObjectRemovalContract"
+      ]
+    }
+  ]
+}
