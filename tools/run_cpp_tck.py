@@ -42,6 +42,11 @@ DEFAULT_INVALID_FOM = (
     FOM_ROOT / "invalid-duplicate-tck.xml",
 )
 
+# Keep direct child-process command lines below the limits imposed by common
+# process launchers.  The C++ executable accepts repeated --scenario values,
+# so large catalog runs can be partitioned without changing the test binary.
+DIRECT_COMMAND_LENGTH_LIMIT = 24000
+
 
 def default_path(relative: str) -> Path:
     return ROOT / relative
@@ -82,6 +87,10 @@ def command_text(command: list[str]) -> str:
     if os.name == "nt":
         return subprocess.list2cmdline(command)
     return shlex.join(command)
+
+
+def command_length(command: list[str]) -> int:
+    return len(os.fsencode(command_text(command)))
 
 
 def run_command(command: list[str], *, cwd: Path) -> None:
@@ -648,6 +657,60 @@ def direct_arguments(
     return command
 
 
+def direct_scenario_chunks(
+    arguments: argparse.Namespace,
+    inputs: dict[str, Any],
+    executable: Path,
+    selected: list[dict[str, Any]],
+    results: Path | None,
+    junit: Path | None,
+) -> list[list[dict[str, Any]]]:
+    """Partition a direct run when its child-process command line is large."""
+    if not selected:
+        return []
+    full_command = [str(executable)] + direct_arguments(
+        arguments,
+        inputs,
+        selected,
+        results,
+        junit,
+    )
+    if command_length(full_command) <= DIRECT_COMMAND_LENGTH_LIMIT:
+        return [selected]
+
+    chunks: list[list[dict[str, Any]]] = []
+    current: list[dict[str, Any]] = []
+    for scenario in selected:
+        candidate = current + [scenario]
+        candidate_command = [str(executable)] + direct_arguments(
+            arguments,
+            inputs,
+            candidate,
+            results,
+            junit,
+        )
+        if current and command_length(candidate_command) > DIRECT_COMMAND_LENGTH_LIMIT:
+            chunks.append(current)
+            current = [scenario]
+            candidate_command = [str(executable)] + direct_arguments(
+                arguments,
+                inputs,
+                current,
+                results,
+                junit,
+            )
+        else:
+            current = candidate
+        if command_length(candidate_command) > DIRECT_COMMAND_LENGTH_LIMIT:
+            raise ValueError(
+                "a single C++ TCK scenario command exceeds the direct "
+                f"command-line budget of {DIRECT_COMMAND_LENGTH_LIMIT} bytes"
+            )
+    if current:
+        chunks.append(current)
+    return chunks
+
+
 CONNECTION_LOSS_SCENARIO = "cpp-tck.connection-loss-cleanup"
 CONNECTION_LOSS_ADAPTER = (
     ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
@@ -663,14 +726,60 @@ def run_executable_direct(
     results: Path | None,
     junit: Path | None,
 ) -> None:
-    command = [str(executable)] + direct_arguments(
+    chunks = direct_scenario_chunks(
         arguments,
         inputs,
+        executable,
         selected,
         results,
         junit,
     )
-    run_command(command, cwd=ROOT)
+    if len(chunks) <= 1:
+        command = [str(executable)] + direct_arguments(
+            arguments,
+            inputs,
+            selected,
+            results,
+            junit,
+        )
+        run_command(command, cwd=ROOT)
+        return
+
+    print(
+        f"Direct run split into {len(chunks)} child-process batches "
+        f"for {len(selected)} scenarios",
+        flush=True,
+    )
+    with tempfile.TemporaryDirectory(
+        prefix="cpp-tck-direct-",
+        dir=inputs["build_directory"],
+    ) as temporary_directory:
+        temporary_root = Path(temporary_directory)
+        result_parts: list[Path] = []
+        junit_parts: list[Path] = []
+        for index, chunk in enumerate(chunks):
+            chunk_results = (
+                temporary_root / f"chunk-{index}.json" if results is not None else None
+            )
+            chunk_junit = (
+                temporary_root / f"chunk-{index}.xml" if junit is not None else None
+            )
+            command = [str(executable)] + direct_arguments(
+                arguments,
+                inputs,
+                chunk,
+                chunk_results,
+                chunk_junit,
+            )
+            run_command(command, cwd=ROOT)
+            if chunk_results is not None:
+                result_parts.append(chunk_results)
+            if chunk_junit is not None:
+                junit_parts.append(chunk_junit)
+        if results is not None:
+            merge_json_evidence_parts(result_parts, results)
+        if junit is not None:
+            merge_junit_evidence_parts(junit_parts, junit)
 
 
 def run_connection_loss_adapter(
@@ -741,20 +850,17 @@ def run_connection_loss_check(
         )
 
 
-def merge_json_evidence(
-    base: Path | None,
-    connection_loss: Path,
-    output: Path,
-) -> None:
-    loss_payload = json.loads(connection_loss.read_text(encoding="utf-8"))
-    if base is None:
-        payload = loss_payload
-    else:
-        payload = json.loads(base.read_text(encoding="utf-8"))
+def merge_json_evidence_parts(parts: Iterable[Path], output: Path) -> None:
+    paths = list(parts)
+    if not paths:
+        raise ValueError("cannot merge empty JSON evidence")
+    payload = json.loads(paths[0].read_text(encoding="utf-8"))
+    for part in paths[1:]:
+        next_payload = json.loads(part.read_text(encoding="utf-8"))
         payload["results"] = list(payload.get("results", [])) + list(
-            loss_payload.get("results", [])
+            next_payload.get("results", [])
         )
-        payload["callback_model"] = loss_payload.get(
+        payload["callback_model"] = next_payload.get(
             "callback_model", payload.get("callback_model")
         )
     output.write_text(
@@ -763,15 +869,21 @@ def merge_json_evidence(
     )
 
 
-def merge_junit_evidence(
+def merge_json_evidence(
     base: Path | None,
     connection_loss: Path,
     output: Path,
 ) -> None:
+    parts = [connection_loss] if base is None else [base, connection_loss]
+    merge_json_evidence_parts(parts, output)
+
+
+def merge_junit_evidence_parts(parts: Iterable[Path], output: Path) -> None:
     roots = []
-    if base is not None:
-        roots.append(ET.parse(base).getroot())
-    roots.append(ET.parse(connection_loss).getroot())
+    for part in parts:
+        roots.append(ET.parse(part).getroot())
+    if not roots:
+        raise ValueError("cannot merge empty JUnit evidence")
     merged = ET.Element("testsuite")
     totals = {name: 0 for name in ("tests", "failures", "errors", "skipped")}
     total_time = 0.0
@@ -792,6 +904,15 @@ def merge_junit_evidence(
     merged.attrib.update({name: str(value) for name, value in totals.items()})
     merged.set("time", str(total_time))
     ET.ElementTree(merged).write(output, encoding="utf-8", xml_declaration=True)
+
+
+def merge_junit_evidence(
+    base: Path | None,
+    connection_loss: Path,
+    output: Path,
+) -> None:
+    parts = [connection_loss] if base is None else [base, connection_loss]
+    merge_junit_evidence_parts(parts, output)
 
 
 def run_direct(

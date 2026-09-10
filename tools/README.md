@@ -107,7 +107,9 @@ Use the standard-library-only Python orchestrator for an installed provider
 package. It configures and builds the CMake adapter, runs the configured CTest
 matrix, and can optionally invoke the executable for JSON/JUnit evidence. All
 child processes receive argument lists directly; the runner does not invoke a
-shell.
+shell. Large direct selections are partitioned into bounded child-process
+batches and their JSON/JUnit evidence is merged, so the full catalog remains
+usable on platforms with conservative process command-line limits.
 
     python tools/run_cpp_tck.py --package-prefix .build/package-smoke-install --build-directory .build/cpp-tck-python --scenario-set verified --callback-model both
 
@@ -149,9 +151,9 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is 546 promoted scenario IDs (1092 callback-model cases).
- `--scenario-set all` currently configures the same 546 available IDs (1092
-cases); there are no unpromoted candidates in the current catalog. The
+    The verified lane is 536 promoted scenario IDs (1072 callback-model cases).
+ `--scenario-set all` currently configures all 546 available IDs (1092
+cases), including 10 unpromoted candidates. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
