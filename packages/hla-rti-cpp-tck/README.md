@@ -517,6 +517,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.ownership-transfer-deferred-regional-update` | Non-owner deferred update-region association is promoted at regular ownership transfer, with owner-release, acquisition, ownership, update, and conveyed source-region assertions |
 | `cpp-tck.ownership-transfer-deferred-regional-update-contract` | Standard adapter-backed deferred ownership/update-region promotion contract |
 | `java-tck.ordinary-edges` | Passive-delivery boundaries, idempotent object/interaction declarations, unsubscribed delivery suppression, and standard invalid-class/object/attribute/publication/parameter failures |
+| `cpp-tck.ordinary-edges-contract` | Standard adapter-backed ordinary delivery, declaration, unsubscription, unpublication, and negative-boundary contract |
 | `cpp-tck.fom-model` | Rich valid FOM hierarchy, inheritance, dimensions, update rates, transportation, advisory switches, declarations, and representative typed delivery |
 | `cpp-tck.fom-model-contract` | Standard adapter-backed FOM model contract for hierarchy, inheritance, dimensions, update rates, transportation, declarations, and representative typed delivery |
 | `cpp-tck.inherited-object-attribute-projection` | Derived object discovery through base and derived subscriptions, base-only inherited-attribute projection, derived-attribute retention, and ordinary reflection metadata |
@@ -1399,8 +1400,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 543 scenario IDs and 1086 matrix cases. `--scenario-set all` currently
-          configures the same 543 available IDs (1086 cases); there are no unpromoted
+          that is 544 scenario IDs and 1088 matrix cases. `--scenario-set all` currently
+          configures the same 544 available IDs (1088 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

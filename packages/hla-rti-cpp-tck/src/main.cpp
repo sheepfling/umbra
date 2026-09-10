@@ -43091,6 +43091,12 @@ void scenarioOrdinaryEdges(Options const& options, rti::CallbackModel model) {
   passive.resign(rti::NO_ACTION);
 }
 
+void scenarioOrdinaryEdgesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOrdinaryEdges(options, model);
+}
+
 void scenarioNamedRegistration(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "owner");
   Session member(options, model, "member");
@@ -68539,6 +68545,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.resign-cancel-negotiated-pending",
       "cpp-tck.resign-cancel-negotiated-pending-contract",
       "java-tck.ordinary-edges",
+      "cpp-tck.ordinary-edges-contract",
       "cpp-tck.fom-model",
       "cpp-tck.custom-transportation-interaction-delivery",
       "cpp-tck.custom-transportation-regional-attribute-delivery",
@@ -70379,6 +70386,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioResignCancelNegotiatedPendingContract;
   }
   if (id == "java-tck.ordinary-edges") return scenarioOrdinaryEdges;
+  if (id == "cpp-tck.ordinary-edges-contract") {
+    return scenarioOrdinaryEdgesContract;
+  }
   if (id == "cpp-tck.fom-model") return scenarioFomModel;
   if (id == "cpp-tck.inherited-object-attribute-projection") {
     return scenarioInheritedObjectAttributeProjection;

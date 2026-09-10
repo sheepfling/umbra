@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs 543 promoted scenarios (1086 callback-model
+    The verified lane currently runs 544 promoted scenarios (1088 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -2346,7 +2346,7 @@ The interaction survey maps the Java parity cases to the standard C++ surface:
 
 | Area | Portable C++ translation | Deliberately deferred |
 | --- | --- | --- |
-| Ordinary interactions | `sendInteraction`/`receiveInteraction`, parameters, tags, producer, transport, active/passive delivery, timestamped grant delivery, and message retraction | Directed regional routing |
+| Ordinary interactions and edge matrix | `sendInteraction`/`receiveInteraction`, parameters, tags, producer, transport, active/passive delivery, idempotent declarations, unsubscription/unpublication fences, standard negative boundaries, timestamped grant delivery, and message retraction | Directed regional routing |
 | Timestamped object management | Timestamped `updateAttributeValues`/`reflectAttributeValues` and `deleteObjectInstance`/`removeObjectInstance`, producer Time Regulation re-enable with changed lookahead, retraction, object identity, and grant ordering | Regional routing and provider transport internals |
 | Timestamped ordinary attributes | Timestamped `UpdateAttributeValues`/`ReflectAttributeValues` through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, with callback-before-grant ordering, grant/query bounds, transport/order metadata, and terminal retraction | Provider-specific transport and durable state |
 | Timestamped regional attributes | Region-qualified timestamped `Update/Reflect`, overlap and disjoint filtering, conveyed source-region metadata, producer resignation, retraction, time-constrained re-enable/grant ordering, producer Time Regulation re-enable with changed lookahead, FQR/TARA/NMRA alternate advances, default-region delivery, and bounded immediate/constrained default-region mixed fanout | Default-region durable restore |

@@ -12038,6 +12038,43 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.ordinary-edges-contract",
+      "category": "ordinary-edge-matrix",
+      "title": "Exercise the standard ordinary delivery and negative-boundary contract",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(active=true)",
+        "RTIambassador.subscribeObjectClassAttributes(active=false)",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.requestAttributeValueUpdate(instance)",
+        "RTIambassador.requestAttributeValueUpdate(class)",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass(active=true)",
+        "RTIambassador.subscribeInteractionClass(active=false)",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ordinary-edge-matrix",
+        "cpp-1516.1-standard-exception-boundary"
+      ],
+      "contract_refs": [
+        "standard-ordinary-edges-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOrdinaryEdgesContract",
+      "runner_id": "cpp-tck.ordinary-edges-contract",
+      "parity": "java-tck.ordinary-edges",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.update-rate-queries",
       "category": "update-rate-queries",
       "title": "Resolve named rates and verify active, passive, default, reset, and invalid per-attribute rate queries",
