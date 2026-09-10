@@ -57895,6 +57895,85 @@ void scenarioCallbackControlsSaveRestoreFailuresContract(
   scenarioCallbackControlsSaveRestoreFailures(options, model);
 }
 
+void scenarioCallbackControlsRestoreRequestFailure(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session requester(options, model, "owner");
+  Session observer(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-restore-request-failure");
+  connectAndJoin(requester, observer, options, federation, options.fom);
+
+  auto serviceCallbacks = [&](Session& session) {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(session.evokeMultipleCallbacks(0.0, 1.0));
+    } else {
+      static_cast<void>(session.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+  };
+
+  std::wstring const missingSaveLabel =
+      L"tck-callback-controls-missing-restore";
+  auto const requesterFailureBefore =
+      requester.federationRestoreRequestsFailed().size();
+  auto const observerFailureBefore =
+      observer.federationRestoreRequestsFailed().size();
+  auto const requesterRestoreBegunBefore = requester.federationRestoreBegunCount();
+  auto const observerRestoreBegunBefore = observer.federationRestoreBegunCount();
+  auto const requesterRestoreInitiationBefore =
+      requester.federateRestoreInitiations().size();
+  auto const observerRestoreInitiationBefore =
+      observer.federateRestoreInitiations().size();
+
+  requester.rtiAmbassador().disableCallbacks();
+  requester.rtiAmbassador().requestFederationRestore(missingSaveLabel);
+  serviceCallbacks(requester);
+  require(
+      requester.federationRestoreRequestsFailed().size() == requesterFailureBefore,
+      "disabled callbacks exposed a restore-request failure");
+  require(
+      observer.federationRestoreRequestsFailed().size() == observerFailureBefore,
+      "restore-request failure was delivered to a non-requesting federate");
+  requester.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(requester);
+  waitFor(
+      requester,
+      [&] {
+        return requester.federationRestoreRequestsFailed().size() >
+            requesterFailureBefore;
+      },
+      options,
+      "re-enabled callback-control restore-request failure");
+
+  require(
+      requester.federationRestoreRequestsFailed().back() == missingSaveLabel,
+      "restore-request failure returned the wrong save label");
+  require(
+      requester.federationRestoreRequestsSucceeded().empty() &&
+          observer.federationRestoreRequestsSucceeded().empty() &&
+          requester.federationRestoreBegunCount() == requesterRestoreBegunBefore &&
+          observer.federationRestoreBegunCount() == observerRestoreBegunBefore &&
+          requester.federateRestoreInitiations().size() ==
+              requesterRestoreInitiationBefore &&
+          observer.federateRestoreInitiations().size() ==
+              observerRestoreInitiationBefore,
+      "failed restore request unexpectedly started a federation restore");
+
+  requester.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  requester.disconnect();
+}
+
+void scenarioCallbackControlsRestoreRequestFailureContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsRestoreRequestFailure(options, model);
+}
+
 void scenarioCallbackControlsTimestampedAttributeUpdate(
     Options const& options,
     rti::CallbackModel model) {
@@ -68351,6 +68430,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-save-restore-contract",
       "cpp-tck.callback-controls-save-restore-failures",
       "cpp-tck.callback-controls-save-restore-failures-contract",
+      "cpp-tck.callback-controls-restore-request-failure",
+      "cpp-tck.callback-controls-restore-request-failure-contract",
       "cpp-tck.callback-controls-timestamped-attribute-update",
       "cpp-tck.callback-controls-timestamped-attribute-update-contract",
       "cpp-tck.callback-controls-timestamped-object-removal",
@@ -70002,6 +70083,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-save-restore-failures-contract") {
     return scenarioCallbackControlsSaveRestoreFailuresContract;
+  }
+  if (id == "cpp-tck.callback-controls-restore-request-failure") {
+    return scenarioCallbackControlsRestoreRequestFailure;
+  }
+  if (id == "cpp-tck.callback-controls-restore-request-failure-contract") {
+    return scenarioCallbackControlsRestoreRequestFailureContract;
   }
   if (id == "cpp-tck.callback-controls-timestamped-attribute-update") {
     return scenarioCallbackControlsTimestampedAttributeUpdate;

@@ -17400,6 +17400,79 @@
     "promotion": "promoted"
   },
   {
+    "id": "cpp-tck.callback-controls-restore-request-failure",
+    "category": "callback-controls",
+    "title": "Gate standard restore-request failure callbacks with callback enable and disable services",
+    "api_methods": [
+      "RTIambassador.requestFederationRestore",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.requestFederationRestoreFailed",
+      "FederateAmbassador.requestFederationRestoreSucceeded",
+      "FederateAmbassador.federationRestoreBegun",
+      "FederateAmbassador.initiateFederateRestore"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-federation-restore-lifecycle",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "connection-callback-api-contract.json",
+      "connection-implementation-contract.json",
+      "federation-execution-api-contract.json",
+      "restore-control-api-contract.json",
+      "restore-control-requirements-contract.json",
+      "standard-callback-controls-restore-request-failure-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsRestoreRequestFailure",
+    "runner_id": "cpp-tck.callback-controls-restore-request-failure",
+    "parity": "cpp-extension-no-java-counterpart",
+    "default_status": "run",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-restore-request-failure-contract",
+    "category": "callback-controls",
+    "title": "Standard adapter-backed callback-control contract for restore-request failure delivery",
+    "api_methods": [
+      "RTIambassador.requestFederationRestore",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.requestFederationRestoreFailed",
+      "FederateAmbassador.requestFederationRestoreSucceeded",
+      "FederateAmbassador.federationRestoreBegun",
+      "FederateAmbassador.initiateFederateRestore"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-federation-restore-lifecycle",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "standard-callback-controls-restore-request-failure-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsRestoreRequestFailureContract",
+    "runner_id": "cpp-tck.callback-controls-restore-request-failure-contract",
+    "parity": "cpp-tck.callback-controls-restore-request-failure",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
+  {
     "id": "cpp-tck.callback-controls-timestamped-attribute-update",
     "category": "callback-controls",
     "title": "Gate standard timestamped attribute reflection with callback enable and disable services",
