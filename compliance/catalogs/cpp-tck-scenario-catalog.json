@@ -16141,9 +16141,9 @@
       "default_status": "run",
       "promotion": "promoted"
     },
-    {
-      "id": "cpp-tck.callback-controls-attribute-value-request-contract",
-      "category": "callback-controls",
+  {
+    "id": "cpp-tck.callback-controls-attribute-value-request-contract",
+    "category": "callback-controls",
       "title": "Standard adapter-backed callback enable and disable contract for ordinary attribute-value requests",
       "api_methods": [
         "RTIambassador.disableCallbacks",
@@ -16177,11 +16177,100 @@
       "cpp_test": "src/main.cpp#scenarioCallbackControlsAttributeValueRequestContract",
       "runner_id": "cpp-tck.callback-controls-attribute-value-request-contract",
       "parity": "cpp-tck.callback-controls-attribute-value-request",
-      "default_status": "adapter-required",
-      "promotion": "promoted"
-    },
-    {
-      "id": "cpp-tck.asynchronous-delivery",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-auto-provide",
+    "category": "callback-controls",
+    "title": "Gate the standard Auto Provide callback with callback enable and disable services",
+    "api_methods": [
+      "RTIambassador.getAutoProvideSwitch",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.getAttributeHandle",
+      "RTIambassador.publishObjectClassAttributes",
+      "RTIambassador.subscribeObjectClassAttributes",
+      "RTIambassador.registerObjectInstance",
+      "RTIambassador.unsubscribeObjectClassAttributes",
+      "RTIambassador.unpublishObjectClassAttributes",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.discoverObjectInstance",
+      "FederateAmbassador.provideAttributeValueUpdate"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-support-switch-accessors",
+      "cpp-1516.1-object-registration-discovery",
+      "cpp-1516.1-attribute-value-update-response",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "connection-callback-api-contract.json",
+      "connection-implementation-contract.json",
+      "support-switches-api-contract.json",
+      "support-switches-service-requirements-contract.json",
+      "object-instance-registration-api-contract.json",
+      "object-instance-registration-requirements-contract.json",
+      "attribute-value-update-response-api-contract.json",
+      "attribute-value-update-response-requirements-contract.json",
+      "standard-auto-provide-contract.json",
+      "standard-callback-controls-auto-provide-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsAutoProvide",
+    "runner_id": "cpp-tck.callback-controls-auto-provide",
+    "parity": "cpp-extension-no-java-counterpart",
+    "default_status": "run",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-auto-provide-contract",
+    "category": "callback-controls",
+    "title": "Standard adapter-backed callback-control contract for Auto Provide",
+    "api_methods": [
+      "RTIambassador.getAutoProvideSwitch",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.getAttributeHandle",
+      "RTIambassador.publishObjectClassAttributes",
+      "RTIambassador.subscribeObjectClassAttributes",
+      "RTIambassador.registerObjectInstance",
+      "RTIambassador.unsubscribeObjectClassAttributes",
+      "RTIambassador.unpublishObjectClassAttributes",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.discoverObjectInstance",
+      "FederateAmbassador.provideAttributeValueUpdate"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-support-switch-accessors",
+      "cpp-1516.1-object-registration-discovery",
+      "cpp-1516.1-attribute-value-update-response",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "standard-callback-controls-auto-provide-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsAutoProvideContract",
+    "runner_id": "cpp-tck.callback-controls-auto-provide-contract",
+    "parity": "cpp-tck.callback-controls-auto-provide",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.asynchronous-delivery",
       "category": "asynchronous-delivery",
       "title": "Gate receive-order callbacks with asynchronous delivery and callback servicing",
       "api_methods": [

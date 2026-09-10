@@ -56090,6 +56090,112 @@ void scenarioCallbackControlsAttributeValueRequestContract(
   scenarioCallbackControlsAttributeValueRequest(options, model);
 }
 
+void scenarioCallbackControlsAutoProvide(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.autoProvideFom.empty(),
+      "callback-control Auto Provide testing requires an adapter-supplied Auto Provide FOM");
+  Session owner(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(options, "callback-controls-auto-provide");
+  connectAndJoin(owner, requester, options, federation, options.autoProvideFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.autoProvideObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.autoProvideObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.autoProvideFirstAttributeName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.autoProvideSecondAttributeName);
+  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.autoProvideFirstAttributeName);
+  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.autoProvideSecondAttributeName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() && ownerFirst.isValid() &&
+          ownerSecond.isValid() && requesterFirst.isValid() && requesterSecond.isValid() &&
+          ownerClass == requesterClass,
+      "callback-control Auto Provide lookup returned invalid or inconsistent handles");
+  require(
+      owner.rtiAmbassador().getAutoProvideSwitch() &&
+          requester.rtiAmbassador().getAutoProvideSwitch(),
+      "callback-control Auto Provide FOM did not enable the standard switch");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst, ownerSecond};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+
+  owner.recorder().clearProvidedUpdates();
+  owner.rtiAmbassador().disableCallbacks();
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control Auto Provide registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "callback-control Auto Provide discovery");
+
+  if (model == rti::HLA_EVOKED) {
+    require(
+        owner.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending Auto Provide callback");
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.autoProvideObjectClassName));
+  }
+  require(
+      owner.recorder().providedUpdates().empty(),
+      "disabled callbacks exposed a provideAttributeValueUpdate callback");
+
+  owner.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.autoProvideObjectClassName));
+  }
+  waitFor(
+      owner,
+      [&] { return owner.recorder().providedUpdates().size() == 1U; },
+      options,
+      "re-enabled callback-control Auto Provide callback");
+  auto const providedUpdates = owner.recorder().providedUpdates();
+  require(
+      providedUpdates.front().object == object &&
+          providedUpdates.front().attributes == ownerAttributes &&
+          providedUpdates.front().tag.empty(),
+      "re-enabled Auto Provide callback lost standard object, attribute, or tag data");
+
+  requester.rtiAmbassador().unsubscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsAutoProvideContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsAutoProvide(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -64697,6 +64803,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-attribute-relevance-advisories-contract",
       "cpp-tck.callback-controls-attribute-value-request",
       "cpp-tck.callback-controls-attribute-value-request-contract",
+      "cpp-tck.callback-controls-auto-provide",
+      "cpp-tck.callback-controls-auto-provide-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -66250,6 +66358,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-attribute-value-request-contract") {
     return scenarioCallbackControlsAttributeValueRequestContract;
+  }
+  if (id == "cpp-tck.callback-controls-auto-provide") {
+    return scenarioCallbackControlsAutoProvide;
+  }
+  if (id == "cpp-tck.callback-controls-auto-provide-contract") {
+    return scenarioCallbackControlsAutoProvideContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
