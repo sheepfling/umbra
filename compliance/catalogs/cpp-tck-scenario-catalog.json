@@ -15747,6 +15747,90 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.callback-controls-attribute-value-request",
+      "category": "callback-controls",
+      "title": "Gate an ordinary provide-attribute-value callback with standard callback enable and disable services",
+      "api_methods": [
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-callback-disable-gating",
+        "cpp-1516.1-callback-enable-release",
+        "cpp-1516.1-callback-model-servicing",
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "connection-callback-api-contract.json",
+        "connection-implementation-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "attribute-value-update-request-requirements-contract.json",
+        "standard-callback-controls-attribute-value-request-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCallbackControlsAttributeValueRequest",
+      "runner_id": "cpp-tck.callback-controls-attribute-value-request",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "run",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.callback-controls-attribute-value-request-contract",
+      "category": "callback-controls",
+      "title": "Standard adapter-backed callback enable and disable contract for ordinary attribute-value requests",
+      "api_methods": [
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-callback-disable-gating",
+        "cpp-1516.1-callback-enable-release",
+        "cpp-1516.1-callback-model-servicing",
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-callback-controls-attribute-value-request-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCallbackControlsAttributeValueRequestContract",
+      "runner_id": "cpp-tck.callback-controls-attribute-value-request-contract",
+      "parity": "cpp-tck.callback-controls-attribute-value-request",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.asynchronous-delivery",
       "category": "asynchronous-delivery",
       "title": "Gate receive-order callbacks with asynchronous delivery and callback servicing",

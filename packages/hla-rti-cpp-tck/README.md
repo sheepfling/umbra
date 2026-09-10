@@ -390,6 +390,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-object-discovery-contract` | Standard adapter-backed callback enable and disable contract for ordinary object discovery and callback servicing |
 | `cpp-tck.callback-controls-object-name-reservation` | Callback disable/enable gating around ordinary object-name reservation under both callback models |
 | `cpp-tck.callback-controls-object-name-reservation-contract` | Standard adapter-backed callback enable and disable contract for ordinary object-name reservation and callback servicing |
+| `cpp-tck.callback-controls-attribute-value-request` | Callback disable/enable gating around ordinary attribute-value requests under both callback models |
+| `cpp-tck.callback-controls-attribute-value-request-contract` | Standard adapter-backed callback enable and disable contract for ordinary attribute-value requests and callback servicing |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
@@ -978,6 +980,13 @@ callback-model servicing, name cleanup, and standard federation lifecycle. Their
 focused installed-package CTest lane passed 4/4 callback-model cases using only
 the official C++ API and standard library.
 
+The promoted `cpp-tck.callback-controls-attribute-value-request` scenario and
+its contract twin extend callback gating to ordinary attribute-value requests.
+They verify discovery, provider-callback suppression, release after re-enable,
+callback-model servicing, object/attribute/tag identity, and standard cleanup.
+Their focused installed-package CTest lane passed 4/4 callback-model cases using
+only the official C++ API and standard library.
+
 The promoted `cpp-tck.timed-regional-interaction-save-restore` expansion uses the
 adapter-supplied DDM FOM to save at time 6, roll back a live retraction, restore
 the queued timestamped regional interaction at time 8, and deliver it through
@@ -1095,8 +1104,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-       that is 483 scenario IDs and 966 matrix cases. `--scenario-set all` currently
-        configures the same 483 available IDs (966 cases); there are no unpromoted
+       that is 485 scenario IDs and 970 matrix cases. `--scenario-set all` currently
+        configures the same 485 available IDs (970 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

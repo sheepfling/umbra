@@ -55396,6 +55396,104 @@ void scenarioCallbackControlsObjectNameReservationContract(
   scenarioCallbackControlsObjectNameReservation(options, model);
 }
 
+void scenarioCallbackControlsAttributeValueRequest(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(options, "callback-controls-attribute-value-request");
+  connectAndJoin(owner, requester, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() &&
+          ownerAttribute.isValid() && requesterAttribute.isValid() &&
+          ownerClass == requesterClass && ownerAttribute == requesterAttribute,
+      "callback-control attribute-value-request handles did not retain identity across members");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control attribute-value-request registration returned an invalid handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "callback-control attribute-value-request discovery");
+
+  owner.recorder().clearProvidedUpdates();
+  owner.rtiAmbassador().disableCallbacks();
+  std::vector<std::uint8_t> const requestTagBytes{0x56U, 0x52U, 0x31U};
+  rti::VariableLengthData requestTag(requestTagBytes.data(), requestTagBytes.size());
+  requester.rtiAmbassador().requestAttributeValueUpdate(
+      object,
+      requesterAttributes,
+      requestTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        owner.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending attribute-value request event");
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      owner.recorder().providedUpdates().empty(),
+      "disabled callbacks exposed a provideAttributeValueUpdate callback");
+
+  owner.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      owner,
+      [&] { return owner.recorder().providedUpdates().size() == 1U; },
+      options,
+      "re-enabled callback-control attribute-value request");
+  auto const requests = owner.recorder().providedUpdates();
+  require(
+      requests.front().object == object &&
+          requests.front().attributes == ownerAttributes &&
+          requests.front().tag == requestTagBytes,
+      "re-enabled provideAttributeValueUpdate callback lost standard delivery data");
+
+  requester.rtiAmbassador().unsubscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsAttributeValueRequestContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsAttributeValueRequest(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -63993,6 +64091,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-object-discovery-contract",
       "cpp-tck.callback-controls-object-name-reservation",
       "cpp-tck.callback-controls-object-name-reservation-contract",
+      "cpp-tck.callback-controls-attribute-value-request",
+      "cpp-tck.callback-controls-attribute-value-request-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -65516,6 +65616,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-object-name-reservation-contract") {
     return scenarioCallbackControlsObjectNameReservationContract;
+  }
+  if (id == "cpp-tck.callback-controls-attribute-value-request") {
+    return scenarioCallbackControlsAttributeValueRequest;
+  }
+  if (id == "cpp-tck.callback-controls-attribute-value-request-contract") {
+    return scenarioCallbackControlsAttributeValueRequestContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
