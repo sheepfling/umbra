@@ -56408,6 +56408,131 @@ void scenarioCallbackControlsOwnershipUnavailableContract(
   scenarioCallbackControlsOwnershipUnavailable(options, model);
 }
 
+void scenarioCallbackControlsOwnershipReleaseRequest(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(options, "callback-controls-ownership-release-request");
+  connectAndJoin(owner, requester, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() && ownerAttribute.isValid() &&
+          requesterAttribute.isValid() && ownerClass == requesterClass,
+      "callback-control ownership-release lookup returned invalid or inconsistent handles");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control ownership-release registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "callback-control ownership-release discovery");
+
+  std::vector<std::uint8_t> const acquisitionTagBytes{0x52U, 0x45U, 0x51U};
+  rti::VariableLengthData acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  owner.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().disableCallbacks();
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      requesterAttributes,
+      acquisitionTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        owner.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending ownership-release request event");
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !owner.recorder().ownershipReleaseRequest().has_value(),
+      "disabled callbacks exposed an ownership-release request callback");
+
+  owner.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+      options,
+      "re-enabled callback-control ownership-release request");
+  auto const releaseRequest = owner.recorder().ownershipReleaseRequest();
+  require(
+      releaseRequest->object == object && releaseRequest->attributes == ownerAttributes &&
+          releaseRequest->tag == acquisitionTagBytes,
+      "re-enabled ownership-release request lost standard object, attribute, or tag data");
+
+  std::vector<std::uint8_t> const divestitureTagBytes{0x44U, 0x49U, 0x56U};
+  rti::VariableLengthData divestitureTag(
+      divestitureTagBytes.data(),
+      divestitureTagBytes.size());
+  requester.recorder().clearOwnershipRecords();
+  rti::AttributeHandleSet divestedAttributes;
+  owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      object,
+      ownerAttributes,
+      divestitureTag,
+      divestedAttributes);
+  require(
+      divestedAttributes == ownerAttributes,
+      "ownership-release request did not divest the requested attribute set");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "callback-control ownership-release acquisition notification");
+  auto const acquisition = requester.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object && acquisition->attributes == requesterAttributes &&
+          acquisition->tag == divestitureTagBytes &&
+          requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute),
+      "ownership-release handoff returned the wrong standard acquisition state");
+
+  requester.resign(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsOwnershipReleaseRequestContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsOwnershipReleaseRequest(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -65021,6 +65146,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-ownership-assumption-contract",
       "cpp-tck.callback-controls-ownership-unavailable",
       "cpp-tck.callback-controls-ownership-unavailable-contract",
+      "cpp-tck.callback-controls-ownership-release-request",
+      "cpp-tck.callback-controls-ownership-release-request-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -66592,6 +66719,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-ownership-unavailable-contract") {
     return scenarioCallbackControlsOwnershipUnavailableContract;
+  }
+  if (id == "cpp-tck.callback-controls-ownership-release-request") {
+    return scenarioCallbackControlsOwnershipReleaseRequest;
+  }
+  if (id == "cpp-tck.callback-controls-ownership-release-request-contract") {
+    return scenarioCallbackControlsOwnershipReleaseRequestContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
