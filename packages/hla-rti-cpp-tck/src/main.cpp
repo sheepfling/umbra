@@ -55644,6 +55644,261 @@ void scenarioCallbackControlsDeclarationAdvisoriesContract(
   scenarioCallbackControlsDeclarationAdvisories(options, model);
 }
 
+void scenarioCallbackControlsAttributeRelevanceAdvisories(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "owner");
+  Session subscriber(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-attribute-relevance-advisories");
+  connectAndJoin(publisher, subscriber, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const subscriberClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherName = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      L"Name");
+  auto const subscriberName = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      L"Name");
+  auto const publisherPayRate = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      L"PayRate");
+  auto const subscriberPayRate = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      L"PayRate");
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const subscriberAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && subscriberClass.isValid() &&
+          publisherName.isValid() && subscriberName.isValid() &&
+          publisherPayRate.isValid() && subscriberPayRate.isValid() &&
+          publisherAttribute.isValid() && subscriberAttribute.isValid() &&
+          publisherClass == subscriberClass &&
+          publisherName == subscriberName &&
+          publisherPayRate == subscriberPayRate &&
+          publisherAttribute == subscriberAttribute,
+      "callback-control attribute-relevance handles did not retain identity across members");
+
+  rti::AttributeHandleSet const publisherNameSet{publisherName};
+  rti::AttributeHandleSet const publisherPayRateSet{publisherPayRate};
+  rti::AttributeHandleSet const publisherAttributeSet{publisherAttribute};
+  rti::AttributeHandleSet const publisherAllSet{
+      publisherName,
+      publisherPayRate,
+      publisherAttribute};
+  rti::AttributeHandleSet const subscriberNameSet{subscriberName};
+  rti::AttributeHandleSet const subscriberPayRateSet{subscriberPayRate};
+  rti::AttributeHandleSet const subscriberAttributeSet{subscriberAttribute};
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberNameSet,
+      true,
+      L"");
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAllSet);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().registrationStarts().size() >= 1U; },
+      options,
+      "callback-control attribute-relevance registration advisory");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "callback-control attribute-relevance registration returned an invalid object handle");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(object); },
+      options,
+      "callback-control attribute-relevance discovery");
+  // Registration may queue the already-active Name relevance advisory on an
+  // evoked publisher. Cross the callback boundary before clearing the
+  // recorder so the callback-control checks below start with no stale work.
+  for (int pass = 0; pass != 8; ++pass) {
+    publisher.pump();
+  }
+  publisher.recorder().clearAdvisories();
+
+  publisher.rtiAmbassador().disableCallbacks();
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberPayRateSet,
+      true,
+      L"");
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending unnamed turn-updates-on advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().updatesOn().empty(),
+      "disabled callbacks exposed an unnamed turn-updates-on advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().updatesOn().size() == 1U; },
+      options,
+      "re-enabled unnamed turn-updates-on advisory");
+  auto const unnamedUpdatesOn = publisher.recorder().updatesOn();
+  require(
+      unnamedUpdatesOn.front().object == object &&
+          unnamedUpdatesOn.front().attributes.size() == 1U &&
+          unnamedUpdatesOn.front().attributes.count(publisherPayRate) == 1U &&
+          !unnamedUpdatesOn.front().updateRateDesignator.has_value(),
+      "re-enabled unnamed turn-updates-on advisory lost standard delivery data");
+
+  publisher.rtiAmbassador().disableCallbacks();
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberPayRateSet);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending unnamed turn-updates-off advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().updatesOff().empty(),
+      "disabled callbacks exposed an unnamed turn-updates-off advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().updatesOff().size() == 1U; },
+      options,
+      "re-enabled unnamed turn-updates-off advisory");
+  auto const unnamedUpdatesOff = publisher.recorder().updatesOff();
+  require(
+      unnamedUpdatesOff.front().object == object &&
+          unnamedUpdatesOff.front().attributes.size() == 1U &&
+          unnamedUpdatesOff.front().attributes.count(publisherPayRate) == 1U &&
+          !unnamedUpdatesOff.front().updateRateDesignator.has_value(),
+      "re-enabled unnamed turn-updates-off advisory lost standard delivery data");
+
+  publisher.recorder().clearAdvisories();
+  publisher.rtiAmbassador().disableCallbacks();
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributeSet,
+      true,
+      L"High");
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending named turn-updates-on advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().updatesOn().empty(),
+      "disabled callbacks exposed a named turn-updates-on advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().updatesOn().size() == 1U; },
+      options,
+      "re-enabled named turn-updates-on advisory");
+  auto const namedUpdatesOn = publisher.recorder().updatesOn();
+  require(
+      namedUpdatesOn.front().object == object &&
+          namedUpdatesOn.front().attributes.size() == 1U &&
+          namedUpdatesOn.front().attributes.count(publisherAttribute) == 1U &&
+          namedUpdatesOn.front().updateRateDesignator.has_value() &&
+          namedUpdatesOn.front().updateRateDesignator.value() == L"High",
+      "re-enabled named turn-updates-on advisory lost the update-rate designator");
+
+  publisher.rtiAmbassador().disableCallbacks();
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributeSet);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        publisher.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending named turn-updates-off advisory");
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      publisher.recorder().updatesOff().empty(),
+      "disabled callbacks exposed a named turn-updates-off advisory");
+
+  publisher.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(publisher.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().updatesOff().size() == 1U; },
+      options,
+      "re-enabled named turn-updates-off advisory");
+  auto const namedUpdatesOff = publisher.recorder().updatesOff();
+  require(
+      namedUpdatesOff.front().object == object &&
+          namedUpdatesOff.front().attributes.size() == 1U &&
+          namedUpdatesOff.front().attributes.count(publisherAttribute) == 1U &&
+          !namedUpdatesOff.front().updateRateDesignator.has_value(),
+      "re-enabled named turn-updates-off advisory lost standard delivery data");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberNameSet);
+  subscriber.rtiAmbassador().unsubscribeObjectClass(subscriberClass);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAllSet);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsAttributeRelevanceAdvisoriesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsAttributeRelevanceAdvisories(options, model);
+}
+
 void scenarioCallbackControlsAttributeValueRequest(
     Options const& options,
     rti::CallbackModel model) {
@@ -64343,6 +64598,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-object-name-reservation-failure-contract",
       "cpp-tck.callback-controls-declaration-advisories",
       "cpp-tck.callback-controls-declaration-advisories-contract",
+      "cpp-tck.callback-controls-attribute-relevance-advisories",
+      "cpp-tck.callback-controls-attribute-relevance-advisories-contract",
       "cpp-tck.callback-controls-attribute-value-request",
       "cpp-tck.callback-controls-attribute-value-request-contract",
       "cpp-tck.asynchronous-delivery",
@@ -65880,6 +66137,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-declaration-advisories-contract") {
     return scenarioCallbackControlsDeclarationAdvisoriesContract;
+  }
+  if (id == "cpp-tck.callback-controls-attribute-relevance-advisories") {
+    return scenarioCallbackControlsAttributeRelevanceAdvisories;
+  }
+  if (id == "cpp-tck.callback-controls-attribute-relevance-advisories-contract") {
+    return scenarioCallbackControlsAttributeRelevanceAdvisoriesContract;
   }
   if (id == "cpp-tck.callback-controls-attribute-value-request") {
     return scenarioCallbackControlsAttributeValueRequest;

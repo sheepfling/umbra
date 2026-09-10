@@ -394,6 +394,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-object-name-reservation-failure-contract` | Standard adapter-backed callback enable and disable contract for a failed ordinary object-name reservation and callback servicing |
 | `cpp-tck.callback-controls-declaration-advisories` | Callback disable/enable gating around start/stop registration and interaction turn-on/turn-off advisories under both callback models |
 | `cpp-tck.callback-controls-declaration-advisories-contract` | Standard adapter-backed callback enable and disable contract for declaration-relevance advisories and callback servicing |
+| `cpp-tck.callback-controls-attribute-relevance-advisories` | Callback disable/enable gating around unnamed and named per-object attribute turn-up/turn-down advisories under both callback models |
+| `cpp-tck.callback-controls-attribute-relevance-advisories-contract` | Standard adapter-backed callback enable and disable contract for per-object attribute-relevance advisories and callback servicing |
 | `cpp-tck.callback-controls-attribute-value-request` | Callback disable/enable gating around ordinary attribute-value requests under both callback models |
 | `cpp-tck.callback-controls-attribute-value-request-contract` | Standard adapter-backed callback enable and disable contract for ordinary attribute-value requests and callback servicing |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
@@ -1000,6 +1002,14 @@ identity, declaration cleanup, and standard federation lifecycle. Their focused
 installed-package CTest lane passed 4/4 callback-model cases using only the
 official C++ API and standard library.
 
+The promoted `cpp-tck.callback-controls-attribute-relevance-advisories` scenario
+and its contract twin extend callback gating to standard per-object
+attribute-relevance advisories. They verify unnamed and named turn-up/turn-down
+suppression and release, callback-model servicing, object/attribute/update-rate
+identity, declaration cleanup, and standard federation lifecycle. Their focused
+installed-package CTest lane passed 4/4 callback-model cases using only the
+official C++ API and standard library.
+
 The promoted `cpp-tck.callback-controls-attribute-value-request` scenario and
 its contract twin extend callback gating to ordinary attribute-value requests.
 They verify discovery, provider-callback suppression, release after re-enable,
@@ -1124,8 +1134,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-         that is 489 scenario IDs and 978 matrix cases. `--scenario-set all` currently
-         configures the same 489 available IDs (978 cases); there are no unpromoted
+         that is 491 scenario IDs and 982 matrix cases. `--scenario-set all` currently
+         configures the same 491 available IDs (982 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
