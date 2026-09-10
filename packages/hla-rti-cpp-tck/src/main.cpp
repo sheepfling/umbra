@@ -55457,6 +55457,99 @@ void scenarioCallbackControlsObjectNameReservationFailureContract(
   scenarioCallbackControlsObjectNameReservationFailure(options, model);
 }
 
+void scenarioCallbackControlsMultipleObjectNameReservation(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-multiple-object-name-reservation");
+  connectAndJoin(owner, peer, options, federation, options.fom);
+
+  auto const firstName = federation + L"-multiple-a";
+  auto const secondName = federation + L"-multiple-b";
+  auto const thirdName = federation + L"-multiple-c";
+  std::set<std::wstring> const ownerNames{firstName, secondName};
+  std::set<std::wstring> const peerNames{secondName, thirdName};
+  std::set<std::wstring> const peerSucceeded{thirdName};
+  std::set<std::wstring> const peerFailed{secondName};
+
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().reserveMultipleObjectInstanceNames(ownerNames);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        owner.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending multiple-reservation success event");
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !owner.recorder().multipleReservationSucceeded(ownerNames),
+      "disabled callbacks exposed a multiple object-name reservation success callback");
+
+  owner.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      owner,
+      [&] { return owner.recorder().multipleReservationSucceeded(ownerNames); },
+      options,
+      "re-enabled multiple object-name reservation success callback");
+
+  peer.recorder().clearReservations();
+  peer.rtiAmbassador().disableCallbacks();
+  peer.rtiAmbassador().reserveMultipleObjectInstanceNames(peerNames);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        peer.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending mixed multiple-reservation events");
+  } else {
+    static_cast<void>(peer.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !peer.recorder().multipleReservationSucceeded(peerSucceeded) &&
+          !peer.recorder().multipleReservationFailed(peerFailed),
+      "disabled callbacks exposed mixed multiple object-name reservation callbacks");
+
+  peer.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(peer.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(peer.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      peer,
+      [&] {
+        return peer.recorder().multipleReservationSucceeded(peerSucceeded) &&
+            peer.recorder().multipleReservationFailed(peerFailed);
+      },
+      options,
+      "re-enabled mixed multiple object-name reservation callbacks");
+
+  peer.rtiAmbassador().releaseObjectInstanceName(thirdName);
+  owner.rtiAmbassador().releaseMultipleObjectInstanceNames(ownerNames);
+  peer.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  peer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsMultipleObjectNameReservationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsMultipleObjectNameReservation(options, model);
+}
+
 void scenarioCallbackControlsDeclarationAdvisories(
     Options const& options,
     rti::CallbackModel model) {
@@ -64596,6 +64689,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-object-name-reservation-contract",
       "cpp-tck.callback-controls-object-name-reservation-failure",
       "cpp-tck.callback-controls-object-name-reservation-failure-contract",
+      "cpp-tck.callback-controls-multiple-object-name-reservation",
+      "cpp-tck.callback-controls-multiple-object-name-reservation-contract",
       "cpp-tck.callback-controls-declaration-advisories",
       "cpp-tck.callback-controls-declaration-advisories-contract",
       "cpp-tck.callback-controls-attribute-relevance-advisories",
@@ -66131,6 +66226,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-object-name-reservation-failure-contract") {
     return scenarioCallbackControlsObjectNameReservationFailureContract;
+  }
+  if (id == "cpp-tck.callback-controls-multiple-object-name-reservation") {
+    return scenarioCallbackControlsMultipleObjectNameReservation;
+  }
+  if (id == "cpp-tck.callback-controls-multiple-object-name-reservation-contract") {
+    return scenarioCallbackControlsMultipleObjectNameReservationContract;
   }
   if (id == "cpp-tck.callback-controls-declaration-advisories") {
     return scenarioCallbackControlsDeclarationAdvisories;
