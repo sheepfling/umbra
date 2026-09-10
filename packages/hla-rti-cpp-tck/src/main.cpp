@@ -11902,6 +11902,18 @@ void scenarioTimestampedLocalDeleteAttribute(
   publisher.disconnect();
 }
 
+void scenarioTimestampedLocalDeleteObjectContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedLocalDeleteObject(options, model);
+}
+
+void scenarioTimestampedLocalDeleteAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedLocalDeleteAttribute(options, model);
+}
+
 void scenarioTimestampedObjectDeletionTombstone(
     Options const& options,
     rti::CallbackModel model) {
@@ -68298,6 +68310,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-object-deletion",
       "cpp-tck.timestamped-local-delete-object",
       "cpp-tck.timestamped-local-delete-attribute",
+      "cpp-tck.timestamped-local-delete-object-contract",
+      "cpp-tck.timestamped-local-delete-attribute-contract",
       "cpp-tck.timestamped-object-deletion-no-fanout",
       "cpp-tck.timestamped-object-deletion-no-fanout-contract",
       "cpp-tck.timestamped-object-deletion-tombstone",
@@ -69705,6 +69719,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-local-delete-attribute") {
     return scenarioTimestampedLocalDeleteAttribute;
   }
+  if (id == "cpp-tck.timestamped-local-delete-object-contract") {
+    return scenarioTimestampedLocalDeleteObjectContract;
+  }
+  if (id == "cpp-tck.timestamped-local-delete-attribute-contract") {
+    return scenarioTimestampedLocalDeleteAttributeContract;
+  }
   if (id == "cpp-tck.timestamped-object-deletion-no-fanout") {
     return scenarioTimestampedObjectDeletionNoFanout;
   }
@@ -70838,6 +70858,8 @@ int run(Options const& options) {
                    scenario == "cpp-tck.timestamped-object-deletion" ||
                    scenario == "cpp-tck.timestamped-local-delete-object" ||
                    scenario == "cpp-tck.timestamped-local-delete-attribute" ||
+                   scenario == "cpp-tck.timestamped-local-delete-object-contract" ||
+                   scenario == "cpp-tck.timestamped-local-delete-attribute-contract" ||
                    scenario == "cpp-tck.timestamped-object-deletion-no-fanout" ||
                   scenario == "cpp-tck.timestamped-object-deletion-tombstone" ||
                   scenario == "cpp-tck.timestamped-object-deletion-regulation-reenable" ||

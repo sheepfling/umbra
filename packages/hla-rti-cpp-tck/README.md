@@ -288,7 +288,9 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract` | Standard adapter-backed timestamped object-deletion joined-owner retraction contract for ownership cleanup, departed-recipient suppression, identity restoration, and retraction boundaries |
 | `cpp-tck.timestamped-object-deletion-mixed-advances-contract` | Standard adapter-backed timestamped object-deletion contract for Flush Queue, Time Advance Request Available, and Next Message Request Available delivery paths |
 | `cpp-tck.timestamped-local-delete-object` | Local deletion suppresses one recipient's queued timestamped Remove Object Instance callback while an independent constrained recipient receives the original removal and grant |
+| `cpp-tck.timestamped-local-delete-object-contract` | Standard adapter-backed timestamped local object-deletion contract for local suppression, surviving fan-out, removal metadata, and retraction |
 | `cpp-tck.timestamped-local-delete-attribute` | Local deletion suppresses one recipient's queued timestamped attribute reflection, while re-subscription restores discovery and a later update reaches both recipients |
+| `cpp-tck.timestamped-local-delete-attribute-contract` | Standard adapter-backed timestamped local attribute-deletion contract for local suppression, surviving reflection, metadata, and retraction |
 | `cpp-tck.timestamped-object-deletion-no-fanout` | Timestamped object deletion at the exact lookahead boundary is non-retractable, while a no-recipient deletion can be retracted to restore object-name lookup and local attribute ownership without Request Retraction fan-out |
 | `cpp-tck.timestamped-object-deletion-tombstone` | Terminal timestamped Delete Object Instance becomes non-retractable at the exact lookahead boundary and releases the named object instance for re-registration |
 | `cpp-tck.timestamped-object-deletion-regulation-reenable` | Queued timestamped object deletion survives Time Regulation disable/re-enable with changed lookahead, including Query Lookahead, removal-before-grant ordering, identity cleanup, metadata, and terminal retraction |
@@ -796,6 +798,14 @@ recipient-local boundary to queued timestamped attribute reflection. The local
 recipient suppresses its pending reflection, then re-subscribes and receives a
 later update alongside the independent recipient, preserving standard object,
 attribute, tag, producer, time, order, transport, and retraction metadata.
+
+The promoted `cpp-tck.timestamped-local-delete-object-contract` and
+`cpp-tck.timestamped-local-delete-attribute-contract` runners expose those same
+recipient-local deletion boundaries as independently selectable pure standard
+C++ contracts. They retain the local suppression, surviving delivery, exact
+metadata, callback ordering, logical-time, and cleanup assertions while taking
+provider, FOM, endpoint, callback, and logical-time configuration from the
+adapter.
 
 The promoted `cpp-tck.named-registration` case isolates the standard named
 object-instance path. It verifies single and multiple reservation/release,
@@ -1389,8 +1399,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 541 scenario IDs and 1082 matrix cases. `--scenario-set all` currently
-          configures the same 541 available IDs (1082 cases); there are no unpromoted
+          that is 543 scenario IDs and 1086 matrix cases. `--scenario-set all` currently
+          configures the same 543 available IDs (1086 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

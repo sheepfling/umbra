@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs 541 promoted scenarios (1082 callback-model
+    The verified lane currently runs 543 promoted scenarios (1086 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -1603,10 +1603,17 @@ The promoted `cpp-tck.timestamped-local-delete-attribute` scenario applies the
 same recipient-local boundary to queued timestamped attribute reflection. The
 local recipient suppresses its pending reflection, then re-subscribes and
 receives a later update alongside the independent recipient, preserving the
-standard object, attribute, tag, producer, time, order, transport, and
-retraction metadata.
+ standard object, attribute, tag, producer, time, order, transport, and
+ retraction metadata.
+ The promoted `cpp-tck.timestamped-local-delete-object-contract` and
+ `cpp-tck.timestamped-local-delete-attribute-contract` runners expose those
+ same recipient-local deletion boundaries as independently selectable pure
+ standard C++ contracts. They retain the local suppression, surviving delivery,
+ exact metadata, callback ordering, logical-time, and cleanup assertions while
+ taking provider, FOM, endpoint, callback, and logical-time configuration from
+ the adapter.
 
-The promoted `cpp-tck.named-registration` scenario isolates the standard named
+ The promoted `cpp-tck.named-registration` scenario isolates the standard named
 object-instance path. It verifies single and multiple reservation/release,
 reservation contention, named registration and discovery identity, failed
 registration reuse, and callback-model parity using only adapter-owned FOM
