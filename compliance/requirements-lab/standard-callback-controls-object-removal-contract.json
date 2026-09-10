@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for callback enable and disable around ordinary object removal. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies ordinary object discovery and removal, callback suppression, callback release after re-enable, callback-model servicing, handle and user data identity, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-callback-controls-object-removal",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador callback enable/disable and callback-servicing controls with ordinary deleteObjectInstance and FederateAmbassador removeObjectInstance delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador callback-control and ordinary object-removal declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackControlsObjectRemovalContract"
+      ]
+    }
+  ]
+}

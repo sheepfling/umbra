@@ -55118,6 +55118,141 @@ void scenarioCallbackControlsAttributeUpdateContract(
   scenarioCallbackControlsAttributeUpdate(options, model);
 }
 
+void scenarioCallbackControlsObjectRemoval(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(options, "callback-controls-object-removal");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid() &&
+          publisherClass == receiverClass && publisherAttribute == receiverAttribute,
+      "callback-control object-removal handles did not retain identity across members");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+
+  auto const firstObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      firstObject.isValid(),
+      "callback-control object-removal baseline registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(firstObject); },
+      options,
+      "callback-control object-removal baseline discovery");
+  std::vector<std::uint8_t> const firstTagBytes{0x52U, 0x4DU, 0x31U};
+  rti::VariableLengthData firstTag(firstTagBytes.data(), firstTagBytes.size());
+  publisher.rtiAmbassador().deleteObjectInstance(firstObject, firstTag);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().hasRemoval(
+            firstObject,
+            firstTagBytes,
+            publisher.federateHandle());
+      },
+      options,
+      "baseline callback-control object removal");
+
+  receiver.recorder().clearDiscovery();
+  receiver.recorder().clearRemovals();
+  auto const secondObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      secondObject.isValid(),
+      "callback-control object-removal gated registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(secondObject); },
+      options,
+      "callback-control object-removal gated discovery");
+
+  receiver.rtiAmbassador().disableCallbacks();
+  std::vector<std::uint8_t> const secondTagBytes{0x52U, 0x4DU, 0x32U};
+  rti::VariableLengthData secondTag(secondTagBytes.data(), secondTagBytes.size());
+  publisher.rtiAmbassador().deleteObjectInstance(secondObject, secondTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending object-removal event");
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !receiver.recorder().hasRemoval(
+          secondObject,
+          secondTagBytes,
+          publisher.federateHandle()),
+      "disabled callbacks exposed an object-removal callback");
+
+  receiver.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().hasRemoval(
+            secondObject,
+            secondTagBytes,
+            publisher.federateHandle());
+      },
+      options,
+      "re-enabled callback-control object removal");
+  auto const removals = receiver.recorder().removals();
+  require(!removals.empty(), "re-enabled object-removal callback was not recorded");
+  auto const& removal = removals.back();
+  require(
+      removal.object == secondObject && removal.tag == secondTagBytes &&
+          removal.producer == publisher.federateHandle(),
+      "re-enabled object-removal callback lost standard delivery data");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsObjectRemovalContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsObjectRemoval(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -63709,6 +63844,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-contract",
       "cpp-tck.callback-controls-attribute-update",
       "cpp-tck.callback-controls-attribute-update-contract",
+      "cpp-tck.callback-controls-object-removal",
+      "cpp-tck.callback-controls-object-removal-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -65214,6 +65351,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-attribute-update-contract") {
     return scenarioCallbackControlsAttributeUpdateContract;
+  }
+  if (id == "cpp-tck.callback-controls-object-removal") {
+    return scenarioCallbackControlsObjectRemoval;
+  }
+  if (id == "cpp-tck.callback-controls-object-removal-contract") {
+    return scenarioCallbackControlsObjectRemovalContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
