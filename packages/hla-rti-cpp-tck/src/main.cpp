@@ -67816,6 +67816,18 @@ void scenarioAlternateTimeAdvancesContract(
   scenarioAlternateTimeAdvances(options, model);
 }
 
+void scenarioTimeAdvanceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeAdvance(options, model);
+}
+
+void scenarioMalformedInputsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMalformedInputs(options, model);
+}
+
 void scenarioSupportServicesContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -68081,6 +68093,7 @@ std::vector<std::string> allScenarioIds() {
       "java-tck.overloads-and-exceptions",
       "java-tck.encoder-round-trip",
       "java-tck.malformed-inputs",
+      "cpp-tck.malformed-inputs-contract",
       "java-tck.federation-membership",
       "cpp-tck.unnamed-join-overload",
       "cpp-tck.unnamed-join-overload-contract",
@@ -68152,6 +68165,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-timestamped-delete-object-instance-failure",
       "java-tck.logical-time-factory",
       "java-tck.time-advance",
+      "cpp-tck.time-advance-contract",
       "java-tck.support-services",
       "cpp-tck.standard-order-and-transportation-lookups",
       "cpp-tck.standard-order-and-transportation-lookups-contract",
@@ -69060,6 +69074,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioCompositeDataElementsContract;
   }
   if (id == "java-tck.malformed-inputs") return scenarioMalformedInputs;
+  if (id == "cpp-tck.malformed-inputs-contract") {
+    return scenarioMalformedInputsContract;
+  }
   if (id == "java-tck.federation-membership") return scenarioFederationLifecycle;
   if (id == "cpp-tck.unnamed-join-overload") return scenarioUnnamedJoinOverload;
   if (id == "cpp-tck.unnamed-join-overload-contract") {
@@ -69253,6 +69270,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "java-tck.logical-time-factory") return scenarioLogicalTimeFactory;
   if (id == "java-tck.time-advance") return scenarioTimeAdvance;
+  if (id == "cpp-tck.time-advance-contract") {
+    return scenarioTimeAdvanceContract;
+  }
   if (id == "java-tck.support-services") return scenarioHandleLookups;
   if (id == "cpp-tck.standard-order-and-transportation-lookups") {
     return scenarioStandardOrderAndTransportationLookups;

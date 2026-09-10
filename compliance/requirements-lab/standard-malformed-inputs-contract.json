@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard malformed-input handling. The source uses only the standard C++ RTIambassador, DataElement, and standard-library APIs; the adapter supplies the provider package, endpoint, logical-time implementation, and invalid FOM corpus. It verifies missing and malformed FOM creation failures, standard invalid-FOM diagnostics, truncated encoded-value rejection, and disconnect cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-malformed-inputs",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation-creation input validation and DataElement decode failure handling",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador FOM input and DataElement decode declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMalformedInputsContract"
+      ]
+    }
+  ]
+}

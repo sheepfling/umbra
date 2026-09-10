@@ -626,6 +626,29 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.malformed-inputs-contract",
+      "category": "malformed-inputs",
+      "title": "Exercise the standard malformed FOM and encoded-value input contract",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "DataElement.decode",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-malformed-fom-input",
+        "cpp-1516.2-malformed-encoded-input"
+      ],
+      "contract_refs": [
+        "standard-malformed-inputs-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioMalformedInputsContract",
+      "runner_id": "cpp-tck.malformed-inputs-contract",
+      "parity": "java-tck.malformed-inputs",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "java-tck.federation-membership",
       "category": "federation-management",
       "title": "Complete federation execution create, join, query, resign, destroy, automatic-resign lifecycle, and failure boundaries",
@@ -3384,6 +3407,45 @@
       ],
       "cpp_test": "src/main.cpp#scenarioTimeAdvance",
       "runner_id": "java-tck.time-advance",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.time-advance-contract",
+      "category": "time",
+      "title": "Exercise the standard time-role and advance contract",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.modifyLookahead",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.queryGALT",
+        "RTIambassador.queryLITS",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.disableAsynchronousDelivery",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.disableTimeRegulation",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-advance-and-grant",
+        "cpp-1516.1-time-role-callbacks",
+        "cpp-1516.1-time-management-negative-boundaries"
+      ],
+      "contract_refs": [
+        "standard-time-advance-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioTimeAdvanceContract",
+      "runner_id": "cpp-tck.time-advance-contract",
+      "parity": "java-tck.time-advance",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

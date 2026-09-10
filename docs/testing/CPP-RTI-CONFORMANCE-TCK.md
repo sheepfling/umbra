@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs 544 promoted scenarios (1088 callback-model
+    The verified lane currently runs 546 promoted scenarios (1092 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -2425,6 +2425,9 @@ The promoted `cpp-tck.logical-time-contract` runner similarly exposes the
 concrete standard logical-time value and factory contract as an independently
 selectable, provider- and FOM-independent slice; RTI time-role and time-advance
 behavior remains in `java-tck.logical-time-factory` and `java-tck.time-advance`.
+The promoted `cpp-tck.time-advance-contract` runner exposes the latter as an
+independently selectable standard contract with adapter-supplied provider, FOM,
+endpoint, callback, and logical-time configuration.
 The promoted `cpp-tck.exception-hierarchy-contract` runner exposes the
 complete official C++ exception hierarchy as an independently selectable,
 provider- and FOM-independent slice; its cross-language parity anchor is
@@ -2502,7 +2505,9 @@ encoder case covers the official 16/32/64-bit integer, boolean, floating-point,
   boundary, type-shape, malformed boolean, text, opaque, and truncated-value
   boundaries. The
 malformed-input case covers source and encoded-value rejection through standard
-exceptions.
+exceptions. The promoted `cpp-tck.malformed-inputs-contract` runner exposes the
+same missing, malformed, and truncated-input boundaries as an independently
+selectable standard contract with invalid FOM inputs supplied by the adapter.
 
 `cpp-tck.fom-module-composition` checks both module composition during
 federation creation and an additional module supplied during join. It also

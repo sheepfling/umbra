@@ -45,6 +45,7 @@ The executable covers these ordinary public-API workflows, under both
 | `java-tck.overloads-and-exceptions` | Pre-connect `NotConnected` boundaries for listing, lookup, name reservation, and disconnect; all four official Connect overloads, unsupported callback-model rejection, duplicate-connect handling, reconnect-after-disconnect, empty-queue callback servicing, Disable/Enable Callbacks, and Disconnect |
 | `java-tck.encoder-round-trip` | Official 16/32/64-bit integer, boolean, floating-point, UTF-16BE text, opaque, array, fixed-record, variant-record, and extendable-variant-record encodings, including alignment, signed element counts, caller-owned opaque storage, copied/borrowed storage, type-shape, custom boundary, and malformed-value boundaries |
 | `java-tck.malformed-inputs` | Missing/malformed FOM sources and malformed encoded values |
+| `cpp-tck.malformed-inputs-contract` | Standard adapter-backed malformed FOM and encoded-value input contract |
 | `java-tck.federation-membership` | Create/Join/Resign/Destroy, automatic-resign directive pre-connect/pre-join boundaries and round trips, duplicate-create/join and destroy-while-joined failures, federation/member reports, federate handle lookups, missing-federation report, and the standard boundary that ordinary self-resignation does not synthesize `federateResigned` |
 | `cpp-tck.unnamed-join-overload` | Standard unnamed Join overload, generated federate-name and handle round trip, named-join control membership, and member-list reporting |
 | `cpp-tck.unnamed-join-overload-contract` | Standard adapter-backed unnamed federation join overload contract for generated-name identity, member reporting, federate lookup, and cleanup |
@@ -140,6 +141,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.service-report-delete-object-instance-failure-contract` | Standard adapter-backed object-deletion failure-report contract using the official MIM, object, and standard data-element callbacks |
 | `java-tck.logical-time-factory` | Pre-connect and pre-join `getTimeFactory` lifecycle boundaries, standard `HLAinteger64Time`/`HLAfloat64Time` value and factory checks, concrete time/interval copy and assignment independence, zero/epsilon mutators, interval differences, direct interval encoding, default/named/unknown logical-time factory selection, adapter-selected logical-time values and zero/epsilon intervals, public `HLAlogicalTime`/`HLAlogicalTimeInterval` data-element round trips, nested-buffer boundaries, clone/copy independence, incompatible-type rejection, variable-length and direct-buffer encode/decode parity, encoded-length checks, truncated-buffer rejection, boundary transitions, comparison, interval arithmetic/order, and illegal underflow/overflow boundaries |
 | `java-tck.time-advance` | Time-service `NotConnected`/`FederateNotExecutionMember` boundaries, Time Regulation/Constrained roles, pre-membership lookahead boundaries, logical-time and lookahead queries, deferred lookahead decrease, all alternate advance entry points, asynchronous-delivery controls, Time Advance Request/Grant, standard duplicate-role, in-progress, backward-time, and duplicate-disable failure boundaries, and role shutdown |
+| `cpp-tck.time-advance-contract` | Standard adapter-backed time-role, logical-time query, advance, asynchronous-delivery, grant, and negative-boundary contract |
 | `java-tck.support-services` | Full public federate, object, attribute, interaction, parameter, object-instance, and dimension name/handle lookup in both directions with pre-connect/pre-join lifecycle boundaries, standard invalid-name/handle boundaries, order/transport/update-rate/normalization lookup lifecycle boundaries, all public handle decoder lifecycle boundaries, ordinary handle encode/decode, direct-buffer and `VariableLengthData&` handle encoding, encoded-length and truncated-buffer checks, copied-handle equality/hash/ordering stability, valid `AttributeHandleSet` copy/assignment/lookup/erase semantics, independent `AttributeHandleValueMap` and `ParameterHandleValueMap` value storage, normalization stability, available-dimension boundaries, and order/transportation handles |
 | `cpp-tck.support-services-contract` | Standard adapter-backed support-service contract for public lookup, normalization, handle encoding/decoding, available dimensions, order, transportation, update-rate, and lifecycle-boundary behavior |
 | `cpp-tck.standard-order-and-transportation-lookups-contract` | Standard adapter-backed mandatory order and transportation lookup contract across lifecycle admission, round trips, invalid inputs, and cleanup |
@@ -1400,8 +1402,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 544 scenario IDs and 1088 matrix cases. `--scenario-set all` currently
-          configures the same 544 available IDs (1088 cases); there are no unpromoted
+          that is 546 scenario IDs and 1092 matrix cases. `--scenario-set all` currently
+          configures the same 546 available IDs (1092 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
