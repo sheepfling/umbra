@@ -57724,6 +57724,179 @@ void scenarioCallbackControlsSaveRestoreContract(
   scenarioCallbackControlsSaveRestore(options, model);
 }
 
+void scenarioCallbackControlsTimestampedAttributeUpdate(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control timestamped attribute testing requires an adapter-supplied logical-time implementation");
+
+  Session owner(options, model, "owner");
+  Session constrained(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-timestamped-attribute-update");
+  connectAndJoin(owner, constrained, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const constrainedClass = constrained.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const constrainedAttribute = constrained.rtiAmbassador().getAttributeHandle(
+      constrainedClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && constrainedClass.isValid() &&
+          ownerAttribute.isValid() && constrainedAttribute.isValid(),
+      "callback-control timestamped attribute lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const constrainedAttributes{constrainedAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  owner.rtiAmbassador().changeDefaultAttributeOrderType(
+      ownerClass,
+      ownerAttributes,
+      rti::TIMESTAMP);
+  constrained.rtiAmbassador().subscribeObjectClassAttributes(
+      constrainedClass,
+      constrainedAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control timestamped attribute registration returned an invalid object");
+  waitFor(
+      constrained,
+      [&] { return constrained.recorder().discovery().present; },
+      options,
+      "callback-control timestamped attribute discovery");
+  require(
+      constrained.recorder().discovery().object == object,
+      "callback-control timestamped attribute discovery returned the wrong object");
+
+  auto ownerTime = makeTimeContext(owner);
+  auto constrainedTime = makeTimeContext(constrained);
+  enableTimestampedRoles(
+      owner,
+      constrained,
+      ownerTime,
+      constrainedTime,
+      options,
+      "callback-control timestamped attribute");
+  auto const target = timeAfter(
+      *ownerTime.factory,
+      *ownerTime.initial,
+      *ownerTime.epsilon,
+      4U);
+  auto const constrainedTarget = timeAfter(
+      *constrainedTime.factory,
+      *constrainedTime.initial,
+      *constrainedTime.epsilon,
+      4U);
+  std::vector<std::uint8_t> const valueBytes{0x41U, 0x54U, 0x54U};
+  std::vector<std::uint8_t> const tagBytes{0x54U, 0x53U, 0x4FU};
+  rti::AttributeHandleValueMap values;
+  values.emplace(
+      ownerAttribute,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+
+  constrained.rtiAmbassador().disableCallbacks();
+  auto const retraction = owner.rtiAmbassador().updateAttributeValues(
+      object,
+      values,
+      tag,
+      *target);
+  require(
+      retraction.isValid(),
+      "callback-control timestamped attribute update returned an invalid retraction handle");
+  constrained.rtiAmbassador().timeAdvanceRequest(*constrainedTarget);
+  owner.rtiAmbassador().timeAdvanceRequest(*target);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "callback-control timestamped attribute owner grant");
+
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(constrained.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(constrained.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      constrained.recorder().timedReflections().empty() &&
+          constrained.recorder().timeAdvanceGrants().empty(),
+      "disabled callbacks exposed timestamped attribute delivery or its grant");
+
+  constrained.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(constrained.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(constrained.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      constrained,
+      [&] {
+        return constrained.recorder().timedReflections().size() == 1U &&
+            constrained.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "re-enabled callback-control timestamped attribute delivery");
+  auto const reflections = constrained.recorder().timedReflections();
+  require(
+      reflections.size() == 1U,
+      "re-enabled callback-control timestamped attribute delivered duplicates");
+  auto const& reflection = reflections.front();
+  require(
+      reflection.object == object &&
+          reflection.values.size() == 1U &&
+          reflection.values.count(constrainedAttribute) == 1U &&
+          copyBytes(reflection.values.at(constrainedAttribute)) == valueBytes &&
+          reflection.tag == tagBytes &&
+          reflection.producer == owner.federateHandle() &&
+          reflection.time == encodeTime(*target) &&
+          reflection.sentOrder == rti::TIMESTAMP &&
+          reflection.receivedOrder == rti::TIMESTAMP &&
+          reflection.transportation.isValid() &&
+          !constrained.rtiAmbassador().getTransportationTypeName(
+              reflection.transportation).empty() &&
+          !reflection.regions.has_value() &&
+          reflection.retractionPresent &&
+          reflection.retraction == copyBytes(retraction.encode()),
+      "re-enabled timestamped attribute reflection returned the wrong metadata");
+  require(
+      constrained.recorder().callbackOrder() ==
+          std::vector<std::string>{"reflect", "grant"},
+      "re-enabled timestamped attribute reflection crossed its grant boundary");
+
+  constrained.rtiAmbassador().disableTimeConstrained();
+  owner.rtiAmbassador().disableTimeRegulation();
+  constrained.rtiAmbassador().unsubscribeObjectClassAttributes(
+      constrainedClass,
+      constrainedAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  constrained.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  constrained.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsTimestampedAttributeUpdateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsTimestampedAttributeUpdate(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -66355,6 +66528,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-time-advance-contract",
       "cpp-tck.callback-controls-save-restore",
       "cpp-tck.callback-controls-save-restore-contract",
+      "cpp-tck.callback-controls-timestamped-attribute-update",
+      "cpp-tck.callback-controls-timestamped-attribute-update-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -67981,6 +68156,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.callback-controls-save-restore-contract") {
     return scenarioCallbackControlsSaveRestoreContract;
   }
+  if (id == "cpp-tck.callback-controls-timestamped-attribute-update") {
+    return scenarioCallbackControlsTimestampedAttributeUpdate;
+  }
+  if (id == "cpp-tck.callback-controls-timestamped-attribute-update-contract") {
+    return scenarioCallbackControlsTimestampedAttributeUpdateContract;
+  }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
   if (id == "cpp-tck.federation-save-restore-interlocks") {
@@ -68715,6 +68896,8 @@ int run(Options const& options) {
                    scenario == "cpp-tck.federation-save-restore-contract" ||
                    scenario == "cpp-tck.callback-controls-time-advance" ||
                    scenario == "cpp-tck.callback-controls-time-advance-contract" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-attribute-update" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-attribute-update-contract" ||
                    scenario == "cpp-tck.asynchronous-delivery-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-contract" ||
