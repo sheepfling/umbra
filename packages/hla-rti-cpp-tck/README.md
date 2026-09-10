@@ -414,6 +414,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-ownership-release-denied-contract` | Standard adapter-backed callback enable and disable contract for ownership-release denial and callback servicing |
 | `cpp-tck.callback-controls-ownership-acquisition-notification` | Callback disable/enable gating around the standard ownership-acquisition notification and ownership handoff under both callback models |
 | `cpp-tck.callback-controls-ownership-acquisition-notification-contract` | Standard adapter-backed callback enable and disable contract for ownership-acquisition notification and callback servicing |
+| `cpp-tck.callback-controls-ownership-divestiture-confirmation` | Callback disable/enable gating around the standard negotiated-divestiture confirmation callback and cancellation cleanup under both callback models |
+| `cpp-tck.callback-controls-ownership-divestiture-confirmation-contract` | Standard adapter-backed callback enable and disable contract for negotiated-divestiture confirmation and callback servicing |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
@@ -1097,6 +1099,15 @@ servicing, ownership transfer, and standard federation cleanup. Their focused
 installed-package CTest lane passed 4/4 callback-model cases using only the
 official C++ API and standard library.
 
+The promoted `cpp-tck.callback-controls-ownership-divestiture-confirmation`
+scenario and its contract twin extend callback gating to the standard negotiated
+divestiture confirmation. They verify a pending regular acquisition, negotiated
+divestiture callback suppression, release after re-enable, callback-model
+servicing, acquisition-request metadata, unchanged ownership, restoration of
+the ordinary release request after cancellation, and standard federation
+cleanup. Their focused installed-package CTest lane passed 4/4 callback-model
+cases using only the official C++ API and standard library.
+
 The promoted `cpp-tck.timed-regional-interaction-save-restore` expansion uses the
 adapter-supplied DDM FOM to save at time 6, roll back a live retraction, restore
 the queued timestamped regional interaction at time 8, and deliver it through
@@ -1214,8 +1225,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-         that is 507 scenario IDs and 1014 matrix cases. `--scenario-set all` currently
-         configures the same 507 available IDs (1014 cases); there are no unpromoted
+         that is 509 scenario IDs and 1018 matrix cases. `--scenario-set all` currently
+         configures the same 509 available IDs (1018 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
