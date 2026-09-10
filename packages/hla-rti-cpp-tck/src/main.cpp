@@ -58207,6 +58207,283 @@ void scenarioCallbackControlsTimestampedRetractionContract(
   scenarioCallbackControlsTimestampedRetraction(options, model);
 }
 
+void scenarioCallbackControlsTransportation(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session observer(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-transportation");
+  connectAndJoin(owner, observer, options, federation, options.fom);
+
+  rti::ObjectClassHandle ownerClass;
+  rti::AttributeHandle ownerAttribute;
+  rti::InteractionClassHandle ownerInteraction;
+  rti::ParameterHandle ownerParameter;
+  handles(owner, options, ownerClass, ownerAttribute, ownerInteraction, ownerParameter);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  auto const observerInteraction = observer.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  require(
+      ownerClass.isValid() && ownerAttribute.isValid() &&
+          ownerInteraction.isValid() && ownerParameter.isValid() &&
+          observerClass.isValid() && observerAttribute.isValid() &&
+          observerInteraction.isValid() && ownerClass == observerClass &&
+          ownerAttribute == observerAttribute &&
+          ownerInteraction == observerInteraction,
+      "callback-control transportation lookup returned mismatched handles");
+
+  auto const reliable = owner.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  auto const bestEffort = owner.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAbestEffort");
+  require(
+      reliable.isValid() && bestEffort.isValid() && reliable != bestEffort,
+      "callback-control transportation lookup did not return distinct standard handles");
+  auto sameTransport = [](rti::RTIambassador& inspector,
+                          rti::TransportationTypeHandle const& actual,
+                          std::wstring const& expectedName) {
+    return actual.isValid() &&
+        inspector.getTransportationTypeName(actual) == expectedName;
+  };
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const observerAttributes{observerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+  owner.rtiAmbassador().publishInteractionClass(ownerInteraction);
+  observer.rtiAmbassador().subscribeInteractionClass(observerInteraction, true);
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control transportation registration returned an invalid object");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(object); },
+      options,
+      "callback-control transportation object discovery");
+
+  auto serviceOwnerCallbacks = [&] {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(owner.evokeMultipleCallbacks(0.0, 1.0));
+    } else {
+      static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+  };
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryAttributeTransportationType(object, ownerAttribute);
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] { return owner.recorder().attributeTransportationReports().size() == 1U; },
+      options,
+      "baseline attribute transportation report");
+  auto const baselineAttributeReports = owner.recorder().attributeTransportationReports();
+  require(
+      baselineAttributeReports.size() == 1U &&
+          baselineAttributeReports.front().object == object &&
+          baselineAttributeReports.front().attribute == ownerAttribute &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              baselineAttributeReports.front().transportation,
+              L"HLAreliable"),
+      "baseline attribute transportation report returned the wrong metadata");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().queryAttributeTransportationType(object, ownerAttribute);
+  serviceOwnerCallbacks();
+  require(
+      owner.recorder().attributeTransportationReports().empty(),
+      "disabled callbacks exposed an attribute transportation report");
+  owner.rtiAmbassador().enableCallbacks();
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] { return owner.recorder().attributeTransportationReports().size() == 1U; },
+      options,
+      "re-enabled attribute transportation report");
+  auto const releasedAttributeReports = owner.recorder().attributeTransportationReports();
+  require(
+      releasedAttributeReports.size() == 1U &&
+          releasedAttributeReports.front().object == object &&
+          releasedAttributeReports.front().attribute == ownerAttribute &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              releasedAttributeReports.front().transportation,
+              L"HLAreliable"),
+      "re-enabled attribute transportation report returned the wrong metadata");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().requestAttributeTransportationTypeChange(
+      object,
+      ownerAttributes,
+      bestEffort);
+  serviceOwnerCallbacks();
+  require(
+      owner.recorder().attributeTransportationConfirmations().empty(),
+      "disabled callbacks exposed an attribute transportation confirmation");
+  owner.rtiAmbassador().enableCallbacks();
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] {
+        return owner.recorder().attributeTransportationConfirmations().size() == 1U;
+      },
+      options,
+      "re-enabled attribute transportation confirmation");
+  auto const attributeConfirmations = owner.recorder().attributeTransportationConfirmations();
+  require(
+      attributeConfirmations.size() == 1U &&
+          attributeConfirmations.front().object == object &&
+          attributeConfirmations.front().attributes == ownerAttributes &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              attributeConfirmations.front().transportation,
+              L"HLAbestEffort"),
+      "re-enabled attribute transportation confirmation returned the wrong metadata");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryAttributeTransportationType(object, ownerAttribute);
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] { return owner.recorder().attributeTransportationReports().size() == 1U; },
+      options,
+      "committed attribute transportation report");
+  require(
+      sameTransport(
+          owner.rtiAmbassador(),
+          owner.recorder().attributeTransportationReports().front().transportation,
+          L"HLAbestEffort"),
+      "attribute transportation confirmation did not commit the requested type");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryInteractionTransportationType(
+      owner.federateHandle(),
+      ownerInteraction);
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] { return owner.recorder().interactionTransportationReports().size() == 1U; },
+      options,
+      "baseline interaction transportation report");
+  auto const baselineInteractionReports = owner.recorder().interactionTransportationReports();
+  require(
+      baselineInteractionReports.size() == 1U &&
+          baselineInteractionReports.front().federate == owner.federateHandle() &&
+          baselineInteractionReports.front().interaction == ownerInteraction &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              baselineInteractionReports.front().transportation,
+              L"HLAreliable"),
+      "baseline interaction transportation report returned the wrong metadata");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().queryInteractionTransportationType(
+      owner.federateHandle(),
+      ownerInteraction);
+  serviceOwnerCallbacks();
+  require(
+      owner.recorder().interactionTransportationReports().empty(),
+      "disabled callbacks exposed an interaction transportation report");
+  owner.rtiAmbassador().enableCallbacks();
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] { return owner.recorder().interactionTransportationReports().size() == 1U; },
+      options,
+      "re-enabled interaction transportation report");
+  auto const releasedInteractionReports = owner.recorder().interactionTransportationReports();
+  require(
+      releasedInteractionReports.size() == 1U &&
+          releasedInteractionReports.front().federate == owner.federateHandle() &&
+          releasedInteractionReports.front().interaction == ownerInteraction &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              releasedInteractionReports.front().transportation,
+              L"HLAreliable"),
+      "re-enabled interaction transportation report returned the wrong metadata");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().requestInteractionTransportationTypeChange(
+      ownerInteraction,
+      bestEffort);
+  serviceOwnerCallbacks();
+  require(
+      owner.recorder().interactionTransportationConfirmations().empty(),
+      "disabled callbacks exposed an interaction transportation confirmation");
+  owner.rtiAmbassador().enableCallbacks();
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] {
+        return owner.recorder().interactionTransportationConfirmations().size() == 1U;
+      },
+      options,
+      "re-enabled interaction transportation confirmation");
+  auto const interactionConfirmations = owner.recorder().interactionTransportationConfirmations();
+  require(
+      interactionConfirmations.size() == 1U &&
+          interactionConfirmations.front().interaction == ownerInteraction &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              interactionConfirmations.front().transportation,
+              L"HLAbestEffort"),
+      "re-enabled interaction transportation confirmation returned the wrong metadata");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryInteractionTransportationType(
+      owner.federateHandle(),
+      ownerInteraction);
+  serviceOwnerCallbacks();
+  waitFor(
+      owner,
+      [&] { return owner.recorder().interactionTransportationReports().size() == 1U; },
+      options,
+      "committed interaction transportation report");
+  auto const committedInteractionReports = owner.recorder().interactionTransportationReports();
+  require(
+      committedInteractionReports.size() == 1U &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              committedInteractionReports.front().transportation,
+              L"HLAbestEffort"),
+      "interaction transportation confirmation did not commit the requested type");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(observerInteraction);
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes);
+  owner.rtiAmbassador().unpublishInteractionClass(ownerInteraction);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  observer.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsTransportationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsTransportation(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -66844,6 +67121,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-timestamped-object-removal-contract",
       "cpp-tck.callback-controls-timestamped-retraction",
       "cpp-tck.callback-controls-timestamped-retraction-contract",
+      "cpp-tck.callback-controls-transportation",
+      "cpp-tck.callback-controls-transportation-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -68487,6 +68766,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-timestamped-retraction-contract") {
     return scenarioCallbackControlsTimestampedRetractionContract;
+  }
+  if (id == "cpp-tck.callback-controls-transportation") {
+    return scenarioCallbackControlsTransportation;
+  }
+  if (id == "cpp-tck.callback-controls-transportation-contract") {
+    return scenarioCallbackControlsTransportationContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
