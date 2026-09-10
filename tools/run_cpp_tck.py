@@ -422,6 +422,7 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_SCENARIO_SET": arguments.scenario_set,
         "HLA_RTI_TCK_ADAPTER_PROVIDER_ID": arguments.provider_id,
         "HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION": arguments.time_implementation,
+        "HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER": ";".join(arguments.scenario),
     }
     optional = {
         "HLA_RTI_TCK_ADAPTER_RTI_ADDRESS": arguments.rti_address,

@@ -133,6 +133,8 @@ set(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED OFF
   CACHE BOOL "Whether the provider adapter manages connection loss out of band")
 set(HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS ""
   CACHE STRING "Semicolon-separated scenarios excluded from the adapter CTest matrix")
+set(HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER ""
+  CACHE STRING "Optional semicolon-separated scenario IDs selected for the adapter CTest matrix")
 
 if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_FOM}")
@@ -219,6 +221,10 @@ set(_tck_candidate_scenarios)
 foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
   string(JSON _tck_scenario GET "${_tck_catalog_json}" scenarios
     ${_tck_scenario_index} id)
+  if(HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER AND
+     NOT _tck_scenario IN_LIST HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER)
+    continue()
+  endif()
   if(_tck_scenario IN_LIST HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS)
     continue()
   endif()

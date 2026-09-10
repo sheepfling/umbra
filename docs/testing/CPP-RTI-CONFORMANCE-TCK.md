@@ -25,6 +25,13 @@ scenario-model cases), with 24 passed and no skips or failures. The adapter
 continues to provide the provider library, FOMs, logical-time choice, and
 endpoint settings; the portable source remains independent of those details.
 
+The independently filtered synchronization and asynchronous-delivery slice was
+also run against the installed package on 2026-09-10. The four selected
+scenario IDs ran in both `HLA_EVOKED` and `HLA_IMMEDIATE` callback models: 8/8
+cases passed with no skips or failures. Repeating `--scenario` values now
+constrains the adapter's CTest matrix as well as the direct evidence run, so a
+focused slice can be verified without launching unrelated scenarios.
+
 ## Green P0–P6 ordinary-service, time, FOM, DDM, synchronization, callback, and save/restore boundary coverage
 
 The initial green slice exercises:
@@ -2723,8 +2730,9 @@ python tools/run_cpp_tck.py --package-prefix .build-fom-services/package-smoke-i
 ```
 
 The same runner can produce direct machine-readable evidence. Repeat
-`--scenario` for a focused slice and use `--skip-ctest` after the matrix gate
-has already been recorded:
+`--scenario` for a focused slice; those IDs now constrain both the configured
+CTest matrix and the direct run. Use `--skip-ctest` when the focused CTest gate
+has already been recorded and only a direct evidence refresh is needed:
 
 ```text
 python tools/run_cpp_tck.py --package-prefix .build-fom-services/package-smoke-install --build-directory .build/cpp-tck-installed --scenario cpp-tck.regional-three-dimensional-overlap --skip-ctest --results .build/cpp-tck-all/p159-regional-three-dimensional-overlap-focused-results.json
@@ -2742,11 +2750,11 @@ This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
   configuration. The default `--scenario-set verified` selects the 491 catalog
-  entries with `promotion=promoted`, which produces 982 cases with
-`--callback-model both`.
-After that gate is green, pass `--scenario-set all` to include the later
-  adapter-required entries; the current catalog contains 491 IDs and 982 cases,
-including no candidates. The candidate-inclusive evidence figures below are
+  entries with `promotion=promoted`, which produces 1092 cases with
+  `--callback-model both`.
+The `--scenario-set all` selection is candidate-inclusive; the current catalog
+contains the same 546 IDs and 1092 cases because it has no candidates. The
+candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive
 baseline completes 686/686
