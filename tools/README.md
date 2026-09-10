@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is 521 promoted scenario IDs (1042 callback-model cases).
- `--scenario-set all` currently configures the same 521 available IDs (1042
+    The verified lane is 523 promoted scenario IDs (1046 callback-model cases).
+ `--scenario-set all` currently configures the same 523 available IDs (1046
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -1069,6 +1069,11 @@ cases.
   extend the same standard callback gate to timestamped object removal and its
   time-advance grant. Their focused installed-package lane passed all 4/4
   callback-model cases in three repeats.
+  The promoted `cpp-tck.callback-controls-timestamped-retraction` and
+  `cpp-tck.callback-controls-timestamped-retraction-contract` runners extend
+  the same standard callback gate to timestamped interaction retraction and
+  request-retraction callbacks. Their focused installed-package lane passed
+  all 4/4 callback-model cases in three repeats.
   The promoted `cpp-tck.callback-controls-attribute-value-request` and
 `cpp-tck.callback-controls-attribute-value-request-contract` runners extend the
 same standard callback gate to ordinary attribute-value requests; their focused

@@ -58066,6 +58066,147 @@ void scenarioCallbackControlsTimestampedObjectRemovalContract(
   scenarioCallbackControlsTimestampedObjectRemoval(options, model);
 }
 
+void scenarioCallbackControlsTimestampedRetraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control timestamped retraction testing requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-timestamped-retraction");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "callback-control timestamped retraction lookup returned mismatched handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "callback-control timestamped retraction time-regulation callback");
+  auto const target = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      3U);
+  std::vector<std::uint8_t> const valueBytes{0x52U, 0x45U, 0x54U};
+  std::vector<std::uint8_t> const tagBytes{0x52U, 0x45U, 0x54U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      tag,
+      *target);
+  require(
+      retraction.isValid(),
+      "callback-control timestamped retraction send returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timedInteractions().size() == 1U; },
+      options,
+      "callback-control timestamped retraction delivery");
+  auto const interactions = receiver.recorder().timedInteractions();
+  require(
+      interactions.size() == 1U,
+      "callback-control timestamped retraction delivered duplicate interactions");
+  auto const& interaction = interactions.front();
+  require(
+      interaction.interaction == receiverInteraction &&
+          interaction.parameters.size() == 1U &&
+          interaction.parameters.count(receiverParameter) == 1U &&
+          copyBytes(interaction.parameters.at(receiverParameter)) == valueBytes &&
+          interaction.tag == tagBytes &&
+          interaction.producer == publisher.federateHandle() &&
+          interaction.time == encodeTime(*target) &&
+          interaction.sentOrder == rti::TIMESTAMP &&
+          interaction.receivedOrder == rti::RECEIVE &&
+          interaction.transportation.isValid() &&
+          !receiver.rtiAmbassador().getTransportationTypeName(
+              interaction.transportation).empty() &&
+          interaction.retractionPresent &&
+          interaction.retraction == copyBytes(retraction.encode()),
+      "callback-control timestamped retraction delivery returned the wrong metadata");
+
+  receiver.rtiAmbassador().disableCallbacks();
+  publisher.rtiAmbassador().retract(retraction);
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      receiver.recorder().retractions().empty(),
+      "disabled callbacks exposed a request-retraction callback");
+
+  receiver.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().retractions().size() == 1U; },
+      options,
+      "re-enabled callback-control request-retraction delivery");
+  auto const callbacks = receiver.recorder().retractions();
+  require(
+      callbacks.size() == 1U && callbacks.front().valid &&
+          callbacks.front().encoded == copyBytes(retraction.encode()),
+      "re-enabled request-retraction callback returned the wrong handle");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "request-retraction"},
+      "request-retraction callback was delivered in the wrong order");
+
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsTimestampedRetractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsTimestampedRetraction(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -66701,6 +66842,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-timestamped-attribute-update-contract",
       "cpp-tck.callback-controls-timestamped-object-removal",
       "cpp-tck.callback-controls-timestamped-object-removal-contract",
+      "cpp-tck.callback-controls-timestamped-retraction",
+      "cpp-tck.callback-controls-timestamped-retraction-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -68339,6 +68482,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.callback-controls-timestamped-object-removal-contract") {
     return scenarioCallbackControlsTimestampedObjectRemovalContract;
   }
+  if (id == "cpp-tck.callback-controls-timestamped-retraction") {
+    return scenarioCallbackControlsTimestampedRetraction;
+  }
+  if (id == "cpp-tck.callback-controls-timestamped-retraction-contract") {
+    return scenarioCallbackControlsTimestampedRetractionContract;
+  }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
   if (id == "cpp-tck.federation-save-restore-interlocks") {
@@ -69075,9 +69224,11 @@ int run(Options const& options) {
                    scenario == "cpp-tck.callback-controls-time-advance-contract" ||
                    scenario == "cpp-tck.callback-controls-timestamped-attribute-update" ||
                    scenario == "cpp-tck.callback-controls-timestamped-attribute-update-contract" ||
-                   scenario == "cpp-tck.callback-controls-timestamped-object-removal" ||
-                   scenario == "cpp-tck.callback-controls-timestamped-object-removal-contract" ||
-                   scenario == "cpp-tck.asynchronous-delivery-contract" ||
+                    scenario == "cpp-tck.callback-controls-timestamped-object-removal" ||
+                    scenario == "cpp-tck.callback-controls-timestamped-object-removal-contract" ||
+                    scenario == "cpp-tck.callback-controls-timestamped-retraction" ||
+                    scenario == "cpp-tck.callback-controls-timestamped-retraction-contract" ||
+                    scenario == "cpp-tck.asynchronous-delivery-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-no-fanout-contract" ||

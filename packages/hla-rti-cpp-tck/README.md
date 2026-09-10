@@ -428,6 +428,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-timestamped-attribute-update-contract` | Standard adapter-backed callback-control contract for timestamped attribute reflection, exact delivery metadata, and grant ordering |
 | `cpp-tck.callback-controls-timestamped-object-removal` | Callback disable/enable gating around timestamped object removal and its time-advance grant under both callback models |
 | `cpp-tck.callback-controls-timestamped-object-removal-contract` | Standard adapter-backed callback-control contract for timestamped object removal, exact removal metadata, and grant ordering |
+| `cpp-tck.callback-controls-timestamped-retraction` | Callback disable/enable gating around timestamped interaction retraction callbacks under both callback models |
+| `cpp-tck.callback-controls-timestamped-retraction-contract` | Standard adapter-backed callback-control contract for timestamped interaction retraction and exact handle delivery |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
@@ -1170,6 +1172,14 @@ removal-before-grant ordering, callback-model servicing, and federation cleanup.
 Its focused installed-package lane passed 4/4 callback-model cases across three
 repeats using only the official C++ API and standard library.
 
+The newly promoted callback-control timestamped-retraction slice adds
+`cpp-tck.callback-controls-timestamped-retraction` and its pure contract twin.
+It verifies timestamped interaction delivery and retraction, suppression and
+release of the request-retraction callback, exact interaction and retraction
+handle metadata, callback ordering, callback-model servicing, and federation
+cleanup. Its focused installed-package lane passed 4/4 callback-model cases
+across three repeats using only the official C++ API and standard library.
+
 The promoted `cpp-tck.timed-regional-interaction-save-restore` expansion uses the
 adapter-supplied DDM FOM to save at time 6, roll back a live retraction, restore
 the queued timestamped regional interaction at time 8, and deliver it through
@@ -1287,8 +1297,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 521 scenario IDs and 1042 matrix cases. `--scenario-set all` currently
-          configures the same 521 available IDs (1042 cases); there are no unpromoted
+          that is 523 scenario IDs and 1046 matrix cases. `--scenario-set all` currently
+          configures the same 523 available IDs (1046 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
