@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for atomic rejection of a Create Federation Execution with MIM request whose FOM module vector combines the adapter-supplied valid base module with an invalid module. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, base FOM, valid MIM, invalid FOM module corpus, endpoint, logical-time selection, and callback configuration. It verifies that rejected composite FOM creates do not reserve the federation name and that a later valid FOM/MIM create, join, lookup, resign, destroy, and disconnect lifecycle succeeds without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-invalid-composite-mim-create-atomicity",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador vector-FOM Create Federation Execution with MIM validation and federation lifecycle boundaries",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador vector-FOM Create Federation Execution with MIM declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomInvalidCompositeMimCreateAtomicityContract"
+      ]
+    }
+  ]
+}

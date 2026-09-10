@@ -19591,6 +19591,69 @@ void scenarioFomInvalidMimCreateAtomicity(
   creator.disconnect();
 }
 
+void scenarioFomInvalidCompositeMimCreateAtomicity(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Composite MIM create testing requires an adapter-supplied base FOM");
+  require(
+      !options.mimFom.empty(),
+      "Composite MIM create testing requires an adapter-supplied valid MIM");
+  require(
+      !options.invalidFomModules.empty(),
+      "Composite MIM create testing requires adapter-supplied invalid FOM modules");
+
+  Session creator(options, model, "owner");
+  Session member(options, model, "member");
+  auto const federation =
+      federationName(options, "fom-invalid-composite-mim-create-atomicity");
+  creator.connect();
+  member.connect();
+
+  auto const invalidFomErrors = std::vector<std::wstring>{
+      L"CouldNotOpenFOM",
+      L"ErrorReadingFOM",
+      L"InvalidFOM",
+      L"InconsistentFOM"};
+  for (auto const& invalid : options.invalidFomModules) {
+    requireExceptionOneOf(
+        [&] {
+          creator.rtiAmbassador().createFederationExecutionWithMIM(
+              federation,
+              std::vector<std::wstring>{options.fom.wstring(), invalid.wstring()},
+              options.mimFom.wstring(),
+              options.logicalTimeImplementationName);
+        },
+        invalidFomErrors,
+        "creating a federation with valid and invalid FOM modules plus a valid MIM " +
+            invalid.string());
+  }
+
+  creator.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  creator.join(options.ownerFederateName, options.federateType, federation);
+  member.join(options.memberFederateName, options.federateType, federation);
+  auto const objectClass = creator.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  require(
+      objectClass.isValid() &&
+          member.rtiAmbassador().getObjectClassHandle(options.objectClassName) ==
+              objectClass &&
+          creator.rtiAmbassador().getFederateHandle(options.memberFederateName) ==
+              member.federateHandle(),
+      "valid FOM/MIM create after rejected composite FOM input did not establish shared declarations and membership");
+
+  member.resign(rti::NO_ACTION);
+  creator.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  creator.disconnect();
+}
+
 void scenarioFomEmptyModuleValidation(
     Options const& options,
     rti::CallbackModel model) {
@@ -62927,6 +62990,12 @@ void scenarioFomInvalidMimCreateAtomicityContract(
   scenarioFomInvalidMimCreateAtomicity(options, model);
 }
 
+void scenarioFomInvalidCompositeMimCreateAtomicityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFomInvalidCompositeMimCreateAtomicity(options, model);
+}
+
 void scenarioFomEmptyModuleValidationContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -63101,6 +63170,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
+      "cpp-tck.fom-invalid-composite-mim-create-atomicity-contract",
       "cpp-tck.fom-empty-module-validation-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
@@ -63532,6 +63602,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
+      "cpp-tck.fom-invalid-composite-mim-create-atomicity",
       "cpp-tck.fom-empty-module-validation",
       "cpp-tck.connection-loss-cleanup",
   };
@@ -63935,6 +64006,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-invalid-mim-create-atomicity-contract") {
     return scenarioFomInvalidMimCreateAtomicityContract;
+  }
+  if (id == "cpp-tck.fom-invalid-composite-mim-create-atomicity-contract") {
+    return scenarioFomInvalidCompositeMimCreateAtomicityContract;
   }
   if (id == "cpp-tck.fom-empty-module-validation-contract") {
     return scenarioFomEmptyModuleValidationContract;
@@ -65186,6 +65260,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-invalid-mim-create-atomicity") {
     return scenarioFomInvalidMimCreateAtomicity;
   }
+  if (id == "cpp-tck.fom-invalid-composite-mim-create-atomicity") {
+    return scenarioFomInvalidCompositeMimCreateAtomicity;
+  }
   if (id == "cpp-tck.fom-empty-module-validation") {
     return scenarioFomEmptyModuleValidation;
   }
@@ -65379,6 +65456,13 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires adapter-supplied base FOM, valid MIM, and invalid modules";
+      } else if ((scenario == "cpp-tck.fom-invalid-composite-mim-create-atomicity" ||
+                  scenario == "cpp-tck.fom-invalid-composite-mim-create-atomicity-contract") &&
+                 (options.fom.empty() || options.mimFom.empty() ||
+                  options.invalidFomModules.empty())) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied base FOM, valid MIM, and invalid FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&
