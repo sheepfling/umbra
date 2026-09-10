@@ -410,6 +410,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.resign-cancel-negotiated-pending` | Cancels a pending negotiated ownership transfer during standard resignation and suppresses stale owner divestiture/release callbacks under both callback models |
 | `cpp-tck.resign-cancel-negotiated-pending-contract` | Standard adapter-backed negotiated cancellation contract |
 | `cpp-tck.ownership-transfer-regional-update` | Three-federate regional ownership transfer, former-owner update rejection, default-source delivery after transfer, and explicit replacement update-region association |
+| `cpp-tck.ownership-transfer-deferred-regional-update` | Non-owner deferred update-region association is promoted at regular ownership transfer, with owner-release, acquisition, ownership, update, and conveyed source-region assertions |
+| `cpp-tck.ownership-transfer-deferred-regional-update-contract` | Standard adapter-backed deferred ownership/update-region promotion contract |
 | `java-tck.ordinary-edges` | Passive-delivery boundaries, idempotent object/interaction declarations, unsubscribed delivery suppression, and standard invalid-class/object/attribute/publication/parameter failures |
 | `cpp-tck.fom-model` | Rich valid FOM hierarchy, inheritance, dimensions, update rates, transportation, advisory switches, declarations, and representative typed delivery |
 | `cpp-tck.fom-model-contract` | Standard adapter-backed FOM model contract for hierarchy, inheritance, dimensions, update rates, transportation, declarations, and representative typed delivery |
@@ -985,8 +987,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 423 scenario IDs and 846 matrix cases. `--scenario-set all` currently
-  configures the same 423 available IDs (846 cases); there are no unpromoted
+    that is 425 scenario IDs and 850 matrix cases. `--scenario-set all` currently
+    configures the same 425 available IDs (850 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

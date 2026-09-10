@@ -42841,6 +42841,300 @@ void scenarioOwnershipTransferRegionalUpdate(
   owner.disconnect();
 }
 
+void scenarioOwnershipTransferDeferredRegionalUpdate(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Deferred ownership transfer/update-region testing requires an adapter-supplied dimensional FOM");
+
+  Session owner(options, model, "owner");
+  Session newOwner(options, model, "member");
+  Session receiver(options, model, "receiver");
+  auto const federation = federationName(
+      options,
+      "ownership-transfer-deferred-regional-update");
+  owner.connect();
+  newOwner.connect();
+  receiver.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.ddmFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+  newOwner.join(
+      options.memberFederateName + L"-ownership-transfer-deferred",
+      options.federateType,
+      federation);
+  receiver.join(
+      options.memberFederateName + L"-ownership-receiver-deferred",
+      options.federateType,
+      federation);
+
+  auto const ownerHandles = ddmHandles(owner, options);
+  auto const newOwnerHandles = ddmHandles(newOwner, options);
+  auto const receiverHandles = ddmHandles(receiver, options);
+  verifyDdmClassDimensions(
+      owner,
+      options,
+      ownerHandles,
+      "deferred ownership transfer/update-region");
+  require(
+      ownerHandles.objectClass == newOwnerHandles.objectClass &&
+          ownerHandles.objectClass == receiverHandles.objectClass &&
+          ownerHandles.attribute == newOwnerHandles.attribute &&
+          ownerHandles.attribute == receiverHandles.attribute,
+      "deferred ownership transfer members resolved different declaration handles");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerHandles.attribute};
+  rti::AttributeHandleSet const newOwnerAttributes{newOwnerHandles.attribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverHandles.attribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerHandles.objectClass,
+      ownerAttributes);
+  newOwner.rtiAmbassador().publishObjectClassAttributes(
+      newOwnerHandles.objectClass,
+      newOwnerAttributes);
+
+  auto const ownerRegion = createDdmRegion(
+      owner,
+      ownerHandles,
+      1UL,
+      3UL,
+      1UL,
+      3UL);
+  auto const deferredRegion = createDdmRegion(
+      newOwner,
+      newOwnerHandles,
+      1UL,
+      3UL,
+      1UL,
+      3UL);
+  auto const receiverOwnerRegion = createDdmRegion(
+      receiver,
+      receiverHandles,
+      1UL,
+      3UL,
+      1UL,
+      3UL);
+  auto const receiverDeferredRegion = createDdmRegion(
+      receiver,
+      receiverHandles,
+      1UL,
+      3UL,
+      1UL,
+      3UL);
+
+  rti::AttributeHandleSetRegionHandleSetPairVector const ownerPair{{
+      ownerAttributes,
+      rti::RegionHandleSet{ownerRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const deferredPair{{
+      newOwnerAttributes,
+      rti::RegionHandleSet{deferredRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const receiverPair{{
+      receiverAttributes,
+      rti::RegionHandleSet{receiverOwnerRegion, receiverDeferredRegion},
+  }};
+
+  receiver.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  newOwner.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      newOwnerHandles.objectClass,
+      deferredPair,
+      true,
+      L"");
+  receiver.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      receiverHandles.objectClass,
+      receiverPair,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstanceWithRegions(
+      ownerHandles.objectClass,
+      ownerPair);
+  require(
+      object.isValid(),
+      "deferred ownership transfer/update-region registration returned an invalid object handle");
+  waitForSessions(
+      {&owner, &newOwner, &receiver},
+      [&] {
+        return newOwner.recorder().hasDiscovery(object) &&
+            receiver.recorder().hasDiscovery(object);
+      },
+      options,
+      "deferred ownership transfer/update-region object discovery");
+
+  std::vector<std::uint8_t> const ownerValue{
+      0x4FU,
+      0x4CUL,
+      0x44U,
+      0x26U};
+  std::vector<std::uint8_t> const newOwnerValue{
+      0x4EU,
+      0x45U,
+      0x57U,
+      0x26U};
+  std::vector<std::uint8_t> const acquisitionTagBytes{
+      0x41U,
+      0x43U,
+      0x51U,
+      0x26U};
+  std::vector<std::uint8_t> const divestitureTagBytes{
+      0x44U,
+      0x49U,
+      0x56U,
+      0x26U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(),
+      divestitureTagBytes.size());
+
+  // A non-owner can establish its future update-region association, but that
+  // association must not retarget updates while the current owner still owns
+  // the attribute.
+  newOwner.rtiAmbassador().associateRegionsForUpdates(object, deferredPair);
+  rti::AttributeHandleValueMap ownerValues;
+  ownerValues.emplace(
+      ownerHandles.attribute,
+      rti::VariableLengthData(ownerValue.data(), ownerValue.size()));
+  owner.rtiAmbassador().updateAttributeValues(object, ownerValues, divestitureTag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflection().present; },
+      options,
+      "deferred ownership transfer/update-region owner reflection");
+  auto const ownerReflection = receiver.recorder().reflection();
+  require(
+      ownerReflection.object == object &&
+          ownerReflection.values.size() == 1U &&
+          ownerReflection.values.count(receiverHandles.attribute) == 1U &&
+          copyBytes(ownerReflection.values.at(receiverHandles.attribute)) == ownerValue &&
+          ownerReflection.tag == divestitureTagBytes &&
+          ownerReflection.producer == owner.federateHandle() &&
+          ownerReflection.transportation.isValid(),
+      "deferred ownership transfer/update-region owner reflection returned the wrong metadata");
+  require(
+      ownerReflection.regions.has_value() &&
+          ownerReflection.regions->size() == 1U &&
+          ownerReflection.regions->count(ownerRegion) == 1U,
+      "deferred ownership transfer/update-region association retargeted the owner update");
+
+  newOwner.recorder().clearOwnershipRecords();
+  receiver.recorder().clearReflection();
+  rti::AttributeHandleSet divestedAttributes;
+  owner.recorder().clearOwnershipRecords();
+  newOwner.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      newOwnerAttributes,
+      acquisitionTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+      options,
+      "deferred ownership transfer release request");
+  auto const releaseRequest = owner.recorder().ownershipReleaseRequest();
+  require(
+      releaseRequest->object == object &&
+          releaseRequest->attributes == ownerAttributes &&
+          releaseRequest->tag == acquisitionTagBytes,
+      "deferred ownership transfer release request returned the wrong metadata");
+  owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      object,
+      ownerAttributes,
+      divestitureTag,
+      divestedAttributes);
+  waitFor(
+      newOwner,
+      [&] { return newOwner.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "deferred ownership transfer acquisition notification");
+  require(
+      divestedAttributes == ownerAttributes &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              ownerHandles.attribute) &&
+          newOwner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              newOwnerHandles.attribute),
+      "deferred ownership transfer did not move the attribute to the pending acquirer");
+  auto const acquisition = newOwner.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == newOwnerAttributes &&
+          acquisition->tag == divestitureTagBytes,
+      "deferred ownership transfer acquisition callback returned the wrong metadata");
+
+  requireException(
+      [&] { owner.rtiAmbassador().updateAttributeValues(object, ownerValues, divestitureTag); },
+      L"AttributeNotOwned",
+      "former owner update after deferred ownership transfer");
+
+  // Acquisition promotes the deferred association without another associate
+  // call.  The source region must now be the new owner's region.
+  rti::AttributeHandleValueMap newOwnerValues;
+  newOwnerValues.emplace(
+      newOwnerHandles.attribute,
+      rti::VariableLengthData(newOwnerValue.data(), newOwnerValue.size()));
+  newOwner.rtiAmbassador().updateAttributeValues(
+      object,
+      newOwnerValues,
+      acquisitionTag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflection().present; },
+      options,
+      "deferred ownership transfer promoted-region reflection");
+  auto const promotedReflection = receiver.recorder().reflection();
+  require(
+      promotedReflection.object == object &&
+          promotedReflection.values.size() == 1U &&
+          promotedReflection.values.count(receiverHandles.attribute) == 1U &&
+          copyBytes(promotedReflection.values.at(receiverHandles.attribute)) == newOwnerValue &&
+          promotedReflection.tag == acquisitionTagBytes &&
+          promotedReflection.producer == newOwner.federateHandle() &&
+          promotedReflection.transportation.isValid(),
+      "deferred ownership transfer promoted-region reflection returned the wrong metadata");
+  require(
+      promotedReflection.regions.has_value() &&
+          promotedReflection.regions->size() == 1U &&
+          promotedReflection.regions->count(deferredRegion) == 1U,
+      "deferred ownership transfer did not promote the pending update-region association");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      receiverHandles.objectClass,
+      receiverPair);
+  newOwner.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      newOwnerHandles.objectClass,
+      deferredPair);
+  newOwner.rtiAmbassador().unassociateRegionsForUpdates(object, deferredPair);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerHandles.objectClass,
+      ownerAttributes);
+  newOwner.rtiAmbassador().unpublishObjectClassAttributes(
+      newOwnerHandles.objectClass,
+      newOwnerAttributes);
+  receiver.rtiAmbassador().deleteRegion(receiverOwnerRegion);
+  receiver.rtiAmbassador().deleteRegion(receiverDeferredRegion);
+  newOwner.rtiAmbassador().deleteRegion(deferredRegion);
+  owner.rtiAmbassador().deleteRegion(ownerRegion);
+  receiver.resign(rti::NO_ACTION);
+  newOwner.resign(rti::NO_ACTION);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  newOwner.disconnect();
+  owner.disconnect();
+}
+
+void scenarioOwnershipTransferDeferredRegionalUpdateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOwnershipTransferDeferredRegionalUpdate(options, model);
+}
+
 void scenarioRegionLifecycle(Options const& options, rti::CallbackModel model) {
   Session lifecycle(options, model, "region-lifecycle-boundary");
   rti::ObjectClassHandle const invalidRegionObjectClass;
@@ -58083,6 +58377,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.auto-provide-contract",
       "cpp-tck.allow-relaxed-ddm",
       "cpp-tck.ownership-transfer-regional-update",
+      "cpp-tck.ownership-transfer-deferred-regional-update",
+      "cpp-tck.ownership-transfer-deferred-regional-update-contract",
       "cpp-tck.attribute-scope-advisories",
       "cpp-tck.attribute-scope-advisories-contract",
       "cpp-tck.regional-declaration-relevance-advisories",
@@ -59380,6 +59676,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.allow-relaxed-ddm") return scenarioAllowRelaxedDdm;
   if (id == "cpp-tck.ownership-transfer-regional-update") {
     return scenarioOwnershipTransferRegionalUpdate;
+  }
+  if (id == "cpp-tck.ownership-transfer-deferred-regional-update") {
+    return scenarioOwnershipTransferDeferredRegionalUpdate;
+  }
+  if (id == "cpp-tck.ownership-transfer-deferred-regional-update-contract") {
+    return scenarioOwnershipTransferDeferredRegionalUpdateContract;
   }
   if (id == "cpp-tck.attribute-scope-advisories") {
     return scenarioAttributeScopeAdvisories;

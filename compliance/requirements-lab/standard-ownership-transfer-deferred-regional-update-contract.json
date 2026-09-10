@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for IEEE 1516.1-2025 deferred update-region associations across attribute ownership transfer. The source uses only the official RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, and callback configuration. A non-owner associates a future update region while the current owner remains responsible for the attribute, the current owner sends through its own source region, and a regular acquisition request followed by Divestiture If Wanted transfers ownership. The first update from the new owner must then use the deferred region without another association call. Object, attribute, ownership-callback, value, tag, producer, transportation, and source-region metadata are checked. No provider-specific names, registries, headers, or implementation behavior are required.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-transfer-deferred-regional-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object registration and subscription, regular ownership acquisition and Divestiture If Wanted, deferred Associate Regions For Updates promotion, ordinary Update Attribute Values, cleanup, and FederateAmbassador discovery, ownership, and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador deferred ownership/update-region declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioOwnershipTransferDeferredRegionalUpdateContract"
+      ]
+    }
+  ]
+}

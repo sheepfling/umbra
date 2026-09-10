@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 423 promoted scenarios (846 callback-model
+The verified lane currently runs 425 promoted scenarios (850 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -1029,6 +1029,15 @@ first update uses the default source, and regional delivery resumes only after
 the new owner explicitly associates a replacement region. This remains a pure
 `RTIambassador`/`FederateAmbassador` test and has no provider-specific FOM or
 registry dependency.
+
+The newly promoted `cpp-tck.ownership-transfer-deferred-regional-update`
+scenario and its pure standard contract twin verify that a non-owner's
+`Associate Regions For Updates` request is retained while another federate
+owns the attribute, then promoted automatically at a regular ownership
+transfer. The focused installed-package lane passed 4/4 callback-model cases;
+the source uses only official IEEE C++ API headers and the standard library,
+with provider, dimensional FOM, endpoint, and callback configuration supplied
+by the adapter.
 
 The promoted `cpp-tck.timestamped-regional-attribute-update` scenario adds the
 timed DDM boundary with four federates. It verifies overlap and disjoint

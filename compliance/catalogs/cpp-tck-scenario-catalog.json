@@ -13371,6 +13371,93 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.ownership-transfer-deferred-regional-update",
+      "category": "ownership-transfer-regional-update",
+      "title": "Promote a deferred update-region association atomically with ownership acquisition",
+      "api_methods": [
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.associateRegionsForUpdates",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-region-designator-callback"
+      ],
+      "contract_refs": [
+        "attribute-ownership-acquisition-api-contract.json",
+        "attribute-ownership-acquisition-requirements-contract.json",
+        "attribute-ownership-divestiture-if-wanted-api-contract.json",
+        "attribute-ownership-divestiture-if-wanted-requirements-contract.json",
+        "attribute-ownership-check-api-contract.json",
+        "attribute-ownership-check-requirements-contract.json",
+        "object-attribute-region-api-contract.json",
+        "object-attribute-region-requirements-contract.json",
+        "attribute-value-update-with-regions-api-contract.json",
+        "attribute-value-update-with-regions-requirements-contract.json",
+        "convey-region-designator-callback-requirements-contract.json",
+        "standard-ownership-transfer-deferred-regional-update-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnershipTransferDeferredRegionalUpdate",
+      "runner_id": "cpp-tck.ownership-transfer-deferred-regional-update",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-transfer-deferred-regional-update-contract",
+      "category": "ownership-transfer-regional-update",
+      "title": "Standard adapter-backed deferred ownership/update-region promotion contract",
+      "api_methods": [
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.associateRegionsForUpdates",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-region-designator-callback"
+      ],
+      "contract_refs": [
+        "standard-ownership-transfer-deferred-regional-update-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOwnershipTransferDeferredRegionalUpdateContract",
+      "runner_id": "cpp-tck.ownership-transfer-deferred-regional-update-contract",
+      "parity": "cpp-tck.ownership-transfer-deferred-regional-update",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.attribute-scope-advisories",
       "category": "attribute-scope-advisory",
       "title": "Report standard attribute scope transitions for regional subscriptions and associations",
