@@ -13142,6 +13142,68 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.passive-regional-interaction-transition",
+      "category": "passive-regional-interaction-transition",
+      "title": "Preserve regional interaction delivery across active and passive subscription transitions",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.getConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "interaction-region-api-contract.json",
+        "interaction-region-requirements-contract.json",
+        "convey-region-designator-callback-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioPassiveRegionalInteractionTransition",
+      "runner_id": "cpp-tck.passive-regional-interaction-transition",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.passive-regional-interaction-transition-contract",
+      "category": "passive-regional-interaction-transition",
+      "title": "Exercise the standard passive regional interaction transition contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.getConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering"
+      ],
+      "contract_refs": [
+        "standard-passive-regional-interaction-transition-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioPassiveRegionalInteractionTransitionContract",
+      "runner_id": "cpp-tck.passive-regional-interaction-transition-contract",
+      "parity": "cpp-tck.passive-regional-interaction-transition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.auto-provide",
       "category": "auto-provide",
       "title": "Solicit provider-owned attributes through the standard Auto Provide callback",

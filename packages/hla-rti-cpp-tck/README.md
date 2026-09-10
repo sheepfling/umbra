@@ -304,6 +304,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.default-region-object-routing-contract` | Standard adapter-backed ordinary/default-region object routing and association replacement contract |
 | `cpp-tck.passive-regional-subscription` | Passive regional subscription suppression, activation-triggered discovery, and ordinary regional Update/Reflect with conveyed source-region metadata |
 | `cpp-tck.passive-regional-subscription-contract` | Standard adapter-backed passive regional subscription suppression and activation contract |
+| `cpp-tck.passive-regional-interaction-transition` | Active and passive regional interaction subscription transitions, retained passive delivery while another route is active, last-active-route suppression, empty-region no-op behavior, and reactivation |
+| `cpp-tck.passive-regional-interaction-transition-contract` | Standard adapter-backed passive regional interaction transition contract |
 | `cpp-tck.auto-provide` | Adapter-supplied Auto Provide FOM, switch verification, provider-owned object discovery, and grouped `provideAttributeValueUpdate` solicitation |
 | `cpp-tck.auto-provide-contract` | Standard adapter-backed Auto Provide switch and grouped solicitation contract |
 | `cpp-tck.allow-relaxed-ddm` | Adapter-supplied `Allow Relaxed DDM` switch composition, touching-region admission for ordinary regional object updates and interactions, strict positive-gap suppression, and conveyed source-region metadata |
@@ -757,6 +759,16 @@ exposes that declaration boundary as an independently selectable pure standard
 C++ contract. It uses only official API headers and the standard library while
 taking provider, FOM, endpoint, and callback configuration from the adapter.
 
+The promoted `cpp-tck.passive-regional-interaction-transition` scenario and its
+contract twin extend the same declaration lifecycle to region-qualified
+interactions. They verify active delivery, downgrade to a retained passive
+regional pair while another active route remains, suppression after the last
+active route is removed, empty-region no-op behavior, and reactivation of the
+same pair. The focused installed-package lane passed 4/4 callback-model cases;
+the source uses only official IEEE C++ headers and the standard library, with
+the provider, dimensional FOM, endpoint, and callback configuration supplied by
+the adapter.
+
 The promoted timestamped directed-interaction source-resignation case applies
 the same lifecycle to a target-qualified interaction. A surviving owner keeps
 the target discoverable while the directed producer resigns; an independent
@@ -987,8 +999,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 425 scenario IDs and 850 matrix cases. `--scenario-set all` currently
-    configures the same 425 available IDs (850 cases); there are no unpromoted
+    that is 427 scenario IDs and 854 matrix cases. `--scenario-set all` currently
+    configures the same 427 available IDs (854 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 425 promoted scenarios (850 callback-model
+The verified lane currently runs 427 promoted scenarios (854 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -882,6 +882,16 @@ that activating the same declaration delivers the pending object and later
 updates, and that the callback carries the source-region designator. The
 source uses only the official `RTIambassador`/`FederateAmbassador` API and
 adapter-supplied FOM names.
+
+The newly promoted `cpp-tck.passive-regional-interaction-transition` scenario
+and its pure standard contract twin extend that boundary to region-qualified
+interactions. They verify active delivery, downgrade to a retained passive
+regional pair while another active route remains, suppression after the last
+active route is removed, empty-region no-op behavior, and reactivation of the
+same pair. Their focused installed-package lane passed 4/4 callback-model
+cases. The source uses only official IEEE C++ API headers and the standard
+library; provider, dimensional FOM, endpoint, and callback configuration
+remain adapter inputs.
 
 The promoted `cpp-tck.auto-provide` scenario exercises the standard Auto
 Provide service with an adapter-supplied FOM whose switch declaration enables

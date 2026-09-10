@@ -45011,6 +45011,262 @@ void scenarioPassiveRegionalSubscriptionContract(
   scenarioPassiveRegionalSubscription(options, model);
 }
 
+void scenarioPassiveRegionalInteractionTransition(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Passive regional interaction transition requires an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "passive-interaction-publisher");
+  Session active(options, model, "passive-interaction-active");
+  Session passive(options, model, "passive-interaction-passive");
+  auto const federation = federationName(
+      options,
+      "passive-regional-interaction-transition");
+  connectAndJoin(publisher, active, options, federation, options.ddmFom);
+  passive.connect();
+  passive.join(
+      options.memberFederateName + L"-passive-regional-interaction",
+      options.federateType,
+      federation);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const activeHandles = ddmHandles(active, options);
+  auto const passiveHandles = ddmHandles(passive, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "passive regional interaction transition publisher");
+  verifyDdmClassDimensions(
+      active,
+      options,
+      activeHandles,
+      "passive regional interaction transition active member");
+  verifyDdmClassDimensions(
+      passive,
+      options,
+      passiveHandles,
+      "passive regional interaction transition passive member");
+  require(
+      publisherHandles.interactionClass == activeHandles.interactionClass &&
+          publisherHandles.interactionClass == passiveHandles.interactionClass &&
+          publisherHandles.parameter == activeHandles.parameter &&
+          publisherHandles.parameter == passiveHandles.parameter,
+      "passive regional interaction members resolved different declaration handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherHandles.interactionClass);
+  auto const sourceRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      1UL,
+      5UL,
+      1UL,
+      5UL);
+  auto const activeRegion = createDdmRegion(
+      active,
+      activeHandles,
+      2UL,
+      6UL,
+      2UL,
+      6UL);
+  auto const passiveRegion = createDdmRegion(
+      passive,
+      passiveHandles,
+      2UL,
+      6UL,
+      2UL,
+      6UL);
+  auto const sourceRegionSet = rti::RegionHandleSet{sourceRegion};
+  auto const activeRegionSet = rti::RegionHandleSet{activeRegion};
+  auto const passiveRegionSet = rti::RegionHandleSet{passiveRegion};
+
+  active.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  passive.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  require(
+      active.rtiAmbassador().getConveyRegionDesignatorSetsSwitch() &&
+          passive.rtiAmbassador().getConveyRegionDesignatorSetsSwitch(),
+      "passive regional interaction receivers did not enable region designator callbacks");
+
+  active.rtiAmbassador().subscribeInteractionClassWithRegions(
+      activeHandles.interactionClass,
+      activeRegionSet,
+      true);
+  // The second member starts with an active regional declaration so that the
+  // transition to passive can be checked without changing its region pair.
+  passive.rtiAmbassador().subscribeInteractionClassWithRegions(
+      passiveHandles.interactionClass,
+      passiveRegionSet,
+      true);
+
+  std::vector<std::uint8_t> const valueBytes{0x2aU, 0x15U};
+  std::vector<std::uint8_t> const firstTag{0x70U, 0x31U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+
+  auto send = [&](std::vector<std::uint8_t> const& tagBytes) {
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().sendInteractionWithRegions(
+        publisherHandles.interactionClass,
+        parameters,
+        sourceRegionSet,
+        tag);
+  };
+  auto pumpReceivers = [&] {
+    for (int pass = 0; pass != 8; ++pass) {
+      active.pump();
+      passive.pump();
+    }
+  };
+  auto requireInteraction = [&](
+      Session& receiver,
+      DdmHandles const& receiverHandles,
+      std::vector<std::uint8_t> const& expectedTag,
+      std::string const& description) {
+    auto const records = receiver.recorder().interactions();
+    require(
+        records.size() == 1U,
+        description + " returned an unexpected callback count");
+    auto const& record = records.front();
+    require(
+        record.interaction == receiverHandles.interactionClass &&
+            record.parameters.size() == 1U &&
+            record.parameters.count(receiverHandles.parameter) == 1U &&
+            copyBytes(record.parameters.at(receiverHandles.parameter)) == valueBytes &&
+            record.tag == expectedTag &&
+            record.producer == publisher.federateHandle() &&
+            record.transportation.isValid(),
+        description + " changed interaction delivery metadata");
+    require(
+        record.regions.has_value() &&
+            record.regions->size() == 1U &&
+            record.regions->count(sourceRegion) == 1U,
+        description + " did not convey the source-region designator set");
+  };
+
+  // Both overlapping regional declarations are active initially.
+  send(firstTag);
+  waitForSessions(
+      std::vector<Session*>{&active, &passive},
+      [&] {
+        return active.recorder().interactions().size() >= 1U &&
+            passive.recorder().interactions().size() >= 1U;
+      },
+      options,
+      "passive regional interaction initial delivery");
+  requireInteraction(
+      active,
+      activeHandles,
+      firstTag,
+      "active regional interaction initial delivery");
+  requireInteraction(
+      passive,
+      passiveHandles,
+      firstTag,
+      "passive regional interaction initial delivery");
+
+  active.recorder().clearInteraction();
+  passive.recorder().clearInteraction();
+  // A passive declaration remains a delivery target while another active
+  // subscriber keeps the interaction relevant for the federation.
+  passive.rtiAmbassador().subscribeInteractionClassWithRegions(
+      passiveHandles.interactionClass,
+      passiveRegionSet,
+      false);
+  auto const retainedTag = std::vector<std::uint8_t>{0x70U, 0x32U};
+  send(retainedTag);
+  waitForSessions(
+      std::vector<Session*>{&active, &passive},
+      [&] {
+        return active.recorder().interactions().size() >= 1U &&
+            passive.recorder().interactions().size() >= 1U;
+      },
+      options,
+      "passive regional interaction retained delivery");
+  requireInteraction(
+      active,
+      activeHandles,
+      retainedTag,
+      "active regional interaction retained delivery");
+  requireInteraction(
+      passive,
+      passiveHandles,
+      retainedTag,
+      "passive regional interaction retained delivery");
+
+  active.recorder().clearInteraction();
+  passive.recorder().clearInteraction();
+  // Once the last active route is removed, the stored passive pair no longer
+  // establishes relevance and neither receiver should see a new send.
+  active.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      activeHandles.interactionClass,
+      activeRegionSet);
+  send(std::vector<std::uint8_t>{0x70U, 0x33U});
+  pumpReceivers();
+  require(
+      active.recorder().interactions().empty() &&
+          passive.recorder().interactions().empty(),
+      "passive regional interaction delivered without an active route");
+
+  // An empty region set is a no-op; it must not convert the retained passive
+  // declaration back into an active subscription.
+  passive.rtiAmbassador().subscribeInteractionClassWithRegions(
+      passiveHandles.interactionClass,
+      rti::RegionHandleSet{},
+      true);
+  send(std::vector<std::uint8_t>{0x70U, 0x34U});
+  pumpReceivers();
+  require(
+      passive.recorder().interactions().empty(),
+      "an empty regional interaction subscription restored active relevance");
+
+  passive.rtiAmbassador().subscribeInteractionClassWithRegions(
+      passiveHandles.interactionClass,
+      passiveRegionSet,
+      true);
+  auto const restoredTag = std::vector<std::uint8_t>{0x70U, 0x35U};
+  send(restoredTag);
+  waitFor(
+      passive,
+      [&] { return passive.recorder().interactions().size() >= 1U; },
+      options,
+      "passive regional interaction restored delivery");
+  requireInteraction(
+      passive,
+      passiveHandles,
+      restoredTag,
+      "passive regional interaction restored delivery");
+  require(
+      active.recorder().interactions().empty(),
+      "unsubscribed active regional interaction receiver received a message");
+
+  passive.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      passiveHandles.interactionClass,
+      passiveRegionSet);
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherHandles.interactionClass);
+  publisher.rtiAmbassador().deleteRegion(sourceRegion);
+  active.rtiAmbassador().deleteRegion(activeRegion);
+  passive.rtiAmbassador().deleteRegion(passiveRegion);
+  passive.resign(rti::NO_ACTION);
+  active.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  passive.disconnect();
+  active.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioPassiveRegionalInteractionTransitionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioPassiveRegionalInteractionTransition(options, model);
+}
+
 void scenarioAttributeScopeAdvisories(
     Options const& options,
     rti::CallbackModel model) {
@@ -58373,6 +58629,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.default-region-object-routing-contract",
       "cpp-tck.passive-regional-subscription",
       "cpp-tck.passive-regional-subscription-contract",
+      "cpp-tck.passive-regional-interaction-transition",
+      "cpp-tck.passive-regional-interaction-transition-contract",
       "cpp-tck.auto-provide",
       "cpp-tck.auto-provide-contract",
       "cpp-tck.allow-relaxed-ddm",
@@ -59671,6 +59929,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.passive-regional-subscription-contract") {
     return scenarioPassiveRegionalSubscriptionContract;
   }
+  if (id == "cpp-tck.passive-regional-interaction-transition") {
+    return scenarioPassiveRegionalInteractionTransition;
+  }
+  if (id == "cpp-tck.passive-regional-interaction-transition-contract") {
+    return scenarioPassiveRegionalInteractionTransitionContract;
+  }
   if (id == "cpp-tck.auto-provide") return scenarioAutoProvide;
   if (id == "cpp-tck.auto-provide-contract") return scenarioAutoProvideContract;
   if (id == "cpp-tck.allow-relaxed-ddm") return scenarioAllowRelaxedDdm;
@@ -60244,6 +60508,8 @@ int run(Options const& options) {
                  scenario == "cpp-tck.default-region-object-routing-contract" ||
                  scenario == "cpp-tck.passive-regional-subscription" ||
                  scenario == "cpp-tck.passive-regional-subscription-contract" ||
+                 scenario == "cpp-tck.passive-regional-interaction-transition" ||
+                 scenario == "cpp-tck.passive-regional-interaction-transition-contract" ||
                  scenario == "cpp-tck.allow-relaxed-ddm" ||
                  scenario == "cpp-tck.ownership-transfer-regional-update" ||
                  scenario == "cpp-tck.attribute-scope-advisories" ||

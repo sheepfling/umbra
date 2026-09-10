@@ -28,6 +28,21 @@ API surfaces, owner, and focused execution commands.
     python tools/query_rti_work.py section <document:clause> --summary --compact
     python tools/query_rti_work.py check --lane <lane-tag> --summary --compact
 
+Current ownership-management process handoff:
+
+    python tools/query_rti_work.py case umbra-cpp-attribute-ownership-acquisition-release-process-integration --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors deliver the Attribute Ownership Acquisition release request through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py focus process-ownership-acquisition-release --summary --compact
+    python tools/query_rti_work.py matrix process-ownership-acquisition-release --summary --compact
+    python tools/query_rti_work.py check --lane process-ownership-acquisition-release --summary --compact
+
+That card is the 30-assertion owner-release process slice at
+`cpp/tests/attribute_ownership_acquisition_catch2.cpp:534`; it maps three exact
+2025 requirements/two sections and two official C++ API surfaces. The regular
+and If Available companions remain separate lanes. Keep release-denied
+completion, mixed/remote ownership, and conformance as follow-on slices rather
+than widening this query.
+
 Use `test <substring>` or `search <term>` only to discover a candidate; once
 selected, switch to the exact `case`, `trace`, and `matrix` commands so the
 next work item stays bounded and reproducible. The exact `case` card also
@@ -130,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 425 promoted scenario IDs (850 callback-model cases).
-`--scenario-set all` currently configures the same 425 available IDs (850
+The verified lane is 427 promoted scenario IDs (854 callback-model cases).
+`--scenario-set all` currently configures the same 427 available IDs (854
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -402,6 +417,12 @@ callback-model cases; the promoted aggregate records 684/684 CTest cases with
 684 direct passes and only the two expected adapter-managed connection-loss
 skips. The source uses only official IEEE C++ headers and the standard library;
 the provider, dimensional FOM, endpoint, callback, and logical-time
+configuration remain adapter-owned.
+The promoted `cpp-tck.passive-regional-interaction-transition-contract` runner
+adds the independently selectable standard active/passive regional interaction
+transition contract. Its focused base-and-contract lane passed 4/4
+callback-model cases. The source uses only official IEEE C++ headers and the
+standard library; the provider, dimensional FOM, endpoint, and callback
 configuration remain adapter-owned.
 The promoted `cpp-tck.auto-provide-contract` runner adds the independently
 selectable standard Auto Provide switch and grouped solicitation contract. Its
