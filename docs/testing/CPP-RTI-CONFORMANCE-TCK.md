@@ -10,6 +10,21 @@ The runner uses a standard `RTIambassador` plus a direct
 are used only through the same official API to construct and configure those
 objects.
 
+## Scenario inventory gate
+
+The catalog and the executable's default `all` inventory are kept as a
+one-to-one set. Run `python tools/cpp_tck.py` to verify the catalog, the
+official-header boundary, and that inventory before running a provider. The
+current gate reports 546 catalog scenarios and 546 executable scenarios; the
+official C++ API audit reports all 164 `RTIambassador` methods and all 56
+`FederateAmbassador` callbacks represented.
+
+The inventory gate is compiled and exercised through the installed-package
+adapter. Its 12 contract-only scenarios run in both callback models (24
+scenario-model cases), with 24 passed and no skips or failures. The adapter
+continues to provide the provider library, FOMs, logical-time choice, and
+endpoint settings; the portable source remains independent of those details.
+
 ## Green P0–P6 ordinary-service, time, FOM, DDM, synchronization, callback, and save/restore boundary coverage
 
 The initial green slice exercises:

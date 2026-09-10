@@ -87,6 +87,12 @@ OFFICIAL_API_HEADERS = {
     "RTI/libfedtime/LogicalTimeFactoryFactory.h",
 }
 
+SCENARIO_INVENTORY_PATTERN = re.compile(
+    r"std::vector<std::string>\s+allScenarioIds\(\)\s*\{\s*"
+    r"return\s*\{(?P<body>.*?)\};",
+    re.DOTALL,
+)
+
 
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -249,9 +255,54 @@ def validate_sources() -> list[str]:
     return findings
 
 
+def validate_scenario_inventory(catalog: dict[str, Any]) -> list[str]:
+    """Ensure the executable's default scenario inventory matches the catalog."""
+    source_path = SOURCE_ROOT / "src" / "main.cpp"
+    source = source_path.read_text(encoding="utf-8")
+    match = SCENARIO_INVENTORY_PATTERN.search(source)
+    if match is None:
+        return [f"portable C++ TCK scenario inventory is absent: {source_path}"]
+
+    inventory = re.findall(r'"([^"]+)"', match.group("body"))
+    catalog_ids = {scenario["id"] for scenario in catalog["scenarios"]}
+    findings: list[str] = []
+    duplicates = sorted(
+        scenario_id
+        for scenario_id in set(inventory)
+        if inventory.count(scenario_id) > 1
+    )
+    if duplicates:
+        findings.append(
+            "portable C++ TCK scenario inventory contains duplicates: "
+            + ", ".join(duplicates)
+        )
+    inventory_ids = set(inventory)
+    missing = sorted(catalog_ids - inventory_ids)
+    if missing:
+        findings.append(
+            "portable C++ TCK scenario inventory is missing catalog scenarios: "
+            + ", ".join(missing)
+        )
+    unexpected = sorted(inventory_ids - catalog_ids)
+    if unexpected:
+        findings.append(
+            "portable C++ TCK scenario inventory contains unknown scenarios: "
+            + ", ".join(unexpected)
+        )
+    return findings
+
+
 def validate(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
     catalog = load_catalog(catalog_path)
     findings = validate_sources()
+    findings.extend(validate_scenario_inventory(catalog))
+    source = (SOURCE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+    inventory_match = SCENARIO_INVENTORY_PATTERN.search(source)
+    inventory_count = (
+        len(re.findall(r'"([^"]+)"', inventory_match.group("body")))
+        if inventory_match is not None
+        else 0
+    )
     promotion_counts = {
         state: sum(1 for item in catalog["scenarios"] if item["promotion"] == state)
         for state in ("promoted", "candidate")
@@ -260,6 +311,7 @@ def validate(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
         "valid": not findings,
         "findings": findings,
         "scenario_count": len(catalog["scenarios"]),
+        "scenario_inventory_count": inventory_count,
         "promotion_counts": promotion_counts,
         "source_boundary": catalog["source_boundary"],
     }
