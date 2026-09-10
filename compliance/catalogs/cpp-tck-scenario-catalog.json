@@ -1239,7 +1239,7 @@
       "runner_id": "cpp-tck.service-report-timestamped-directed-interaction",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.service-report-timestamped-directed-interaction-contract",
@@ -1289,7 +1289,7 @@
       "runner_id": "cpp-tck.service-report-timestamped-directed-interaction-contract",
       "parity": "cpp-tck.service-report-timestamped-directed-interaction",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.service-report-interaction-failure",

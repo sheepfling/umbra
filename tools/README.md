@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 457 promoted scenario IDs (914 callback-model cases).
-`--scenario-set all` currently configures the same 457 available IDs (914
+The verified lane is 459 promoted scenario IDs (918 callback-model cases).
+`--scenario-set all` currently configures the same 459 available IDs (918
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -378,10 +378,19 @@ The promoted
 standard MOM `HLAreportServiceInvocation` for `SendInteraction` with the
 ordinary receive-order application callback. Their focused four-case lane
 passed 4/4 callback-model cases in
-`.build\\cpp-tck-next-receive-order-interaction\\receive-order-interaction.json`;
-evoked mode required callback servicing and immediate mode delivered both
-callbacks synchronously. The source uses only the official IEEE C++ API,
-standard MIM data elements, and the standard library.
+  `.build\\cpp-tck-next-receive-order-interaction\\receive-order-interaction.json`;
+  evoked mode required callback servicing and immediate mode delivered both
+  callbacks synchronously. The source uses only the official IEEE C++ API,
+  standard MIM data elements, and the standard library.
+  The promoted `cpp-tck.service-report-timestamped-directed-interaction` and
+  `cpp-tck.service-report-timestamped-directed-interaction-contract` runners
+  extend that boundary to time-regulated timestamped directed interactions.
+  Their focused installed-package lane passed 4/4 callback-model cases in
+  `.build\\cpp-tck-debug\\timestamped-directed-service-report.json` and its
+  contract twin artifact, verifying typed MOM arguments, retraction identity,
+  target routing, and callback-before-grant ordering with a five-epsilon
+  lookahead using only the official IEEE C++ API, standard MIM data elements,
+  and the standard library.
 The promoted
 `cpp-tck.service-report-regional-interaction-contract` and
 `cpp-tck.service-report-regional-interaction-subscription-contract` runners add

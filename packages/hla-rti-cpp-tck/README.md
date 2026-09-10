@@ -82,8 +82,10 @@ The executable covers these ordinary public-API workflows, under both
   | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
   | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
   | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
-  | `cpp-tck.service-report-receive-order-interaction` | Standard MOM service report paired with ordinary receive-order interaction delivery, including callback-model timing and application metadata |
-  | `cpp-tck.service-report-receive-order-interaction-contract` | Standard adapter-backed receive-order interaction service-report contract using the official MIM and separate application/report callbacks |
+   | `cpp-tck.service-report-receive-order-interaction` | Standard MOM service report paired with ordinary receive-order interaction delivery, including callback-model timing and application metadata |
+   | `cpp-tck.service-report-receive-order-interaction-contract` | Standard adapter-backed receive-order interaction service-report contract using the official MIM and separate application/report callbacks |
+   | `cpp-tck.service-report-timestamped-directed-interaction` | Standard MOM service report paired with time-regulated timestamped directed-interaction delivery, typed retraction identity, target routing, and callback-before-grant ordering |
+   | `cpp-tck.service-report-timestamped-directed-interaction-contract` | Standard adapter-backed timestamped directed-interaction service-report contract using the official MIM, logical-time API, and separate application/report callbacks |
   | `cpp-tck.service-report-interlock` | Standard MOM service-reporting switch and HLAreportServiceInvocation active/passive subscription interlocks, including recovery after unsubscribe |
  | `cpp-tck.service-report-interlock-contract` | Standard adapter-backed service-reporting interlock contract using the official MIM and public switch/subscription APIs |
  | `cpp-tck.service-report-synchronization` | Standard MOM service reports for synchronization-point registration, confirmation, announcement, achievement, and completion callbacks |
@@ -1039,8 +1041,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-      that is 457 scenario IDs and 914 matrix cases. `--scenario-set all` currently
-       configures the same 457 available IDs (914 cases); there are no unpromoted
+      that is 459 scenario IDs and 918 matrix cases. `--scenario-set all` currently
+       configures the same 459 available IDs (918 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1550,7 +1552,14 @@ The promoted `cpp-tck.service-report-receive-order-interaction` scenario and
 its contract twin extend that route with an independent ordinary receiver. The
 focused installed-package lane passed 4/4 cases across `HLA_EVOKED` and
 `HLA_IMMEDIATE`, verifying callback timing, standard MOM report payloads, and
-application interaction metadata with only adapter-supplied FOM/MIM inputs.
+  application interaction metadata with only adapter-supplied FOM/MIM inputs.
+  The promoted `cpp-tck.service-report-timestamped-directed-interaction` scenario
+  and its contract twin extend that route through time-regulated timestamped
+  `SendDirectedInteraction`. Their focused installed-package lane passed 4/4
+  cases across `HLA_EVOKED` and `HLA_IMMEDIATE`, verifying typed MOM supplied and
+  returned arguments, retraction identity, target routing, and callback-before-
+  grant ordering with a five-epsilon lookahead. The source remains limited to
+  the official IEEE C++ API, standard MIM data elements, and the standard library.
 The promoted `cpp-tck.service-report-timestamped-interaction` scenario verifies
 the successful standard MOM report for a timestamped `SendInteraction` call and
 independently checks constrained delivery, logical-time grant ordering,
