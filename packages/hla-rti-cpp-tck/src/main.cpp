@@ -59022,6 +59022,200 @@ void scenarioCallbackControlsAttributeScopeAdvisoriesContract(
   scenarioCallbackControlsAttributeScopeAdvisories(options, model);
 }
 
+void scenarioCallbackControlsFlushQueueGrant(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control Flush Queue grant test requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-flush-queue-grant");
+  publisher.connect();
+  receiver.connect();
+  publisher.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(options.ownerFederateName, options.federateType, federation);
+  receiver.join(options.memberFederateName, options.federateType, federation);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "Callback-control Flush Queue grant lookup returned mismatched handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Callback-control Flush Queue grant members selected different logical-time factories");
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() >= 1U; },
+      options,
+      "Callback-control Flush Queue grant time-constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "Callback-control Flush Queue grant time-regulation callback");
+  publisher.recorder().clearTimeCallbacks();
+  receiver.recorder().clearTimeCallbacks();
+  receiver.recorder().clearTimedInteractions();
+  receiver.recorder().clearFlushQueueGrants();
+  publisher.recorder().clearCallbackOrder();
+  receiver.recorder().clearCallbackOrder();
+
+  auto const messageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      9U);
+  auto const publisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  auto const requestBoundary = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      10U);
+  std::vector<std::uint8_t> const parameterBytes{
+      0x46U, 0x51U, 0x2DU, 0x43U, 0x54U, 0x52U, 0x4CU};
+  std::vector<std::uint8_t> const tagBytes{
+      0x46U, 0x51U, 0x2DU, 0x54U, 0x41U, 0x47U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(parameterBytes.data(), parameterBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      tag,
+      *messageTime);
+  require(
+      retraction.isValid(),
+      "Callback-control Flush Queue grant send returned an invalid retraction handle");
+
+  receiver.rtiAmbassador().disableCallbacks();
+  receiver.rtiAmbassador().flushQueueRequest(*requestBoundary);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.recorder().timedInteractions().empty() &&
+            receiver.recorder().flushQueueGrants().empty(),
+        "Callback-control Flush Queue grant delivered before callback servicing");
+  }
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "Callback-control Flush Queue grant publisher advance");
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 0.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      receiver.recorder().timedInteractions().empty() &&
+          receiver.recorder().flushQueueGrants().empty(),
+      "disabled callbacks exposed a Flush Queue grant or queued interaction");
+
+  receiver.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 1U &&
+            receiver.recorder().flushQueueGrants().size() == 1U;
+      },
+      options,
+      "re-enabled Flush Queue grant and queued interaction");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "flush-grant"},
+      "re-enabled Flush Queue grant was delivered before queued interaction");
+
+  auto const interactions = receiver.recorder().timedInteractions();
+  require(
+      interactions.front().interaction == receiverInteraction &&
+          interactions.front().parameters.size() == 1U &&
+          interactions.front().parameters.count(receiverParameter) == 1U &&
+          copyBytes(interactions.front().parameters.at(receiverParameter)) == parameterBytes &&
+          interactions.front().tag == tagBytes &&
+          interactions.front().producer == publisher.federateHandle() &&
+          interactions.front().time == encodeTime(*messageTime) &&
+          interactions.front().sentOrder == rti::TIMESTAMP &&
+          interactions.front().receivedOrder == rti::TIMESTAMP &&
+          interactions.front().transportation.isValid() &&
+          !interactions.front().regions.has_value() &&
+          interactions.front().retractionPresent &&
+          interactions.front().retraction == copyBytes(retraction.encode()),
+      "re-enabled Flush Queue interaction returned the wrong metadata");
+  auto const flushGrants = receiver.recorder().flushQueueGrants();
+  require(
+      !flushGrants.front().time.empty() &&
+          !flushGrants.front().timeText.empty() &&
+          !flushGrants.front().optimisticTime.empty() &&
+          !flushGrants.front().optimisticTimeText.empty() &&
+          flushGrants.front().optimisticTime == encodeTime(*messageTime),
+      "re-enabled Flush Queue grant returned incomplete or incorrect time metadata");
+  auto actualFlushTime = decodeTime(*receiverTime.factory, flushGrants.front().time);
+  require(
+      actualFlushTime != nullptr &&
+          !(*actualFlushTime < *receiverTime.initial) &&
+          !(*requestBoundary < *actualFlushTime),
+      "re-enabled Flush Queue grant returned a time outside standard bounds");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsFlushQueueGrantContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsFlushQueueGrant(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -67667,6 +67861,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-federation-reports-contract",
       "cpp-tck.callback-controls-attribute-scope-advisories",
       "cpp-tck.callback-controls-attribute-scope-advisories-contract",
+      "cpp-tck.callback-controls-flush-queue-grant",
+      "cpp-tck.callback-controls-flush-queue-grant-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -69334,6 +69530,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-attribute-scope-advisories-contract") {
     return scenarioCallbackControlsAttributeScopeAdvisoriesContract;
+  }
+  if (id == "cpp-tck.callback-controls-flush-queue-grant") {
+    return scenarioCallbackControlsFlushQueueGrant;
+  }
+  if (id == "cpp-tck.callback-controls-flush-queue-grant-contract") {
+    return scenarioCallbackControlsFlushQueueGrantContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
