@@ -440,6 +440,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-attribute-scope-advisories-contract` | Standard adapter-backed callback-control contract for regional attribute-scope transitions, suppression, release, and cleanup |
 | `cpp-tck.callback-controls-flush-queue-grant` | Callback disable/enable gating around queued timestamped interaction delivery and the standard `flushQueueGrant` callback under both callback models |
 | `cpp-tck.callback-controls-flush-queue-grant-contract` | Standard adapter-backed callback-control contract for Flush Queue grant ordering, time metadata, suppression, release, and cleanup |
+| `cpp-tck.callback-controls-available-time-advance-callbacks` | Callback disable/enable gating around standard Time Advance Request Available and Next Message Request Available delivery under both callback models |
+| `cpp-tck.callback-controls-available-time-advance-callbacks-contract` | Standard adapter-backed callback-control contract for available time-advance delivery, interaction-before-grant ordering, time metadata, suppression, release, and cleanup |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
@@ -1231,6 +1233,15 @@ time/order/retraction metadata, callback-model servicing, and time/federation
 cleanup. Its focused installed-package lane passed 4/4 callback-model cases
 across three repeats using only the official C++ API and standard library.
 
+The newly promoted callback-control available-time-advance slice adds
+`cpp-tck.callback-controls-available-time-advance-callbacks` and its pure
+contract twin. It verifies callback suppression and release around standard
+Time Advance Request Available and Next Message Request Available delivery,
+interaction-before-grant ordering, exact timestamped interaction and retraction
+metadata, callback-model servicing, and time/federation cleanup. Its focused
+installed-package lane passed 4/4 callback-model cases across three repeats using
+only the official C++ API and standard library.
+
 The promoted `cpp-tck.timed-regional-interaction-save-restore` expansion uses the
 adapter-supplied DDM FOM to save at time 6, roll back a live retraction, restore
 the queued timestamped regional interaction at time 8, and deliver it through
@@ -1348,8 +1359,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 533 scenario IDs and 1066 matrix cases. `--scenario-set all` currently
-          configures the same 533 available IDs (1066 cases); there are no unpromoted
+          that is 535 scenario IDs and 1070 matrix cases. `--scenario-set all` currently
+          configures the same 535 available IDs (1070 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

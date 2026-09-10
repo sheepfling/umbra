@@ -59216,6 +59216,255 @@ void scenarioCallbackControlsFlushQueueGrantContract(
   scenarioCallbackControlsFlushQueueGrant(options, model);
 }
 
+void scenarioCallbackControlsAvailableTimeAdvanceCallbacks(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control available time-advance test requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-available-time-advance-callbacks");
+  publisher.connect();
+  receiver.connect();
+  publisher.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(options.ownerFederateName, options.federateType, federation);
+  receiver.join(options.memberFederateName, options.federateType, federation);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "Callback-control available time-advance lookup returned mismatched handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Callback-control available time-advance members selected different logical-time factories");
+  auto const lookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(
+      lookahead != nullptr,
+      "Callback-control available time-advance test could not allocate a lookahead interval");
+  lookahead->setToDifference(*lookaheadTime, *publisherTime.initial);
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() >= 1U; },
+      options,
+      "Callback-control available time-advance time-constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "Callback-control available time-advance time-regulation callback");
+  publisher.recorder().clearTimeCallbacks();
+  receiver.recorder().clearTimeCallbacks();
+  publisher.recorder().clearCallbackOrder();
+  receiver.recorder().clearCallbackOrder();
+
+  auto serviceReceiverCallbacks = [&] {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 0.0));
+    } else {
+      static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+  };
+  auto verifyAvailableAdvance = [&](bool useNextMessageRequest,
+                                    rti::LogicalTime const& messageTime,
+                                    rti::LogicalTime const& availableRequest,
+                                    rti::LogicalTime const& publisherTarget,
+                                    std::vector<std::uint8_t> const& expectedParameter,
+                                    std::vector<std::uint8_t> const& expectedTag,
+                                    std::string const& description) {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherParameter,
+        rti::VariableLengthData(
+            expectedParameter.data(),
+            expectedParameter.size()));
+    rti::VariableLengthData tag(expectedTag.data(), expectedTag.size());
+    auto const retraction = publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        parameters,
+        tag,
+        messageTime);
+    require(
+        retraction.isValid(),
+        description + " send returned an invalid retraction handle");
+
+    receiver.rtiAmbassador().disableCallbacks();
+    if (useNextMessageRequest) {
+      receiver.rtiAmbassador().nextMessageRequestAvailable(availableRequest);
+    } else {
+      receiver.rtiAmbassador().timeAdvanceRequestAvailable(availableRequest);
+    }
+    require(
+        receiver.recorder().timedInteractions().empty() &&
+        receiver.recorder().timeAdvanceGrants().empty(),
+        description + " completed before the regulating federate advanced");
+    publisher.rtiAmbassador().timeAdvanceRequest(publisherTarget);
+    waitFor(
+        publisher,
+        [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
+        options,
+        description + " publisher grant");
+    serviceReceiverCallbacks();
+    require(
+        receiver.recorder().timedInteractions().empty() &&
+            receiver.recorder().timeAdvanceGrants().empty(),
+        description + " exposed callbacks while callbacks were disabled");
+
+    receiver.rtiAmbassador().enableCallbacks();
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+    } else {
+      static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+    waitFor(
+        receiver,
+        [&] {
+          return receiver.recorder().timedInteractions().size() == 1U &&
+              receiver.recorder().timeAdvanceGrants().size() == 1U;
+        },
+        options,
+        description + " re-enabled callbacks");
+    require(
+        receiver.recorder().callbackOrder() ==
+            std::vector<std::string>{"interaction", "grant"},
+        description + " delivered its grant before the interaction");
+
+    auto const interactions = receiver.recorder().timedInteractions();
+    require(
+        interactions.front().interaction == receiverInteraction &&
+            interactions.front().parameters.size() == 1U &&
+            interactions.front().parameters.count(receiverParameter) == 1U &&
+            copyBytes(interactions.front().parameters.at(receiverParameter)) ==
+                expectedParameter &&
+            interactions.front().tag == expectedTag &&
+            interactions.front().producer == publisher.federateHandle() &&
+            interactions.front().time == encodeTime(messageTime) &&
+            interactions.front().sentOrder == rti::TIMESTAMP &&
+            interactions.front().receivedOrder == rti::TIMESTAMP &&
+            interactions.front().transportation.isValid() &&
+            !interactions.front().regions.has_value() &&
+            interactions.front().retractionPresent &&
+            interactions.front().retraction == copyBytes(retraction.encode()),
+        description + " returned the wrong interaction metadata");
+    require(
+        receiver.recorder().flushQueueGrants().empty(),
+        description + " returned an unexpected Flush Queue grant");
+    auto const grants = receiver.recorder().timeAdvanceGrants();
+    require(
+        grants.front().encoded == encodeTime(messageTime),
+        description + " returned the wrong time-advance grant time");
+  };
+
+  auto const firstMessageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      7U);
+  auto const firstPublisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  std::vector<std::uint8_t> const firstParameter{
+      0x41U, 0x56U, 0x41U, 0x2DU, 0x54U, 0x41U, 0x52U};
+  std::vector<std::uint8_t> const firstTag{
+      0x41U, 0x56U, 0x41U, 0x2DU, 0x31U};
+  verifyAvailableAdvance(
+      false,
+      *firstMessageTime,
+      *firstMessageTime,
+      *firstPublisherTarget,
+      firstParameter,
+      firstTag,
+      "time-advance-request-available callback-control delivery");
+
+  publisher.recorder().clearTimeCallbacks();
+  receiver.recorder().clearTimeCallbacks();
+  receiver.recorder().clearTimedInteractions();
+  receiver.recorder().clearFlushQueueGrants();
+  publisher.recorder().clearCallbackOrder();
+  receiver.recorder().clearCallbackOrder();
+  auto const secondMessageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      9U);
+  auto const secondRequestBoundary = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      10U);
+  auto const secondPublisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  std::vector<std::uint8_t> const secondParameter{
+      0x41U, 0x56U, 0x41U, 0x2DU, 0x4EU, 0x4DU, 0x52U};
+  std::vector<std::uint8_t> const secondTag{
+      0x41U, 0x56U, 0x41U, 0x2DU, 0x32U};
+  verifyAvailableAdvance(
+      true,
+      *secondMessageTime,
+      *secondRequestBoundary,
+      *secondPublisherTarget,
+      secondParameter,
+      secondTag,
+      "next-message-request-available callback-control delivery");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsAvailableTimeAdvanceCallbacksContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsAvailableTimeAdvanceCallbacks(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -67863,6 +68112,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-attribute-scope-advisories-contract",
       "cpp-tck.callback-controls-flush-queue-grant",
       "cpp-tck.callback-controls-flush-queue-grant-contract",
+      "cpp-tck.callback-controls-available-time-advance-callbacks",
+      "cpp-tck.callback-controls-available-time-advance-callbacks-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -69536,6 +69787,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-flush-queue-grant-contract") {
     return scenarioCallbackControlsFlushQueueGrantContract;
+  }
+  if (id == "cpp-tck.callback-controls-available-time-advance-callbacks") {
+    return scenarioCallbackControlsAvailableTimeAdvanceCallbacks;
+  }
+  if (id == "cpp-tck.callback-controls-available-time-advance-callbacks-contract") {
+    return scenarioCallbackControlsAvailableTimeAdvanceCallbacksContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
