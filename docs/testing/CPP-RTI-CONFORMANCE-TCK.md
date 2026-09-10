@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 417 promoted scenarios (834 callback-model
+The verified lane currently runs 419 promoted scenarios (838 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -844,10 +844,20 @@ a disjoint regional subscription, restoration after regional unsubscription,
 ordinary delivery through the implicit default region, and conveyed empty
 source-region metadata. Its pure standard contract twin is independently
 selectable. The focused installed-package lane passed 4/4 callback-model cases;
-the current promoted matrix passed 832/834 cases with only the two expected
-adapter-managed connection-loss cases skipped and zero failures. The source
-uses only official IEEE C++ headers and the standard library, with provider,
-dimensional FOM, endpoint, and callback configuration supplied by the adapter.
+the subsequent 419-scenario installed-package sweep recorded 818 passes, 18
+failures in other attribute/interaction-edge and timed save/restore scenarios,
+and the two expected adapter-managed connection-loss skips; the new pair was
+green in both callback models. The source uses only official IEEE C++ headers
+and the standard library, with provider, dimensional FOM, endpoint, and
+callback configuration supplied by the adapter.
+
+The newly promoted `cpp-tck.zero-dimensional-regional-interaction` scenario
+and its pure standard contract twin establish ordinary interaction delivery,
+then verify that an explicit committed region with no dimensions does not
+overlap the ordinary/default subscription. Their focused installed-package
+lane passed 4/4 callback-model cases. The source uses only official IEEE C++
+API headers and the standard library; provider, FOM, endpoint, and callback
+configuration remain adapter inputs.
 
 The promoted `cpp-tck.passive-regional-subscription` scenario exercises the
 regional passive-subscription boundary. It proves that a regional

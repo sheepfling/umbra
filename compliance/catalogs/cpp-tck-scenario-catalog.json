@@ -13691,6 +13691,75 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.zero-dimensional-regional-interaction",
+      "category": "regional-interaction-management",
+      "title": "Keep an explicit zero-dimensional interaction realization outside the default region",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7",
+        "cpp-1516.1-ddm-zero-dimensional-regional-interaction"
+      ],
+      "contract_refs": [
+        "interaction-region-api-contract.json",
+        "interaction-region-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioZeroDimensionalRegionalInteraction",
+      "runner_id": "cpp-tck.zero-dimensional-regional-interaction",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.zero-dimensional-regional-interaction-contract",
+      "category": "regional-interaction-management",
+      "title": "Standard adapter-backed zero-dimensional regional interaction non-overlap contract",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7",
+        "cpp-1516.1-ddm-zero-dimensional-regional-interaction"
+      ],
+      "contract_refs": [
+        "standard-zero-dimensional-regional-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioZeroDimensionalRegionalInteractionContract",
+      "runner_id": "cpp-tck.zero-dimensional-regional-interaction-contract",
+      "parity": "cpp-tck.zero-dimensional-regional-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-source-region-snapshot",
       "category": "regional-interaction-management",
       "title": "Preserve the send-time source region for queued ordinary regional interactions",

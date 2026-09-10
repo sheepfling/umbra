@@ -45449,6 +45449,127 @@ void scenarioDefaultRegionInteractionRoutingContract(
   scenarioDefaultRegionInteractionRouting(options, model);
 }
 
+void scenarioZeroDimensionalRegionalInteraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Zero-dimensional regional interaction requires an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "zero-dimensional-regional-interaction-publisher");
+  Session subscriber(options, model, "zero-dimensional-regional-interaction-subscriber");
+  auto const federation = federationName(
+      options,
+      "zero-dimensional-regional-interaction");
+  connectAndJoin(publisher, subscriber, options, federation, options.ddmFom);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const subscriberHandles = ddmHandles(subscriber, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "zero-dimensional regional interaction");
+  require(
+      publisherHandles.interactionClass == subscriberHandles.interactionClass &&
+          publisherHandles.parameter == subscriberHandles.parameter,
+      "zero-dimensional interaction members resolved different declaration handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherHandles.interactionClass);
+  subscriber.rtiAmbassador().subscribeInteractionClass(
+      subscriberHandles.interactionClass,
+      true);
+
+  std::vector<std::uint8_t> ordinaryValue{0x2aU, 0x15U};
+  std::vector<std::uint8_t> ordinaryTag{0x7aU, 0x64U, 0x6dU};
+  rti::ParameterHandleValueMap ordinaryParameters;
+  ordinaryParameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(ordinaryValue.data(), ordinaryValue.size()));
+  rti::VariableLengthData ordinaryUserTag(
+      ordinaryTag.data(),
+      ordinaryTag.size());
+
+  publisher.rtiAmbassador().sendInteraction(
+      publisherHandles.interactionClass,
+      ordinaryParameters,
+      ordinaryUserTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().interactions().size() >= 1U; },
+      options,
+      "zero-dimensional interaction ordinary baseline");
+  auto const ordinaryInteractions = subscriber.recorder().interactions();
+  require(
+      ordinaryInteractions.size() == 1U,
+      "ordinary interaction baseline delivered a duplicate callback");
+  auto const& ordinary = ordinaryInteractions.front();
+  require(
+      ordinary.interaction == subscriberHandles.interactionClass &&
+          ordinary.parameters.size() == 1U &&
+          ordinary.parameters.count(subscriberHandles.parameter) == 1U &&
+          copyBytes(ordinary.parameters.at(subscriberHandles.parameter)) == ordinaryValue &&
+          ordinary.tag == ordinaryTag &&
+          ordinary.producer == publisher.federateHandle() &&
+          ordinary.transportation.isValid() &&
+          !ordinary.regions.has_value(),
+      "ordinary interaction baseline changed delivery metadata");
+
+  auto const zeroRegion = publisher.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{});
+  require(
+      zeroRegion.isValid(),
+      "zero-dimensional interaction region creation returned an invalid handle");
+  require(
+      publisher.rtiAmbassador().getDimensionHandleSet(zeroRegion).empty(),
+      "zero-dimensional interaction region reported unexpected dimensions");
+  publisher.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{zeroRegion});
+  require(
+      publisher.rtiAmbassador().getDimensionHandleSet(zeroRegion).empty(),
+      "zero-dimensional interaction region changed dimensions after commit");
+
+  subscriber.recorder().clearInteraction();
+  std::vector<std::uint8_t> explicitValue{0x2aU, 0x15U};
+  std::vector<std::uint8_t> explicitTag{0x7aU, 0x64U, 0x6dU};
+  rti::ParameterHandleValueMap explicitParameters;
+  explicitParameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(explicitValue.data(), explicitValue.size()));
+  rti::VariableLengthData explicitUserTag(
+      explicitTag.data(),
+      explicitTag.size());
+  publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      explicitParameters,
+      rti::RegionHandleSet{zeroRegion},
+      explicitUserTag);
+  for (int pass = 0; pass != 8; ++pass) {
+    subscriber.pump();
+  }
+  require(
+      subscriber.recorder().interactions().empty(),
+      "explicit zero-dimensional interaction realization overlapped the default region");
+
+  publisher.rtiAmbassador().deleteRegion(zeroRegion);
+  subscriber.rtiAmbassador().unsubscribeInteractionClass(
+      subscriberHandles.interactionClass);
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherHandles.interactionClass);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioZeroDimensionalRegionalInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioZeroDimensionalRegionalInteraction(options, model);
+}
+
 void scenarioRegionalInteractionSourceRegionSnapshot(
     Options const& options,
     rti::CallbackModel model) {
@@ -57476,6 +57597,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-interaction-routing-contract",
       "cpp-tck.default-region-interaction-routing",
       "cpp-tck.default-region-interaction-routing-contract",
+      "cpp-tck.zero-dimensional-regional-interaction",
+      "cpp-tck.zero-dimensional-regional-interaction-contract",
       "cpp-tck.regional-interaction-source-region-snapshot",
       "cpp-tck.regional-interaction-source-region-snapshot-contract",
       "cpp-tck.regional-interaction-subscription-filtering",
@@ -58783,6 +58906,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.default-region-interaction-routing-contract") {
     return scenarioDefaultRegionInteractionRoutingContract;
+  }
+  if (id == "cpp-tck.zero-dimensional-regional-interaction") {
+    return scenarioZeroDimensionalRegionalInteraction;
+  }
+  if (id == "cpp-tck.zero-dimensional-regional-interaction-contract") {
+    return scenarioZeroDimensionalRegionalInteractionContract;
   }
   if (id == "cpp-tck.regional-interaction-source-region-snapshot") {
     return scenarioRegionalInteractionSourceRegionSnapshot;

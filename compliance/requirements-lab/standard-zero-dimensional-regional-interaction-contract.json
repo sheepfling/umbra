@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the IEEE 1516.1-2025 zero-dimensional regional-interaction boundary. The source uses only the official RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, and callback configuration. It establishes ordinary default-region interaction delivery, then creates and commits an explicit region with no dimensions and verifies that Send Interaction With Regions does not overlap the ordinary subscription. No provider-specific names, registries, headers, or implementation behavior are required.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-zero-dimensional-regional-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador interaction publication, ordinary subscription, zero-dimensional region creation and commit, ordinary and regional interaction send, region cleanup, and FederateAmbassador receiveInteraction delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador zero-dimensional regional interaction declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioZeroDimensionalRegionalInteractionContract"
+      ]
+    }
+  ]
+}

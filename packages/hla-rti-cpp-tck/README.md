@@ -317,6 +317,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-interaction-routing-contract` | Standard adapter-backed regional interaction routing contract |
 | `cpp-tck.default-region-interaction-routing` | Ordinary interaction routing across explicit regional subscriptions and the implicit default region, including disjoint suppression, restoration, and conveyed empty region metadata |
 | `cpp-tck.default-region-interaction-routing-contract` | Standard adapter-backed explicit and implicit default-region interaction routing contract |
+| `cpp-tck.zero-dimensional-regional-interaction` | Explicit zero-dimensional interaction realizations do not overlap an ordinary/default subscription after an ordinary baseline delivery |
+| `cpp-tck.zero-dimensional-regional-interaction-contract` | Standard adapter-backed zero-dimensional regional interaction non-overlap contract |
 | `cpp-tck.regional-interaction-source-region-snapshot` | Send-time source-region capture for queued ordinary regional interactions, disjoint suppression after source mutation, restored-overlap routing, and conveyed source-region metadata |
 | `cpp-tck.regional-interaction-source-region-snapshot-contract` | Standard adapter-backed regional interaction source-region snapshot contract |
 | `cpp-tck.regional-interaction-subscription-filtering` | Ordinary receive-order regional interaction filtering, explicit empty-region no-op behavior, overlap and disjoint delivery, callback-time subscription movement, conveyed source-region metadata, and standard region failures |
@@ -979,13 +981,21 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 417 scenario IDs and 834 matrix cases. `--scenario-set all` currently
-  configures the same 417 available IDs (834 cases); there are no unpromoted
+    that is 419 scenario IDs and 838 matrix cases. `--scenario-set all` currently
+  configures the same 419 available IDs (838 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
 aggregate `hla_rti_cpp_tck_installed` CTest
 remains available for a single full-run check.
+
+The newly promoted `cpp-tck.zero-dimensional-regional-interaction` scenario
+and its pure standard contract twin establish ordinary interaction delivery,
+then verify that an explicit committed region with no dimensions does not
+overlap the ordinary/default subscription. Their focused installed-package
+lane passed 4/4 callback-model cases. The source uses only official IEEE C++
+API headers and the standard library; provider, FOM, endpoint, and callback
+configuration remain adapter inputs.
 
 The promoted `cpp-tck.fom-empty-module-validation` scenario checks the
 standard empty-FOM rejection boundary, then creates and joins the same
