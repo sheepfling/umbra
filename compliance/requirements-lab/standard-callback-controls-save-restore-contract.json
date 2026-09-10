@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for callback enable and disable around standard federation save and restore lifecycle callbacks. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies suppression and release of save initiation/completion, save-status, restore initiation/status, and restore-completion callbacks, exact labels and identity metadata, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-callback-controls-save-restore",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador callback enable/disable and callback-servicing controls with requestFederationSave/federateSaveBegun/federateSaveComplete/queryFederationSaveStatus/requestFederationRestore/queryFederationRestoreStatus/federateRestoreComplete and FederateAmbassador save/restore callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador callback-control and save/restore declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackControlsSaveRestoreContract"
+      ]
+    }
+  ]
+}

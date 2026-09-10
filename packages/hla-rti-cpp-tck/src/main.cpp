@@ -57479,6 +57479,251 @@ void scenarioCallbackControlsTimeAdvanceContract(
   scenarioCallbackControlsTimeAdvance(options, model);
 }
 
+void scenarioCallbackControlsSaveRestore(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session member(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-save-restore");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto serviceCallbacks = [&](Session& session, std::string const& description) {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(session.evokeMultipleCallbacks(0.0, 1.0));
+    } else {
+      static_cast<void>(session.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+    static_cast<void>(description);
+  };
+
+  auto const ownerHandle = owner.federateHandle();
+  auto const memberHandle = member.federateHandle();
+  std::wstring const saveLabel = L"tck-callback-controls-save-restore";
+
+  auto const ownerSaveBefore = owner.federateSaveInitiations().size();
+  auto const memberSaveBefore = member.federateSaveInitiations().size();
+  member.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().requestFederationSave(saveLabel);
+  waitFor(
+      owner,
+      [&] {
+        return owner.federateSaveInitiations().size() > ownerSaveBefore;
+      },
+      options,
+      "callback-control save initiation for owner");
+  auto const ownerSaveInitiations = owner.federateSaveInitiations();
+  require(
+      ownerSaveInitiations.back() == saveLabel &&
+          owner.federateSaveTimes().empty(),
+      "callback-control save initiation returned the wrong untimed metadata");
+
+  serviceCallbacks(member, "callback-control save initiation while disabled");
+  require(
+      member.federateSaveInitiations().size() == memberSaveBefore,
+      "disabled callbacks exposed a federate-save initiation");
+  member.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(member, "callback-control save initiation after enable");
+  waitFor(
+      member,
+      [&] {
+        return member.federateSaveInitiations().size() > memberSaveBefore;
+      },
+      options,
+      "callback-control save initiation for member");
+  require(
+      member.federateSaveInitiations().back() == saveLabel &&
+          member.federateSaveTimes().empty(),
+      "re-enabled callback-control save initiation returned the wrong metadata");
+
+  owner.rtiAmbassador().federateSaveBegun();
+  member.rtiAmbassador().federateSaveBegun();
+
+  auto const saveStatusBefore = owner.federationSaveStatusResponses().size();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().queryFederationSaveStatus();
+  serviceCallbacks(owner, "callback-control save status while disabled");
+  require(
+      owner.federationSaveStatusResponses().size() == saveStatusBefore,
+      "disabled callbacks exposed a federation-save status response");
+  owner.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(owner, "callback-control save status after enable");
+  waitFor(
+      owner,
+      [&] {
+        return owner.federationSaveStatusResponses().size() > saveStatusBefore;
+      },
+      options,
+      "re-enabled callback-control save status response");
+  auto const saveStatus = owner.federationSaveStatusResponses().back();
+  require(
+      saveStatus.size() == 2U,
+      "callback-control save status omitted a joined federate");
+  auto requireSaveStatus = [&](rti::FederateHandle const& handle,
+                               rti::SaveStatus expected,
+                               std::string const& description) {
+    auto const found = std::find_if(
+        saveStatus.begin(),
+        saveStatus.end(),
+        [&](auto const& entry) { return entry.first == handle; });
+    require(found != saveStatus.end(), description + " omitted a federate");
+    require(found->second == expected, description + " returned the wrong status");
+  };
+  requireSaveStatus(
+      ownerHandle,
+      rti::FEDERATE_SAVING,
+      "owner callback-control save status");
+  requireSaveStatus(
+      memberHandle,
+      rti::FEDERATE_SAVING,
+      "member callback-control save status");
+
+  auto const ownerSavedBefore = owner.federationSavedCount();
+  auto const memberSavedBefore = member.federationSavedCount();
+  member.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().federateSaveComplete();
+  member.rtiAmbassador().federateSaveComplete();
+  waitFor(
+      owner,
+      [&] { return owner.federationSavedCount() > ownerSavedBefore; },
+      options,
+      "callback-control federation-saved callback for owner");
+  serviceCallbacks(member, "callback-control federation-saved while disabled");
+  require(
+      member.federationSavedCount() == memberSavedBefore,
+      "disabled callbacks exposed a federation-saved callback");
+  member.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(member, "callback-control federation-saved after enable");
+  waitFor(
+      member,
+      [&] { return member.federationSavedCount() > memberSavedBefore; },
+      options,
+      "re-enabled callback-control federation-saved callback");
+  require(
+      owner.federationNotSavedReasons().empty() &&
+          member.federationNotSavedReasons().empty(),
+      "successful callback-control save reported a failure");
+
+  auto const ownerRestoreSucceededBefore =
+      owner.federationRestoreRequestsSucceeded().size();
+  auto const ownerRestoreBegunBefore = owner.federationRestoreBegunCount();
+  auto const ownerRestoreInitiationBefore = owner.federateRestoreInitiations().size();
+  auto const memberRestoreBegunBefore = member.federationRestoreBegunCount();
+  auto const memberRestoreInitiationBefore = member.federateRestoreInitiations().size();
+  member.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().requestFederationRestore(saveLabel);
+  waitFor(
+      owner,
+      [&] {
+        return owner.federationRestoreRequestsSucceeded().size() >
+                ownerRestoreSucceededBefore &&
+            owner.federationRestoreBegunCount() > ownerRestoreBegunBefore &&
+            owner.federateRestoreInitiations().size() >
+                ownerRestoreInitiationBefore;
+      },
+      options,
+      "callback-control restore initiation for owner");
+  require(
+      owner.federationRestoreRequestsSucceeded().back() == saveLabel &&
+          owner.federationRestoreRequestsFailed().empty(),
+      "callback-control restore request returned the wrong owner result");
+  serviceCallbacks(member, "callback-control restore initiation while disabled");
+  require(
+      member.federationRestoreBegunCount() == memberRestoreBegunBefore &&
+          member.federateRestoreInitiations().size() == memberRestoreInitiationBefore &&
+          member.federationRestoreRequestsSucceeded().empty(),
+      "disabled callbacks exposed a restore initiation callback");
+  member.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(member, "callback-control restore initiation after enable");
+  waitFor(
+      member,
+      [&] {
+        return member.federationRestoreBegunCount() > memberRestoreBegunBefore &&
+            member.federateRestoreInitiations().size() > memberRestoreInitiationBefore;
+      },
+      options,
+      "re-enabled callback-control restore initiation");
+
+  auto const ownerRestore = owner.federateRestoreInitiations().back();
+  auto const memberRestore = member.federateRestoreInitiations().back();
+  require(
+      ownerRestore.label == saveLabel && memberRestore.label == saveLabel &&
+          ownerRestore.federateName == options.ownerFederateName &&
+          memberRestore.federateName == options.memberFederateName &&
+          ownerRestore.postRestoreFederateHandle.isValid() &&
+          memberRestore.postRestoreFederateHandle.isValid(),
+      "callback-control restore initiation returned the wrong identity metadata");
+  require(
+      member.federationRestoreRequestsFailed().empty(),
+      "callback-control member restore reported a request failure");
+
+  auto const restoreStatusBefore = owner.federationRestoreStatusResponses().size();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().queryFederationRestoreStatus();
+  serviceCallbacks(owner, "callback-control restore status while disabled");
+  require(
+      owner.federationRestoreStatusResponses().size() == restoreStatusBefore,
+      "disabled callbacks exposed a federation-restore status response");
+  owner.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(owner, "callback-control restore status after enable");
+  waitFor(
+      owner,
+      [&] {
+        return owner.federationRestoreStatusResponses().size() > restoreStatusBefore;
+      },
+      options,
+      "re-enabled callback-control restore status response");
+  auto const restoreStatus = owner.federationRestoreStatusResponses().back();
+  require(
+      restoreStatus.size() == 2U,
+      "callback-control restore status omitted a joined federate");
+  for (auto const& entry : restoreStatus) {
+    require(
+        entry.status == rti::FEDERATE_RESTORING,
+        "callback-control restore status returned the wrong state");
+  }
+
+  auto const ownerRestoredBefore = owner.federationRestoredCount();
+  auto const memberRestoredBefore = member.federationRestoredCount();
+  member.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().federateRestoreComplete();
+  member.rtiAmbassador().federateRestoreComplete();
+  waitFor(
+      owner,
+      [&] { return owner.federationRestoredCount() > ownerRestoredBefore; },
+      options,
+      "callback-control federation-restored callback for owner");
+  serviceCallbacks(member, "callback-control federation-restored while disabled");
+  require(
+      member.federationRestoredCount() == memberRestoredBefore,
+      "disabled callbacks exposed a federation-restored callback");
+  member.rtiAmbassador().enableCallbacks();
+  serviceCallbacks(member, "callback-control federation-restored after enable");
+  waitFor(
+      member,
+      [&] { return member.federationRestoredCount() > memberRestoredBefore; },
+      options,
+      "re-enabled callback-control federation-restored callback");
+  require(
+      owner.federationNotRestoredReasons().empty() &&
+          member.federationNotRestoredReasons().empty(),
+      "successful callback-control restore reported a failure");
+
+  member.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsSaveRestoreContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsSaveRestore(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -66108,6 +66353,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-synchronization-contract",
       "cpp-tck.callback-controls-time-advance",
       "cpp-tck.callback-controls-time-advance-contract",
+      "cpp-tck.callback-controls-save-restore",
+      "cpp-tck.callback-controls-save-restore-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -67728,6 +67975,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.callback-controls-time-advance-contract") {
     return scenarioCallbackControlsTimeAdvanceContract;
   }
+  if (id == "cpp-tck.callback-controls-save-restore") {
+    return scenarioCallbackControlsSaveRestore;
+  }
+  if (id == "cpp-tck.callback-controls-save-restore-contract") {
+    return scenarioCallbackControlsSaveRestoreContract;
+  }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
   if (id == "cpp-tck.federation-save-restore-interlocks") {
@@ -68457,10 +68710,12 @@ int run(Options const& options) {
                    scenario == "cpp-tck.joined-federate-mom-galt-lits-periodic" ||
                    scenario == "cpp-tck.joined-federate-mom-tso-length-periodic" ||
                    scenario == "cpp-tck.joined-federate-mom-removed-object-count" ||
-                  scenario == "cpp-tck.joined-federate-mom-time-state-durations" ||
-                  scenario == "cpp-tck.federation-save-restore-interlocks" ||
-                  scenario == "cpp-tck.federation-save-restore-contract" ||
-                  scenario == "cpp-tck.asynchronous-delivery-contract" ||
+                   scenario == "cpp-tck.joined-federate-mom-time-state-durations" ||
+                   scenario == "cpp-tck.federation-save-restore-interlocks" ||
+                   scenario == "cpp-tck.federation-save-restore-contract" ||
+                   scenario == "cpp-tck.callback-controls-time-advance" ||
+                   scenario == "cpp-tck.callback-controls-time-advance-contract" ||
+                   scenario == "cpp-tck.asynchronous-delivery-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-no-fanout-contract" ||
