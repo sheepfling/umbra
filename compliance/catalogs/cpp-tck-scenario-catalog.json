@@ -18201,6 +18201,83 @@
     "promotion": "promoted"
   },
   {
+    "id": "cpp-tck.callback-controls-time-role-enablement",
+    "category": "callback-controls",
+    "title": "Gate standard time-regulation and time-constrained enablement callbacks with callback enable and disable services",
+    "api_methods": [
+      "RTIambassador.getTimeFactory",
+      "RTIambassador.enableTimeRegulation",
+      "RTIambassador.enableTimeConstrained",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.disableTimeConstrained",
+      "RTIambassador.disableTimeRegulation",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.timeRegulationEnabled",
+      "FederateAmbassador.timeConstrainedEnabled"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-time-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "connection-callback-api-contract.json",
+      "connection-implementation-contract.json",
+      "federation-execution-api-contract.json",
+      "time-role-api-contract.json",
+      "time-role-requirements-contract.json",
+      "standard-callback-controls-time-role-enablement-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsTimeRoleEnablement",
+    "runner_id": "cpp-tck.callback-controls-time-role-enablement",
+    "parity": "cpp-extension-no-java-counterpart",
+    "default_status": "run",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-time-role-enablement-contract",
+    "category": "callback-controls",
+    "title": "Standard adapter-backed callback-control contract for time-role enablement",
+    "api_methods": [
+      "RTIambassador.getTimeFactory",
+      "RTIambassador.enableTimeRegulation",
+      "RTIambassador.enableTimeConstrained",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.getObjectClassHandle",
+      "RTIambassador.disableTimeConstrained",
+      "RTIambassador.disableTimeRegulation",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.timeRegulationEnabled",
+      "FederateAmbassador.timeConstrainedEnabled"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-time-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "standard-callback-controls-time-role-enablement-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsTimeRoleEnablementContract",
+    "runner_id": "cpp-tck.callback-controls-time-role-enablement-contract",
+    "parity": "cpp-tck.callback-controls-time-role-enablement",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
+  {
     "id": "cpp-tck.federation-save-restore",
       "category": "federation-save-restore",
       "title": "Enforce save/restore-service lifecycle boundaries and coordinate standard federation save and restore lifecycle, status, and boundaries",
