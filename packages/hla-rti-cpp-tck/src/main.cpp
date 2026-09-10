@@ -44845,6 +44845,193 @@ void scenarioDefaultRegionObjectRoutingContract(
   scenarioDefaultRegionObjectRouting(options, model);
 }
 
+void scenarioDefaultRegionRegistrationNames(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Default-region registration testing requires an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "default-region-registration-publisher");
+  Session observer(options, model, "default-region-registration-observer");
+  auto const federation = federationName(options, "default-region-registration-names");
+  connectAndJoin(publisher, observer, options, federation, options.ddmFom);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const observerHandles = ddmHandles(observer, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "default-region registration");
+  require(
+      publisherHandles.objectClass == observerHandles.objectClass &&
+          publisherHandles.attribute == observerHandles.attribute,
+      "default-region registration members resolved different object handles");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherHandles.attribute};
+  rti::AttributeHandleSet const observerAttributes{observerHandles.attribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherHandles.objectClass,
+      publisherAttributes);
+
+  auto const observerRegion = createDdmRegion(
+      observer,
+      observerHandles,
+      2UL,
+      6UL,
+      2UL,
+      6UL);
+  observer.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  require(
+      observer.rtiAmbassador().getConveyRegionDesignatorSetsSwitch(),
+      "default-region registration observer did not enable region designator callbacks");
+  rti::AttributeHandleSetRegionHandleSetPairVector const observerPair{{
+      observerAttributes,
+      rti::RegionHandleSet{observerRegion},
+  }};
+  observer.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      observerHandles.objectClass,
+      observerPair,
+      true,
+      L"");
+
+  // The standard regional registration surface admits both the explicit
+  // empty-region form and an empty pair collection. Both select the derived
+  // default source region for the available class attributes, as does the
+  // ordinary registration overload.
+  rti::AttributeHandleSetRegionHandleSetPairVector const emptyRegionPair{{
+      publisherAttributes,
+      rti::RegionHandleSet{},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const emptyPairCollection;
+  auto const first = publisher.rtiAmbassador().registerObjectInstanceWithRegions(
+      publisherHandles.objectClass,
+      emptyRegionPair);
+  auto const second = publisher.rtiAmbassador().registerObjectInstanceWithRegions(
+      publisherHandles.objectClass,
+      emptyPairCollection);
+  auto const third = publisher.rtiAmbassador().registerObjectInstance(
+      publisherHandles.objectClass);
+  std::vector<rti::ObjectInstanceHandle> const objects{first, second, third};
+  for (auto const& object : objects) {
+    require(
+        object.isValid(),
+        "default-region registration returned an invalid object handle");
+  }
+  require(
+      first != second && first != third && second != third,
+      "default-region registration reused an object handle");
+
+  std::vector<std::wstring> names;
+  names.reserve(objects.size());
+  for (auto const& object : objects) {
+    auto const name = publisher.rtiAmbassador().getObjectInstanceName(object);
+    require(
+        !name.empty(),
+        "default-region registration returned an empty generated object name");
+    require(
+        publisher.rtiAmbassador().getObjectInstanceHandle(name) == object,
+        "default-region generated object name did not round-trip to its handle");
+    require(
+        std::find(names.begin(), names.end(), name) == names.end(),
+        "default-region registration reused a generated object name");
+    names.push_back(name);
+  }
+
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().discoveryCount() == objects.size();
+      },
+      options,
+      "default-region registration discovery");
+  for (std::size_t index = 0U; index != objects.size(); ++index) {
+    auto const object = objects.at(index);
+    require(
+        observer.recorder().hasDiscovery(object),
+        "default-region registration omitted an object discovery callback");
+    require(
+        observer.rtiAmbassador().getKnownObjectClassHandle(object) ==
+            observerHandles.objectClass,
+        "default-region discovery returned the wrong known object class");
+    require(
+        observer.rtiAmbassador().getObjectInstanceName(object) == names.at(index) &&
+            observer.rtiAmbassador().getObjectInstanceHandle(names.at(index)) == object,
+        "default-region discovery did not preserve generated object identity");
+  }
+
+  std::vector<std::vector<std::uint8_t>> const values{
+      {0xA1U, 0x01U},
+      {0xA1U, 0x02U},
+      {0xA1U, 0x03U},
+  };
+  std::vector<std::vector<std::uint8_t>> const tags{
+      {0xB1U, 0x01U},
+      {0xB1U, 0x02U},
+      {0xB1U, 0x03U},
+  };
+  for (std::size_t index = 0U; index != objects.size(); ++index) {
+    rti::AttributeHandleValueMap update;
+    update.emplace(
+        publisherHandles.attribute,
+        rti::VariableLengthData(values.at(index).data(), values.at(index).size()));
+    rti::VariableLengthData tag(tags.at(index).data(), tags.at(index).size());
+    publisher.rtiAmbassador().updateAttributeValues(objects.at(index), update, tag);
+  }
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().reflectionCount() == objects.size();
+      },
+      options,
+      "default-region registration reflection");
+
+  auto const reflections = observer.recorder().reflections();
+  require(
+      reflections.size() == objects.size(),
+      "default-region registration returned an unexpected reflection count");
+  for (std::size_t index = 0U; index != objects.size(); ++index) {
+    auto const found = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](auto const& reflection) { return reflection.object == objects.at(index); });
+    require(
+        found != reflections.end(),
+        "default-region registration omitted a reflected object update");
+    require(
+        found->values.size() == 1U &&
+            found->values.count(observerHandles.attribute) == 1U &&
+            copyBytes(found->values.at(observerHandles.attribute)) == values.at(index) &&
+            found->tag == tags.at(index) &&
+            found->transportation.isValid() &&
+            found->producer == publisher.federateHandle() &&
+            found->regions.has_value() &&
+            found->regions->empty(),
+        "default-region reflection did not preserve value metadata or empty region designator");
+  }
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      observerHandles.objectClass,
+      observerPair);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherHandles.objectClass,
+      publisherAttributes);
+  observer.rtiAmbassador().deleteRegion(observerRegion);
+
+  publisher.resign(rti::DELETE_OBJECTS);
+  observer.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  publisher.disconnect();
+  observer.disconnect();
+}
+
+void scenarioDefaultRegionRegistrationNamesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDefaultRegionRegistrationNames(options, model);
+}
+
 void scenarioPassiveRegionalSubscription(
     Options const& options,
     rti::CallbackModel model) {
@@ -58627,6 +58814,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-attribute-value-request-filtering-contract",
       "cpp-tck.default-region-object-routing",
       "cpp-tck.default-region-object-routing-contract",
+      "cpp-tck.default-region-registration-names",
+      "cpp-tck.default-region-registration-names-contract",
       "cpp-tck.passive-regional-subscription",
       "cpp-tck.passive-regional-subscription-contract",
       "cpp-tck.passive-regional-interaction-transition",
@@ -59923,6 +60112,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.default-region-object-routing-contract") {
     return scenarioDefaultRegionObjectRoutingContract;
   }
+  if (id == "cpp-tck.default-region-registration-names") {
+    return scenarioDefaultRegionRegistrationNames;
+  }
+  if (id == "cpp-tck.default-region-registration-names-contract") {
+    return scenarioDefaultRegionRegistrationNamesContract;
+  }
   if (id == "cpp-tck.passive-regional-subscription") {
     return scenarioPassiveRegionalSubscription;
   }
@@ -60504,9 +60699,11 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering" ||
                  scenario == "cpp-tck.regional-attribute-value-request-filtering-contract" ||
-                 scenario == "cpp-tck.default-region-object-routing" ||
-                 scenario == "cpp-tck.default-region-object-routing-contract" ||
-                 scenario == "cpp-tck.passive-regional-subscription" ||
+                  scenario == "cpp-tck.default-region-object-routing" ||
+                  scenario == "cpp-tck.default-region-object-routing-contract" ||
+                  scenario == "cpp-tck.default-region-registration-names" ||
+                  scenario == "cpp-tck.default-region-registration-names-contract" ||
+                  scenario == "cpp-tck.passive-regional-subscription" ||
                  scenario == "cpp-tck.passive-regional-subscription-contract" ||
                  scenario == "cpp-tck.passive-regional-interaction-transition" ||
                  scenario == "cpp-tck.passive-regional-interaction-transition-contract" ||

@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 427 promoted scenarios (854 callback-model
+The verified lane currently runs 429 promoted scenarios (858 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -802,6 +802,15 @@ two expected adapter-managed connection-loss skips in
 The source uses only official IEEE C++ headers and the standard library; the
 provider, dimensional FOM, endpoint, callback, and logical-time configuration
 remain adapter-owned.
+The newly promoted `cpp-tck.default-region-registration-names` scenario and its
+pure standard contract twin exercise the public default-source registration
+forms: a regional overload with an empty region set, an empty pair collection,
+and ordinary registration. They verify distinct valid handles, generated-name
+lookup round trips, discovery through an overlapping regional subscription, and
+ordinary Update/Reflect with supplied-empty source-region metadata. Their
+focused installed-package lane passed 4/4 callback-model cases. The source uses
+only official IEEE C++ headers and the standard library; provider, dimensional
+FOM, endpoint, and callback configuration remain adapter-owned.
 The promoted `cpp-tck.passive-regional-subscription-contract` runner adds the
 standard passive regional subscription suppression and activation boundary as
 an independently selectable pure C++ contract. Its focused base-and-contract

@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 427 promoted scenario IDs (854 callback-model cases).
-`--scenario-set all` currently configures the same 427 available IDs (854
+The verified lane is 429 promoted scenario IDs (858 callback-model cases).
+`--scenario-set all` currently configures the same 429 available IDs (858
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -409,6 +409,12 @@ association-replacement contract. Its focused base-and-contract lane passed
 with 682 direct passes and only the two expected adapter-managed connection-
 loss skips. The source uses only official IEEE C++ headers and the standard
 library; the provider, dimensional FOM, endpoint, callback, and logical-time
+configuration remain adapter-owned.
+The promoted `cpp-tck.default-region-registration-names-contract` runner adds
+the independently selectable standard default-source registration and
+generated-name contract. Its focused base-and-contract lane passed 4/4
+callback-model cases. The source uses only official IEEE C++ headers and the
+standard library; the provider, dimensional FOM, endpoint, and callback
 configuration remain adapter-owned.
 The promoted `cpp-tck.passive-regional-subscription-contract` runner adds the
 independently selectable standard passive regional subscription suppression and

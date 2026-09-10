@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for default-source object registration and generated object-instance names. The source uses only the standard RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and object and dimension names. It verifies the standard regional registration overload with an empty region set, the empty pair-collection form, and ordinary registration; it checks that each produces a distinct valid handle and a non-empty name that round-trips through the standard lookup services, that an overlapping regional subscriber discovers every object, and that ordinary attribute updates carry the supplied-empty region designator for each default-source object. It does not assert provider-specific generated-name formatting or private registry behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-default-region-registration-names",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador default-region object registration, generated-name lookup, regional discovery, and ordinary attribute update services with FederateAmbassador discovery and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador Register Object Instance, Register Object Instance With Regions, and object-instance lookup services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioDefaultRegionRegistrationNamesContract"
+      ]
+    }
+  ]
+}

@@ -302,6 +302,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-attribute-update-callback-ddm-recheck-contract` | Standard adapter-backed callback-time regional attribute-update DDM recheck contract using only official C++ APIs and adapter-owned configuration |
 | `cpp-tck.default-region-object-routing` | Ordinary and explicit regional subscriptions, default-source discovery/reflection, association replacement/restoration, and supplied-empty default-region metadata |
 | `cpp-tck.default-region-object-routing-contract` | Standard adapter-backed ordinary/default-region object routing and association replacement contract |
+| `cpp-tck.default-region-registration-names` | Default-source registration through the regional and ordinary overloads, generated-name identity round trips, regional discovery, and supplied-empty reflection metadata |
+| `cpp-tck.default-region-registration-names-contract` | Standard adapter-backed default-region registration and generated-name contract |
 | `cpp-tck.passive-regional-subscription` | Passive regional subscription suppression, activation-triggered discovery, and ordinary regional Update/Reflect with conveyed source-region metadata |
 | `cpp-tck.passive-regional-subscription-contract` | Standard adapter-backed passive regional subscription suppression and activation contract |
 | `cpp-tck.passive-regional-interaction-transition` | Active and passive regional interaction subscription transitions, retained passive delivery while another route is active, last-active-route suppression, empty-region no-op behavior, and reactivation |
@@ -505,6 +507,16 @@ verified matrix passed 832/834 cases with only the two expected adapter-managed
 connection-loss cases skipped and zero failures. The portable source uses only
 the official IEEE C++ API and standard library; provider, dimensional FOM,
 endpoint, and callback configuration remain adapter inputs.
+
+The newly promoted `cpp-tck.default-region-registration-names` scenario and its
+pure standard contract twin exercise the public default-source registration
+forms: a regional overload with an empty region set, an empty pair collection,
+and ordinary registration. They verify distinct valid handles, generated-name
+lookup round trips, discovery through an overlapping regional subscription, and
+ordinary Update/Reflect with supplied-empty source-region metadata. Their
+focused installed-package lane passed 4/4 callback-model cases. The portable
+source uses only the official IEEE C++ API and standard library; provider,
+dimensional FOM, endpoint, and callback configuration remain adapter inputs.
 
 The promoted ownership-transfer/update-region case uses the same adapter-supplied
 DDM FOM with three federates. It verifies that a source-region association does
@@ -999,8 +1011,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-    that is 427 scenario IDs and 854 matrix cases. `--scenario-set all` currently
-    configures the same 427 available IDs (854 cases); there are no unpromoted
+    that is 429 scenario IDs and 858 matrix cases. `--scenario-set all` currently
+    configures the same 429 available IDs (858 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

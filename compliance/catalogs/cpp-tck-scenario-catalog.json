@@ -13113,6 +13113,81 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.default-region-registration-names",
+      "category": "default-region-object-registration",
+      "title": "Register default-source objects through regional overloads and preserve generated names",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.getConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-default-region-attribute-update",
+        "cpp-1516.1-ddm-default-region-attribute-region-metadata",
+        "cpp-1516.1-object-registration-discovery"
+      ],
+      "contract_refs": [
+        "object-attribute-region-api-contract.json",
+        "object-attribute-region-requirements-contract.json",
+        "attribute-value-update-with-regions-api-contract.json",
+        "attribute-value-update-with-regions-requirements-contract.json",
+        "convey-region-designator-callback-requirements-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDefaultRegionRegistrationNames",
+      "runner_id": "cpp-tck.default-region-registration-names",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.default-region-registration-names-contract",
+      "category": "default-region-object-registration",
+      "title": "Exercise the standard default-region registration and generated-name contract",
+      "api_methods": [
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.updateAttributeValues",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-default-region-attribute-update",
+        "cpp-1516.1-ddm-default-region-attribute-region-metadata",
+        "cpp-1516.1-object-registration-discovery"
+      ],
+      "contract_refs": [
+        "standard-default-region-registration-names-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDefaultRegionRegistrationNamesContract",
+      "runner_id": "cpp-tck.default-region-registration-names-contract",
+      "parity": "cpp-tck.default-region-registration-names",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.passive-regional-subscription-contract",
       "category": "passive-regional-subscription",
       "title": "Exercise the standard passive regional subscription contract",
