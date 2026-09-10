@@ -55253,6 +55253,96 @@ void scenarioCallbackControlsObjectRemovalContract(
   scenarioCallbackControlsObjectRemoval(options, model);
 }
 
+void scenarioCallbackControlsObjectDiscovery(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(options, "callback-controls-object-discovery");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid() &&
+          publisherClass == receiverClass && publisherAttribute == receiverAttribute,
+      "callback-control object-discovery handles did not retain identity across members");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+
+  receiver.rtiAmbassador().disableCallbacks();
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "callback-control object-discovery registration returned an invalid handle");
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending object-discovery event");
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !receiver.recorder().hasDiscovery(object),
+      "disabled callbacks exposed an object-discovery callback");
+
+  receiver.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "re-enabled callback-control object discovery");
+  auto const discovery = receiver.recorder().discovery();
+  require(
+      discovery.present && discovery.object == object &&
+          discovery.objectClass == receiverClass && !discovery.name.empty() &&
+          discovery.producer == publisher.federateHandle(),
+      "re-enabled object-discovery callback lost standard delivery data");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsObjectDiscoveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsObjectDiscovery(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -63846,6 +63936,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-attribute-update-contract",
       "cpp-tck.callback-controls-object-removal",
       "cpp-tck.callback-controls-object-removal-contract",
+      "cpp-tck.callback-controls-object-discovery",
+      "cpp-tck.callback-controls-object-discovery-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -65357,6 +65449,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-object-removal-contract") {
     return scenarioCallbackControlsObjectRemovalContract;
+  }
+  if (id == "cpp-tck.callback-controls-object-discovery") {
+    return scenarioCallbackControlsObjectDiscovery;
+  }
+  if (id == "cpp-tck.callback-controls-object-discovery-contract") {
+    return scenarioCallbackControlsObjectDiscoveryContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
