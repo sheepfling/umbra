@@ -58796,6 +58796,232 @@ void scenarioCallbackControlsFederationReportsContract(
   scenarioCallbackControlsFederationReports(options, model);
 }
 
+void scenarioCallbackControlsAttributeScopeAdvisories(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session member(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-attribute-scope-advisories");
+  connectAndJoin(owner, member, options, federation, options.ddmFom);
+
+  auto const ownerHandles = ddmHandles(owner, options);
+  auto const memberHandles = ddmHandles(member, options);
+  verifyDdmClassDimensions(
+      owner,
+      options,
+      ownerHandles,
+      "callback-control attribute scope advisories");
+  verifyDdmClassDimensions(
+      member,
+      options,
+      memberHandles,
+      "callback-control attribute scope advisories member");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerHandles.attribute};
+  rti::AttributeHandleSet const memberAttributes{memberHandles.attribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerHandles.objectClass,
+      ownerAttributes);
+
+  auto const sourceRegion = createDdmRegion(
+      owner,
+      ownerHandles,
+      1UL,
+      5UL,
+      1UL,
+      5UL);
+  auto const alternateSourceRegion = createDdmRegion(
+      owner,
+      ownerHandles,
+      7UL,
+      9UL,
+      7UL,
+      9UL);
+  auto const memberRegion = createDdmRegion(
+      member,
+      memberHandles,
+      2UL,
+      6UL,
+      2UL,
+      6UL);
+  rti::AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
+      ownerAttributes,
+      rti::RegionHandleSet{sourceRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const alternateSourcePair{{
+      ownerAttributes,
+      rti::RegionHandleSet{alternateSourceRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const memberPair{{
+      memberAttributes,
+      rti::RegionHandleSet{memberRegion},
+  }};
+
+  member.rtiAmbassador().setAttributeScopeAdvisorySwitch(false);
+  require(
+      !member.rtiAmbassador().getAttributeScopeAdvisorySwitch(),
+      "attribute scope advisory switch did not turn off");
+  member.rtiAmbassador().setAttributeScopeAdvisorySwitch(true);
+  require(
+      member.rtiAmbassador().getAttributeScopeAdvisorySwitch(),
+      "attribute scope advisory switch did not turn on");
+  member.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      memberHandles.objectClass,
+      memberPair,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstanceWithRegions(
+      ownerHandles.objectClass,
+      sourcePair);
+  require(
+      object.isValid(),
+      "callback-control attribute scope registration returned an invalid object");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "callback-control attribute scope discovery");
+
+  auto serviceMemberCallbacks = [&] {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(member.evokeMultipleCallbacks(0.0, 0.0));
+    } else {
+      static_cast<void>(member.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+  };
+  auto drainMemberCallbacks = [&] {
+    if (model == rti::HLA_EVOKED) {
+      while (member.evokeMultipleCallbacks(0.0, 0.0)) {
+      }
+    }
+  };
+  auto requireSingleScopeAdvisory = [&](std::vector<ScopeAdvisoryRecord> const& reports,
+                                        std::string const& description) {
+    require(
+        reports.size() == 1U,
+        description + " returned an unexpected callback count");
+    require(
+        reports.front().object == object &&
+            reports.front().attributes == memberAttributes,
+        description + " returned the wrong object or attributes");
+  };
+  auto moveOutOfScope = [&] {
+    owner.rtiAmbassador().associateRegionsForUpdates(
+        object,
+        alternateSourcePair);
+    owner.rtiAmbassador().unassociateRegionsForUpdates(
+        object,
+        sourcePair);
+  };
+  auto moveIntoScope = [&] {
+    owner.rtiAmbassador().associateRegionsForUpdates(
+        object,
+        sourcePair);
+    owner.rtiAmbassador().unassociateRegionsForUpdates(
+        object,
+        alternateSourcePair);
+  };
+
+  drainMemberCallbacks();
+  member.recorder().clearScopeAdvisories();
+
+  moveOutOfScope();
+  waitFor(
+      member,
+      [&] { return !member.recorder().attributesOutOfScope().empty(); },
+      options,
+      "baseline attribute out-of-scope advisory");
+  requireSingleScopeAdvisory(
+      member.recorder().attributesOutOfScope(),
+      "baseline attribute out-of-scope advisory");
+  require(
+      member.recorder().attributesInScope().empty(),
+      "baseline out-of-scope transition also produced an in-scope advisory");
+  member.recorder().clearScopeAdvisories();
+
+  moveIntoScope();
+  waitFor(
+      member,
+      [&] { return !member.recorder().attributesInScope().empty(); },
+      options,
+      "baseline attribute in-scope advisory");
+  requireSingleScopeAdvisory(
+      member.recorder().attributesInScope(),
+      "baseline attribute in-scope advisory");
+  require(
+      member.recorder().attributesOutOfScope().empty(),
+      "baseline in-scope transition also produced an out-of-scope advisory");
+  member.recorder().clearScopeAdvisories();
+
+  member.rtiAmbassador().disableCallbacks();
+  moveOutOfScope();
+  serviceMemberCallbacks();
+  require(
+      member.recorder().attributesInScope().empty() &&
+          member.recorder().attributesOutOfScope().empty(),
+      "disabled callbacks exposed an out-of-scope advisory");
+  member.rtiAmbassador().enableCallbacks();
+  serviceMemberCallbacks();
+  waitFor(
+      member,
+      [&] { return !member.recorder().attributesOutOfScope().empty(); },
+      options,
+      "re-enabled attribute out-of-scope advisory");
+  requireSingleScopeAdvisory(
+      member.recorder().attributesOutOfScope(),
+      "re-enabled attribute out-of-scope advisory");
+  require(
+      member.recorder().attributesInScope().empty(),
+      "re-enabled out-of-scope transition also produced an in-scope advisory");
+  member.recorder().clearScopeAdvisories();
+
+  member.rtiAmbassador().disableCallbacks();
+  moveIntoScope();
+  serviceMemberCallbacks();
+  require(
+      member.recorder().attributesInScope().empty() &&
+          member.recorder().attributesOutOfScope().empty(),
+      "disabled callbacks exposed an in-scope advisory");
+  member.rtiAmbassador().enableCallbacks();
+  serviceMemberCallbacks();
+  waitFor(
+      member,
+      [&] { return !member.recorder().attributesInScope().empty(); },
+      options,
+      "re-enabled attribute in-scope advisory");
+  requireSingleScopeAdvisory(
+      member.recorder().attributesInScope(),
+      "re-enabled attribute in-scope advisory");
+  require(
+      member.recorder().attributesOutOfScope().empty(),
+      "re-enabled in-scope transition also produced an out-of-scope advisory");
+
+  member.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      memberHandles.objectClass,
+      memberPair);
+  owner.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerHandles.objectClass,
+      ownerAttributes);
+  owner.rtiAmbassador().deleteRegion(sourceRegion);
+  owner.rtiAmbassador().deleteRegion(alternateSourceRegion);
+  member.rtiAmbassador().deleteRegion(memberRegion);
+  owner.resign(rti::DELETE_OBJECTS);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
+void scenarioCallbackControlsAttributeScopeAdvisoriesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsAttributeScopeAdvisories(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -67439,6 +67665,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-directed-interaction-contract",
       "cpp-tck.callback-controls-federation-reports",
       "cpp-tck.callback-controls-federation-reports-contract",
+      "cpp-tck.callback-controls-attribute-scope-advisories",
+      "cpp-tck.callback-controls-attribute-scope-advisories-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -69100,6 +69328,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-federation-reports-contract") {
     return scenarioCallbackControlsFederationReportsContract;
+  }
+  if (id == "cpp-tck.callback-controls-attribute-scope-advisories") {
+    return scenarioCallbackControlsAttributeScopeAdvisories;
+  }
+  if (id == "cpp-tck.callback-controls-attribute-scope-advisories-contract") {
+    return scenarioCallbackControlsAttributeScopeAdvisoriesContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
