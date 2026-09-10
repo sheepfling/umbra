@@ -15679,6 +15679,74 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.callback-controls-object-name-reservation",
+      "category": "callback-controls",
+      "title": "Gate an ordinary object-name reservation callback with standard callback enable and disable services",
+      "api_methods": [
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.releaseObjectInstanceName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-callback-disable-gating",
+        "cpp-1516.1-callback-enable-release",
+        "cpp-1516.1-callback-model-servicing",
+        "cpp-1516.1-object-instance-name-lifecycle",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "connection-callback-api-contract.json",
+        "connection-implementation-contract.json",
+        "object-instance-name-reservation-api-contract.json",
+        "object-instance-name-reservation-requirements-contract.json",
+        "standard-callback-controls-object-name-reservation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCallbackControlsObjectNameReservation",
+      "runner_id": "cpp-tck.callback-controls-object-name-reservation",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "run",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.callback-controls-object-name-reservation-contract",
+      "category": "callback-controls",
+      "title": "Standard adapter-backed callback enable and disable contract for ordinary object-name reservation",
+      "api_methods": [
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.releaseObjectInstanceName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-callback-disable-gating",
+        "cpp-1516.1-callback-enable-release",
+        "cpp-1516.1-callback-model-servicing",
+        "cpp-1516.1-object-instance-name-lifecycle",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-callback-controls-object-name-reservation-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCallbackControlsObjectNameReservationContract",
+      "runner_id": "cpp-tck.callback-controls-object-name-reservation-contract",
+      "parity": "cpp-tck.callback-controls-object-name-reservation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.asynchronous-delivery",
       "category": "asynchronous-delivery",
       "title": "Gate receive-order callbacks with asynchronous delivery and callback servicing",

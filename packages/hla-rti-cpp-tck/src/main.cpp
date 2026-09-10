@@ -55343,6 +55343,59 @@ void scenarioCallbackControlsObjectDiscoveryContract(
   scenarioCallbackControlsObjectDiscovery(options, model);
 }
 
+void scenarioCallbackControlsObjectNameReservation(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  auto const federation = federationName(options, "callback-controls-object-name-reservation");
+  owner.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const objectName = federation + L"-callback-controlled-name";
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().disableCallbacks();
+  owner.rtiAmbassador().reserveObjectInstanceName(objectName);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        owner.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending object-name reservation event");
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !owner.recorder().reservationSucceeded(objectName),
+      "disabled callbacks exposed an object-name reservation callback");
+
+  owner.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      owner,
+      [&] { return owner.recorder().reservationSucceeded(objectName); },
+      options,
+      "re-enabled callback-control object-name reservation");
+  owner.rtiAmbassador().releaseObjectInstanceName(objectName);
+
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsObjectNameReservationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsObjectNameReservation(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -63938,6 +63991,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-object-removal-contract",
       "cpp-tck.callback-controls-object-discovery",
       "cpp-tck.callback-controls-object-discovery-contract",
+      "cpp-tck.callback-controls-object-name-reservation",
+      "cpp-tck.callback-controls-object-name-reservation-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -65455,6 +65510,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-object-discovery-contract") {
     return scenarioCallbackControlsObjectDiscoveryContract;
+  }
+  if (id == "cpp-tck.callback-controls-object-name-reservation") {
+    return scenarioCallbackControlsObjectNameReservation;
+  }
+  if (id == "cpp-tck.callback-controls-object-name-reservation-contract") {
+    return scenarioCallbackControlsObjectNameReservationContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
