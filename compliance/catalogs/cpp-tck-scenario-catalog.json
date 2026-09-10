@@ -18588,6 +18588,58 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-invalid-create-atomicity",
+      "category": "fom-lifecycle",
+      "title": "Reject invalid single-module Create Federation Execution requests atomically",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-malformed-fom-input",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "fom-composition-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-fom-invalid-create-atomicity-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomInvalidCreateAtomicity",
+      "runner_id": "cpp-tck.fom-invalid-create-atomicity",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-invalid-create-atomicity-contract",
+      "category": "fom-lifecycle",
+      "title": "Exercise the standard invalid-FOM create atomicity contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-malformed-fom-input",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-fom-invalid-create-atomicity-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomInvalidCreateAtomicityContract",
+      "runner_id": "cpp-tck.fom-invalid-create-atomicity-contract",
+      "parity": "cpp-tck.fom-invalid-create-atomicity",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.fom-empty-module-validation",
       "category": "fom-lifecycle",
       "title": "Reject an empty FOM module set without reserving a federation execution",

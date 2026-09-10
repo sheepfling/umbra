@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for atomic rejection of invalid single-module Create Federation Execution requests. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, base and invalid FOM modules, endpoint, logical-time selection, and callback configuration. It verifies that rejected creates do not reserve the federation name and that a later valid create, join, lookup, resign, destroy, and disconnect lifecycle succeeds without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-invalid-create-atomicity",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador single-FOM Create Federation Execution validation and federation lifecycle boundaries",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador Create Federation Execution and lifecycle declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomInvalidCreateAtomicityContract"
+      ]
+    }
+  ]
+}

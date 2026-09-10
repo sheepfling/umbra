@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 465 promoted scenario IDs (930 callback-model cases).
-`--scenario-set all` currently configures the same 465 available IDs (930
+The verified lane is 467 promoted scenario IDs (934 callback-model cases).
+`--scenario-set all` currently configures the same 467 available IDs (934
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -686,6 +686,11 @@ standard exceptions, verify no membership or declaration mutation after each
 rejected join, and verify shared handles after a valid follow-up join. Their
 focused installed-package lane passed 4/4 callback-model cases using only the
 official C++ API and standard library.
+The promoted `cpp-tck.fom-invalid-create-atomicity` case and its contract twin
+reject every adapter-supplied invalid single-module create, verify that the
+federation name remains reusable, and complete the valid lifecycle afterward.
+Their focused installed-package lane passed 4/4 callback-model cases using only
+the official C++ API and standard library.
 The promoted `cpp-tck.custom-transportation-interaction-delivery` case uses
 the adapter-declared rich FOM to verify custom transportation lookup/name
 round-trips, ordinary interaction delivery, received transportation identity,

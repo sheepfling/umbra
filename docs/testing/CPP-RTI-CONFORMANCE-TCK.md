@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-  The verified lane currently runs 465 promoted scenarios (930 callback-model
+  The verified lane currently runs 467 promoted scenarios (934 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -455,6 +455,12 @@ rejected join leaves membership and declaration lookup unchanged before a
 valid follow-up join composes shared handles. Their focused installed-package
 lane passed 4/4 callback-model cases in
 `.build\cpp-tck-fom-additional-atomicity\additional-fom-join-atomicity-promoted.json`.
+The promoted `cpp-tck.fom-invalid-create-atomicity` scenario and its pure
+standard contract twin exercise each adapter-supplied invalid single-module
+create, verify that the federation name remains reusable after every rejected
+request, and complete a valid create/join/lookup/resign/destroy lifecycle.
+Their focused installed-package lane passed 4/4 callback-model cases in
+`.build\cpp-tck-fom-invalid-create-atomicity\invalid-create-atomicity-promoted.json`.
 The promoted `cpp-tck.custom-transportation-interaction-delivery` scenario
 uses the adapter-declared rich FOM to verify custom transportation handle/name
 round-trips, ordinary interaction publication/subscription/send delivery,
@@ -2457,11 +2463,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-  configuration. The default `--scenario-set verified` selects the 465 catalog
-  entries with `promotion=promoted`, which produces 930 cases with
+  configuration. The default `--scenario-set verified` selects the 467 catalog
+  entries with `promotion=promoted`, which produces 934 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-  adapter-required entries; the current catalog contains 465 IDs and 930 cases,
+  adapter-required entries; the current catalog contains 467 IDs and 934 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

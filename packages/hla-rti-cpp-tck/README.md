@@ -464,6 +464,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-module-composition-contract` | Standard adapter-backed FOM module-composition contract for create-time and join-time module addition with shared declaration handles |
 | `cpp-tck.fom-additional-module-join-atomicity` | Reject invalid additional FOM modules without mutating membership or declarations, then compose shared handles on a valid follow-up join |
 | `cpp-tck.fom-additional-module-join-atomicity-contract` | Standard adapter-backed atomic additional-FOM join rejection contract |
+| `cpp-tck.fom-invalid-create-atomicity` | Reject invalid single-module FOM creates without reserving the federation name, then recover through a valid lifecycle |
+| `cpp-tck.fom-invalid-create-atomicity-contract` | Standard adapter-backed invalid-FOM create atomicity contract |
 | `cpp-tck.connection-loss-cleanup` | Adapter-triggered Connection Lost callback, fault description, survivor service, and cleanup |
 
 The shared ordinary-service cases reuse the Java TCK scenario IDs. The
@@ -1047,8 +1049,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-      that is 465 scenario IDs and 930 matrix cases. `--scenario-set all` currently
-       configures the same 465 available IDs (930 cases); there are no unpromoted
+      that is 467 scenario IDs and 934 matrix cases. `--scenario-set all` currently
+       configures the same 467 available IDs (934 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1098,6 +1100,11 @@ standard exception, verify that membership and declaration lookups remain
 unchanged, and then verify a valid follow-up join composes shared handles. The
 focused installed-package lane passed 4/4 callback-model cases using only the
 official C++ API and standard library.
+The promoted `cpp-tck.fom-invalid-create-atomicity` scenario and its contract
+twin reject every adapter-supplied invalid single-module create, then reuse the
+same federation name for a valid create/join/lookup/resign/destroy lifecycle.
+Its focused installed-package lane passed 4/4 callback-model cases using only
+the official C++ API and standard library.
 
 The promoted `cpp-tck.explicit-mim-creation-contract` and
 `cpp-tck.federation-mom-current-fdd-contract` runners expose the standard MIM

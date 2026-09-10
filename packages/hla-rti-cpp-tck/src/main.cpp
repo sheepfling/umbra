@@ -19385,6 +19385,58 @@ void scenarioFomAdditionalModuleJoinAtomicity(
   owner.disconnect();
 }
 
+void scenarioFomInvalidCreateAtomicity(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Invalid-FOM create testing requires an adapter-supplied base FOM");
+  require(
+      !options.invalidFomModules.empty(),
+      "Invalid-FOM create testing requires adapter-supplied invalid FOM modules");
+
+  Session creator(options, model, "owner");
+  Session member(options, model, "member");
+  auto const federation = federationName(options, "fom-invalid-create-atomicity");
+  creator.connect();
+  member.connect();
+
+  auto const invalidFomErrors = std::vector<std::wstring>{
+      L"CouldNotOpenFOM",
+      L"ErrorReadingFOM",
+      L"InvalidFOM",
+      L"InconsistentFOM"};
+  for (auto const& invalid : options.invalidFomModules) {
+    requireExceptionOneOf(
+        [&] {
+          creator.rtiAmbassador().createFederationExecution(
+              federation,
+              invalid.wstring(),
+              options.logicalTimeImplementationName);
+        },
+        invalidFomErrors,
+        "creating a federation with invalid FOM " + invalid.string());
+  }
+
+  creator.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  creator.join(options.ownerFederateName, options.federateType, federation);
+  member.join(options.memberFederateName, options.federateType, federation);
+  require(
+      creator.federateHandle().isValid() && member.federateHandle().isValid() &&
+          creator.rtiAmbassador().getFederateHandle(options.memberFederateName) ==
+              member.federateHandle(),
+      "valid create after invalid-FOM rejection did not establish membership");
+
+  member.resign(rti::NO_ACTION);
+  creator.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  creator.disconnect();
+}
+
 void scenarioFomEmptyModuleValidation(
     Options const& options,
     rti::CallbackModel model) {
@@ -62703,6 +62755,12 @@ void scenarioFomAdditionalModuleJoinAtomicityContract(
   scenarioFomAdditionalModuleJoinAtomicity(options, model);
 }
 
+void scenarioFomInvalidCreateAtomicityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFomInvalidCreateAtomicity(options, model);
+}
+
 void scenarioFomEmptyModuleValidationContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -62874,6 +62932,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.inherited-object-attribute-projection-contract",
       "cpp-tck.fom-module-composition-contract",
       "cpp-tck.fom-additional-module-join-atomicity-contract",
+      "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-empty-module-validation-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
@@ -63302,6 +63361,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery",
       "cpp-tck.fom-module-composition",
       "cpp-tck.fom-additional-module-join-atomicity",
+      "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-empty-module-validation",
       "cpp-tck.connection-loss-cleanup",
   };
@@ -63696,6 +63756,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-additional-module-join-atomicity-contract") {
     return scenarioFomAdditionalModuleJoinAtomicityContract;
+  }
+  if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
+    return scenarioFomInvalidCreateAtomicityContract;
   }
   if (id == "cpp-tck.fom-empty-module-validation-contract") {
     return scenarioFomEmptyModuleValidationContract;
@@ -64938,6 +65001,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-additional-module-join-atomicity") {
     return scenarioFomAdditionalModuleJoinAtomicity;
   }
+  if (id == "cpp-tck.fom-invalid-create-atomicity") {
+    return scenarioFomInvalidCreateAtomicity;
+  }
   if (id == "cpp-tck.fom-empty-module-validation") {
     return scenarioFomEmptyModuleValidation;
   }
@@ -65112,6 +65178,11 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires adapter-supplied valid and invalid additional FOM modules";
+      } else if ((scenario == "cpp-tck.fom-invalid-create-atomicity" ||
+                  scenario == "cpp-tck.fom-invalid-create-atomicity-contract") &&
+                 options.invalidFomModules.empty()) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied invalid FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&
