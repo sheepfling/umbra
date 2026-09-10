@@ -45,7 +45,8 @@ The initial green slice exercises:
   `LocalDeleteObjectInstance`,
   and timestamped `SendInteraction` services, plus order/transportation lookup
   services and their failure reports, plus ordinary
-  `UpdateAttributeValues` failure reports,
+  `UpdateAttributeValues` failure reports, federate/object-class,
+  interaction/parameter, and object/attribute/update-rate lookup reports,
   including `HLAreportServiceInvocation`, all seven standard report parameters,
   RTI-generated producer metadata, reliable transport, and typed report values;
 - adapter-selected logical-time factory values with pre-connect and pre-join
@@ -290,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
- The verified lane currently runs 441 promoted scenarios (882 callback-model
+ The verified lane currently runs 457 promoted scenarios (914 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -2246,6 +2247,31 @@ add the corresponding typed failure reports, provider-neutral invalid inputs,
 standard exception classes, null return arguments, and serial progression.
 Their focused lane passed 4/4 callback-model cases.
 
+The promoted `cpp-tck.service-report-federate-object-class-lookups`,
+`cpp-tck.service-report-interaction-parameter-lookups`, and
+`cpp-tck.service-report-object-attribute-update-rate-lookups` runners, together
+with their contract twins, add standard MOM reports for the remaining public
+federate, object-class, interaction-class, parameter, object-instance,
+attribute, and update-rate lookup services. Their focused six-scenario lane
+passed 12/12 callback-model cases using only the official IEEE C++ API,
+standard MIM data elements, and the standard library.
+
+ The matching promoted lookup-failure runners cover invalid federate,
+ object-class, interaction-class, parameter, object-instance, attribute, and
+ update-rate inputs. They assert standard exception classes, typed Null return
+ arguments, successful recovery, and serial progression; their focused
+ six-scenario lane passed 12/12 callback-model cases.
+
+ The promoted `cpp-tck.service-report-receive-order-interaction` scenario and
+ its contract twin verify the ordinary receive-order `SendInteraction` route
+ alongside its standard `HLAreportServiceInvocation` MOM delivery. The focused
+ installed-package lane passed 4/4 callback-model cases in
+ `.build\\cpp-tck-next-receive-order-interaction\\receive-order-interaction.json`:
+ evoked mode required callback servicing, while immediate mode delivered both
+ callbacks synchronously. The source uses only the official IEEE C++ API,
+ standard MIM data elements, and the standard library; FOM, endpoint, provider,
+ callback, and logical-time configuration remain adapter-owned.
+
 `cpp-tck.joined-federate-mom-federate-state-save-restore` observes the standard
 `HLAfederateState` MOM attribute from a joined federate across save initiation,
 save completion, restore initiation, and restore completion. It verifies the
@@ -2390,11 +2416,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-configuration. The default `--scenario-set verified` selects the 411 catalog
-entries with `promotion=promoted`, which produces 822 cases with
+configuration. The default `--scenario-set verified` selects the 457 catalog
+ entries with `promotion=promoted`, which produces 914 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-adapter-required entries; the current catalog contains 411 IDs and 822 cases,
+ adapter-required entries; the current catalog contains 457 IDs and 914 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

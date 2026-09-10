@@ -20394,6 +20394,554 @@ void scenarioServiceReportInteraction(Options const& options, rti::CallbackModel
   subject.disconnect();
 }
 
+struct PortableServiceReportArgument final {
+  rti::Integer32 type;
+  std::wstring name;
+  std::wstring value;
+};
+
+void requirePortableServiceReport(
+    Session& observer,
+    InteractionRecord const& report,
+    rti::InteractionClassHandle reportClass,
+    std::vector<rti::ParameterHandle> const& reportParameters,
+    std::wstring const& service,
+    std::vector<PortableServiceReportArgument> const& expectedSupplied,
+    PortableServiceReportArgument const& expectedReturned,
+    rti::Integer32 expectedSerial,
+    std::string const& description,
+    rti::Integer16 expectedServiceType = 6);
+
+void scenarioServiceReportReceiveOrderInteraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Receive-order interaction service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Receive-order interaction service-report testing requires an adapter-supplied standard MIM");
+
+  Session publisher(options, model, "service-report-receive-order-publisher");
+  Session receiver(options, model, "service-report-receive-order-receiver");
+  Session observer(options, model, "service-report-receive-order-observer");
+  auto const federation =
+      federationName(options, "service-report-receive-order-interaction");
+  publisher.connect();
+  receiver.connect();
+  observer.connect();
+  publisher.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(
+      options.ownerFederateName + L"-service-report-receive-order-publisher",
+      options.federateType,
+      federation);
+  receiver.join(
+      options.memberFederateName + L"-service-report-receive-order-receiver",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-receive-order-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Receive-order interaction service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Receive-order interaction service-report parameter lookup returned an invalid handle");
+    reportParameters.push_back(parameter);
+  }
+
+  auto const interactionClass = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const parameter = publisher.rtiAmbassador().getParameterHandle(
+      interactionClass,
+      options.parameterName);
+  require(
+      interactionClass.isValid() && parameter.isValid(),
+      "Receive-order interaction source lookup returned an invalid handle");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(
+      reliable.isValid(),
+      "Receive-order interaction service-report lookup returned an invalid reliable transportation handle");
+
+  // Keep setup calls out of the one accepted SendInteraction report. The
+  // publisher reports to the public MOM subscriber; the receiver only gets
+  // the ordinary application interaction.
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  receiver.rtiAmbassador().setServiceReportingSwitch(false);
+  receiver.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+  publisher.rtiAmbassador().publishInteractionClass(interactionClass);
+  receiver.rtiAmbassador().subscribeInteractionClass(interactionClass);
+  observer.recorder().clearInteraction();
+  receiver.recorder().clearInteraction();
+
+  publisher.rtiAmbassador().setServiceReportingSwitch(true);
+  std::vector<std::uint8_t> const valueBytes{0x01U, 0x02U};
+  std::vector<std::uint8_t> const tagBytes{'r', 'o', 'i'};
+  rti::ParameterHandleValueMap values;
+  values.emplace(
+      parameter,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  publisher.rtiAmbassador().sendInteraction(interactionClass, values, tag);
+
+  if (model == rti::HLA_IMMEDIATE) {
+    require(
+        observer.recorder().interactions().size() == 1U &&
+            receiver.recorder().interactions().size() == 1U,
+        "Immediate receive-order interaction did not deliver both callbacks synchronously");
+  } else {
+    require(
+        observer.recorder().interactions().empty() &&
+            receiver.recorder().interactions().empty(),
+        "Evoked receive-order interaction delivered a callback before callback servicing");
+    waitFor(
+        observer,
+        receiver,
+        [&] {
+          return observer.recorder().interactions().size() == 1U &&
+              receiver.recorder().interactions().size() == 1U;
+        },
+        options,
+        "receive-order interaction and service-report callbacks");
+  }
+
+  auto const report = observer.recorder().interactions().at(0U);
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"SendInteraction",
+      {{27, L"Interaction class designator", quoted(interactionClass.toString())},
+       {40,
+        L"Constrained set of interaction parameter designator and value pairs",
+        L"{\"" + parameter.toString() + L"\":\"AQI=\"}"},
+       {63, L"User-supplied tag", L"\"cm9p\""},
+       {34, L"Optional timestamp", L"null"}},
+      {34, L"", L"null"},
+      0,
+      "Receive-order SendInteraction service report",
+      2);
+
+  auto const interaction = receiver.recorder().interactions().at(0U);
+  require(
+      interaction.interaction == interactionClass &&
+          interaction.parameters.size() == 1U &&
+          interaction.parameters.count(parameter) == 1U &&
+          copyBytes(interaction.parameters.at(parameter)) == valueBytes &&
+          interaction.tag == tagBytes && interaction.transportation == reliable &&
+          interaction.producer == publisher.federateHandle() &&
+          !interaction.regions.has_value(),
+      "Receive-order application interaction returned non-standard callback data");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  receiver.rtiAmbassador().unsubscribeInteractionClass(interactionClass);
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  receiver.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioServiceReportTimestampedDirectedInteraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Timestamped directed-interaction service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Timestamped directed-interaction service-report testing requires an adapter-supplied standard MIM");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Timestamped directed-interaction service-report testing requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "service-report-timestamped-directed-publisher");
+  Session receiver(options, model, "service-report-timestamped-directed-receiver");
+  Session observer(options, model, "service-report-timestamped-directed-observer");
+  auto const federation =
+      federationName(options, "service-report-timestamped-directed-interaction");
+  publisher.connect();
+  receiver.connect();
+  observer.connect();
+  publisher.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(
+      options.ownerFederateName + L"-service-report-timestamped-directed-publisher",
+      options.federateType,
+      federation);
+  receiver.join(
+      options.memberFederateName + L"-service-report-timestamped-directed-receiver",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-timestamped-directed-observer",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid() &&
+          publisherInteraction.isValid() && receiverInteraction.isValid(),
+      "Timestamped directed-interaction service-report lookup returned an invalid handle");
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Timestamped directed-interaction service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Timestamped directed-interaction service-report parameter lookup returned an invalid handle");
+    reportParameters.push_back(parameter);
+  }
+  auto const observerReliable =
+      observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  auto const receiverReliable =
+      receiver.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(
+      observerReliable.isValid() && receiverReliable.isValid(),
+      "Timestamped directed-interaction service-report lookup returned an invalid reliable transportation handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  rti::InteractionClassHandleSet const publisherDirected{publisherInteraction};
+  rti::InteractionClassHandleSet const receiverDirected{receiverInteraction};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+  publisher.rtiAmbassador().publishObjectClassDirectedInteractions(
+      publisherClass,
+      publisherDirected);
+  receiver.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      receiverClass,
+      receiverDirected,
+      true);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const target = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      target.isValid(),
+      "Timestamped directed-interaction service-report registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(target); },
+      options,
+      "timestamped directed-interaction service-report target discovery");
+
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  receiver.rtiAmbassador().setServiceReportingSwitch(false);
+  receiver.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.recorder().clearInteraction();
+  receiver.recorder().clearTimedDirectedInteractions();
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Timestamped directed-interaction service-report members selected different logical-time factories");
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "timestamped directed-interaction service-report time-constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "timestamped directed-interaction service-report time-regulation callback");
+
+  auto const timestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const tagBytes{'t', 's', 'o'};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  publisher.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const retraction = publisher.rtiAmbassador().sendDirectedInteraction(
+      publisherInteraction,
+      target,
+      rti::ParameterHandleValueMap{},
+      tag,
+      *timestamp);
+  require(
+      retraction.isValid(),
+      "Timestamped directed-interaction service-report send returned an invalid retraction handle");
+
+  if (model == rti::HLA_IMMEDIATE) {
+    require(
+        observer.recorder().interactions().size() == 1U,
+        "Immediate timestamped directed-interaction service report was not delivered synchronously");
+  } else {
+    require(
+        observer.recorder().interactions().empty(),
+        "Evoked timestamped directed-interaction service report was delivered before callback servicing");
+    waitFor(
+        observer,
+        [&] { return observer.recorder().interactions().size() == 1U; },
+        options,
+        "timestamped directed-interaction service-report callback");
+  }
+  require(
+      receiver.recorder().timedDirectedInteractions().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "Timestamped directed interaction was delivered before its time advance");
+
+  auto const report = observer.recorder().interactions().at(0U);
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          report.tag.empty() && !report.producer.isValid() &&
+          !report.regions.has_value() && report.transportation == observerReliable,
+      "Timestamped directed-interaction service report returned non-standard metadata");
+  for (auto const& parameter : reportParameters) {
+    require(
+        report.parameters.count(parameter) == 1U,
+        "Timestamped directed-interaction service report omitted a standard parameter");
+  }
+  rti::HLAunicodeString decodedService;
+  decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+  require(
+      decodedService.get() == L"SendDirectedInteraction",
+      "Timestamped directed-interaction service report returned the wrong service name");
+  rti::HLAinteger16BE decodedServiceType;
+  decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
+  require(
+      decodedServiceType.get() == 2,
+      "Timestamped directed-interaction service report returned the wrong service type");
+  rti::HLAboolean decodedSuccess;
+  decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
+  require(
+      decodedSuccess.get(),
+      "Timestamped directed-interaction service report was not successful");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 5U,
+      "Timestamped directed-interaction service report returned the wrong supplied-argument count");
+  auto const verifyArgument = [&](std::size_t index,
+                                  rti::Integer32 type,
+                                  std::wstring const& name,
+                                  std::wstring const& value) {
+    auto const& argument = dynamic_cast<rti::HLAfixedRecord const&>(
+        suppliedArguments.get(index));
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(argument.get(0U)).get() == type &&
+            dynamic_cast<rti::HLAunicodeString const&>(argument.get(1U)).get() == name &&
+            dynamic_cast<rti::HLAunicodeString const&>(argument.get(2U)).get() == value,
+        "Timestamped directed-interaction service report returned a wrong supplied argument");
+  };
+  verifyArgument(
+      0U,
+      27,
+      L"Interaction class designator",
+      quoted(publisherInteraction.toString()));
+  verifyArgument(
+      1U,
+      37,
+      L"Object instance designator",
+      quoted(target.toString()));
+  verifyArgument(
+      2U,
+      40,
+      L"Constrained set of interaction parameter designator and value pairs",
+      L"{}");
+  verifyArgument(3U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(
+      4U,
+      31,
+      L"Optional timestamp",
+      quoted(timestamp->toString()));
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 33 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get() ==
+              L"Message retraction designator",
+      "Timestamped directed-interaction service report returned the wrong retraction argument");
+  auto const retractionText = retraction.toString();
+  auto const retractionOpen = retractionText.find(L'(');
+  auto const retractionClose = retractionText.find(L')');
+  require(
+      retractionOpen != std::wstring::npos &&
+          retractionClose > retractionOpen + 1U,
+      "Timestamped directed-interaction retraction had no standard text payload");
+  auto const momRetraction = dynamic_cast<rti::HLAunicodeString const&>(
+      returnedArgument.get(2U)).get();
+  constexpr std::wstring_view momRetractionPrefix = L"\"MessageRetractionHandle<";
+  require(
+      momRetraction.rfind(std::wstring{momRetractionPrefix}, 0U) == 0U &&
+          momRetraction.size() > momRetractionPrefix.size() + 1U &&
+          momRetraction[momRetraction.size() - 2U] == L'>' &&
+          momRetraction.back() == L'\"' &&
+          momRetraction.substr(
+              momRetractionPrefix.size(),
+              momRetraction.size() - momRetractionPrefix.size() - 2U) ==
+              retractionText.substr(
+                  retractionOpen + 1U,
+                  retractionClose - retractionOpen - 1U),
+      "Timestamped directed-interaction service report returned a mismatched retraction handle");
+  rti::HLAunicodeString decodedException;
+  decodedException.decode(report.parameters.at(reportParameters.at(5U)));
+  require(
+      decodedException.get().empty(),
+      "Successful timestamped directed-interaction service report carried an exception");
+  rti::HLAinteger32BE decodedSerial;
+  decodedSerial.decode(report.parameters.at(reportParameters.at(6U)));
+  require(
+      decodedSerial.get() == 0,
+      "Timestamped directed-interaction service report did not start at serial zero");
+
+  receiver.recorder().clearCallbackOrder();
+  publisher.recorder().clearCallbackOrder();
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  receiver.rtiAmbassador().timeAdvanceRequest(*timestamp);
+  require(
+      receiver.recorder().timedDirectedInteractions().empty(),
+      "Timestamped directed interaction was delivered before the regulating federate advanced");
+  auto const publisherAdvance = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      1U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAdvance);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timedDirectedInteractions().size() == 1U;
+      },
+      options,
+      "timestamped directed-interaction service-report delivery and grants");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"directed", "grant"},
+      "Timestamped directed-interaction service report route delivered after its grant");
+
+  auto const directed = receiver.recorder().timedDirectedInteractions().at(0U);
+  require(
+      directed.interaction == receiverInteraction && directed.object == target &&
+          directed.parameters.empty() && directed.tag == tagBytes &&
+          directed.transportation == receiverReliable &&
+          directed.producer == publisher.federateHandle() &&
+          directed.time == encodeTime(*timestamp) &&
+          directed.timeText == timestamp->toString() &&
+          directed.sentOrder == rti::TIMESTAMP &&
+          directed.receivedOrder == rti::TIMESTAMP &&
+          directed.retractionPresent &&
+          directed.retraction == copyBytes(retraction.encode()),
+      "Timestamped directed-interaction callback returned non-standard data");
+  require(
+      receiver.recorder().retractions().empty(),
+      "Timestamped directed-interaction service report route produced an unexpected retraction callback");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      receiverClass,
+      receiverDirected);
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  receiver.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioServiceReportTimestampedDirectedInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedDirectedInteraction(options, model);
+}
+
 void scenarioServiceReportInterlock(
     Options const& options,
     rti::CallbackModel model) {
@@ -21073,6 +21621,1294 @@ void scenarioFederationSynchronizationMomQueriesContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederationSynchronizationMomQueries(options, model);
+}
+
+void requirePortableServiceReport(
+    Session& observer,
+    InteractionRecord const& report,
+    rti::InteractionClassHandle reportClass,
+    std::vector<rti::ParameterHandle> const& reportParameters,
+    std::wstring const& service,
+    std::vector<PortableServiceReportArgument> const& expectedSupplied,
+    PortableServiceReportArgument const& expectedReturned,
+    rti::Integer32 expectedSerial,
+    std::string const& description,
+    rti::Integer16 expectedServiceType) {
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          report.tag.empty() && !report.producer.isValid() &&
+          !report.regions.has_value() &&
+          report.transportation ==
+              observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      description + " returned non-standard metadata");
+  for (auto const& parameter : reportParameters) {
+    require(
+        report.parameters.count(parameter) == 1U,
+        description + " omitted a standard report parameter");
+  }
+
+  rti::HLAunicodeString decodedService;
+  decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+  require(
+      decodedService.get() == service,
+      description + " returned the wrong service name");
+  rti::HLAinteger16BE decodedServiceType;
+  decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
+  require(
+      decodedServiceType.get() == expectedServiceType,
+      description + " returned the wrong service type");
+  rti::HLAboolean decodedSuccess;
+  decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
+  require(decodedSuccess.get(), description + " was not marked successful");
+
+  auto const decodeArgument = [&](rti::HLAfixedRecord const& record,
+                                  PortableServiceReportArgument const& expected) {
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(record.get(0U)).get() == expected.type,
+        description + " returned the wrong argument type");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(1U)).get() == expected.name,
+        description + " returned the wrong argument name");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(2U)).get() ==
+            expected.value,
+        description + " returned the wrong argument value");
+  };
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == expectedSupplied.size(),
+      description + " returned the wrong supplied-argument count");
+  for (std::size_t index = 0U; index != expectedSupplied.size(); ++index) {
+    auto const& supplied = dynamic_cast<rti::HLAfixedRecord const&>(
+        suppliedArguments.get(index));
+    decodeArgument(supplied, expectedSupplied.at(index));
+  }
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  decodeArgument(returnedArgument, expectedReturned);
+
+  rti::HLAunicodeString decodedException;
+  decodedException.decode(report.parameters.at(reportParameters.at(5U)));
+  require(
+      decodedException.get().empty(),
+      description + " carried an exception");
+  rti::HLAinteger32BE decodedSerial;
+  decodedSerial.decode(report.parameters.at(reportParameters.at(6U)));
+  require(
+      decodedSerial.get() == expectedSerial,
+      description + " returned the wrong serial number");
+}
+
+void requirePortableServiceReportFailure(
+    Session& observer,
+    InteractionRecord const& report,
+    rti::InteractionClassHandle reportClass,
+    std::vector<rti::ParameterHandle> const& reportParameters,
+    std::wstring const& service,
+    std::vector<PortableServiceReportArgument> const& expectedSupplied,
+    std::wstring const& expectedException,
+    rti::Integer32 expectedSerial,
+    std::string const& description) {
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          report.tag.empty() && !report.producer.isValid() &&
+          !report.regions.has_value() &&
+          report.transportation ==
+              observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      description + " returned non-standard metadata");
+  for (auto const& parameter : reportParameters) {
+    require(
+        report.parameters.count(parameter) == 1U,
+        description + " omitted a standard report parameter");
+  }
+
+  rti::HLAunicodeString decodedService;
+  decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+  require(
+      decodedService.get() == service,
+      description + " returned the wrong service name");
+  rti::HLAinteger16BE decodedServiceType;
+  decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
+  require(
+      decodedServiceType.get() == 6,
+      description + " returned the wrong service type");
+  rti::HLAboolean decodedSuccess;
+  decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
+  require(
+      !decodedSuccess.get(),
+      description + " was incorrectly marked successful");
+
+  auto const decodeArgument = [&](rti::HLAfixedRecord const& record,
+                                  PortableServiceReportArgument const& expected) {
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(record.get(0U)).get() == expected.type,
+        description + " returned the wrong argument type");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(1U)).get() == expected.name,
+        description + " returned the wrong argument name");
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(record.get(2U)).get() ==
+            expected.value,
+        description + " returned the wrong argument value");
+  };
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == expectedSupplied.size(),
+      description + " returned the wrong supplied-argument count");
+  for (std::size_t index = 0U; index != expectedSupplied.size(); ++index) {
+    decodeArgument(
+        dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(index)),
+        expectedSupplied.at(index));
+  }
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  decodeArgument(returnedArgument, {34, L"", L"null"});
+
+  rti::HLAunicodeString decodedException;
+  decodedException.decode(report.parameters.at(reportParameters.at(5U)));
+  require(
+      decodedException.get().find(expectedException) != std::wstring::npos,
+      description + " omitted the standard exception class");
+  rti::HLAinteger32BE decodedSerial;
+  decodedSerial.decode(report.parameters.at(reportParameters.at(6U)));
+  require(
+      decodedSerial.get() == expectedSerial,
+      description + " returned the wrong serial number");
+}
+
+void scenarioServiceReportFederateObjectClassLookups(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Federate/object-class service-report testing requires an adapter-supplied model FOM");
+  require(
+      !options.mimFom.empty(),
+      "Federate/object-class service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-federate-object-class-subject");
+  Session observer(options, model, "service-report-federate-object-class-observer");
+  auto const federation = federationName(
+      options,
+      "service-report-federate-object-class-lookups");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const subjectName =
+      options.ownerFederateName + L"-service-report-federate-object-class-subject";
+  subject.join(
+      subjectName,
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-federate-object-class-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Federate/object-class service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Federate/object-class service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const objectClassName = options.typedObjectClassName;
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(objectClassName);
+  require(
+      objectClass.isValid(),
+      "Federate/object-class service-report setup returned an invalid object-class handle");
+  auto const subjectFederate = subject.federateHandle();
+  require(
+      subjectFederate.isValid(),
+      "Federate/object-class service-report setup returned an invalid federate handle");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const federateByName =
+      subject.rtiAmbassador().getFederateHandle(subjectName);
+  auto const federateName =
+      subject.rtiAmbassador().getFederateName(subjectFederate);
+  auto const objectClassByName =
+      subject.rtiAmbassador().getObjectClassHandle(objectClassName);
+  auto const objectClassResolvedName =
+      subject.rtiAmbassador().getObjectClassName(objectClass);
+  require(
+      federateByName == subjectFederate &&
+          federateName == subjectName &&
+          objectClassByName == objectClass &&
+          objectClassResolvedName == objectClassName,
+      "Federate/object-class lookup did not round-trip its standard values");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 4U; },
+      options,
+      "federate/object-class service-report callbacks");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 4U,
+      "Federate/object-class service-report count was unstable");
+  requirePortableServiceReport(
+      observer,
+      reports.at(0U),
+      reportClass,
+      reportParameters,
+      L"GetFederateHandle",
+      {{53, L"Federate name", quoted(subjectName)}},
+      {15, L"Federate handle", quoted(federateByName.toString())},
+      0,
+      "GetFederateHandle service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(1U),
+      reportClass,
+      reportParameters,
+      L"GetFederateName",
+      {{15, L"Federate handle", quoted(subjectFederate.toString())}},
+      {53, L"Federate name", quoted(subjectName)},
+      1,
+      "GetFederateName service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(2U),
+      reportClass,
+      reportParameters,
+      L"GetObjectClassHandle",
+      {{53, L"Object class name", quoted(objectClassName)}},
+      {36, L"Object class handle", quoted(objectClassByName.toString())},
+      2,
+      "GetObjectClassHandle service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(3U),
+      reportClass,
+      reportParameters,
+      L"GetObjectClassName",
+      {{36, L"Object class handle", quoted(objectClass.toString())}},
+      {53, L"Object class name", quoted(objectClassResolvedName)},
+      3,
+      "GetObjectClassName service report");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportFederateObjectClassLookupsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateObjectClassLookups(options, model);
+}
+
+void scenarioServiceReportInteractionParameterLookups(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Interaction/parameter service-report testing requires an adapter-supplied model FOM");
+  require(
+      !options.mimFom.empty(),
+      "Interaction/parameter service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-interaction-parameter-subject");
+  Session observer(options, model, "service-report-interaction-parameter-observer");
+  auto const federation = federationName(
+      options,
+      "service-report-interaction-parameter-lookups");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-interaction-parameter-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-interaction-parameter-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Interaction/parameter service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Interaction/parameter service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const interactionName = options.typedInteractionClassName;
+  auto const parameterName = options.typedIntegerParameterName;
+  auto const interaction =
+      subject.rtiAmbassador().getInteractionClassHandle(interactionName);
+  auto const parameter =
+      subject.rtiAmbassador().getParameterHandle(interaction, parameterName);
+  require(
+      interaction.isValid() && parameter.isValid(),
+      "Interaction/parameter service-report setup returned an invalid handle");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const interactionByName =
+      subject.rtiAmbassador().getInteractionClassHandle(interactionName);
+  auto const interactionResolvedName =
+      subject.rtiAmbassador().getInteractionClassName(interaction);
+  auto const parameterByName =
+      subject.rtiAmbassador().getParameterHandle(interaction, parameterName);
+  auto const parameterResolvedName =
+      subject.rtiAmbassador().getParameterName(interaction, parameter);
+  require(
+      interactionByName == interaction &&
+          interactionResolvedName == interactionName &&
+          parameterByName == parameter &&
+          parameterResolvedName == parameterName,
+      "Interaction/parameter lookup did not round-trip its standard values");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 4U; },
+      options,
+      "interaction/parameter service-report callbacks");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 4U,
+      "Interaction/parameter service-report count was unstable");
+  requirePortableServiceReport(
+      observer,
+      reports.at(0U),
+      reportClass,
+      reportParameters,
+      L"GetInteractionClassHandle",
+      {{53, L"Interaction class name", quoted(interactionName)}},
+      {27, L"Interaction class handle", quoted(interactionByName.toString())},
+      0,
+      "GetInteractionClassHandle service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(1U),
+      reportClass,
+      reportParameters,
+      L"GetInteractionClassName",
+      {{27, L"Interaction class handle", quoted(interaction.toString())}},
+      {53, L"Interaction class name", quoted(interactionResolvedName)},
+      1,
+      "GetInteractionClassName service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(2U),
+      reportClass,
+      reportParameters,
+      L"GetParameterHandle",
+      {{27, L"Interaction class handle", quoted(interaction.toString())},
+       {53, L"Parameter name", quoted(parameterName)}},
+      {39, L"Parameter handle", quoted(parameterByName.toString())},
+      2,
+      "GetParameterHandle service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(3U),
+      reportClass,
+      reportParameters,
+      L"GetParameterName",
+      {{27, L"Interaction class handle", quoted(interaction.toString())},
+       {39, L"Parameter handle", quoted(parameter.toString())}},
+      {53, L"Parameter name", quoted(parameterResolvedName)},
+      3,
+      "GetParameterName service report");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportInteractionParameterLookupsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionParameterLookups(options, model);
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookups(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Object/attribute/update-rate service-report testing requires an adapter-supplied model FOM");
+  require(
+      !options.mimFom.empty(),
+      "Object/attribute/update-rate service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-object-attribute-rate-subject");
+  Session observer(options, model, "service-report-object-attribute-rate-observer");
+  auto const federation = federationName(
+      options,
+      "service-report-object-attribute-update-rate-lookups");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-object-attribute-rate-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-object-attribute-rate-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Object/attribute/update-rate service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Object/attribute/update-rate service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const attribute = subject.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.rateBestEffortAttributeName);
+  require(
+      objectClass.isValid() && attribute.isValid(),
+      "Object/attribute/update-rate service-report setup returned an invalid handle");
+  subject.rtiAmbassador().publishObjectClassAttributes(
+      objectClass,
+      rti::AttributeHandleSet{attribute});
+  auto const object = subject.rtiAmbassador().registerObjectInstance(objectClass);
+  require(
+      object.isValid(),
+      "Object/attribute/update-rate service-report registration returned an invalid object handle");
+  auto const objectName = subject.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      !objectName.empty(),
+      "Object/attribute/update-rate service-report registration returned no object name");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const knownObjectClass =
+      subject.rtiAmbassador().getKnownObjectClassHandle(object);
+  auto const objectByName =
+      subject.rtiAmbassador().getObjectInstanceHandle(objectName);
+  auto const objectResolvedName =
+      subject.rtiAmbassador().getObjectInstanceName(object);
+  auto const attributeByClass = subject.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.rateBestEffortAttributeName);
+  auto const attributeResolvedName = subject.rtiAmbassador().getAttributeName(
+      objectClass,
+      attribute);
+  auto const maximumRate =
+      subject.rtiAmbassador().getUpdateRateValue(options.rateDesignatorName);
+  auto const attributeMaximumRate =
+      subject.rtiAmbassador().getUpdateRateValueForAttribute(object, attribute);
+  require(
+      knownObjectClass == objectClass &&
+          objectByName == object &&
+          objectResolvedName == objectName &&
+          attributeByClass == attribute &&
+          attributeResolvedName == options.rateBestEffortAttributeName &&
+          maximumRate > 0.0 &&
+          attributeMaximumRate == 0.0,
+      "Object/attribute/update-rate lookup did not round-trip its standard values");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 7U; },
+      options,
+      "object/attribute/update-rate service-report callbacks");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 7U,
+      "Object/attribute/update-rate service-report count was unstable");
+  requirePortableServiceReport(
+      observer,
+      reports.at(0U),
+      reportClass,
+      reportParameters,
+      L"GetKnownObjectClassHandle",
+      {{37, L"Object instance handle", quoted(object.toString())}},
+      {36, L"Object class handle", quoted(knownObjectClass.toString())},
+      0,
+      "GetKnownObjectClassHandle service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(1U),
+      reportClass,
+      reportParameters,
+      L"GetObjectInstanceHandle",
+      {{53, L"Object instance name", quoted(objectName)}},
+      {37, L"Object instance handle", quoted(objectByName.toString())},
+      1,
+      "GetObjectInstanceHandle service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(2U),
+      reportClass,
+      reportParameters,
+      L"GetObjectInstanceName",
+      {{37, L"Object instance handle", quoted(object.toString())}},
+      {53, L"Object instance name", quoted(objectResolvedName)},
+      2,
+      "GetObjectInstanceName service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(3U),
+      reportClass,
+      reportParameters,
+      L"GetAttributeHandle",
+      {{36, L"Object class handle", quoted(objectClass.toString())},
+       {53, L"Class attribute name", quoted(options.rateBestEffortAttributeName)}},
+      {0, L"Class attribute handle", quoted(attributeByClass.toString())},
+      3,
+      "GetAttributeHandle service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(4U),
+      reportClass,
+      reportParameters,
+      L"GetAttributeName",
+      {{36, L"Object class handle", quoted(objectClass.toString())},
+       {0, L"Class attribute handle", quoted(attribute.toString())}},
+      {53, L"Class attribute name", quoted(attributeResolvedName)},
+      4,
+      "GetAttributeName service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(5U),
+      reportClass,
+      reportParameters,
+      L"GetUpdateRateValue",
+      {{53, L"Update rate name", quoted(options.rateDesignatorName)}},
+      {35, L"Maximum update rate value", std::to_wstring(maximumRate)},
+      5,
+      "GetUpdateRateValue service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(6U),
+      reportClass,
+      reportParameters,
+      L"GetUpdateRateValueForAttribute",
+      {{37, L"Object instance handle", quoted(object.toString())},
+       {0, L"Attribute handle", quoted(attribute.toString())}},
+      {35, L"Maximum update rate value", std::to_wstring(attributeMaximumRate)},
+      6,
+      "GetUpdateRateValueForAttribute service report");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().unpublishObjectClassAttributes(
+      objectClass,
+      rti::AttributeHandleSet{attribute});
+  subject.resign(rti::DELETE_OBJECTS);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookupsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectAttributeUpdateRateLookups(options, model);
+}
+
+void scenarioServiceReportFederateObjectClassLookupFailures(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Federate lookup failure service-report testing requires an adapter-supplied model FOM");
+  require(
+      !options.mimFom.empty(),
+      "Federate lookup failure service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-federate-lookup-failure-subject");
+  Session observer(options, model, "service-report-federate-lookup-failure-observer");
+  auto const federation = federationName(
+      options,
+      "service-report-federate-object-class-lookup-failures");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const subjectName =
+      options.ownerFederateName + L"-service-report-federate-lookup-failure-subject";
+  subject.join(subjectName, options.federateType, federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-federate-lookup-failure-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Federate lookup failure service-report returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Federate lookup failure service-report returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const subjectFederate = subject.federateHandle();
+  require(
+      subjectFederate.isValid(),
+      "Federate lookup failure service-report setup returned an invalid federate handle");
+  auto const missingFederateName = std::wstring{L"TckMissingFederate"};
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  requireException(
+      [&] { subject.rtiAmbassador().getFederateHandle(missingFederateName); },
+      L"NameNotFound",
+      "missing federate name lookup with service reporting enabled");
+  requireException(
+      [&] { subject.rtiAmbassador().getFederateName(rti::FederateHandle{}); },
+      L"InvalidFederateHandle",
+      "invalid federate handle lookup with service reporting enabled");
+  auto const federateByName =
+      subject.rtiAmbassador().getFederateHandle(subjectName);
+  auto const federateName =
+      subject.rtiAmbassador().getFederateName(subjectFederate);
+  require(
+      federateByName == subjectFederate && federateName == subjectName,
+      "Federate lookup did not recover after reported failures");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 4U; },
+      options,
+      "federate lookup failure service-report callbacks");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 4U,
+      "Federate lookup failure service-report count was unstable");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(0U),
+      reportClass,
+      reportParameters,
+      L"GetFederateHandle",
+      {{53, L"Federate name", quoted(missingFederateName)}},
+      L"NameNotFound",
+      0,
+      "GetFederateHandle failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(1U),
+      reportClass,
+      reportParameters,
+      L"GetFederateName",
+      {{15, L"Federate handle", quoted(rti::FederateHandle{}.toString())}},
+      L"InvalidFederateHandle",
+      1,
+      "GetFederateName failure service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(2U),
+      reportClass,
+      reportParameters,
+      L"GetFederateHandle",
+      {{53, L"Federate name", quoted(subjectName)}},
+      {15, L"Federate handle", quoted(federateByName.toString())},
+      2,
+      "GetFederateHandle recovery service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(3U),
+      reportClass,
+      reportParameters,
+      L"GetFederateName",
+      {{15, L"Federate handle", quoted(subjectFederate.toString())}},
+      {53, L"Federate name", quoted(federateName)},
+      3,
+      "GetFederateName recovery service report");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportFederateObjectClassLookupFailuresContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateObjectClassLookupFailures(options, model);
+}
+
+void scenarioServiceReportInteractionParameterLookupFailures(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Interaction lookup failure service-report testing requires an adapter-supplied model FOM");
+  require(
+      !options.mimFom.empty(),
+      "Interaction lookup failure service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-interaction-lookup-failure-subject");
+  Session observer(options, model, "service-report-interaction-lookup-failure-observer");
+  auto const federation = federationName(
+      options,
+      "service-report-interaction-parameter-lookup-failures");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-interaction-lookup-failure-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-interaction-lookup-failure-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Interaction lookup failure service-report returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Interaction lookup failure service-report returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const interactionName = options.typedInteractionClassName;
+  auto const parameterName = options.typedIntegerParameterName;
+  auto const interaction =
+      subject.rtiAmbassador().getInteractionClassHandle(interactionName);
+  auto const parameter =
+      subject.rtiAmbassador().getParameterHandle(interaction, parameterName);
+  require(
+      interaction.isValid() && parameter.isValid(),
+      "Interaction lookup failure service-report setup returned an invalid handle");
+
+  auto const missingInteractionName =
+      std::wstring{L"HLAinteractionRoot.TckMissingInteraction"};
+  auto const missingParameterName = std::wstring{L"TckMissingParameter"};
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getInteractionClassHandle(missingInteractionName);
+      },
+      L"NameNotFound",
+      "missing interaction class lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getInteractionClassName(rti::InteractionClassHandle{});
+      },
+      L"InvalidInteractionClassHandle",
+      "invalid interaction class handle lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getParameterHandle(interaction, missingParameterName);
+      },
+      L"NameNotFound",
+      "missing parameter lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getParameterName(
+            interaction,
+            rti::ParameterHandle{});
+      },
+      L"InvalidParameterHandle",
+      "invalid parameter handle lookup with service reporting enabled");
+  auto const interactionByName =
+      subject.rtiAmbassador().getInteractionClassHandle(interactionName);
+  require(
+      interactionByName == interaction,
+      "Interaction class lookup did not recover after reported failures");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 5U; },
+      options,
+      "interaction/parameter lookup failure service-report callbacks");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 5U,
+      "Interaction/parameter lookup failure service-report count was unstable");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(0U),
+      reportClass,
+      reportParameters,
+      L"GetInteractionClassHandle",
+      {{53, L"Interaction class name", quoted(missingInteractionName)}},
+      L"NameNotFound",
+      0,
+      "GetInteractionClassHandle failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(1U),
+      reportClass,
+      reportParameters,
+      L"GetInteractionClassName",
+      {{27, L"Interaction class handle",
+        quoted(rti::InteractionClassHandle{}.toString())}},
+      L"InvalidInteractionClassHandle",
+      1,
+      "GetInteractionClassName failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(2U),
+      reportClass,
+      reportParameters,
+      L"GetParameterHandle",
+      {{27, L"Interaction class handle", quoted(interaction.toString())},
+       {53, L"Parameter name", quoted(missingParameterName)}},
+      L"NameNotFound",
+      2,
+      "GetParameterHandle failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(3U),
+      reportClass,
+      reportParameters,
+      L"GetParameterName",
+      {{27, L"Interaction class handle", quoted(interaction.toString())},
+       {39, L"Parameter handle", quoted(rti::ParameterHandle{}.toString())}},
+      L"InvalidParameterHandle",
+      3,
+      "GetParameterName failure service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(4U),
+      reportClass,
+      reportParameters,
+      L"GetInteractionClassHandle",
+      {{53, L"Interaction class name", quoted(interactionName)}},
+      {27, L"Interaction class handle", quoted(interactionByName.toString())},
+      4,
+      "GetInteractionClassHandle recovery service report");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportInteractionParameterLookupFailuresContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionParameterLookupFailures(options, model);
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookupFailures(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Object lookup failure service-report testing requires an adapter-supplied model FOM");
+  require(
+      !options.mimFom.empty(),
+      "Object lookup failure service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-object-lookup-failure-subject");
+  Session observer(options, model, "service-report-object-lookup-failure-observer");
+  auto const federation = federationName(
+      options,
+      "service-report-object-attribute-update-rate-lookup-failures");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-object-lookup-failure-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-object-lookup-failure-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Object lookup failure service-report returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+      require(
+          parameter.isValid(),
+          "Object lookup failure service-report returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const attribute = subject.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.rateBestEffortAttributeName);
+  require(
+      objectClass.isValid() && attribute.isValid(),
+      "Object lookup failure service-report setup returned an invalid handle");
+
+  auto const missingObjectName = std::wstring{L"TckMissingObjectInstance"};
+  auto const missingRateName = std::wstring{L"TckMissingUpdateRate"};
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getKnownObjectClassHandle(
+            rti::ObjectInstanceHandle{});
+      },
+      L"ObjectInstanceNotKnown",
+      "invalid object handle class lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getObjectInstanceHandle(missingObjectName);
+      },
+      L"ObjectInstanceNotKnown",
+      "missing object name lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getObjectInstanceName(rti::ObjectInstanceHandle{});
+      },
+      L"ObjectInstanceNotKnown",
+      "invalid object handle name lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getAttributeHandle(
+            rti::ObjectClassHandle{},
+            options.rateBestEffortAttributeName);
+      },
+      L"InvalidObjectClassHandle",
+      "invalid object class attribute lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getAttributeName(
+            objectClass,
+            rti::AttributeHandle{});
+      },
+      L"InvalidAttributeHandle",
+      "invalid attribute name lookup with service reporting enabled");
+  requireException(
+      [&] { subject.rtiAmbassador().getUpdateRateValue(missingRateName); },
+      L"InvalidUpdateRateDesignator",
+      "missing update-rate lookup with service reporting enabled");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getUpdateRateValueForAttribute(
+            rti::ObjectInstanceHandle{},
+            attribute);
+      },
+      L"ObjectInstanceNotKnown",
+      "invalid object update-rate lookup with service reporting enabled");
+  auto const objectClassByName =
+      subject.rtiAmbassador().getObjectClassHandle(options.rateObjectClassName);
+  require(
+      objectClassByName == objectClass,
+      "Object-class lookup did not recover after reported failures");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() == 8U; },
+      options,
+      "object/attribute/update-rate lookup failure service-report callbacks");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 8U,
+      "Object/attribute/update-rate lookup failure service-report count was unstable");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(0U),
+      reportClass,
+      reportParameters,
+      L"GetKnownObjectClassHandle",
+      {{37, L"Object instance handle",
+        quoted(rti::ObjectInstanceHandle{}.toString())}},
+      L"ObjectInstanceNotKnown",
+      0,
+      "GetKnownObjectClassHandle failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(1U),
+      reportClass,
+      reportParameters,
+      L"GetObjectInstanceHandle",
+      {{53, L"Object instance name", quoted(missingObjectName)}},
+      L"ObjectInstanceNotKnown",
+      1,
+      "GetObjectInstanceHandle failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(2U),
+      reportClass,
+      reportParameters,
+      L"GetObjectInstanceName",
+      {{37, L"Object instance handle",
+        quoted(rti::ObjectInstanceHandle{}.toString())}},
+      L"ObjectInstanceNotKnown",
+      2,
+      "GetObjectInstanceName failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(3U),
+      reportClass,
+      reportParameters,
+      L"GetAttributeHandle",
+      {{36, L"Object class handle",
+        quoted(rti::ObjectClassHandle{}.toString())},
+       {53, L"Class attribute name",
+        quoted(options.rateBestEffortAttributeName)}},
+      L"InvalidObjectClassHandle",
+      3,
+      "GetAttributeHandle failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(4U),
+      reportClass,
+      reportParameters,
+      L"GetAttributeName",
+      {{36, L"Object class handle", quoted(objectClass.toString())},
+       {0, L"Class attribute handle",
+        quoted(rti::AttributeHandle{}.toString())}},
+      L"InvalidAttributeHandle",
+      4,
+      "GetAttributeName failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(5U),
+      reportClass,
+      reportParameters,
+      L"GetUpdateRateValue",
+      {{53, L"Update rate name", quoted(missingRateName)}},
+      L"InvalidUpdateRateDesignator",
+      5,
+      "GetUpdateRateValue failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(6U),
+      reportClass,
+      reportParameters,
+      L"GetUpdateRateValueForAttribute",
+      {{37, L"Object instance handle",
+        quoted(rti::ObjectInstanceHandle{}.toString())},
+       {0, L"Attribute handle", quoted(attribute.toString())}},
+      L"ObjectInstanceNotKnown",
+      6,
+      "GetUpdateRateValueForAttribute failure service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(7U),
+      reportClass,
+      reportParameters,
+      L"GetObjectClassHandle",
+      {{53, L"Object class name", quoted(options.rateObjectClassName)}},
+      {36, L"Object class handle", quoted(objectClassByName.toString())},
+      7,
+      "GetObjectClassHandle recovery service report");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectAttributeUpdateRateLookupFailures(options, model);
 }
 
 void scenarioServiceReportOrderTransportationLookups(
@@ -60053,6 +61889,12 @@ void scenarioServiceReportInteractionContract(
   scenarioServiceReportInteraction(options, model);
 }
 
+void scenarioServiceReportReceiveOrderInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReceiveOrderInteraction(options, model);
+}
+
 void scenarioServiceReportAttributeUpdateContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -60247,12 +62089,28 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-order-transportation-lookups-contract",
       "cpp-tck.service-report-order-transportation-lookup-failures",
       "cpp-tck.service-report-order-transportation-lookup-failures-contract",
+      "cpp-tck.service-report-federate-object-class-lookups",
+      "cpp-tck.service-report-federate-object-class-lookups-contract",
+      "cpp-tck.service-report-federate-object-class-lookup-failures",
+      "cpp-tck.service-report-federate-object-class-lookup-failures-contract",
+      "cpp-tck.service-report-interaction-parameter-lookups",
+      "cpp-tck.service-report-interaction-parameter-lookups-contract",
+      "cpp-tck.service-report-interaction-parameter-lookup-failures",
+      "cpp-tck.service-report-interaction-parameter-lookup-failures-contract",
+      "cpp-tck.service-report-object-attribute-update-rate-lookups",
+      "cpp-tck.service-report-object-attribute-update-rate-lookups-contract",
+      "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
+      "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract",
       "cpp-tck.federation-mom-save-conditionals",
       "cpp-tck.federation-mom-save-conditionals-contract",
       "cpp-tck.joined-federate-mom-federate-state-save-restore",
-      "cpp-tck.joined-federate-mom-federate-state-save-restore-contract",
-      "cpp-tck.service-report-interaction",
-      "cpp-tck.service-report-interaction-failure",
+       "cpp-tck.joined-federate-mom-federate-state-save-restore-contract",
+       "cpp-tck.service-report-interaction",
+       "cpp-tck.service-report-receive-order-interaction",
+       "cpp-tck.service-report-receive-order-interaction-contract",
+       "cpp-tck.service-report-timestamped-directed-interaction",
+       "cpp-tck.service-report-timestamped-directed-interaction-contract",
+       "cpp-tck.service-report-interaction-failure",
       "cpp-tck.service-report-interlock",
       "cpp-tck.service-report-interlock-contract",
       "cpp-tck.service-report-synchronization",
@@ -61141,6 +62999,42 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.service-report-order-transportation-lookup-failures-contract") {
     return scenarioServiceReportOrderTransportationLookupFailuresContract;
   }
+  if (id == "cpp-tck.service-report-federate-object-class-lookups") {
+    return scenarioServiceReportFederateObjectClassLookups;
+  }
+  if (id == "cpp-tck.service-report-federate-object-class-lookups-contract") {
+    return scenarioServiceReportFederateObjectClassLookupsContract;
+  }
+  if (id == "cpp-tck.service-report-federate-object-class-lookup-failures") {
+    return scenarioServiceReportFederateObjectClassLookupFailures;
+  }
+  if (id == "cpp-tck.service-report-federate-object-class-lookup-failures-contract") {
+    return scenarioServiceReportFederateObjectClassLookupFailuresContract;
+  }
+  if (id == "cpp-tck.service-report-interaction-parameter-lookups") {
+    return scenarioServiceReportInteractionParameterLookups;
+  }
+  if (id == "cpp-tck.service-report-interaction-parameter-lookups-contract") {
+    return scenarioServiceReportInteractionParameterLookupsContract;
+  }
+  if (id == "cpp-tck.service-report-interaction-parameter-lookup-failures") {
+    return scenarioServiceReportInteractionParameterLookupFailures;
+  }
+  if (id == "cpp-tck.service-report-interaction-parameter-lookup-failures-contract") {
+    return scenarioServiceReportInteractionParameterLookupFailuresContract;
+  }
+  if (id == "cpp-tck.service-report-object-attribute-update-rate-lookups") {
+    return scenarioServiceReportObjectAttributeUpdateRateLookups;
+  }
+  if (id == "cpp-tck.service-report-object-attribute-update-rate-lookups-contract") {
+    return scenarioServiceReportObjectAttributeUpdateRateLookupsContract;
+  }
+  if (id == "cpp-tck.service-report-object-attribute-update-rate-lookup-failures") {
+    return scenarioServiceReportObjectAttributeUpdateRateLookupFailures;
+  }
+  if (id == "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract") {
+    return scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContract;
+  }
   if (id == "cpp-tck.federation-mom-save-conditionals-contract") {
     return scenarioFederationMomSaveConditionalsContract;
   }
@@ -61149,6 +63043,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.service-report-interaction") {
     return scenarioServiceReportInteraction;
+  }
+  if (id == "cpp-tck.service-report-receive-order-interaction") {
+    return scenarioServiceReportReceiveOrderInteraction;
+  }
+  if (id == "cpp-tck.service-report-receive-order-interaction-contract") {
+    return scenarioServiceReportReceiveOrderInteractionContract;
+  }
+  if (id == "cpp-tck.service-report-timestamped-directed-interaction") {
+    return scenarioServiceReportTimestampedDirectedInteraction;
+  }
+  if (id == "cpp-tck.service-report-timestamped-directed-interaction-contract") {
+    return scenarioServiceReportTimestampedDirectedInteractionContract;
   }
   if (id == "cpp-tck.service-report-interlock") {
     return scenarioServiceReportInterlock;

@@ -1098,6 +1098,200 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.service-report-receive-order-interaction",
+      "category": "mom-service-reporting",
+      "title": "Deliver a standard receive-order interaction and its HLAreportServiceInvocation through separate callbacks",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-receive-order-interaction",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "publish-interaction-class-api-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json",
+        "standard-service-report-receive-order-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportReceiveOrderInteraction",
+      "runner_id": "cpp-tck.service-report-receive-order-interaction",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-receive-order-interaction-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed receive-order interaction service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-receive-order-interaction",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-receive-order-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportReceiveOrderInteractionContract",
+      "runner_id": "cpp-tck.service-report-receive-order-interaction-contract",
+      "parity": "cpp-tck.service-report-receive-order-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-timestamped-directed-interaction",
+      "category": "mom-service-reporting",
+      "title": "Deliver a standard MOM report for a time-regulated timestamped directed interaction",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-directed-interaction-subscription",
+        "cpp-1516.1-directed-interaction-delivery",
+        "cpp-1516.1-timestamped-directed-interaction-delivery",
+        "cpp-1516.1-directed-interaction-retraction",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "directed-interaction-api-contract.json",
+        "timestamped-directed-interaction-api-contract.json",
+        "timestamped-directed-interaction-requirements-contract.json",
+        "request-retraction-api-contract.json",
+        "request-retraction-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json",
+        "standard-service-report-timestamped-directed-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDirectedInteraction",
+      "runner_id": "cpp-tck.service-report-timestamped-directed-interaction",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "candidate"
+    },
+    {
+      "id": "cpp-tck.service-report-timestamped-directed-interaction-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed timestamped directed-interaction service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-directed-interaction-subscription",
+        "cpp-1516.1-directed-interaction-delivery",
+        "cpp-1516.1-timestamped-directed-interaction-delivery",
+        "cpp-1516.1-directed-interaction-retraction",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-timestamped-directed-interaction-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDirectedInteractionContract",
+      "runner_id": "cpp-tck.service-report-timestamped-directed-interaction-contract",
+      "parity": "cpp-tck.service-report-timestamped-directed-interaction",
+      "default_status": "adapter-required",
+      "promotion": "candidate"
+    },
+    {
       "id": "cpp-tck.service-report-interaction-failure",
       "category": "mom-service-reporting",
       "title": "Deliver standard HLAreportServiceInvocation failure reports for invalid ordinary interaction services",
@@ -18682,6 +18876,456 @@
       "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookupFailuresContract",
       "runner_id": "cpp-tck.service-report-order-transportation-lookup-failures-contract",
       "parity": "cpp-tck.service-report-order-transportation-lookup-failures",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-federate-object-class-lookups",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM service reports for federate and object-class lookup return values",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federate-lookup",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookups",
+      "runner_id": "cpp-tck.service-report-federate-object-class-lookups",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-federate-object-class-lookups-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed federate and object-class lookup report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federate-lookup",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookupsContract",
+      "runner_id": "cpp-tck.service-report-federate-object-class-lookups-contract",
+      "parity": "cpp-tck.service-report-federate-object-class-lookups",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interaction-parameter-lookups",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM service reports for interaction-class and parameter lookup return values",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-interaction-lookup",
+        "cpp-1516.1-parameter-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookups",
+      "runner_id": "cpp-tck.service-report-interaction-parameter-lookups",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interaction-parameter-lookups-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed interaction-class and parameter lookup report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-interaction-lookup",
+        "cpp-1516.1-parameter-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookupsContract",
+      "runner_id": "cpp-tck.service-report-interaction-parameter-lookups-contract",
+      "parity": "cpp-tck.service-report-interaction-parameter-lookups",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-object-attribute-update-rate-lookups",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM service reports for object, attribute, and update-rate lookup return values",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.getUpdateRateValueForAttribute",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-attribute-lookup",
+        "cpp-1516.1-update-rate-value",
+        "cpp-1516.1-update-rate-value-for-attribute",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "update-rate-value-api-contract.json",
+        "update-rate-value-requirements-contract.json",
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookups",
+      "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookups",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-object-attribute-update-rate-lookups-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed object, attribute, and update-rate lookup report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.getUpdateRateValueForAttribute",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-attribute-lookup",
+        "cpp-1516.1-update-rate-value",
+        "cpp-1516.1-update-rate-value-for-attribute",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupsContract",
+      "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookups-contract",
+      "parity": "cpp-tck.service-report-object-attribute-update-rate-lookups",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-federate-object-class-lookup-failures",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM failure reports for invalid federate and object-class lookups",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federate-lookup",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookupFailures",
+      "runner_id": "cpp-tck.service-report-federate-object-class-lookup-failures",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-federate-object-class-lookup-failures-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed federate and object-class lookup failure contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-federate-lookup",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookupFailuresContract",
+      "runner_id": "cpp-tck.service-report-federate-object-class-lookup-failures-contract",
+      "parity": "cpp-tck.service-report-federate-object-class-lookup-failures",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interaction-parameter-lookup-failures",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM failure reports for invalid interaction-class and parameter lookups",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-interaction-lookup",
+        "cpp-1516.1-parameter-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookupFailures",
+      "runner_id": "cpp-tck.service-report-interaction-parameter-lookup-failures",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interaction-parameter-lookup-failures-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed interaction-class and parameter lookup failure contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-interaction-lookup",
+        "cpp-1516.1-parameter-lookup",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookupFailuresContract",
+      "runner_id": "cpp-tck.service-report-interaction-parameter-lookup-failures-contract",
+      "parity": "cpp-tck.service-report-interaction-parameter-lookup-failures",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
+      "category": "mom-service-reporting",
+      "title": "Deliver standard MOM failure reports for invalid object, attribute, and update-rate lookups",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.getUpdateRateValueForAttribute",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-attribute-lookup",
+        "cpp-1516.1-update-rate-value",
+        "cpp-1516.1-update-rate-value-for-attribute",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupFailures",
+      "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed object, attribute, and update-rate lookup failure contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.getUpdateRateValueForAttribute",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-attribute-lookup",
+        "cpp-1516.1-update-rate-value",
+        "cpp-1516.1-update-rate-value-for-attribute",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-lookup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContract",
+      "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract",
+      "parity": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
       "default_status": "adapter-required",
       "promotion": "promoted"
     }

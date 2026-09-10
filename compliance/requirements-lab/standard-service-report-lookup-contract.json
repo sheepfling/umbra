@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records portable C++ TCK checks for standard HLAreportServiceInvocation delivery when public federate, object-class, interaction-class, parameter, object-instance, attribute, and update-rate lookup services are invoked with both valid and invalid inputs. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, application FOM, standard MIM, endpoint, callback model, and logical-time configuration. It verifies typed supplied and returned argument records, service classification, reliable delivery metadata, success and failure state, standard exception classes, Null returns, and serial progression. Provider-private headers, registries, file sinks, names, and diagnostics are outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-lookup-matrix",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador public lookup services and FederateAmbassador HLAreportServiceInvocation delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador lookup declarations and standard MIM service-report interaction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportFederateObjectClassLookupsContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportInteractionParameterLookupsContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportObjectAttributeUpdateRateLookupsContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportFederateObjectClassLookupFailuresContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportInteractionParameterLookupFailuresContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContract"
+      ]
+    }
+  ]
+}

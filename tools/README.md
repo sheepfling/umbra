@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 443 promoted scenario IDs (886 callback-model cases).
-`--scenario-set all` currently configures the same 443 available IDs (886
+The verified lane is 457 promoted scenario IDs (914 callback-model cases).
+`--scenario-set all` currently configures the same 457 available IDs (914
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -359,6 +359,29 @@ The promoted
 add the corresponding typed failure reports, provider-neutral invalid inputs,
 standard exception classes, null return arguments, and serial progression.
 Their focused four-case lane passed 4/4 callback-model cases.
+The promoted
+`cpp-tck.service-report-federate-object-class-lookups`,
+`cpp-tck.service-report-interaction-parameter-lookups`, and
+`cpp-tck.service-report-object-attribute-update-rate-lookups` runners, together
+with their contract twins, add standard MOM reports for the remaining public
+lookup services. Their focused six-scenario lane passed 12/12 callback-model
+cases using only the official IEEE C++ API, standard MIM data elements, and the
+standard library.
+The matching promoted lookup-failure runners cover invalid federate,
+object-class, interaction-class, parameter, object-instance, attribute, and
+update-rate inputs. Their focused six-scenario lane passed 12/12 callback-model
+cases and verifies standard exception classes, typed Null returns, recovery, and
+serial progression.
+The promoted
+`cpp-tck.service-report-receive-order-interaction` and
+`cpp-tck.service-report-receive-order-interaction-contract` runners pair the
+standard MOM `HLAreportServiceInvocation` for `SendInteraction` with the
+ordinary receive-order application callback. Their focused four-case lane
+passed 4/4 callback-model cases in
+`.build\\cpp-tck-next-receive-order-interaction\\receive-order-interaction.json`;
+evoked mode required callback servicing and immediate mode delivered both
+callbacks synchronously. The source uses only the official IEEE C++ API,
+standard MIM data elements, and the standard library.
 The promoted
 `cpp-tck.service-report-regional-interaction-contract` and
 `cpp-tck.service-report-regional-interaction-subscription-contract` runners add
@@ -838,6 +861,12 @@ the standard MOM `HLAreportServiceInvocation` interaction using an
 adapter-supplied standard MIM. The adjacent promoted
 `cpp-tck.service-report-attribute-update` scenario verifies the same standard
 reporting contract for an ordinary `UpdateAttributeValues` service. The
+promoted `cpp-tck.service-report-receive-order-interaction` and
+`cpp-tck.service-report-receive-order-interaction-contract` runners add an
+independent ordinary receiver alongside the standard MOM report. Their focused
+four-case installed-package lane passed 4/4 across `HLA_EVOKED` and
+`HLA_IMMEDIATE`, verifying callback timing, typed report payloads, and ordinary
+application metadata with only adapter-supplied FOM/MIM inputs. The
 promoted `cpp-tck.service-report-request-attribute-value-update` scenario
 verifies both standard `RequestAttributeValueUpdate` overloads, their MOM
 report serial progression, and the corresponding provider callbacks. The

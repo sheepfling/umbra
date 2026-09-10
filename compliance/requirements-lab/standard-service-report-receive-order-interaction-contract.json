@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check that a successful receive-order SendInteraction is delivered as an ordinary application callback while the enabled publisher also produces the standard HLAreportServiceInvocation MOM interaction. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, callback model, and logical-time configuration. It verifies callback-model timing, standard report metadata, typed supplied and returned arguments, service classification, reliable transportation, serial progression, and ordinary application delivery. Provider-private headers, registries, file sinks, names, and diagnostics are outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-receive-order-interaction",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador service-reporting controls and receive-order SendInteraction delivery with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador SendInteraction declarations and standard MIM service-report interaction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportReceiveOrderInteractionContract"
+      ]
+    }
+  ]
+}

@@ -64,13 +64,27 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.service-report-order-transportation-lookups-contract` | Standard adapter-backed order/transportation lookup service-report contract using the official MIM and public APIs |
  | `cpp-tck.service-report-order-transportation-lookup-failures` | Standard MOM failure reports for invalid order and transportation lookups, including typed null returns, exception classes, and serial progression |
  | `cpp-tck.service-report-order-transportation-lookup-failures-contract` | Standard adapter-backed order/transportation lookup failure-report contract using provider-neutral invalid inputs |
+ | `cpp-tck.service-report-federate-object-class-lookups` | Standard MOM service reports for federate and object-class lookup return values, typed arguments, reliable metadata, and serial progression |
+ | `cpp-tck.service-report-federate-object-class-lookups-contract` | Standard adapter-backed federate/object-class lookup service-report contract using the official MIM and public APIs |
+ | `cpp-tck.service-report-interaction-parameter-lookups` | Standard MOM service reports for interaction-class and parameter lookup return values, typed arguments, reliable metadata, and serial progression |
+ | `cpp-tck.service-report-interaction-parameter-lookups-contract` | Standard adapter-backed interaction/parameter lookup service-report contract using the official MIM and public APIs |
+ | `cpp-tck.service-report-object-attribute-update-rate-lookups` | Standard MOM service reports for object, attribute, and update-rate lookup return values, typed arguments, reliable metadata, and serial progression |
+ | `cpp-tck.service-report-object-attribute-update-rate-lookups-contract` | Standard adapter-backed object/attribute/update-rate lookup service-report contract using the official MIM and public APIs |
+ | `cpp-tck.service-report-federate-object-class-lookup-failures` | Standard MOM failure reports for invalid federate and object-class lookups, including typed Null returns, exception classes, recovery, and serial progression |
+ | `cpp-tck.service-report-federate-object-class-lookup-failures-contract` | Standard adapter-backed federate/object-class lookup failure-report contract using provider-neutral invalid inputs |
+ | `cpp-tck.service-report-interaction-parameter-lookup-failures` | Standard MOM failure reports for invalid interaction-class and parameter lookups, including typed Null returns, exception classes, recovery, and serial progression |
+ | `cpp-tck.service-report-interaction-parameter-lookup-failures-contract` | Standard adapter-backed interaction/parameter lookup failure-report contract using provider-neutral invalid inputs |
+ | `cpp-tck.service-report-object-attribute-update-rate-lookup-failures` | Standard MOM failure reports for invalid object, attribute, and update-rate lookups, including typed Null returns, exception classes, recovery, and serial progression |
+ | `cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract` | Standard adapter-backed object/attribute/update-rate lookup failure-report contract using provider-neutral invalid inputs |
  | `cpp-tck.federation-mom-save-conditionals-contract` | Pure standard C++ contract for federation MOM save-conditionals, timed save initiation/completion, and adapter-supplied logical-time/MIM inputs |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
 | `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
- | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
- | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
- | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
- | `cpp-tck.service-report-interlock` | Standard MOM service-reporting switch and HLAreportServiceInvocation active/passive subscription interlocks, including recovery after unsubscribe |
+  | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
+  | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
+  | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
+  | `cpp-tck.service-report-receive-order-interaction` | Standard MOM service report paired with ordinary receive-order interaction delivery, including callback-model timing and application metadata |
+  | `cpp-tck.service-report-receive-order-interaction-contract` | Standard adapter-backed receive-order interaction service-report contract using the official MIM and separate application/report callbacks |
+  | `cpp-tck.service-report-interlock` | Standard MOM service-reporting switch and HLAreportServiceInvocation active/passive subscription interlocks, including recovery after unsubscribe |
  | `cpp-tck.service-report-interlock-contract` | Standard adapter-backed service-reporting interlock contract using the official MIM and public switch/subscription APIs |
  | `cpp-tck.service-report-synchronization` | Standard MOM service reports for synchronization-point registration, confirmation, announcement, achievement, and completion callbacks |
 | `cpp-tck.service-report-synchronization-contract` | Standard adapter-backed synchronization service-report contract using the official MIM and synchronization callbacks |
@@ -1025,8 +1039,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-     that is 443 scenario IDs and 886 matrix cases. `--scenario-set all` currently
-      configures the same 443 available IDs (886 cases); there are no unpromoted
+      that is 457 scenario IDs and 914 matrix cases. `--scenario-set all` currently
+       configures the same 457 available IDs (914 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1532,6 +1546,11 @@ callback models; provider-specific MOM headers and registry surfaces are not
 required. The adjacent promoted `cpp-tck.service-report-attribute-update`
 scenario verifies the same standard report contract for an ordinary
 `UpdateAttributeValues` service.
+The promoted `cpp-tck.service-report-receive-order-interaction` scenario and
+its contract twin extend that route with an independent ordinary receiver. The
+focused installed-package lane passed 4/4 cases across `HLA_EVOKED` and
+`HLA_IMMEDIATE`, verifying callback timing, standard MOM report payloads, and
+application interaction metadata with only adapter-supplied FOM/MIM inputs.
 The promoted `cpp-tck.service-report-timestamped-interaction` scenario verifies
 the successful standard MOM report for a timestamped `SendInteraction` call and
 independently checks constrained delivery, logical-time grant ordering,
