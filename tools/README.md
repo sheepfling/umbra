@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 459 promoted scenario IDs (918 callback-model cases).
-`--scenario-set all` currently configures the same 459 available IDs (918
+The verified lane is 461 promoted scenario IDs (922 callback-model cases).
+`--scenario-set all` currently configures the same 461 available IDs (922
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -389,8 +389,18 @@ passed 4/4 callback-model cases in
   `.build\\cpp-tck-debug\\timestamped-directed-service-report.json` and its
   contract twin artifact, verifying typed MOM arguments, retraction identity,
   target routing, and callback-before-grant ordering with a five-epsilon
-  lookahead using only the official IEEE C++ API, standard MIM data elements,
-  and the standard library.
+   lookahead using only the official IEEE C++ API, standard MIM data elements,
+   and the standard library.
+The promoted
+`cpp-tck.service-report-timestamped-attribute-update` and
+`cpp-tck.service-report-timestamped-attribute-update-contract` runners extend
+that boundary to time-regulated timestamped `UpdateAttributeValues`. Their
+focused installed-package lane passed 4/4 callback-model cases in
+`.build\\cpp-tck-timestamped-attribute-report\\timestamped-attribute-service-report.json`,
+verifying typed MOM supplied and returned arguments, the optional timestamp,
+retraction identity, timestamped reflection metadata, and reflection-before-
+grant ordering using only the official IEEE C++ API, standard MIM data
+elements, and the standard library.
 The promoted
 `cpp-tck.service-report-regional-interaction-contract` and
 `cpp-tck.service-report-regional-interaction-subscription-contract` runners add

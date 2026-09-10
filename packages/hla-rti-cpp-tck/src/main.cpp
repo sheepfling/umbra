@@ -20965,6 +20965,368 @@ void scenarioServiceReportTimestampedDirectedInteractionContract(
   scenarioServiceReportTimestampedDirectedInteraction(options, model);
 }
 
+void scenarioServiceReportTimestampedAttributeUpdate(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Timestamped attribute-update service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Timestamped attribute-update service-report testing requires an adapter-supplied standard MIM");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Timestamped attribute-update service-report testing requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "service-report-timestamped-attribute-publisher");
+  Session receiver(options, model, "service-report-timestamped-attribute-receiver");
+  Session observer(options, model, "service-report-timestamped-attribute-observer");
+  auto const federation = federationName(options, "service-report-timestamped-attribute-update");
+  publisher.connect();
+  receiver.connect();
+  observer.connect();
+  publisher.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(
+      options.ownerFederateName + L"-service-report-timestamped-attribute-publisher",
+      options.federateType,
+      federation);
+  receiver.join(
+      options.memberFederateName + L"-service-report-timestamped-attribute-receiver",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-timestamped-attribute-observer",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid(),
+      "Timestamped attribute-update service-report lookup returned an invalid handle");
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Timestamped attribute-update service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Timestamped attribute-update service-report parameter lookup returned an invalid handle");
+    reportParameters.push_back(parameter);
+  }
+  auto const observerReliable =
+      observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  auto const receiverReliable =
+      receiver.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  require(
+      observerReliable.isValid() && receiverReliable.isValid(),
+      "Timestamped attribute-update service-report lookup returned an invalid reliable transportation handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherClass,
+      publisherAttributes,
+      rti::TIMESTAMP);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "Timestamped attribute-update service-report registration returned an invalid object handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "timestamped attribute-update service-report object discovery");
+
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  receiver.rtiAmbassador().setServiceReportingSwitch(false);
+  receiver.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.recorder().clearInteraction();
+  receiver.recorder().clearTimedReflections();
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Timestamped attribute-update service-report members selected different logical-time factories");
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "timestamped attribute-update service-report time-constrained callback");
+  auto const lookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(
+      lookahead != nullptr,
+      "Timestamped attribute-update service-report could not allocate a lookahead interval");
+  lookahead->setToDifference(*lookaheadTime, *publisherTime.initial);
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "timestamped attribute-update service-report time-regulation callback");
+
+  auto const timestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const valueBytes{0x01U, 0x02U};
+  std::vector<std::uint8_t> const tagBytes{'t', 's', 'o'};
+  rti::VariableLengthData const value(valueBytes.data(), valueBytes.size());
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  rti::AttributeHandleValueMap const values{{publisherAttribute, value}};
+  publisher.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const retraction = publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      values,
+      tag,
+      *timestamp);
+  require(
+      retraction.isValid(),
+      "Timestamped attribute-update service-report update returned an invalid retraction handle");
+
+  if (model == rti::HLA_IMMEDIATE) {
+    require(
+        observer.recorder().interactions().size() == 1U,
+        "Immediate timestamped attribute-update service report was not delivered synchronously");
+  } else {
+    require(
+        observer.recorder().interactions().empty(),
+        "Evoked timestamped attribute-update service report was delivered before callback servicing");
+    waitFor(
+        observer,
+        [&] { return observer.recorder().interactions().size() == 1U; },
+        options,
+        "timestamped attribute-update service-report callback");
+  }
+  require(
+      receiver.recorder().timedReflections().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "Timestamped attribute update was delivered before its time advance");
+
+  auto const report = observer.recorder().interactions().at(0U);
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          report.tag.empty() && !report.producer.isValid() &&
+          !report.regions.has_value() && report.transportation == observerReliable,
+      "Timestamped attribute-update service report returned non-standard metadata");
+  for (auto const& parameter : reportParameters) {
+    require(
+        report.parameters.count(parameter) == 1U,
+        "Timestamped attribute-update service report omitted a standard parameter");
+  }
+
+  rti::HLAunicodeString decodedService;
+  decodedService.decode(report.parameters.at(reportParameters.at(0U)));
+  require(
+      decodedService.get() == L"UpdateAttributeValues",
+      "Timestamped attribute-update service report returned the wrong service name");
+  rti::HLAinteger16BE decodedServiceType;
+  decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
+  require(
+      decodedServiceType.get() == 2,
+      "Timestamped attribute-update service report returned the wrong service type");
+  rti::HLAboolean decodedSuccess;
+  decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
+  require(
+      decodedSuccess.get(),
+      "Timestamped attribute-update service report was not successful");
+
+  auto const quoted = [](std::wstring const& valueText) {
+    return std::wstring{L"\""} + valueText + L"\"";
+  };
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 4U,
+      "Timestamped attribute-update service report returned the wrong supplied-argument count");
+  auto const verifyArgument = [&](std::size_t index,
+                                  rti::Integer32 type,
+                                  std::wstring const& name,
+                                  std::wstring const& valueText) {
+    auto const& argument = dynamic_cast<rti::HLAfixedRecord const&>(
+        suppliedArguments.get(index));
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(argument.get(0U)).get() == type &&
+            dynamic_cast<rti::HLAunicodeString const&>(argument.get(1U)).get() == name &&
+            dynamic_cast<rti::HLAunicodeString const&>(argument.get(2U)).get() == valueText,
+        "Timestamped attribute-update service report returned a wrong supplied argument");
+  };
+  verifyArgument(
+      0U,
+      37,
+      L"Object instance designator",
+      quoted(object.toString()));
+  verifyArgument(
+      1U,
+      2,
+      L"Constrained set of attribute designator and value pairs",
+      std::wstring{L"{"} + quoted(publisherAttribute.toString()) + L":\"AQI=\"}");
+  verifyArgument(2U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(
+      3U,
+      31,
+      L"Optional timestamp",
+      quoted(timestamp->toString()));
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 33 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get() ==
+              L"Message retraction designator",
+      "Timestamped attribute-update service report returned the wrong retraction argument");
+  auto const retractionText = retraction.toString();
+  auto const retractionOpen = retractionText.find(L'(');
+  auto const retractionClose = retractionText.find(L')');
+  require(
+      retractionOpen != std::wstring::npos &&
+          retractionClose > retractionOpen + 1U,
+      "Timestamped attribute-update retraction had no standard text payload");
+  auto const momRetraction = dynamic_cast<rti::HLAunicodeString const&>(
+      returnedArgument.get(2U)).get();
+  constexpr std::wstring_view momRetractionPrefix = L"\"MessageRetractionHandle<";
+  require(
+      momRetraction.rfind(std::wstring{momRetractionPrefix}, 0U) == 0U &&
+          momRetraction.size() > momRetractionPrefix.size() + 1U &&
+          momRetraction[momRetraction.size() - 2U] == L'>' &&
+          momRetraction.back() == L'\"' &&
+          momRetraction.substr(
+              momRetractionPrefix.size(),
+              momRetraction.size() - momRetractionPrefix.size() - 2U) ==
+              retractionText.substr(
+                  retractionOpen + 1U,
+                  retractionClose - retractionOpen - 1U),
+      "Timestamped attribute-update service report returned a mismatched retraction handle");
+  rti::HLAunicodeString decodedException;
+  decodedException.decode(report.parameters.at(reportParameters.at(5U)));
+  require(
+      decodedException.get().empty(),
+      "Successful timestamped attribute-update service report carried an exception");
+  rti::HLAinteger32BE decodedSerial;
+  decodedSerial.decode(report.parameters.at(reportParameters.at(6U)));
+  require(
+      decodedSerial.get() == 0,
+      "Timestamped attribute-update service report did not start at serial zero");
+
+  receiver.recorder().clearCallbackOrder();
+  publisher.recorder().clearCallbackOrder();
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  receiver.rtiAmbassador().timeAdvanceRequest(*timestamp);
+  require(
+      receiver.recorder().timedReflections().empty(),
+      "Timestamped attribute update was delivered before the regulating federate advanced");
+  auto const publisherAdvance = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAdvance);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timedReflections().size() == 1U;
+      },
+      options,
+      "timestamped attribute-update service-report delivery and grants");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"reflect", "grant"},
+      "Timestamped attribute-update service report route delivered after its grant");
+
+  auto const reflection = receiver.recorder().timedReflections().at(0U);
+  require(
+      reflection.object == object &&
+          reflection.values.size() == 1U &&
+          reflection.values.count(receiverAttribute) == 1U &&
+          copyBytes(reflection.values.at(receiverAttribute)) == valueBytes &&
+          reflection.tag == tagBytes &&
+          reflection.transportation == receiverReliable &&
+          reflection.producer == publisher.federateHandle() &&
+          reflection.time == encodeTime(*timestamp) &&
+          reflection.timeText == timestamp->toString() &&
+          reflection.sentOrder == rti::TIMESTAMP &&
+          reflection.receivedOrder == rti::TIMESTAMP &&
+          reflection.retractionPresent &&
+          reflection.retraction == copyBytes(retraction.encode()) &&
+          !reflection.regions.has_value(),
+      "Timestamped attribute-update reflection returned non-standard data");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  receiver.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioServiceReportTimestampedAttributeUpdateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedAttributeUpdate(options, model);
+}
+
 void scenarioServiceReportInterlock(
     Options const& options,
     rti::CallbackModel model) {
@@ -62133,6 +62495,8 @@ std::vector<std::string> allScenarioIds() {
        "cpp-tck.service-report-receive-order-interaction-contract",
        "cpp-tck.service-report-timestamped-directed-interaction",
        "cpp-tck.service-report-timestamped-directed-interaction-contract",
+       "cpp-tck.service-report-timestamped-attribute-update",
+       "cpp-tck.service-report-timestamped-attribute-update-contract",
        "cpp-tck.service-report-interaction-failure",
       "cpp-tck.service-report-interlock",
       "cpp-tck.service-report-interlock-contract",
@@ -63078,6 +63442,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.service-report-timestamped-directed-interaction-contract") {
     return scenarioServiceReportTimestampedDirectedInteractionContract;
+  }
+  if (id == "cpp-tck.service-report-timestamped-attribute-update") {
+    return scenarioServiceReportTimestampedAttributeUpdate;
+  }
+  if (id == "cpp-tck.service-report-timestamped-attribute-update-contract") {
+    return scenarioServiceReportTimestampedAttributeUpdateContract;
   }
   if (id == "cpp-tck.service-report-interlock") {
     return scenarioServiceReportInterlock;
