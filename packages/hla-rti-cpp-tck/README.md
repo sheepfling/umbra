@@ -466,6 +466,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-additional-module-join-atomicity-contract` | Standard adapter-backed atomic additional-FOM join rejection contract |
 | `cpp-tck.fom-invalid-create-atomicity` | Reject invalid single-module FOM creates without reserving the federation name, then recover through a valid lifecycle |
 | `cpp-tck.fom-invalid-create-atomicity-contract` | Standard adapter-backed invalid-FOM create atomicity contract |
+| `cpp-tck.fom-invalid-composite-join-atomicity` | Reject mixed valid and invalid additional FOM modules atomically, then recover through a valid follow-up join |
+| `cpp-tck.fom-invalid-composite-join-atomicity-contract` | Standard adapter-backed mixed additional-FOM join atomicity contract |
 | `cpp-tck.connection-loss-cleanup` | Adapter-triggered Connection Lost callback, fault description, survivor service, and cleanup |
 
 The shared ordinary-service cases reuse the Java TCK scenario IDs. The
@@ -1049,8 +1051,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-      that is 467 scenario IDs and 934 matrix cases. `--scenario-set all` currently
-       configures the same 467 available IDs (934 cases); there are no unpromoted
+      that is 469 scenario IDs and 938 matrix cases. `--scenario-set all` currently
+       configures the same 469 available IDs (938 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1105,6 +1107,12 @@ twin reject every adapter-supplied invalid single-module create, then reuse the
 same federation name for a valid create/join/lookup/resign/destroy lifecycle.
 Its focused installed-package lane passed 4/4 callback-model cases using only
 the official C++ API and standard library.
+
+The promoted `cpp-tck.fom-invalid-composite-join-atomicity` scenario and its
+contract twin reject a mixed valid-plus-invalid additional-FOM join atomically,
+verify no membership or declaration mutation, and complete a valid follow-up
+join with shared handles. Its focused installed-package CTest lane passed 4/4
+callback-model cases using only the official C++ API and standard library.
 
 The promoted `cpp-tck.explicit-mim-creation-contract` and
 `cpp-tck.federation-mom-current-fdd-contract` runners expose the standard MIM

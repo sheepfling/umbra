@@ -19437,6 +19437,100 @@ void scenarioFomInvalidCreateAtomicity(
   creator.disconnect();
 }
 
+void scenarioFomInvalidCompositeJoinAtomicity(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Composite additional-FOM join testing requires an adapter-supplied base FOM");
+  require(
+      !options.additionalFomModules.empty(),
+      "Composite additional-FOM join testing requires an adapter-supplied valid FOM");
+  require(
+      !options.invalidFomModules.empty(),
+      "Composite additional-FOM join testing requires adapter-supplied invalid FOM modules");
+
+  Session owner(options, model, "owner");
+  Session member(options, model, "member");
+  auto const federation = federationName(options, "fom-invalid-composite-join-atomicity");
+  owner.connect();
+  member.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const extensionClassName = L"HLAobjectRoot.TckExtensionObject";
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+            extensionClassName));
+      },
+      L"NameNotFound",
+      "looking up the extension class before a composite additional-module join");
+
+  auto const invalidFomErrors = std::vector<std::wstring>{
+      L"CouldNotOpenFOM",
+      L"ErrorReadingFOM",
+      L"InvalidFOM",
+      L"InconsistentFOM"};
+  auto const validModules = fomModuleNames(options.additionalFomModules);
+  for (auto const& invalid : options.invalidFomModules) {
+    auto compositeModules = validModules;
+    compositeModules.push_back(invalid.wstring());
+    requireExceptionOneOf(
+        [&] {
+          member.join(
+              options.memberFederateName,
+              options.federateType,
+              federation,
+              compositeModules);
+        },
+        invalidFomErrors,
+        "joining with valid and invalid additional FOM modules " + invalid.string());
+    requireException(
+        [&] {
+          static_cast<void>(owner.rtiAmbassador().getFederateHandle(
+              options.memberFederateName));
+        },
+        L"NameNotFound",
+        "looking up a member after rejected composite additional-module join");
+    requireException(
+        [&] {
+          static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+              extensionClassName));
+        },
+        L"NameNotFound",
+        "looking up the extension class after rejected composite additional-module join");
+  }
+
+  member.join(
+      options.memberFederateName,
+      options.federateType,
+      federation,
+      validModules);
+  auto const ownerExtensionClass = owner.rtiAmbassador().getObjectClassHandle(
+      extensionClassName);
+  require(
+      ownerExtensionClass.isValid() &&
+          member.rtiAmbassador().getObjectClassHandle(extensionClassName) ==
+              ownerExtensionClass,
+      "valid follow-up additional-module join did not compose one shared extension class");
+  require(
+      owner.rtiAmbassador().getObjectClassName(ownerExtensionClass) ==
+          extensionClassName &&
+          owner.rtiAmbassador().getFederateHandle(options.memberFederateName) ==
+              member.federateHandle(),
+      "valid follow-up additional-module join did not preserve standard lookups");
+
+  member.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
 void scenarioFomEmptyModuleValidation(
     Options const& options,
     rti::CallbackModel model) {
@@ -62761,6 +62855,12 @@ void scenarioFomInvalidCreateAtomicityContract(
   scenarioFomInvalidCreateAtomicity(options, model);
 }
 
+void scenarioFomInvalidCompositeJoinAtomicityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFomInvalidCompositeJoinAtomicity(options, model);
+}
+
 void scenarioFomEmptyModuleValidationContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -62933,6 +63033,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-module-composition-contract",
       "cpp-tck.fom-additional-module-join-atomicity-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
+      "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-empty-module-validation-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
@@ -63362,6 +63463,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-module-composition",
       "cpp-tck.fom-additional-module-join-atomicity",
       "cpp-tck.fom-invalid-create-atomicity",
+      "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-empty-module-validation",
       "cpp-tck.connection-loss-cleanup",
   };
@@ -63759,6 +63861,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
     return scenarioFomInvalidCreateAtomicityContract;
+  }
+  if (id == "cpp-tck.fom-invalid-composite-join-atomicity-contract") {
+    return scenarioFomInvalidCompositeJoinAtomicityContract;
   }
   if (id == "cpp-tck.fom-empty-module-validation-contract") {
     return scenarioFomEmptyModuleValidationContract;
@@ -65004,6 +65109,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-invalid-create-atomicity") {
     return scenarioFomInvalidCreateAtomicity;
   }
+  if (id == "cpp-tck.fom-invalid-composite-join-atomicity") {
+    return scenarioFomInvalidCompositeJoinAtomicity;
+  }
   if (id == "cpp-tck.fom-empty-module-validation") {
     return scenarioFomEmptyModuleValidation;
   }
@@ -65183,6 +65291,13 @@ int run(Options const& options) {
                  options.invalidFomModules.empty()) {
         result.status = "skipped";
         result.message = "requires adapter-supplied invalid FOM modules";
+      } else if ((scenario == "cpp-tck.fom-invalid-composite-join-atomicity" ||
+                  scenario == "cpp-tck.fom-invalid-composite-join-atomicity-contract") &&
+                 (options.additionalFomModules.empty() ||
+                  options.invalidFomModules.empty())) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied valid and invalid additional FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&
