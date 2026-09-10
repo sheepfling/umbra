@@ -58484,6 +58484,205 @@ void scenarioCallbackControlsTransportationContract(
   scenarioCallbackControlsTransportation(options, model);
 }
 
+void scenarioCallbackControlsDirectedInteraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "owner");
+  Session target(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-directed-interaction");
+  connectAndJoin(publisher, target, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const targetClass = target.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const targetAttribute = target.rtiAmbassador().getAttributeHandle(
+      targetClass,
+      options.attributeName);
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const targetInteraction = target.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const targetParameter = target.rtiAmbassador().getParameterHandle(
+      targetInteraction,
+      options.parameterName);
+  require(
+      publisherClass.isValid() && targetClass.isValid() &&
+          publisherAttribute.isValid() && targetAttribute.isValid() &&
+          publisherInteraction.isValid() && targetInteraction.isValid() &&
+          publisherParameter.isValid() && targetParameter.isValid() &&
+          publisherClass == targetClass &&
+          publisherAttribute == targetAttribute &&
+          publisherInteraction == targetInteraction &&
+          publisherParameter == targetParameter,
+      "callback-control directed-interaction lookup returned mismatched handles");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const targetAttributes{targetAttribute};
+  rti::InteractionClassHandleSet const directedInteractions{publisherInteraction};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  target.rtiAmbassador().publishObjectClassAttributes(
+      targetClass,
+      targetAttributes);
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      publisherClass,
+      publisherAttributes,
+      true,
+      L"");
+  target.rtiAmbassador().subscribeObjectClassAttributes(
+      targetClass,
+      targetAttributes,
+      true,
+      L"");
+  publisher.rtiAmbassador().publishObjectClassDirectedInteractions(
+      publisherClass,
+      directedInteractions);
+  target.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      targetClass,
+      rti::InteractionClassHandleSet{targetInteraction},
+      false);
+
+  auto const targetObject = target.rtiAmbassador().registerObjectInstance(targetClass);
+  require(
+      targetObject.isValid(),
+      "callback-control directed-interaction registration returned an invalid object");
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().hasDiscovery(targetObject); },
+      options,
+      "callback-control directed-interaction target discovery");
+
+  auto assertDirected = [&](DirectedInteractionRecord const& received,
+                            std::vector<std::uint8_t> const& expectedValue,
+                            std::vector<std::uint8_t> const& expectedTag,
+                            std::string const& description) {
+    require(
+        received.interaction == targetInteraction &&
+            received.object == targetObject &&
+            received.parameters.size() == 1U &&
+            received.parameters.count(targetParameter) == 1U &&
+            copyBytes(received.parameters.at(targetParameter)) == expectedValue &&
+            received.tag == expectedTag &&
+            received.transportation.isValid() &&
+            target.rtiAmbassador().getTransportationTypeName(
+                received.transportation) == L"HLAreliable" &&
+            received.producer == publisher.federateHandle(),
+        description + " returned the wrong metadata");
+  };
+
+  std::vector<std::uint8_t> const firstValue{0x44U, 0x49U, 0x31U};
+  std::vector<std::uint8_t> const firstTag{0x44U, 0x54U, 0x31U};
+  rti::ParameterHandleValueMap firstParameters;
+  firstParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(firstValue.data(), firstValue.size()));
+  rti::VariableLengthData firstTagData(firstTag.data(), firstTag.size());
+  publisher.rtiAmbassador().sendDirectedInteraction(
+      publisherInteraction,
+      targetObject,
+      firstParameters,
+      firstTagData);
+  waitFor(
+      target,
+      [&] { return target.recorder().directedInteractions().size() == 1U; },
+      options,
+      "baseline callback-control directed interaction");
+  auto const baseline = target.recorder().directedInteractions();
+  require(
+      baseline.size() == 1U,
+      "baseline callback-control directed interaction delivered duplicates");
+  assertDirected(
+      baseline.front(),
+      firstValue,
+      firstTag,
+      "baseline callback-control directed interaction");
+
+  target.rtiAmbassador().disableCallbacks();
+  std::vector<std::uint8_t> const secondValue{0x44U, 0x49U, 0x32U};
+  std::vector<std::uint8_t> const secondTag{0x44U, 0x54U, 0x32U};
+  rti::ParameterHandleValueMap secondParameters;
+  secondParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(secondValue.data(), secondValue.size()));
+  rti::VariableLengthData secondTagData(secondTag.data(), secondTag.size());
+  publisher.rtiAmbassador().sendDirectedInteraction(
+      publisherInteraction,
+      targetObject,
+      secondParameters,
+      secondTagData);
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(target.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(target.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      target.recorder().directedInteractions().size() == 1U,
+      "disabled callbacks exposed a directed-interaction callback");
+
+  target.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(target.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(target.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      target,
+      [&] { return target.recorder().directedInteractions().size() == 2U; },
+      options,
+      "re-enabled callback-control directed interaction");
+  auto const released = target.recorder().directedInteractions();
+  require(
+      released.size() == 2U,
+      "re-enabled callback-control directed interaction delivered duplicates");
+  assertDirected(
+      released.back(),
+      secondValue,
+      secondTag,
+      "re-enabled callback-control directed interaction");
+
+  target.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      targetClass,
+      rti::InteractionClassHandleSet{targetInteraction});
+  publisher.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      publisherClass,
+      directedInteractions);
+  target.rtiAmbassador().unsubscribeObjectClassAttributes(
+      targetClass,
+      targetAttributes);
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  target.rtiAmbassador().unpublishObjectClassAttributes(
+      targetClass,
+      targetAttributes);
+  target.resign(rti::DELETE_OBJECTS);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  target.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsDirectedInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsDirectedInteraction(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -67123,6 +67322,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-timestamped-retraction-contract",
       "cpp-tck.callback-controls-transportation",
       "cpp-tck.callback-controls-transportation-contract",
+      "cpp-tck.callback-controls-directed-interaction",
+      "cpp-tck.callback-controls-directed-interaction-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -68772,6 +68973,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-transportation-contract") {
     return scenarioCallbackControlsTransportationContract;
+  }
+  if (id == "cpp-tck.callback-controls-directed-interaction") {
+    return scenarioCallbackControlsDirectedInteraction;
+  }
+  if (id == "cpp-tck.callback-controls-directed-interaction-contract") {
+    return scenarioCallbackControlsDirectedInteractionContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;

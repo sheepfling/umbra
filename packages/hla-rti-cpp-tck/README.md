@@ -432,6 +432,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-timestamped-retraction-contract` | Standard adapter-backed callback-control contract for timestamped interaction retraction and exact handle delivery |
 | `cpp-tck.callback-controls-transportation` | Callback disable/enable gating around standard attribute and interaction transportation reports and confirmations under both callback models |
 | `cpp-tck.callback-controls-transportation-contract` | Standard adapter-backed callback-control contract for transportation reports, confirmations, and committed state |
+| `cpp-tck.callback-controls-directed-interaction` | Callback disable/enable gating around standard directed-interaction delivery, target routing, and exact callback metadata under both callback models |
+| `cpp-tck.callback-controls-directed-interaction-contract` | Standard adapter-backed callback-control contract for directed-interaction target routing, metadata, suppression, release, and cleanup |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
@@ -1191,6 +1193,14 @@ servicing, and federation cleanup. Its focused installed-package lane passed
 4/4 callback-model cases across three repeats using only the official C++ API and
 standard library.
 
+The newly promoted callback-control directed-interaction slice adds
+`cpp-tck.callback-controls-directed-interaction` and its pure contract twin. It
+verifies target routing, exact parameter/tag/transport/producer metadata,
+suppression and release of `receiveDirectedInteraction`, callback-model
+servicing, and federation cleanup. Its focused installed-package lane passed
+4/4 callback-model cases across three repeats using only the official C++ API
+and standard library.
+
 The promoted `cpp-tck.timed-regional-interaction-save-restore` expansion uses the
 adapter-supplied DDM FOM to save at time 6, roll back a live retraction, restore
 the queued timestamped regional interaction at time 8, and deliver it through
@@ -1308,8 +1318,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 525 scenario IDs and 1050 matrix cases. `--scenario-set all` currently
-          configures the same 525 available IDs (1050 cases); there are no unpromoted
+          that is 527 scenario IDs and 1054 matrix cases. `--scenario-set all` currently
+          configures the same 527 available IDs (1054 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is 525 promoted scenario IDs (1050 callback-model cases).
- `--scenario-set all` currently configures the same 525 available IDs (1050
+    The verified lane is 527 promoted scenario IDs (1054 callback-model cases).
+ `--scenario-set all` currently configures the same 527 available IDs (1054
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -1078,6 +1078,12 @@ cases.
   `cpp-tck.callback-controls-transportation-contract` runners extend the same
   standard callback gate to attribute and interaction transportation reports
   and confirmations. Their focused installed-package lane passed all 4/4
+  callback-model cases in three repeats.
+  The promoted `cpp-tck.callback-controls-directed-interaction` and
+  `cpp-tck.callback-controls-directed-interaction-contract` runners extend the
+  same standard callback gate to directed-interaction target routing, exact
+  parameter/tag/transport/producer metadata, callback suppression/release, and
+  federation cleanup. Their focused installed-package lane passed all 4/4
   callback-model cases in three repeats.
   The promoted `cpp-tck.callback-controls-attribute-value-request` and
 `cpp-tck.callback-controls-attribute-value-request-contract` runners extend the
