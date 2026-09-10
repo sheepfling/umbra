@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-  The verified lane currently runs 475 promoted scenarios (950 callback-model
+  The verified lane currently runs 477 promoted scenarios (954 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -646,9 +646,18 @@ pure standard C++ contract. The promoted
 `cpp-tck.standard-order-and-transportation-lookups-contract` runner exposes
 mandatory order and transportation lookup lifecycle, round-trip, and invalid
 input boundaries. The promoted `cpp-tck.callback-controls-contract` runner
-exposes callback enable/disable gating and interaction release. All three use
-only official IEEE C++ headers and the standard library, with provider, FOM,
-endpoint, and callback configuration remaining adapter-owned.
+  exposes callback enable/disable gating and interaction release. The promoted
+  `cpp-tck.callback-controls-attribute-update-contract` runner adds the same
+  gate to ordinary attribute reflection. All four use
+  only official IEEE C++ headers and the standard library, with provider, FOM,
+  endpoint, and callback configuration remaining adapter-owned.
+
+  The promoted `cpp-tck.callback-controls-attribute-update` scenario and its
+  pure standard contract twin verify baseline ordinary attribute reflection,
+  suppression while callbacks are disabled, release after re-enable, callback-
+  model servicing, payload/tag/producer identity, and standard cleanup. Their
+  focused installed-package lane passed 4/4 callback-model cases in
+  `.build\cpp-tck-callback-controls-attribute-update\callback-controls-attribute-update-promoted.json`.
 
 The promoted `cpp-tck.federation-list-services` scenario isolates the public
 federation-listing surface from the broader lifecycle scenario. It creates two
@@ -2488,11 +2497,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-  configuration. The default `--scenario-set verified` selects the 475 catalog
-  entries with `promotion=promoted`, which produces 950 cases with
+  configuration. The default `--scenario-set verified` selects the 477 catalog
+  entries with `promotion=promoted`, which produces 954 cases with
 `--callback-model both`.
 After that gate is green, pass `--scenario-set all` to include the later
-  adapter-required entries; the current catalog contains 475 IDs and 950 cases,
+  adapter-required entries; the current catalog contains 477 IDs and 954 cases,
 including no candidates. The candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

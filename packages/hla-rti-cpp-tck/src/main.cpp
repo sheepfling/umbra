@@ -54986,6 +54986,138 @@ void scenarioCallbackControlsContract(
   scenarioCallbackControls(options, model);
 }
 
+void scenarioCallbackControlsAttributeUpdate(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(options, "callback-controls-attribute-update");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid() &&
+          publisherClass == receiverClass && publisherAttribute == receiverAttribute,
+      "callback-control attribute handles did not retain identity across members");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "callback-control attribute registration returned an invalid object handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "callback-control attribute object discovery");
+
+  auto sendUpdate = [&](std::vector<std::uint8_t> const& value,
+                        std::vector<std::uint8_t> const& tagBytes) {
+    rti::AttributeHandleValueMap values;
+    values.emplace(
+        publisherAttribute,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().updateAttributeValues(object, values, tag);
+  };
+
+  std::vector<std::uint8_t> const firstValue{0x41U, 0x54U, 0x31U};
+  std::vector<std::uint8_t> const firstTag{0x43U, 0x42U, 0x31U};
+  sendUpdate(firstValue, firstTag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflection().present; },
+      options,
+      "baseline callback-control attribute reflection");
+  auto const firstReflection = receiver.recorder().reflection();
+  require(
+      firstReflection.object == object &&
+          firstReflection.values.size() == 1U &&
+          firstReflection.values.count(receiverAttribute) == 1U &&
+          copyBytes(firstReflection.values.at(receiverAttribute)) == firstValue &&
+          firstReflection.tag == firstTag &&
+          firstReflection.producer == publisher.federateHandle() &&
+          firstReflection.transportation.isValid(),
+      "baseline callback-control attribute reflection lost standard delivery data");
+
+  receiver.recorder().clearReflection();
+  receiver.rtiAmbassador().disableCallbacks();
+  std::vector<std::uint8_t> const secondValue{0x41U, 0x54U, 0x32U};
+  std::vector<std::uint8_t> const secondTag{0x43U, 0x42U, 0x32U};
+  sendUpdate(secondValue, secondTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending attribute event");
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  require(
+      !receiver.recorder().reflection().present,
+      "disabled callbacks exposed an attribute reflection");
+
+  receiver.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+        options.objectClassName));
+  }
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflection().present; },
+      options,
+      "re-enabled callback-control attribute reflection");
+  auto const secondReflection = receiver.recorder().reflection();
+  require(
+      secondReflection.object == object &&
+          secondReflection.values.size() == 1U &&
+          secondReflection.values.count(receiverAttribute) == 1U &&
+          copyBytes(secondReflection.values.at(receiverAttribute)) == secondValue &&
+          secondReflection.tag == secondTag &&
+          secondReflection.producer == publisher.federateHandle(),
+      "re-enabled callback-control attribute reflection lost standard delivery data");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsAttributeUpdateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsAttributeUpdate(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -63575,6 +63707,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.synchronization-points",
       "cpp-tck.callback-controls",
       "cpp-tck.callback-controls-contract",
+      "cpp-tck.callback-controls-attribute-update",
+      "cpp-tck.callback-controls-attribute-update-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -65075,6 +65209,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.synchronization-points") return scenarioSynchronizationPoints;
   if (id == "cpp-tck.callback-controls") return scenarioCallbackControls;
   if (id == "cpp-tck.callback-controls-contract") return scenarioCallbackControlsContract;
+  if (id == "cpp-tck.callback-controls-attribute-update") {
+    return scenarioCallbackControlsAttributeUpdate;
+  }
+  if (id == "cpp-tck.callback-controls-attribute-update-contract") {
+    return scenarioCallbackControlsAttributeUpdateContract;
+  }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
   if (id == "cpp-tck.federation-save-restore-interlocks") {

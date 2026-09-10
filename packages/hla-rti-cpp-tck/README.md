@@ -382,6 +382,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.synchronization-point-contract` | Standard adapter-backed federation synchronization-point contract for global and explicit-set registration, announcement, achievement, completion, callback delivery, and lifecycle boundaries |
 | `cpp-tck.callback-controls` | Callback disable/enable gating around a delivered interaction under both callback models |
 | `cpp-tck.callback-controls-contract` | Standard adapter-backed callback enable and disable contract for interaction delivery, callback servicing, and lifecycle cleanup |
+| `cpp-tck.callback-controls-attribute-update` | Callback disable/enable gating around ordinary attribute reflection under both callback models |
+| `cpp-tck.callback-controls-attribute-update-contract` | Standard adapter-backed callback enable and disable contract for ordinary attribute reflection and callback servicing |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
@@ -931,14 +933,22 @@ become observable.
 The surrounding federation-control slice now also covers global and
 explicit-set synchronization points, invalid explicit-member rejection,
 registration and announcement callbacks, achievement and completion failure sets,
-callback enable/disable gating,
-asynchronous-delivery gating with both callback-servicing operations, and the
+ callback enable/disable gating for interaction and ordinary attribute
+ reflection, asynchronous-delivery gating with both callback-servicing
+ operations, and the
 untimed save/restore lifecycle with
 status responses, abort/failure paths, and post-restore federate-handle
 rebinding, and timed save/restore initiation with its restored queued-delivery
 boundary. These checks stay on the official public API;
-they do not require a provider-managed registry, private headers, or a
-process-control fixture.
+ they do not require a provider-managed registry, private headers, or a
+ process-control fixture.
+
+The promoted `cpp-tck.callback-controls-attribute-update` scenario and its
+contract twin extend callback gating to ordinary attribute reflection. They
+verify baseline delivery, suppression while callbacks are disabled, release
+after re-enable, callback-model servicing, payload/tag/producer identity, and
+standard federation cleanup. Their focused installed-package CTest lane passed
+4/4 callback-model cases using only the official C++ API and standard library.
 
 The promoted `cpp-tck.timed-regional-interaction-save-restore` expansion uses the
 adapter-supplied DDM FOM to save at time 6, roll back a live retraction, restore
@@ -1057,8 +1067,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-      that is 475 scenario IDs and 950 matrix cases. `--scenario-set all` currently
-       configures the same 475 available IDs (950 cases); there are no unpromoted
+      that is 477 scenario IDs and 954 matrix cases. `--scenario-set all` currently
+       configures the same 477 available IDs (954 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
