@@ -291,7 +291,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs 509 promoted scenarios (1018 callback-model
+    The verified lane currently runs 511 promoted scenarios (1022 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -367,6 +367,15 @@ save/restore scenarios retain distinct IDs.
   servicing, acquisition-request metadata, unchanged ownership, restoration of
   the ordinary release request after cancellation, and federation cleanup. Its
   focused installed-package lane passed 4/4 callback-model cases.
+  The newly promoted callback-control ownership-query slice adds
+  `cpp-tck.callback-controls-ownership-query` and its pure contract twin. It
+  verifies suppression and release of mixed ordinary ownership-query results,
+  then exercises the distinct RTI-owned callback on a joined-federate MOM
+  object using the adapter-supplied MIM and logical-time implementation. It
+  checks exact object/attribute partitions, owning-federate metadata, callback
+  servicing under both models, and federation cleanup. Its focused
+  installed-package CTest lane passed all 4/4 cases in three repeats using only
+  the official C++ API and standard library.
   The newly promoted ordinary interaction fan-out slice adds
 `cpp-tck.interaction-multi-recipient-fifo` and its pure contract twin. The
 focused lane passed 4/4 callback-model cases.

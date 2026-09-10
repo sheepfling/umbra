@@ -145,8 +145,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-The verified lane is 509 promoted scenario IDs (1018 callback-model cases).
-`--scenario-set all` currently configures the same 509 available IDs (1018
+   The verified lane is 511 promoted scenario IDs (1022 callback-model cases).
+`--scenario-set all` currently configures the same 511 available IDs (1022
 cases); there are no unpromoted candidates in the current catalog. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -1035,11 +1035,16 @@ The promoted `cpp-tck.callback-controls-ownership-acquisition-notification` and
 extend the same standard callback gate to ownership-acquisition notification
 and handoff; their focused installed-package lane passed 4/4 callback-model
 cases.
-The promoted `cpp-tck.callback-controls-ownership-divestiture-confirmation` and
-`cpp-tck.callback-controls-ownership-divestiture-confirmation-contract` runners
-extend the same standard callback gate to negotiated-divestiture confirmation;
-their focused installed-package lane passed 4/4 callback-model cases.
-The promoted `cpp-tck.callback-controls-attribute-value-request` and
+  The promoted `cpp-tck.callback-controls-ownership-divestiture-confirmation` and
+  `cpp-tck.callback-controls-ownership-divestiture-confirmation-contract` runners
+  extend the same standard callback gate to negotiated-divestiture confirmation;
+  their focused installed-package lane passed 4/4 callback-model cases.
+  The promoted `cpp-tck.callback-controls-ownership-query` and
+  `cpp-tck.callback-controls-ownership-query-contract` runners extend the same
+  standard callback gate to mixed ordinary ownership-query results and the
+  RTI-owned joined-federate MOM query callback. Their focused installed-package
+  lane passed all 4/4 callback-model cases in three repeats.
+  The promoted `cpp-tck.callback-controls-attribute-value-request` and
 `cpp-tck.callback-controls-attribute-value-request-contract` runners extend the
 same standard callback gate to ordinary attribute-value requests; their focused
 installed-package lane passed 4/4 callback-model cases.

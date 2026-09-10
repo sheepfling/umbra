@@ -57046,6 +57046,223 @@ void scenarioCallbackControlsOwnershipDivestitureConfirmationContract(
   scenarioCallbackControlsOwnershipDivestitureConfirmation(options, model);
 }
 
+void scenarioCallbackControlsOwnershipQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Callback-control ownership-query testing requires an adapter-supplied multi-attribute FOM");
+  require(
+      !options.mimFom.empty(),
+      "Callback-control ownership-query testing requires an adapter-supplied standard MIM");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control ownership-query testing requires an adapter-supplied logical-time implementation");
+
+  Session owner(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-ownership-query");
+  owner.connect();
+  requester.connect();
+  owner.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.multiAttributeFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(
+      options.ownerFederateName + L"-callback-controls-ownership-query",
+      options.federateType,
+      federation);
+  requester.join(
+      options.memberFederateName + L"-callback-controls-ownership-query",
+      options.federateType,
+      federation);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeSecondName);
+  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeFirstName);
+  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeSecondName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() && ownerFirst.isValid() &&
+          ownerSecond.isValid() && requesterFirst.isValid() && requesterSecond.isValid() &&
+          ownerFirst != ownerSecond,
+      "callback-control ownership-query lookup returned invalid or inconsistent handles");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "callback-control ownership-query registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "callback-control ownership-query discovery");
+
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().disableCallbacks();
+  requester.rtiAmbassador().queryAttributeOwnership(object, requesterAttributes);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        requester.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending ownership-query callbacks");
+  } else {
+    static_cast<void>(requester.rtiAmbassador().getObjectClassHandle(
+        options.multiAttributeObjectClassName));
+  }
+  require(
+      requester.recorder().ownershipInformationEvents().empty() &&
+          requester.recorder().ownershipNotOwnedEvents().empty() &&
+          requester.recorder().ownershipOwnedByRtiEvents().empty(),
+      "disabled callbacks exposed ownership-query callbacks");
+
+  requester.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(requester.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(requester.rtiAmbassador().getObjectClassHandle(
+        options.multiAttributeObjectClassName));
+  }
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().ownershipInformationEvents().size() == 1U &&
+            requester.recorder().ownershipNotOwnedEvents().size() == 1U;
+      },
+      options,
+      "re-enabled callback-control ownership-query partition");
+  auto const ownershipInformation = requester.recorder().ownershipInformationEvents();
+  auto const ownershipNotOwned = requester.recorder().ownershipNotOwnedEvents();
+  require(
+      ownershipInformation.front().object == object &&
+          ownershipInformation.front().attributes == rti::AttributeHandleSet{requesterFirst} &&
+          ownershipInformation.front().owner == owner.federateHandle(),
+      "re-enabled ownership query did not report the exact owned subset");
+  require(
+      ownershipNotOwned.front().object == object &&
+          ownershipNotOwned.front().attributes == rti::AttributeHandleSet{requesterSecond},
+      "re-enabled ownership query did not report the exact unowned subset");
+
+  // Application attributes relinquished by a federate are unowned; they are
+  // not RTI-owned. Exercise the distinct attributeIsOwnedByRTI callback on a
+  // joined-federate MOM object, whose standard ownership is held by the RTI.
+  requester.rtiAmbassador().setServiceReportingSwitch(false);
+  auto const requesterFederateClass = requester.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const requesterFederateHandleAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterFederateClass,
+      L"HLAfederateHandle");
+  require(
+      requesterFederateClass.isValid() && requesterFederateHandleAttribute.isValid(),
+      "callback-control ownership-query MOM lookup returned invalid handles");
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterFederateClass,
+      rti::AttributeHandleSet{requesterFederateHandleAttribute},
+      true,
+      L"");
+  auto findRequesterMomReflection = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = requester.recorder().reflections();
+    auto const expectedFederateHandle = copyBytes(requester.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(requesterFederateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedFederateHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  waitFor(
+      requester,
+      [&] { return findRequesterMomReflection().has_value(); },
+      options,
+      "callback-control ownership-query MOM discovery");
+  auto const requesterMomReflection = findRequesterMomReflection();
+  require(
+      requesterMomReflection.has_value() &&
+          requester.rtiAmbassador().getKnownObjectClassHandle(
+              requesterMomReflection->object) == requesterFederateClass,
+      "callback-control ownership-query MOM discovery returned the wrong object");
+  auto const requesterMomObject = requesterMomReflection->object;
+
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().disableCallbacks();
+  requester.rtiAmbassador().queryAttributeOwnership(
+      requesterMomObject,
+      rti::AttributeHandleSet{requesterFederateHandleAttribute});
+  if (model == rti::HLA_EVOKED) {
+    require(
+        requester.evokeMultipleCallbacks(0.0, 1.0),
+        "evoked callback control did not admit the pending MOM ownership-query callback");
+  } else {
+    static_cast<void>(requester.rtiAmbassador().getObjectClassHandle(
+        options.multiAttributeObjectClassName));
+  }
+  require(
+      requester.recorder().ownershipInformationEvents().empty() &&
+          requester.recorder().ownershipNotOwnedEvents().empty() &&
+          requester.recorder().ownershipOwnedByRtiEvents().empty(),
+      "disabled callbacks exposed the MOM RTI-owned query callback");
+
+  requester.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(requester.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(requester.rtiAmbassador().getObjectClassHandle(
+        options.multiAttributeObjectClassName));
+  }
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipOwnedByRtiEvents().size() == 1U; },
+      options,
+      "re-enabled callback-control MOM RTI-owned query");
+  auto const ownershipOwnedByRti = requester.recorder().ownershipOwnedByRtiEvents();
+  require(
+      ownershipOwnedByRti.front().object == requesterMomObject &&
+          ownershipOwnedByRti.front().attributes ==
+              rti::AttributeHandleSet{requesterFederateHandleAttribute} &&
+          requester.recorder().ownershipInformationEvents().empty() &&
+          requester.recorder().ownershipNotOwnedEvents().empty(),
+      "re-enabled MOM ownership query did not report the exact RTI-owned subset");
+
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioCallbackControlsOwnershipQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsOwnershipQuery(options, model);
+}
+
 void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");
@@ -65669,6 +65886,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-ownership-acquisition-notification-contract",
       "cpp-tck.callback-controls-ownership-divestiture-confirmation",
       "cpp-tck.callback-controls-ownership-divestiture-confirmation-contract",
+      "cpp-tck.callback-controls-ownership-query",
+      "cpp-tck.callback-controls-ownership-query-contract",
       "cpp-tck.asynchronous-delivery",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
@@ -67270,6 +67489,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.callback-controls-ownership-divestiture-confirmation-contract") {
     return scenarioCallbackControlsOwnershipDivestitureConfirmationContract;
+  }
+  if (id == "cpp-tck.callback-controls-ownership-query") {
+    return scenarioCallbackControlsOwnershipQuery;
+  }
+  if (id == "cpp-tck.callback-controls-ownership-query-contract") {
+    return scenarioCallbackControlsOwnershipQueryContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
