@@ -286,7 +286,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-The verified lane currently runs 419 promoted scenarios (838 callback-model
+The verified lane currently runs 421 promoted scenarios (842 callback-model
 cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
@@ -858,6 +858,14 @@ overlap the ordinary/default subscription. Their focused installed-package
 lane passed 4/4 callback-model cases. The source uses only official IEEE C++
 API headers and the standard library; provider, FOM, endpoint, and callback
 configuration remain adapter inputs.
+
+The newly promoted `cpp-tck.multi-region-interaction-routing` scenario and its
+pure standard contract twin verify union routing for multiple explicit source
+regions: each overlapping subscription receives one callback with the complete
+source-region set, while a disjoint subscription remains silent. Their focused
+installed-package lane passed 4/4 callback-model cases. The source uses only
+official IEEE C++ API headers and the standard library; provider, FOM, endpoint,
+and callback configuration remain adapter inputs.
 
 The promoted `cpp-tck.passive-regional-subscription` scenario exercises the
 regional passive-subscription boundary. It proves that a regional

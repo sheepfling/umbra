@@ -45570,6 +45570,330 @@ void scenarioZeroDimensionalRegionalInteractionContract(
   scenarioZeroDimensionalRegionalInteraction(options, model);
 }
 
+void scenarioMultiRegionInteractionRouting(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Multi-region interaction routing requires an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "owner");
+  Session first(options, model, "member");
+  Session second(options, model, "member");
+  Session combined(options, model, "member");
+  Session disjoint(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "multi-region-interaction-routing");
+  connectAndJoin(publisher, first, options, federation, options.ddmFom);
+  second.connect();
+  second.join(
+      options.memberFederateName + L"-multi-region-interaction-second",
+      options.federateType,
+      federation);
+  combined.connect();
+  combined.join(
+      options.memberFederateName + L"-multi-region-interaction-combined",
+      options.federateType,
+      federation);
+  disjoint.connect();
+  disjoint.join(
+      options.memberFederateName + L"-multi-region-interaction-disjoint",
+      options.federateType,
+      federation);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const firstHandles = ddmHandles(first, options);
+  auto const secondHandles = ddmHandles(second, options);
+  auto const combinedHandles = ddmHandles(combined, options);
+  auto const disjointHandles = ddmHandles(disjoint, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "multi-region interaction routing");
+  require(
+      publisherHandles.interactionClass == firstHandles.interactionClass &&
+          publisherHandles.interactionClass == secondHandles.interactionClass &&
+          publisherHandles.interactionClass == combinedHandles.interactionClass &&
+          publisherHandles.interactionClass == disjointHandles.interactionClass &&
+          publisherHandles.parameter == firstHandles.parameter &&
+          publisherHandles.parameter == secondHandles.parameter &&
+          publisherHandles.parameter == combinedHandles.parameter &&
+          publisherHandles.parameter == disjointHandles.parameter,
+      "multi-region interaction members resolved different declaration handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherHandles.interactionClass);
+  auto const sourceFirst = createDdmRegion(
+      publisher,
+      publisherHandles,
+      0UL,
+      2UL,
+      0UL,
+      2UL);
+  auto const sourceSecond = createDdmRegion(
+      publisher,
+      publisherHandles,
+      5UL,
+      7UL,
+      5UL,
+      7UL);
+  auto const firstRegion = createDdmRegion(
+      first,
+      firstHandles,
+      0UL,
+      2UL,
+      0UL,
+      2UL);
+  auto const secondRegion = createDdmRegion(
+      second,
+      secondHandles,
+      5UL,
+      7UL,
+      5UL,
+      7UL);
+  auto const combinedFirstRegion = createDdmRegion(
+      combined,
+      combinedHandles,
+      0UL,
+      2UL,
+      0UL,
+      2UL);
+  auto const combinedSecondRegion = createDdmRegion(
+      combined,
+      combinedHandles,
+      5UL,
+      7UL,
+      5UL,
+      7UL);
+  auto const disjointRegion = createDdmRegion(
+      disjoint,
+      disjointHandles,
+      8UL,
+      9UL,
+      8UL,
+      9UL);
+
+  rti::RegionHandleSet const bothSources{sourceFirst, sourceSecond};
+  rti::RegionHandleSet const firstSource{sourceFirst};
+  rti::RegionHandleSet const secondSource{sourceSecond};
+  rti::RegionHandleSet const firstSubscription{firstRegion};
+  rti::RegionHandleSet const secondSubscription{secondRegion};
+  rti::RegionHandleSet const combinedSubscription{
+      combinedFirstRegion,
+      combinedSecondRegion};
+  rti::RegionHandleSet const disjointSubscription{disjointRegion};
+
+  first.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  second.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  combined.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  disjoint.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  first.rtiAmbassador().subscribeInteractionClassWithRegions(
+      firstHandles.interactionClass,
+      firstSubscription,
+      true);
+  second.rtiAmbassador().subscribeInteractionClassWithRegions(
+      secondHandles.interactionClass,
+      secondSubscription,
+      true);
+  combined.rtiAmbassador().subscribeInteractionClassWithRegions(
+      combinedHandles.interactionClass,
+      combinedSubscription,
+      true);
+  disjoint.rtiAmbassador().subscribeInteractionClassWithRegions(
+      disjointHandles.interactionClass,
+      disjointSubscription,
+      true);
+
+  auto const recipients = std::vector<Session*>{
+      &first,
+      &second,
+      &combined,
+      &disjoint};
+  auto send = [&](rti::RegionHandleSet const& regions,
+                  std::vector<std::uint8_t> const& value,
+                  std::vector<std::uint8_t> const& tag) {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherHandles.parameter,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData userTag(tag.data(), tag.size());
+    publisher.rtiAmbassador().sendInteractionWithRegions(
+        publisherHandles.interactionClass,
+        parameters,
+        regions,
+        userTag);
+  };
+  auto verify = [&](Session& receiver,
+                    DdmHandles const& receiverHandles,
+                    std::size_t index,
+                    std::vector<std::uint8_t> const& value,
+                    std::vector<std::uint8_t> const& tag,
+                    rti::RegionHandleSet const& regions,
+                    std::string const& description) {
+    auto const records = receiver.recorder().interactions();
+    require(
+        records.size() > index,
+        description + " did not produce the expected callback");
+    auto const& record = records.at(index);
+    require(
+        record.interaction == receiverHandles.interactionClass &&
+            record.parameters.size() == 1U &&
+            record.parameters.count(receiverHandles.parameter) == 1U &&
+            copyBytes(record.parameters.at(receiverHandles.parameter)) == value &&
+            record.tag == tag &&
+            record.producer == publisher.federateHandle() &&
+            record.transportation.isValid(),
+        description + " changed interaction delivery metadata");
+    require(
+        record.regions.has_value() && record.regions->size() == regions.size(),
+        description + " did not convey the complete source-region set");
+    for (auto const& region : regions) {
+      require(
+          record.regions->count(region) == 1U,
+          description + " omitted a sent source region");
+    }
+  };
+
+  std::vector<std::uint8_t> bothValue{0x61U, 0x62U, 0x63U};
+  std::vector<std::uint8_t> bothTag{0x49U, 0x31U};
+  send(bothSources, bothValue, bothTag);
+  waitForSessions(
+      recipients,
+      [&] {
+        return first.recorder().interactions().size() == 1U &&
+            second.recorder().interactions().size() == 1U &&
+            combined.recorder().interactions().size() == 1U &&
+            disjoint.recorder().interactions().empty();
+      },
+      options,
+      "multi-region interaction union delivery");
+  verify(
+      first,
+      firstHandles,
+      0U,
+      bothValue,
+      bothTag,
+      bothSources,
+      "first multi-region interaction");
+  verify(
+      second,
+      secondHandles,
+      0U,
+      bothValue,
+      bothTag,
+      bothSources,
+      "second multi-region interaction");
+  verify(
+      combined,
+      combinedHandles,
+      0U,
+      bothValue,
+      bothTag,
+      bothSources,
+      "combined multi-region interaction");
+
+  std::vector<std::uint8_t> secondValue{0x71U, 0x72U};
+  std::vector<std::uint8_t> secondTag{0x49U, 0x32U};
+  send(secondSource, secondValue, secondTag);
+  waitForSessions(
+      recipients,
+      [&] {
+        return first.recorder().interactions().size() == 1U &&
+            second.recorder().interactions().size() == 2U &&
+            combined.recorder().interactions().size() == 2U &&
+            disjoint.recorder().interactions().empty();
+      },
+      options,
+      "multi-region interaction second-source delivery");
+  verify(
+      second,
+      secondHandles,
+      1U,
+      secondValue,
+      secondTag,
+      secondSource,
+      "second-source multi-region interaction");
+  verify(
+      combined,
+      combinedHandles,
+      1U,
+      secondValue,
+      secondTag,
+      secondSource,
+      "combined second-source interaction");
+
+  std::vector<std::uint8_t> firstValue{0x81U, 0x82U};
+  std::vector<std::uint8_t> firstTag{0x49U, 0x33U};
+  send(firstSource, firstValue, firstTag);
+  waitForSessions(
+      recipients,
+      [&] {
+        return first.recorder().interactions().size() == 2U &&
+            second.recorder().interactions().size() == 2U &&
+            combined.recorder().interactions().size() == 3U &&
+            disjoint.recorder().interactions().empty();
+      },
+      options,
+      "multi-region interaction first-source delivery");
+  verify(
+      first,
+      firstHandles,
+      1U,
+      firstValue,
+      firstTag,
+      firstSource,
+      "first-source multi-region interaction");
+  verify(
+      combined,
+      combinedHandles,
+      2U,
+      firstValue,
+      firstTag,
+      firstSource,
+      "combined first-source interaction");
+
+  first.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      firstHandles.interactionClass,
+      firstSubscription);
+  second.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      secondHandles.interactionClass,
+      secondSubscription);
+  combined.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      combinedHandles.interactionClass,
+      combinedSubscription);
+  disjoint.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      disjointHandles.interactionClass,
+      disjointSubscription);
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherHandles.interactionClass);
+  publisher.rtiAmbassador().deleteRegion(sourceFirst);
+  publisher.rtiAmbassador().deleteRegion(sourceSecond);
+  first.rtiAmbassador().deleteRegion(firstRegion);
+  second.rtiAmbassador().deleteRegion(secondRegion);
+  combined.rtiAmbassador().deleteRegion(combinedFirstRegion);
+  combined.rtiAmbassador().deleteRegion(combinedSecondRegion);
+  disjoint.rtiAmbassador().deleteRegion(disjointRegion);
+  disjoint.resign(rti::NO_ACTION);
+  combined.resign(rti::NO_ACTION);
+  second.resign(rti::NO_ACTION);
+  first.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  disjoint.disconnect();
+  combined.disconnect();
+  second.disconnect();
+  first.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioMultiRegionInteractionRoutingContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMultiRegionInteractionRouting(options, model);
+}
+
 void scenarioRegionalInteractionSourceRegionSnapshot(
     Options const& options,
     rti::CallbackModel model) {
@@ -57599,6 +57923,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.default-region-interaction-routing-contract",
       "cpp-tck.zero-dimensional-regional-interaction",
       "cpp-tck.zero-dimensional-regional-interaction-contract",
+      "cpp-tck.multi-region-interaction-routing",
+      "cpp-tck.multi-region-interaction-routing-contract",
       "cpp-tck.regional-interaction-source-region-snapshot",
       "cpp-tck.regional-interaction-source-region-snapshot-contract",
       "cpp-tck.regional-interaction-subscription-filtering",
@@ -58912,6 +59238,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.zero-dimensional-regional-interaction-contract") {
     return scenarioZeroDimensionalRegionalInteractionContract;
+  }
+  if (id == "cpp-tck.multi-region-interaction-routing") {
+    return scenarioMultiRegionInteractionRouting;
+  }
+  if (id == "cpp-tck.multi-region-interaction-routing-contract") {
+    return scenarioMultiRegionInteractionRoutingContract;
   }
   if (id == "cpp-tck.regional-interaction-source-region-snapshot") {
     return scenarioRegionalInteractionSourceRegionSnapshot;
