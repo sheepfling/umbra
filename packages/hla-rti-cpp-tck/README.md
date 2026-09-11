@@ -101,6 +101,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.service-report-regional-interaction-subscription-contract` | Pure standard C++ contract for regional interaction subscription/unsubscription reports, passive state, typed associations, serial progression, and adapter-supplied MIM/DDM inputs |
 | `cpp-tck.service-report-object-attribute-declaration` | Standard MOM service reports for failed and successful ordinary `SubscribeObjectClassAttributes`, `UnsubscribeObjectClassAttributes`, and whole-class `UnsubscribeObjectClass` declarations |
 | `cpp-tck.service-report-object-attribute-declaration-contract` | Pure standard C++ contract for typed ordinary object-attribute declaration service reports, including invalid-handle failures, passive indicators, null returns, exceptions, and serial progression |
+| `cpp-tck.service-report-directed-interaction-declaration` | Standard MOM service reports for failed and successful directed `SubscribeObjectClassDirectedInteractions` and `UnsubscribeObjectClassDirectedInteractions` declarations, including whole-class unsubscribe |
+| `cpp-tck.service-report-directed-interaction-declaration-contract` | Pure standard C++ contract for typed directed object-class interaction declaration service reports, including invalid-handle failures, universal indicators, null returns, exceptions, and serial progression |
 | `cpp-tck.service-report-regional-interaction-failure` | Standard MOM failure reports for invalid regional interaction class, parameter, and region inputs, including typed report arguments and no application callback |
 | `cpp-tck.service-report-regional-interaction-failure-contract` | Standard adapter-backed regional interaction service-report failure contract using the official MIM, DDM, and interaction callbacks |
 | `cpp-tck.service-report-attribute-update` | Standard MOM service-report callback for successful ordinary `UpdateAttributeValues`, with typed report metadata and ordinary registration/publication setup |
@@ -1405,8 +1407,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 549 scenario IDs and 1098 matrix cases. `--scenario-set all` currently
-          configures the same 549 available IDs (1098 cases); there are no unpromoted
+          that is 551 scenario IDs and 1102 matrix cases. `--scenario-set all` currently
+          configures the same 551 available IDs (1102 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -2039,6 +2041,14 @@ standard MIM, provider, endpoint, and callback configuration remain adapter
 inputs. The catalog-wide recheck reproduced 20 failures in five pre-existing
 scenario families, independently of this four-case slice, so it is not recorded
 as a new green aggregate.
+The promoted `cpp-tck.service-report-directed-interaction-declaration` scenario
+and its contract twin translate the corresponding public directed declaration
+matrix: invalid object and interaction handles for subscription and
+unsubscription, followed by selective subscription, selective unsubscribe, and
+whole-class unsubscribe. Their focused installed-package lane passed 4/4
+callback-model cases; the ordinary adapter-supplied FOM already declares the
+directed interaction, so no provider-specific fixture or portable-source header
+is involved.
 The promoted `cpp-tck.federation-mom-save-conditionals-contract` and
 `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` runners
 likewise expose the save/restore MOM routes as independently selectable pure

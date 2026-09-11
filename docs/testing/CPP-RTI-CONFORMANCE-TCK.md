@@ -15,7 +15,7 @@ objects.
 The catalog and the executable's default `all` inventory are kept as a
 one-to-one set. Run `python tools/cpp_tck.py` to verify the catalog, the
 official-header boundary, and that inventory before running a provider. The
-current gate reports 549 catalog scenarios and 549 executable scenarios; the
+current gate reports 551 catalog scenarios and 551 executable scenarios; the
 official C++ API audit reports all 164 `RTIambassador` methods and all 56
 `FederateAmbassador` callbacks represented.
 
@@ -68,6 +68,11 @@ callback models: 4/4 CTest cases and 4/4 direct cases. A fresh catalog-wide
 recheck configured 1,096 runnable CTest cases but reproduced 20 failures in five
 older scenario families; those failures also reproduce in an isolated 20-case
 rerun and do not include the new declaration-report slice.
+The following promoted slice, `cpp-tck.service-report-directed-interaction-declaration`
+and its contract twin, also passed their focused installed-package gate in both
+callback models: 4/4 CTest cases and 4/4 direct cases. It uses the adapter's
+ordinary P0 FOM directed-interaction declaration and adds no provider-specific
+fixture, header, registry, or diagnostic dependency.
 The four ordinary/passive-delivery cases are now promoted after the provider
 relevance-routing correction and an 8/8 focused installed-package run across
 both callback models. The six timed regional ownership-after-restore cases are
