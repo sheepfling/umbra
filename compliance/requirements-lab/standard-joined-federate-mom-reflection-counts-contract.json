@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for joined-federate MOM reflection counts. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM declarations, HLAsetTiming, HLAinteger32BE, HLAbyte, the adapter-supplied logical-time implementation, and the standard library; the adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and application object/attribute names. It verifies direct and periodic HLAobjectInstancesReflected/HLAreflectionsReceived accounting, ordinary and timestamped reflection callbacks, time-advance ordering, nested MOM data-element decoding, and cleanup without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-reflection-counts",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joined-federate MOM reflection-count, time-management, and periodic-reporting services with FederateAmbassador reflection and logical-time callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, object, attribute, time-management, and data-element declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomReflectionCountsContract"
+      ]
+    }
+  ]
+}
