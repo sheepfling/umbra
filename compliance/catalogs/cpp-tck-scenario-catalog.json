@@ -22355,6 +22355,71 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-lookup-lifecycle",
+      "category": "handle-lookup",
+      "title": "Resolve ordinary attribute handles and names across lifecycle and inherited object-class boundaries",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-lookup",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-support-lookup-negative-boundaries",
+        "cpp-1516.2-fom-root-hierarchy",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "attribute-lookup-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "fom-root-hierarchy-requirements-contract.json",
+        "federation-execution-api-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeLookupLifecycle",
+      "runner_id": "cpp-tck.attribute-lookup-lifecycle",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-lookup-lifecycle-contract",
+      "category": "handle-lookup",
+      "title": "Exercise the standard adapter-backed attribute lookup lifecycle contract",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-lookup",
+        "cpp-1516.1-object-class-lookup",
+        "cpp-1516.1-support-lookup-negative-boundaries",
+        "cpp-1516.2-fom-root-hierarchy",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-attribute-lookup-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeLookupLifecycleContract",
+      "runner_id": "cpp-tck.attribute-lookup-lifecycle-contract",
+      "parity": "cpp-tck.attribute-lookup-lifecycle",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.fom-invalid-create-atomicity",
       "category": "fom-lifecycle",
       "title": "Reject invalid single-module Create Federation Execution requests atomically",

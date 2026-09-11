@@ -19607,6 +19607,165 @@ void scenarioObjectClassLookupLifecycle(
   observer.disconnect();
 }
 
+void scenarioAttributeLookupLifecycle(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Attribute lookup testing requires an adapter-supplied rich FOM model");
+
+  Session observer(options, model, "attribute-lookup-observer");
+  Session owner(options, model, "attribute-lookup-owner");
+  Session member(options, model, "attribute-lookup-member");
+  auto const federation = federationName(options, "attribute-lookup-lifecycle");
+  auto const missingAttributeName = L"TckMissingAttribute";
+  rti::ObjectClassHandle invalidObjectClass;
+  rti::AttributeHandle invalidAttribute;
+
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getAttributeHandle(
+            invalidObjectClass,
+            options.typedIdentityAttributeName));
+      },
+      L"NotConnected",
+      "looking up an attribute before connecting");
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getAttributeName(
+            invalidObjectClass,
+            invalidAttribute));
+      },
+      L"NotConnected",
+      "looking up an attribute name before connecting");
+
+  observer.connect();
+  owner.connect();
+  member.connect();
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getAttributeHandle(
+            invalidObjectClass,
+            options.typedIdentityAttributeName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up an attribute after connecting but before joining");
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getAttributeName(
+            invalidObjectClass,
+            invalidAttribute));
+      },
+      L"FederateNotExecutionMember",
+      "looking up an attribute name after connecting but before joining");
+
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.modelFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const baseObject = owner.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const derivedObject = owner.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const baseIdentity = owner.rtiAmbassador().getAttributeHandle(
+      baseObject,
+      options.typedIdentityAttributeName);
+  auto const derivedIdentity = owner.rtiAmbassador().getAttributeHandle(
+      derivedObject,
+      options.typedIdentityAttributeName);
+  auto const derivedAttribute = owner.rtiAmbassador().getAttributeHandle(
+      derivedObject,
+      options.typedDerivedAttributeName);
+  require(
+      baseObject.isValid() && derivedObject.isValid() && baseIdentity.isValid() &&
+          derivedIdentity.isValid() && derivedAttribute.isValid(),
+      "inherited attribute lookup returned an invalid class or attribute handle");
+  require(
+      baseIdentity == derivedIdentity &&
+          owner.rtiAmbassador().getAttributeHandle(
+              derivedObject,
+              options.typedIdentityAttributeName) == baseIdentity &&
+          owner.rtiAmbassador().getAttributeName(baseObject, baseIdentity) ==
+              options.typedIdentityAttributeName &&
+          owner.rtiAmbassador().getAttributeName(derivedObject, derivedIdentity) ==
+              options.typedIdentityAttributeName &&
+          owner.rtiAmbassador().getAttributeName(
+              derivedObject,
+              derivedAttribute) == options.typedDerivedAttributeName,
+      "inherited attribute lookup did not preserve stable handles and names");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAttributeHandle(
+            baseObject,
+            options.typedDerivedAttributeName));
+      },
+      L"NameNotFound",
+      "looking up a derived attribute on its base object class");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAttributeHandle(
+            derivedObject,
+            missingAttributeName));
+      },
+      L"NameNotFound",
+      "looking up an unknown attribute name");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAttributeHandle(
+            invalidObjectClass,
+            options.typedIdentityAttributeName));
+      },
+      L"InvalidObjectClassHandle",
+      "looking up an attribute from an invalid object-class handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAttributeName(
+            invalidObjectClass,
+            baseIdentity));
+      },
+      L"InvalidObjectClassHandle",
+      "looking up an attribute name from an invalid object-class handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAttributeName(
+            derivedObject,
+            invalidAttribute));
+      },
+      L"InvalidAttributeHandle",
+      "looking up an attribute name from an invalid attribute handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAttributeName(
+            baseObject,
+            derivedAttribute));
+      },
+      L"AttributeNotDefined",
+      "looking up a derived attribute handle on its base object class");
+
+  member.join(options.memberFederateName, options.federateType, federation);
+  auto const memberDerivedObject = member.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const memberIdentity = member.rtiAmbassador().getAttributeHandle(
+      memberDerivedObject,
+      options.typedIdentityAttributeName);
+  auto const memberDerivedAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberDerivedObject,
+      options.typedDerivedAttributeName);
+  require(
+      memberDerivedObject == derivedObject && memberIdentity == baseIdentity &&
+          memberDerivedAttribute == derivedAttribute,
+      "inherited attribute handles did not retain cross-federate identity");
+
+  member.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+  observer.disconnect();
+}
+
 void scenarioFomInvalidCreateAtomicity(
     Options const& options,
     rti::CallbackModel model) {
@@ -69462,6 +69621,12 @@ void scenarioObjectClassLookupLifecycleContract(
   scenarioObjectClassLookupLifecycle(options, model);
 }
 
+void scenarioAttributeLookupLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeLookupLifecycle(options, model);
+}
+
 void scenarioFomInvalidCreateAtomicityContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -69707,6 +69872,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-additional-module-join-atomicity-contract",
       "cpp-tck.interaction-class-lookup-lifecycle-contract",
       "cpp-tck.object-class-lookup-lifecycle-contract",
+      "cpp-tck.attribute-lookup-lifecycle-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
@@ -70222,6 +70388,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-additional-module-join-atomicity",
       "cpp-tck.interaction-class-lookup-lifecycle",
       "cpp-tck.object-class-lookup-lifecycle",
+      "cpp-tck.attribute-lookup-lifecycle",
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
@@ -70627,6 +70794,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.object-class-lookup-lifecycle-contract") {
     return scenarioObjectClassLookupLifecycleContract;
+  }
+  if (id == "cpp-tck.attribute-lookup-lifecycle-contract") {
+    return scenarioAttributeLookupLifecycleContract;
   }
   if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
     return scenarioFomInvalidCreateAtomicityContract;
@@ -72134,6 +72304,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.object-class-lookup-lifecycle") {
     return scenarioObjectClassLookupLifecycle;
   }
+  if (id == "cpp-tck.attribute-lookup-lifecycle") {
+    return scenarioAttributeLookupLifecycle;
+  }
   if (id == "cpp-tck.fom-invalid-create-atomicity") {
     return scenarioFomInvalidCreateAtomicity;
   }
@@ -72294,6 +72467,8 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
       } else if ((scenario == "cpp-tck.fom-model" ||
+                  scenario == "cpp-tck.attribute-lookup-lifecycle" ||
+                  scenario == "cpp-tck.attribute-lookup-lifecycle-contract" ||
                   scenario == "cpp-tck.inherited-object-attribute-projection" ||
                   scenario == "cpp-tck.inherited-object-attribute-projection-contract" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
