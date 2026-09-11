@@ -81,6 +81,7 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
  | `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
  | `cpp-tck.joined-federate-mom-galt-lits-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLAGALT`/`HLALITS` direct and periodic reporting, active-regulator values, and undefined-value cleanup |
+ | `cpp-tck.joined-federate-mom-tso-length-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLATSOlength` reporting around queued timestamped delivery, periodic reporting, and post-grant cleanup |
   | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
   | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
   | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
@@ -1445,8 +1446,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 580 scenario IDs and 1160 matrix cases. `--scenario-set all` currently
-          configures the same 580 available IDs (1160 cases); there are no unpromoted
+          that is 581 scenario IDs and 1162 matrix cases. `--scenario-set all` currently
+          configures the same 581 available IDs (1162 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1884,6 +1885,13 @@ timestamped-interaction counts, then verifies the count returns to zero after
 the timestamp is granted. The interaction and parameter come from the adapter
 FOM; all MOM, time, callback, and encoding behavior is exercised through the
 official IEEE C++ API in both callback models.
+
+The promoted `cpp-tck.joined-federate-mom-tso-length-periodic-contract` runner
+exposes that joined-federate MOM queue-statistics route as an independently
+selectable pure standard C++ contract. It keeps the direct and periodic
+`HLATSOlength` reflections, queued timestamped interaction and post-grant
+cleanup checks, and standard teardown while taking the provider, FOM, MIM,
+endpoint, callback, and logical-time configuration from the adapter.
 
 The promoted `cpp-tck.joined-federate-mom-updates-sent-counts` scenario uses the
 adapter-supplied ordinary object class and attribute with standard reliable and
