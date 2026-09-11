@@ -82,6 +82,7 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
  | `cpp-tck.joined-federate-mom-galt-lits-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLAGALT`/`HLALITS` direct and periodic reporting, active-regulator values, and undefined-value cleanup |
  | `cpp-tck.joined-federate-mom-tso-length-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLATSOlength` reporting around queued timestamped delivery, periodic reporting, and post-grant cleanup |
+ | `cpp-tck.joined-federate-mom-removed-object-count-contract` | Pure standard C++ contract for RTI-owned joined-federate `HLAobjectInstancesRemoved` counts, object-removal callbacks, and service-report cleanup |
   | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
   | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
   | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
@@ -1446,8 +1447,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 581 scenario IDs and 1162 matrix cases. `--scenario-set all` currently
-          configures the same 581 available IDs (1162 cases); there are no unpromoted
+          that is 582 scenario IDs and 1164 matrix cases. `--scenario-set all` currently
+          configures the same 582 available IDs (1164 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1858,6 +1859,14 @@ removed-object counter, and the ordinary removal callback. It then exercises
 the same RTI-owned MOM object through `RequestAttributeValueUpdate` with a
 standard `HLAreportServiceInvocation` report, using only the adapter-supplied
 standard MIM/FOM and official IEEE C++ API.
+
+The promoted `cpp-tck.joined-federate-mom-removed-object-count-contract` runner
+exposes that RTI-owned joined-federate MOM object-removal route as an
+independently selectable pure standard C++ contract. It keeps the
+`HLAfederateHandle`/`HLAobjectInstancesRemoved` ownership and reflection checks,
+receive-order removal callback, standard service report, and cleanup while
+taking the provider, FOM, MIM, endpoint, callback, and logical-time
+configuration from the adapter.
 
 The promoted `cpp-tck.joined-federate-mom-time-state-durations` scenario uses
 the standard joined-federate MOM object to observe `HLAtimeGrantedTime` and

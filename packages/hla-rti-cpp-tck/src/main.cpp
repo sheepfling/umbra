@@ -70937,6 +70937,12 @@ void scenarioJoinedFederateMomTsoLengthPeriodicContract(
   scenarioJoinedFederateMomTsoLengthPeriodic(options, model);
 }
 
+void scenarioJoinedFederateMomRemovedObjectCountContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomRemovedObjectCount(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdateFailureContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -71450,6 +71456,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.joined-federate-mom-tso-length-periodic",
       "cpp-tck.joined-federate-mom-tso-length-periodic-contract",
       "cpp-tck.joined-federate-mom-removed-object-count",
+      "cpp-tck.joined-federate-mom-removed-object-count-contract",
       "cpp-tck.joined-federate-mom-updates-sent-counts",
       "cpp-tck.joined-federate-mom-interactions-received-counts",
       "cpp-tck.joined-federate-mom-directed-interactions-received-counts",
@@ -72254,6 +72261,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.joined-federate-mom-tso-length-periodic-contract") {
     return scenarioJoinedFederateMomTsoLengthPeriodicContract;
+  }
+  if (id == "cpp-tck.joined-federate-mom-removed-object-count-contract") {
+    return scenarioJoinedFederateMomRemovedObjectCountContract;
   }
   if (id == "cpp-tck.service-report-interaction") {
     return scenarioServiceReportInteraction;
@@ -74141,6 +74151,7 @@ int run(Options const& options) {
                    scenario == "cpp-tck.joined-federate-mom-tso-length-periodic" ||
                    scenario == "cpp-tck.joined-federate-mom-tso-length-periodic-contract" ||
                    scenario == "cpp-tck.joined-federate-mom-removed-object-count" ||
+                   scenario == "cpp-tck.joined-federate-mom-removed-object-count-contract" ||
                    scenario == "cpp-tck.joined-federate-mom-time-state-durations" ||
                    scenario == "cpp-tck.federation-save-restore-interlocks" ||
                    scenario == "cpp-tck.federation-save-restore-contract" ||
