@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for joined-federate MOM interactions-received counts. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM declarations, HLAvariableArray, HLAfixedRecord, HLAinteger32BE, HLAbyte, and the standard library; the adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and application interaction/parameter names. It verifies reliable and best-effort interaction delivery, transportation-type change confirmation, nested MOM data-element decoding, receiver metadata, and cleanup without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-interactions-received-counts",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joined-federate MOM interaction-count and transportation-change services with FederateAmbassador interaction and confirmation callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, interaction, transportation, and data-element declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomInteractionsReceivedCountsContract"
+      ]
+    }
+  ]
+}
