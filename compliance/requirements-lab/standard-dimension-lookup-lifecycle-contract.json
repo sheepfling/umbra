@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for dimension handle, name, upper-bound, and available-dimension lookup across connection, membership, resign, invalid-input, and cross-federate identity boundaries. The source uses only the official IEEE 1516.1 C++ RTIambassador API and the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, and callback configuration. It deliberately stops at dimension metadata and class associations, without region creation or provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-dimension-lookup-lifecycle",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador dimension handle/name/upper-bound and available-dimension lookup across lifecycle boundaries",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador dimension lookup declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioDimensionLookupLifecycleContract"
+      ]
+    }
+  ]
+}

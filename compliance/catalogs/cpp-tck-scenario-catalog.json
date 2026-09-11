@@ -22485,6 +22485,76 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.dimension-lookup-lifecycle",
+      "category": "handle-lookup",
+      "title": "Resolve adapter-supplied dimension handles, names, upper bounds, and class associations across the execution lifecycle",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-dimension-metadata",
+        "cpp-1516.1-support-lookup-negative-boundaries",
+        "cpp-1516.2-fom-dimension-and-metadata-lookups",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "dimension-lookup-api-contract.json",
+        "dimension-lookup-requirements-contract.json",
+        "federation-execution-api-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDimensionLookupLifecycle",
+      "runner_id": "cpp-tck.dimension-lookup-lifecycle",
+      "parity": "java-tck.support-services",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.dimension-lookup-lifecycle-contract",
+      "category": "handle-lookup",
+      "title": "Exercise the standard adapter-backed dimension lookup lifecycle contract",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-dimension-metadata",
+        "cpp-1516.1-support-lookup-negative-boundaries",
+        "cpp-1516.2-fom-dimension-and-metadata-lookups",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-dimension-lookup-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDimensionLookupLifecycleContract",
+      "runner_id": "cpp-tck.dimension-lookup-lifecycle-contract",
+      "parity": "cpp-tck.dimension-lookup-lifecycle",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.fom-invalid-create-atomicity",
       "category": "fom-lifecycle",
       "title": "Reject invalid single-module Create Federation Execution requests atomically",

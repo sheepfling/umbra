@@ -761,6 +761,12 @@ standard parameter handle/name lifecycle boundaries, inherited base-parameter
 handle stability, derived-parameter lookup, invalid-name/invalid-class/
 invalid-parameter exceptions, and cross-federate identity. No provider-specific
 header or fixture is used.
+The promoted `cpp-tck.dimension-lookup-lifecycle` scenario and its contract
+twin passed 4/4 callback-model cases in the focused installed-package lane.
+They verify standard dimension handle/name/upper-bound and available-dimension
+lookup before connection, before membership, after resign, for invalid inputs,
+and across federates. The source uses only official IEEE C++ API headers and the
+standard library; the dimensional FOM and dimension names remain adapter inputs.
 The promoted `cpp-tck.fom-invalid-create-atomicity` scenario and its pure
 standard contract twin exercise each adapter-supplied invalid single-module
 create, verify that the federation name remains reusable after every rejected

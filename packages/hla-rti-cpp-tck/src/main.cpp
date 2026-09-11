@@ -19929,6 +19929,196 @@ void scenarioParameterLookupLifecycle(
   observer.disconnect();
 }
 
+void scenarioDimensionLookupLifecycle(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Dimension lookup testing requires an adapter-supplied dimensional FOM");
+  require(
+      options.ddmDimensionNames.size() >= 2U,
+      "Dimension lookup testing requires two adapter-supplied dimension names");
+
+  Session lifecycle(options, model, "dimension-lookup-lifecycle");
+  rti::DimensionHandle const invalidDimension;
+  rti::ObjectClassHandle const invalidObjectClass;
+  rti::InteractionClassHandle const invalidInteractionClass;
+  auto requireLookupLifecycle = [&](Session& session,
+                                    std::wstring const& expected,
+                                    std::string const& phase) {
+    requireException(
+        [&] {
+          static_cast<void>(session.rtiAmbassador().getDimensionHandle(
+              options.ddmDimensionNames.at(0)));
+        },
+        expected,
+        "looking up a dimension handle " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(session.rtiAmbassador().getDimensionName(
+              invalidDimension));
+        },
+        expected,
+        "looking up a dimension name " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(session.rtiAmbassador().getDimensionUpperBound(
+              invalidDimension));
+        },
+        expected,
+        "looking up a dimension upper bound " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(session.rtiAmbassador().getAvailableDimensionsForObjectClass(
+              invalidObjectClass));
+        },
+        expected,
+        "looking up object-class dimensions " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(session.rtiAmbassador()
+                                .getAvailableDimensionsForInteractionClass(
+                                    invalidInteractionClass));
+        },
+        expected,
+        "looking up interaction-class dimensions " + phase);
+  };
+
+  requireLookupLifecycle(lifecycle, L"NotConnected", "before connect");
+  lifecycle.connect();
+  requireLookupLifecycle(
+      lifecycle,
+      L"FederateNotExecutionMember",
+      "after connect before join");
+  lifecycle.disconnect();
+
+  Session owner(options, model, "dimension-lookup-owner");
+  Session member(options, model, "dimension-lookup-member");
+  auto const federation = federationName(options, "dimension-lookup-lifecycle");
+  connectAndJoin(owner, member, options, federation, options.ddmFom);
+
+  auto const ownerObjectClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const memberObjectClass = member.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerInteractionClass = owner.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const memberInteractionClass = member.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  require(
+      ownerObjectClass.isValid() && memberObjectClass.isValid() &&
+          ownerInteractionClass.isValid() && memberInteractionClass.isValid(),
+      "dimension lookup returned an invalid adapter-supplied class handle");
+
+  auto const ownerFirst = owner.rtiAmbassador().getDimensionHandle(
+      options.ddmDimensionNames.at(0));
+  auto const ownerSecond = owner.rtiAmbassador().getDimensionHandle(
+      options.ddmDimensionNames.at(1));
+  auto const memberFirst = member.rtiAmbassador().getDimensionHandle(
+      options.ddmDimensionNames.at(0));
+  auto const memberSecond = member.rtiAmbassador().getDimensionHandle(
+      options.ddmDimensionNames.at(1));
+  require(
+      ownerFirst.isValid() && ownerSecond.isValid() &&
+          memberFirst.isValid() && memberSecond.isValid() &&
+          ownerFirst != ownerSecond && memberFirst != memberSecond,
+      "dimension lookup returned invalid or duplicate handles");
+  require(
+      ownerFirst == memberFirst && ownerSecond == memberSecond,
+      "dimension handles did not retain identity across federates");
+  require(
+      owner.rtiAmbassador().getDimensionName(ownerFirst) ==
+              options.ddmDimensionNames.at(0) &&
+          owner.rtiAmbassador().getDimensionName(ownerSecond) ==
+              options.ddmDimensionNames.at(1) &&
+          member.rtiAmbassador().getDimensionName(memberFirst) ==
+              options.ddmDimensionNames.at(0) &&
+          member.rtiAmbassador().getDimensionName(memberSecond) ==
+              options.ddmDimensionNames.at(1),
+      "dimension handle-to-name lookup did not round-trip");
+  require(
+      owner.rtiAmbassador().getDimensionUpperBound(ownerFirst) > 0U &&
+          owner.rtiAmbassador().getDimensionUpperBound(ownerSecond) > 0U &&
+          owner.rtiAmbassador().getDimensionUpperBound(ownerFirst) ==
+              member.rtiAmbassador().getDimensionUpperBound(memberFirst) &&
+          owner.rtiAmbassador().getDimensionUpperBound(ownerSecond) ==
+              member.rtiAmbassador().getDimensionUpperBound(memberSecond),
+      "dimension upper bounds were not positive and stable across federates");
+
+  auto const ownerObjectDimensions =
+      owner.rtiAmbassador().getAvailableDimensionsForObjectClass(ownerObjectClass);
+  auto const memberObjectDimensions =
+      member.rtiAmbassador().getAvailableDimensionsForObjectClass(memberObjectClass);
+  auto const ownerInteractionDimensions =
+      owner.rtiAmbassador().getAvailableDimensionsForInteractionClass(
+          ownerInteractionClass);
+  auto const memberInteractionDimensions =
+      member.rtiAmbassador().getAvailableDimensionsForInteractionClass(
+          memberInteractionClass);
+  require(
+      ownerObjectDimensions.count(ownerFirst) == 1U &&
+          ownerObjectDimensions.count(ownerSecond) == 1U &&
+          memberObjectDimensions.count(memberFirst) == 1U &&
+          memberObjectDimensions.count(memberSecond) == 1U &&
+          ownerInteractionDimensions.count(ownerFirst) == 1U &&
+          ownerInteractionDimensions.count(ownerSecond) == 1U &&
+          memberInteractionDimensions.count(memberFirst) == 1U &&
+          memberInteractionDimensions.count(memberSecond) == 1U,
+      "available class dimensions omitted an adapter-supplied dimension");
+
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getDimensionHandle(
+            L"TckMissingDimension"));
+      },
+      L"NameNotFound",
+      "looking up an unknown dimension name");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getDimensionName(invalidDimension));
+      },
+      L"InvalidDimensionHandle",
+      "looking up an invalid dimension name");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getDimensionUpperBound(
+            invalidDimension));
+      },
+      L"InvalidDimensionHandle",
+      "looking up an invalid dimension upper bound");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAvailableDimensionsForObjectClass(
+            invalidObjectClass));
+      },
+      L"InvalidObjectClassHandle",
+      "looking up dimensions for an invalid object class");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador()
+                              .getAvailableDimensionsForInteractionClass(
+                                  invalidInteractionClass));
+      },
+      L"InvalidInteractionClassHandle",
+      "looking up dimensions for an invalid interaction class");
+
+  owner.resign(rti::NO_ACTION);
+  requireLookupLifecycle(
+      owner,
+      L"FederateNotExecutionMember",
+      "after resign before federation destruction");
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
+void scenarioDimensionLookupLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDimensionLookupLifecycle(options, model);
+}
+
 void scenarioFomInvalidCreateAtomicity(
     Options const& options,
     rti::CallbackModel model) {
@@ -70043,6 +70233,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.object-class-lookup-lifecycle-contract",
       "cpp-tck.attribute-lookup-lifecycle-contract",
       "cpp-tck.parameter-lookup-lifecycle-contract",
+      "cpp-tck.dimension-lookup-lifecycle-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
@@ -70560,6 +70751,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.object-class-lookup-lifecycle",
       "cpp-tck.attribute-lookup-lifecycle",
       "cpp-tck.parameter-lookup-lifecycle",
+      "cpp-tck.dimension-lookup-lifecycle",
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
@@ -70971,6 +71163,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.parameter-lookup-lifecycle-contract") {
     return scenarioParameterLookupLifecycleContract;
+  }
+  if (id == "cpp-tck.dimension-lookup-lifecycle-contract") {
+    return scenarioDimensionLookupLifecycleContract;
   }
   if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
     return scenarioFomInvalidCreateAtomicityContract;
@@ -72484,6 +72679,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.parameter-lookup-lifecycle") {
     return scenarioParameterLookupLifecycle;
   }
+  if (id == "cpp-tck.dimension-lookup-lifecycle") {
+    return scenarioDimensionLookupLifecycle;
+  }
   if (id == "cpp-tck.fom-invalid-create-atomicity") {
     return scenarioFomInvalidCreateAtomicity;
   }
@@ -72677,6 +72875,12 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires adapter-supplied valid and invalid additional FOM modules";
+      } else if ((scenario == "cpp-tck.dimension-lookup-lifecycle" ||
+                  scenario == "cpp-tck.dimension-lookup-lifecycle-contract") &&
+                 (options.ddmFom.empty() || options.ddmDimensionNames.size() < 2U)) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied dimensional FOM and two dimensions";
       } else if ((scenario == "cpp-tck.interaction-class-lookup-lifecycle" ||
                   scenario == "cpp-tck.interaction-class-lookup-lifecycle-contract" ||
                   scenario == "cpp-tck.object-class-lookup-lifecycle" ||
