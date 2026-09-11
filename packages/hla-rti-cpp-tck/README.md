@@ -85,6 +85,7 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.joined-federate-mom-removed-object-count-contract` | Pure standard C++ contract for RTI-owned joined-federate `HLAobjectInstancesRemoved` counts, object-removal callbacks, and service-report cleanup |
  | `cpp-tck.joined-federate-mom-updates-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestUpdatesSent`/`HLAreportUpdatesSent` buckets, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-interactions-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestInteractionsReceived`/`HLAreportInteractionsReceived` buckets, nested counts, and transportation-change confirmation |
+ | `cpp-tck.joined-federate-mom-directed-interactions-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestDirectedInteractionsReceived`/`HLAreportDirectedInteractionsReceived` buckets, directed-versus-ordinary filtering, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-interactions-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestInteractionsSent`/`HLAreportInteractionsSent` buckets, nested counts, and transportation-change confirmation |
   | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
   | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
@@ -1450,8 +1451,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 585 scenario IDs and 1170 matrix cases. `--scenario-set all` currently
-          configures the same 585 available IDs (1170 cases); there are no unpromoted
+          that is 586 scenario IDs and 1172 matrix cases. `--scenario-set all` currently
+          configures the same 586 available IDs (1172 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1976,6 +1977,15 @@ adapter-supplied class, proves that ordinary receipt is excluded from
 bucket plus empty best-effort and idle buckets through nested standard
 `HLAinteractionCounts`. It uses only the adapter-supplied FOM, standard MIM,
 and official IEEE C++ API.
+
+The promoted `cpp-tck.joined-federate-mom-directed-interactions-received-counts-contract`
+runner exposes that joined-federate MOM directed-interaction accounting route as
+an independently selectable pure standard C++ contract. It keeps the ordinary
+versus directed delivery distinction, reliable and best-effort directed buckets,
+nested standard `HLAinteractionCounts` decoding, receiver metadata,
+transportation-change confirmation, empty-response boundaries, and standard
+teardown while taking the provider, FOM, MIM, endpoint, callback, and
+application object/interaction configuration from the adapter.
 
 The promoted `cpp-tck.joined-federate-mom-directed-interactions-sent-counts`
 scenario sends one ordinary and two directed interactions of the same
