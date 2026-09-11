@@ -15,7 +15,7 @@ objects.
 The catalog and the executable's default `all` inventory are kept as a
 one-to-one set. Run `python tools/cpp_tck.py` to verify the catalog, the
 official-header boundary, and that inventory before running a provider. The
-current gate reports 546 catalog scenarios and 546 executable scenarios; the
+current gate reports 547 catalog scenarios and 547 executable scenarios; the
 official C++ API audit reports all 164 `RTIambassador` methods and all 56
 `FederateAmbassador` callbacks represented.
 
@@ -51,12 +51,16 @@ contract coverage, passed 60/60. Each focused artifact was checked with the
 same scenario-aware promoted-evidence validator.
 
 The expanded 2026-09-10 verification pass now has green promoted-gate evidence
-for all 546 promoted IDs in the 546-ID catalog (1,092 callback-model cases).
+for all 547 promoted IDs in the 547-ID catalog (1,094 callback-model cases).
 The ordinary and adapter-specific assertions all passed under both
 `HLA_EVOKED` and `HLA_IMMEDIATE`; the no-fixture run records the two expected
 connection-loss skips, and the separate adapter-backed connection-loss lane is
-green. The promotion ledger now holds 546 promoted IDs and no remaining
+green. The promotion ledger now holds 547 promoted IDs and no remaining
 candidates.
+The shared `java-tck.synchronization` parity ID reuses the promoted standard
+C++ synchronization scenario and passed in both callback models. The unfiltered
+installed-package CTest gate passed all 1,094 configured cases; the only two
+non-running cases were the expected fixture-dependent connection-loss skips.
 The four ordinary/passive-delivery cases are now promoted after the provider
 relevance-routing correction and an 8/8 focused installed-package run across
 both callback models. The six timed regional ownership-after-restore cases are
@@ -344,7 +348,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs all 546 promoted scenarios (1092
+    The verified lane currently runs all 547 promoted scenarios (1094
 callback-model cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`; the catalog has no
 remaining candidate IDs outside that lane. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
@@ -2785,11 +2789,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-  configuration. The default `--scenario-set verified` selects all 546 catalog
-  entries with `promotion=promoted`, which produces 1092 cases with
+  configuration. The default `--scenario-set verified` selects all 547 catalog
+  entries with `promotion=promoted`, which produces 1094 cases with
   `--callback-model both`.
 The `--scenario-set all` selection is candidate-inclusive; the current catalog
-contains all 546 IDs and 1092 cases, with no candidates. The
+contains all 547 IDs and 1094 cases, with no candidates. The
 candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

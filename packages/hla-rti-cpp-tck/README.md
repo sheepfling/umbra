@@ -382,6 +382,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-regional-interaction-tar-nmr` | Timestamped regional interactions are delivered before the matching ordinary TAR and NMR grants, with source-region metadata and independent recipient query times |
 | `cpp-tck.timestamped-regional-interaction-tar-nmr-contract` | Standard adapter-backed timestamped regional interaction TAR/NMR contract |
 | `cpp-tck.regional-boundaries` | Zero-dimensional and partial regions, wrong-context and foreign-region failures, and region-in-use cleanup boundaries |
+| `java-tck.synchronization` | Standard synchronization-point registration, announcement, late-join participation, achievement, completion metadata, and invalid-member/duplicate-label boundaries shared with the Java TCK |
 | `cpp-tck.synchronization-points` | Pre-connect and pre-join synchronization-service boundaries, global and explicit-set registration, late-join announcement, invalid-member failure, duplicate-label failure, achievement, and federation synchronization completion |
 | `cpp-tck.synchronization-point-contract` | Standard adapter-backed federation synchronization-point contract for global and explicit-set registration, announcement, achievement, completion, callback delivery, and lifecycle boundaries |
 | `cpp-tck.callback-controls` | Callback disable/enable gating around a delivered interaction under both callback models |
@@ -1402,8 +1403,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 546 scenario IDs and 1092 matrix cases. `--scenario-set all` currently
-          configures the same 546 available IDs (1092 cases); there are no unpromoted
+          that is 547 scenario IDs and 1094 matrix cases. `--scenario-set all` currently
+          configures the same 547 available IDs (1094 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

@@ -68453,6 +68453,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-regional-interaction-regulation-reenable",
       "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract",
       "cpp-tck.regional-boundaries",
+      "java-tck.synchronization",
       "cpp-tck.synchronization-points",
       "cpp-tck.callback-controls",
       "cpp-tck.callback-controls-contract",
@@ -70032,6 +70033,7 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioTimestampedRegionalInteractionRegulationReenableContract;
   }
   if (id == "cpp-tck.regional-boundaries") return scenarioRegionalBoundaries;
+  if (id == "java-tck.synchronization") return scenarioSynchronizationPoints;
   if (id == "cpp-tck.synchronization-points") return scenarioSynchronizationPoints;
   if (id == "cpp-tck.callback-controls") return scenarioCallbackControls;
   if (id == "cpp-tck.callback-controls-contract") return scenarioCallbackControlsContract;

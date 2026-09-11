@@ -15533,6 +15533,34 @@
       "promotion": "promoted"
     },
     {
+      "id": "java-tck.synchronization",
+      "category": "federation-synchronization",
+      "title": "Register, announce, achieve, and complete multi-member synchronization points",
+      "api_methods": [
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.registerFederationSynchronizationPoint(federateSet)",
+        "RTIambassador.synchronizationPointAchieved",
+        "FederateAmbassador.synchronizationPointRegistrationSucceeded",
+        "FederateAmbassador.synchronizationPointRegistrationFailed",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-synchronization-point-registration",
+        "cpp-1516.1-synchronization-point-announcement",
+        "cpp-1516.1-synchronization-point-achievement",
+        "cpp-1516.1-synchronization-point-invalid-member-boundary"
+      ],
+      "contract_refs": [
+        "synchronization-point-api-contract.json",
+        "synchronization-point-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioSynchronizationPoints",
+      "runner_id": "java-tck.synchronization",
+      "default_status": "run",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.synchronization-points",
       "category": "federation-synchronization",
       "title": "Enforce synchronization-service lifecycle boundaries and register, announce, achieve, and complete synchronization points with late-join and explicit-set failure boundaries",
