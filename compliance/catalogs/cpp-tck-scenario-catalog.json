@@ -1810,6 +1810,97 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.service-report-object-attribute-declaration",
+      "category": "mom-service-reporting",
+      "title": "Report ordinary object-attribute declaration services through standard HLAreportServiceInvocation",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-object-attribute-declarations",
+        "cpp-1516.1-declaration-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "unsubscribe-object-class-attributes-api-contract.json",
+        "unsubscribe-object-class-attributes-requirements-contract.json",
+        "fixed-record-requirements-contract.json",
+        "variable-array-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeDeclaration",
+      "runner_id": "cpp-tck.service-report-object-attribute-declaration",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-object-attribute-declaration-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed object-attribute declaration service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-object-attribute-declarations",
+        "cpp-1516.1-declaration-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-object-attribute-declaration-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeDeclarationContract",
+      "runner_id": "cpp-tck.service-report-object-attribute-declaration-contract",
+      "parity": "cpp-tck.service-report-object-attribute-declaration",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.service-report-regional-interaction-failure",
       "category": "mom-service-reporting",
       "title": "Deliver standard HLAreportServiceInvocation failure reports for invalid regional interaction services",

@@ -15,7 +15,7 @@ objects.
 The catalog and the executable's default `all` inventory are kept as a
 one-to-one set. Run `python tools/cpp_tck.py` to verify the catalog, the
 official-header boundary, and that inventory before running a provider. The
-current gate reports 547 catalog scenarios and 547 executable scenarios; the
+current gate reports 549 catalog scenarios and 549 executable scenarios; the
 official C++ API audit reports all 164 `RTIambassador` methods and all 56
 `FederateAmbassador` callbacks represented.
 
@@ -50,17 +50,24 @@ ordinary ownership/divestment family, including the Java parity anchor and
 contract coverage, passed 60/60. Each focused artifact was checked with the
 same scenario-aware promoted-evidence validator.
 
-The expanded 2026-09-10 verification pass now has green promoted-gate evidence
-for all 547 promoted IDs in the 547-ID catalog (1,094 callback-model cases).
+The preceding 2026-09-10 verification pass established green promoted-gate
+evidence for all 547 promoted IDs in the then-current 547-ID catalog (1,094
+callback-model cases).
 The ordinary and adapter-specific assertions all passed under both
 `HLA_EVOKED` and `HLA_IMMEDIATE`; the no-fixture run records the two expected
 connection-loss skips, and the separate adapter-backed connection-loss lane is
-green. The promotion ledger now holds 547 promoted IDs and no remaining
+green. That preceding promotion ledger held 547 promoted IDs and no remaining
 candidates.
 The shared `java-tck.synchronization` parity ID reuses the promoted standard
 C++ synchronization scenario and passed in both callback models. The unfiltered
 installed-package CTest gate passed all 1,094 configured cases; the only two
 non-running cases were the expected fixture-dependent connection-loss skips.
+The next promoted slice, `cpp-tck.service-report-object-attribute-declaration`
+and its contract twin, passed their focused installed-package gate in both
+callback models: 4/4 CTest cases and 4/4 direct cases. A fresh catalog-wide
+recheck configured 1,096 runnable CTest cases but reproduced 20 failures in five
+older scenario families; those failures also reproduce in an isolated 20-case
+rerun and do not include the new declaration-report slice.
 The four ordinary/passive-delivery cases are now promoted after the provider
 relevance-routing correction and an 8/8 focused installed-package run across
 both callback models. The six timed regional ownership-after-restore cases are
