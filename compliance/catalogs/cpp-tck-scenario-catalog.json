@@ -23032,6 +23032,50 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.custom-transportation-regional-interaction-delivery-contract",
+      "category": "transportation-delivery",
+      "title": "Standard adapter-backed contract for custom FOM transportation regional interaction delivery",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.sendInteractionWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-interaction-subscription",
+        "cpp-1516.1-ddm-regional-interaction-delivery",
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "cpp-1516.1-transportation-type-control",
+        "cpp-1516.2-fom-data-representations"
+      ],
+      "contract_refs": [
+        "standard-custom-transportation-regional-interaction-delivery-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCustomTransportationRegionalInteractionDeliveryContract",
+      "runner_id": "cpp-tck.custom-transportation-regional-interaction-delivery-contract",
+      "parity": "cpp-tck.custom-transportation-regional-interaction-delivery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.custom-transportation-timestamped-delivery",
       "category": "transportation-delivery",
       "title": "Deliver a timestamped interaction with the adapter-declared custom FOM transportation type",

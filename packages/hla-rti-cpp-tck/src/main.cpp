@@ -19221,6 +19221,12 @@ void scenarioCustomTransportationRegionalInteractionDelivery(
   scenarioRegionalInteractionRouting(regional, model);
 }
 
+void scenarioCustomTransportationRegionalInteractionDeliveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCustomTransportationRegionalInteractionDelivery(options, model);
+}
+
 void scenarioFomModuleComposition(Options const& options, rti::CallbackModel model) {
   require(!options.additionalFomModules.empty(),
           "FOM extension input was not supplied by the adapter");
@@ -71595,6 +71601,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.custom-transportation-regional-attribute-delivery",
       "cpp-tck.custom-transportation-regional-attribute-delivery-contract",
       "cpp-tck.custom-transportation-regional-interaction-delivery",
+      "cpp-tck.custom-transportation-regional-interaction-delivery-contract",
       "cpp-tck.custom-transportation-timestamped-delivery",
       "cpp-tck.custom-transportation-timestamped-directed-delivery",
       "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery",
@@ -73664,6 +73671,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.custom-transportation-regional-interaction-delivery") {
     return scenarioCustomTransportationRegionalInteractionDelivery;
   }
+  if (id == "cpp-tck.custom-transportation-regional-interaction-delivery-contract") {
+    return scenarioCustomTransportationRegionalInteractionDeliveryContract;
+  }
   if (id == "cpp-tck.custom-transportation-timestamped-delivery") {
     return scenarioCustomTransportationTimestampedDelivery;
   }
@@ -73901,6 +73911,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery" ||
+                  scenario == "cpp-tck.custom-transportation-regional-interaction-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-directed-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery" ||
