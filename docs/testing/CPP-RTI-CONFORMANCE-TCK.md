@@ -51,15 +51,17 @@ contract coverage, passed 60/60. Each focused artifact was checked with the
 same scenario-aware promoted-evidence validator.
 
 The expanded 2026-09-10 verification pass now has green promoted-gate evidence
-for all 536 promoted IDs in the 546-ID catalog (1,072 callback-model cases).
+for all 546 promoted IDs in the 546-ID catalog (1,092 callback-model cases).
 The ordinary and adapter-specific assertions all passed under both
 `HLA_EVOKED` and `HLA_IMMEDIATE`; the no-fixture run records the two expected
 connection-loss skips, and the separate adapter-backed connection-loss lane is
-green. The promotion ledger now holds 536 promoted IDs and 10 candidates.
-The remaining 10 candidates are held as explicit follow-up: four
-passive/ordinary-edge cases with known provider behavior and six timed regional
-ownership-after-restore cases. They are not counted as promoted until their
-provider behavior or fixture boundary is resolved.
+green. The promotion ledger now holds 546 promoted IDs and no remaining
+candidates.
+The four ordinary/passive-delivery cases are now promoted after the provider
+relevance-routing correction and an 8/8 focused installed-package run across
+both callback models. The six timed regional ownership-after-restore cases are
+also promoted after a 12/12 focused installed-package run across both callback
+models.
 
 ## Green P0–P6 ordinary-service, time, FOM, DDM, synchronization, callback, and save/restore boundary coverage
 
@@ -342,9 +344,9 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs 536 promoted scenarios (1072 callback-model
-cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`; the catalog retains 10 candidate
-IDs outside that lane. Shared ordinary-service runner IDs are the same IDs used by
+    The verified lane currently runs all 546 promoted scenarios (1092
+callback-model cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`; the catalog has no
+remaining candidate IDs outside that lane. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
 save/restore scenarios retain distinct IDs.
   The newly promoted callback-control object-name failure slice adds
@@ -2783,11 +2785,11 @@ adapter-managed connection-loss fixture is required.
 This registers each selected catalog scenario as a separate CTest for each
 selected callback model, using the adapter’s FOM, standard MIM, DDM, switch,
 and callback
-  configuration. The default `--scenario-set verified` selects the 536 catalog
-  entries with `promotion=promoted`, which produces 1072 cases with
+  configuration. The default `--scenario-set verified` selects all 546 catalog
+  entries with `promotion=promoted`, which produces 1092 cases with
   `--callback-model both`.
 The `--scenario-set all` selection is candidate-inclusive; the current catalog
-contains all 546 IDs and 1092 cases, including 10 candidates. The
+contains all 546 IDs and 1092 cases, with no candidates. The
 candidate-inclusive evidence figures below are
 historical artifacts from an earlier 344-ID, 688-case catalog and are not the
 promoted gate. The no-fixture candidate-inclusive

@@ -5174,7 +5174,7 @@
       "cpp_test": "src/main.cpp#scenarioAttributeInteraction",
       "runner_id": "java-tck.attribute-interaction",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.attribute-interaction-contract",
@@ -5199,7 +5199,7 @@
       "runner_id": "cpp-tck.attribute-interaction-contract",
       "parity": "java-tck.attribute-interaction",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.receive-order-attribute-update-callback-cancellation",
@@ -12097,7 +12097,7 @@
       "cpp_test": "src/main.cpp#scenarioOrdinaryEdges",
       "runner_id": "java-tck.ordinary-edges",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.ordinary-edges-contract",
@@ -12134,7 +12134,7 @@
       "runner_id": "cpp-tck.ordinary-edges-contract",
       "parity": "java-tck.ordinary-edges",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.update-rate-queries",
@@ -19222,7 +19222,7 @@
       ],
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-    "promotion": "candidate"
+    "promotion": "promoted"
     },
     {
     "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract",
@@ -19295,7 +19295,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract",
       "parity": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore",
       "default_status": "adapter-required",
-    "promotion": "candidate"
+    "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract",
@@ -19371,7 +19371,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract",
       "parity": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
@@ -19467,7 +19467,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract",
@@ -19540,7 +19540,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract",
       "parity": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
@@ -19638,7 +19638,7 @@
       "runner_id": "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.federation-mom-save-conditionals",

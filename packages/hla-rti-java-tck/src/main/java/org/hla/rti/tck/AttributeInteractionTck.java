@@ -205,7 +205,9 @@ final class AttributeInteractionTck {
          // Publication and active/passive subscription are independent
          // declarations. The named-rate forms are ordinary, non-regional
          // attribute declarations; passive declarations remain retained but
-         // do not arrange discovery or reflection.
+         // do not independently establish relevance. Once an active
+         // declaration makes a route relevant, passive subscribers receive
+         // the same standard discovery, reflection, and interaction data.
          expectFailure(
             () -> publisher.sendInteraction(
                publisherInteraction, publisher.getParameterHandleValueMapFactory().create(1),
@@ -237,8 +239,8 @@ final class AttributeInteractionTck {
             "active evoked attribute subscriber did not discover the object");
          check(immediateRecorder.discoveryReports == 1,
             "active immediate attribute subscriber did not discover the object");
-         check(passiveRecorder.discoveryReports == 0,
-            "passive attribute subscription arranged ordinary discovery");
+         check(passiveRecorder.discoveryReports == 1,
+            "passive attribute subscription did not receive active-relevance discovery");
          check(object.equals(evokedRecorder.discoveredObject)
                && object.equals(immediateRecorder.discoveredObject),
             "discovery callback named the wrong object instance");
@@ -261,8 +263,8 @@ final class AttributeInteractionTck {
             "active evoked attribute subscriber did not receive the update");
          check(immediateRecorder.reflectionReports == 1,
             "active immediate attribute subscriber did not receive the update");
-         check(passiveRecorder.reflectionReports == 0,
-            "passive attribute subscription arranged ordinary reflection");
+         check(passiveRecorder.reflectionReports == 1,
+            "passive attribute subscription did not receive active-relevance reflection");
          check(object.equals(evokedRecorder.reflectedObject)
                && evokedRecorder.reflectedValues != null
                && evokedRecorder.reflectedValues.size() == 1,
@@ -285,8 +287,8 @@ final class AttributeInteractionTck {
             "active evoked interaction subscriber did not receive the interaction");
          check(immediateRecorder.interactionReports == 1,
             "active immediate interaction subscriber did not receive the interaction");
-         check(passiveRecorder.interactionReports == 0,
-            "passive interaction subscription arranged ordinary delivery");
+         check(passiveRecorder.interactionReports == 1,
+            "passive interaction subscription did not receive active-relevance delivery");
          check(publisherInteraction.equals(evokedRecorder.receivedInteraction)
                && evokedRecorder.receivedParameters != null
                && evokedRecorder.receivedParameters.size() == 1,
@@ -333,30 +335,29 @@ final class AttributeInteractionTck {
                && immediateRecorder.interactionReports == immediateInteractionsBeforeDisable + 1,
             "re-enabling immediate callbacks did not release ordinary deliveries");
 
-         // Replacing passive declarations with active ones promotes both
-         // routes. Existing objects are discovered on attribute promotion,
-         // and the next ordinary interaction is delivered after interaction
-         // promotion.
+         // Replacing passive declarations with active ones changes relevance
+         // ownership without replaying an already delivered object. The
+         // promoted declarations continue to receive subsequent data.
          passiveSubscriber.subscribeObjectClassAttributes(
             passiveClass, passiveAttributes, HIGH_UPDATE_RATE);
          drain(passiveSubscriber);
          check(passiveRecorder.discoveryReports == 1,
-            "promoted passive attribute subscription did not discover the object");
+            "active promotion replayed ordinary object discovery");
 
          attributeValues.clear();
          attributeValues.put(publisherAttribute, new byte[] {0x11, 0x12});
          publisher.updateAttributeValues(object, attributeValues, new byte[] {0x13});
          drain(passiveSubscriber);
-         check(passiveRecorder.reflectionReports == 1,
-            "promoted passive attribute subscription did not receive an update");
+         check(passiveRecorder.reflectionReports == 2,
+            "promoted passive attribute subscription did not receive the next update");
 
          passiveSubscriber.subscribeInteractionClass(passiveInteraction);
          parameterValues.clear();
          parameterValues.put(publisherParameter, new byte[] {0x21, 0x22});
          publisher.sendInteraction(publisherInteraction, parameterValues, new byte[] {0x23});
          drain(passiveSubscriber);
-         check(passiveRecorder.interactionReports == 1,
-            "promoted passive interaction subscription did not receive an interaction");
+         check(passiveRecorder.interactionReports == 2,
+            "promoted passive interaction subscription did not receive the next interaction");
 
          passiveSubscriber.unsubscribeInteractionClass(passiveInteraction);
          passiveSubscriber.unsubscribeObjectClassAttributes(passiveClass, passiveAttributes);

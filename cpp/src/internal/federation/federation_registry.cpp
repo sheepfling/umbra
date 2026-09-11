@@ -16316,9 +16316,118 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
     return std::nullopt;
   }
 
-  // The candidate discovery class is the registered class when actively
-  // subscribed, otherwise the closest actively subscribed superclass. Once a
-  // candidate is found,
+  // Passive subscriptions do not establish registration relevance, but they
+  // still receive the discovery made relevant by another joined federate's
+  // active declaration. Evaluate that federation-wide relevance against the
+  // registered class and the source object's current region realization.
+  bool activeSubscriptionEstablished = false;
+  for (auto const& [candidateFederateId, candidateDeclarations] :
+       federation.objectClassAttributeDeclarations) {
+    if (candidateFederateId == objectInstance.producingFederateId ||
+        !federation.members.contains(candidateFederateId)) {
+      continue;
+    }
+    std::set<std::string> candidateVisited;
+    std::string candidateClassName = *registeredClassName;
+    while (!candidateClassName.empty() && candidateVisited.insert(candidateClassName).second) {
+      auto const* candidateClass = federation.definition.catalog->objectClass(candidateClassName);
+      auto const candidateClassHandle = federation.objectClassHandles->handleFor(
+          candidateClassName);
+      if (candidateClass == nullptr || !candidateClassHandle) {
+        break;
+      }
+      auto const candidatePerClass = candidateDeclarations.byObjectClass.find(
+          *candidateClassHandle);
+      if (candidatePerClass != candidateDeclarations.byObjectClass.end()) {
+        for (auto const& [ownedAttributeHandle, owningFederateId] :
+             objectInstance.attributeOwnersByHandle) {
+          static_cast<void>(owningFederateId);
+          if (!federation.attributeHandles->nameFor(
+                  federation.definition.catalog.get(),
+                  candidateClassName,
+                  ownedAttributeHandle)) {
+            continue;
+          }
+          auto const regional = candidatePerClass->second.regionalSubscribedAttributes.find(
+              ownedAttributeHandle);
+          auto const& updateRegions = updateRegionOverrides != nullptr
+              ? *updateRegionOverrides
+              : objectInstance.updateRegionsByAttribute;
+          auto const associated = updateRegions.find(ownedAttributeHandle);
+          bool const hasExplicitSubscriptionRegion =
+              regional != candidatePerClass->second.regionalSubscribedAttributes.end() &&
+              !regional->second.empty();
+          bool const hasExplicitUpdateRegion =
+              associated != updateRegions.end() && !associated->second.empty();
+          auto const ordinarySubscription = candidatePerClass->second.subscribedAttributes.find(
+              ownedAttributeHandle);
+          if (ordinarySubscription != candidatePerClass->second.subscribedAttributes.end() &&
+              ordinarySubscription->second && !hasExplicitSubscriptionRegion) {
+            if (!hasExplicitUpdateRegion) {
+              activeSubscriptionEstablished = true;
+              break;
+            }
+            for (std::uint64_t const associatedRegionHandle : associated->second) {
+              if (regionOverlapsDefault(
+                      federation,
+                      associatedRegionHandle,
+                      regionOverrides)) {
+                activeSubscriptionEstablished = true;
+                break;
+              }
+            }
+            if (activeSubscriptionEstablished) {
+              break;
+            }
+          }
+          if (!hasExplicitSubscriptionRegion) {
+            continue;
+          }
+          for (auto const& [subscribedRegionHandle, active] : regional->second) {
+            if (!active) {
+              continue;
+            }
+            if (!hasExplicitUpdateRegion) {
+              if (regionOverlapsDefault(
+                      federation,
+                      subscribedRegionHandle,
+                      regionOverrides)) {
+                activeSubscriptionEstablished = true;
+                break;
+              }
+              continue;
+            }
+            for (std::uint64_t const associatedRegionHandle : associated->second) {
+              if (regionsOverlap(
+                      federation,
+                      subscribedRegionHandle,
+                      associatedRegionHandle,
+                      regionOverrides)) {
+                activeSubscriptionEstablished = true;
+                break;
+              }
+            }
+            if (activeSubscriptionEstablished) {
+              break;
+            }
+          }
+          if (activeSubscriptionEstablished) {
+            break;
+          }
+        }
+      }
+      if (activeSubscriptionEstablished) {
+        break;
+      }
+      candidateClassName = candidateClass->parentName;
+    }
+    if (activeSubscriptionEstablished) {
+      break;
+    }
+  }
+
+  // The candidate discovery class is the registered class when subscribed,
+  // otherwise the closest subscribed superclass. Once a candidate is found,
   // only subscriptions at that candidate may cause discovery; an ancestor
   // must not leak a more-specific instance attribute into the callback.
   std::set<std::string> visited;
@@ -16377,14 +16486,25 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
         auto const ordinarySubscription = perClass->second.subscribedAttributes.find(
             ownedAttributeHandle);
         if (ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-            ordinarySubscription->second && !hasExplicitSubscriptionRegion) {
-          return currentClassHandle;
+            (ordinarySubscription->second || activeSubscriptionEstablished) &&
+            !hasExplicitSubscriptionRegion) {
+          if (!hasExplicitUpdateRegion) {
+            return currentClassHandle;
+          }
+          for (std::uint64_t const associatedRegionHandle : associated->second) {
+            if (regionOverlapsDefault(
+                    federation,
+                    associatedRegionHandle,
+                    regionOverrides)) {
+              return currentClassHandle;
+            }
+          }
         }
         if (!hasExplicitSubscriptionRegion) {
           continue;
         }
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          if (!active) {
+          if (!active && !activeSubscriptionEstablished) {
             continue;
           }
           if (!hasExplicitUpdateRegion) {
@@ -18086,6 +18206,122 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
     return std::nullopt;
   }
 
+  auto const registeredClassName = federation.objectClassHandles->nameFor(
+      instance->second.registeredObjectClassHandle);
+  if (!registeredClassName ||
+      federation.definition.catalog->objectClass(*registeredClassName) == nullptr) {
+    return std::nullopt;
+  }
+
+  // Passive subscriptions do not establish update relevance, but they still
+  // receive a reflection when another joined federate's active declaration
+  // has made this attribute update relevant. Keep the source-region test in
+  // this predicate so an active regional declaration cannot make a disjoint
+  // passive regional subscriber eligible.
+  auto activeSubscriptionEstablishedForAttribute = [&](std::uint64_t attributeHandle) {
+    bool established = false;
+    for (auto const& [candidateFederateId, candidateDeclarations] :
+         federation.objectClassAttributeDeclarations) {
+      if (candidateFederateId == producingFederateId ||
+          !federation.members.contains(candidateFederateId)) {
+        continue;
+      }
+      std::set<std::string> candidateVisited;
+      std::string candidateClassName = *registeredClassName;
+      while (!candidateClassName.empty() && candidateVisited.insert(candidateClassName).second) {
+        auto const* candidateClass = federation.definition.catalog->objectClass(candidateClassName);
+        auto const candidateClassHandle = federation.objectClassHandles->handleFor(
+            candidateClassName);
+        if (candidateClass == nullptr || !candidateClassHandle) {
+          break;
+        }
+        auto const candidatePerClass = candidateDeclarations.byObjectClass.find(
+            *candidateClassHandle);
+        if (candidatePerClass != candidateDeclarations.byObjectClass.end() &&
+            federation.attributeHandles->nameFor(
+                federation.definition.catalog.get(),
+                candidateClassName,
+                attributeHandle)) {
+          auto const regional = candidatePerClass->second.regionalSubscribedAttributes.find(
+              attributeHandle);
+          auto const associated = instance->second.updateRegionsByAttribute.find(
+              attributeHandle);
+          bool const hasExplicitSubscriptionRegion =
+              regional != candidatePerClass->second.regionalSubscribedAttributes.end() &&
+              !regional->second.empty();
+          bool const hasExplicitUpdateRegion =
+              (sentRegionHandles != nullptr && !sentRegionHandles->empty()) ||
+              (associated != instance->second.updateRegionsByAttribute.end() &&
+               !associated->second.empty());
+          auto const ordinarySubscription = candidatePerClass->second.subscribedAttributes.find(
+              attributeHandle);
+          if (ordinarySubscription != candidatePerClass->second.subscribedAttributes.end() &&
+              ordinarySubscription->second && !hasExplicitSubscriptionRegion &&
+              !hasExplicitUpdateRegion) {
+            established = true;
+            break;
+          }
+          if (hasExplicitSubscriptionRegion) {
+            std::set<std::uint64_t> currentSentRegions;
+            bool const sourceHasResigned =
+                regionOverrides != nullptr && !federation.members.contains(producingFederateId);
+            if (sentRegionHandles != nullptr && !sentRegionHandles->empty()) {
+              if (sourceHasResigned) {
+                currentSentRegions.insert(
+                    sentRegionHandles->begin(),
+                    sentRegionHandles->end());
+              } else if (associated != instance->second.updateRegionsByAttribute.end()) {
+                for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
+                  if (associated->second.contains(sentRegionHandle)) {
+                    currentSentRegions.insert(sentRegionHandle);
+                  }
+                }
+              }
+            } else if (associated != instance->second.updateRegionsByAttribute.end()) {
+              currentSentRegions = associated->second;
+            }
+            for (auto const& [subscribedRegionHandle, active] : regional->second) {
+              if (!active) {
+                continue;
+              }
+              if (!hasExplicitUpdateRegion) {
+                if (regionOverlapsDefault(
+                        federation,
+                        subscribedRegionHandle,
+                        regionOverrides)) {
+                  established = true;
+                  break;
+                }
+                continue;
+              }
+              for (std::uint64_t const sentRegionHandle : currentSentRegions) {
+                if (regionsOverlap(
+                        federation,
+                        subscribedRegionHandle,
+                        sentRegionHandle,
+                        regionOverrides)) {
+                  established = true;
+                  break;
+                }
+              }
+              if (established) {
+                break;
+              }
+            }
+          }
+        }
+        if (established) {
+          break;
+        }
+        candidateClassName = candidateClass->parentName;
+      }
+      if (established) {
+        break;
+      }
+    }
+    return established;
+  };
+
   ReceiveOrderAttributeUpdateRecipient recipient;
   recipient.federateId = receivingFederateId;
   recipient.subscriptionGeneration = declarations->second.subscriptionGeneration;
@@ -18107,11 +18343,21 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
     bool const hasExplicitSubscriptionRegion =
         regional != perClass->second.regionalSubscribedAttributes.end() &&
         !regional->second.empty();
+    auto const associatedUpdateRegions = instance->second.updateRegionsByAttribute.find(
+        attributeHandle);
+    bool const hasExplicitUpdateRegion =
+        (sentRegionHandles != nullptr && !sentRegionHandles->empty()) ||
+        (associatedUpdateRegions != instance->second.updateRegionsByAttribute.end() &&
+         !associatedUpdateRegions->second.empty());
     std::set<std::uint64_t> currentSentRegions;
     bool const sourceHasResigned =
         regionOverrides != nullptr && !federation.members.contains(producingFederateId);
+    bool const activeSubscriptionEstablished =
+        activeSubscriptionEstablishedForAttribute(attributeHandle);
     bool subscribed = ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-        ordinarySubscription->second && !hasExplicitSubscriptionRegion;
+        (ordinarySubscription->second || activeSubscriptionEstablished) &&
+        !hasExplicitSubscriptionRegion &&
+        !hasExplicitUpdateRegion;
     if (!subscribed && hasExplicitSubscriptionRegion) {
       // A voluntary source resignation removes the producer from the live
       // membership/region ledgers before a queued callback is reconstructed.

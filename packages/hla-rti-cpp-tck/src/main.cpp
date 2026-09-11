@@ -31055,8 +31055,11 @@ void scenarioAttributeUpdate(Options const& options, rti::CallbackModel model) {
   for (int pass = 0; pass != 8; ++pass) {
     passive.pump();
   }
-  require(!passive.recorder().discovery().present,
-          "Passive object subscription unexpectedly discovered an object");
+  auto const passiveDiscovery = passive.recorder().discovery();
+  require(passiveDiscovery.present,
+          "Passive object subscription did not receive active-relevance discovery");
+  require(passiveDiscovery.object == object,
+          "Passive discovery returned the wrong object handle");
 
   std::vector<std::uint8_t> value{0x10U, 0x20U, 0x30U};
   std::vector<std::uint8_t> tagBytes{0x54U, 0x43U, 0x4BU};
@@ -31081,8 +31084,16 @@ void scenarioAttributeUpdate(Options const& options, rti::CallbackModel model) {
   for (int pass = 0; pass != 8; ++pass) {
     passive.pump();
   }
-  require(!passive.recorder().reflection().present,
-          "Passive object subscription unexpectedly received an update");
+  auto const passiveReflection = passive.recorder().reflection();
+  require(passiveReflection.present,
+          "Passive object subscription did not receive active-relevance reflection");
+  require(passiveReflection.object == object &&
+              passiveReflection.values.size() == 1U &&
+              passiveReflection.values.count(passiveAttribute) == 1U &&
+              copyBytes(passiveReflection.values.at(passiveAttribute)) == value,
+          "Passive reflection returned the wrong object or attribute value");
+  require(passiveReflection.tag == tagBytes,
+          "Passive reflection returned the wrong user tag");
 
   owner.resign(rti::DELETE_OBJECTS);
   member.resign(rti::NO_ACTION);
@@ -31937,8 +31948,16 @@ void scenarioInteraction(Options const& options, rti::CallbackModel model) {
   for (int pass = 0; pass != 8; ++pass) {
     passive.pump();
   }
-  require(!passive.recorder().interaction().present,
-          "Passive interaction subscription unexpectedly received an interaction");
+  auto const passiveReceived = passive.recorder().interaction();
+  require(passiveReceived.present,
+          "Passive interaction subscription did not receive active-relevance delivery");
+  require(passiveReceived.interaction == passiveInteraction &&
+              passiveReceived.parameters.size() == 1U &&
+              passiveReceived.parameters.count(parameter) == 1U &&
+              copyBytes(passiveReceived.parameters.at(parameter)) == value,
+          "Passive interaction delivery returned the wrong class or parameter value");
+  require(passiveReceived.tag == tagBytes,
+          "Passive interaction delivery returned the wrong user tag");
 
   owner.resign(rti::NO_ACTION);
   member.resign(rti::NO_ACTION);
@@ -42965,8 +42984,8 @@ void scenarioOrdinaryEdges(Options const& options, rti::CallbackModel model) {
   for (int pass = 0; pass != 8; ++pass) {
     passive.pump();
   }
-  require(passive.recorder().interaction().present == false,
-          "Passive interaction declaration unexpectedly received an interaction");
+  require(passive.recorder().interaction().present,
+          "Passive interaction declaration did not receive active-relevance delivery");
 
   requireException(
       [&] {
@@ -43011,8 +43030,10 @@ void scenarioOrdinaryEdges(Options const& options, rti::CallbackModel model) {
   for (int pass = 0; pass != 8; ++pass) {
     passive.pump();
   }
-  require(!passive.recorder().discovery().present,
-          "Passive declaration unexpectedly produced object discovery");
+  require(passive.recorder().discovery().present,
+          "Passive declaration did not receive active-relevance discovery");
+  require(passive.recorder().discovery().object == object,
+          "Passive declaration discovery returned the wrong object");
 
   rti::AttributeHandleValueMap ownerValues;
   std::vector<std::uint8_t> valueBytes{0x11U, 0x22U};
@@ -43036,8 +43057,13 @@ void scenarioOrdinaryEdges(Options const& options, rti::CallbackModel model) {
   for (int pass = 0; pass != 8; ++pass) {
     passive.pump();
   }
-  require(!passive.recorder().reflection().present,
-          "Passive declaration unexpectedly produced attribute reflection");
+  require(passive.recorder().reflection().present,
+          "Passive declaration did not receive active-relevance reflection");
+  require(passive.recorder().reflection().object == object &&
+              passive.recorder().reflection().values.count(passiveAttribute) == 1U &&
+              copyBytes(passive.recorder().reflection().values.at(passiveAttribute)) ==
+                  valueBytes,
+          "Passive declaration reflection returned the wrong attribute value");
 
   rti::AttributeHandleValueMap memberValues;
   memberValues.emplace(

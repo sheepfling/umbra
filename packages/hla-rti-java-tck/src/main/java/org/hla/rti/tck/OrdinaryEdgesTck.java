@@ -105,8 +105,8 @@ final class OrdinaryEdgesTck {
             "ordinary edge subscriber did not receive the known-class discovery callback");
          JavaTckSupport.check(immediateRecorder.discoveries == 1,
             "immediate ordinary edge subscriber did not receive the known-class discovery callback");
-         JavaTckSupport.check(passiveRecorder.discoveries == 0,
-            "passive ordinary edge subscription created an object discovery callback");
+         JavaTckSupport.check(passiveRecorder.discoveries == 1,
+            "passive ordinary edge subscription did not receive active-relevance discovery");
 
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(2);
          byte[] first = new byte[] {0x11};
@@ -132,8 +132,8 @@ final class OrdinaryEdgesTck {
             "ordinary reflection reused the sender's mutable tag array");
          JavaTckSupport.check(immediateRecorder.reflections == 1,
             "immediate ordinary edge subscriber did not receive the reflection directly");
-         JavaTckSupport.check(passiveRecorder.reflections == 0,
-            "passive ordinary edge subscription received a reflection");
+         JavaTckSupport.check(passiveRecorder.reflections == 1,
+            "passive ordinary edge subscription did not receive active-relevance reflection");
 
          // Empty ordinary passels are valid Java map values and must not force
          // a provider-specific data representation.
@@ -175,12 +175,13 @@ final class OrdinaryEdgesTck {
                unknownObject),
             "ObjectInstanceNotKnown", "unknown object was accepted by a class query");
 
-         // A member without an active declaration remains joined but is not a
-         // recipient. Repeated removal is an idempotent cleanup operation.
+         // A passive declaration remains joined and receives data while an
+         // active declaration keeps the route relevant. Repeated removal is
+         // an idempotent cleanup operation.
          publisher.updateAttributeValues(object, values, new byte[] {0x55});
          JavaTckSupport.drain(passive);
-         JavaTckSupport.check(passiveRecorder.reflections == 0,
-            "a member with only passive declarations received ordinary data");
+         JavaTckSupport.check(passiveRecorder.reflections == 2,
+            "passive ordinary edge subscription missed the next relevant update");
          passive.unsubscribeObjectClassAttributes(objectClass, attributes);
          passive.unsubscribeObjectClassAttributes(objectClass, attributes);
          passive.unsubscribeObjectClass(objectClass);
