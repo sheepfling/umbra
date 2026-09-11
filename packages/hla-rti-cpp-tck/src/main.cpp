@@ -19397,6 +19397,111 @@ void scenarioFomAdditionalModuleJoinAtomicity(
   owner.disconnect();
 }
 
+void scenarioInteractionClassLookupLifecycle(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Interaction-class lookup testing requires an adapter-supplied base FOM");
+  require(
+      !options.additionalFomModules.empty(),
+      "Interaction-class lookup testing requires an adapter-supplied extension FOM");
+
+  Session observer(options, model, "interaction-class-lookup-observer");
+  Session owner(options, model, "interaction-class-lookup-owner");
+  Session extension(options, model, "interaction-class-lookup-extension");
+  auto const federation = federationName(options, "interaction-class-lookup-lifecycle");
+  auto const extensionInteractionName = L"HLAinteractionRoot.TckExtensionInteraction";
+  auto const unknownInteractionName = L"HLAinteractionRoot.TckMissingInteraction";
+  rti::InteractionClassHandle invalid;
+
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getInteractionClassHandle(
+            options.interactionClassName));
+      },
+      L"NotConnected",
+      "looking up an interaction class before connecting");
+  requireException(
+      [&] { static_cast<void>(observer.rtiAmbassador().getInteractionClassName(invalid)); },
+      L"NotConnected",
+      "looking up an interaction-class name before connecting");
+
+  observer.connect();
+  owner.connect();
+  extension.connect();
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getInteractionClassHandle(
+            options.interactionClassName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up an interaction class after connecting but before joining");
+  requireException(
+      [&] { static_cast<void>(observer.rtiAmbassador().getInteractionClassName(invalid)); },
+      L"FederateNotExecutionMember",
+      "looking up an interaction-class name after connecting but before joining");
+
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const baseInteraction = owner.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  require(
+      baseInteraction.isValid() &&
+          owner.rtiAmbassador().getInteractionClassHandle(options.interactionClassName) ==
+              baseInteraction &&
+          owner.rtiAmbassador().getInteractionClassName(baseInteraction) ==
+              options.interactionClassName,
+      "ordinary interaction-class lookup did not round-trip a stable base handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getInteractionClassHandle(
+            unknownInteractionName));
+      },
+      L"NameNotFound",
+      "looking up an unknown interaction class");
+  requireException(
+      [&] { static_cast<void>(owner.rtiAmbassador().getInteractionClassName(invalid)); },
+      L"InvalidInteractionClassHandle",
+      "looking up an interaction-class name from an invalid handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getInteractionClassHandle(
+            extensionInteractionName));
+      },
+      L"NameNotFound",
+      "looking up the extension interaction before an additional-module join");
+
+  extension.join(
+      options.memberFederateName,
+      options.federateType,
+      federation,
+      fomModuleNames(options.additionalFomModules));
+  auto const ownerExtensionInteraction = owner.rtiAmbassador().getInteractionClassHandle(
+      extensionInteractionName);
+  auto const memberExtensionInteraction = extension.rtiAmbassador().getInteractionClassHandle(
+      extensionInteractionName);
+  require(
+      ownerExtensionInteraction.isValid() &&
+          memberExtensionInteraction == ownerExtensionInteraction &&
+          owner.rtiAmbassador().getInteractionClassName(ownerExtensionInteraction) ==
+              extensionInteractionName &&
+          owner.rtiAmbassador().getInteractionClassHandle(options.interactionClassName) ==
+              baseInteraction,
+      "additional-module join did not compose a shared extension interaction or preserve the base handle");
+
+  extension.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  extension.disconnect();
+  owner.disconnect();
+  observer.disconnect();
+}
+
 void scenarioFomInvalidCreateAtomicity(
     Options const& options,
     rti::CallbackModel model) {
@@ -69240,6 +69345,12 @@ void scenarioFomAdditionalModuleJoinAtomicityContract(
   scenarioFomAdditionalModuleJoinAtomicity(options, model);
 }
 
+void scenarioInteractionClassLookupLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInteractionClassLookupLifecycle(options, model);
+}
+
 void scenarioFomInvalidCreateAtomicityContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -69483,6 +69594,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.inherited-object-attribute-projection-contract",
       "cpp-tck.fom-module-composition-contract",
       "cpp-tck.fom-additional-module-join-atomicity-contract",
+      "cpp-tck.interaction-class-lookup-lifecycle-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
@@ -69996,6 +70108,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery",
       "cpp-tck.fom-module-composition",
       "cpp-tck.fom-additional-module-join-atomicity",
+      "cpp-tck.interaction-class-lookup-lifecycle",
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
@@ -70395,6 +70508,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-additional-module-join-atomicity-contract") {
     return scenarioFomAdditionalModuleJoinAtomicityContract;
+  }
+  if (id == "cpp-tck.interaction-class-lookup-lifecycle-contract") {
+    return scenarioInteractionClassLookupLifecycleContract;
   }
   if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
     return scenarioFomInvalidCreateAtomicityContract;
@@ -71896,6 +72012,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-additional-module-join-atomicity") {
     return scenarioFomAdditionalModuleJoinAtomicity;
   }
+  if (id == "cpp-tck.interaction-class-lookup-lifecycle") {
+    return scenarioInteractionClassLookupLifecycle;
+  }
   if (id == "cpp-tck.fom-invalid-create-atomicity") {
     return scenarioFomInvalidCreateAtomicity;
   }
@@ -72085,6 +72204,11 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires adapter-supplied valid and invalid additional FOM modules";
+      } else if ((scenario == "cpp-tck.interaction-class-lookup-lifecycle" ||
+                  scenario == "cpp-tck.interaction-class-lookup-lifecycle-contract") &&
+                 options.additionalFomModules.empty()) {
+        result.status = "skipped";
+        result.message = "requires an adapter-supplied additional FOM module";
       } else if ((scenario == "cpp-tck.fom-invalid-create-atomicity" ||
                   scenario == "cpp-tck.fom-invalid-create-atomicity-contract") &&
                  options.invalidFomModules.empty()) {
