@@ -183,6 +183,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--known-class-disabled-fom",
+        default=str(
+            default_path(
+                "packages/hla-rti-cpp-tck/fom/known-class-advisory-disabled-tck.xml"
+            )
+        ),
+    )
+    parser.add_argument(
         "--ddm-dimension",
         action="append",
         default=[],
@@ -386,6 +394,11 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=True,
             label="known-class advisory FOM",
         ),
+        "known_class_disabled_fom": resolve_path(
+            arguments.known_class_disabled_fom,
+            must_exist=True,
+            label="known-class-disabled advisory FOM",
+        ),
     }
     ddm_dimensions = arguments.ddm_dimension or ["TckDimensionX", "TckDimensionY"]
     three_dimensions = arguments.three_dimensional_dimension or [
@@ -426,6 +439,9 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_SWITCHES_FOM": inputs["switches_fom"],
         "HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM": inputs["auto_provide_fom"],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
+        "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
+            "known_class_disabled_fom"
+        ],
         "HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS": ";".join(inputs["ddm_dimensions"]),
         "HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS": ";".join(
             inputs["three_dimensions"]
@@ -603,6 +619,8 @@ def direct_arguments(
         str(inputs["auto_provide_fom"]),
         "--known-class-fom",
         str(inputs["known_class_fom"]),
+        "--known-class-disabled-fom",
+        str(inputs["known_class_disabled_fom"]),
         "--time-implementation",
         arguments.time_implementation,
         "--provider-id",

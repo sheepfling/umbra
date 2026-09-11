@@ -456,6 +456,7 @@ struct Options {
   std::filesystem::path switchesFom;
   std::filesystem::path autoProvideFom;
   std::filesystem::path knownClassFom;
+  std::filesystem::path knownClassDisabledFom;
   std::vector<std::filesystem::path> additionalFomModules;
   std::vector<std::filesystem::path> invalidFomModules;
   std::vector<std::string> scenarios;
@@ -42472,11 +42473,13 @@ void scenarioTransportOrder(Options const& options, rti::CallbackModel model) {
   observer.resign(rti::NO_ACTION);
 }
 
-void scenarioKnownClassAttributeRelevance(
+void runKnownClassAttributeRelevance(
     Options const& options,
-    rti::CallbackModel model) {
+    rti::CallbackModel model,
+    std::filesystem::path const& fom,
+    bool knownClassPolicyEnabled) {
   require(
-      !options.knownClassFom.empty(),
+      !fom.empty(),
       "known-class attribute relevance testing requires an adapter-supplied FOM");
 
   Session owner(options, model, "owner");
@@ -42489,7 +42492,7 @@ void scenarioKnownClassAttributeRelevance(
   subscriber.connect();
   owner.rtiAmbassador().createFederationExecution(
       federation,
-      options.knownClassFom.wstring(),
+      fom.wstring(),
       options.logicalTimeImplementationName);
   owner.join(options.ownerFederateName, options.federateType, federation);
   subscriber.join(
@@ -42498,9 +42501,11 @@ void scenarioKnownClassAttributeRelevance(
       federation);
 
   require(
-      owner.rtiAmbassador().getAdvisoriesUseKnownClassSwitch() &&
-          subscriber.rtiAmbassador().getAdvisoriesUseKnownClassSwitch(),
-      "adapter known-class FOM did not enable the static known-class policy");
+      owner.rtiAmbassador().getAdvisoriesUseKnownClassSwitch() ==
+              knownClassPolicyEnabled &&
+          subscriber.rtiAmbassador().getAdvisoriesUseKnownClassSwitch() ==
+              knownClassPolicyEnabled,
+      "adapter known-class FOM did not expose the configured static policy");
   require(
       owner.rtiAmbassador().getAttributeRelevanceAdvisorySwitch() &&
           subscriber.rtiAmbassador().getAttributeRelevanceAdvisorySwitch(),
@@ -42543,6 +42548,7 @@ void scenarioKnownClassAttributeRelevance(
       "known-class FOM attribute handles did not retain identity across members");
 
   rti::AttributeHandleSet const ownerKnownAttributes{ownerKnownAttribute};
+  rti::AttributeHandleSet const ownerDerivedAttributes{ownerDerivedAttribute};
   rti::AttributeHandleSet const ownerPublishedAttributes{
       ownerKnownAttribute,
       ownerDerivedAttribute};
@@ -42593,24 +42599,56 @@ void scenarioKnownClassAttributeRelevance(
       subscriberDerivedAttributes,
       true,
       L"");
-  for (int pass = 0; pass != 8; ++pass) {
-    owner.pump();
-  }
-  require(
-      owner.recorder().updatesOn().empty() &&
-          owner.recorder().updatesOff().empty(),
-      "known-class policy exposed a derived-only advisory for the known instance");
+  if (knownClassPolicyEnabled) {
+    for (int pass = 0; pass != 8; ++pass) {
+      owner.pump();
+    }
+    require(
+        owner.recorder().updatesOn().empty() &&
+            owner.recorder().updatesOff().empty(),
+        "known-class policy exposed a derived-only advisory for the known instance");
 
-  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
-      subscriberDerivedClass,
-      subscriberDerivedAttributes);
-  for (int pass = 0; pass != 8; ++pass) {
-    owner.pump();
+    subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+        subscriberDerivedClass,
+        subscriberDerivedAttributes);
+    for (int pass = 0; pass != 8; ++pass) {
+      owner.pump();
+    }
+    require(
+        owner.recorder().updatesOn().empty() &&
+            owner.recorder().updatesOff().empty(),
+        "removing a derived-only declaration changed known-class advisory state");
+  } else {
+    waitFor(
+        owner,
+        [&] { return owner.recorder().updatesOn().size() >= 1U; },
+        options,
+        "known-class-disabled derived-only turn-updates-on advisory");
+    auto const derivedUpdatesOn = owner.recorder().updatesOn();
+    require(
+        derivedUpdatesOn.size() == 1U &&
+            derivedUpdatesOn.front().object == object &&
+            derivedUpdatesOn.front().attributes == ownerDerivedAttributes &&
+            !derivedUpdatesOn.front().updateRateDesignator.has_value(),
+        "disabled known-class policy did not expose the derived-only attribute");
+    owner.recorder().clearAdvisories();
+
+    subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+        subscriberDerivedClass,
+        subscriberDerivedAttributes);
+    waitFor(
+        owner,
+        [&] { return owner.recorder().updatesOff().size() >= 1U; },
+        options,
+        "known-class-disabled derived-only turn-updates-off advisory");
+    auto const derivedUpdatesOff = owner.recorder().updatesOff();
+    require(
+        derivedUpdatesOff.size() == 1U &&
+            derivedUpdatesOff.front().object == object &&
+            derivedUpdatesOff.front().attributes == ownerDerivedAttributes,
+        "disabled known-class policy did not withdraw the derived-only attribute");
+    owner.recorder().clearAdvisories();
   }
-  require(
-      owner.recorder().updatesOn().empty() &&
-          owner.recorder().updatesOff().empty(),
-      "removing a derived-only declaration changed known-class advisory state");
 
   subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
       subscriberBaseClass,
@@ -42623,9 +42661,9 @@ void scenarioKnownClassAttributeRelevance(
   auto const updatesOff = owner.recorder().updatesOff();
   require(
       updatesOff.size() == 1U &&
-          updatesOff.front().object == object &&
+      updatesOff.front().object == object &&
           updatesOff.front().attributes == ownerKnownAttributes,
-      "known-class policy did not limit the final advisory to the known attribute");
+      "known-class policy did not preserve the base attribute advisory");
 
   subscriber.rtiAmbassador().unsubscribeObjectClass(subscriberBaseClass);
   owner.rtiAmbassador().unpublishObjectClassAttributes(
@@ -42637,6 +42675,26 @@ void scenarioKnownClassAttributeRelevance(
   owner.rtiAmbassador().destroyFederationExecution(federation);
   subscriber.disconnect();
   owner.disconnect();
+}
+
+void scenarioKnownClassAttributeRelevance(
+    Options const& options,
+    rti::CallbackModel model) {
+  runKnownClassAttributeRelevance(
+      options,
+      model,
+      options.knownClassFom,
+      true);
+}
+
+void scenarioKnownClassAttributeRelevanceDisabled(
+    Options const& options,
+    rti::CallbackModel model) {
+  runKnownClassAttributeRelevance(
+      options,
+      model,
+      options.knownClassDisabledFom,
+      false);
 }
 
 void scenarioRelevanceAdvisories(Options const& options, rti::CallbackModel model) {
@@ -70118,6 +70176,12 @@ void scenarioKnownClassAttributeRelevanceContract(
   scenarioKnownClassAttributeRelevance(options, model);
 }
 
+void scenarioKnownClassAttributeRelevanceDisabledContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioKnownClassAttributeRelevanceDisabled(options, model);
+}
+
 void scenarioRelevanceAdvisoriesContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -70406,6 +70470,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.relevance-advisories-contract",
       "cpp-tck.attribute-relevance-known-class",
       "cpp-tck.attribute-relevance-known-class-contract",
+      "cpp-tck.attribute-relevance-known-class-disabled",
+      "cpp-tck.attribute-relevance-known-class-disabled-contract",
       "cpp-tck.fom-model-contract",
       "cpp-tck.inherited-object-attribute-projection",
       "cpp-tck.inherited-object-attribute-projection-contract",
@@ -70956,6 +71022,8 @@ void printHelp() {
       "  --switches-fom FILE           Switch-declaration FOM supplied by the adapter\n"
       "  --auto-provide-fom FILE       Auto Provide FOM supplied by the adapter\n"
       "  --known-class-fom FILE        Known-class advisory FOM supplied by the adapter\n"
+      "  --known-class-disabled-fom FILE\n"
+      "                                Known-class-disabled advisory FOM supplied by the adapter\n"
       "  --ddm-dimension NAME          Repeat; DDM dimension lookup name\n"
       "  --three-dimensional-dimension NAME\n"
       "                                Repeat; three-dimensional DDM dimension name\n"
@@ -71062,6 +71130,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--known-class-fom") {
       requireValue(index, argc, argv, argument);
       options.knownClassFom = argv[++index];
+    } else if (argument == "--known-class-disabled-fom") {
+      requireValue(index, argc, argv, argument);
+      options.knownClassDisabledFom = argv[++index];
     } else if (argument == "--ddm-dimension") {
       requireValue(index, argc, argv, argument);
       if (!options.ddmDimensionsConfigured) {
@@ -71255,6 +71326,12 @@ Options parseOptions(int argc, char** argv) {
         "Known-class advisory FOM file does not exist: " +
         options.knownClassFom.string());
   }
+  if (!options.knownClassDisabledFom.empty() &&
+      !std::filesystem::is_regular_file(options.knownClassDisabledFom)) {
+    throw std::runtime_error(
+        "Known-class-disabled advisory FOM file does not exist: " +
+        options.knownClassDisabledFom.string());
+  }
   if (!options.ddmFom.empty() && options.ddmDimensionNames.size() < 2U) {
     throw std::runtime_error("--ddm-fom requires at least two --ddm-dimension values");
   }
@@ -71357,6 +71434,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.attribute-relevance-known-class-contract") {
     return scenarioKnownClassAttributeRelevanceContract;
+  }
+  if (id == "cpp-tck.attribute-relevance-known-class-disabled-contract") {
+    return scenarioKnownClassAttributeRelevanceDisabledContract;
   }
   if (id == "cpp-tck.fom-model-contract") {
     return scenarioFomModelContract;
@@ -72729,6 +72809,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.attribute-relevance-known-class") {
     return scenarioKnownClassAttributeRelevance;
   }
+  if (id == "cpp-tck.attribute-relevance-known-class-disabled") {
+    return scenarioKnownClassAttributeRelevanceDisabled;
+  }
   if (id == "cpp-tck.delay-subscription-evaluation-interaction") {
     return scenarioDelaySubscriptionEvaluationInteraction;
   }
@@ -72988,6 +73071,8 @@ void writeResults(
         << jsonEscape(options.autoProvideFom.string()) << "\",\n"
          << "  \"known_class_fom\": \""
          << jsonEscape(options.knownClassFom.string()) << "\",\n"
+         << "  \"known_class_disabled_fom\": \""
+         << jsonEscape(options.knownClassDisabledFom.string()) << "\",\n"
          << "  \"ddm_dimensions\": [";
   for (std::size_t index = 0U; index < options.ddmDimensionNames.size(); ++index) {
     if (index != 0U) {
@@ -73067,6 +73152,12 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied known-class advisory FOM";
+      } else if ((scenario == "cpp-tck.attribute-relevance-known-class-disabled" ||
+                  scenario == "cpp-tck.attribute-relevance-known-class-disabled-contract") &&
+                 options.knownClassDisabledFom.empty()) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied known-class-disabled advisory FOM";
       } else if ((scenario == "cpp-tck.fom-model" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle-contract" ||

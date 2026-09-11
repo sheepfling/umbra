@@ -21442,6 +21442,86 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-relevance-known-class-disabled",
+      "category": "declaration-relevance",
+      "title": "Honor subscription declarations directly when the adapter-configured known-class policy is disabled",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.getAdvisoriesUseKnownClassSwitch",
+        "RTIambassador.getAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.turnUpdatesOnForObjectInstance",
+        "FederateAmbassador.turnUpdatesOffForObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-relevance-advisories",
+        "cpp-1516.1-support-switch-accessors",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-known-class-attribute-relevance-contract.json",
+        "attribute-relevance-advisory-api-contract.json",
+        "attribute-relevance-advisory-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioKnownClassAttributeRelevanceDisabled",
+      "runner_id": "cpp-tck.attribute-relevance-known-class-disabled",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-relevance-known-class-disabled-contract",
+      "category": "declaration-relevance",
+      "title": "Standard adapter-backed contract for subscription-driven advisories with known-class policy disabled",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.getAdvisoriesUseKnownClassSwitch",
+        "RTIambassador.getAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.turnUpdatesOnForObjectInstance",
+        "FederateAmbassador.turnUpdatesOffForObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-relevance-advisories",
+        "cpp-1516.1-support-switch-accessors",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-known-class-attribute-relevance-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioKnownClassAttributeRelevanceDisabledContract",
+      "runner_id": "cpp-tck.attribute-relevance-known-class-disabled-contract",
+      "parity": "cpp-tck.attribute-relevance-known-class-disabled",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.delay-subscription-evaluation-interaction",
       "category": "delay-subscription-evaluation",
       "title": "Re-evaluate ordinary interaction subscriptions at the callback boundary using the standard Delay Subscription Evaluation switch",

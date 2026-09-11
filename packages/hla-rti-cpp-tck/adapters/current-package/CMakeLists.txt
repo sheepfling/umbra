@@ -66,6 +66,9 @@ set(HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
   CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-disabled-tck.xml"
+  CACHE FILEPATH "Known-class-disabled advisory FOM supplied by this provider adapter")
 set(HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS "TckDimensionX;TckDimensionY"
   CACHE STRING "Semicolon-separated DDM dimensions supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS
@@ -193,6 +196,11 @@ if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}" OR
   message(FATAL_ERROR
     "Adapter known-class advisory FOM does not exist: ${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}")
 endif()
+if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}" OR
+   IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}")
+  message(FATAL_ERROR
+    "Adapter known-class-disabled advisory FOM does not exist: ${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}")
+endif()
 list(LENGTH HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS _ddm_dimension_count)
 if(_ddm_dimension_count LESS 2)
   message(FATAL_ERROR
@@ -305,6 +313,8 @@ set(_tck_common_arguments
   --switches-fom "${HLA_RTI_TCK_ADAPTER_SWITCHES_FOM}"
   --auto-provide-fom "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM}"
   --known-class-fom "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}"
+  --known-class-disabled-fom
+    "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}"
   --time-implementation "${HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION}"
   --provider-id "${HLA_RTI_TCK_ADAPTER_PROVIDER_ID}"
   --timeout-ms "${HLA_RTI_TCK_ADAPTER_TIMEOUT_MS}")

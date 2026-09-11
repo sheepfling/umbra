@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 Advisories Use Known Class policy as it affects inherited attribute-relevance advisories. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, known-class FOM, endpoint, and callback configuration. The scenario proves receiver-local discovery at the known base class, initial and final update advisories limited to the known attribute, and suppression of a derived-only declaration. It does not infer provider-specific class names, registries, headers, or implementation behavior.",
+  "notes": "This contract records the portable C++ TCK checks for the official IEEE 1516.1 Advisories Use Known Class policy as it affects inherited attribute-relevance advisories. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, enabled or disabled known-class FOM, endpoint, and callback configuration. The paired scenarios prove receiver-local discovery at the known base class, initial and final update advisories limited to the known attribute when the policy is enabled, and subscription-driven derived-only turn-up/turn-down advisories when the policy is disabled. They do not infer provider-specific class names, registries, headers, or implementation behavior.",
   "api_surfaces": [
     {
       "id": "standard-cpp-known-class-attribute-relevance",
@@ -13,7 +13,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador known-class switch and FederateAmbassador attribute-relevance callback declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioKnownClassAttributeRelevanceContract"
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioKnownClassAttributeRelevanceContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioKnownClassAttributeRelevanceDisabledContract"
       ]
     }
   ]
