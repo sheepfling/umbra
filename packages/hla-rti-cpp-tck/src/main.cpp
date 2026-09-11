@@ -70967,6 +70967,12 @@ void scenarioJoinedFederateMomInteractionsSentCountsContract(
   scenarioJoinedFederateMomInteractionsSentCounts(options, model);
 }
 
+void scenarioJoinedFederateMomDirectedInteractionsSentCountsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomDirectedInteractionsSentCounts(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdateFailureContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -71490,6 +71496,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.joined-federate-mom-interactions-sent-counts",
       "cpp-tck.joined-federate-mom-interactions-sent-counts-contract",
       "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
+      "cpp-tck.joined-federate-mom-directed-interactions-sent-counts-contract",
       "cpp-tck.mom-transportation-type-change-request",
       "cpp-tck.joined-federate-mom-reflections-received-counts",
       "cpp-tck.joined-federate-mom-reflection-counts",
@@ -73437,6 +73444,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.joined-federate-mom-directed-interactions-sent-counts") {
     return scenarioJoinedFederateMomDirectedInteractionsSentCounts;
+  }
+  if (id == "cpp-tck.joined-federate-mom-directed-interactions-sent-counts-contract") {
+    return scenarioJoinedFederateMomDirectedInteractionsSentCountsContract;
   }
   if (id == "cpp-tck.mom-transportation-type-change-request") {
     return scenarioMomTransportationTypeChangeRequest;
