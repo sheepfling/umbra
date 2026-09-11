@@ -18801,6 +18801,12 @@ void scenarioCustomTransportationInteractionDelivery(
   producer.disconnect();
 }
 
+void scenarioCustomTransportationInteractionDeliveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCustomTransportationInteractionDelivery(options, model);
+}
+
 void scenarioCustomTransportationTimestampedDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -71579,6 +71585,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.ordinary-edges-contract",
       "cpp-tck.fom-model",
       "cpp-tck.custom-transportation-interaction-delivery",
+      "cpp-tck.custom-transportation-interaction-delivery-contract",
       "cpp-tck.custom-transportation-regional-attribute-delivery",
       "cpp-tck.custom-transportation-regional-interaction-delivery",
       "cpp-tck.custom-transportation-timestamped-delivery",
@@ -73638,6 +73645,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.custom-transportation-interaction-delivery") {
     return scenarioCustomTransportationInteractionDelivery;
   }
+  if (id == "cpp-tck.custom-transportation-interaction-delivery-contract") {
+    return scenarioCustomTransportationInteractionDeliveryContract;
+  }
   if (id == "cpp-tck.custom-transportation-regional-attribute-delivery") {
     return scenarioCustomTransportationRegionalAttributeDelivery;
   }
@@ -73877,6 +73887,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.fom-dimension-handle-stability" ||
                   scenario == "cpp-tck.fom-dimension-handle-stability-contract" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
+                  scenario == "cpp-tck.custom-transportation-interaction-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-delivery" ||

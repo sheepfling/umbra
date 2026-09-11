@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for an adapter-supplied rich FOM transportation type used by an ordinary interaction. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich FOM, endpoint, callback model, and transportation/type names. It verifies transportation handle/name round-trips, ordinary interaction publication, subscription, send and receive delivery, received transportation identity, and the standard interaction transportation query without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-custom-transportation-interaction-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador FOM transportation lookup, interaction publication/subscription/send, and transportation query services with FederateAmbassador delivery callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador transportation and interaction declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCustomTransportationInteractionDeliveryContract"
+      ]
+    }
+  ]
+}

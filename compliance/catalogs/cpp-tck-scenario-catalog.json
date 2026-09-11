@@ -22838,6 +22838,38 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.custom-transportation-interaction-delivery-contract",
+      "category": "transportation-delivery",
+      "title": "Standard adapter-backed contract for custom FOM transportation interaction delivery",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.queryInteractionTransportationType",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.reportInteractionTransportationType"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-transportation-type-control",
+        "cpp-1516.2-fom-data-representations"
+      ],
+      "contract_refs": [
+        "standard-custom-transportation-interaction-delivery-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCustomTransportationInteractionDeliveryContract",
+      "runner_id": "cpp-tck.custom-transportation-interaction-delivery-contract",
+      "parity": "cpp-tck.custom-transportation-interaction-delivery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.custom-transportation-regional-attribute-delivery",
       "category": "transportation-delivery",
       "title": "Deliver an ordinary regional attribute update with the adapter-declared custom FOM transportation type",
