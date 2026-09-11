@@ -19766,6 +19766,169 @@ void scenarioAttributeLookupLifecycle(
   observer.disconnect();
 }
 
+void scenarioParameterLookupLifecycle(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Parameter lookup testing requires an adapter-supplied rich FOM model");
+
+  Session observer(options, model, "parameter-lookup-observer");
+  Session owner(options, model, "parameter-lookup-owner");
+  Session member(options, model, "parameter-lookup-member");
+  auto const federation = federationName(options, "parameter-lookup-lifecycle");
+  auto const missingParameterName = L"TckMissingParameter";
+  rti::InteractionClassHandle invalidInteractionClass;
+  rti::ParameterHandle invalidParameter;
+
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getParameterHandle(
+            invalidInteractionClass,
+            options.typedIntegerParameterName));
+      },
+      L"NotConnected",
+      "looking up a parameter before connecting");
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getParameterName(
+            invalidInteractionClass,
+            invalidParameter));
+      },
+      L"NotConnected",
+      "looking up a parameter name before connecting");
+
+  observer.connect();
+  owner.connect();
+  member.connect();
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getParameterHandle(
+            invalidInteractionClass,
+            options.typedIntegerParameterName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a parameter after connecting but before joining");
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getParameterName(
+            invalidInteractionClass,
+            invalidParameter));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a parameter name after connecting but before joining");
+
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.modelFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const baseInteraction = owner.rtiAmbassador().getInteractionClassHandle(
+      options.typedInteractionClassName);
+  auto const derivedInteraction = owner.rtiAmbassador().getInteractionClassHandle(
+      options.typedDerivedInteractionClassName);
+  auto const baseParameter = owner.rtiAmbassador().getParameterHandle(
+      baseInteraction,
+      options.typedIntegerParameterName);
+  auto const derivedInheritedParameter = owner.rtiAmbassador().getParameterHandle(
+      derivedInteraction,
+      options.typedIntegerParameterName);
+  auto const derivedParameter = owner.rtiAmbassador().getParameterHandle(
+      derivedInteraction,
+      options.typedDerivedParameterName);
+  require(
+      baseInteraction.isValid() && derivedInteraction.isValid() &&
+          baseParameter.isValid() && derivedInheritedParameter.isValid() &&
+          derivedParameter.isValid(),
+      "inherited parameter lookup returned an invalid class or parameter handle");
+  require(
+      baseParameter == derivedInheritedParameter &&
+          owner.rtiAmbassador().getParameterHandle(
+              derivedInteraction,
+              options.typedIntegerParameterName) == baseParameter &&
+          owner.rtiAmbassador().getParameterName(
+              baseInteraction,
+              baseParameter) == options.typedIntegerParameterName &&
+          owner.rtiAmbassador().getParameterName(
+              derivedInteraction,
+              derivedInheritedParameter) == options.typedIntegerParameterName &&
+          owner.rtiAmbassador().getParameterName(
+              derivedInteraction,
+              derivedParameter) == options.typedDerivedParameterName,
+      "inherited parameter lookup did not preserve stable handles and names");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getParameterHandle(
+            baseInteraction,
+            options.typedDerivedParameterName));
+      },
+      L"NameNotFound",
+      "looking up a derived parameter name on its base interaction class");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getParameterHandle(
+            derivedInteraction,
+            missingParameterName));
+      },
+      L"NameNotFound",
+      "looking up an unknown parameter name");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getParameterHandle(
+            invalidInteractionClass,
+            options.typedIntegerParameterName));
+      },
+      L"InvalidInteractionClassHandle",
+      "looking up a parameter from an invalid interaction-class handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getParameterName(
+            invalidInteractionClass,
+            baseParameter));
+      },
+      L"InvalidInteractionClassHandle",
+      "looking up a parameter name from an invalid interaction-class handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getParameterName(
+            derivedInteraction,
+            invalidParameter));
+      },
+      L"InvalidParameterHandle",
+      "looking up a parameter name from an invalid parameter handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getParameterName(
+            baseInteraction,
+            derivedParameter));
+      },
+      L"InteractionParameterNotDefined",
+      "looking up a derived parameter handle on its base interaction class");
+
+  member.join(options.memberFederateName, options.federateType, federation);
+  auto const memberDerivedInteraction = member.rtiAmbassador().getInteractionClassHandle(
+      options.typedDerivedInteractionClassName);
+  auto const memberInheritedParameter = member.rtiAmbassador().getParameterHandle(
+      memberDerivedInteraction,
+      options.typedIntegerParameterName);
+  auto const memberDerivedParameter = member.rtiAmbassador().getParameterHandle(
+      memberDerivedInteraction,
+      options.typedDerivedParameterName);
+  require(
+      memberDerivedInteraction == derivedInteraction &&
+          memberInheritedParameter == baseParameter &&
+          memberDerivedParameter == derivedParameter,
+      "inherited parameter handles did not retain cross-federate identity");
+
+  member.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+  observer.disconnect();
+}
+
 void scenarioFomInvalidCreateAtomicity(
     Options const& options,
     rti::CallbackModel model) {
@@ -69627,6 +69790,12 @@ void scenarioAttributeLookupLifecycleContract(
   scenarioAttributeLookupLifecycle(options, model);
 }
 
+void scenarioParameterLookupLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioParameterLookupLifecycle(options, model);
+}
+
 void scenarioFomInvalidCreateAtomicityContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -69873,6 +70042,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.interaction-class-lookup-lifecycle-contract",
       "cpp-tck.object-class-lookup-lifecycle-contract",
       "cpp-tck.attribute-lookup-lifecycle-contract",
+      "cpp-tck.parameter-lookup-lifecycle-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
@@ -70389,6 +70559,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.interaction-class-lookup-lifecycle",
       "cpp-tck.object-class-lookup-lifecycle",
       "cpp-tck.attribute-lookup-lifecycle",
+      "cpp-tck.parameter-lookup-lifecycle",
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
@@ -70797,6 +70968,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.attribute-lookup-lifecycle-contract") {
     return scenarioAttributeLookupLifecycleContract;
+  }
+  if (id == "cpp-tck.parameter-lookup-lifecycle-contract") {
+    return scenarioParameterLookupLifecycleContract;
   }
   if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
     return scenarioFomInvalidCreateAtomicityContract;
@@ -72307,6 +72481,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.attribute-lookup-lifecycle") {
     return scenarioAttributeLookupLifecycle;
   }
+  if (id == "cpp-tck.parameter-lookup-lifecycle") {
+    return scenarioParameterLookupLifecycle;
+  }
   if (id == "cpp-tck.fom-invalid-create-atomicity") {
     return scenarioFomInvalidCreateAtomicity;
   }
@@ -72469,6 +72646,8 @@ int run(Options const& options) {
       } else if ((scenario == "cpp-tck.fom-model" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle-contract" ||
+                  scenario == "cpp-tck.parameter-lookup-lifecycle" ||
+                  scenario == "cpp-tck.parameter-lookup-lifecycle-contract" ||
                   scenario == "cpp-tck.inherited-object-attribute-projection" ||
                   scenario == "cpp-tck.inherited-object-attribute-projection-contract" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
