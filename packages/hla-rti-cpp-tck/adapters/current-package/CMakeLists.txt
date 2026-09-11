@@ -69,6 +69,18 @@ set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-disabled-tck.xml"
   CACHE FILEPATH "Known-class-disabled advisory FOM supplied by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_RATE_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-relevance-rate-tck.xml"
+  CACHE FILEPATH "Attribute relevance rate advisory FOM supplied by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_RATE_OBJECT_CLASS
+  "HLAobjectRoot.TckRateObject"
+  CACHE STRING "Update-rate advisory object class supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_RATE_BEST_EFFORT_ATTRIBUTE "BestEffortValue"
+  CACHE STRING "Update-rate advisory attribute supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_FOM_UPDATE_RATE "TckFast"
+  CACHE STRING "Higher update-rate designator supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_RATE_DESIGNATOR "TckSlow"
+  CACHE STRING "Lower update-rate designator supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS "TckDimensionX;TckDimensionY"
   CACHE STRING "Semicolon-separated DDM dimensions supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS
@@ -201,6 +213,11 @@ if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}" OR
   message(FATAL_ERROR
     "Adapter known-class-disabled advisory FOM does not exist: ${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}")
 endif()
+if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_RATE_FOM}" OR
+   IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_RATE_FOM}")
+  message(FATAL_ERROR
+    "Adapter attribute relevance rate advisory FOM does not exist: ${HLA_RTI_TCK_ADAPTER_RATE_FOM}")
+endif()
 list(LENGTH HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS _ddm_dimension_count)
 if(_ddm_dimension_count LESS 2)
   message(FATAL_ERROR
@@ -315,6 +332,12 @@ set(_tck_common_arguments
   --known-class-fom "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}"
   --known-class-disabled-fom
     "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}"
+  --rate-fom "${HLA_RTI_TCK_ADAPTER_RATE_FOM}"
+  --rate-object-class "${HLA_RTI_TCK_ADAPTER_RATE_OBJECT_CLASS}"
+  --rate-best-effort-attribute
+    "${HLA_RTI_TCK_ADAPTER_RATE_BEST_EFFORT_ATTRIBUTE}"
+  --fom-update-rate "${HLA_RTI_TCK_ADAPTER_FOM_UPDATE_RATE}"
+  --rate-designator "${HLA_RTI_TCK_ADAPTER_RATE_DESIGNATOR}"
   --time-implementation "${HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION}"
   --provider-id "${HLA_RTI_TCK_ADAPTER_PROVIDER_ID}"
   --timeout-ms "${HLA_RTI_TCK_ADAPTER_TIMEOUT_MS}")

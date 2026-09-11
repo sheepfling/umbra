@@ -492,6 +492,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.federation-teardown-isolation-contract` | Standard adapter-backed contract for update-rate isolation across federation teardown |
 | `cpp-tck.mixed-update-rate-subscriptions` | Ordinary mixed-rate attribute delivery: an active named best-effort subscription is reduced while a default-rate reliable attribute remains deliverable, with transport-aware callback aggregation |
 | `cpp-tck.mixed-update-rate-subscriptions-contract` | Standard adapter-backed contract for independent named and default update-rate subscriptions |
+| `cpp-tck.attribute-relevance-rate-reissue` | Ordinary Attribute Relevance Advisory rate transitions: a lower-rate peer is silent, active-maximum changes reissue Turn Updates On with the new designator, peer removal refreshes the surviving rate, and the final unsubscribe turns updates off |
+| `cpp-tck.attribute-relevance-rate-reissue-contract` | Standard adapter-backed contract for update-rate-driven Attribute Relevance Advisory reissue and final turn-off |
 | `cpp-tck.timestamped-attribute-update-rate-reduction` | Adapter-FOM-driven timestamped rate reduction: reliable attributes remain deliverable, an active named best-effort subscription suppresses excess passels, and suppressed retraction handles reach the standard terminal boundary |
 | `cpp-tck.timestamped-attribute-update-rate-reduction-contract` | Standard adapter-backed contract for timestamped update-rate reduction and retraction |
 | `cpp-tck.handle-wire-formats` | Dimension, region, and message-retraction handle encoding/decoding, direct-buffer and `VariableLengthData&` parity, encoded-length and truncated-buffer checks, copied-handle value semantics, and DDM/timestamped-service boundaries |
@@ -967,6 +969,15 @@ reliable attribute. The assertion accepts standard callback splitting by
 transport while preserving object, tag, producer, value, and transport identity;
 the focused portable artifact passed 2/2 cases and the matching native oracle
 passed 37 assertions.
+
+The Attribute Relevance Advisory rate-reissue case is promoted after passing
+both callback models with the adapter-supplied rich FOM and distinct higher and
+lower update-rate designators. It verifies that a lower-rate peer is silent,
+that lowering and restoring the active maximum reissues Turn Updates On with
+the selected designator, that removing the higher-rate peer refreshes the
+surviving rate, and that the final unsubscribe delivers Turn Updates Off. The
+source uses only the official C++ API and standard library; the focused portable
+lane passed 4/4 callback-model cases, and the matching native oracle passed.
 
 The timestamped attribute update-rate reduction case is promoted after passing
 both callback models with an adapter-supplied rich FOM. It keeps reliable

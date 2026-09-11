@@ -449,6 +449,7 @@ void deleteAdoptedData(void* data) {
 struct Options {
   std::filesystem::path fom;
   std::filesystem::path modelFom;
+  std::filesystem::path rateFom;
   std::filesystem::path ddmFom;
   std::filesystem::path multiAttributeFom;
   std::filesystem::path threeDimensionalFom;
@@ -42697,6 +42698,219 @@ void scenarioKnownClassAttributeRelevanceDisabled(
       false);
 }
 
+void scenarioAttributeRelevanceRateReissue(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.rateFom.empty(),
+      "Attribute relevance rate reissue testing requires an adapter-supplied rate advisory FOM");
+  require(
+      options.fomUpdateRateName != options.rateDesignatorName,
+      "Attribute relevance rate reissue testing requires distinct fast and slow rate names");
+
+  Session owner(options, model, "attribute-relevance-rate-owner");
+  Session fastSubscriber(options, model, "attribute-relevance-rate-fast");
+  Session slowSubscriber(options, model, "attribute-relevance-rate-slow");
+  auto const federation = federationName(options, "attribute-relevance-rate-reissue");
+
+  owner.connect();
+  fastSubscriber.connect();
+  slowSubscriber.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.rateFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(
+      options.ownerFederateName + L"-attribute-relevance-rate-owner",
+      options.federateType,
+      federation);
+  fastSubscriber.join(
+      options.memberFederateName + L"-attribute-relevance-rate-fast",
+      options.federateType,
+      federation);
+  slowSubscriber.join(
+      options.memberFederateName + L"-attribute-relevance-rate-slow",
+      options.federateType,
+      federation);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const fastClass = fastSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const slowClass = slowSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.rateBestEffortAttributeName);
+  auto const fastAttribute = fastSubscriber.rtiAmbassador().getAttributeHandle(
+      fastClass,
+      options.rateBestEffortAttributeName);
+  auto const slowAttribute = slowSubscriber.rtiAmbassador().getAttributeHandle(
+      slowClass,
+      options.rateBestEffortAttributeName);
+  require(
+      ownerClass.isValid() && fastClass.isValid() && slowClass.isValid() &&
+          ownerAttribute.isValid() && fastAttribute.isValid() &&
+          slowAttribute.isValid() && ownerClass == fastClass &&
+          ownerClass == slowClass && ownerAttribute == fastAttribute &&
+          ownerAttribute == slowAttribute,
+      "Attribute relevance rate reissue handles did not retain identity across members");
+
+  auto const fastRate = fastSubscriber.rtiAmbassador().getUpdateRateValue(
+      options.fomUpdateRateName);
+  auto const slowRate = slowSubscriber.rtiAmbassador().getUpdateRateValue(
+      options.rateDesignatorName);
+  require(
+      fastRate > slowRate && slowRate > 0.0,
+      "Attribute relevance rate reissue adapter rates were not ordered and positive");
+  require(
+      owner.rtiAmbassador().getAttributeRelevanceAdvisorySwitch() &&
+          fastSubscriber.rtiAmbassador().getAttributeRelevanceAdvisorySwitch() &&
+          slowSubscriber.rtiAmbassador().getAttributeRelevanceAdvisorySwitch(),
+      "Attribute relevance rate reissue adapter did not enable attribute advisories");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const fastAttributes{fastAttribute};
+  rti::AttributeHandleSet const slowAttributes{slowAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Attribute relevance rate reissue registration returned an invalid object handle");
+
+  auto requireRateOn = [&](std::size_t expectedCount,
+                           std::wstring const& expectedRate,
+                           std::string const& description) {
+    auto const updatesOn = owner.recorder().updatesOn();
+    require(
+        updatesOn.size() == expectedCount,
+        description + " delivered an unexpected turn-updates-on count");
+    require(
+        updatesOn.back().object == object &&
+            updatesOn.back().attributes == ownerAttributes &&
+            updatesOn.back().updateRateDesignator.has_value() &&
+            updatesOn.back().updateRateDesignator.value() == expectedRate,
+        description + " delivered the wrong object, attributes, or rate designator");
+    require(
+        owner.recorder().updatesOff().empty(),
+        description + " unexpectedly delivered turn-updates-off");
+  };
+
+  fastSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      fastClass,
+      fastAttributes,
+      true,
+      options.fomUpdateRateName);
+  waitFor(
+      fastSubscriber,
+      [&] { return fastSubscriber.recorder().hasDiscovery(object); },
+      options,
+      "Attribute relevance rate reissue fast subscriber discovery");
+  waitFor(
+      owner,
+      [&] { return owner.recorder().updatesOn().size() >= 1U; },
+      options,
+      "Attribute relevance rate reissue initial advisory");
+  requireRateOn(
+      1U,
+      options.fomUpdateRateName,
+      "Attribute relevance rate reissue initial advisory");
+  owner.recorder().clearAdvisories();
+
+  slowSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      slowClass,
+      slowAttributes,
+      true,
+      options.rateDesignatorName);
+  waitFor(
+      slowSubscriber,
+      [&] { return slowSubscriber.recorder().hasDiscovery(object); },
+      options,
+      "Attribute relevance rate reissue slow subscriber discovery");
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+  }
+  require(
+      owner.recorder().updatesOn().empty() && owner.recorder().updatesOff().empty(),
+      "Adding a lower-rate subscriber unexpectedly reissued an advisory");
+
+  fastSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      fastClass,
+      fastAttributes,
+      true,
+      options.rateDesignatorName);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().updatesOn().size() >= 1U; },
+      options,
+      "Attribute relevance rate reissue lower-maximum advisory");
+  requireRateOn(
+      1U,
+      options.rateDesignatorName,
+      "Attribute relevance rate reissue lower-maximum advisory");
+  owner.recorder().clearAdvisories();
+
+  fastSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      fastClass,
+      fastAttributes,
+      true,
+      options.fomUpdateRateName);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().updatesOn().size() >= 1U; },
+      options,
+      "Attribute relevance rate reissue restored-maximum advisory");
+  requireRateOn(
+      1U,
+      options.fomUpdateRateName,
+      "Attribute relevance rate reissue restored-maximum advisory");
+  owner.recorder().clearAdvisories();
+
+  fastSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      fastClass,
+      fastAttributes);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().updatesOn().size() >= 1U; },
+      options,
+      "Attribute relevance rate reissue peer-removal advisory");
+  requireRateOn(
+      1U,
+      options.rateDesignatorName,
+      "Attribute relevance rate reissue peer-removal advisory");
+  owner.recorder().clearAdvisories();
+
+  slowSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      slowClass,
+      slowAttributes);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().updatesOff().size() >= 1U; },
+      options,
+      "Attribute relevance rate reissue final advisory");
+  auto const updatesOff = owner.recorder().updatesOff();
+  require(
+      updatesOff.size() == 1U && updatesOff.front().object == object &&
+          updatesOff.front().attributes == ownerAttributes &&
+          owner.recorder().updatesOn().empty(),
+      "Attribute relevance rate reissue final turn-updates-off lost standard data");
+
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  fastSubscriber.resign(rti::NO_ACTION);
+  slowSubscriber.resign(rti::NO_ACTION);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  fastSubscriber.disconnect();
+  slowSubscriber.disconnect();
+  owner.disconnect();
+}
+
+void scenarioAttributeRelevanceRateReissueContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeRelevanceRateReissue(options, model);
+}
+
 void scenarioRelevanceAdvisories(Options const& options, rti::CallbackModel model) {
   Session switchLifecycle(options, model, "support-switch-lifecycle");
   auto checkBooleanSwitchLifecycle = [&](auto getter,
@@ -70935,6 +71149,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.joined-federate-mom-time-state-durations",
       "java-tck.transport-order",
       "java-tck.relevance-advisories",
+      "cpp-tck.attribute-relevance-rate-reissue",
+      "cpp-tck.attribute-relevance-rate-reissue-contract",
       "cpp-tck.delay-subscription-evaluation-interaction",
       "cpp-tck.delay-subscription-evaluation-directed-interaction",
       "cpp-tck.delay-subscription-evaluation-attribute-update",
@@ -71015,6 +71231,7 @@ void printHelp() {
       "Usage: hla_rti_cpp_tck --fom FILE [options]\n"
       "  --scenario ID                 Repeat; default is every configured scenario\n"
       "  --model-fom FILE              Rich FOM model supplied by the adapter\n"
+      "  --rate-fom FILE               Attribute relevance rate FOM supplied by the adapter\n"
       "  --ddm-fom FILE                Dimensional FOM supplied by the adapter\n"
       "  --multi-attribute-fom FILE    Multi-attribute DDM FOM supplied by the adapter\n"
       "  --three-dimensional-fom FILE Three-dimensional DDM FOM supplied by the adapter\n"
@@ -71057,6 +71274,7 @@ void printHelp() {
       "  --rate-best-effort-attribute NAME\n"
       "                                Best-effort update-rate comparison attribute\n"
       "  --rate-designator NAME        Active update-rate designator\n"
+      "  --fom-update-rate NAME        Higher update-rate designator for advisory tests\n"
       "  --three-dimensional-object-class NAME\n"
       "                                Three-dimensional DDM object class name\n"
       "  --three-dimensional-attribute NAME\n"
@@ -71109,6 +71327,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--model-fom") {
       requireValue(index, argc, argv, argument);
       options.modelFom = argv[++index];
+    } else if (argument == "--rate-fom") {
+      requireValue(index, argc, argv, argument);
+      options.rateFom = argv[++index];
     } else if (argument == "--ddm-fom") {
       requireValue(index, argc, argv, argument);
       options.ddmFom = argv[++index];
@@ -71239,6 +71460,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--rate-designator") {
       requireValue(index, argc, argv, argument);
       options.rateDesignatorName = toWide(argv[++index]);
+    } else if (argument == "--fom-update-rate") {
+      requireValue(index, argc, argv, argument);
+      options.fomUpdateRateName = toWide(argv[++index]);
     } else if (argument == "--three-dimensional-object-class") {
       requireValue(index, argc, argv, argument);
       options.threeDimensionalObjectClassName = toWide(argv[++index]);
@@ -71331,6 +71555,11 @@ Options parseOptions(int argc, char** argv) {
     throw std::runtime_error(
         "Known-class-disabled advisory FOM file does not exist: " +
         options.knownClassDisabledFom.string());
+  }
+  if (!options.rateFom.empty() && !std::filesystem::is_regular_file(options.rateFom)) {
+    throw std::runtime_error(
+        "Attribute relevance rate advisory FOM file does not exist: " +
+        options.rateFom.string());
   }
   if (!options.ddmFom.empty() && options.ddmDimensionNames.size() < 2U) {
     throw std::runtime_error("--ddm-fom requires at least two --ddm-dimension values");
@@ -71437,6 +71666,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.attribute-relevance-known-class-disabled-contract") {
     return scenarioKnownClassAttributeRelevanceDisabledContract;
+  }
+  if (id == "cpp-tck.attribute-relevance-rate-reissue-contract") {
+    return scenarioAttributeRelevanceRateReissueContract;
   }
   if (id == "cpp-tck.fom-model-contract") {
     return scenarioFomModelContract;
@@ -72812,6 +73044,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.attribute-relevance-known-class-disabled") {
     return scenarioKnownClassAttributeRelevanceDisabled;
   }
+  if (id == "cpp-tck.attribute-relevance-rate-reissue") {
+    return scenarioAttributeRelevanceRateReissue;
+  }
   if (id == "cpp-tck.delay-subscription-evaluation-interaction") {
     return scenarioDelaySubscriptionEvaluationInteraction;
   }
@@ -73060,6 +73295,7 @@ void writeResults(
          << "  \"provider_id\": \"" << jsonEscape(options.providerId) << "\",\n"
          << "  \"fom\": \"" << jsonEscape(options.fom.string()) << "\",\n"
          << "  \"model_fom\": \"" << jsonEscape(options.modelFom.string()) << "\",\n"
+         << "  \"rate_fom\": \"" << jsonEscape(options.rateFom.string()) << "\",\n"
          << "  \"ddm_fom\": \"" << jsonEscape(options.ddmFom.string()) << "\",\n"
          << "  \"multi_attribute_fom\": \""
          << jsonEscape(options.multiAttributeFom.string()) << "\",\n"
@@ -73158,6 +73394,12 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied known-class-disabled advisory FOM";
+      } else if ((scenario == "cpp-tck.attribute-relevance-rate-reissue" ||
+                  scenario == "cpp-tck.attribute-relevance-rate-reissue-contract") &&
+                 options.rateFom.empty()) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied attribute relevance rate advisory FOM";
       } else if ((scenario == "cpp-tck.fom-model" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle-contract" ||

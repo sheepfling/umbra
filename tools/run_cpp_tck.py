@@ -156,6 +156,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(default_path("packages/hla-rti-cpp-tck/fom/fom-model-tck.xml")),
     )
     parser.add_argument(
+        "--rate-fom",
+        default=str(
+            default_path("packages/hla-rti-cpp-tck/fom/attribute-relevance-rate-tck.xml")
+        ),
+    )
+    parser.add_argument(
         "--ddm-fom",
         default=str(default_path("packages/hla-rti-cpp-tck/fom/ddm-tck.xml")),
     )
@@ -251,6 +257,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rate-reliable-attribute", default="ReliableValue")
     parser.add_argument("--rate-best-effort-attribute", default="BestEffortValue")
     parser.add_argument("--rate-designator", default="TckSlow")
+    parser.add_argument("--fom-update-rate", default="TckFast")
     parser.add_argument("--interaction-class", default="HLAinteractionRoot.TckInteraction")
     parser.add_argument("--parameter", default="Payload")
     parser.add_argument(
@@ -367,6 +374,11 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
         ),
         "fom": resolve_path(arguments.fom, must_exist=True, label="FOM"),
         "model_fom": resolve_path(arguments.model_fom, must_exist=True, label="model FOM"),
+        "rate_fom": resolve_path(
+            arguments.rate_fom,
+            must_exist=True,
+            label="attribute relevance rate advisory FOM",
+        ),
         "ddm_fom": resolve_path(arguments.ddm_fom, must_exist=True, label="DDM FOM"),
         "multi_attribute_fom": resolve_path(
             arguments.multi_attribute_fom,
@@ -432,6 +444,7 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "CMAKE_PREFIX_PATH": inputs["package_prefix"],
         "HLA_RTI_TCK_ADAPTER_FOM": inputs["fom"],
         "HLA_RTI_TCK_ADAPTER_MODEL_FOM": inputs["model_fom"],
+        "HLA_RTI_TCK_ADAPTER_RATE_FOM": inputs["rate_fom"],
         "HLA_RTI_TCK_ADAPTER_DDM_FOM": inputs["ddm_fom"],
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM": inputs["multi_attribute_fom"],
         "HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_FOM": inputs["three_dimensional_fom"],
@@ -605,6 +618,8 @@ def direct_arguments(
         str(inputs["fom"]),
         "--model-fom",
         str(inputs["model_fom"]),
+        "--rate-fom",
+        str(inputs["rate_fom"]),
         "--ddm-fom",
         str(inputs["ddm_fom"]),
         "--multi-attribute-fom",
@@ -653,6 +668,8 @@ def direct_arguments(
         arguments.rate_best_effort_attribute,
         "--rate-designator",
         arguments.rate_designator,
+        "--fom-update-rate",
+        arguments.fom_update_rate,
         "--three-dimensional-object-class",
         arguments.three_dimensional_object_class,
         "--three-dimensional-attribute",

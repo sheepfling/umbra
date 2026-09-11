@@ -12804,6 +12804,95 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-relevance-rate-reissue",
+      "category": "attribute-relevance-update-rate",
+      "title": "Reissue Turn Updates On when the active maximum update rate changes",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.subscribeObjectClassAttributes(active=true, named rate)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.turnUpdatesOnForObjectInstance",
+        "FederateAmbassador.turnUpdatesOffForObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-relevance-advisories",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-update-rate-reduction",
+        "cpp-1516.1-update-rate-value"
+      ],
+      "contract_refs": [
+        "attribute-relevance-advisory-api-contract.json",
+        "attribute-relevance-advisory-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "federation-management-embedded-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "update-rate-value-api-contract.json",
+        "update-rate-value-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeRelevanceRateReissue",
+      "runner_id": "cpp-tck.attribute-relevance-rate-reissue",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-relevance-rate-reissue-contract",
+      "category": "attribute-relevance-update-rate",
+      "title": "Standard adapter-backed contract for update-rate-driven attribute relevance advisories",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.subscribeObjectClassAttributes(active=true, named rate)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.turnUpdatesOnForObjectInstance",
+        "FederateAmbassador.turnUpdatesOffForObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-relevance-advisories",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-update-rate-reduction",
+        "cpp-1516.1-update-rate-value"
+      ],
+      "contract_refs": [
+        "standard-attribute-relevance-rate-reissue-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioAttributeRelevanceRateReissueContract",
+      "runner_id": "cpp-tck.attribute-relevance-rate-reissue-contract",
+      "parity": "cpp-tck.attribute-relevance-rate-reissue",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-attribute-update-rate-reduction",
       "category": "timestamped-attribute-update-rate-reduction",
       "title": "Throttle timestamped best-effort attribute delivery at an active update-rate designator while retaining reliable updates",
