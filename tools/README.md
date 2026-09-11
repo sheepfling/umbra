@@ -151,8 +151,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is all 553 promoted scenario IDs (1106 callback-model cases).
- `--scenario-set all` currently configures all 553 available IDs (1106
+    The verified lane is all 557 promoted scenario IDs (1114 callback-model cases).
+ `--scenario-set all` currently configures all 557 available IDs (1114
 cases), with no unpromoted candidates. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -932,6 +932,14 @@ the standard MOM `HLAreportServiceInvocation` interaction using an
 adapter-supplied standard MIM. The adjacent promoted
 `cpp-tck.service-report-attribute-update` scenario verifies the same standard
 reporting contract for an ordinary `UpdateAttributeValues` service. The
+promoted `cpp-tck.service-report-interaction-publication` and
+`cpp-tck.service-report-interaction-subscription` scenarios, together with their
+contract twins, extend the same pure standard boundary to ordinary interaction
+publication and subscription declarations. Their focused installed-package lane
+passed 8/8 callback-model cases across `HLA_EVOKED` and `HLA_IMMEDIATE`,
+including invalid-handle failures, typed Null returns, serial progression, and
+the standard passive-subscription indicator; provider, FOM, MIM, endpoint, and
+callback configuration remain adapter-owned. The
 promoted `cpp-tck.service-report-receive-order-interaction` and
 `cpp-tck.service-report-receive-order-interaction-contract` runners add an
 independent ordinary receiver alongside the standard MOM report. Their focused

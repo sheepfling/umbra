@@ -2083,6 +2083,173 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.service-report-interaction-publication",
+      "category": "mom-service-reporting",
+      "title": "Report ordinary interaction-class publication services through standard HLAreportServiceInvocation",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-declaration-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "interaction-declaration-api-contract.json",
+        "publish-interaction-class-api-contract.json",
+        "publish-interaction-class-requirements-contract.json",
+        "unpublish-interaction-class-api-contract.json",
+        "unpublish-interaction-class-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "fixed-record-requirements-contract.json",
+        "variable-array-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionPublication",
+      "runner_id": "cpp-tck.service-report-interaction-publication",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interaction-publication-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed ordinary interaction publication service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-declaration-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-interaction-publication-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionPublicationContract",
+      "runner_id": "cpp-tck.service-report-interaction-publication-contract",
+      "parity": "cpp-tck.service-report-interaction-publication",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interaction-subscription",
+      "category": "mom-service-reporting",
+      "title": "Report ordinary interaction-class subscription services through standard HLAreportServiceInvocation",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.getParameterHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-declaration-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "interaction-declaration-api-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "subscribe-interaction-class-requirements-contract.json",
+        "unsubscribe-interaction-class-api-contract.json",
+        "unsubscribe-interaction-class-requirements-contract.json",
+        "fixed-record-requirements-contract.json",
+        "variable-array-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionSubscription",
+      "runner_id": "cpp-tck.service-report-interaction-subscription",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-interaction-subscription-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed ordinary interaction subscription service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.getParameterHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-declaration-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-interaction-subscription-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionSubscriptionContract",
+      "runner_id": "cpp-tck.service-report-interaction-subscription-contract",
+      "parity": "cpp-tck.service-report-interaction-subscription",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.service-report-regional-interaction-failure",
       "category": "mom-service-reporting",
       "title": "Deliver standard HLAreportServiceInvocation failure reports for invalid regional interaction services",
