@@ -548,6 +548,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-additional-module-join-atomicity-contract` | Standard adapter-backed atomic additional-FOM join rejection contract |
 | `cpp-tck.interaction-class-lookup-lifecycle` | Standard interaction-class handle/name lookup across pre-connect, pre-join, invalid-input, and additional-FOM composition boundaries |
 | `cpp-tck.interaction-class-lookup-lifecycle-contract` | Pure standard C++ contract for stable base/extension interaction handles, name round trips, and standard lookup exceptions using adapter-supplied FOM modules |
+| `cpp-tck.object-class-lookup-lifecycle` | Standard object-class handle/name lookup across pre-connect, pre-join, invalid-input, and additional-FOM composition boundaries |
+| `cpp-tck.object-class-lookup-lifecycle-contract` | Pure standard C++ contract for stable base/extension object-class handles, name round trips, and standard lookup exceptions using adapter-supplied FOM modules |
 | `cpp-tck.fom-invalid-create-atomicity` | Reject invalid single-module FOM creates without reserving the federation name, then recover through a valid lifecycle |
 | `cpp-tck.fom-invalid-create-atomicity-contract` | Standard adapter-backed invalid-FOM create atomicity contract |
 | `cpp-tck.fom-invalid-composite-join-atomicity` | Reject mixed valid and invalid additional FOM modules atomically, then recover through a valid follow-up join |
@@ -1415,8 +1417,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 559 scenario IDs and 1118 matrix cases. `--scenario-set all` currently
-          configures the same 559 available IDs (1118 cases); there are no unpromoted
+          that is 561 scenario IDs and 1122 matrix cases. `--scenario-set all` currently
+          configures the same 561 available IDs (1122 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1472,6 +1474,12 @@ pre-connect, pre-join, invalid-name/invalid-handle, and additional-FOM
 composition boundaries. Their focused installed-package lane passed 8/8
 callback-model cases with the adapter-supplied base and extension FOMs. The
 source uses only official IEEE C++ API headers and the standard library.
+The promoted `cpp-tck.object-class-lookup-lifecycle` scenario and its
+contract twin cover standard object-class handle/name lookup across
+pre-connect, pre-join, invalid-name/invalid-handle, and additional-FOM
+composition boundaries. The object-class pair passed 4/4 callback-model cases
+within the focused six-scenario lane, which passed 12/12 overall. The source
+uses only official IEEE C++ API headers and the standard library.
 The promoted `cpp-tck.fom-invalid-create-atomicity` scenario and its contract
 twin reject every adapter-supplied invalid single-module create, then reuse the
 same federation name for a valid create/join/lookup/resign/destroy lifecycle.

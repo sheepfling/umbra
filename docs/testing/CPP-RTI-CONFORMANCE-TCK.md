@@ -15,7 +15,7 @@ objects.
 The catalog and the executable's default `all` inventory are kept as a
 one-to-one set. Run `python tools/cpp_tck.py` to verify the catalog, the
 official-header boundary, and that inventory before running a provider. The
-current gate reports 559 catalog scenarios and 559 executable scenarios; the
+current gate reports 561 catalog scenarios and 561 executable scenarios; the
 official C++ API audit reports all 164 `RTIambassador` methods and all 56
 `FederateAmbassador` callbacks represented.
 
@@ -740,6 +740,13 @@ models. They verify standard interaction-class handle/name lifecycle
 boundaries, invalid-name/invalid-handle exceptions, stable base handles, and
 shared extension interaction handles after an adapter-supplied additional-FOM
 join. No provider-specific header or fixture is used.
+The promoted `cpp-tck.object-class-lookup-lifecycle` scenario and its contract
+twin passed 4/4 callback-model cases within the focused six-scenario lookup/FOM
+regression lane, which passed 12/12 overall. They verify standard object-class
+handle/name lifecycle boundaries, invalid-name/invalid-handle exceptions,
+stable base handles, and shared extension object-class handles after an
+adapter-supplied additional-FOM join. No provider-specific header or fixture
+is used.
 The promoted `cpp-tck.fom-invalid-create-atomicity` scenario and its pure
 standard contract twin exercise each adapter-supplied invalid single-module
 create, verify that the federation name remains reusable after every rejected

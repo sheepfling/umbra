@@ -19502,6 +19502,111 @@ void scenarioInteractionClassLookupLifecycle(
   observer.disconnect();
 }
 
+void scenarioObjectClassLookupLifecycle(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Object-class lookup testing requires an adapter-supplied base FOM");
+  require(
+      !options.additionalFomModules.empty(),
+      "Object-class lookup testing requires an adapter-supplied extension FOM");
+
+  Session observer(options, model, "object-class-lookup-observer");
+  Session owner(options, model, "object-class-lookup-owner");
+  Session extension(options, model, "object-class-lookup-extension");
+  auto const federation = federationName(options, "object-class-lookup-lifecycle");
+  auto const extensionObjectName = L"HLAobjectRoot.TckExtensionObject";
+  auto const unknownObjectName = L"HLAobjectRoot.TckMissingObject";
+  rti::ObjectClassHandle invalid;
+
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getObjectClassHandle(
+            options.objectClassName));
+      },
+      L"NotConnected",
+      "looking up an object class before connecting");
+  requireException(
+      [&] { static_cast<void>(observer.rtiAmbassador().getObjectClassName(invalid)); },
+      L"NotConnected",
+      "looking up an object-class name before connecting");
+
+  observer.connect();
+  owner.connect();
+  extension.connect();
+  requireException(
+      [&] {
+        static_cast<void>(observer.rtiAmbassador().getObjectClassHandle(
+            options.objectClassName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up an object class after connecting but before joining");
+  requireException(
+      [&] { static_cast<void>(observer.rtiAmbassador().getObjectClassName(invalid)); },
+      L"FederateNotExecutionMember",
+      "looking up an object-class name after connecting but before joining");
+
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const baseObject = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  require(
+      baseObject.isValid() &&
+          owner.rtiAmbassador().getObjectClassHandle(options.objectClassName) ==
+              baseObject &&
+          owner.rtiAmbassador().getObjectClassName(baseObject) ==
+              options.objectClassName,
+      "ordinary object-class lookup did not round-trip a stable base handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+            unknownObjectName));
+      },
+      L"NameNotFound",
+      "looking up an unknown object class");
+  requireException(
+      [&] { static_cast<void>(owner.rtiAmbassador().getObjectClassName(invalid)); },
+      L"InvalidObjectClassHandle",
+      "looking up an object-class name from an invalid handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+            extensionObjectName));
+      },
+      L"NameNotFound",
+      "looking up the extension object class before an additional-module join");
+
+  extension.join(
+      options.memberFederateName,
+      options.federateType,
+      federation,
+      fomModuleNames(options.additionalFomModules));
+  auto const ownerExtensionObject = owner.rtiAmbassador().getObjectClassHandle(
+      extensionObjectName);
+  auto const memberExtensionObject = extension.rtiAmbassador().getObjectClassHandle(
+      extensionObjectName);
+  require(
+      ownerExtensionObject.isValid() &&
+          memberExtensionObject == ownerExtensionObject &&
+          owner.rtiAmbassador().getObjectClassName(ownerExtensionObject) ==
+              extensionObjectName &&
+          owner.rtiAmbassador().getObjectClassHandle(options.objectClassName) ==
+              baseObject,
+      "additional-module join did not compose a shared extension object class or preserve the base handle");
+
+  extension.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  extension.disconnect();
+  owner.disconnect();
+  observer.disconnect();
+}
+
 void scenarioFomInvalidCreateAtomicity(
     Options const& options,
     rti::CallbackModel model) {
@@ -69351,6 +69456,12 @@ void scenarioInteractionClassLookupLifecycleContract(
   scenarioInteractionClassLookupLifecycle(options, model);
 }
 
+void scenarioObjectClassLookupLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectClassLookupLifecycle(options, model);
+}
+
 void scenarioFomInvalidCreateAtomicityContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -69595,6 +69706,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-module-composition-contract",
       "cpp-tck.fom-additional-module-join-atomicity-contract",
       "cpp-tck.interaction-class-lookup-lifecycle-contract",
+      "cpp-tck.object-class-lookup-lifecycle-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
@@ -70109,6 +70221,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-module-composition",
       "cpp-tck.fom-additional-module-join-atomicity",
       "cpp-tck.interaction-class-lookup-lifecycle",
+      "cpp-tck.object-class-lookup-lifecycle",
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
@@ -70511,6 +70624,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.interaction-class-lookup-lifecycle-contract") {
     return scenarioInteractionClassLookupLifecycleContract;
+  }
+  if (id == "cpp-tck.object-class-lookup-lifecycle-contract") {
+    return scenarioObjectClassLookupLifecycleContract;
   }
   if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
     return scenarioFomInvalidCreateAtomicityContract;
@@ -72015,6 +72131,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.interaction-class-lookup-lifecycle") {
     return scenarioInteractionClassLookupLifecycle;
   }
+  if (id == "cpp-tck.object-class-lookup-lifecycle") {
+    return scenarioObjectClassLookupLifecycle;
+  }
   if (id == "cpp-tck.fom-invalid-create-atomicity") {
     return scenarioFomInvalidCreateAtomicity;
   }
@@ -72205,7 +72324,9 @@ int run(Options const& options) {
         result.message =
             "requires adapter-supplied valid and invalid additional FOM modules";
       } else if ((scenario == "cpp-tck.interaction-class-lookup-lifecycle" ||
-                  scenario == "cpp-tck.interaction-class-lookup-lifecycle-contract") &&
+                  scenario == "cpp-tck.interaction-class-lookup-lifecycle-contract" ||
+                  scenario == "cpp-tck.object-class-lookup-lifecycle" ||
+                  scenario == "cpp-tck.object-class-lookup-lifecycle-contract") &&
                  options.additionalFomModules.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied additional FOM module";
