@@ -554,6 +554,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-additional-module-join-atomicity-contract` | Standard adapter-backed atomic additional-FOM join rejection contract |
 | `cpp-tck.fom-transportation-handle-stability` | Preserve existing and newly composed transportation handle identity across an additional-FOM join |
 | `cpp-tck.fom-transportation-handle-stability-contract` | Standard adapter-backed transportation handle/name stability contract for additional-FOM composition |
+| `cpp-tck.fom-dimension-handle-stability` | Preserve dimension handle identity, metadata, and object/interaction class associations across an additional-FOM join; the adapter supplies the rich and additional FOM names |
+| `cpp-tck.fom-dimension-handle-stability-contract` | Standard adapter-backed dimension handle/name, upper-bound, and class-association contract for additional-FOM composition |
 | `cpp-tck.interaction-class-lookup-lifecycle` | Standard interaction-class handle/name lookup across pre-connect, pre-join, invalid-input, and additional-FOM composition boundaries |
 | `cpp-tck.interaction-class-lookup-lifecycle-contract` | Pure standard C++ contract for stable base/extension interaction handles, name round trips, and standard lookup exceptions using adapter-supplied FOM modules |
 | `cpp-tck.object-class-lookup-lifecycle` | Standard object-class handle/name lookup across pre-connect, pre-join, invalid-input, and additional-FOM composition boundaries |

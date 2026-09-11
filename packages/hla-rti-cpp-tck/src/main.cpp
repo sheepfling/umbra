@@ -533,6 +533,10 @@ struct Options {
   std::wstring rateBestEffortAttributeName = L"BestEffortValue";
   std::wstring rateDesignatorName = L"TckSlow";
   std::wstring fomDimensionName = L"TckDimension";
+  std::wstring fomAdditionalDimensionName = L"TckAdditionalDimension";
+  std::wstring fomAdditionalDimensionObjectClassName =
+      L"HLAobjectRoot.TckExtensionDimensionalObject";
+  std::wstring fomAdditionalDimensionAttributeName = L"AdditionalValue";
   std::vector<std::wstring> ddmDimensionNames = {L"TckDimensionX", L"TckDimensionY"};
   bool ddmDimensionsConfigured = false;
   std::vector<std::wstring> threeDimensionalDimensionNames = {
@@ -19486,6 +19490,134 @@ void scenarioFomTransportationHandleStability(
   extension.resign(rti::NO_ACTION);
   owner.resign(rti::NO_ACTION);
   owner.rtiAmbassador().destroyFederationExecution(federation);
+}
+
+void scenarioFomDimensionHandleStability(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "FOM dimension handle stability requires an adapter-supplied rich FOM model");
+  require(
+      !options.additionalFomModules.empty(),
+      "FOM dimension handle stability requires an adapter-supplied additional FOM");
+
+  Session owner(options, model, "fom-dimension-owner");
+  Session extension(options, model, "fom-dimension-extension");
+  auto const federation = federationName(options, "fom-dimension-handle-stability");
+  owner.connect();
+  extension.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.modelFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const baseDimension = owner.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      baseDimension.isValid() &&
+          owner.rtiAmbassador().getDimensionName(baseDimension) == options.fomDimensionName &&
+          owner.rtiAmbassador().getDimensionUpperBound(baseDimension) > 0U,
+      "rich adapter FOM did not expose a valid base dimension lookup");
+
+  auto const baseObjectClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const baseInteractionClass = owner.rtiAmbassador().getInteractionClassHandle(
+      options.typedInteractionClassName);
+  require(
+      baseObjectClass.isValid() && baseInteractionClass.isValid(),
+      "rich adapter FOM did not expose the typed classes used for dimension association");
+  auto const baseObjectDimensions = owner.rtiAmbassador().getAvailableDimensionsForObjectClass(
+      baseObjectClass);
+  auto const baseInteractionDimensions =
+      owner.rtiAmbassador().getAvailableDimensionsForInteractionClass(baseInteractionClass);
+  require(
+      baseObjectDimensions.count(baseDimension) == 1U &&
+          baseInteractionDimensions.count(baseDimension) == 1U,
+      "rich adapter FOM did not retain the base dimension associations");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getDimensionHandle(
+            options.fomAdditionalDimensionName));
+      },
+      L"NameNotFound",
+      "looking up the additional dimension before an additional-module join");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+            options.fomAdditionalDimensionObjectClassName));
+      },
+      L"NameNotFound",
+      "looking up the additional dimensional class before an additional-module join");
+
+  extension.join(
+      options.memberFederateName,
+      options.federateType,
+      federation,
+      fomModuleNames(options.additionalFomModules));
+
+  auto const ownerBaseAfter = owner.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  auto const extensionBaseAfter = extension.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      ownerBaseAfter == baseDimension && extensionBaseAfter == baseDimension &&
+          owner.rtiAmbassador().getDimensionName(ownerBaseAfter) == options.fomDimensionName &&
+          extension.rtiAmbassador().getDimensionName(extensionBaseAfter) ==
+              options.fomDimensionName,
+      "additional-module join renumbered or split the existing base dimension handle");
+
+  auto const ownerAdditional = owner.rtiAmbassador().getDimensionHandle(
+      options.fomAdditionalDimensionName);
+  auto const extensionAdditional = extension.rtiAmbassador().getDimensionHandle(
+      options.fomAdditionalDimensionName);
+  require(
+      ownerAdditional.isValid() && extensionAdditional.isValid() &&
+          ownerAdditional == extensionAdditional && ownerAdditional != baseDimension,
+      "additional-module join did not provide one shared distinct dimension handle");
+  require(
+      owner.rtiAmbassador().getDimensionName(ownerAdditional) ==
+              options.fomAdditionalDimensionName &&
+          extension.rtiAmbassador().getDimensionName(extensionAdditional) ==
+              options.fomAdditionalDimensionName &&
+          owner.rtiAmbassador().getDimensionUpperBound(ownerAdditional) > 0U &&
+          owner.rtiAmbassador().getDimensionUpperBound(ownerAdditional) ==
+              extension.rtiAmbassador().getDimensionUpperBound(extensionAdditional),
+      "additional-module dimension lookup did not round-trip consistently");
+
+  auto const ownerAdditionalClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.fomAdditionalDimensionObjectClassName);
+  auto const extensionAdditionalClass = extension.rtiAmbassador().getObjectClassHandle(
+      options.fomAdditionalDimensionObjectClassName);
+  require(
+      ownerAdditionalClass.isValid() && extensionAdditionalClass == ownerAdditionalClass,
+      "additional-module dimensional class did not receive one shared handle");
+  auto const ownerAdditionalAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerAdditionalClass,
+      options.fomAdditionalDimensionAttributeName);
+  auto const extensionAdditionalAttribute = extension.rtiAmbassador().getAttributeHandle(
+      extensionAdditionalClass,
+      options.fomAdditionalDimensionAttributeName);
+  require(
+      ownerAdditionalAttribute.isValid() &&
+          extensionAdditionalAttribute == ownerAdditionalAttribute,
+      "additional-module dimensional attribute did not resolve consistently");
+  auto const ownerAdditionalDimensions =
+      owner.rtiAmbassador().getAvailableDimensionsForObjectClass(ownerAdditionalClass);
+  auto const extensionAdditionalDimensions =
+      extension.rtiAmbassador().getAvailableDimensionsForObjectClass(extensionAdditionalClass);
+  require(
+      ownerAdditionalDimensions.size() == 1U &&
+          ownerAdditionalDimensions.count(ownerAdditional) == 1U &&
+          extensionAdditionalDimensions == ownerAdditionalDimensions,
+      "additional-module class did not retain its dimension association");
+
+  extension.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  extension.disconnect();
+  owner.disconnect();
 }
 
 void scenarioInteractionClassLookupLifecycle(
@@ -70508,6 +70640,12 @@ void scenarioFomTransportationHandleStabilityContract(
   scenarioFomTransportationHandleStability(options, model);
 }
 
+void scenarioFomDimensionHandleStabilityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFomDimensionHandleStability(options, model);
+}
+
 void scenarioInteractionClassLookupLifecycleContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -70780,6 +70918,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-module-composition-contract",
       "cpp-tck.fom-additional-module-join-atomicity-contract",
       "cpp-tck.fom-transportation-handle-stability-contract",
+      "cpp-tck.fom-dimension-handle-stability-contract",
       "cpp-tck.interaction-class-lookup-lifecycle-contract",
       "cpp-tck.object-class-lookup-lifecycle-contract",
       "cpp-tck.attribute-lookup-lifecycle-contract",
@@ -71301,6 +71440,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-module-composition",
       "cpp-tck.fom-additional-module-join-atomicity",
       "cpp-tck.fom-transportation-handle-stability",
+      "cpp-tck.fom-dimension-handle-stability",
       "cpp-tck.interaction-class-lookup-lifecycle",
       "cpp-tck.object-class-lookup-lifecycle",
       "cpp-tck.attribute-lookup-lifecycle",
@@ -71325,6 +71465,13 @@ void printHelp() {
       "                                Custom transportation name in the rich FOM\n"
       "  --fom-additional-transportation NAME\n"
       "                                Transportation name in the additional FOM\n"
+      "  --fom-dimension NAME          Base dimension name in the rich FOM\n"
+      "  --fom-additional-dimension NAME\n"
+      "                                Dimension name in the additional FOM\n"
+      "  --fom-additional-dimension-object-class NAME\n"
+      "                                Dimensional object class in the additional FOM\n"
+      "  --fom-additional-dimension-attribute NAME\n"
+      "                                Dimensional attribute in the additional FOM\n"
       "  --rate-fom FILE               Attribute relevance rate FOM supplied by the adapter\n"
       "  --ddm-fom FILE                Dimensional FOM supplied by the adapter\n"
       "  --multi-attribute-fom FILE    Multi-attribute DDM FOM supplied by the adapter\n"
@@ -71427,6 +71574,18 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--fom-additional-transportation") {
       requireValue(index, argc, argv, argument);
       options.fomAdditionalTransportationName = toWide(argv[++index]);
+    } else if (argument == "--fom-dimension") {
+      requireValue(index, argc, argv, argument);
+      options.fomDimensionName = toWide(argv[++index]);
+    } else if (argument == "--fom-additional-dimension") {
+      requireValue(index, argc, argv, argument);
+      options.fomAdditionalDimensionName = toWide(argv[++index]);
+    } else if (argument == "--fom-additional-dimension-object-class") {
+      requireValue(index, argc, argv, argument);
+      options.fomAdditionalDimensionObjectClassName = toWide(argv[++index]);
+    } else if (argument == "--fom-additional-dimension-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.fomAdditionalDimensionAttributeName = toWide(argv[++index]);
     } else if (argument == "--rate-fom") {
       requireValue(index, argc, argv, argument);
       options.rateFom = argv[++index];
@@ -71781,6 +71940,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-transportation-handle-stability-contract") {
     return scenarioFomTransportationHandleStabilityContract;
+  }
+  if (id == "cpp-tck.fom-dimension-handle-stability-contract") {
+    return scenarioFomDimensionHandleStabilityContract;
   }
   if (id == "cpp-tck.interaction-class-lookup-lifecycle-contract") {
     return scenarioInteractionClassLookupLifecycleContract;
@@ -73309,6 +73471,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-transportation-handle-stability") {
     return scenarioFomTransportationHandleStability;
   }
+  if (id == "cpp-tck.fom-dimension-handle-stability") {
+    return scenarioFomDimensionHandleStability;
+  }
   if (id == "cpp-tck.interaction-class-lookup-lifecycle") {
     return scenarioInteractionClassLookupLifecycle;
   }
@@ -73515,6 +73680,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.inherited-object-attribute-projection-contract" ||
                   scenario == "cpp-tck.fom-transportation-handle-stability" ||
                   scenario == "cpp-tck.fom-transportation-handle-stability-contract" ||
+                  scenario == "cpp-tck.fom-dimension-handle-stability" ||
+                  scenario == "cpp-tck.fom-dimension-handle-stability-contract" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery" ||
@@ -73544,6 +73711,11 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires adapter-supplied valid and invalid additional FOM modules";
+      } else if ((scenario == "cpp-tck.fom-dimension-handle-stability" ||
+                  scenario == "cpp-tck.fom-dimension-handle-stability-contract") &&
+                 options.additionalFomModules.empty()) {
+        result.status = "skipped";
+        result.message = "requires an adapter-supplied additional FOM module";
       } else if ((scenario == "cpp-tck.dimension-lookup-lifecycle" ||
                   scenario == "cpp-tck.dimension-lookup-lifecycle-contract") &&
                  (options.ddmFom.empty() || options.ddmDimensionNames.size() < 2U)) {

@@ -160,6 +160,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--fom-additional-transportation",
         default="TckAdditionalTransport",
     )
+    parser.add_argument("--fom-dimension", default="TckDimension")
+    parser.add_argument(
+        "--fom-additional-dimension",
+        default="TckAdditionalDimension",
+    )
+    parser.add_argument(
+        "--fom-additional-dimension-object-class",
+        default="HLAobjectRoot.TckExtensionDimensionalObject",
+    )
+    parser.add_argument(
+        "--fom-additional-dimension-attribute",
+        default="AdditionalValue",
+    )
     parser.add_argument(
         "--rate-fom",
         default=str(
@@ -451,6 +464,12 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_MODEL_FOM": inputs["model_fom"],
         "HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION": arguments.fom_custom_transportation,
         "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION": arguments.fom_additional_transportation,
+        "HLA_RTI_TCK_ADAPTER_FOM_DIMENSION": arguments.fom_dimension,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION": arguments.fom_additional_dimension,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_OBJECT_CLASS":
+            arguments.fom_additional_dimension_object_class,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE":
+            arguments.fom_additional_dimension_attribute,
         "HLA_RTI_TCK_ADAPTER_RATE_FOM": inputs["rate_fom"],
         "HLA_RTI_TCK_ADAPTER_DDM_FOM": inputs["ddm_fom"],
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM": inputs["multi_attribute_fom"],
@@ -629,6 +648,14 @@ def direct_arguments(
         arguments.fom_custom_transportation,
         "--fom-additional-transportation",
         arguments.fom_additional_transportation,
+        "--fom-dimension",
+        arguments.fom_dimension,
+        "--fom-additional-dimension",
+        arguments.fom_additional_dimension,
+        "--fom-additional-dimension-object-class",
+        arguments.fom_additional_dimension_object_class,
+        "--fom-additional-dimension-attribute",
+        arguments.fom_additional_dimension_attribute,
         "--rate-fom",
         str(inputs["rate_fom"]),
         "--ddm-fom",

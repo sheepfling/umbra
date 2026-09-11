@@ -105,6 +105,15 @@ set(HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION "TckBestEffort"
   CACHE STRING "Custom transportation name in the adapter rich FOM")
 set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION "TckAdditionalTransport"
   CACHE STRING "Transportation name in the adapter additional FOM")
+set(HLA_RTI_TCK_ADAPTER_FOM_DIMENSION "TckDimension"
+  CACHE STRING "Base dimension name in the adapter rich FOM")
+set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION "TckAdditionalDimension"
+  CACHE STRING "Dimension name in the adapter additional FOM")
+set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_OBJECT_CLASS
+  "HLAobjectRoot.TckExtensionDimensionalObject"
+  CACHE STRING "Dimensional object class in the adapter additional FOM")
+set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE "AdditionalValue"
+  CACHE STRING "Dimensional attribute in the adapter additional FOM")
 set(HLA_RTI_TCK_ADAPTER_OBJECT_CLASS "HLAobjectRoot.TckObject"
   CACHE STRING "Ordinary object class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_ATTRIBUTE "Value"
@@ -305,6 +314,12 @@ set(_tck_common_arguments
   --fom-custom-transportation "${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION}"
   --fom-additional-transportation
     "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"
+  --fom-dimension "${HLA_RTI_TCK_ADAPTER_FOM_DIMENSION}"
+  --fom-additional-dimension "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION}"
+  --fom-additional-dimension-object-class
+    "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_OBJECT_CLASS}"
+  --fom-additional-dimension-attribute
+    "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE}"
   --ddm-fom "${HLA_RTI_TCK_ADAPTER_DDM_FOM}"
   --multi-attribute-fom "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM}"
   --three-dimensional-fom "${HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_FOM}"

@@ -33,6 +33,25 @@
                     <semantics>Attribute supplied by the extension module.</semantics>
                 </attribute>
             </objectClass>
+            <objectClass>
+                <name>TckExtensionDimensionalObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckAdditionalDimension</dimension>
+                </dimensions>
+                <attribute>
+                    <name>AdditionalValue</name>
+                    <dataType>TckExtensionInteger</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Attribute associated with the additional dimension.</semantics>
+                </attribute>
+            </objectClass>
         </objectClass>
     </objects>
     <interactions>
@@ -51,6 +70,19 @@
             </interactionClass>
         </interactionClass>
     </interactions>
+    <dimensions>
+        <dimension>
+            <name>TckAdditionalDimension</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable additional dimension.</inputDataDescription>
+            <upperBound>128</upperBound>
+            <normalization>Portable additional dimension normalization.</normalization>
+            <outputDataSemantics>Portable additional dimension.</outputDataSemantics>
+            <value>[0..128)</value>
+        </dimension>
+    </dimensions>
     <transportations>
         <transportation>
             <name>TckAdditionalTransport</name>

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for dimension-handle identity and class association across an additional-FOM join. The source uses only the official RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the rich base FOM, additional FOM module, FOM names, provider package, endpoint, and callback configuration. It does not assert provider-specific handle values, registries, headers, or region-routing behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-dimension-handle-stability",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "RTIambassador createFederationExecution, joinFederationExecution(additionalFomModules), getDimensionHandle, getDimensionName, getDimensionUpperBound, getAvailableDimensionsForObjectClass, getAvailableDimensionsForInteractionClass, getObjectClassHandle, getAttributeHandle, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador FOM composition, dimension lookup, and class association declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomDimensionHandleStabilityContract"
+      ]
+    }
+  ]
+}
