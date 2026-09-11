@@ -89,6 +89,7 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.joined-federate-mom-directed-interactions-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestDirectedInteractionsSent`/`HLAreportDirectedInteractionsSent` buckets, directed-versus-ordinary filtering, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-reflections-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestReflectionsReceived`/`HLAreportReflectionsReceived` buckets, nested counts, and attribute-transportation confirmation |
  | `cpp-tck.joined-federate-mom-reflection-counts-contract` | Pure standard C++ contract for joined-federate direct and periodic `HLAobjectInstancesReflected`/`HLAreflectionsReceived` counts, timestamped reflections, and time-advance callbacks |
+ | `cpp-tck.joined-federate-mom-time-state-durations-contract` | Pure standard C++ contract for joined-federate direct and periodic `HLAtimeGrantedTime`/`HLAtimeAdvancingTime` durations, `HLAinteger32BE` decoding, and MOM reflection metadata |
  | `cpp-tck.joined-federate-mom-interactions-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestInteractionsSent`/`HLAreportInteractionsSent` buckets, nested counts, and transportation-change confirmation |
   | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
   | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
@@ -1454,8 +1455,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 589 scenario IDs and 1178 matrix cases. `--scenario-set all` currently
-          configures the same 589 available IDs (1178 cases); there are no unpromoted
+          that is 590 scenario IDs and 1180 matrix cases. `--scenario-set all` currently
+          configures the same 590 available IDs (1180 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1881,6 +1882,13 @@ the standard joined-federate MOM object to observe `HLAtimeGrantedTime` and
 reflection. It verifies official four-octet nonnegative `HLAinteger32BE`
 durations and reliable RTI-originated metadata in both callback models using
 only the adapter-supplied standard MIM/FOM and official IEEE C++ API.
+
+The promoted `cpp-tck.joined-federate-mom-time-state-durations-contract` runner
+exposes that joined-federate MOM time-state route as an independently selectable
+pure standard C++ contract. It keeps direct and periodic duration reporting,
+official `HLAinteger32BE` decoding, RTI-originated reflection metadata,
+adapter-supplied logical-time and standard MIM boundaries, and teardown without
+provider-specific headers or diagnostics.
 
 The promoted `cpp-tck.joined-federate-mom-galt-lits-periodic` scenario uses the
 standard joined-federate MOM object to verify direct and periodic `HLAGALT` and

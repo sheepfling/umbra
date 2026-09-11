@@ -22021,6 +22021,52 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.joined-federate-mom-time-state-durations-contract",
+      "category": "joined-federate-mom-time-state",
+      "title": "Pure standard contract for joined-federate direct and periodic time-state durations",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.sendInteraction(HLAsetTiming)",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "HLAinteger32BE"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-attribute-value-update-request"
+      ],
+      "contract_refs": [
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "object-class-attribute-value-update-request-api-contract.json",
+        "object-class-attribute-value-update-request-requirements-contract.json",
+        "joined-federate-mom-public-requirements-contract.json",
+        "standard-joined-federate-mom-time-state-durations-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioJoinedFederateMomTimeStateDurationsContract",
+      "runner_id": "cpp-tck.joined-federate-mom-time-state-durations-contract",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "java-tck.transport-order",
       "category": "transportation-and-order",
       "title": "Exercise ordinary transportation and order controls with per-instance and invalid-handle boundaries",

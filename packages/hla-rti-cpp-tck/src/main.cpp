@@ -70985,6 +70985,12 @@ void scenarioJoinedFederateMomReflectionCountsContract(
   scenarioJoinedFederateMomReflectionCounts(options, model);
 }
 
+void scenarioJoinedFederateMomTimeStateDurationsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomTimeStateDurations(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdateFailureContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -71515,6 +71521,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.joined-federate-mom-reflection-counts",
       "cpp-tck.joined-federate-mom-reflection-counts-contract",
       "cpp-tck.joined-federate-mom-time-state-durations",
+      "cpp-tck.joined-federate-mom-time-state-durations-contract",
       "java-tck.transport-order",
       "java-tck.relevance-advisories",
       "cpp-tck.attribute-relevance-rate-reissue",
@@ -73479,6 +73486,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.joined-federate-mom-time-state-durations") {
     return scenarioJoinedFederateMomTimeStateDurations;
+  }
+  if (id == "cpp-tck.joined-federate-mom-time-state-durations-contract") {
+    return scenarioJoinedFederateMomTimeStateDurationsContract;
   }
   if (id == "java-tck.transport-order") return scenarioTransportOrder;
   if (id == "java-tck.relevance-advisories") return scenarioRelevanceAdvisories;
