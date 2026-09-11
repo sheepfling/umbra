@@ -19193,6 +19193,12 @@ void scenarioCustomTransportationRegionalAttributeDelivery(
   scenarioRegionalObjectUpdate(regional, model);
 }
 
+void scenarioCustomTransportationRegionalAttributeDeliveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCustomTransportationRegionalAttributeDelivery(options, model);
+}
+
 void scenarioCustomTransportationRegionalInteractionDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -71587,6 +71593,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.custom-transportation-interaction-delivery",
       "cpp-tck.custom-transportation-interaction-delivery-contract",
       "cpp-tck.custom-transportation-regional-attribute-delivery",
+      "cpp-tck.custom-transportation-regional-attribute-delivery-contract",
       "cpp-tck.custom-transportation-regional-interaction-delivery",
       "cpp-tck.custom-transportation-timestamped-delivery",
       "cpp-tck.custom-transportation-timestamped-directed-delivery",
@@ -73651,6 +73658,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.custom-transportation-regional-attribute-delivery") {
     return scenarioCustomTransportationRegionalAttributeDelivery;
   }
+  if (id == "cpp-tck.custom-transportation-regional-attribute-delivery-contract") {
+    return scenarioCustomTransportationRegionalAttributeDeliveryContract;
+  }
   if (id == "cpp-tck.custom-transportation-regional-interaction-delivery") {
     return scenarioCustomTransportationRegionalInteractionDelivery;
   }
@@ -73889,6 +73899,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||
+                  scenario == "cpp-tck.custom-transportation-regional-attribute-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-directed-delivery" ||

@@ -22931,6 +22931,57 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.custom-transportation-regional-attribute-delivery-contract",
+      "category": "transportation-delivery",
+      "title": "Standard adapter-backed contract for custom FOM transportation regional attribute delivery",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.registerObjectInstanceWithRegions(named)",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.requestAttributeValueUpdateWithRegions",
+        "RTIambassador.associateRegionsForUpdates",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.deleteRegion",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ddm-regional-object-registration",
+        "cpp-1516.1-ddm-regional-object-update",
+        "cpp-1516.1-ddm-regional-value-request",
+        "cpp-1516.1-ddm-region-designator-callback",
+        "cpp-1516.1-transportation-type-control",
+        "cpp-1516.2-fom-data-representations"
+      ],
+      "contract_refs": [
+        "standard-custom-transportation-regional-attribute-delivery-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCustomTransportationRegionalAttributeDeliveryContract",
+      "runner_id": "cpp-tck.custom-transportation-regional-attribute-delivery-contract",
+      "parity": "cpp-tck.custom-transportation-regional-attribute-delivery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.custom-transportation-regional-interaction-delivery",
       "category": "transportation-delivery",
       "title": "Deliver an ordinary regional interaction with the adapter-declared custom FOM transportation type",

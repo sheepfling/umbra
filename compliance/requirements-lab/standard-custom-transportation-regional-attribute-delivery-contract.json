@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for an adapter-supplied rich FOM transportation type used by an ordinary regional attribute update. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich FOM, DDM dimensions, endpoint, callback model, and object/attribute/transportation names. It verifies dimensional handle and metadata lookups, region creation and bounds, regional publication, subscription, named registration, update delivery, source-region metadata, overlap filtering, transportation identity, and the standard value-update request callback without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-custom-transportation-regional-attribute-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object publication, subscription, registration, update, region, and transportation services with FederateAmbassador discovery, value-request, and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional object-management declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCustomTransportationRegionalAttributeDeliveryContract"
+      ]
+    }
+  ]
+}
