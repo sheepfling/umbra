@@ -540,6 +540,7 @@ struct Options {
   bool threeDimensionalDimensionsConfigured = false;
   std::wstring fomUpdateRateName = L"TckFast";
   std::wstring fomCustomTransportationName = L"TckBestEffort";
+  std::wstring fomAdditionalTransportationName = L"TckAdditionalTransport";
   bool requireCustomTransportation = false;
   std::wstring logicalTimeImplementationName;
   int timeoutMilliseconds = 5000;
@@ -19404,6 +19405,87 @@ void scenarioFomAdditionalModuleJoinAtomicity(
   owner.rtiAmbassador().destroyFederationExecution(federation);
   member.disconnect();
   owner.disconnect();
+}
+
+void scenarioFomTransportationHandleStability(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "FOM transportation handle stability requires an adapter-supplied rich FOM model");
+  require(
+      !options.additionalFomModules.empty(),
+      "FOM transportation handle stability requires an adapter-supplied additional FOM");
+
+  Session owner(options, model, "fom-transportation-owner");
+  Session extension(options, model, "fom-transportation-extension");
+  auto const federation = federationName(options, "fom-transportation-handle-stability");
+  owner.connect();
+  extension.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.modelFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const reliableBefore = owner.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  auto const customBefore = owner.rtiAmbassador().getTransportationTypeHandle(
+      options.fomCustomTransportationName);
+  require(
+      reliableBefore.isValid() && customBefore.isValid() &&
+          reliableBefore != customBefore,
+      "rich adapter FOM did not expose distinct mandatory and custom transportation handles");
+  require(
+      owner.rtiAmbassador().getTransportationTypeName(reliableBefore) == L"HLAreliable" &&
+          owner.rtiAmbassador().getTransportationTypeName(customBefore) ==
+              options.fomCustomTransportationName,
+      "rich adapter FOM transportation handles did not round-trip to their names");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getTransportationTypeHandle(
+            options.fomAdditionalTransportationName));
+      },
+      L"InvalidTransportationName",
+      "additional-module transportation was visible before the additional join");
+
+  extension.join(
+      options.memberFederateName,
+      options.federateType,
+      federation,
+      fomModuleNames(options.additionalFomModules));
+
+  auto const ownerReliableAfter = owner.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  auto const ownerCustomAfter = owner.rtiAmbassador().getTransportationTypeHandle(
+      options.fomCustomTransportationName);
+  auto const ownerAdditional = owner.rtiAmbassador().getTransportationTypeHandle(
+      options.fomAdditionalTransportationName);
+  auto const extensionReliable = extension.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  auto const extensionCustom = extension.rtiAmbassador().getTransportationTypeHandle(
+      options.fomCustomTransportationName);
+  auto const extensionAdditional = extension.rtiAmbassador().getTransportationTypeHandle(
+      options.fomAdditionalTransportationName);
+  require(
+      ownerReliableAfter == reliableBefore && ownerCustomAfter == customBefore &&
+          extensionReliable == reliableBefore && extensionCustom == customBefore,
+      "additional-module join renumbered a pre-existing transportation handle");
+  require(
+      ownerAdditional.isValid() && extensionAdditional.isValid() &&
+          ownerAdditional == extensionAdditional && ownerAdditional != customBefore &&
+          ownerAdditional != reliableBefore,
+      "additional-module transportation did not receive one shared distinct handle");
+  require(
+      owner.rtiAmbassador().getTransportationTypeName(ownerAdditional) ==
+              options.fomAdditionalTransportationName &&
+          extension.rtiAmbassador().getTransportationTypeName(extensionAdditional) ==
+              options.fomAdditionalTransportationName,
+      "additional-module transportation handle did not round-trip to its name");
+
+  extension.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
 }
 
 void scenarioInteractionClassLookupLifecycle(
@@ -70420,6 +70502,12 @@ void scenarioFomAdditionalModuleJoinAtomicityContract(
   scenarioFomAdditionalModuleJoinAtomicity(options, model);
 }
 
+void scenarioFomTransportationHandleStabilityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFomTransportationHandleStability(options, model);
+}
+
 void scenarioInteractionClassLookupLifecycleContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -70691,6 +70779,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.inherited-object-attribute-projection-contract",
       "cpp-tck.fom-module-composition-contract",
       "cpp-tck.fom-additional-module-join-atomicity-contract",
+      "cpp-tck.fom-transportation-handle-stability-contract",
       "cpp-tck.interaction-class-lookup-lifecycle-contract",
       "cpp-tck.object-class-lookup-lifecycle-contract",
       "cpp-tck.attribute-lookup-lifecycle-contract",
@@ -71211,6 +71300,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery",
       "cpp-tck.fom-module-composition",
       "cpp-tck.fom-additional-module-join-atomicity",
+      "cpp-tck.fom-transportation-handle-stability",
       "cpp-tck.interaction-class-lookup-lifecycle",
       "cpp-tck.object-class-lookup-lifecycle",
       "cpp-tck.attribute-lookup-lifecycle",
@@ -71231,6 +71321,10 @@ void printHelp() {
       "Usage: hla_rti_cpp_tck --fom FILE [options]\n"
       "  --scenario ID                 Repeat; default is every configured scenario\n"
       "  --model-fom FILE              Rich FOM model supplied by the adapter\n"
+      "  --fom-custom-transportation NAME\n"
+      "                                Custom transportation name in the rich FOM\n"
+      "  --fom-additional-transportation NAME\n"
+      "                                Transportation name in the additional FOM\n"
       "  --rate-fom FILE               Attribute relevance rate FOM supplied by the adapter\n"
       "  --ddm-fom FILE                Dimensional FOM supplied by the adapter\n"
       "  --multi-attribute-fom FILE    Multi-attribute DDM FOM supplied by the adapter\n"
@@ -71327,6 +71421,12 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--model-fom") {
       requireValue(index, argc, argv, argument);
       options.modelFom = argv[++index];
+    } else if (argument == "--fom-custom-transportation") {
+      requireValue(index, argc, argv, argument);
+      options.fomCustomTransportationName = toWide(argv[++index]);
+    } else if (argument == "--fom-additional-transportation") {
+      requireValue(index, argc, argv, argument);
+      options.fomAdditionalTransportationName = toWide(argv[++index]);
     } else if (argument == "--rate-fom") {
       requireValue(index, argc, argv, argument);
       options.rateFom = argv[++index];
@@ -71678,6 +71778,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-additional-module-join-atomicity-contract") {
     return scenarioFomAdditionalModuleJoinAtomicityContract;
+  }
+  if (id == "cpp-tck.fom-transportation-handle-stability-contract") {
+    return scenarioFomTransportationHandleStabilityContract;
   }
   if (id == "cpp-tck.interaction-class-lookup-lifecycle-contract") {
     return scenarioInteractionClassLookupLifecycleContract;
@@ -73203,6 +73306,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-additional-module-join-atomicity") {
     return scenarioFomAdditionalModuleJoinAtomicity;
   }
+  if (id == "cpp-tck.fom-transportation-handle-stability") {
+    return scenarioFomTransportationHandleStability;
+  }
   if (id == "cpp-tck.interaction-class-lookup-lifecycle") {
     return scenarioInteractionClassLookupLifecycle;
   }
@@ -73407,6 +73513,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.parameter-lookup-lifecycle-contract" ||
                   scenario == "cpp-tck.inherited-object-attribute-projection" ||
                   scenario == "cpp-tck.inherited-object-attribute-projection-contract" ||
+                  scenario == "cpp-tck.fom-transportation-handle-stability" ||
+                  scenario == "cpp-tck.fom-transportation-handle-stability-contract" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-attribute-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery" ||
@@ -73428,7 +73536,9 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied rich FOM model";
       } else if ((scenario == "cpp-tck.fom-additional-module-join-atomicity" ||
-                  scenario == "cpp-tck.fom-additional-module-join-atomicity-contract") &&
+                  scenario == "cpp-tck.fom-additional-module-join-atomicity-contract" ||
+                  scenario == "cpp-tck.fom-transportation-handle-stability" ||
+                  scenario == "cpp-tck.fom-transportation-handle-stability-contract") &&
                  (options.additionalFomModules.empty() ||
                   options.invalidFomModules.empty())) {
         result.status = "skipped";

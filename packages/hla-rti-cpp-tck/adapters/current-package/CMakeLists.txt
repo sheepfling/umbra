@@ -101,6 +101,10 @@ set(HLA_RTI_TCK_ADAPTER_CUSTOM_REGIONAL_INTERACTION_CLASS
   CACHE STRING "Timestamped regional custom-transport interaction class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_CUSTOM_REGIONAL_PARAMETER "RegionalPayload"
   CACHE STRING "Timestamped regional custom-transport parameter supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION "TckBestEffort"
+  CACHE STRING "Custom transportation name in the adapter rich FOM")
+set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION "TckAdditionalTransport"
+  CACHE STRING "Transportation name in the adapter additional FOM")
 set(HLA_RTI_TCK_ADAPTER_OBJECT_CLASS "HLAobjectRoot.TckObject"
   CACHE STRING "Ordinary object class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_ATTRIBUTE "Value"
@@ -298,6 +302,9 @@ endif()
 set(_tck_common_arguments
   --fom "${HLA_RTI_TCK_ADAPTER_FOM}"
   --model-fom "${HLA_RTI_TCK_ADAPTER_MODEL_FOM}"
+  --fom-custom-transportation "${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION}"
+  --fom-additional-transportation
+    "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"
   --ddm-fom "${HLA_RTI_TCK_ADAPTER_DDM_FOM}"
   --multi-attribute-fom "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM}"
   --three-dimensional-fom "${HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_FOM}"

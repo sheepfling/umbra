@@ -155,6 +155,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--model-fom",
         default=str(default_path("packages/hla-rti-cpp-tck/fom/fom-model-tck.xml")),
     )
+    parser.add_argument("--fom-custom-transportation", default="TckBestEffort")
+    parser.add_argument(
+        "--fom-additional-transportation",
+        default="TckAdditionalTransport",
+    )
     parser.add_argument(
         "--rate-fom",
         default=str(
@@ -444,6 +449,8 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "CMAKE_PREFIX_PATH": inputs["package_prefix"],
         "HLA_RTI_TCK_ADAPTER_FOM": inputs["fom"],
         "HLA_RTI_TCK_ADAPTER_MODEL_FOM": inputs["model_fom"],
+        "HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION": arguments.fom_custom_transportation,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION": arguments.fom_additional_transportation,
         "HLA_RTI_TCK_ADAPTER_RATE_FOM": inputs["rate_fom"],
         "HLA_RTI_TCK_ADAPTER_DDM_FOM": inputs["ddm_fom"],
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM": inputs["multi_attribute_fom"],
@@ -618,6 +625,10 @@ def direct_arguments(
         str(inputs["fom"]),
         "--model-fom",
         str(inputs["model_fom"]),
+        "--fom-custom-transportation",
+        arguments.fom_custom_transportation,
+        "--fom-additional-transportation",
+        arguments.fom_additional_transportation,
         "--rate-fom",
         str(inputs["rate_fom"]),
         "--ddm-fom",

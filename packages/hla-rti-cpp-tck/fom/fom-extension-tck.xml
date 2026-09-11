@@ -51,6 +51,13 @@
             </interactionClass>
         </interactionClass>
     </interactions>
+    <transportations>
+        <transportation>
+            <name>TckAdditionalTransport</name>
+            <reliable>Yes</reliable>
+            <semantics>Portable transportation declared by the additional module for handle-stability tests.</semantics>
+        </transportation>
+    </transportations>
     <dataTypes>
         <simpleDataTypes>
             <simpleData>
