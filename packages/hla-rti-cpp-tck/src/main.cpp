@@ -18947,6 +18947,12 @@ void scenarioCustomTransportationTimestampedDelivery(
   producer.disconnect();
 }
 
+void scenarioCustomTransportationTimestampedDeliveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCustomTransportationTimestampedDelivery(options, model);
+}
+
 void scenarioCustomTransportationTimestampedDirectedDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -71603,6 +71609,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.custom-transportation-regional-interaction-delivery",
       "cpp-tck.custom-transportation-regional-interaction-delivery-contract",
       "cpp-tck.custom-transportation-timestamped-delivery",
+      "cpp-tck.custom-transportation-timestamped-delivery-contract",
       "cpp-tck.custom-transportation-timestamped-directed-delivery",
       "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery",
       "cpp-tck.fom-module-composition",
@@ -73677,6 +73684,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.custom-transportation-timestamped-delivery") {
     return scenarioCustomTransportationTimestampedDelivery;
   }
+  if (id == "cpp-tck.custom-transportation-timestamped-delivery-contract") {
+    return scenarioCustomTransportationTimestampedDeliveryContract;
+  }
   if (id == "cpp-tck.custom-transportation-timestamped-directed-delivery") {
     return scenarioCustomTransportationTimestampedDirectedDelivery;
   }
@@ -73913,6 +73923,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery" ||
                   scenario == "cpp-tck.custom-transportation-regional-interaction-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-delivery" ||
+                  scenario == "cpp-tck.custom-transportation-timestamped-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-directed-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery" ||
                   scenario == "cpp-tck.regional-interaction-region-validation" ||
@@ -74242,6 +74253,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-directed-interactions" ||
                   scenario == "cpp-tck.timestamped-directed-interactions-contract" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-delivery" ||
+                  scenario == "cpp-tck.custom-transportation-timestamped-delivery-contract" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-directed-delivery" ||
                   scenario == "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery" ||
                   scenario == "cpp-tck.delay-subscription-evaluation-timestamped-interaction" ||

@@ -23126,6 +23126,42 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.custom-transportation-timestamped-delivery-contract",
+      "category": "transportation-delivery",
+      "title": "Standard adapter-backed contract for timestamped custom FOM transportation interaction delivery",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-time-management",
+        "cpp-1516.1-transportation-type-control",
+        "cpp-1516.2-fom-data-representations"
+      ],
+      "contract_refs": [
+        "standard-custom-transportation-timestamped-delivery-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCustomTransportationTimestampedDeliveryContract",
+      "runner_id": "cpp-tck.custom-transportation-timestamped-delivery-contract",
+      "parity": "cpp-tck.custom-transportation-timestamped-delivery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.custom-transportation-timestamped-directed-delivery",
       "category": "transportation-delivery",
       "title": "Deliver a timestamped directed interaction with the adapter-declared custom FOM transportation type",
