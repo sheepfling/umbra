@@ -1995,6 +1995,94 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.service-report-directed-interaction-publication",
+      "category": "mom-service-reporting",
+      "title": "Report directed object-class interaction publication services through standard HLAreportServiceInvocation",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-directed-interaction-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "directed-interaction-api-contract.json",
+        "directed-interaction-requirements-contract.json",
+        "publish-object-class-directed-interactions-api-contract.json",
+        "publish-object-class-directed-interactions-requirements-contract.json",
+        "unpublish-object-class-directed-interactions-api-contract.json",
+        "unpublish-object-class-directed-interactions-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "fixed-record-requirements-contract.json",
+        "variable-array-requirements-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportDirectedInteractionPublication",
+      "runner_id": "cpp-tck.service-report-directed-interaction-publication",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-directed-interaction-publication-contract",
+      "category": "mom-service-reporting",
+      "title": "Exercise the standard adapter-backed directed interaction publication service-report contract",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-directed-interaction-invalid-handle-boundaries",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-service-report-directed-interaction-publication-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioServiceReportDirectedInteractionPublicationContract",
+      "runner_id": "cpp-tck.service-report-directed-interaction-publication-contract",
+      "parity": "cpp-tck.service-report-directed-interaction-publication",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.service-report-regional-interaction-failure",
       "category": "mom-service-reporting",
       "title": "Deliver standard HLAreportServiceInvocation failure reports for invalid regional interaction services",

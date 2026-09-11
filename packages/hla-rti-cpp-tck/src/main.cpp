@@ -25812,6 +25812,300 @@ void scenarioServiceReportDirectedInteractionDeclaration(
   subject.disconnect();
 }
 
+void scenarioServiceReportDirectedInteractionPublication(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Directed-interaction publication service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "directed-interaction-publication-service-report-subject");
+  Session observer(options, model, "directed-interaction-publication-service-report-observer");
+  auto const federation = federationName(
+      options,
+      "service-report-directed-interaction-publication");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-directed-interaction-publication-service-report-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-directed-interaction-publication-service-report-observer",
+      options.federateType,
+      federation);
+
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const interactionClass = subject.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  require(
+      objectClass.isValid() && interactionClass.isValid(),
+      "Directed-interaction publication service-report lookup returned an invalid object or interaction handle");
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Directed-interaction publication service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Directed-interaction publication service-report parameter lookup returned an invalid handle");
+    reportParameters.push_back(parameter);
+  }
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  struct ExpectedArgument final {
+    std::int32_t type;
+    std::wstring name;
+    std::wstring value;
+  };
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const publishArguments = [&](std::wstring const& objectValue,
+                                    std::wstring const& interactionSetValue) {
+    return std::vector<ExpectedArgument>{
+        {36, L"Object class designator", quoted(objectValue)},
+        {28, L"Set of interaction class designators", interactionSetValue}};
+  };
+  auto const unpublishArguments = [&](std::wstring const& objectValue,
+                                      std::wstring const& interactionSetValue) {
+    return std::vector<ExpectedArgument>{
+        {36, L"Object class designator", quoted(objectValue)},
+        {28, L"Optional set of interaction class designators", interactionSetValue}};
+  };
+  auto const wholeUnpublishArguments = [&](std::wstring const& objectValue) {
+    return std::vector<ExpectedArgument>{
+        {36, L"Object class designator", quoted(objectValue)},
+        {34, L"Optional set of interaction class designators", L"null"}};
+  };
+
+  auto verifyReport = [&](std::size_t index,
+                          std::wstring const& expectedService,
+                          std::vector<ExpectedArgument> const& expectedArguments,
+                          bool expectedSuccess,
+                          std::wstring const& expectedException) {
+    waitFor(
+        observer,
+        [&] { return observer.recorder().interaction().present; },
+        options,
+        "directed-interaction publication HLAreportServiceInvocation callback");
+    auto const report = observer.recorder().interaction();
+    require(
+        report.interaction == reportClass &&
+            report.parameters.size() == reportParameters.size() &&
+            !report.producer.isValid(),
+        "Directed-interaction publication service-report callback returned the wrong identity or producer metadata");
+    require(
+        report.tag.empty() && !report.regions.has_value(),
+        "Directed-interaction publication service-report callback returned user tag or region metadata");
+    require(
+        report.transportation ==
+            observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+        "Directed-interaction publication service-report callback returned the wrong transportation type");
+    for (auto const parameterHandle : reportParameters) {
+      require(
+          report.parameters.count(parameterHandle) == 1U,
+          "Directed-interaction publication service-report callback omitted a standard report parameter");
+    }
+
+    rti::HLAunicodeString service;
+    service.decode(report.parameters.at(reportParameters[0]));
+    require(
+        service.get() == expectedService,
+        "Directed-interaction publication service-report callback returned the wrong service name");
+    rti::HLAinteger16BE serviceType;
+    serviceType.decode(report.parameters.at(reportParameters[1]));
+    require(
+        serviceType.get() == 1,
+        "Directed-interaction publication service-report callback returned the wrong service type");
+    rti::HLAboolean success;
+    success.decode(report.parameters.at(reportParameters[2]));
+    require(
+        success.get() == expectedSuccess,
+        "Directed-interaction publication service-report callback returned the wrong success indicator");
+
+    rti::HLAfixedRecord suppliedArgumentPrototype;
+    suppliedArgumentPrototype.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    rti::HLAvariableArray suppliedArguments{suppliedArgumentPrototype};
+    suppliedArguments.decode(report.parameters.at(reportParameters[3]));
+    require(
+        suppliedArguments.size() == expectedArguments.size(),
+        "Directed-interaction publication service-report callback returned the wrong supplied-argument count");
+    for (std::size_t argumentIndex = 0U;
+         argumentIndex != expectedArguments.size();
+         ++argumentIndex) {
+      auto const& supplied = dynamic_cast<rti::HLAfixedRecord const&>(
+          suppliedArguments.get(argumentIndex));
+      require(
+          dynamic_cast<rti::HLAinteger32BE const&>(supplied.get(0U)).get() ==
+                  expectedArguments[argumentIndex].type &&
+              dynamic_cast<rti::HLAunicodeString const&>(supplied.get(1U)).get() ==
+                  expectedArguments[argumentIndex].name &&
+              dynamic_cast<rti::HLAunicodeString const&>(supplied.get(2U)).get() ==
+                  expectedArguments[argumentIndex].value,
+          "Directed-interaction publication service-report callback returned the wrong supplied-argument value");
+    }
+
+    rti::HLAfixedRecord returnedArgument;
+    returnedArgument.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    returnedArgument.decode(report.parameters.at(reportParameters[4]));
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+            dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+            dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+                L"null",
+        "Directed-interaction publication service-report callback returned the wrong Null return value");
+    rti::HLAunicodeString exception;
+    exception.decode(report.parameters.at(reportParameters[5]));
+    if (expectedException.empty()) {
+      require(
+          exception.get().empty(),
+          "Successful directed-interaction publication service report carried an exception");
+    } else {
+      require(
+          exception.get().find(expectedException) != std::wstring::npos,
+          "Directed-interaction publication service report returned the wrong exception name");
+    }
+    rti::HLAinteger32BE serial;
+    serial.decode(report.parameters.at(reportParameters[6]));
+    require(
+        serial.get() == static_cast<std::int32_t>(index),
+        "Directed-interaction publication service-report callback returned the wrong serial number");
+    observer.recorder().clearInteraction();
+  };
+
+  auto const invalidObject = rti::ObjectClassHandle{}.toString();
+  auto const validObject = objectClass.toString();
+  auto const invalidInteraction = rti::InteractionClassHandle{}.toString();
+  auto const validInteraction = interactionClass.toString();
+  auto const invalidSet = L"[\"" + invalidInteraction + L"\"]";
+  auto const validSet = L"[\"" + validInteraction + L"\"]";
+  rti::InteractionClassHandleSet const interactions{interactionClass};
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+
+  requireException(
+      [&] {
+        subject.rtiAmbassador().publishObjectClassDirectedInteractions(
+            rti::ObjectClassHandle{},
+            rti::InteractionClassHandleSet{});
+      },
+      L"ObjectClassNotDefined",
+      "publishing directed interactions for an undefined object class with service reporting enabled");
+  verifyReport(
+      0U,
+      L"PublishObjectClassDirectedInteractions",
+      publishArguments(invalidObject, L"[]"),
+      false,
+      L"ObjectClassNotDefined");
+
+  requireException(
+      [&] {
+        subject.rtiAmbassador().publishObjectClassDirectedInteractions(
+            objectClass,
+            rti::InteractionClassHandleSet{rti::InteractionClassHandle{}});
+      },
+      L"InteractionClassNotDefined",
+      "publishing an undefined directed interaction with service reporting enabled");
+  verifyReport(
+      1U,
+      L"PublishObjectClassDirectedInteractions",
+      publishArguments(validObject, invalidSet),
+      false,
+      L"InteractionClassNotDefined");
+
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+            rti::ObjectClassHandle{},
+            rti::InteractionClassHandleSet{});
+      },
+      L"ObjectClassNotDefined",
+      "unpublishing directed interactions for an undefined object class with service reporting enabled");
+  verifyReport(
+      2U,
+      L"UnpublishObjectClassDirectedInteractions",
+      unpublishArguments(invalidObject, L"[]"),
+      false,
+      L"ObjectClassNotDefined");
+
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+            objectClass,
+            rti::InteractionClassHandleSet{rti::InteractionClassHandle{}});
+      },
+      L"InteractionClassNotDefined",
+      "unpublishing an undefined directed interaction with service reporting enabled");
+  verifyReport(
+      3U,
+      L"UnpublishObjectClassDirectedInteractions",
+      unpublishArguments(validObject, invalidSet),
+      false,
+      L"InteractionClassNotDefined");
+
+  subject.rtiAmbassador().publishObjectClassDirectedInteractions(
+      objectClass,
+      interactions);
+  verifyReport(
+      4U,
+      L"PublishObjectClassDirectedInteractions",
+      publishArguments(validObject, validSet),
+      true,
+      L"");
+  subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      objectClass,
+      interactions);
+  verifyReport(
+      5U,
+      L"UnpublishObjectClassDirectedInteractions",
+      unpublishArguments(validObject, validSet),
+      true,
+      L"");
+  subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(objectClass);
+  verifyReport(
+      6U,
+      L"UnpublishObjectClassDirectedInteractions",
+      wholeUnpublishArguments(validObject),
+      true,
+      L"");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
 void scenarioServiceReportRegionalInteractionFailure(
     Options const& options,
     rti::CallbackModel model) {
@@ -68660,6 +68954,12 @@ void scenarioServiceReportDirectedInteractionDeclarationContract(
   scenarioServiceReportDirectedInteractionDeclaration(options, model);
 }
 
+void scenarioServiceReportDirectedInteractionPublicationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDirectedInteractionPublication(options, model);
+}
+
 void scenarioFederationMomSaveConditionalsContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -68813,6 +69113,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-object-attribute-declaration-contract",
       "cpp-tck.service-report-directed-interaction-declaration",
       "cpp-tck.service-report-directed-interaction-declaration-contract",
+      "cpp-tck.service-report-directed-interaction-publication",
+      "cpp-tck.service-report-directed-interaction-publication-contract",
       "cpp-tck.service-report-regional-interaction-failure",
       "cpp-tck.service-report-attribute-update",
       "cpp-tck.service-report-attribute-update-failure",
@@ -69890,6 +70192,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.service-report-directed-interaction-declaration") {
     return scenarioServiceReportDirectedInteractionDeclaration;
   }
+  if (id == "cpp-tck.service-report-directed-interaction-publication") {
+    return scenarioServiceReportDirectedInteractionPublication;
+  }
   if (id == "cpp-tck.service-report-regional-interaction-subscription-contract") {
     return scenarioServiceReportRegionalInteractionSubscriptionContract;
   }
@@ -69898,6 +70203,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.service-report-directed-interaction-declaration-contract") {
     return scenarioServiceReportDirectedInteractionDeclarationContract;
+  }
+  if (id == "cpp-tck.service-report-directed-interaction-publication-contract") {
+    return scenarioServiceReportDirectedInteractionPublicationContract;
   }
   if (id == "cpp-tck.service-report-regional-interaction-failure") {
     return scenarioServiceReportRegionalInteractionFailure;
