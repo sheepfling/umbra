@@ -78,8 +78,9 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.service-report-object-attribute-update-rate-lookup-failures` | Standard MOM failure reports for invalid object, attribute, and update-rate lookups, including typed Null returns, exception classes, recovery, and serial progression |
  | `cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract` | Standard adapter-backed object/attribute/update-rate lookup failure-report contract using provider-neutral invalid inputs |
  | `cpp-tck.federation-mom-save-conditionals-contract` | Pure standard C++ contract for federation MOM save-conditionals, timed save initiation/completion, and adapter-supplied logical-time/MIM inputs |
-| `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
-| `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
+ | `cpp-tck.joined-federate-mom-federate-state-save-restore` | Standard joined-federate MOM `HLAfederateState` transitions across save initiation/completion and restore initiation/completion, with callback and reflection metadata checks |
+ | `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
+ | `cpp-tck.joined-federate-mom-galt-lits-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLAGALT`/`HLALITS` direct and periodic reporting, active-regulator values, and undefined-value cleanup |
   | `cpp-tck.service-report-interaction-failure` | Standard MOM failure reports for invalid ordinary interaction class, parameter, and publication inputs, including typed report arguments and no application callback |
   | `cpp-tck.service-report-interaction-failure-contract` | Standard adapter-backed ordinary interaction service-report failure contract using the official MIM and interaction callbacks |
   | `cpp-tck.service-report-interaction-contract` | Standard adapter-backed ordinary interaction service-report contract using the official MIM and interaction callbacks |
@@ -1444,8 +1445,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 579 scenario IDs and 1158 matrix cases. `--scenario-set all` currently
-          configures the same 579 available IDs (1158 cases); there are no unpromoted
+          that is 580 scenario IDs and 1160 matrix cases. `--scenario-set all` currently
+          configures the same 580 available IDs (1160 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1869,6 +1870,13 @@ standard joined-federate MOM object to verify direct and periodic `HLAGALT` and
 `HLALITS` values, including the undefined-value boundary after the sole time
 regulator is disabled. It uses standard MIM/FOM lookup, `HLAsetTiming`, and
 official logical-time/encoder types in both callback models.
+
+The promoted `cpp-tck.joined-federate-mom-galt-lits-periodic-contract` runner
+exposes that joined-federate MOM time-statistics route as an independently
+selectable pure standard C++ contract. It keeps the direct and periodic
+`HLAGALT`/`HLALITS` reflections, active-regulator and undefined-value
+boundaries, and standard cleanup while taking the provider, FOM, MIM,
+endpoint, callback, and logical-time configuration from the adapter.
 
 The promoted `cpp-tck.joined-federate-mom-tso-length-periodic` scenario uses
 the standard `HLATSOlength` MOM attribute to verify direct and periodic queued

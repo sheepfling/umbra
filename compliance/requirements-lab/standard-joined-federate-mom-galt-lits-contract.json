@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for joined-federate MOM GALT/LITS reporting. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM declarations, HLAinteger32BE, adapter-selected logical-time values, and the standard library; the adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and logical-time configuration. It verifies direct and periodic HLAGALT/HLALITS reflections, active-regulator and undefined-value boundaries, and cleanup without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-galt-lits",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador MOM query/time services and FederateAmbassador joined-federate MOM reflection delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, time-management, object-management, and interaction declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomGaltLitsPeriodicContract"
+      ]
+    }
+  ]
+}

@@ -70925,6 +70925,12 @@ void scenarioJoinedFederateMomFederateStateSaveRestoreContract(
   scenarioJoinedFederateMomFederateStateSaveRestore(options, model);
 }
 
+void scenarioJoinedFederateMomGaltLitsPeriodicContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomGaltLitsPeriodic(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdateFailureContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -71434,6 +71440,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.federation-mom-save-conditionals",
       "cpp-tck.joined-federate-mom-federate-state-save-restore",
       "cpp-tck.joined-federate-mom-galt-lits-periodic",
+      "cpp-tck.joined-federate-mom-galt-lits-periodic-contract",
       "cpp-tck.joined-federate-mom-tso-length-periodic",
       "cpp-tck.joined-federate-mom-removed-object-count",
       "cpp-tck.joined-federate-mom-updates-sent-counts",
@@ -72234,6 +72241,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.joined-federate-mom-federate-state-save-restore-contract") {
     return scenarioJoinedFederateMomFederateStateSaveRestoreContract;
+  }
+  if (id == "cpp-tck.joined-federate-mom-galt-lits-periodic-contract") {
+    return scenarioJoinedFederateMomGaltLitsPeriodicContract;
   }
   if (id == "cpp-tck.service-report-interaction") {
     return scenarioServiceReportInteraction;
@@ -74117,6 +74127,7 @@ int run(Options const& options) {
                    scenario == "cpp-tck.federation-mom-save-conditionals" ||
                    scenario == "cpp-tck.joined-federate-mom-federate-state-save-restore" ||
                    scenario == "cpp-tck.joined-federate-mom-galt-lits-periodic" ||
+                   scenario == "cpp-tck.joined-federate-mom-galt-lits-periodic-contract" ||
                    scenario == "cpp-tck.joined-federate-mom-tso-length-periodic" ||
                    scenario == "cpp-tck.joined-federate-mom-removed-object-count" ||
                    scenario == "cpp-tck.joined-federate-mom-time-state-durations" ||

@@ -20465,6 +20465,54 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.joined-federate-mom-galt-lits-periodic-contract",
+      "category": "joined-federate-mom-time-statistics",
+      "title": "Pure standard contract for joined-federate HLAGALT and HLALITS reporting",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.queryGALT",
+        "RTIambassador.queryLITS",
+        "RTIambassador.getInteractionClassHandle(HLAsetTiming)",
+        "RTIambassador.getParameterHandle(HLAsetTiming)",
+        "RTIambassador.sendInteraction(HLAsetTiming)",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.timeRegulationEnabled",
+        "HLAinteger32BE",
+        "adapter-supplied logical-time encoding"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-query-galt-lits",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-joined-federate-mom-galt-lits-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioJoinedFederateMomGaltLitsPeriodicContract",
+      "runner_id": "cpp-tck.joined-federate-mom-galt-lits-periodic-contract",
+      "parity": "cpp-tck.joined-federate-mom-galt-lits-periodic",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.joined-federate-mom-tso-length-periodic",
       "category": "joined-federate-mom-queue-statistics",
       "title": "Observe joined-federate HLATSOlength before and after timestamped delivery",
