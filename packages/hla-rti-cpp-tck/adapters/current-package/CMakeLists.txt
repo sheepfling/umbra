@@ -114,6 +114,8 @@ set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_OBJECT_CLASS
   CACHE STRING "Dimensional object class in the adapter additional FOM")
 set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE "AdditionalValue"
   CACHE STRING "Dimensional attribute in the adapter additional FOM")
+set(HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_UPDATE_RATE "TckAdditionalRate"
+  CACHE STRING "Update-rate designator in the adapter additional FOM")
 set(HLA_RTI_TCK_ADAPTER_OBJECT_CLASS "HLAobjectRoot.TckObject"
   CACHE STRING "Ordinary object class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_ATTRIBUTE "Value"
@@ -320,6 +322,8 @@ set(_tck_common_arguments
     "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_OBJECT_CLASS}"
   --fom-additional-dimension-attribute
     "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE}"
+  --fom-additional-update-rate
+    "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_UPDATE_RATE}"
   --ddm-fom "${HLA_RTI_TCK_ADAPTER_DDM_FOM}"
   --multi-attribute-fom "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM}"
   --three-dimensional-fom "${HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_FOM}"

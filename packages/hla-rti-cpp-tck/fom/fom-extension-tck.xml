@@ -90,6 +90,13 @@
             <semantics>Portable transportation declared by the additional module for handle-stability tests.</semantics>
         </transportation>
     </transportations>
+    <updateRates>
+        <updateRate>
+            <name>TckAdditionalRate</name>
+            <rate>2.0</rate>
+            <semantics>Portable update-rate designator declared by the additional module.</semantics>
+        </updateRate>
+    </updateRates>
     <dataTypes>
         <simpleDataTypes>
             <simpleData>

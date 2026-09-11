@@ -556,6 +556,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-transportation-handle-stability-contract` | Standard adapter-backed transportation handle/name stability contract for additional-FOM composition |
 | `cpp-tck.fom-dimension-handle-stability` | Preserve dimension handle identity, metadata, and object/interaction class associations across an additional-FOM join; the adapter supplies the rich and additional FOM names |
 | `cpp-tck.fom-dimension-handle-stability-contract` | Standard adapter-backed dimension handle/name, upper-bound, and class-association contract for additional-FOM composition |
+| `cpp-tck.fom-update-rate-value-stability` | Preserve a rich-FOM update-rate value and compose a new adapter-supplied update-rate designator across an additional-FOM join |
+| `cpp-tck.fom-update-rate-value-stability-contract` | Standard adapter-backed update-rate value composition and base-value stability contract for additional-FOM joins |
 | `cpp-tck.interaction-class-lookup-lifecycle` | Standard interaction-class handle/name lookup across pre-connect, pre-join, invalid-input, and additional-FOM composition boundaries |
 | `cpp-tck.interaction-class-lookup-lifecycle-contract` | Pure standard C++ contract for stable base/extension interaction handles, name round trips, and standard lookup exceptions using adapter-supplied FOM modules |
 | `cpp-tck.object-class-lookup-lifecycle` | Standard object-class handle/name lookup across pre-connect, pre-join, invalid-input, and additional-FOM composition boundaries |
@@ -1442,8 +1444,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-          that is 567 scenario IDs and 1134 matrix cases. `--scenario-set all` currently
-          configures the same 567 available IDs (1134 cases); there are no unpromoted
+          that is 579 scenario IDs and 1158 matrix cases. `--scenario-set all` currently
+          configures the same 579 available IDs (1158 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1525,6 +1527,14 @@ lookup before connection, before membership, after resign, for invalid inputs,
 and across federates. The dimension pair passed 4/4 callback-model cases in its
 focused installed-package lane using only official IEEE C++ API headers and the
 standard library; the dimensional FOM and dimension names remain adapter inputs.
+The promoted `cpp-tck.fom-update-rate-value-stability` scenario and its contract
+twin verify that a positive base update-rate value remains stable while a new
+adapter-supplied update-rate designator is composed through an additional-FOM
+join. The focused pair passed 4/4 callback-model cases, and the surrounding
+ten-scenario FOM-composition regression fence passed 20/20 CTest and direct
+cases. The source uses only official IEEE C++ API headers and the standard
+library; the rich FOM, additional FOM, update-rate names, provider, endpoint,
+and callback configuration remain adapter inputs.
 The promoted `cpp-tck.fom-invalid-create-atomicity` scenario and its contract
 twin reject every adapter-supplied invalid single-module create, then reuse the
 same federation name for a valid create/join/lookup/resign/destroy lifecycle.

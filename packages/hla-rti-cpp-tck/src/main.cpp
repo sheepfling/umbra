@@ -543,6 +543,7 @@ struct Options {
       L"TckDimensionX", L"TckDimensionY", L"TckDimensionZ"};
   bool threeDimensionalDimensionsConfigured = false;
   std::wstring fomUpdateRateName = L"TckFast";
+  std::wstring fomAdditionalUpdateRateName = L"TckAdditionalRate";
   std::wstring fomCustomTransportationName = L"TckBestEffort";
   std::wstring fomAdditionalTransportationName = L"TckAdditionalTransport";
   bool requireCustomTransportation = false;
@@ -19612,6 +19613,68 @@ void scenarioFomDimensionHandleStability(
           ownerAdditionalDimensions.count(ownerAdditional) == 1U &&
           extensionAdditionalDimensions == ownerAdditionalDimensions,
       "additional-module class did not retain its dimension association");
+
+  extension.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  extension.disconnect();
+  owner.disconnect();
+}
+
+void scenarioFomUpdateRateValueStability(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "FOM update-rate value stability requires an adapter-supplied rich FOM model");
+  require(
+      !options.additionalFomModules.empty(),
+      "FOM update-rate value stability requires an adapter-supplied additional FOM");
+
+  Session owner(options, model, "fom-update-rate-owner");
+  Session extension(options, model, "fom-update-rate-extension");
+  auto const federation = federationName(options, "fom-update-rate-value-stability");
+  owner.connect();
+  extension.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.modelFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const baseRate = owner.rtiAmbassador().getUpdateRateValue(
+      options.fomUpdateRateName);
+  require(
+      baseRate > 0.0,
+      "rich adapter FOM did not expose a positive base update-rate value");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getUpdateRateValue(
+            options.fomAdditionalUpdateRateName));
+      },
+      L"InvalidUpdateRateDesignator",
+      "additional-module update rate was visible before the additional join");
+
+  extension.join(
+      options.memberFederateName,
+      options.federateType,
+      federation,
+      fomModuleNames(options.additionalFomModules));
+
+  auto const ownerBaseAfter = owner.rtiAmbassador().getUpdateRateValue(
+      options.fomUpdateRateName);
+  auto const extensionBase = extension.rtiAmbassador().getUpdateRateValue(
+      options.fomUpdateRateName);
+  auto const ownerAdditional = owner.rtiAmbassador().getUpdateRateValue(
+      options.fomAdditionalUpdateRateName);
+  auto const extensionAdditional = extension.rtiAmbassador().getUpdateRateValue(
+      options.fomAdditionalUpdateRateName);
+  require(
+      ownerBaseAfter == baseRate && extensionBase == baseRate,
+      "additional-module join changed the existing update-rate value");
+  require(
+      ownerAdditional > 0.0 && extensionAdditional == ownerAdditional,
+      "additional-module update-rate value was not composed consistently across members");
 
   extension.resign(rti::NO_ACTION);
   owner.resign(rti::NO_ACTION);
@@ -70646,6 +70709,12 @@ void scenarioFomDimensionHandleStabilityContract(
   scenarioFomDimensionHandleStability(options, model);
 }
 
+void scenarioFomUpdateRateValueStabilityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFomUpdateRateValueStability(options, model);
+}
+
 void scenarioInteractionClassLookupLifecycleContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -70919,6 +70988,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-additional-module-join-atomicity-contract",
       "cpp-tck.fom-transportation-handle-stability-contract",
       "cpp-tck.fom-dimension-handle-stability-contract",
+      "cpp-tck.fom-update-rate-value-stability-contract",
       "cpp-tck.interaction-class-lookup-lifecycle-contract",
       "cpp-tck.object-class-lookup-lifecycle-contract",
       "cpp-tck.attribute-lookup-lifecycle-contract",
@@ -71441,6 +71511,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-additional-module-join-atomicity",
       "cpp-tck.fom-transportation-handle-stability",
       "cpp-tck.fom-dimension-handle-stability",
+      "cpp-tck.fom-update-rate-value-stability",
       "cpp-tck.interaction-class-lookup-lifecycle",
       "cpp-tck.object-class-lookup-lifecycle",
       "cpp-tck.attribute-lookup-lifecycle",
@@ -71516,6 +71587,8 @@ void printHelp() {
       "                                Best-effort update-rate comparison attribute\n"
       "  --rate-designator NAME        Active update-rate designator\n"
       "  --fom-update-rate NAME        Higher update-rate designator for advisory tests\n"
+      "  --fom-additional-update-rate NAME\n"
+      "                                Update-rate designator in the additional FOM\n"
       "  --three-dimensional-object-class NAME\n"
       "                                Three-dimensional DDM object class name\n"
       "  --three-dimensional-attribute NAME\n"
@@ -71722,6 +71795,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--fom-update-rate") {
       requireValue(index, argc, argv, argument);
       options.fomUpdateRateName = toWide(argv[++index]);
+    } else if (argument == "--fom-additional-update-rate") {
+      requireValue(index, argc, argv, argument);
+      options.fomAdditionalUpdateRateName = toWide(argv[++index]);
     } else if (argument == "--three-dimensional-object-class") {
       requireValue(index, argc, argv, argument);
       options.threeDimensionalObjectClassName = toWide(argv[++index]);
@@ -71943,6 +72019,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-dimension-handle-stability-contract") {
     return scenarioFomDimensionHandleStabilityContract;
+  }
+  if (id == "cpp-tck.fom-update-rate-value-stability-contract") {
+    return scenarioFomUpdateRateValueStabilityContract;
   }
   if (id == "cpp-tck.interaction-class-lookup-lifecycle-contract") {
     return scenarioInteractionClassLookupLifecycleContract;
@@ -73474,6 +73553,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-dimension-handle-stability") {
     return scenarioFomDimensionHandleStability;
   }
+  if (id == "cpp-tck.fom-update-rate-value-stability") {
+    return scenarioFomUpdateRateValueStability;
+  }
   if (id == "cpp-tck.interaction-class-lookup-lifecycle") {
     return scenarioInteractionClassLookupLifecycle;
   }
@@ -73680,6 +73762,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.inherited-object-attribute-projection-contract" ||
                   scenario == "cpp-tck.fom-transportation-handle-stability" ||
                   scenario == "cpp-tck.fom-transportation-handle-stability-contract" ||
+                  scenario == "cpp-tck.fom-update-rate-value-stability" ||
+                  scenario == "cpp-tck.fom-update-rate-value-stability-contract" ||
                   scenario == "cpp-tck.fom-dimension-handle-stability" ||
                   scenario == "cpp-tck.fom-dimension-handle-stability-contract" ||
                   scenario == "cpp-tck.custom-transportation-interaction-delivery" ||
@@ -73712,7 +73796,9 @@ int run(Options const& options) {
         result.message =
             "requires adapter-supplied valid and invalid additional FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-handle-stability" ||
-                  scenario == "cpp-tck.fom-dimension-handle-stability-contract") &&
+                  scenario == "cpp-tck.fom-dimension-handle-stability-contract" ||
+                  scenario == "cpp-tck.fom-update-rate-value-stability" ||
+                  scenario == "cpp-tck.fom-update-rate-value-stability-contract") &&
                  options.additionalFomModules.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied additional FOM module";

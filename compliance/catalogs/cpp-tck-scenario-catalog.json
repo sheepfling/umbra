@@ -22604,6 +22604,61 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-update-rate-value-stability",
+      "category": "fom-composition",
+      "title": "Preserve update-rate values across an additional-FOM join",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution(additionalFomModules)",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-fom-module-composition",
+        "cpp-1516.1-update-rate-value",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.2-fom-composition-and-reference-resolution"
+      ],
+      "contract_refs": [
+        "standard-fom-update-rate-value-stability-contract.json",
+        "update-rate-value-api-contract.json",
+        "update-rate-value-requirements-contract.json",
+        "standard-fom-module-composition-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomUpdateRateValueStability",
+      "runner_id": "cpp-tck.fom-update-rate-value-stability",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-update-rate-value-stability-contract",
+      "category": "fom-composition",
+      "title": "Exercise the standard update-rate value composition contract across an additional-FOM join",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution(additionalFomModules)",
+        "RTIambassador.getUpdateRateValue",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-fom-module-composition",
+        "cpp-1516.1-update-rate-value",
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.2-fom-composition-and-reference-resolution"
+      ],
+      "contract_refs": [
+        "standard-fom-update-rate-value-stability-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioFomUpdateRateValueStabilityContract",
+      "runner_id": "cpp-tck.fom-update-rate-value-stability-contract",
+      "parity": "cpp-tck.fom-update-rate-value-stability",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.interaction-class-lookup-lifecycle",
       "category": "handle-lookup",
       "title": "Resolve ordinary interaction-class handles and names across lifecycle and additional-FOM composition boundaries",

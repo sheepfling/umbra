@@ -276,6 +276,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rate-best-effort-attribute", default="BestEffortValue")
     parser.add_argument("--rate-designator", default="TckSlow")
     parser.add_argument("--fom-update-rate", default="TckFast")
+    parser.add_argument("--fom-additional-update-rate", default="TckAdditionalRate")
     parser.add_argument("--interaction-class", default="HLAinteractionRoot.TckInteraction")
     parser.add_argument("--parameter", default="Payload")
     parser.add_argument(
@@ -470,6 +471,8 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
             arguments.fom_additional_dimension_object_class,
         "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_DIMENSION_ATTRIBUTE":
             arguments.fom_additional_dimension_attribute,
+        "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_UPDATE_RATE":
+            arguments.fom_additional_update_rate,
         "HLA_RTI_TCK_ADAPTER_RATE_FOM": inputs["rate_fom"],
         "HLA_RTI_TCK_ADAPTER_DDM_FOM": inputs["ddm_fom"],
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FOM": inputs["multi_attribute_fom"],
@@ -708,6 +711,8 @@ def direct_arguments(
         arguments.rate_designator,
         "--fom-update-rate",
         arguments.fom_update_rate,
+        "--fom-additional-update-rate",
+        arguments.fom_additional_update_rate,
         "--three-dimensional-object-class",
         arguments.three_dimensional_object_class,
         "--three-dimensional-attribute",
