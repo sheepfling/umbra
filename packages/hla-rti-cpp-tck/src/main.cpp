@@ -70955,6 +70955,12 @@ void scenarioJoinedFederateMomInteractionsReceivedCountsContract(
   scenarioJoinedFederateMomInteractionsReceivedCounts(options, model);
 }
 
+void scenarioJoinedFederateMomInteractionsSentCountsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomInteractionsSentCounts(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdateFailureContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -71475,6 +71481,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.joined-federate-mom-interactions-received-counts-contract",
       "cpp-tck.joined-federate-mom-directed-interactions-received-counts",
       "cpp-tck.joined-federate-mom-interactions-sent-counts",
+      "cpp-tck.joined-federate-mom-interactions-sent-counts-contract",
       "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
       "cpp-tck.mom-transportation-type-change-request",
       "cpp-tck.joined-federate-mom-reflections-received-counts",
@@ -72284,6 +72291,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.joined-federate-mom-interactions-received-counts-contract") {
     return scenarioJoinedFederateMomInteractionsReceivedCountsContract;
+  }
+  if (id == "cpp-tck.joined-federate-mom-interactions-sent-counts-contract") {
+    return scenarioJoinedFederateMomInteractionsSentCountsContract;
   }
   if (id == "cpp-tck.service-report-interaction") {
     return scenarioServiceReportInteraction;
@@ -74176,6 +74186,8 @@ int run(Options const& options) {
                    scenario == "cpp-tck.joined-federate-mom-updates-sent-counts-contract" ||
                    scenario == "cpp-tck.joined-federate-mom-interactions-received-counts" ||
                    scenario == "cpp-tck.joined-federate-mom-interactions-received-counts-contract" ||
+                   scenario == "cpp-tck.joined-federate-mom-interactions-sent-counts" ||
+                   scenario == "cpp-tck.joined-federate-mom-interactions-sent-counts-contract" ||
                    scenario == "cpp-tck.joined-federate-mom-time-state-durations" ||
                    scenario == "cpp-tck.federation-save-restore-interlocks" ||
                    scenario == "cpp-tck.federation-save-restore-contract" ||
