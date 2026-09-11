@@ -177,6 +177,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(default_path("packages/hla-rti-cpp-tck/fom/auto-provide-tck.xml")),
     )
     parser.add_argument(
+        "--known-class-fom",
+        default=str(
+            default_path("packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml")
+        ),
+    )
+    parser.add_argument(
         "--ddm-dimension",
         action="append",
         default=[],
@@ -239,6 +245,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rate-designator", default="TckSlow")
     parser.add_argument("--interaction-class", default="HLAinteractionRoot.TckInteraction")
     parser.add_argument("--parameter", default="Payload")
+    parser.add_argument(
+        "--known-class-object-class",
+        default="HLAobjectRoot.TckKnownClassObject",
+    )
+    parser.add_argument(
+        "--known-class-derived-object-class",
+        default="HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject",
+    )
+    parser.add_argument("--known-class-known-attribute", default="Name")
+    parser.add_argument("--known-class-derived-attribute", default="Efficiency")
 
     parser.add_argument("--rti-address", default="")
     parser.add_argument("--configuration-name", default="")
@@ -365,6 +381,11 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=True,
             label="Auto Provide FOM",
         ),
+        "known_class_fom": resolve_path(
+            arguments.known_class_fom,
+            must_exist=True,
+            label="known-class advisory FOM",
+        ),
     }
     ddm_dimensions = arguments.ddm_dimension or ["TckDimensionX", "TckDimensionY"]
     three_dimensions = arguments.three_dimensional_dimension or [
@@ -404,6 +425,7 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_MIM_FOM": inputs["mim_fom"],
         "HLA_RTI_TCK_ADAPTER_SWITCHES_FOM": inputs["switches_fom"],
         "HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM": inputs["auto_provide_fom"],
+        "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
         "HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS": ";".join(inputs["ddm_dimensions"]),
         "HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS": ";".join(
             inputs["three_dimensions"]
@@ -424,6 +446,16 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND": arguments.multi_attribute_second,
         "HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS": arguments.interaction_class,
         "HLA_RTI_TCK_ADAPTER_PARAMETER": arguments.parameter,
+        "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS": arguments.known_class_object_class,
+        "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_OBJECT_CLASS": (
+            arguments.known_class_derived_object_class
+        ),
+        "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_KNOWN_ATTRIBUTE": (
+            arguments.known_class_known_attribute
+        ),
+        "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_ATTRIBUTE": (
+            arguments.known_class_derived_attribute
+        ),
         "HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES": join_cmake_list(inputs["additional_fom"]),
         "HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES": join_cmake_list(inputs["invalid_fom"]),
         "HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL": arguments.callback_model,
@@ -569,6 +601,8 @@ def direct_arguments(
         str(inputs["switches_fom"]),
         "--auto-provide-fom",
         str(inputs["auto_provide_fom"]),
+        "--known-class-fom",
+        str(inputs["known_class_fom"]),
         "--time-implementation",
         arguments.time_implementation,
         "--provider-id",
@@ -617,6 +651,14 @@ def direct_arguments(
         arguments.interaction_class,
         "--parameter",
         arguments.parameter,
+        "--known-class-object-class",
+        arguments.known_class_object_class,
+        "--known-class-derived-object-class",
+        arguments.known_class_derived_object_class,
+        "--known-class-known-attribute",
+        arguments.known_class_known_attribute,
+        "--known-class-derived-attribute",
+        arguments.known_class_derived_attribute,
         "--federation-prefix",
         arguments.federation_prefix,
         "--owner-name",

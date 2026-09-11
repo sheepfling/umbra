@@ -455,6 +455,7 @@ struct Options {
   std::filesystem::path mimFom;
   std::filesystem::path switchesFom;
   std::filesystem::path autoProvideFom;
+  std::filesystem::path knownClassFom;
   std::vector<std::filesystem::path> additionalFomModules;
   std::vector<std::filesystem::path> invalidFomModules;
   std::vector<std::string> scenarios;
@@ -510,6 +511,12 @@ struct Options {
   std::wstring typedReferenceAttributeName = L"ReferenceValue";
   std::wstring typedOpaqueAttributeName = L"OpaqueValue";
   std::wstring typedDerivedAttributeName = L"DerivedValue";
+  std::wstring knownClassObjectClassName =
+      L"HLAobjectRoot.TckKnownClassObject";
+  std::wstring knownClassDerivedObjectClassName =
+      L"HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject";
+  std::wstring knownClassKnownAttributeName = L"Name";
+  std::wstring knownClassDerivedAttributeName = L"Efficiency";
   std::wstring typedInteractionClassName = L"HLAinteractionRoot.TckTypedInteraction";
   std::wstring typedDerivedInteractionClassName =
       L"HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction";
@@ -42465,6 +42472,173 @@ void scenarioTransportOrder(Options const& options, rti::CallbackModel model) {
   observer.resign(rti::NO_ACTION);
 }
 
+void scenarioKnownClassAttributeRelevance(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.knownClassFom.empty(),
+      "known-class attribute relevance testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "owner");
+  Session subscriber(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "attribute-relevance-known-class");
+
+  owner.connect();
+  subscriber.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.knownClassFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+  subscriber.join(
+      options.memberFederateName,
+      options.federateType,
+      federation);
+
+  require(
+      owner.rtiAmbassador().getAdvisoriesUseKnownClassSwitch() &&
+          subscriber.rtiAmbassador().getAdvisoriesUseKnownClassSwitch(),
+      "adapter known-class FOM did not enable the static known-class policy");
+  require(
+      owner.rtiAmbassador().getAttributeRelevanceAdvisorySwitch() &&
+          subscriber.rtiAmbassador().getAttributeRelevanceAdvisorySwitch(),
+      "adapter known-class FOM did not enable attribute relevance advisories");
+
+  auto const ownerBaseClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const ownerDerivedClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const subscriberBaseClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const subscriberDerivedClass =
+      subscriber.rtiAmbassador().getObjectClassHandle(
+          options.knownClassDerivedObjectClassName);
+  require(
+      ownerBaseClass.isValid() && ownerDerivedClass.isValid() &&
+          subscriberBaseClass.isValid() && subscriberDerivedClass.isValid() &&
+          ownerBaseClass == subscriberBaseClass &&
+          ownerDerivedClass == subscriberDerivedClass,
+      "known-class FOM object-class handles did not retain identity across members");
+
+  auto const ownerKnownAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerDerivedClass,
+      options.knownClassKnownAttributeName);
+  auto const ownerDerivedAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerDerivedClass,
+      options.knownClassDerivedAttributeName);
+  auto const subscriberKnownAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberBaseClass,
+      options.knownClassKnownAttributeName);
+  auto const subscriberDerivedAttribute =
+      subscriber.rtiAmbassador().getAttributeHandle(
+          subscriberDerivedClass,
+          options.knownClassDerivedAttributeName);
+  require(
+      ownerKnownAttribute.isValid() && ownerDerivedAttribute.isValid() &&
+          subscriberKnownAttribute.isValid() && subscriberDerivedAttribute.isValid() &&
+          ownerKnownAttribute == subscriberKnownAttribute &&
+          ownerDerivedAttribute == subscriberDerivedAttribute,
+      "known-class FOM attribute handles did not retain identity across members");
+
+  rti::AttributeHandleSet const ownerKnownAttributes{ownerKnownAttribute};
+  rti::AttributeHandleSet const ownerPublishedAttributes{
+      ownerKnownAttribute,
+      ownerDerivedAttribute};
+  rti::AttributeHandleSet const subscriberKnownAttributes{subscriberKnownAttribute};
+  rti::AttributeHandleSet const subscriberDerivedAttributes{
+      subscriberDerivedAttribute};
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberBaseClass,
+      subscriberKnownAttributes,
+      true,
+      L"");
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerDerivedClass,
+      ownerPublishedAttributes);
+  owner.recorder().clearAdvisories();
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerDerivedClass);
+  require(
+      object.isValid(),
+      "known-class attribute relevance registration returned an invalid object handle");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(object); },
+      options,
+      "known-class attribute relevance discovery");
+  auto const discovery = subscriber.recorder().discovery();
+  require(
+      discovery.object == object && discovery.objectClass == subscriberBaseClass,
+      "known-class policy did not project discovery to the receiver's known class");
+
+  waitFor(
+      owner,
+      [&] { return owner.recorder().updatesOn().size() >= 1U; },
+      options,
+      "known-class attribute relevance turn-updates-on advisory");
+  auto const initialUpdatesOn = owner.recorder().updatesOn();
+  require(
+      initialUpdatesOn.size() == 1U &&
+          initialUpdatesOn.front().object == object &&
+          initialUpdatesOn.front().attributes == ownerKnownAttributes &&
+          !initialUpdatesOn.front().updateRateDesignator.has_value(),
+      "known-class policy did not limit the initial advisory to the known attribute");
+  owner.recorder().clearAdvisories();
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberDerivedClass,
+      subscriberDerivedAttributes,
+      true,
+      L"");
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+  }
+  require(
+      owner.recorder().updatesOn().empty() &&
+          owner.recorder().updatesOff().empty(),
+      "known-class policy exposed a derived-only advisory for the known instance");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberDerivedClass,
+      subscriberDerivedAttributes);
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+  }
+  require(
+      owner.recorder().updatesOn().empty() &&
+          owner.recorder().updatesOff().empty(),
+      "removing a derived-only declaration changed known-class advisory state");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberBaseClass,
+      subscriberKnownAttributes);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().updatesOff().size() >= 1U; },
+      options,
+      "known-class attribute relevance turn-updates-off advisory");
+  auto const updatesOff = owner.recorder().updatesOff();
+  require(
+      updatesOff.size() == 1U &&
+          updatesOff.front().object == object &&
+          updatesOff.front().attributes == ownerKnownAttributes,
+      "known-class policy did not limit the final advisory to the known attribute");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClass(subscriberBaseClass);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerDerivedClass,
+      ownerPublishedAttributes);
+  owner.rtiAmbassador().unpublishObjectClass(ownerDerivedClass);
+  owner.resign(rti::DELETE_OBJECTS);
+  subscriber.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  owner.disconnect();
+}
+
 void scenarioRelevanceAdvisories(Options const& options, rti::CallbackModel model) {
   Session switchLifecycle(options, model, "support-switch-lifecycle");
   auto checkBooleanSwitchLifecycle = [&](auto getter,
@@ -69938,6 +70112,12 @@ void scenarioTransportOrderContract(
   scenarioTransportOrder(options, model);
 }
 
+void scenarioKnownClassAttributeRelevanceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioKnownClassAttributeRelevance(options, model);
+}
+
 void scenarioRelevanceAdvisoriesContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -70224,6 +70404,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.support-services-contract",
       "cpp-tck.transport-order-contract",
       "cpp-tck.relevance-advisories-contract",
+      "cpp-tck.attribute-relevance-known-class",
+      "cpp-tck.attribute-relevance-known-class-contract",
       "cpp-tck.fom-model-contract",
       "cpp-tck.inherited-object-attribute-projection",
       "cpp-tck.inherited-object-attribute-projection-contract",
@@ -70773,6 +70955,7 @@ void printHelp() {
       "  --mim-fom FILE                Standard MIM supplied by the adapter\n"
       "  --switches-fom FILE           Switch-declaration FOM supplied by the adapter\n"
       "  --auto-provide-fom FILE       Auto Provide FOM supplied by the adapter\n"
+      "  --known-class-fom FILE        Known-class advisory FOM supplied by the adapter\n"
       "  --ddm-dimension NAME          Repeat; DDM dimension lookup name\n"
       "  --three-dimensional-dimension NAME\n"
       "                                Repeat; three-dimensional DDM dimension name\n"
@@ -70820,6 +71003,14 @@ void printHelp() {
       "                                Timestamped regional custom-transport parameter\n"
       "  --interaction-class NAME      Interaction class handle lookup name\n"
       "  --parameter NAME              Parameter handle lookup name\n"
+      "  --known-class-object-class NAME\n"
+      "                                Known-class advisory base object class name\n"
+      "  --known-class-derived-object-class NAME\n"
+      "                                Known-class advisory derived object class name\n"
+      "  --known-class-known-attribute NAME\n"
+      "                                Attribute visible at the receiver's known class\n"
+      "  --known-class-derived-attribute NAME\n"
+      "                                Attribute declared only at the derived class\n"
       "  --time-implementation NAME    Optional Create Federation time name\n"
       "  --connection-loss-server-managed\n"
       "                                Adapter already controls the loss lifecycle\n"
@@ -70868,6 +71059,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--auto-provide-fom") {
       requireValue(index, argc, argv, argument);
       options.autoProvideFom = argv[++index];
+    } else if (argument == "--known-class-fom") {
+      requireValue(index, argc, argv, argument);
+      options.knownClassFom = argv[++index];
     } else if (argument == "--ddm-dimension") {
       requireValue(index, argc, argv, argument);
       if (!options.ddmDimensionsConfigured) {
@@ -70998,6 +71192,18 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--parameter") {
       requireValue(index, argc, argv, argument);
       options.parameterName = toWide(argv[++index]);
+    } else if (argument == "--known-class-object-class") {
+      requireValue(index, argc, argv, argument);
+      options.knownClassObjectClassName = toWide(argv[++index]);
+    } else if (argument == "--known-class-derived-object-class") {
+      requireValue(index, argc, argv, argument);
+      options.knownClassDerivedObjectClassName = toWide(argv[++index]);
+    } else if (argument == "--known-class-known-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.knownClassKnownAttributeName = toWide(argv[++index]);
+    } else if (argument == "--known-class-derived-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.knownClassDerivedAttributeName = toWide(argv[++index]);
     } else if (argument == "--time-implementation") {
       requireValue(index, argc, argv, argument);
       options.logicalTimeImplementationName = toWide(argv[++index]);
@@ -71042,6 +71248,12 @@ Options parseOptions(int argc, char** argv) {
       !std::filesystem::is_regular_file(options.autoProvideFom)) {
     throw std::runtime_error(
         "Auto Provide FOM file does not exist: " + options.autoProvideFom.string());
+  }
+  if (!options.knownClassFom.empty() &&
+      !std::filesystem::is_regular_file(options.knownClassFom)) {
+    throw std::runtime_error(
+        "Known-class advisory FOM file does not exist: " +
+        options.knownClassFom.string());
   }
   if (!options.ddmFom.empty() && options.ddmDimensionNames.size() < 2U) {
     throw std::runtime_error("--ddm-fom requires at least two --ddm-dimension values");
@@ -71142,6 +71354,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.relevance-advisories-contract") {
     return scenarioRelevanceAdvisoriesContract;
+  }
+  if (id == "cpp-tck.attribute-relevance-known-class-contract") {
+    return scenarioKnownClassAttributeRelevanceContract;
   }
   if (id == "cpp-tck.fom-model-contract") {
     return scenarioFomModelContract;
@@ -72511,6 +72726,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "java-tck.transport-order") return scenarioTransportOrder;
   if (id == "java-tck.relevance-advisories") return scenarioRelevanceAdvisories;
+  if (id == "cpp-tck.attribute-relevance-known-class") {
+    return scenarioKnownClassAttributeRelevance;
+  }
   if (id == "cpp-tck.delay-subscription-evaluation-interaction") {
     return scenarioDelaySubscriptionEvaluationInteraction;
   }
@@ -72765,9 +72983,11 @@ void writeResults(
          << "  \"three_dimensional_fom\": \""
          << jsonEscape(options.threeDimensionalFom.string()) << "\",\n"
          << "  \"mim_fom\": \"" << jsonEscape(options.mimFom.string()) << "\",\n"
-         << "  \"switches_fom\": \"" << jsonEscape(options.switchesFom.string()) << "\",\n"
-         << "  \"auto_provide_fom\": \""
-         << jsonEscape(options.autoProvideFom.string()) << "\",\n"
+        << "  \"switches_fom\": \"" << jsonEscape(options.switchesFom.string()) << "\",\n"
+        << "  \"auto_provide_fom\": \""
+        << jsonEscape(options.autoProvideFom.string()) << "\",\n"
+         << "  \"known_class_fom\": \""
+         << jsonEscape(options.knownClassFom.string()) << "\",\n"
          << "  \"ddm_dimensions\": [";
   for (std::size_t index = 0U; index < options.ddmDimensionNames.size(); ++index) {
     if (index != 0U) {
@@ -72841,6 +73061,12 @@ int run(Options const& options) {
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
+      } else if ((scenario == "cpp-tck.attribute-relevance-known-class" ||
+                  scenario == "cpp-tck.attribute-relevance-known-class-contract") &&
+                 options.knownClassFom.empty()) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied known-class advisory FOM";
       } else if ((scenario == "cpp-tck.fom-model" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle-contract" ||

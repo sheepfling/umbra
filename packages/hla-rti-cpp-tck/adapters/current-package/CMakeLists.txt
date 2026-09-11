@@ -63,6 +63,9 @@ set(HLA_RTI_TCK_ADAPTER_SWITCHES_FOM
 set(HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/auto-provide-tck.xml"
   CACHE FILEPATH "Auto Provide FOM supplied by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
+  CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")
 set(HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS "TckDimensionX;TckDimensionY"
   CACHE STRING "Semicolon-separated DDM dimensions supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS
@@ -87,6 +90,16 @@ set(HLA_RTI_TCK_ADAPTER_OBJECT_CLASS "HLAobjectRoot.TckObject"
   CACHE STRING "Ordinary object class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_ATTRIBUTE "Value"
   CACHE STRING "Ordinary object attribute supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS
+  "HLAobjectRoot.TckKnownClassObject"
+  CACHE STRING "Known-class advisory base object class supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_OBJECT_CLASS
+  "HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject"
+  CACHE STRING "Known-class advisory derived object class supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_KNOWN_ATTRIBUTE "Name"
+  CACHE STRING "Known-class advisory inherited attribute supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_ATTRIBUTE "Efficiency"
+  CACHE STRING "Known-class advisory derived-only attribute supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_OBJECT_CLASS
   "HLAobjectRoot.TckAutoProvideObject"
   CACHE STRING "Auto Provide object class supplied by this adapter")
@@ -174,6 +187,11 @@ if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM}")
   message(FATAL_ERROR
     "Adapter Auto Provide FOM does not exist: ${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM}")
+endif()
+if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}" OR
+   IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}")
+  message(FATAL_ERROR
+    "Adapter known-class advisory FOM does not exist: ${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}")
 endif()
 list(LENGTH HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS _ddm_dimension_count)
 if(_ddm_dimension_count LESS 2)
@@ -266,6 +284,14 @@ set(_tck_common_arguments
   --custom-regional-parameter "${HLA_RTI_TCK_ADAPTER_CUSTOM_REGIONAL_PARAMETER}"
   --object-class "${HLA_RTI_TCK_ADAPTER_OBJECT_CLASS}"
   --attribute "${HLA_RTI_TCK_ADAPTER_ATTRIBUTE}"
+  --known-class-object-class
+    "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS}"
+  --known-class-derived-object-class
+    "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_OBJECT_CLASS}"
+  --known-class-known-attribute
+    "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_KNOWN_ATTRIBUTE}"
+  --known-class-derived-attribute
+    "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_ATTRIBUTE}"
   --auto-provide-object-class "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_OBJECT_CLASS}"
   --auto-provide-first "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FIRST}"
   --auto-provide-second "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_SECOND}"
@@ -278,6 +304,7 @@ set(_tck_common_arguments
   --mim-fom "${HLA_RTI_TCK_ADAPTER_MIM_FOM}"
   --switches-fom "${HLA_RTI_TCK_ADAPTER_SWITCHES_FOM}"
   --auto-provide-fom "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM}"
+  --known-class-fom "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}"
   --time-implementation "${HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION}"
   --provider-id "${HLA_RTI_TCK_ADAPTER_PROVIDER_ID}"
   --timeout-ms "${HLA_RTI_TCK_ADAPTER_TIMEOUT_MS}")
