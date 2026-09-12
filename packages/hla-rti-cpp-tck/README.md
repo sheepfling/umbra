@@ -562,6 +562,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.custom-transportation-timestamped-delivery` | Adapter-declared custom transportation with timestamped interaction publication/subscription/send delivery, constrained grants, payload/tag/time/order/retraction metadata, and no region metadata |
 | `cpp-tck.custom-transportation-timestamped-delivery-contract` | Standard adapter-backed contract for timestamped custom FOM transportation interaction delivery, constrained grants, retraction, and transportation metadata |
 | `cpp-tck.custom-transportation-timestamped-directed-delivery` | Adapter-declared custom transportation with timestamped directed-interaction publication/subscription/send delivery to a registered target, constrained grants, payload/tag/target/time/order/retraction metadata, and no region metadata |
+| `cpp-tck.custom-transportation-timestamped-directed-delivery-contract` | Standard adapter-backed contract for timestamped custom FOM transportation directed-interaction delivery, target discovery, constrained grants, retraction, and transportation metadata |
 | `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery` | Adapter-declared custom transportation with timestamped regional attribute publication/subscription/update delivery, region metadata, retraction, DDM overlap, and both callback models |
 | `cpp-tck.fom-module-composition` | Create-time FOM module composition and join-time module addition with shared declaration handles |
 | `cpp-tck.fom-module-composition-contract` | Standard adapter-backed FOM module-composition contract for create-time and join-time module addition with shared declaration handles |
@@ -1459,8 +1460,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-that is 594 scenario IDs and 1188 matrix cases. `--scenario-set all` currently
-          configures the same 594 available IDs (1188 cases); there are no unpromoted
+that is 595 scenario IDs and 1190 matrix cases. `--scenario-set all` currently
+          configures the same 595 available IDs (1190 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1626,13 +1627,13 @@ passed 48 assertions; the reusable scenario source uses only the official C++
 API and standard library.
 
 The promoted `cpp-tck.custom-transportation-timestamped-directed-delivery`
-scenario uses the adapter-declared rich FOM to verify timestamped directed
-interaction publication/subscription/send delivery to a registered target,
-constrained grant timing, payload/tag/target/producer/time/order/retraction
-metadata, and custom transportation identity. Its focused portable artifact
-passed 2/2 callback-model cases, and the matching native oracle passed 42
-assertions; the reusable scenario source uses only the official C++ API and
-standard library.
+scenario and its pure standard contract twin use the adapter-declared rich FOM
+to verify timestamped directed interaction publication/subscription/send
+delivery to a registered target, constrained grant timing,
+payload/tag/target/producer/time/order/retraction metadata, and custom
+transportation identity. Their focused portable lane passed 4/4 callback-model
+cases, and the matching native oracle passed 42 assertions; the reusable
+scenario source uses only the official C++ API and standard library.
 
 The promoted `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery`
 scenario reuses the standard regional timestamped-attribute oracle with

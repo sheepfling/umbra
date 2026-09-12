@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for an adapter-supplied rich FOM transportation type used by a timestamped directed interaction. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich FOM, logical-time implementation, endpoint, callback model, object/attribute/interaction/parameter/transportation names, and target-registration configuration. It verifies target discovery, timestamped directed-interaction order, constrained grants, payload, tag, producer, logical time, retraction, and transportation metadata without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-custom-transportation-timestamped-directed-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped directed-interaction, transportation, object-registration, and time-management services with FederateAmbassador discovery, directed-interaction, and time-advance callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped directed-interaction and time-management declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCustomTransportationTimestampedDirectedDeliveryContract"
+      ]
+    }
+  ]
+}
