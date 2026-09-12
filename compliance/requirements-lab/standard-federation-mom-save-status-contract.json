@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard federation MOM save-status response. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time settings. It joins two federates, invokes queryFederationSaveStatus outside a save operation, and verifies that the standard callback reports both members with NO_SAVE_IN_PROGRESS under HLA_EVOKED and HLA_IMMEDIATE. It deliberately avoids provider-specific names, registries, headers, and service-report implementation details.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-save-status",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::queryFederationSaveStatus() and FederateAmbassador::federationSaveStatusResponse(FederateHandleSaveStatusPairVector const&)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador federation save-status declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFederationMomSaveStatusContract"
+      ]
+    }
+  ]
+}

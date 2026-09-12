@@ -67857,6 +67857,62 @@ void scenarioOrderTypeControlsContract(
   scenarioOrderTypeControls(options, model);
 }
 
+void scenarioFederationMomSaveStatus(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "federation-mom-save-status-owner");
+  Session peer(options, model, "federation-mom-save-status-peer");
+  auto const federation = federationName(options, "federation-mom-save-status");
+  connectAndJoin(owner, peer, options, federation, options.fom);
+
+  auto const ownerHandle = owner.federateHandle();
+  auto const peerHandle = peer.federateHandle();
+  auto const statusBefore = owner.federationSaveStatusResponses().size();
+  owner.rtiAmbassador().queryFederationSaveStatus();
+  waitFor(
+      owner,
+      [&] {
+        return owner.federationSaveStatusResponses().size() > statusBefore;
+      },
+      options,
+      "federation MOM save-status response");
+
+  auto const statuses = owner.federationSaveStatusResponses().back();
+  require(
+      statuses.size() == 2U,
+      "federation MOM save-status response omitted a joined federate");
+  auto requireStatus = [&](rti::FederateHandle const& handle,
+                           rti::SaveStatus expected,
+                           std::string const& description) {
+    auto const found = std::find_if(
+        statuses.begin(),
+        statuses.end(),
+        [&](auto const& entry) { return entry.first == handle; });
+    require(found != statuses.end(), description + " omitted a federate");
+    require(found->second == expected, description + " returned the wrong status");
+  };
+  requireStatus(
+      ownerHandle,
+      rti::NO_SAVE_IN_PROGRESS,
+      "federation MOM save-status owner entry");
+  requireStatus(
+      peerHandle,
+      rti::NO_SAVE_IN_PROGRESS,
+      "federation MOM save-status peer entry");
+
+  peer.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  peer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioFederationMomSaveStatusContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomSaveStatus(options, model);
+}
+
 void scenarioFederationSaveRestore(Options const& options, rti::CallbackModel model) {
   Session lifecycle(options, model, "save-restore-lifecycle");
   std::wstring const lifecycleSaveLabel = L"tck-save-restore-lifecycle-save";
@@ -72185,6 +72241,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
       "java-tck.ddm",
       "java-tck.save-restore",
+      "cpp-tck.federation-mom-save-status",
+      "cpp-tck.federation-mom-save-status-contract",
+      "java-tck.mom",
   };
 }
 
@@ -73996,6 +74055,11 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioCallbackControlsTimeRoleEnablementContract;
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
+  if (id == "cpp-tck.federation-mom-save-status") return scenarioFederationMomSaveStatus;
+  if (id == "cpp-tck.federation-mom-save-status-contract") {
+    return scenarioFederationMomSaveStatusContract;
+  }
+  if (id == "java-tck.mom") return scenarioFederationMomSaveStatus;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
   if (id == "java-tck.save-restore") return scenarioFederationSaveRestore;
   if (id == "cpp-tck.federation-save-restore-interlocks") {

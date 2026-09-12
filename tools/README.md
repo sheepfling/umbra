@@ -151,8 +151,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is all 607 promoted scenario IDs (1214 callback-model cases).
-  `--scenario-set all` configures the same 607 IDs (1214 cases), because the
+    The verified lane is all 610 promoted scenario IDs (1220 callback-model cases).
+  `--scenario-set all` configures the same 610 IDs (1220 cases), because the
   catalog has no unpromoted scenarios. The promoted
   `cpp-tck.callback-reentrancy` pair passed all 4/4 focused installed-package callback-model
   cases using only the official C++ API and standard library. The automatic connection-loss

@@ -59,6 +59,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.federation-mom-current-fdd-contract` | Pure standard C++ contract for federation-MOM `HLAcurrentFDD` discovery, request/reflection, transportation reporting, and additional-FOM refresh |
  | `cpp-tck.federation-mom-content-reports` | Standard federation MOM FOM-module and MIM content requests/reports, typed data decoding, callback-boundary behavior, and malformed-request failure |
  | `cpp-tck.federation-mom-content-reports-contract` | Pure standard C++ contract for federation MOM FOM-module and MIM content reports using adapter-supplied provider, FOM, endpoint, and callback configuration |
+| `cpp-tck.federation-mom-save-status` | Standard federation MOM save-status response for every joined federate under both callback models |
+| `cpp-tck.federation-mom-save-status-contract` | Pure standard C++ contract for federation MOM save-status lookup and callback delivery |
  | `cpp-tck.federation-mom-synchronization-queries` | Standard federation MOM synchronization-point list and per-federate status queries across pending, partial, missing, and completed states |
  | `cpp-tck.federation-mom-synchronization-queries-contract` | Pure standard C++ contract for federation MOM synchronization-point list/status queries using adapter-supplied MIM, FOM, endpoint, and callbacks |
  | `cpp-tck.service-report-order-transportation-lookups` | Standard MOM service reports for order and transportation lookup return values, typed arguments, reliable metadata, and serial progression |
@@ -1476,8 +1478,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 607 scenario IDs and 1214 matrix cases. `--scenario-set all`
-  configures the same 607 available IDs (1214 cases); the catalog currently has
+  that is 610 scenario IDs and 1220 matrix cases. `--scenario-set all`
+  configures the same 610 available IDs (1220 cases); the catalog currently has
   no unpromoted scenarios. Candidate-inclusive figures later in this document
   are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
