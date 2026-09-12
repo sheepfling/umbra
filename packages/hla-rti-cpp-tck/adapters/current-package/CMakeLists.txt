@@ -300,8 +300,23 @@ foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
   endif()
 endforeach()
 if(NOT _tck_test_scenarios)
-  message(FATAL_ERROR
-    "The selected portable TCK scenario set contains no runnable scenarios")
+  set(_tck_connection_loss_only FALSE)
+  if(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED AND
+     HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER)
+    set(_tck_connection_loss_only TRUE)
+    foreach(_tck_filtered_scenario IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER)
+      if(NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-cleanup" AND
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-cleanup-contract")
+        set(_tck_connection_loss_only FALSE)
+      elseif(NOT _tck_filtered_scenario IN_LIST HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS)
+        set(_tck_connection_loss_only FALSE)
+      endif()
+    endforeach()
+  endif()
+  if(NOT _tck_connection_loss_only)
+    message(FATAL_ERROR
+      "The selected portable TCK scenario set contains no runnable scenarios")
+  endif()
 endif()
 
 if(HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL STREQUAL "both")

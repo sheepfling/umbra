@@ -16,7 +16,11 @@ EXPECTED_ADAPTER_MANAGED_SKIPS = {
     (
         "cpp-tck.connection-loss-cleanup",
         "requires an adapter-managed connection-loss fixture",
-    )
+    ),
+    (
+        "cpp-tck.connection-loss-cleanup-contract",
+        "requires an adapter-managed connection-loss fixture",
+    ),
 }
 STANDARD_HEADERS = {
     "algorithm",

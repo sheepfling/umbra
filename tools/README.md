@@ -151,8 +151,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is all 567 promoted scenario IDs (1134 callback-model cases).
- `--scenario-set all` currently configures all 567 available IDs (1134
+    The verified lane is all 597 promoted scenario IDs (1194 callback-model cases).
+ `--scenario-set all` currently configures all 597 available IDs (1194
 cases), with no unpromoted candidates. The
 candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
@@ -791,7 +791,7 @@ The promoted regional-interaction subscription-report case verifies standard
 MOM reports for `SubscribeInteractionClassWithRegions` and
 `UnsubscribeInteractionClassWithRegions`, including typed association
 arguments and the passive-subscription indicator.
-An adapter that supports fault injection can opt into the connection-loss case
+An adapter that supports fault injection can opt into the connection-loss cases
 with the CMake cache settings
 `HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_MARKER` and
 `HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED`; the Python runner maps
@@ -802,7 +802,8 @@ adapter owns the fault fixture. The current-process adapter additionally provide
 harness; its evoked/immediate evidence is recorded in
 `.build/cpp-tck-all/connection-loss-current-process-python.json` and is kept
 adapter-specific because a generic fault-injection capability is outside the
-IEEE API.
+IEEE API. The base scenario and its pure standard contract twin use the same
+fixture contract and are selected independently by scenario ID.
 
 The promoted timestamped
 Java-parity factory-discovery case checks that the standard C++
@@ -1631,7 +1632,7 @@ The current public process reverse-FOM lookup slice is independently queryable:
 The lane now records four source-located cases and 76 aggregate assertions
 (m102 contributes 20; m103 contributes 24; m104 contributes 16; m105
 contributes 16) under `HLA_EVOKED` and `HLA_IMMEDIATE`. The m105 case at
-`cpp/tests/ieee1516_2025_connection_catch2.cpp:13647` records 16 assertions,
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13677` records 16 assertions,
 maps six Requirements-Lab anchors to canonical 2025 subsections `9.1.2`,
 `10.19`, and `10.20.4`, and exercises the unknown-name/invalid-handle error
 fence across four official C++ API surfaces. Use these exact lane/title handles
@@ -1647,7 +1648,7 @@ queryable:
     python tools/query_rti_work.py check --lane process-multi-recipient-callback-ordering --summary --compact
     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors preserve per-recipient interaction FIFO through a configured process endpoint$" --output-on-failure
 
-The m107 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13968`
+The m107 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13998`
 records 79 assertions under `HLA_EVOKED` and `HLA_IMMEDIATE`, maps ten Requirements-Lab anchors to six
 canonical 2025 subsections and five official C++ API surfaces, and checks
 per-recipient FIFO interaction delivery, preserved tags/parameters/producer
@@ -1664,7 +1665,7 @@ The newest process TSO/DDM slice is independently queryable:
     python tools/query_rti_work.py check --lane timestamped-process-regional-interaction --summary --compact
     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors deliver a timestamped regional interaction through a configured process endpoint$" --output-on-failure
 
-The m109 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:15057`
+The m109 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:15087`
 records 71 `HLA_EVOKED` assertions, maps 28 Requirements-Lab anchors to 16
 canonical 2025 subsections, and exercises 20 official C++ API surfaces. It
 proves overlap-qualified timestamped regional process delivery, time-advance
@@ -1681,7 +1682,7 @@ The preceding process DDM slice is independently queryable:
     python tools/query_rti_work.py check --lane process-multi-recipient-regional-interaction --summary --compact
     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint$" --output-on-failure
 
-The m108 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:14414`
+The m108 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:14444`
 records 126 assertions under `HLA_EVOKED` and `HLA_IMMEDIATE`, maps thirteen
 Requirements-Lab anchors to seven canonical 2025 subsections, and exercises
 thirteen official C++ API surfaces. It proves overlap-filtered delivery to two
@@ -1698,7 +1699,7 @@ The preceding process available-dimensions hierarchy slice is independently quer
     python tools/query_rti_work.py check --lane process-available-dimensions-hierarchy --summary --compact
     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador resolves available FOM dimensions through a configured process endpoint$" --output-on-failure
 
-The m106 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13795`
+The m106 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13825`
 records 28 assertions under both callback models. It exercises the public
 object/interaction hierarchy queries through the process endpoint, including
 inherited object dimensions, an empty interaction dimension set, unknown-class

@@ -24397,6 +24397,28 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.connection-loss-cleanup-contract",
+      "category": "connection",
+      "title": "Pure standard C++ contract for adapter-managed connection-loss callback, lost-member cleanup, and surviving-member service",
+      "api_methods": [
+        "FederateAmbassador.connectionLost",
+        "RTIambassador.disconnect",
+        "RTIambassador.sendInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup"
+      ],
+      "contract_refs": [
+        "standard-connection-loss-cleanup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioConnectionLossContract",
+      "runner_id": "cpp-tck.connection-loss-cleanup-contract",
+      "parity": "cpp-tck.connection-loss-cleanup",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-region-validation",
       "category": "regional-interaction-validation",
       "title": "Reject regional interaction region sets that contain unavailable dimensions atomically",

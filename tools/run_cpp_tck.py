@@ -533,7 +533,8 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
     if arguments.connection_loss_fixture:
         definitions[
             "HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS"
-        ] = CONNECTION_LOSS_SCENARIO
+        ] = ";".join(CONNECTION_LOSS_SCENARIOS)
+        definitions["HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED"] = "ON"
     if arguments.connection_loss_server_managed:
         definitions["HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED"] = "ON"
     return [f"-D{key}={value}" for key, value in definitions.items()]
@@ -832,10 +833,18 @@ def direct_scenario_chunks(
 
 
 CONNECTION_LOSS_SCENARIO = "cpp-tck.connection-loss-cleanup"
+CONNECTION_LOSS_SCENARIOS = (
+    CONNECTION_LOSS_SCENARIO,
+    "cpp-tck.connection-loss-cleanup-contract",
+)
 CONNECTION_LOSS_ADAPTER = (
     ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
     "run_connection_loss.py"
 )
+
+
+def is_connection_loss_scenario(scenario_id: str) -> bool:
+    return scenario_id in CONNECTION_LOSS_SCENARIOS
 
 
 def run_executable_direct(
@@ -906,6 +915,7 @@ def run_connection_loss_adapter(
     arguments: argparse.Namespace,
     inputs: dict[str, Any],
     executable: Path,
+    scenario_id: str,
     results: Path,
     junit: Path,
 ) -> None:
@@ -916,6 +926,8 @@ def run_connection_loss_adapter(
         str(executable),
         "--process-fixture",
         arguments.connection_loss_fixture,
+        "--scenario",
+        scenario_id,
         "--callback-model",
         arguments.callback_model,
         "--provider-id",
@@ -955,19 +967,22 @@ def run_connection_loss_check(
     arguments: argparse.Namespace,
     inputs: dict[str, Any],
     executable: Path,
+    scenario_ids: list[str],
 ) -> None:
     with tempfile.TemporaryDirectory(
         prefix="cpp-tck-connection-loss-",
         dir=inputs["build_directory"],
     ) as temporary_directory:
         temporary_root = Path(temporary_directory)
-        run_connection_loss_adapter(
-            arguments,
-            inputs,
-            executable,
-            temporary_root / "connection-loss.json",
-            temporary_root / "connection-loss.xml",
-        )
+        for index, scenario_id in enumerate(scenario_ids):
+            run_connection_loss_adapter(
+                arguments,
+                inputs,
+                executable,
+                scenario_id,
+                temporary_root / f"connection-loss-{index}.json",
+                temporary_root / f"connection-loss-{index}.xml",
+            )
 
 
 def merge_json_evidence_parts(parts: Iterable[Path], output: Path) -> None:
@@ -1055,14 +1070,16 @@ def run_direct(
         if output is not None:
             output.parent.mkdir(parents=True, exist_ok=True)
     executable = find_executable(inputs["build_directory"], arguments.configuration)
-    has_connection_loss = any(
-        scenario["id"] == CONNECTION_LOSS_SCENARIO for scenario in selected
-    )
-    if arguments.connection_loss_fixture and has_connection_loss:
+    connection_loss_selected = [
+        scenario
+        for scenario in selected
+        if is_connection_loss_scenario(scenario["id"])
+    ]
+    if arguments.connection_loss_fixture and connection_loss_selected:
         direct_selected = [
             scenario
             for scenario in selected
-            if scenario["id"] != CONNECTION_LOSS_SCENARIO
+            if not is_connection_loss_scenario(scenario["id"])
         ]
         with tempfile.TemporaryDirectory(
             prefix="cpp-tck-connection-loss-",
@@ -1079,8 +1096,8 @@ def run_direct(
                 if junit is not None and direct_selected
                 else None
             )
-            loss_results = temporary_root / "connection-loss.json"
-            loss_junit = temporary_root / "connection-loss.xml"
+            loss_results_parts: list[Path] = []
+            loss_junit_parts: list[Path] = []
             if direct_selected:
                 run_executable_direct(
                     arguments,
@@ -1090,17 +1107,29 @@ def run_direct(
                     base_results,
                     base_junit,
                 )
-            run_connection_loss_adapter(
-                arguments,
-                inputs,
-                executable,
-                loss_results,
-                loss_junit,
-            )
+            for index, scenario in enumerate(connection_loss_selected):
+                loss_results = temporary_root / f"connection-loss-{index}.json"
+                loss_junit = temporary_root / f"connection-loss-{index}.xml"
+                run_connection_loss_adapter(
+                    arguments,
+                    inputs,
+                    executable,
+                    scenario["id"],
+                    loss_results,
+                    loss_junit,
+                )
+                loss_results_parts.append(loss_results)
+                loss_junit_parts.append(loss_junit)
             if results is not None:
-                merge_json_evidence(base_results, loss_results, results)
+                json_parts = (
+                    [base_results] if base_results is not None else []
+                ) + loss_results_parts
+                merge_json_evidence_parts(json_parts, results)
             if junit is not None:
-                merge_junit_evidence(base_junit, loss_junit, junit)
+                junit_parts = (
+                    [base_junit] if base_junit is not None else []
+                ) + loss_junit_parts
+                merge_junit_evidence_parts(junit_parts, junit)
     else:
         run_executable_direct(arguments, inputs, executable, selected, results, junit)
     return {
@@ -1131,7 +1160,7 @@ def main() -> int:
                 arguments.connection_loss_fixture
                 and not (arguments.results or arguments.junit)
                 and any(
-                    scenario["id"] == CONNECTION_LOSS_SCENARIO
+                    is_connection_loss_scenario(scenario["id"])
                     for scenario in selected
                 )
             ):
@@ -1139,6 +1168,11 @@ def main() -> int:
                     arguments,
                     inputs,
                     find_executable(inputs["build_directory"], arguments.configuration),
+                    [
+                        scenario["id"]
+                        for scenario in selected
+                        if is_connection_loss_scenario(scenario["id"])
+                    ],
                 )
         direct_summary = None
         if arguments.results or arguments.junit:

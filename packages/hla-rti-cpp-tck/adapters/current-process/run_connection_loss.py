@@ -38,6 +38,14 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--process-fixture", type=Path, required=True)
     parser.add_argument("--fom-path", type=Path, default=DEFAULT_FOM)
     parser.add_argument(
+        "--scenario",
+        choices=(
+            "cpp-tck.connection-loss-cleanup",
+            "cpp-tck.connection-loss-cleanup-contract",
+        ),
+        default="cpp-tck.connection-loss-cleanup",
+    )
+    parser.add_argument(
         "--callback-model",
         choices=("both", "evoked", "immediate"),
         default="both",
@@ -95,6 +103,7 @@ def wait_for_fixture(process: subprocess.Popen[bytes], timeout_s: float) -> int:
 def tck_command(
     arguments: argparse.Namespace,
     callback_model: str,
+    scenario_id: str,
     port: int,
     marker: Path,
     results: Path,
@@ -105,7 +114,7 @@ def tck_command(
         "--fom",
         str(arguments.fom_path),
         "--scenario",
-        "cpp-tck.connection-loss-cleanup",
+        scenario_id,
         "--callback-model",
         callback_model,
         "--provider-id",
@@ -146,6 +155,7 @@ def tck_command(
 def run_one(
     arguments: argparse.Namespace,
     callback_model: str,
+    scenario_id: str,
     root: Path,
 ) -> tuple[int, dict[str, object], ET.Element]:
     marker_directory = root / callback_model
@@ -160,7 +170,15 @@ def run_one(
         )
         port = wait_for_port(marker_directory, arguments.startup_timeout_s)
         tck_result = subprocess.run(
-            tck_command(arguments, callback_model, port, marker, results, junit),
+            tck_command(
+                arguments,
+                callback_model,
+                scenario_id,
+                port,
+                marker,
+                results,
+                junit,
+            ),
             check=False,
         )
         payload = json.loads(results.read_text(encoding="utf-8")) if results.is_file() else {}
@@ -237,7 +255,12 @@ def run(arguments: argparse.Namespace) -> int:
         payloads: list[dict[str, object]] = []
         junit_roots: list[ET.Element] = []
         for callback_model in models:
-            code, payload, junit_root = run_one(arguments, callback_model, root)
+            code, payload, junit_root = run_one(
+                arguments,
+                callback_model,
+                arguments.scenario,
+                root,
+            )
             exit_code = exit_code or code
             if payload:
                 payloads.append(payload)

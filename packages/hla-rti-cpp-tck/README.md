@@ -596,6 +596,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-empty-mim-create-atomicity` | Reject an empty FOM module vector atomically during FOM/MIM federation creation, then recover through a valid lifecycle |
 | `cpp-tck.fom-empty-mim-create-atomicity-contract` | Standard adapter-backed empty-FOM-vector MIM create atomicity contract |
 | `cpp-tck.connection-loss-cleanup` | Adapter-triggered Connection Lost callback, fault description, survivor service, and cleanup |
+| `cpp-tck.connection-loss-cleanup-contract` | Pure standard C++ contract for the adapter-managed Connection Lost callback, lost-member cleanup, survivor service, and standard disconnect boundary |
 
 The shared ordinary-service cases reuse the Java TCK scenario IDs. The
 federation-list, federate-lookup, object-name-reservation, object-registration-discovery, Allow Relaxed DDM, multi-attribute and three-dimensional regional object update, timestamped interaction, timestamped regional attribute, timestamped object-management, alternate-time,
@@ -614,11 +615,11 @@ The portable executable only observes the standard `connectionLost` callback;
 the Python adapter owns fixture startup, endpoint discovery, and cleanup.
 The current-process adapter includes the platform-neutral
 `adapters/current-process/run_connection_loss.py` harness; it starts the
-adapter fixture with argument lists, runs both callback models independently,
-and records combined evidence in
+adapter fixture with argument lists, runs both callback models independently
+for the base scenario and its pure standard contract twin, and records combined evidence in
 `.build/cpp-tck-all/connection-loss-current-process.json`. That adapter lane
-passed 2/2 cases and is now the promoted adapter-required connection-loss
-scenario. Other adapters must provide the same fixture contract to run it.
+passed 4/4 cases and is now the promoted adapter-required connection-loss
+pair. Other adapters must provide the same fixture contract to run either ID.
 
 The promoted `cpp-tck.federation-mom-content-reports` scenario and its pure
 standard contract twin request and decode the standard federation MOM
@@ -1461,8 +1462,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-that is 596 scenario IDs and 1192 matrix cases. `--scenario-set all` currently
-          configures the same 596 available IDs (1192 cases); there are no unpromoted
+that is 597 scenario IDs and 1194 matrix cases. `--scenario-set all` currently
+          configures the same 597 available IDs (1194 cases); there are no unpromoted
   candidates in the current catalog. The candidate-inclusive figures later in
   this document are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

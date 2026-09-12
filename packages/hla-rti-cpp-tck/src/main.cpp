@@ -70399,6 +70399,10 @@ void scenarioConnectionLoss(Options const& options, rti::CallbackModel model) {
   owner.disconnect();
 }
 
+void scenarioConnectionLossContract(Options const& options, rti::CallbackModel model) {
+  scenarioConnectionLoss(options, model);
+}
+
 std::vector<std::pair<std::string, rti::CallbackModel>> callbackModels(Options const& options) {
   if (options.callbackModel == "evoked") {
     return {{"evoked", rti::HLA_EVOKED}};
@@ -71643,6 +71647,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-empty-mim-create-atomicity",
       "cpp-tck.fom-empty-module-validation",
       "cpp-tck.connection-loss-cleanup",
+      "cpp-tck.connection-loss-cleanup-contract",
   };
 }
 
@@ -73760,6 +73765,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioFomEmptyModuleValidation;
   }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
+  if (id == "cpp-tck.connection-loss-cleanup-contract") {
+    return scenarioConnectionLossContract;
+  }
   throw std::runtime_error("Unknown scenario: " + id);
 }
 
@@ -73901,7 +73909,8 @@ int run(Options const& options) {
     for (auto const& callback : callbackModels(options)) {
       ScenarioResult result{scenario, callback.first, "passed", "", 0};
       auto const started = Clock::now();
-      if (scenario == "cpp-tck.connection-loss-cleanup" &&
+      if ((scenario == "cpp-tck.connection-loss-cleanup" ||
+           scenario == "cpp-tck.connection-loss-cleanup-contract") &&
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
