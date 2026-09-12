@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK checks for adapter-managed connection loss combined with the standard Automatic Resign Directive. The portable source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback model, fault fixture, and object and attribute names. It verifies standard directive round trips, Connection Lost, retained-object assumption delivery after unconditional divestiture, suppression of stale owner-release work after cancellation of a pending acquisition, explicit divestiture to a surviving candidate, bounded cleanup, and no private headers, registries, provider names, or diagnostics. It is source and API traceability only.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-connection-loss-automatic-unconditional-divestiture",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::setAutomaticResignDirective(UNCONDITIONALLY_DIVEST_ATTRIBUTES), getAutomaticResignDirective(), registerObjectInstance(), FederateAmbassador::connectionLost(std::wstring const &), requestAttributeOwnershipAssumption(...), and standard ownership queries",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 automatic-resign and Connection Lost declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioConnectionLossAutomaticUnconditionalDivestiture"
+      ]
+    },
+    {
+      "id": "standard-cpp-connection-loss-automatic-cancel-pending-acquisition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::setAutomaticResignDirective(CANCEL_PENDING_OWNERSHIP_ACQUISITIONS), getAutomaticResignDirective(), attributeOwnershipAcquisition(), unconditionalAttributeOwnershipDivestiture(), FederateAmbassador::connectionLost(std::wstring const &), requestAttributeOwnershipRelease(...), and requestAttributeOwnershipAssumption(...)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 automatic-resign, ownership, and Connection Lost declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioConnectionLossAutomaticCancelPendingAcquisition"
+      ]
+    }
+  ]
+}

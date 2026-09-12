@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check that callback-service entry points reject re-entry while a FederateAmbassador callback is executing. The source uses only the official C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, endpoint, and callback configuration. It does not assert provider-specific names, registries, headers, or FOM behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-callback-reentrancy",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador evokeCallback and evokeMultipleCallbacks during FederateAmbassador callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador callback-servicing declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackReentrancyContract"
+      ]
+    }
+  ]
+}

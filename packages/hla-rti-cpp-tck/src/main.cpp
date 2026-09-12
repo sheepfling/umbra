@@ -466,6 +466,7 @@ struct Options {
   std::string results;
   std::string junit;
   std::string connectionLossMarker;
+  std::string connectionLossReadyMarker;
   bool connectionLossServerManaged = false;
   std::string federationPrefix = "cpp-tck";
   std::string configurationName;
@@ -2127,7 +2128,14 @@ class Session final {
   }
 
   void pump() {
-    if (callbackModel_ == rti::HLA_EVOKED && connected_) {
+    // The process adapter is a synchronous standard-API transport.  Its
+    // immediate callback path still needs a bounded official callback-service
+    // call to observe unsolicited frames; a provider with an asynchronous
+    // receive thread simply returns with the callback already delivered.
+    if (connected_ &&
+        (callbackModel_ == rti::HLA_EVOKED ||
+         (callbackModel_ == rti::HLA_IMMEDIATE &&
+          options_.connectionLossServerManaged))) {
       static_cast<void>(rti_->evokeCallback(0.0));
     }
   }
@@ -13756,6 +13764,64 @@ void scenarioQueryLitsAfterSourceResignation(
   receiver.rtiAmbassador().destroyFederationExecution(federation);
   publisher.disconnect();
   receiver.disconnect();
+}
+
+class ReentrantCallbackFederateAmbassador final
+    : public rti::NullFederateAmbassador {
+ public:
+  rti::RTIambassador* ambassador = nullptr;
+  std::size_t reportCount = 0U;
+  bool evokeRejected = false;
+  bool multipleRejected = false;
+
+  void reportFederationExecutions(
+      rti::FederationExecutionInformationVector const&) override {
+    ++reportCount;
+    try {
+      static_cast<void>(ambassador->evokeCallback(0.0));
+    } catch (rti::CallNotAllowedFromWithinCallback const&) {
+      evokeRejected = true;
+    }
+    try {
+      static_cast<void>(ambassador->evokeMultipleCallbacks(0.0, 0.0));
+    } catch (rti::CallNotAllowedFromWithinCallback const&) {
+      multipleRejected = true;
+    }
+  }
+};
+
+void scenarioCallbackReentrancy(
+    Options const& options,
+    rti::CallbackModel model) {
+  rti::RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+  require(
+      static_cast<bool>(ambassador),
+      "callback re-entrancy test did not create a standard RTIambassador");
+
+  ReentrantCallbackFederateAmbassador federate;
+  static_cast<void>(ambassador->connect(federate, model));
+  federate.ambassador = ambassador.get();
+  ambassador->listFederationExecutions();
+  if (model == rti::HLA_EVOKED) {
+    auto const maximumWait = static_cast<double>(
+        std::max(options.timeoutMilliseconds, 1)) / 1000.0;
+    static_cast<void>(
+        ambassador->evokeMultipleCallbacks(0.0, maximumWait));
+  }
+  require(
+      federate.reportCount == 1U,
+      "callback re-entrancy test did not receive exactly one listing callback");
+  require(
+      federate.evokeRejected && federate.multipleRejected,
+      "callback re-entrancy test admitted callback-service re-entry");
+  ambassador->disconnect();
+}
+
+void scenarioCallbackReentrancyContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackReentrancy(options, model);
 }
 
 void scenarioConnection(Options const& options, rti::CallbackModel model) {
@@ -61022,6 +61088,196 @@ void scenarioCallbackControlsTimestampedAttributeUpdateContract(
   scenarioCallbackControlsTimestampedAttributeUpdate(options, model);
 }
 
+void scenarioCallbackControlsTimestampedRegionalInteraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Callback-control timestamped regional interaction testing requires an adapter-supplied logical-time implementation");
+  require(
+      !options.ddmFom.empty(),
+      "Callback-control timestamped regional interaction testing requires an adapter-supplied dimensional FOM");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "callback-controls-timestamped-regional-interaction");
+  connectAndJoin(publisher, receiver, options, federation, options.ddmFom);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const receiverHandles = ddmHandles(receiver, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "callback-control timestamped regional interaction");
+
+  require(
+      publisherHandles.interactionClass.isValid() &&
+          receiverHandles.interactionClass.isValid() &&
+          publisherHandles.parameter.isValid() &&
+          receiverHandles.parameter.isValid(),
+      "callback-control timestamped regional interaction lookup returned an invalid handle");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherHandles.interactionClass);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherHandles.interactionClass,
+      rti::TIMESTAMP);
+
+  auto const sourceRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      1UL,
+      5UL,
+      1UL,
+      5UL);
+  auto const receiverRegion = createDdmRegion(
+      receiver,
+      receiverHandles,
+      2UL,
+      6UL,
+      2UL,
+      6UL);
+  auto const sourceRegionSet = rti::RegionHandleSet{sourceRegion};
+  auto const receiverRegionSet = rti::RegionHandleSet{receiverRegion};
+  receiver.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  receiver.rtiAmbassador().subscribeInteractionClassWithRegions(
+      receiverHandles.interactionClass,
+      receiverRegionSet,
+      true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  enableTimestampedRoles(
+      publisher,
+      receiver,
+      publisherTime,
+      receiverTime,
+      options,
+      "callback-control timestamped regional interaction");
+
+  auto const interactionTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  auto const receiverTarget = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      4U);
+
+  std::vector<std::uint8_t> const parameterBytes{0x52U, 0x49U, 0x47U};
+  std::vector<std::uint8_t> const tagBytes{0x52U, 0x47U, 0x43U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(
+          parameterBytes.data(),
+          parameterBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+
+  receiver.rtiAmbassador().disableCallbacks();
+  auto const retraction = publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      parameters,
+      sourceRegionSet,
+      tag,
+      *interactionTime);
+  require(
+      retraction.isValid(),
+      "callback-control timestamped regional interaction returned an invalid retraction handle");
+
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
+  publisher.rtiAmbassador().timeAdvanceRequest(*interactionTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "callback-control timestamped regional interaction publisher grant");
+
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getInteractionClassHandle(
+        options.interactionClassName));
+  }
+  require(
+      receiver.recorder().timedInteractions().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "disabled callbacks exposed timestamped regional interaction or its grant");
+
+  receiver.rtiAmbassador().enableCallbacks();
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(receiver.evokeMultipleCallbacks(0.0, 1.0));
+  } else {
+    static_cast<void>(receiver.rtiAmbassador().getInteractionClassHandle(
+        options.interactionClassName));
+  }
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "re-enabled callback-control timestamped regional interaction");
+
+  auto const interactions = receiver.recorder().timedInteractions();
+  require(
+      interactions.size() == 1U,
+      "re-enabled callback-control timestamped regional interaction delivered duplicates");
+  auto const& interaction = interactions.front();
+  require(
+      interaction.interaction == receiverHandles.interactionClass &&
+          interaction.parameters.size() == 1U &&
+          interaction.parameters.count(receiverHandles.parameter) == 1U &&
+          copyBytes(interaction.parameters.at(receiverHandles.parameter)) ==
+              parameterBytes &&
+          interaction.tag == tagBytes &&
+          interaction.producer == publisher.federateHandle() &&
+          interaction.time == encodeTime(*interactionTime) &&
+          !interaction.timeText.empty() &&
+          interaction.sentOrder == rti::TIMESTAMP &&
+          interaction.receivedOrder == rti::TIMESTAMP &&
+          interaction.transportation.isValid() &&
+          !receiver.rtiAmbassador().getTransportationTypeName(
+              interaction.transportation).empty() &&
+          interaction.retractionPresent &&
+          interaction.retraction == copyBytes(retraction.encode()) &&
+          interaction.regions.has_value() &&
+          interaction.regions->size() == 1U &&
+          interaction.regions->count(sourceRegion) == 1U,
+      "re-enabled timestamped regional interaction returned the wrong metadata");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "grant"},
+      "re-enabled timestamped regional interaction crossed its grant boundary");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      receiverHandles.interactionClass,
+      receiverRegionSet);
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherHandles.interactionClass);
+  receiver.rtiAmbassador().deleteRegion(receiverRegion);
+  publisher.rtiAmbassador().deleteRegion(sourceRegion);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioCallbackControlsTimestampedRegionalInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackControlsTimestampedRegionalInteraction(options, model);
+}
+
 void scenarioCallbackControlsTimestampedObjectRemoval(
     Options const& options,
     rti::CallbackModel model) {
@@ -70343,6 +70599,61 @@ void scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestor
       model);
 }
 
+void waitForConnectionLossAndSignal(
+    Session& lost,
+    Options const& options,
+    std::string const& description) {
+  if (!options.connectionLossReadyMarker.empty()) {
+    std::ofstream readyMarker(
+        options.connectionLossReadyMarker,
+        std::ios::binary | std::ios::trunc);
+    require(
+        static_cast<bool>(readyMarker),
+        "Could not write the connection-loss readiness marker");
+    readyMarker << "ready\n";
+    require(
+        static_cast<bool>(readyMarker),
+        "Could not flush the connection-loss readiness marker");
+  }
+  auto const lossDeadline = Clock::now() +
+      std::chrono::milliseconds(options.timeoutMilliseconds);
+  while (Clock::now() < lossDeadline && !lost.recorder().hasConnectionLost()) {
+    // Connection loss is an external transport event.  Even with
+    // HLA_IMMEDIATE, a provider may need a standard callback-servicing call to
+    // observe an EOF before it can deliver the normative immediate callback.
+    // This remains a bounded standard-API progress probe; ordinary
+    // application callbacks are still recorded under the model selected at
+    // connect time.
+    try {
+      static_cast<void>(lost.rtiAmbassador().evokeMultipleCallbacks(0.0, 0.05));
+    } catch (...) {
+      // A provider may surface the socket fault on the Evoke operation before
+      // placing the normative callback on the next callback turn.
+    }
+    if (!lost.recorder().hasConnectionLost()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }
+  require(
+      lost.recorder().hasConnectionLost(),
+      "Timed out waiting for " + description + " connectionLost callback");
+  require(
+      !lost.recorder().connectionLostDescription().empty(),
+      description + " connectionLost did not provide a fault description");
+  if (!options.connectionLossMarker.empty()) {
+    std::ofstream marker(
+        options.connectionLossMarker,
+        std::ios::binary | std::ios::trunc);
+    require(
+        static_cast<bool>(marker),
+        "Could not write the connection-loss completion marker");
+    marker << "callback-ok\n";
+    require(
+        static_cast<bool>(marker),
+        "Could not flush the connection-loss completion marker");
+  }
+}
+
 void scenarioConnectionLoss(Options const& options, rti::CallbackModel model) {
   require(
       options.connectionLossServerManaged,
@@ -70352,37 +70663,7 @@ void scenarioConnectionLoss(Options const& options, rti::CallbackModel model) {
   auto const federation = federationName(options, "connection-loss");
   connectAndJoin(owner, member, options, federation, options.fom);
 
-  auto const lossDeadline = Clock::now() +
-      std::chrono::milliseconds(options.timeoutMilliseconds);
-  while (Clock::now() < lossDeadline && !member.recorder().hasConnectionLost()) {
-    // Connection loss is an external transport event.  Even with
-    // HLA_IMMEDIATE, a provider may need a standard callback-servicing call to
-    // observe an EOF before it can deliver the normative immediate callback.
-    // This remains a bounded standard-API progress probe, not a callback-model
-    // substitution; ordinary application callbacks are still recorded under
-    // the model selected at connect time.
-    try {
-      static_cast<void>(member.rtiAmbassador().evokeMultipleCallbacks(0.0, 0.05));
-    } catch (...) {
-      // A provider may surface the socket fault on the Evoke operation
-      // before placing the normative callback on the next callback turn.
-    }
-    if (!member.recorder().hasConnectionLost()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-  }
-  require(member.recorder().hasConnectionLost(),
-          "Timed out waiting for the connectionLost callback");
-  require(!member.recorder().connectionLostDescription().empty(),
-          "connectionLost did not provide a fault description");
-  if (!options.connectionLossMarker.empty()) {
-    std::ofstream marker(
-        options.connectionLossMarker,
-        std::ios::binary | std::ios::trunc);
-    require(static_cast<bool>(marker), "Could not write the connection-loss completion marker");
-    marker << "callback-ok\n";
-    require(static_cast<bool>(marker), "Could not flush the connection-loss completion marker");
-  }
+  waitForConnectionLossAndSignal(member, options, "ordinary connection-loss cleanup");
 
   rti::InteractionClassHandle interactionClass =
       owner.rtiAmbassador().getInteractionClassHandle(options.interactionClassName);
@@ -70401,6 +70682,252 @@ void scenarioConnectionLoss(Options const& options, rti::CallbackModel model) {
 
 void scenarioConnectionLossContract(Options const& options, rti::CallbackModel model) {
   scenarioConnectionLoss(options, model);
+}
+
+void scenarioConnectionLossAutomaticUnconditionalDivestiture(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      options.connectionLossServerManaged,
+      "Automatic connection-loss divestiture requires an adapter-managed fault fixture");
+  Session survivor(options, model, "owner");
+  Session lost(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "connection-loss-automatic-unconditional-divestiture");
+  connectAndJoin(survivor, lost, options, federation, options.fom);
+
+  auto const lostClass =
+      lost.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const survivorClass =
+      survivor.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const lostAttribute =
+      lost.rtiAmbassador().getAttributeHandle(lostClass, options.attributeName);
+  auto const survivorAttribute = survivor.rtiAmbassador().getAttributeHandle(
+      survivorClass,
+      options.attributeName);
+  auto const lostPrivilege = lost.rtiAmbassador().getAttributeHandle(
+      lostClass,
+      L"HLAprivilegeToDeleteObject");
+  auto const survivorPrivilege = survivor.rtiAmbassador().getAttributeHandle(
+      survivorClass,
+      L"HLAprivilegeToDeleteObject");
+  require(
+      lostClass.isValid() && survivorClass.isValid(),
+      "automatic connection-loss divestiture object-class lookup returned an invalid handle");
+  require(
+      lostAttribute.isValid() && survivorAttribute.isValid() &&
+          lostPrivilege.isValid() && survivorPrivilege.isValid(),
+      "automatic connection-loss divestiture attribute lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const lostAttributes{lostAttribute};
+  rti::AttributeHandleSet const survivorAttributes{survivorAttribute};
+  rti::AttributeHandleSet const expectedAssumption{
+      survivorAttribute,
+      survivorPrivilege};
+  lost.rtiAmbassador().publishObjectClassAttributes(lostClass, lostAttributes);
+  survivor.rtiAmbassador().publishObjectClassAttributes(
+      survivorClass,
+      survivorAttributes);
+  survivor.rtiAmbassador().subscribeObjectClassAttributes(
+      survivorClass,
+      survivorAttributes,
+      true,
+      L"");
+
+  auto const object = lost.rtiAmbassador().registerObjectInstance(lostClass);
+  require(
+      object.isValid(),
+      "automatic connection-loss divestiture registration returned an invalid handle");
+  auto const objectName = lost.rtiAmbassador().getObjectInstanceName(object);
+  waitFor(
+      survivor,
+      [&] { return survivor.recorder().hasDiscovery(object); },
+      options,
+      "automatic connection-loss divestiture object discovery");
+
+  lost.rtiAmbassador().setAutomaticResignDirective(
+      rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  require(
+      lost.rtiAmbassador().getAutomaticResignDirective() ==
+          rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES,
+      "automatic connection-loss divestiture directive did not round-trip");
+  survivor.recorder().clearOwnershipRecords();
+
+  waitForConnectionLossAndSignal(
+      lost,
+      options,
+      "automatic unconditional-divestiture");
+  waitFor(
+      survivor,
+      [&] { return survivor.recorder().ownershipAssumption().has_value(); },
+      options,
+      "automatic unconditional-divestiture ownership assumption");
+  auto const assumption = survivor.recorder().ownershipAssumption();
+  require(
+      assumption->object == object &&
+          assumption->attributes == expectedAssumption && assumption->tag.empty(),
+      "automatic unconditional-divestiture offered the wrong ownership set or tag");
+  require(
+      survivor.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "automatic unconditional-divestiture removed the retained object");
+  require(
+      !survivor.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          survivorAttribute) &&
+          !survivor.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              survivorPrivilege),
+      "automatic unconditional-divestiture left the survivor owning released attributes");
+
+  survivor.resign(rti::NO_ACTION);
+  survivor.disconnect();
+}
+
+void scenarioConnectionLossAutomaticUnconditionalDivestitureContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioConnectionLossAutomaticUnconditionalDivestiture(options, model);
+}
+
+void scenarioConnectionLossAutomaticCancelPendingAcquisition(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      options.connectionLossServerManaged,
+      "Automatic connection-loss acquisition cancellation requires an adapter-managed fault fixture");
+  Session owner(options, model, "owner");
+  Session lost(options, model, "member");
+  Session survivor(options, model, "survivor");
+  auto const federation = federationName(
+      options,
+      "connection-loss-automatic-cancel-pending-acquisition");
+  connectAndJoin(owner, lost, options, federation, options.fom);
+  survivor.connect();
+  survivor.join(
+      options.memberFederateName + L"-survivor",
+      options.federateType,
+      federation);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const lostClass =
+      lost.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const survivorClass =
+      survivor.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute =
+      owner.rtiAmbassador().getAttributeHandle(ownerClass, options.attributeName);
+  auto const lostAttribute =
+      lost.rtiAmbassador().getAttributeHandle(lostClass, options.attributeName);
+  auto const survivorAttribute = survivor.rtiAmbassador().getAttributeHandle(
+      survivorClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && lostClass.isValid() && survivorClass.isValid(),
+      "automatic acquisition-cancellation object-class lookup returned an invalid handle");
+  require(
+      ownerAttribute.isValid() && lostAttribute.isValid() && survivorAttribute.isValid(),
+      "automatic acquisition-cancellation attribute lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const lostAttributes{lostAttribute};
+  rti::AttributeHandleSet const survivorAttributes{survivorAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  lost.rtiAmbassador().publishObjectClassAttributes(lostClass, lostAttributes);
+  lost.rtiAmbassador().subscribeObjectClassAttributes(
+      lostClass,
+      lostAttributes,
+      true,
+      L"");
+  survivor.rtiAmbassador().publishObjectClassAttributes(
+      survivorClass,
+      survivorAttributes);
+  survivor.rtiAmbassador().subscribeObjectClassAttributes(
+      survivorClass,
+      survivorAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "automatic acquisition-cancellation registration returned an invalid handle");
+  waitFor(
+      lost,
+      [&] { return lost.recorder().hasDiscovery(object); },
+      options,
+      "automatic acquisition-cancellation lost-member discovery");
+  waitFor(
+      survivor,
+      [&] { return survivor.recorder().hasDiscovery(object); },
+      options,
+      "automatic acquisition-cancellation survivor discovery");
+
+  std::vector<std::uint8_t> const acquisitionTagBytes{0xD6U, 0x25U};
+  std::vector<std::uint8_t> const divestitureTagBytes{0xD7U, 0x25U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(),
+      divestitureTagBytes.size());
+  lost.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      lostAttributes,
+      acquisitionTag);
+  require(
+      !owner.recorder().ownershipReleaseRequest().has_value(),
+      "automatic acquisition-cancellation queued an owner release callback too early");
+  lost.rtiAmbassador().setAutomaticResignDirective(
+      rti::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS);
+  require(
+      lost.rtiAmbassador().getAutomaticResignDirective() ==
+          rti::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS,
+      "automatic acquisition-cancellation directive did not round-trip");
+  survivor.recorder().clearOwnershipRecords();
+
+  waitForConnectionLossAndSignal(
+      lost,
+      options,
+      "automatic pending-acquisition cancellation");
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+  }
+  require(
+      !owner.recorder().ownershipReleaseRequest().has_value(),
+      "automatic pending-acquisition cancellation delivered stale owner release work");
+
+  owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      object,
+      ownerAttributes,
+      divestitureTag);
+  waitFor(
+      survivor,
+      [&] { return survivor.recorder().ownershipAssumption().has_value(); },
+      options,
+      "automatic acquisition-cancellation survivor assumption");
+  auto const assumption = survivor.recorder().ownershipAssumption();
+  require(
+      assumption->object == object &&
+          assumption->attributes == survivorAttributes &&
+          assumption->tag == divestitureTagBytes,
+      "automatic acquisition-cancellation offered the wrong surviving ownership metadata");
+  require(
+      !survivor.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          survivorAttribute),
+      "automatic acquisition-cancellation transferred ownership before acquisition");
+
+  survivor.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.disconnect();
+  survivor.disconnect();
+}
+
+void scenarioConnectionLossAutomaticCancelPendingAcquisitionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioConnectionLossAutomaticCancelPendingAcquisition(options, model);
 }
 
 std::vector<std::pair<std::string, rti::CallbackModel>> callbackModels(Options const& options) {
@@ -71068,6 +71595,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.logical-time-factory-factory-contract",
       "cpp-tck.logical-time-data-elements-contract",
       "cpp-tck.connection-callback-contract",
+      "cpp-tck.callback-reentrancy",
+      "cpp-tck.callback-reentrancy-contract",
       "cpp-tck.federation-lifecycle-contract",
       "cpp-tck.declaration-management-contract",
       "cpp-tck.object-management-contract",
@@ -71512,6 +72041,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-restore-request-failure-contract",
       "cpp-tck.callback-controls-timestamped-attribute-update",
       "cpp-tck.callback-controls-timestamped-attribute-update-contract",
+      "cpp-tck.callback-controls-timestamped-regional-interaction",
+      "cpp-tck.callback-controls-timestamped-regional-interaction-contract",
       "cpp-tck.callback-controls-timestamped-object-removal",
       "cpp-tck.callback-controls-timestamped-object-removal-contract",
       "cpp-tck.callback-controls-timestamped-retraction",
@@ -71648,6 +72179,12 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-empty-module-validation",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
+      "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+      "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+      "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+      "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
+      "java-tck.ddm",
+      "java-tck.save-restore",
   };
 }
 
@@ -71850,6 +72387,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--connection-loss-marker") {
       requireValue(index, argc, argv, argument);
       options.connectionLossMarker = argv[++index];
+    } else if (argument == "--connection-loss-ready-marker") {
+      requireValue(index, argc, argv, argument);
+      options.connectionLossReadyMarker = argv[++index];
     } else if (argument == "--federation-prefix") {
       requireValue(index, argc, argv, argument);
       options.federationPrefix = argv[++index];
@@ -72074,6 +72614,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.connection-callback-contract") {
     return scenarioConnectionCallbackContract;
+  }
+  if (id == "cpp-tck.callback-reentrancy") {
+    return scenarioCallbackReentrancy;
+  }
+  if (id == "cpp-tck.callback-reentrancy-contract") {
+    return scenarioCallbackReentrancyContract;
   }
   if (id == "cpp-tck.federation-lifecycle-contract") {
     return scenarioFederationLifecycleContract;
@@ -73080,6 +73626,7 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioRegionalUnpublishRegionReleaseContract;
   }
   if (id == "cpp-tck.regional-object-update") return scenarioRegionalObjectUpdate;
+  if (id == "java-tck.ddm") return scenarioRegionalObjectUpdate;
   if (id == "cpp-tck.regional-object-update-contract") {
     return scenarioRegionalObjectUpdateContract;
   }
@@ -73388,6 +73935,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.callback-controls-timestamped-attribute-update-contract") {
     return scenarioCallbackControlsTimestampedAttributeUpdateContract;
   }
+  if (id == "cpp-tck.callback-controls-timestamped-regional-interaction") {
+    return scenarioCallbackControlsTimestampedRegionalInteraction;
+  }
+  if (id == "cpp-tck.callback-controls-timestamped-regional-interaction-contract") {
+    return scenarioCallbackControlsTimestampedRegionalInteractionContract;
+  }
   if (id == "cpp-tck.callback-controls-timestamped-object-removal") {
     return scenarioCallbackControlsTimestampedObjectRemoval;
   }
@@ -73444,6 +73997,7 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.federation-save-restore") return scenarioFederationSaveRestore;
+  if (id == "java-tck.save-restore") return scenarioFederationSaveRestore;
   if (id == "cpp-tck.federation-save-restore-interlocks") {
     return scenarioFederationSaveRestoreInterlocks;
   }
@@ -73768,6 +74322,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
   }
+  if (id == "cpp-tck.connection-loss-automatic-unconditional-divestiture") {
+    return scenarioConnectionLossAutomaticUnconditionalDivestiture;
+  }
+  if (id == "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract") {
+    return scenarioConnectionLossAutomaticUnconditionalDivestitureContract;
+  }
+  if (id == "cpp-tck.connection-loss-automatic-cancel-pending-acquisition") {
+    return scenarioConnectionLossAutomaticCancelPendingAcquisition;
+  }
+  if (id == "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract") {
+    return scenarioConnectionLossAutomaticCancelPendingAcquisitionContract;
+  }
   throw std::runtime_error("Unknown scenario: " + id);
 }
 
@@ -73910,7 +74476,11 @@ int run(Options const& options) {
       ScenarioResult result{scenario, callback.first, "passed", "", 0};
       auto const started = Clock::now();
       if ((scenario == "cpp-tck.connection-loss-cleanup" ||
-           scenario == "cpp-tck.connection-loss-cleanup-contract") &&
+           scenario == "cpp-tck.connection-loss-cleanup-contract" ||
+           scenario == "cpp-tck.connection-loss-automatic-unconditional-divestiture" ||
+           scenario == "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract" ||
+           scenario == "cpp-tck.connection-loss-automatic-cancel-pending-acquisition" ||
+           scenario == "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract") &&
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
@@ -74118,6 +74688,8 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-interaction-subscription-filtering-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-contract" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-regional-interaction" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-regional-interaction-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances-contract" ||
                  scenario == "cpp-tck.timestamped-regional-interaction-no-overlap" ||
@@ -74154,6 +74726,8 @@ int run(Options const& options) {
           result.message = "requires an adapter-supplied switch-declaration FOM";
         } else if ((scenario == "cpp-tck.timestamped-regional-interaction" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-contract" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-regional-interaction" ||
+                   scenario == "cpp-tck.callback-controls-timestamped-regional-interaction-contract" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-alternate-advances-contract" ||
                     scenario == "cpp-tck.timestamped-regional-interaction-no-overlap" ||

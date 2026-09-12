@@ -42,6 +42,10 @@ def parse_arguments() -> argparse.Namespace:
         choices=(
             "cpp-tck.connection-loss-cleanup",
             "cpp-tck.connection-loss-cleanup-contract",
+            "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+            "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+            "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+            "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
         ),
         default="cpp-tck.connection-loss-cleanup",
     )
@@ -64,6 +68,8 @@ def parse_arguments() -> argparse.Namespace:
         "--interaction-class",
         default="HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
     )
+    parser.add_argument("--object-class", default="HLAobjectRoot.Employee.Server")
+    parser.add_argument("--attribute", default="Efficiency")
     parser.add_argument("--startup-timeout-s", type=float, default=30.0)
     parser.add_argument("--fixture-timeout-s", type=float, default=30.0)
     parser.add_argument("--results", type=Path)
@@ -106,6 +112,7 @@ def tck_command(
     scenario_id: str,
     port: int,
     marker: Path,
+    ready_marker: Path,
     results: Path,
     junit: Path,
 ) -> list[str]:
@@ -135,9 +142,15 @@ def tck_command(
         arguments.member_configuration_name,
         "--interaction-class",
         arguments.interaction_class,
+        "--object-class",
+        arguments.object_class,
+        "--attribute",
+        arguments.attribute,
         "--connection-loss-server-managed",
         "--connection-loss-marker",
         str(marker),
+        "--connection-loss-ready-marker",
+        str(ready_marker),
         "--timeout-ms",
         str(arguments.timeout_ms),
         "--results",
@@ -163,6 +176,24 @@ def run_one(
     results = marker_directory / "results.json"
     junit = marker_directory / "results.xml"
     marker = marker_directory / "receiver-loss.ok"
+    ready_marker = marker_directory / "connection-loss-ready.ok"
+    (marker_directory / (callback_model + ".mode")).write_text(
+        "enabled", encoding="utf-8"
+    )
+    if scenario_id in {
+        "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+        "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+    }:
+        (marker_directory / "automatic-unconditional.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
+    if scenario_id in {
+        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
+    }:
+        (marker_directory / "automatic-cancel-pending-acquisition.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
     fixture: subprocess.Popen[bytes] | None = None
     try:
         fixture = subprocess.Popen(
@@ -176,6 +207,7 @@ def run_one(
                 scenario_id,
                 port,
                 marker,
+                ready_marker,
                 results,
                 junit,
             ),

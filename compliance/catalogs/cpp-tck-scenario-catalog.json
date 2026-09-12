@@ -206,6 +206,56 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.callback-reentrancy",
+      "category": "connection",
+      "title": "Reject callback-service re-entry from a FederateAmbassador callback",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.listFederationExecutions",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.reportFederationExecutions"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-callback-models",
+        "cpp-1516.1-federation-query-reports"
+      ],
+      "contract_refs": [
+        "standard-callback-reentrancy-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCallbackReentrancy",
+      "runner_id": "cpp-tck.callback-reentrancy",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "run",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.callback-reentrancy-contract",
+      "category": "connection",
+      "title": "Exercise the standard adapter-backed callback-service re-entrancy contract",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.listFederationExecutions",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.reportFederationExecutions"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-callback-models",
+        "cpp-1516.1-federation-query-reports"
+      ],
+      "contract_refs": [
+        "standard-callback-reentrancy-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioCallbackReentrancyContract",
+      "runner_id": "cpp-tck.callback-reentrancy-contract",
+      "parity": "cpp-tck.callback-reentrancy",
+      "default_status": "run",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.federation-lifecycle-contract",
       "category": "federation-management",
       "title": "Exercise the standard federation execution lifecycle and membership-report contract",
@@ -18350,6 +18400,129 @@
     "promotion": "promoted"
   },
   {
+    "id": "cpp-tck.callback-controls-timestamped-regional-interaction",
+    "category": "callback-controls",
+    "title": "Gate standard timestamped regional interaction delivery with callback enable and disable services",
+    "api_methods": [
+      "RTIambassador.getInteractionClassHandle",
+      "RTIambassador.getParameterHandle",
+      "RTIambassador.getDimensionHandle",
+      "RTIambassador.getAvailableDimensionsForInteractionClass",
+      "RTIambassador.publishInteractionClass",
+      "RTIambassador.changeInteractionOrderType",
+      "RTIambassador.createRegion",
+      "RTIambassador.setRangeBounds",
+      "RTIambassador.commitRegionModifications",
+      "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+      "RTIambassador.subscribeInteractionClassWithRegions",
+      "RTIambassador.enableTimeRegulation",
+      "RTIambassador.enableTimeConstrained",
+      "RTIambassador.sendInteractionWithRegions(time)",
+      "RTIambassador.timeAdvanceRequest",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.retract",
+      "RTIambassador.disableTimeConstrained",
+      "RTIambassador.disableTimeRegulation",
+      "RTIambassador.unsubscribeInteractionClassWithRegions",
+      "RTIambassador.unpublishInteractionClass",
+      "RTIambassador.deleteRegion",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.timeRegulationEnabled",
+      "FederateAmbassador.timeConstrainedEnabled",
+      "FederateAmbassador.receiveInteraction(time)",
+      "FederateAmbassador.requestRetraction",
+      "FederateAmbassador.timeAdvanceGrant"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-ddm-timestamped-interaction-delivery",
+      "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+      "cpp-1516.1-time-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "connection-callback-api-contract.json",
+      "connection-implementation-contract.json",
+      "federation-execution-api-contract.json",
+      "timestamped-regional-interaction-api-contract.json",
+      "timestamped-regional-interaction-requirements-contract.json",
+      "request-retraction-api-contract.json",
+      "time-advance-api-contract.json",
+      "time-advance-requirements-contract.json",
+      "time-role-api-contract.json",
+      "time-role-requirements-contract.json",
+      "convey-region-designator-callback-requirements-contract.json",
+      "standard-callback-controls-timestamped-regional-interaction-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsTimestampedRegionalInteraction",
+    "runner_id": "cpp-tck.callback-controls-timestamped-regional-interaction",
+    "parity": "cpp-extension-no-java-counterpart",
+    "default_status": "run",
+    "promotion": "promoted"
+  },
+  {
+    "id": "cpp-tck.callback-controls-timestamped-regional-interaction-contract",
+    "category": "callback-controls",
+    "title": "Standard adapter-backed callback-control contract for timestamped regional interaction delivery",
+    "api_methods": [
+      "RTIambassador.getInteractionClassHandle",
+      "RTIambassador.getParameterHandle",
+      "RTIambassador.getDimensionHandle",
+      "RTIambassador.getAvailableDimensionsForInteractionClass",
+      "RTIambassador.publishInteractionClass",
+      "RTIambassador.changeInteractionOrderType",
+      "RTIambassador.createRegion",
+      "RTIambassador.setRangeBounds",
+      "RTIambassador.commitRegionModifications",
+      "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+      "RTIambassador.subscribeInteractionClassWithRegions",
+      "RTIambassador.enableTimeRegulation",
+      "RTIambassador.enableTimeConstrained",
+      "RTIambassador.sendInteractionWithRegions(time)",
+      "RTIambassador.timeAdvanceRequest",
+      "RTIambassador.disableCallbacks",
+      "RTIambassador.enableCallbacks",
+      "RTIambassador.evokeMultipleCallbacks",
+      "RTIambassador.retract",
+      "RTIambassador.disableTimeConstrained",
+      "RTIambassador.disableTimeRegulation",
+      "RTIambassador.unsubscribeInteractionClassWithRegions",
+      "RTIambassador.unpublishInteractionClass",
+      "RTIambassador.deleteRegion",
+      "RTIambassador.resignFederationExecution",
+      "RTIambassador.destroyFederationExecution",
+      "RTIambassador.disconnect",
+      "FederateAmbassador.timeRegulationEnabled",
+      "FederateAmbassador.timeConstrainedEnabled",
+      "FederateAmbassador.receiveInteraction(time)",
+      "FederateAmbassador.requestRetraction",
+      "FederateAmbassador.timeAdvanceGrant"
+    ],
+    "requirement_ids": [
+      "cpp-1516.1-callback-disable-gating",
+      "cpp-1516.1-callback-enable-release",
+      "cpp-1516.1-callback-model-servicing",
+      "cpp-1516.1-ddm-timestamped-interaction-delivery",
+      "cpp-1516.1-ddm-timestamped-interaction-region-metadata",
+      "cpp-1516.1-time-management",
+      "cpp-1516.1-federation-create-join-resign-destroy"
+    ],
+    "contract_refs": [
+      "standard-callback-controls-timestamped-regional-interaction-contract.json"
+    ],
+    "cpp_test": "src/main.cpp#scenarioCallbackControlsTimestampedRegionalInteractionContract",
+    "runner_id": "cpp-tck.callback-controls-timestamped-regional-interaction-contract",
+    "parity": "cpp-tck.callback-controls-timestamped-regional-interaction",
+    "default_status": "adapter-required",
+    "promotion": "promoted"
+  },
+  {
     "id": "cpp-tck.callback-controls-timestamped-object-removal",
     "category": "callback-controls",
     "title": "Gate standard timestamped object removal with callback enable and disable services",
@@ -24419,6 +24592,144 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+      "category": "connection",
+      "title": "Apply automatic unconditional divestiture after member loss and offer retained object ownership to a survivor",
+      "api_methods": [
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getAutomaticResignDirective",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.requestAttributeOwnershipAssumption"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup",
+        "cpp-1516.1-automatic-resign-directive",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "connection-lost-api-contract.json",
+        "connection-lost-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "support-switches-service-requirements-contract.json",
+        "standard-connection-loss-automatic-ownership-cleanup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioConnectionLossAutomaticUnconditionalDivestiture",
+      "runner_id": "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+      "category": "connection",
+      "title": "Pure standard C++ contract for automatic unconditional divestiture after adapter-managed connection loss",
+      "api_methods": [
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getAutomaticResignDirective",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.requestAttributeOwnershipAssumption"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup",
+        "cpp-1516.1-automatic-resign-directive",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-connection-loss-automatic-ownership-cleanup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioConnectionLossAutomaticUnconditionalDivestitureContract",
+      "runner_id": "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+      "parity": "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+      "category": "connection",
+      "title": "Cancel a lost member's pending ownership acquisition and preserve survivor ownership cleanup",
+      "api_methods": [
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getAutomaticResignDirective",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.requestAttributeOwnershipAssumption"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup",
+        "cpp-1516.1-automatic-resign-directive",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "connection-lost-api-contract.json",
+        "connection-lost-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "support-switches-service-requirements-contract.json",
+        "standard-connection-loss-automatic-ownership-cleanup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioConnectionLossAutomaticCancelPendingAcquisition",
+      "runner_id": "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
+      "category": "connection",
+      "title": "Pure standard C++ contract for canceling a lost member's pending ownership acquisition",
+      "api_methods": [
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getAutomaticResignDirective",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.requestAttributeOwnershipAssumption"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup",
+        "cpp-1516.1-automatic-resign-directive",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-connection-loss-automatic-ownership-cleanup-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioConnectionLossAutomaticCancelPendingAcquisitionContract",
+      "runner_id": "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
+      "parity": "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.regional-interaction-region-validation",
       "category": "regional-interaction-validation",
       "title": "Reject regional interaction region sets that contain unavailable dimensions atomically",
@@ -25371,6 +25682,8 @@
       "parity": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
       "default_status": "adapter-required",
       "promotion": "promoted"
-    }
+    },
+    {"id":"java-tck.ddm","category":"ddm","title":"Exercise regional declaration, association, filtering, and conveyed regions","api_methods":["RTIambassador.createRegion","RTIambassador.setRangeBounds","RTIambassador.registerObjectInstanceWithRegions(named)","RTIambassador.associateRegionsForUpdates","RTIambassador.subscribeObjectClassAttributesWithRegions","RTIambassador.requestAttributeValueUpdateWithRegions","RTIambassador.updateAttributeValues","FederateAmbassador.discoverObjectInstance","FederateAmbassador.reflectAttributeValues"],"requirement_ids":["cpp-1516.1-ddm-regional-object-registration","cpp-1516.1-ddm-regional-object-update","cpp-1516.1-ddm-regional-value-request","cpp-1516.1-ddm-region-designator-callback"],"contract_refs":["object-attribute-region-api-contract.json","object-attribute-region-requirements-contract.json","attribute-value-update-with-regions-api-contract.json","attribute-value-update-with-regions-requirements-contract.json","convey-region-designator-callback-requirements-contract.json","object-instance-named-registration-api-contract.json","object-instance-named-registration-requirements-contract.json","receive-order-attribute-update-api-contract.json","receive-order-attribute-update-requirements-contract.json"],"cpp_test":"src/main.cpp#scenarioRegionalObjectUpdate","runner_id":"java-tck.ddm","native_equivalent_runner_ids":["cpp-tck.regional-object-update"],"default_status":"adapter-required","promotion":"promoted"},
+    {"id":"java-tck.save-restore","category":"save-restore","title":"Complete federation save and restore callbacks","api_methods":["RTIambassador.requestFederationSave","RTIambassador.federateSaveComplete","RTIambassador.requestFederationRestore","FederateAmbassador.federationSaved","FederateAmbassador.federationNotSaved","FederateAmbassador.requestFederationRestoreSucceeded","FederateAmbassador.requestFederationRestoreFailed","FederateAmbassador.federationRestored","FederateAmbassador.federationNotRestored"],"requirement_ids":["cpp-1516.1-federation-save-lifecycle","cpp-1516.1-federation-save-status","cpp-1516.1-federation-restore-lifecycle","cpp-1516.1-federation-restore-status"],"contract_refs":["save-control-api-contract.json","save-control-requirements-contract.json","restore-control-api-contract.json","restore-control-requirements-contract.json","save-restore-interlock-api-contract.json","save-restore-interlock-requirements-contract.json"],"cpp_test":"src/main.cpp#scenarioFederationSaveRestore","runner_id":"java-tck.save-restore","native_equivalent_runner_ids":["cpp-tck.federation-save-restore"],"default_status":"adapter-required","promotion":"promoted"}
   ]
 }

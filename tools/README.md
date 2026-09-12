@@ -151,10 +151,14 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is all 597 promoted scenario IDs (1194 callback-model cases).
- `--scenario-set all` currently configures all 597 available IDs (1194
-cases), with no unpromoted candidates. The
-candidate-inclusive evidence figures below are historical artifacts from an
+    The verified lane is all 607 promoted scenario IDs (1214 callback-model cases).
+  `--scenario-set all` configures the same 607 IDs (1214 cases), because the
+  catalog has no unpromoted scenarios. The promoted
+  `cpp-tck.callback-reentrancy` pair passed all 4/4 focused installed-package callback-model
+  cases using only the official C++ API and standard library. The automatic connection-loss
+  ownership-cleanup pair also passes both callback models through the process adapter,
+  including pending-acquisition cancellation and later standard divestiture.
+Candidate-inclusive evidence figures below are historical artifacts from an
 earlier 344-ID, 688-case catalog and are not the promoted gate. With
 `--connection-loss-fixture <path>`, the Python adapter
 owns the connection-loss fixture and merges its two callback-model results

@@ -349,6 +349,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.regional-unpublish-region-release-contract` | Standard adapter-backed regional publication and region-release dependency contract, including synchronous region deletion after unpublication |
 | `cpp-tck.regional-object-update` | Region-qualified publication/subscription, named registration, regional discovery and Update/Reflect, regional value requests, and region association changes |
 | `cpp-tck.regional-object-update-contract` | Standard adapter-backed regional object publication, subscription, discovery, Update/Reflect, value-request, and region-reassociation contract |
+| `java-tck.ddm` | Java-parity view of regional object declaration/association, value requests, Update/Reflect, discovery, and adapter-supplied DDM filtering |
 | `cpp-tck.regional-attribute-value-request-filtering` | Regional Request Attribute Value Update filtering across foreign, incompatible, uncommitted, empty, disjoint, overlapping, and callback-time moved regions |
 | `cpp-tck.regional-attribute-value-request-filtering-contract` | Standard adapter-backed regional Request Attribute Value Update filtering contract, including validation, source-region scope, default-region eligibility, and callback-time re-evaluation |
 | `cpp-tck.regional-attribute-value-update-response-recheck` | Rechecks current regional overlap when a provider's attribute-value response is reflected, then verifies restored-overlap value, tag, transport, and producer metadata |
@@ -478,6 +479,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
 | `cpp-tck.federation-save-restore-contract` | Standard adapter-backed untimed federation save/restore contract for admission, lifecycle, status, completion/failure, abort, restore callbacks, handle rebinding, and lifecycle boundaries |
+| `java-tck.save-restore` | Java-parity view of standard federation save/restore admission, status, completion/failure, abort, restore callbacks, and handle rebinding |
 | `cpp-tck.federation-save-restore-interlocks` | Representative declaration, object, interaction, ownership, time, DDM, synchronization, and advisory services rejected with `SaveInProgress` and `RestoreInProgress` |
 | `cpp-tck.timed-federation-save-restore` | Timestamped federation save/restore, queued timestamped interaction recovery, Flush Queue delivery, and retraction |
 | `cpp-tck.timed-regional-interaction-save-restore` | Timestamped save/restore of a queued regional interaction with source-region metadata and retraction state |
@@ -597,6 +599,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-empty-mim-create-atomicity-contract` | Standard adapter-backed empty-FOM-vector MIM create atomicity contract |
 | `cpp-tck.connection-loss-cleanup` | Adapter-triggered Connection Lost callback, fault description, survivor service, and cleanup |
 | `cpp-tck.connection-loss-cleanup-contract` | Pure standard C++ contract for the adapter-managed Connection Lost callback, lost-member cleanup, survivor service, and standard disconnect boundary |
+| `cpp-tck.callback-reentrancy` | Callback-service re-entry is rejected while a standard federation-listing callback is executing |
+| `cpp-tck.callback-reentrancy-contract` | Pure standard C++ contract for callback-service re-entry rejection under both callback models |
 
 The shared ordinary-service cases reuse the Java TCK scenario IDs. The
 federation-list, federate-lookup, object-name-reservation, object-registration-discovery, Allow Relaxed DDM, multi-attribute and three-dimensional regional object update, timestamped interaction, timestamped regional attribute, timestamped object-management, alternate-time,
@@ -620,6 +624,16 @@ for the base scenario and its pure standard contract twin, and records combined 
 `.build/cpp-tck-all/connection-loss-current-process.json`. That adapter lane
 passed 4/4 cases and is now the promoted adapter-required connection-loss
 pair. Other adapters must provide the same fixture contract to run either ID.
+
+The promoted `cpp-tck.callback-reentrancy` scenario and its pure standard
+contract twin use only the official C++ API and standard library. They pass
+under both evoked and immediate callback models against the installed package;
+the adapter supplies only the provider package, endpoint, and callback
+configuration.
+
+The automatic connection-loss ownership-cleanup scenarios remain catalog
+candidates until the process-loss adapter can complete their pre-loss object
+setup and route the standard automatic-resign directive through the endpoint.
 
 The promoted `cpp-tck.federation-mom-content-reports` scenario and its pure
 standard contract twin request and decode the standard federation MOM
@@ -1462,10 +1476,10 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-that is 597 scenario IDs and 1194 matrix cases. `--scenario-set all` currently
-          configures the same 597 available IDs (1194 cases); there are no unpromoted
-  candidates in the current catalog. The candidate-inclusive figures later in
-  this document are historical artifacts from the earlier 344-ID, 688-case
+  that is 607 scenario IDs and 1214 matrix cases. `--scenario-set all`
+  configures the same 607 available IDs (1214 cases); the catalog currently has
+  no unpromoted scenarios. Candidate-inclusive figures later in this document
+  are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
 aggregate `hla_rti_cpp_tck_installed` CTest
 remains available for a single full-run check.

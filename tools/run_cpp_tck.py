@@ -322,6 +322,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--connection-loss-configuration-name", default="")
     parser.add_argument("--connection-loss-additional-settings", default="")
     parser.add_argument("--connection-loss-interaction-class", default="")
+    parser.add_argument("--connection-loss-object-class", default="")
+    parser.add_argument("--connection-loss-attribute", default="")
     parser.add_argument("--results", help="Write direct-run JSON evidence to this path")
     parser.add_argument("--junit", help="Write direct-run JUnit evidence to this path")
     parser.add_argument(
@@ -836,6 +838,10 @@ CONNECTION_LOSS_SCENARIO = "cpp-tck.connection-loss-cleanup"
 CONNECTION_LOSS_SCENARIOS = (
     CONNECTION_LOSS_SCENARIO,
     "cpp-tck.connection-loss-cleanup-contract",
+    "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+    "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+    "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+    "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
 )
 CONNECTION_LOSS_ADAPTER = (
     ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
@@ -956,6 +962,8 @@ def run_connection_loss_adapter(
         ("--configuration-name", arguments.connection_loss_configuration_name),
         ("--additional-settings", arguments.connection_loss_additional_settings),
         ("--interaction-class", arguments.connection_loss_interaction_class),
+        ("--object-class", arguments.connection_loss_object_class),
+        ("--attribute", arguments.connection_loss_attribute),
     )
     for flag, value in optional_arguments:
         if value:
