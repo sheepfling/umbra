@@ -460,6 +460,7 @@ struct Options {
   std::filesystem::path knownClassDisabledFom;
   std::vector<std::filesystem::path> additionalFomModules;
   std::vector<std::filesystem::path> invalidFomModules;
+  std::vector<std::filesystem::path> standardInvalidFomModules;
   std::vector<std::string> scenarios;
   std::string callbackModel = "both";
   std::string providerId = "unspecified";
@@ -20505,6 +20506,57 @@ void scenarioDimensionLookupLifecycleContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioDimensionLookupLifecycle(options, model);
+}
+
+void scenarioFomStandardInvalidInputCorpus(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Standard invalid-FOM testing requires an adapter-supplied base FOM");
+  require(
+      !options.standardInvalidFomModules.empty(),
+      "Standard invalid-FOM testing requires adapter-supplied invalid modules");
+
+  Session creator(options, model, "fom-standard-invalid-creator");
+  creator.connect();
+  auto const invalidFomErrors = std::vector<std::wstring>{
+      L"CouldNotOpenFOM",
+      L"ErrorReadingFOM",
+      L"InvalidFOM",
+      L"InconsistentFOM"};
+
+  for (std::size_t index = 0; index < options.standardInvalidFomModules.size(); ++index) {
+    auto const& invalid = options.standardInvalidFomModules.at(index);
+    auto const federation = federationName(
+        options, "fom-standard-invalid-" + std::to_string(index));
+
+    requireExceptionOneOf(
+        [&] {
+          creator.rtiAmbassador().createFederationExecution(
+              federation,
+              invalid.wstring(),
+              options.logicalTimeImplementationName);
+        },
+        invalidFomErrors,
+        "rejecting standard-invalid FOM input " + invalid.string());
+
+    creator.rtiAmbassador().createFederationExecution(
+        federation,
+        options.fom.wstring(),
+        options.logicalTimeImplementationName);
+    creator.join(
+        options.ownerFederateName,
+        options.federateType,
+        federation);
+    require(
+        creator.federateHandle().isValid(),
+        "valid FOM reuse after invalid-FOM rejection did not establish membership");
+    creator.resign(rti::NO_ACTION);
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+  }
+
+  creator.disconnect();
 }
 
 void scenarioFomInvalidCreateAtomicity(
@@ -71362,6 +71414,12 @@ void scenarioParameterLookupLifecycleContract(
   scenarioParameterLookupLifecycle(options, model);
 }
 
+void scenarioFomStandardInvalidInputCorpusContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFomStandardInvalidInputCorpus(options, model);
+}
+
 void scenarioFomInvalidCreateAtomicityContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -71685,6 +71743,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-lookup-lifecycle-contract",
       "cpp-tck.parameter-lookup-lifecycle-contract",
       "cpp-tck.dimension-lookup-lifecycle-contract",
+      "cpp-tck.fom-standard-invalid-input-corpus-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
@@ -72227,6 +72286,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-lookup-lifecycle",
       "cpp-tck.parameter-lookup-lifecycle",
       "cpp-tck.dimension-lookup-lifecycle",
+      "cpp-tck.fom-standard-invalid-input-corpus",
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
@@ -72278,6 +72338,7 @@ void printHelp() {
       "                                Repeat; three-dimensional DDM dimension name\n"
       "  --additional-fom FILE         Repeat; extension FOM module supplied by the adapter\n"
       "  --invalid-fom FILE            Repeat; invalid FOM input supplied by the adapter\n"
+      "  --standard-invalid-fom FILE  Repeat; standard-invalid FOM input supplied by the adapter\n"
       "  --callback-model both|evoked|immediate\n"
       "  --provider-id ID              Result metadata only\n"
       "  --rti-address ADDRESS         Standard RtiConfiguration address\n"
@@ -72426,6 +72487,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--invalid-fom") {
       requireValue(index, argc, argv, argument);
       options.invalidFomModules.emplace_back(argv[++index]);
+    } else if (argument == "--standard-invalid-fom") {
+      requireValue(index, argc, argv, argument);
+      options.standardInvalidFomModules.emplace_back(argv[++index]);
     } else if (argument == "--scenario") {
       requireValue(index, argc, argv, argument);
       options.scenarios.emplace_back(argv[++index]);
@@ -72638,6 +72702,12 @@ Options parseOptions(int argc, char** argv) {
       throw std::runtime_error("Invalid FOM file does not exist: " + path.string());
     }
   }
+  for (auto const& path : options.standardInvalidFomModules) {
+    if (!std::filesystem::is_regular_file(path)) {
+      throw std::runtime_error(
+          "Standard-invalid FOM file does not exist: " + path.string());
+    }
+  }
   if (options.callbackModel != "both" && options.callbackModel != "evoked" &&
       options.callbackModel != "immediate") {
     throw std::runtime_error("--callback-model must be both, evoked, or immediate");
@@ -72766,6 +72836,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.dimension-lookup-lifecycle-contract") {
     return scenarioDimensionLookupLifecycleContract;
+  }
+  if (id == "cpp-tck.fom-standard-invalid-input-corpus-contract") {
+    return scenarioFomStandardInvalidInputCorpusContract;
   }
   if (id == "cpp-tck.fom-invalid-create-atomicity-contract") {
     return scenarioFomInvalidCreateAtomicityContract;
@@ -74364,6 +74437,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.dimension-lookup-lifecycle") {
     return scenarioDimensionLookupLifecycle;
   }
+  if (id == "cpp-tck.fom-standard-invalid-input-corpus") {
+    return scenarioFomStandardInvalidInputCorpus;
+  }
   if (id == "cpp-tck.fom-invalid-create-atomicity") {
     return scenarioFomInvalidCreateAtomicity;
   }
@@ -74493,6 +74569,8 @@ void writeResults(
   writePaths(options.additionalFomModules);
   output << ",\n  \"invalid_fom\": ";
   writePaths(options.invalidFomModules);
+  output << ",\n  \"standard_invalid_fom\": ";
+  writePaths(options.standardInvalidFomModules);
   output << ",\n  \"time_implementation\": \""
          << jsonEscape(toNarrow(options.logicalTimeImplementationName)) << "\",\n"
          << "  \"results\": [\n";
@@ -74634,6 +74712,12 @@ int run(Options const& options) {
                  options.additionalFomModules.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied additional FOM module";
+      } else if ((scenario == "cpp-tck.fom-standard-invalid-input-corpus" ||
+                  scenario == "cpp-tck.fom-standard-invalid-input-corpus-contract") &&
+                 (options.fom.empty() || options.standardInvalidFomModules.empty())) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied base FOM and standard-invalid FOM modules";
       } else if ((scenario == "cpp-tck.fom-invalid-create-atomicity" ||
                   scenario == "cpp-tck.fom-invalid-create-atomicity-contract") &&
                  options.invalidFomModules.empty()) {

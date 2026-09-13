@@ -154,6 +154,9 @@ set(HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES
 set(HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-malformed-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-namespace-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-duplicate-tck.xml"
   CACHE STRING "Semicolon-separated invalid FOM modules supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_STANDARD_INVALID_FOM_MODULES
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-zero-update-rate-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-dimension-default-value-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-reference-object-name-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-reference-basic-representation-tck.xml"
+  CACHE STRING "Semicolon-separated standard-invalid FOM modules supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL "both"
   CACHE STRING "Callback model supplied by this provider adapter")
 set(HLA_RTI_TCK_ADAPTER_TIMEOUT_MS "10000"
@@ -252,6 +255,12 @@ endforeach()
 foreach(_invalid_fom IN LISTS HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES)
   if(NOT EXISTS "${_invalid_fom}" OR IS_DIRECTORY "${_invalid_fom}")
     message(FATAL_ERROR "Adapter invalid FOM does not exist: ${_invalid_fom}")
+  endif()
+endforeach()
+foreach(_standard_invalid_fom IN LISTS HLA_RTI_TCK_ADAPTER_STANDARD_INVALID_FOM_MODULES)
+  if(NOT EXISTS "${_standard_invalid_fom}" OR IS_DIRECTORY "${_standard_invalid_fom}")
+    message(FATAL_ERROR
+      "Adapter standard-invalid FOM does not exist: ${_standard_invalid_fom}")
   endif()
 endforeach()
 if(NOT HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL MATCHES "^(both|evoked|immediate)$")
@@ -398,6 +407,10 @@ foreach(_three_dimensional_dimension IN LISTS HLA_RTI_TCK_ADAPTER_THREE_DIMENSIO
 endforeach()
 foreach(_invalid_fom IN LISTS HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES)
   list(APPEND _tck_common_arguments --invalid-fom "${_invalid_fom}")
+endforeach()
+foreach(_standard_invalid_fom IN LISTS HLA_RTI_TCK_ADAPTER_STANDARD_INVALID_FOM_MODULES)
+  list(APPEND _tck_common_arguments
+    --standard-invalid-fom "${_standard_invalid_fom}")
 endforeach()
 if(HLA_RTI_TCK_ADAPTER_RTI_ADDRESS)
   list(APPEND _tck_common_arguments

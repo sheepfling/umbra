@@ -1478,8 +1478,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 610 scenario IDs and 1220 matrix cases. `--scenario-set all`
-  configures the same 610 available IDs (1220 cases); the catalog currently has
+  that is 612 scenario IDs and 1224 matrix cases. `--scenario-set all`
+  configures the same 612 available IDs (1224 cases); the catalog currently has
   no unpromoted scenarios. Candidate-inclusive figures later in this document
   are historical artifacts from the earlier 344-ID, 688-case
   catalog. The

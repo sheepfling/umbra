@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable C++ TCK corpus for standard-invalid FOM inputs. The adapter supplies the provider package, valid baseline FOM, invalid FOM modules, endpoint, logical-time selection, and callback configuration. Each invalid module is submitted through the standard single-module Create Federation Execution service and must be rejected with one of the standard FOM-related exception classes; the same federation name is then reused for a valid create, join, resign, destroy, and disconnect lifecycle. The contract deliberately does not assert provider-specific diagnostic text, error ordering, registries, headers, or implementation details, and it is not a complete OMT conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-semantic-invalid-input-corpus",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador single-FOM Create Federation Execution rejection and post-failure lifecycle atomicity",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador Create Federation Execution and federation lifecycle declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomStandardInvalidInputCorpusContract"
+      ]
+    }
+  ]
+}

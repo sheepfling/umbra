@@ -41,6 +41,15 @@ DEFAULT_INVALID_FOM = (
     FOM_ROOT / "invalid-namespace-tck.xml",
     FOM_ROOT / "invalid-duplicate-tck.xml",
 )
+DEFAULT_STANDARD_INVALID_FOM = (
+    FOM_ROOT / "invalid-zero-update-rate-tck.xml",
+    FOM_ROOT / "invalid-dimension-default-value-tck.xml",
+    FOM_ROOT / "invalid-array-cardinality-tck.xml",
+    FOM_ROOT / "invalid-variable-array-encoding-tck.xml",
+    FOM_ROOT / "invalid-fixed-array-encoding-tck.xml",
+    FOM_ROOT / "invalid-reference-object-name-tck.xml",
+    FOM_ROOT / "invalid-reference-basic-representation-tck.xml",
+)
 
 # Keep direct child-process command lines below the limits imposed by common
 # process launchers.  The C++ executable accepts repeated --scenario values,
@@ -253,6 +262,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="Invalid FOM module; repeat to replace the default invalid corpus",
     )
+    parser.add_argument(
+        "--standard-invalid-fom",
+        action="append",
+        default=[],
+        help="Standard-invalid FOM module; repeat to replace the default corpus",
+    )
 
     parser.add_argument("--object-class", default="HLAobjectRoot.TckObject")
     parser.add_argument("--attribute", default="Value")
@@ -455,6 +470,11 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
         DEFAULT_INVALID_FOM,
         "invalid FOM",
     )
+    inputs["standard_invalid_fom"] = path_list(
+        arguments.standard_invalid_fom,
+        DEFAULT_STANDARD_INVALID_FOM,
+        "standard-invalid FOM",
+    )
     return inputs
 
 
@@ -518,6 +538,7 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         ),
         "HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES": join_cmake_list(inputs["additional_fom"]),
         "HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES": join_cmake_list(inputs["invalid_fom"]),
+        "HLA_RTI_TCK_ADAPTER_STANDARD_INVALID_FOM_MODULES": join_cmake_list(inputs["standard_invalid_fom"]),
         "HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL": arguments.callback_model,
         "HLA_RTI_TCK_ADAPTER_TIMEOUT_MS": str(arguments.timeout_ms),
         "HLA_RTI_TCK_ADAPTER_SCENARIO_SET": arguments.scenario_set,
@@ -767,6 +788,8 @@ def direct_arguments(
         command.extend(["--three-dimensional-dimension", dimension])
     for path in inputs["invalid_fom"]:
         command.extend(["--invalid-fom", str(path)])
+    for path in inputs["standard_invalid_fom"]:
+        command.extend(["--standard-invalid-fom", str(path)])
     for scenario in selected:
         command.extend(["--scenario", scenario["runner_id"]])
     if arguments.connection_loss_marker:

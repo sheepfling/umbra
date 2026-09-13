@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dimensions>
+        <dimension>
+            <name>TckInvalidDefaultDimension</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable TCK invalid default range.</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Portable TCK normalization.</normalization>
+            <outputDataSemantics>Portable TCK normalized coordinate.</outputDataSemantics>
+            <value>[0..101)</value>
+        </dimension>
+    </dimensions>
+</objectModel>
