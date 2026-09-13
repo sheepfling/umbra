@@ -21367,6 +21367,131 @@ void scenarioFederationLifecycleContract(
   scenarioFederationLifecycle(options, model);
 }
 
+void scenarioStandardExceptionBoundaries(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session member(options, model, "member");
+  auto const federation = federationName(options, "standard-exception-boundaries");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const invalidResignAction = static_cast<rti::ResignAction>(99);
+  requireException(
+      [&] { owner.rtiAmbassador().resignFederationExecution(invalidResignAction); },
+      L"InvalidResignAction",
+      "resigning with an invalid standard action");
+  requireException(
+      [&] { owner.rtiAmbassador().setAutomaticResignDirective(invalidResignAction); },
+      L"InvalidResignAction",
+      "setting an invalid automatic resign directive");
+
+  auto const time = makeTimeContext(owner);
+  std::unique_ptr<rti::LogicalTimeInterval> invalidLookahead;
+  if (time.factory->getName() == L"HLAinteger64Time") {
+    invalidLookahead = std::make_unique<rti::HLAfloat64Interval>(1.0);
+  } else {
+    invalidLookahead = std::make_unique<rti::HLAinteger64Interval>(1);
+  }
+  requireException(
+      [&] {
+        // A positive interval using the other standard representation reaches
+        // the RTI service's implementation-compatibility boundary.
+        owner.rtiAmbassador().enableTimeRegulation(*invalidLookahead);
+      },
+      L"InvalidLookahead",
+      "enabling time regulation with an interval from another implementation");
+
+  requireException(
+      [&] { member.rtiAmbassador().disconnect(); },
+      L"FederateIsExecutionMember",
+      "disconnecting while still a federation execution member");
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const memberClass = member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && ownerAttribute.isValid() && memberClass.isValid() &&
+          memberAttribute.isValid(),
+      "standard exception boundary handle lookup returned an invalid handle");
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  member.rtiAmbassador().subscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "standard exception boundary registration returned an invalid handle");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "standard exception boundary object discovery");
+
+  rti::VariableLengthData const emptyTag;
+  requireException(
+      [&] {
+        owner.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            object,
+            ownerAttributes);
+      },
+      L"AttributeAlreadyOwned",
+      "canceling an acquisition for an attribute already owned by the federate");
+  requireException(
+      [&] {
+        member.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            object,
+            memberAttributes);
+      },
+      L"AttributeAcquisitionWasNotRequested",
+      "canceling an ownership acquisition that was never requested");
+  requireException(
+      [&] { owner.rtiAmbassador().confirmDivestiture(object, ownerAttributes, emptyTag); },
+      L"AttributeDivestitureWasNotRequested",
+      "confirming divestiture without a divestiture request");
+  requireException(
+      [&] { member.rtiAmbassador().deleteObjectInstance(object, emptyTag); },
+      L"DeletePrivilegeNotHeld",
+      "deleting an object without its delete privilege");
+
+  auto const name = federation + L"-named-object";
+  owner.rtiAmbassador().reserveObjectInstanceName(name);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().reservationSucceeded(name); },
+      options,
+      "standard exception boundary object-name reservation");
+  auto const namedObject = owner.rtiAmbassador().registerObjectInstance(ownerClass, name);
+  require(
+      namedObject.isValid(),
+      "standard exception boundary named registration returned an invalid handle");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().registerObjectInstance(ownerClass, name));
+      },
+      L"ObjectInstanceNameInUse",
+      "registering a duplicate object instance name");
+
+  owner.resign(rti::DELETE_OBJECTS);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
+void scenarioStandardExceptionBoundariesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioStandardExceptionBoundaries(options, model);
+}
+
 void scenarioUnnamedJoinOverload(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "unnamed-join-owner");
   Session member(options, model, "unnamed-join-member");
@@ -71700,6 +71825,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.basic-data-elements-contract",
       "cpp-tck.composite-data-elements-contract",
       "cpp-tck.exception-hierarchy-contract",
+      "cpp-tck.standard-exception-boundaries-contract",
       "cpp-tck.enum-contract",
       "cpp-tck.handle-and-collection-contract",
       "cpp-tck.configuration-and-authorization-contract",
@@ -71856,6 +71982,7 @@ std::vector<std::string> allScenarioIds() {
       "java-tck.support-services",
       "cpp-tck.standard-order-and-transportation-lookups",
       "cpp-tck.standard-order-and-transportation-lookups-contract",
+      "cpp-tck.standard-exception-boundaries",
       "java-tck.declaration-management",
       "java-tck.object-management",
       "cpp-tck.attribute-value-update-request-baseline",
@@ -72915,6 +73042,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.exception-hierarchy-contract") {
     return scenarioExceptionHierarchyContract;
   }
+  if (id == "cpp-tck.standard-exception-boundaries-contract") {
+    return scenarioStandardExceptionBoundariesContract;
+  }
   if (id == "cpp-tck.enum-contract") {
     return scenarioEnumContract;
   }
@@ -73201,6 +73331,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.standard-order-and-transportation-lookups-contract") {
     return scenarioStandardOrderAndTransportationLookupsContract;
+  }
+  if (id == "cpp-tck.standard-exception-boundaries") {
+    return scenarioStandardExceptionBoundaries;
   }
   if (id == "java-tck.declaration-management") return scenarioDeclarations;
   if (id == "java-tck.object-management") return scenarioObjectManagement;
@@ -74626,6 +74759,11 @@ int run(Options const& options) {
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
+      } else if ((scenario == "cpp-tck.standard-exception-boundaries" ||
+                  scenario == "cpp-tck.standard-exception-boundaries-contract") &&
+                 options.fom.empty()) {
+        result.status = "skipped";
+        result.message = "requires an adapter-supplied base FOM";
       } else if ((scenario == "cpp-tck.attribute-relevance-known-class" ||
                   scenario == "cpp-tck.attribute-relevance-known-class-contract") &&
                  options.knownClassFom.empty()) {

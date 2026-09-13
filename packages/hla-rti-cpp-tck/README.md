@@ -30,6 +30,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.logical-time-factory-factory-contract` | Provider- and FOM-independent official logical-time factory-factory contract: standard default and integer selection, reference-factory forwarding, unknown-name rejection, and initial-value construction |
 | `cpp-tck.logical-time-data-elements-contract` | Standard `HLAlogicalTime` and `HLAlogicalTimeInterval` DataElement wrappers: selected-factory round trips, nested-buffer encode/decode, clone and copy independence, type compatibility, boundaries, and truncation failures; provider, FOM, endpoint, callback model, and time implementation are supplied by the adapter |
 | `cpp-tck.exception-hierarchy-contract` | Provider- and FOM-independent official C++ exception hierarchy contract: every standard derived exception constructor, name/message accessors, copy/assignment, polymorphic base behavior, and stream output |
+| `cpp-tck.standard-exception-boundaries` | Adapter-backed standard service-level exception outcomes: invalid resign actions and lookahead, joined-member disconnect, ownership cancellation and confirmation boundaries, delete privilege, and duplicate named registration |
+| `cpp-tck.standard-exception-boundaries-contract` | Pure standard C++ contract twin for deterministic service-level exception boundaries, using only adapter-supplied provider, baseline FOM, endpoint, logical-time, and callback configuration |
 | `cpp-tck.enum-contract` | Provider- and FOM-independent official C++ enumeration contract: distinct standard values for settings, callback, order, resign, save, restore, service-group, synchronization, and authorization-result families |
 | `cpp-tck.handle-and-collection-contract` | Provider- and FOM-independent official C++ handle and collection contract: invalid-handle identity, hashing/order, handle sets, handle-value maps, `RangeBounds`, region-pair vectors, and federation/restore record vectors |
 | `cpp-tck.configuration-and-authorization-contract` | Provider- and FOM-independent official C++ configuration, federation-record, credential, authorization, and local `Authorizer`/`AuthorizerFactory` contract: builder/accessor behavior, copy/assignment independence, credential decoding/storage, authorization results, and polymorphic dispatch |
@@ -1478,8 +1480,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 612 scenario IDs and 1224 matrix cases. `--scenario-set all`
-  configures the same 612 available IDs (1224 cases); the catalog currently has
+  that is 614 scenario IDs and 1228 matrix cases. `--scenario-set all`
+  configures the same 614 available IDs (1228 cases); the catalog currently has
   no unpromoted scenarios. Candidate-inclusive figures later in this document
   are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1699,6 +1701,10 @@ The promoted `cpp-tck.exception-hierarchy-contract` runner exposes the complete
 official C++ exception hierarchy as an independently selectable,
 provider- and FOM-independent slice; its cross-language parity anchor is
 `java-tck.overloads-and-exceptions`.
+The promoted `cpp-tck.standard-exception-boundaries` scenario and its contract
+twin add deterministic service-level exception outcomes to that API inventory,
+using only the adapter-supplied baseline FOM and standard federation services;
+there is no Java runtime claim for this C++-only extension.
 The promoted `cpp-tck.enum-contract` runner exposes the official C++
 enumeration families as an independently selectable, provider- and
 FOM-independent slice; its parity anchor is

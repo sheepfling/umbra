@@ -314,6 +314,72 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.standard-exception-boundaries-contract",
+      "category": "api-surface",
+      "title": "Exercise deterministic standard service-level exception boundaries",
+      "api_methods": [
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disconnect",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.reserveObjectInstanceName",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-standard-exception-boundary"
+      ],
+      "contract_refs": [
+        "standard-service-exception-boundaries-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioStandardExceptionBoundariesContract",
+      "runner_id": "cpp-tck.standard-exception-boundaries-contract",
+      "parity": "cpp-tck.standard-exception-boundaries",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.standard-exception-boundaries",
+      "category": "api-surface",
+      "title": "Verify deterministic standard service-level exception outcomes",
+      "api_methods": [
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disconnect",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.reserveObjectInstanceName",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-standard-exception-boundary"
+      ],
+      "contract_refs": [
+        "standard-service-exception-boundaries-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioStandardExceptionBoundaries",
+      "runner_id": "cpp-tck.standard-exception-boundaries",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.enum-contract",
       "category": "api-surface",
       "title": "Exercise the official provider-independent C++ enumeration contract",
